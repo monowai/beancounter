@@ -2,6 +2,8 @@
   "data": {
     "id": "EMPTY",
     "code": "EMPTY",
+    "marketValue": 0,
+    "irr": 0,
     "name": "NZD Portfolio",
     "currency": {
       "code": "NZD",
@@ -17,7 +19,7 @@
       "id": "blah@blah.com",
       "email": "blah@blah.com",
       "active": true,
-      "auth0": "blah@blah.com",
+      "auth0": "",
       "since": "2020-03-08"
     }
   }

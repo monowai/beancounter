@@ -30,9 +30,10 @@ class PortfolioService internal constructor(
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = systemUserService.getOrThrow
         val results: MutableCollection<Portfolio> = ArrayList()
-        portfolioRepository.saveAll(
-            portfolioInputAdapter.prepare(owner, portfolios),
-        ).forEach(Consumer { e: Portfolio -> results.add(e) })
+        portfolioRepository
+            .saveAll(
+                portfolioInputAdapter.prepare(owner, portfolios),
+            ).forEach(Consumer { e: Portfolio -> results.add(e) })
         return results
     }
 
@@ -108,6 +109,8 @@ class PortfolioService internal constructor(
         val existing = find(id)
         return portfolioRepository.save(portfolioInputAdapter.fromInput(portfolioInput!!, existing))
     }
+
+    fun maintain(portfolio: Portfolio): Portfolio = portfolioRepository.save(portfolio)
 
     fun delete(id: String) {
         val portfolio = find(id)

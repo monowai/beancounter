@@ -62,7 +62,12 @@ internal class PortfolioControllerOwnershipTests {
                 Constants.NZD.code,
             )
         // User A creates a Portfolio
-        val portfolio = BcMvcHelper.portfolioCreate(portfolioInput, mockMvc, tokenA).data.iterator().next()
+        val portfolio =
+            BcMvcHelper
+                .portfolioCreate(portfolioInput, mockMvc, tokenA)
+                .data
+                .iterator()
+                .next()
         assertThat(portfolio.owner).hasFieldOrPropertyWithValue("email", tokenA.subject)
         // User B, while a valid system user, cannot see UserA portfolios even if they know the ID
         verifyPortfolioCantBeFound(portfolio, tokenB)
@@ -81,15 +86,19 @@ internal class PortfolioControllerOwnershipTests {
         portfolio: Portfolio,
         token: Jwt,
     ) {
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(BcMvcHelper.PORTFOLIO_BY_ID, portfolio.id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(BcMvcHelper.PORTFOLIO_BY_ID, portfolio.id)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andReturn()
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(BcMvcHelper.PORTFOLIO_BY_CODE, portfolio.code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(BcMvcHelper.PORTFOLIO_BY_CODE, portfolio.code)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andReturn()
     }
 }

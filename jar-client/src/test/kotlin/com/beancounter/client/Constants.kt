@@ -24,8 +24,10 @@ class Constants {
             SystemUser(
                 id = "blah@blah.com",
                 email = "blah@blah.com",
-                true,
+                auth0 = "",
+                googleId = "",
                 since = DateUtils().getFormattedDate("2020-03-08"),
+                active = true,
             )
         var portfolio: Portfolio =
             Portfolio(

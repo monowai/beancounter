@@ -25,3 +25,5 @@ beancounter:
   topics:
     ca:
       event: topicEvent
+    pos:
+      mv: topicMv

@@ -170,7 +170,6 @@ beancounter:
         name: Ringgit
         symbol: "RM"
 
-
   asset.categories:
     default: Equity
     values:

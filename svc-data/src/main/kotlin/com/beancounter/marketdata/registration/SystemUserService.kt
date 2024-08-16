@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.stereotype.Service
 import java.util.Optional
 
@@ -20,6 +21,21 @@ class SystemUserService(
     private val tokenService: TokenService,
     private val authProviders: AuthProviders,
 ) : Registration {
+    fun registerSystemAccount(id: String): RegistrationResponse {
+        if (!isServiceAccount()) {
+            throw BusinessException("Only Service accounts can be registered here")
+        }
+
+        return RegistrationResponse(
+            save(
+                SystemUser(
+                    id = id,
+                    email = id,
+                ),
+            ),
+        )
+    }
+
     fun register(): RegistrationResponse {
         if (isServiceAccount()) {
             throw BusinessException("Service accounts can not be registered for user activities")
@@ -47,13 +63,9 @@ class SystemUserService(
         }
     }
 
-    fun save(systemUser: SystemUser): SystemUser {
-        return systemUserRepository.save(systemUser)
-    }
+    fun save(systemUser: SystemUser): SystemUser = systemUserRepository.save(systemUser)
 
-    fun isServiceAccount(): Boolean {
-        return tokenService.isServiceToken
-    }
+    fun isServiceAccount(): Boolean = tokenService.isServiceToken
 
     fun find(id: String?): SystemUser? {
         if (id == null) return null
@@ -74,9 +86,7 @@ class SystemUserService(
         return result.orElse(null)
     }
 
-    fun getActiveUser(): SystemUser? {
-        return find(tokenService.subject)
-    }
+    fun getActiveUser(): SystemUser? = find(tokenService.subject)
 
     val getOrThrow: SystemUser
         get() {
@@ -86,7 +96,5 @@ class SystemUserService(
             return getActiveUser()!!
         }
 
-    override fun register(systemUser: SystemUser): RegistrationResponse {
-        return RegistrationResponse(save(systemUser))
-    }
+    override fun register(systemUser: SystemUser): RegistrationResponse = RegistrationResponse(save(systemUser))
 }

@@ -68,7 +68,7 @@
           "id": "blah@blah.com",
           "email": "blah@blah.com",
           "active": true,
-          "auth0": "blah@blah.com",
+          "auth0": "",
           "since": "2020-03-08"
         }
       },
@@ -146,7 +146,7 @@
         "owner": {
           "id": "blah@blah.com",
           "email": "blah@blah.com",
-          "auth0": "blah@blah.com",
+          "auth0": "",
           "active": true,
           "since": "2020-03-08"
         }
@@ -225,7 +225,7 @@
         "owner": {
           "id": "blah@blah.com",
           "email": "blah@blah.com",
-          "auth0": "blah@blah.com",
+          "auth0": "",
           "active": true,
           "since": "2020-03-08"
         }
@@ -304,7 +304,7 @@
         "owner": {
           "id": "blah@blah.com",
           "email": "blah@blah.com",
-          "auth0": "blah@blah.com",
+          "auth0": "",
           "active": true,
           "since": "2020-03-08"
         }
@@ -383,7 +383,7 @@
         "owner": {
           "id": "blah@blah.com",
           "email": "blah@blah.com",
-          "auth0": "blah@blah.com",
+          "auth0": "",
           "active": true,
           "since": "2020-03-08"
         }

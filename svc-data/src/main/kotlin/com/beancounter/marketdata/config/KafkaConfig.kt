@@ -16,6 +16,9 @@ import org.springframework.kafka.config.TopicBuilder
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 @Configuration
 class KafkaConfig {
+    @Value("\${beancounter.topics.pos.mv:bc-pos-mv-dev}")
+    lateinit var topicPosMvName: String
+
     @Value("\${beancounter.topics.trn.csv:bc-trn-csv-dev}")
     lateinit var topicTrnCsvName: String
 
@@ -24,10 +27,21 @@ class KafkaConfig {
 
     @Value("\${beancounter.topics.price:bc-price-dev}")
     lateinit var topicPriceName: String
+    private val log = LoggerFactory.getLogger(KafkaConfig::class.java)
+
+    @Bean
+    fun topicPosMv(): NewTopic =
+        TopicBuilder
+            .name(topicPosMvName)
+            .partitions(1)
+            .replicas(1)
+            .compact()
+            .build()
 
     @Bean
     fun topicTrnCvs(): NewTopic =
-        TopicBuilder.name(topicTrnCsvName)
+        TopicBuilder
+            .name(topicTrnCsvName)
             .partitions(1)
             .replicas(1)
             .compact()
@@ -35,7 +49,8 @@ class KafkaConfig {
 
     @Bean
     fun topicTrnEvent(): NewTopic =
-        TopicBuilder.name(topicTrnEventName)
+        TopicBuilder
+            .name(topicTrnEventName)
             .partitions(1)
             .replicas(1)
             .compact()
@@ -43,7 +58,8 @@ class KafkaConfig {
 
     @Bean
     fun topicPrice(kafaConfig: KafkaConfig): NewTopic =
-        TopicBuilder.name(topicPriceName)
+        TopicBuilder
+            .name(topicPriceName)
             .partitions(1)
             .replicas(1)
             .compact()
@@ -67,7 +83,9 @@ class KafkaConfig {
         return topicPriceName
     }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(KafkaConfig::class.java)
-    }
+    @Bean
+    fun posMvTopic(): String =
+        topicPosMvName.also {
+            log.info("BEANCOUNTER_TOPICS_POS_MV: {}", topicPosMvName)
+        }
 }

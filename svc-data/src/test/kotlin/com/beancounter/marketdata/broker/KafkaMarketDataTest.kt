@@ -35,6 +35,7 @@ import java.math.BigDecimal
 class KafkaMarketDataTest {
     companion object {
         const val TOPIC_EVENT = "topicEvent"
+        const val TOPIC_MV = "topicMv"
     }
 
     // Setup so that the wiring is tested

@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
@@ -20,7 +21,9 @@ data class Portfolio(
     @Id val id: String,
     val code: String = id,
     val name: String = code,
+    @Column(precision = 15, scale = 6)
     val marketValue: BigDecimal = BigDecimal.ZERO,
+    @Column(precision = 15, scale = 6)
     val irr: BigDecimal = BigDecimal.ZERO,
     @ManyToOne val currency: Currency = Currency("USD"),
     @ManyToOne val base: Currency = currency,

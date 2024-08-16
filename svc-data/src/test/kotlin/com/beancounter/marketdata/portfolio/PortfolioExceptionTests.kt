@@ -61,27 +61,31 @@ class PortfolioExceptionTests {
     @Test
     fun notFoundByCode() {
         // Assert not found
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(PORTFOLIO_BY_CODE, "does not exist")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(PORTFOLIO_BY_CODE, "does not exist")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
     }
 
     @Test
     fun notFoundById() {
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(PORTFOLIO_BY_ID, "invalidId")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(PORTFOLIO_BY_ID, "invalidId")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
     }
 
     @Test
-    @Disabled("Logic in this does not look write. Where is the existing portfolio?")
+    @Disabled("Logic in this does not look correct. Where is the existing portfolio?")
     fun uniqueConstraintInPlace() {
         val portfolioInput =
             PortfolioInput(
@@ -93,21 +97,24 @@ class PortfolioExceptionTests {
         // Code and Owner are the same so, reject
         // Can't create two portfolios with the same code
         val result =
-            mockMvc.perform(
-                MockMvcRequestBuilders.post(BcMvcHelper.PORTFOLIO_ROOT)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .with(
-                        SecurityMockMvcRequestPostProcessors.csrf(),
-                    ).content(
-                        objectMapper
-                            .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput, portfolioInput))),
-                    )
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isConflict)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post(BcMvcHelper.PORTFOLIO_ROOT)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.csrf(),
+                        ).content(
+                            objectMapper
+                                .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput, portfolioInput))),
+                        ).contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isConflict)
                 .andReturn()
-        assertThat(result.resolvedException)
+        assertThat(result.resolvedException!!)
             .isNotNull
-            .isInstanceOfAny(DataIntegrityViolationException::class.java)
+            .let {
+                assertThat(it).isInstanceOfAny(DataIntegrityViolationException::class.java)
+            }
     }
 
     @Test
@@ -121,15 +128,16 @@ class PortfolioExceptionTests {
                 Constants.NZD.code,
             )
         // Authenticated, but unregistered user can't create portfolios
-        mockMvc.perform(
-            MockMvcRequestBuilders.post(BcMvcHelper.PORTFOLIO_ROOT)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .content(
-                    objectMapper
-                        .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput))),
-                )
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isForbidden)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post(BcMvcHelper.PORTFOLIO_ROOT)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(
+                        objectMapper
+                            .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput))),
+                    ).contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
     }
 }

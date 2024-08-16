@@ -40,6 +40,10 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${auth.uri}
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   cloud:
     openfeign:
       client:

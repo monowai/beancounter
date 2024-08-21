@@ -77,14 +77,13 @@ internal class MoneyValueTest {
     private fun createSellTransaction(
         quantity: BigDecimal,
         tradeAmount: BigDecimal,
-    ): Trn {
-        return Trn(
+    ): Trn =
+        Trn(
             trnType = TrnType.SELL,
             asset = microsoft,
             quantity = quantity,
             tradeAmount = tradeAmount,
         )
-    }
 
     private val costBasis = BigDecimal("2100.23")
 
@@ -111,10 +110,11 @@ internal class MoneyValueTest {
         accumulator.accumulate(buy, positions)
         val tradeMoney = position.getMoneyValues(Position.In.TRADE)
         assertThat(
-            position.quantityValues.getTotal().multiply(tradeMoney.averageCost)
+            position.quantityValues
+                .getTotal()
+                .multiply(tradeMoney.averageCost)
                 .setScale(2, RoundingMode.HALF_UP),
-        )
-            .isEqualTo(tradeMoney.costBasis)
+        ).isEqualTo(tradeMoney.costBasis)
         val sell =
             Trn(
                 trnType = TrnType.SELL,
@@ -124,10 +124,11 @@ internal class MoneyValueTest {
             )
         accumulator.accumulate(sell, positions)
         assertThat(
-            position.quantityValues.getTotal()
-                .multiply(tradeMoney.averageCost).setScale(2, RoundingMode.HALF_UP),
-        )
-            .isEqualTo(tradeMoney.costValue)
+            position.quantityValues
+                .getTotal()
+                .multiply(tradeMoney.averageCost)
+                .setScale(2, RoundingMode.HALF_UP),
+        ).isEqualTo(tradeMoney.costValue)
         assertThat(tradeMoney)
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, costBasis)
             .hasFieldOrPropertyWithValue(PROP_SALES, sell.tradeAmount)

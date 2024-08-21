@@ -43,7 +43,8 @@ internal class TrnOrderTest {
             Trn(
                 trnType = TrnType.BUY,
                 tradeDate =
-                    yesterday.atStartOfDay(dateUtils.zoneId)
+                    yesterday
+                        .atStartOfDay(dateUtils.zoneId)
                         .toLocalDate(),
                 asset = apple,
                 quantity = hundred,
@@ -54,7 +55,8 @@ internal class TrnOrderTest {
             Trn(
                 trnType = TrnType.BUY,
                 tradeDate =
-                    today.atStartOfDay(dateUtils.zoneId)
+                    today
+                        .atStartOfDay(dateUtils.zoneId)
                         .toLocalDate(),
                 asset = apple,
                 quantity = hundred,

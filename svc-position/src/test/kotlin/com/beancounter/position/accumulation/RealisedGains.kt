@@ -71,7 +71,9 @@ class RealisedGains {
         tradeMoney: MoneyValues,
     ) {
         val calculatedCostBasis =
-            position.quantityValues.getTotal().multiply(tradeMoney.averageCost)
+            position.quantityValues
+                .getTotal()
+                .multiply(tradeMoney.averageCost)
                 .setScale(2, RoundingMode.HALF_UP)
         assertThat(calculatedCostBasis).isEqualTo(tradeMoney.costBasis)
     }
@@ -83,8 +85,18 @@ class RealisedGains {
     ) {
         val sells =
             listOf(
-                Trn(trnType = TrnType.SELL, asset = bidu, quantity = BigDecimal(-3), tradeAmount = BigDecimal("841.63")),
-                Trn(trnType = TrnType.SELL, asset = bidu, quantity = BigDecimal(-7), tradeAmount = BigDecimal("1871.01")),
+                Trn(
+                    trnType = TrnType.SELL,
+                    asset = bidu,
+                    quantity = BigDecimal(-3),
+                    tradeAmount = BigDecimal("841.63"),
+                ),
+                Trn(
+                    trnType = TrnType.SELL,
+                    asset = bidu,
+                    quantity = BigDecimal(-7),
+                    tradeAmount = BigDecimal("1871.01"),
+                ),
             )
         sells.forEach { sell ->
             accumulator.accumulate(sell, positions)

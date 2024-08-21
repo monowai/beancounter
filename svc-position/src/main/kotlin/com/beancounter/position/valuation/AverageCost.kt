@@ -23,6 +23,12 @@ class AverageCost {
         costBasis: BigDecimal,
         total: BigDecimal?,
     ): BigDecimal {
+        if (total == null || total.signum() == 0) {
+            return BigDecimal.ZERO
+        }
+        if (costBasis.signum() == 0) {
+            return BigDecimal.ZERO
+        }
         return costBasis.divide(total, getMathContext())
     }
 

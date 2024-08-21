@@ -72,7 +72,7 @@ class BuyBehaviour(
             moneyValues.costBasis.add(
                 multiply(trn.tradeAmount, rate),
             )
-        if (moneyValues.costBasis != BigDecimal.ZERO) {
+        if (moneyValues.costBasis != BigDecimal.ZERO && position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
         }
         moneyValues.costValue = averageCost.getCostValue(position, moneyValues)

@@ -19,7 +19,9 @@ private const val CASH = "CASH"
  * Compute the market value and accumulate gains
  */
 @Service
-class MarketValue(private val gains: Gains) {
+class MarketValue(
+    private val gains: Gains,
+) {
     fun value(
         positions: Positions,
         marketData: MarketData,

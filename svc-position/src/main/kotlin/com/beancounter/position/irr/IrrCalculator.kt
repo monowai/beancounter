@@ -59,7 +59,7 @@ class IrrCalculator(
         val npvFunction = NPVFunction(periodicCashFlows, firstDate)
 
         return try {
-            solver.solve(1000, npvFunction, -0.99, 10000.0, guess)
+            solver.solve(1000, npvFunction, -0.9999, 10000.0, guess)
         } catch (e: NoBracketingException) {
             throw IllegalArgumentException("XIRR did not converge", e)
         }
@@ -69,8 +69,8 @@ class IrrCalculator(
         private val periodicCashFlows: PeriodicCashFlows,
         private val startDate: LocalDate,
     ) : UnivariateFunction {
-        override fun value(rate: Double): Double {
-            return periodicCashFlows.cashFlows.sumOf {
+        override fun value(rate: Double): Double =
+            periodicCashFlows.cashFlows.sumOf {
                 it.amount /
                     (1 + rate).pow(
                         ChronoUnit.DAYS.between(
@@ -79,7 +79,6 @@ class IrrCalculator(
                         ) / 365.0,
                     )
             }
-        }
     }
 
     companion object {

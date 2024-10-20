@@ -21,7 +21,7 @@ import java.net.ConnectException
  */
 @ControllerAdvice
 class GlobalExceptionHandler(
-    @Value("\${sentry.enabled:false}") val sentryEnabled: Boolean,
+    @Value("\${sentry.enabled:false}") val sentryEnabled: Boolean = false,
 ) {
     @ExceptionHandler(AccessDeniedException::class, ForbiddenException::class)
     @ResponseBody

@@ -125,13 +125,24 @@ kotlin {
   jvmToolchain(21)
 }
 
+def isCI = System.getenv('CI')?.toBoolean() ?: false
+
 sentry {
   // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
   // This enables source context, allowing you to see your source
   // code as part of your stack traces in Sentry.
-  includeSourceContext = true
+  if (isCI){
+    includeSourceContext = true
 
-  org = "monowai-developments-ltd"
-  projectName = "position"
-  authToken = System.getenv("SENTRY_AUTH_TOKEN")
+    org = "monowai-developments-ltd"
+    projectName = "position"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
+  } else {
+    //enabled = false
+  }
+}
+
+tasks.named('sentryCollectSourcesJava') {
+  dependsOn tasks.named('generateContractTests')
+  mustRunAfter tasks.named('generateContractTests')
 }

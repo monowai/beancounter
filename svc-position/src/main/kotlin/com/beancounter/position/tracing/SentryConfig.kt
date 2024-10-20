@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration
 // @ConditionalOnProperty(name = ["\${sentry.enabled}"], havingValue = "true")
 @Configuration
 class SentryConfig(
-    @Value("\${sentry.dsn}") val dsn: String,
+    @Value("\${sentry.dsn:not-set}") val dsn: String,
 ) {
     init {
         LoggerFactory

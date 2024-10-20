@@ -10,6 +10,7 @@ plugins {
   id 'org.springframework.boot' version "${springVersion}"
   id 'org.springframework.cloud.contract' version "${verifierVersion}"
   id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
+  id "io.sentry.jvm.gradle" version "4.12.0"
 }
 
 apply from: '../kotlin-spring.gradle'
@@ -25,6 +26,11 @@ publishing {
     }
   }
 }
+dependencyManagement {
+  imports {
+    mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.6.0")
+  }
+}
 
 dependencies {
   implementation(
@@ -35,6 +41,10 @@ dependencies {
     project(":jar-auth"),
     "org.springframework.boot:spring-boot-starter-web",
     "org.springframework.boot:spring-boot-starter-logging",
+    "io.sentry:sentry-spring-boot-starter-jakarta:7.15.0",
+    "io.sentry:sentry-opentelemetry-core:7.15.0",
+    "io.sentry:sentry-openfeign:7.15.0",
+    "org.springframework.boot:spring-boot-starter-aop",
     "org.springframework.cloud:spring-cloud-starter-openfeign",
     "org.springframework.boot:spring-boot-starter-security",
     "org.springframework.security:spring-security-oauth2-resource-server",
@@ -113,4 +123,15 @@ repositories {
 }
 kotlin {
   jvmToolchain(21)
+}
+
+sentry {
+  // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+  // This enables source context, allowing you to see your source
+  // code as part of your stack traces in Sentry.
+  includeSourceContext = true
+
+  org = "monowai-developments-ltd"
+  projectName = "position"
+  authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }

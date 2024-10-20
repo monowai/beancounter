@@ -7,7 +7,6 @@ import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.MoneyValues
@@ -20,18 +19,15 @@ import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
 import com.beancounter.position.valuation.RoiCalculator
+import io.sentry.kotlin.SentryContext
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * Obtains necessary prices and fx rates for the requested positions, returning them as valued positions in
- * various currencies.
- */
 @Service
 class PositionValuationService(
     private val marketValue: MarketValue,
@@ -59,7 +55,10 @@ class PositionValuationService(
             positions.asAt,
         )
 
-        val (priceResponse, fxResponse) = getValuationData(positions)
+        val (priceResponse, fxResponse) =
+            runBlocking {
+                getValuationData(positions)
+            }
         if (priceResponse.data.isEmpty()) {
             log.info("No prices found on date {}", positions.asAt)
             return positions // Prevent NPE
@@ -81,8 +80,6 @@ class PositionValuationService(
         pfTotals.irr = irr
         tradeTotals.irr = irr
 
-        // Set the accumulated totals once after all computations are done
-
         log.debug(
             "Completed valuation of {} positions.",
             positions.positions.size,
@@ -90,13 +87,16 @@ class PositionValuationService(
         return positions
     }
 
-    private fun getTradeCurrency(positions: Positions): Currency {
-        return if (positions.isMixedCurrencies) {
+    private fun getTradeCurrency(positions: Positions): Currency =
+        if (positions.isMixedCurrencies) {
             positions.portfolio.base
         } else {
-            positions.positions.values.firstOrNull()?.asset?.market?.currency ?: positions.portfolio.base
+            positions.positions.values
+                .firstOrNull()
+                ?.asset
+                ?.market
+                ?.currency ?: positions.portfolio.base
         }
-    }
 
     private fun calculateMarketValues(
         positions: Positions,
@@ -114,7 +114,6 @@ class PositionValuationService(
             val refMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, position.asset.market.currency)
             val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, tradeCurrency)
 
-            // Directly add to the totals, reducing method calls
             baseTotals.marketValue = baseTotals.marketValue.add(baseMoneyValues.marketValue)
             refTotals.marketValue = refTotals.marketValue.add(refMoneyValues.marketValue)
             tradeTotals.marketValue = tradeTotals.marketValue.add(tradeMoneyValues.marketValue)
@@ -136,21 +135,12 @@ class PositionValuationService(
             val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
             portfolioMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, tradeTotals.marketValue)
 
-            // Calculate ROI once and use it for all three types
             val roi = roiCalculator.calculateROI(tradeMoneyValues)
 
             if (position.asset.market.code != "CASH") {
-//                log.trace(
-//                    "Position: {}, MarketValue: {}, Weight: {}, ROI: {}",
-//                    position.asset.code,
-//                    tradeMoneyValues.marketValue,
-//                    tradeMoneyValues.weight,
-//                    roi,
-//                )
                 position.periodicCashFlows.add(position, theDate)
                 positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
                 val irr = BigDecimal(irrCalculator.calculate(position.periodicCashFlows))
-                // Calculate the gain for each position
                 setTotals(tradeTotals, tradeMoneyValues, roi, irr)
                 setTotals(baseTotals, baseMoneyValues, roi, irr)
                 setTotals(refTotals, portfolioMoneyValues, roi, irr)
@@ -176,36 +166,31 @@ class PositionValuationService(
         totals.gain = totals.gain.add(moneyValues.totalGain)
     }
 
-    private fun getValuationData(positions: Positions): ValuationData {
-        try {
-            val fxRequest = fxUtils.buildRequest(positions.portfolio.base, positions)
-            val priceRequest = PriceRequest.of(positions.asAt, positions)
-            val token = tokenService.bearerToken
-            // Start both asynchronous operations simultaneously
-            val futurePriceResponse =
-                CompletableFuture.supplyAsync {
-                    priceService.getPrices(priceRequest, token)
-                }
+    suspend fun getValuationData(
+        positions: Positions,
+        token: String = tokenService.bearerToken,
+    ): ValuationData =
+        withContext(SentryContext()) {
+            try {
+                val fxRequest = fxUtils.buildRequest(positions.portfolio.base, positions)
+                val priceRequest = PriceRequest.of(positions.asAt, positions)
+                val priceDeferred =
+                    async {
+                        priceService.getPrices(priceRequest, token)
+                    }
+                val fxDeferred =
+                    async {
+                        fxRateService.getRates(fxRequest, token)
+                    }
 
-            val futureFxResponse =
-                CompletableFuture.supplyAsync {
-                    fxRateService.getRates(fxRequest, token)
-                }
+                val prices = priceDeferred.await()
+                val rates = fxDeferred.await()
 
-            // Wait for both futures to complete and then create ValuationData
-            val rates = futureFxResponse.get(30, TimeUnit.SECONDS)
-            val prices = futurePriceResponse.get(180, TimeUnit.SECONDS)
-
-            return ValuationData(prices, rates)
-        } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt() // set the interrupt flag
-            throw IllegalStateException("Thread was interrupted while fetching market data.", e)
-        } catch (e: ExecutionException) {
-            throw SystemException("Error fetching market data", e)
-        } catch (e: TimeoutException) {
-            throw SystemException("Timed out waiting for market data", e)
+                ValuationData(prices, rates)
+            } catch (e: CancellationException) {
+                throw IllegalStateException("Thread was interrupted while fetching market data.", e)
+            }
         }
-    }
 
     companion object {
         private val log = LoggerFactory.getLogger(PositionValuationService::class.java)

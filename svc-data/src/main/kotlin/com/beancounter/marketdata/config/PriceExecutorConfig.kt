@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.config
 
+import io.sentry.spring.jakarta.SentryTaskDecorator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -32,6 +33,7 @@ class PriceExecutorConfig {
         priceExecutor.corePoolSize = corePoolSize
         priceExecutor.maxPoolSize = maxPoolSize
         priceExecutor.setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
+        priceExecutor.setTaskDecorator(SentryTaskDecorator())
         priceExecutor.queueCapacity = queueCapacity
         priceExecutor.keepAliveSeconds = threadTimeout
         return priceExecutor

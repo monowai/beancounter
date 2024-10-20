@@ -1,8 +1,10 @@
 package com.beancounter.common.exception
 
 import feign.FeignException
+import io.sentry.Sentry
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -18,7 +20,9 @@ import java.net.ConnectException
  * When an exception is thrown, it is intercepted by this class and a JSON friendly response is returned.
  */
 @ControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(
+    @Value("\${sentry.enabled:false}") val sentryEnabled: Boolean,
+) {
     @ExceptionHandler(AccessDeniedException::class, ForbiddenException::class)
     @ResponseBody
     @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -34,8 +38,14 @@ class GlobalExceptionHandler {
         request: HttpServletRequest,
         e: Throwable,
     ): ProblemDetail =
-        ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.message ?: "Unexpected issue")
-            .also { log.error(e.message, e) }
+        ProblemDetail
+            .forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.message ?: "Unexpected issue")
+            .also {
+                log.error(e.message, e)
+                if (sentryEnabled) {
+                    Sentry.captureException(e)
+                }
+            }
 
     private val errorMessage = "We are unable to process your request."
 

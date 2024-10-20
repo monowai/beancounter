@@ -25,6 +25,20 @@ management:
       exposure:
         include: "*"
 
+sentry:
+  enabled: true
+  environment: local
+  traces-sample-rate: 1
+  debug: false
+
+otel:
+  traces:
+    exporter: none
+  metrics:
+    exporter: none
+  logs:
+    exporter: none
+
 logging:
   level:
     root: info
@@ -37,6 +51,7 @@ logging:
       github:
         resilience4j: error
     feign: error
+    okhttp3: error
     com:
       netfix: error
       beancounter: debug

@@ -10,7 +10,7 @@
 !.secrets/public-keys/
 .gitsecret/keys/random_seed
 .gitsecret/keys/pubring.kbx~
-
+**/application-local.yaml
 
 .ci/gradle*
 

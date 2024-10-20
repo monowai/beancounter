@@ -22,6 +22,20 @@ management:
     git:
       mode: SIMPLE
 
+sentry:
+  enabled: true
+  environment: local
+  traces-sample-rate: 1
+  debug: false
+
+otel:
+  traces:
+    exporter: none
+  metrics:
+    exporter: none
+  logs:
+    exporter: none
+
 marketdata:
   url: "http://localhost:9510"
 beancounter:
@@ -66,6 +80,7 @@ logging:
     netflix: error
     jdk: error
     feign: fatal
+    okhttp3: error
     com:
       netfix: error
       beancounter: debug

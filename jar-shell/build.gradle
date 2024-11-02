@@ -12,7 +12,7 @@ plugins {
 apply from: '../kotlin-spring.gradle'
 version = "0.1.1"
 ext {
-    set('springShellVersion', "3.2.3")
+    set('springShellVersion', "3.3.3")
 }
 
 dependencyManagement {

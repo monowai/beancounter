@@ -18,6 +18,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
         "com.beancounter.event",
         "com.beancounter.auth",
         "com.beancounter.common.utils",
+        "com.beancounter.common.telemetry",
         "com.beancounter.common.exception",
     ],
 )

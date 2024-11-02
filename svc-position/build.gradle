@@ -1,3 +1,5 @@
+import de.undercouch.gradle.tasks.download.Download
+
 plugins {
   id 'io.spring.dependency-management'
   id 'org.jetbrains.kotlin.jvm'
@@ -11,6 +13,7 @@ plugins {
   id 'org.springframework.cloud.contract' version "${verifierVersion}"
   id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
   id "io.sentry.jvm.gradle" version "4.12.0"
+  id "de.undercouch.download" version "5.6.0"
 }
 
 apply from: '../kotlin-spring.gradle'
@@ -41,9 +44,7 @@ dependencies {
     project(":jar-auth"),
     "org.springframework.boot:spring-boot-starter-web",
     "org.springframework.boot:spring-boot-starter-logging",
-    "io.sentry:sentry-spring-boot-starter-jakarta:7.15.0",
-    "io.sentry:sentry-opentelemetry-core:7.15.0",
-    "io.sentry:sentry-openfeign:7.15.0",
+    "io.sentry:sentry-openfeign:${sentryVersion}",
     "org.springframework.boot:spring-boot-starter-aop",
     "org.springframework.cloud:spring-cloud-starter-openfeign",
     "org.springframework.boot:spring-boot-starter-security",
@@ -145,4 +146,25 @@ sentry {
 tasks.named('sentryCollectSourcesJava') {
   dependsOn tasks.named('generateContractTests')
   mustRunAfter tasks.named('generateContractTests')
+}
+
+tasks.named('sentryCollectSourcesJava') {
+  dependsOn tasks.named('generateContractTests')
+  mustRunAfter tasks.named('generateContractTests')
+}
+
+tasks.register('downloadSentryAgent', Download) {
+  src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentryVersion}/sentry-opentelemetry-agent-${sentryVersion}.jar"
+  dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar").get().asFile
+  onlyIfNewer true
+}
+
+tasks.register('copySentryAgent', Copy) {
+  from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar")
+  into 'lib'
+  dependsOn downloadSentryAgent
+}
+
+tasks.build {
+  dependsOn copySentryAgent
 }

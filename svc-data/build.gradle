@@ -1,3 +1,5 @@
+import de.undercouch.gradle.tasks.download.Download
+
 plugins {
   id 'io.spring.dependency-management'
   id 'org.jetbrains.kotlin.jvm'
@@ -11,7 +13,9 @@ plugins {
   id 'com.gorylenko.gradle-git-properties' version "${gitProperties}"
   id 'maven-publish'
   id "io.sentry.jvm.gradle" version "4.12.0"
+  id "de.undercouch.download" version "5.6.0"
 }
+
 apply from: '../kotlin-spring.gradle'
 
 version = "0.1.1"
@@ -42,10 +46,9 @@ dependencies {
     "org.springframework.boot:spring-boot-starter-data-jpa",
     "org.springframework.boot:spring-boot-starter-logging",
     "org.springframework.cloud:spring-cloud-starter-openfeign",
-    "io.sentry:sentry-spring-boot-starter-jakarta:7.15.0",
-    "io.sentry:sentry-opentelemetry-core:7.15.0",
-    "io.sentry:sentry-openfeign:7.15.0",
-    "io.sentry:sentry-jdbc:7.15.0",
+    "io.sentry:sentry-openfeign:${sentryVersion}",
+    "io.sentry:sentry-jdbc:${sentryVersion}",
+    // "io.sentry:sentry-kafka:${sentryVersion}",
     "org.springframework.boot:spring-boot-starter-aop",
     "org.springframework.boot:spring-boot-starter-security",
     "org.springframework.security:spring-security-oauth2-resource-server",
@@ -147,18 +150,34 @@ sentry {
   // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
   // This enables source context, allowing you to see your source
   // code as part of your stack traces in Sentry.
-  if (isCI){
+  if (isCI) {
     includeSourceContext = true
 
     org = "monowai-developments-ltd"
     projectName = "position"
     authToken = System.getenv("SENTRY_AUTH_TOKEN")
   } else {
-
+    // Not on CI
   }
 }
 
 tasks.named('sentryCollectSourcesJava') {
   dependsOn tasks.named('generateContractTests')
   mustRunAfter tasks.named('generateContractTests')
+}
+
+tasks.register('downloadSentryAgent', Download) {
+  src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentryVersion}/sentry-opentelemetry-agent-${sentryVersion}.jar"
+  dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar").get().asFile
+  onlyIfNewer true
+}
+
+tasks.register('copySentryAgent', Copy) {
+  from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar")
+  into 'lib'
+  dependsOn downloadSentryAgent
+}
+
+tasks.build {
+  dependsOn copySentryAgent
 }

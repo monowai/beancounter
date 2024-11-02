@@ -48,6 +48,7 @@ logging:
     netflix: error
     jdk: error
     io:
+      openttelemetry: error
       github:
         resilience4j: error
     feign: error

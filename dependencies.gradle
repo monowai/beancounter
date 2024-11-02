@@ -7,4 +7,6 @@ ext{
   gitProperties='2.4.1'
   postgresVersion='42.7.3'
   mockitoKotlinVersion='5.4.0'
+  sentryVersion='7.16.0'
+  kotestVersion='5.9.1'
 }

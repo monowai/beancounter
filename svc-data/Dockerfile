@@ -1,12 +1,12 @@
-FROM amazoncorretto:21-al2023
+FROM eclipse-temurin:21.0.5_11-jre
 ARG JAR_FILE=build/libs/svc-data-0.1.1.jar
 #docker build . -t monowai/bc-data:dev
 
 ARG GIT_COMMIT
 ARG VERSION
 
-ENV GIT_COMMIT ${GIT_COMMIT}
-ENV VERSION ${VERSION}
+ENV GIT_COMMIT=${GIT_COMMIT}
+ENV VERSION=${VERSION}
 
 EXPOSE 9510 9511 5005
 

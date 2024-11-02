@@ -1,13 +1,13 @@
-FROM amazoncorretto:21-al2023
+FROM eclipse-temurin:21.0.5_11-jre
 #docker build . -t bc/shell
 
 ARG JAR_FILE=build/libs/jar-shell-0.1.1.jar
 ARG GIT_COMMIT
 ARG VERSION
 
-ENV GIT_COMMIT ${GIT_COMMIT}
-ENV VERSION ${VERSION}
-ENV API_PATH /secrets/google-api/
+ENV GIT_COMMIT=${GIT_COMMIT}
+ENV VERSION=${VERSION}
+ENV API_PATH=/secrets/google-api/
 
 VOLUME /tmp
 

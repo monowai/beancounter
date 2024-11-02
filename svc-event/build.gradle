@@ -54,15 +54,13 @@ dependencies {
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
-            "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
             "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
-            "io.kotest:kotest-runner-junit5:${koTestVersion}",
-            "io.kotest:kotest-assertions-core:${koTestVersion}",
-            "io.kotest:kotest-framework-engine:${koTestVersion}",
+            "io.kotest:kotest-runner-junit5:5.9.1",
+            "io.kotest:kotest-assertions-core:5.9.1",
+            "io.kotest:kotest-framework-engine:5.9.1",
             testFixtures(project(":jar-auth")),
 
     )

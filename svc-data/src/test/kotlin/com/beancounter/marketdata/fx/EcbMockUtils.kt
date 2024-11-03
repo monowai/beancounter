@@ -21,9 +21,7 @@ object EcbMockUtils {
     operator fun get(
         date: String,
         rates: Map<String, BigDecimal>,
-    ): ExRatesResponse {
-        return ExRatesResponse(USD.code, dateUtils.getFormattedDate(date), rates)
-    }
+    ): ExRatesResponse = ExRatesResponse(USD.code, dateUtils.getFormattedDate(date), rates)
 
     @JvmStatic
     fun getRateMap(
@@ -33,15 +31,13 @@ object EcbMockUtils {
         nzd: String,
         aud: String,
         myr: String,
-    ): Map<String, BigDecimal> {
-        return mapOf(
+    ): Map<String, BigDecimal> =
+        mapOf(
             AUD.code to BigDecimal(aud),
             EUR.code to BigDecimal(eur),
             GBP.code to BigDecimal(gbp),
             MYR.code to BigDecimal(myr),
             NZD.code to BigDecimal(nzd),
             SGD.code to BigDecimal(sgd),
-            USD.code to BigDecimal("1.0"),
         )
-    }
 }

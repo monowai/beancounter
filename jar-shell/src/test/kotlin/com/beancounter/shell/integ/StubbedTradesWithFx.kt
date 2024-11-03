@@ -52,7 +52,7 @@ internal class StubbedTradesWithFx {
 
     @Autowired
     private lateinit var shareSightConfig: ShareSightConfig
-    private val testDate = "27/07/2019" // Sharesight format
+    private val testDate = "26/07/2019" // Sharesight format
 
     @MockBean
     lateinit var tokenService: TokenService

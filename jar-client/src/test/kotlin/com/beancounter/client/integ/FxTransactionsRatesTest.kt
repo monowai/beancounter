@@ -59,8 +59,7 @@ class FxTransactionsRatesTest {
                     tradeBaseRate = BigDecimal.ONE,
                 ),
             ),
-        )
-            .isFalse()
+        ).isFalse()
     }
 
     @Test
@@ -71,9 +70,10 @@ class FxTransactionsRatesTest {
         val rate = BigDecimal("1.50")
         val fxPairResults =
             FxPairResults(
-                mapOf(Pair(IsoCurrencyPair(USD.code, NZD.code), FxRate(USD, NZD, rate))),
+                mapOf(Pair(IsoCurrencyPair(USD.code, NZD.code), FxRate(from = USD, to = NZD, rate = rate))),
             )
-        Mockito.`when`(fxClientService.getRates(fxRequest))
+        Mockito
+            .`when`(fxClientService.getRates(fxRequest))
             .thenReturn(
                 FxResponse(
                     data = fxPairResults,

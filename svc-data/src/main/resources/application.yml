@@ -105,6 +105,8 @@ spring:
     open-in-view: false
     generate-ddl: true
     show-sql: false
+    hibernate:
+        ddl-auto: update
     properties:
       hibernate:
         globally_quoted_identifiers: true

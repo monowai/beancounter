@@ -148,7 +148,7 @@ class KafkaTrnExportImportTest {
         `when`(fxService.getRates(any(), any())).thenReturn(
             FxResponse(
                 FxPairResults(
-                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(USD, USD, date = "2000-01-01"))),
+                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(from = USD, to = USD, date = dateUtils.getDate("2000-01-01")))),
                 ),
             ),
         )
@@ -239,8 +239,8 @@ class KafkaTrnExportImportTest {
     private fun getTrnInput(
         asset: Asset,
         callerRef: CallerRef,
-    ): TrnInput {
-        return TrnInput(
+    ): TrnInput =
+        TrnInput(
             callerRef,
             asset.id,
             trnType = BUY,
@@ -250,21 +250,20 @@ class KafkaTrnExportImportTest {
             cashCurrency = asset.market.currency.code,
             price = BigDecimal(5.99),
         )
-    }
 
     private fun exportDelimitedFile(
         forPortfolio: Portfolio,
         token: Jwt,
     ): String {
         val results =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}/export", forPortfolio.id)
-                    .with(
-                        SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
-                    )
-                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
-            )
-                .andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/trns/portfolio/{portfolioId}/export", forPortfolio.id)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
+                        ).with(SecurityMockMvcRequestPostProcessors.csrf()),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.TEXT_PLAIN_VALUE))
                 .andReturn()
         assertThat(results).isNotNull
@@ -315,9 +314,11 @@ class KafkaTrnExportImportTest {
             rateResponse: File,
         ) {
             WireMock.stubFor(
-                WireMock.get(WireMock.urlEqualTo(url))
+                WireMock
+                    .get(WireMock.urlEqualTo(url))
                     .willReturn(
-                        WireMock.aResponse()
+                        WireMock
+                            .aResponse()
                             .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .withBody(
                                 objectMapper.writeValueAsString(
@@ -326,8 +327,7 @@ class KafkaTrnExportImportTest {
                                         HashMap::class.java,
                                     ),
                                 ),
-                            )
-                            .withStatus(200),
+                            ).withStatus(200),
                     ),
             )
         }

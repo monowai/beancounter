@@ -3,10 +3,10 @@ package com.beancounter.common.model
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 
-@Entity
 /**
  * Persistent representation of a Currency.
  */
+@Entity
 data class Currency(
     @Id var code: String,
     var name: String? = "Dollar",
@@ -23,11 +23,7 @@ data class Currency(
         return code == other.code
     }
 
-    override fun hashCode(): Int {
-        return code.hashCode()
-    }
+    override fun hashCode(): Int = code.hashCode()
 
-    override fun toString(): String {
-        return code
-    }
+    override fun toString(): String = code
 }

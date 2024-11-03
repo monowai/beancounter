@@ -58,6 +58,9 @@ class FxTransactionsTest {
     @MockBean
     lateinit var tokenService: TokenService
 
+    @Autowired
+    lateinit var dateUtils: DateUtils
+
     @BeforeEach
     fun noOpToken() {
         Mockito.`when`(tokenService.bearerToken).thenReturn("")
@@ -105,7 +108,7 @@ class FxTransactionsTest {
             assertThat(fxPairResults).isNotNull.hasFieldOrProperty("rates")
             assertThat(fxPairResults.rates).containsKeys(isoCurrencyPair)
             assertThat(fxPairResults.rates[isoCurrencyPair])
-                .hasFieldOrPropertyWithValue("date", testDate)
+                .hasFieldOrPropertyWithValue("date", dateUtils.getDate(testDate))
         }
     }
 
@@ -127,7 +130,7 @@ class FxTransactionsTest {
         for (isoCurrencyPair in isoCurrencyPairs) {
             assertThat(fxPairResults.rates).containsKeys(isoCurrencyPair)
             assertThat(fxPairResults.rates[isoCurrencyPair])
-                .hasFieldOrPropertyWithValue("date", "1999-01-04")
+                .hasFieldOrPropertyWithValue("date", dateUtils.getDate("1996-07-27"))
         }
     }
 

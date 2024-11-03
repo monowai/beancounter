@@ -50,22 +50,11 @@ data class Asset(
             )
     }
 
-//    constructor(code: String, market: Market, marketCode: String = market.code, status: Status = Status.Active) : this(
-//        id = code,
-//        code = code,
-//        name = code,
-//        market = market,
-//        marketCode = marketCode,
-//        status = status,
-//    )
-
     // Is this asset stored locally?
     @get:JsonIgnore
     @get:Transient
     val isKnown: Boolean
         get() = !code.equals(id, ignoreCase = true)
 
-    override fun toString(): String {
-        return "Asset(code=$code, name=$name, market=${market.code})"
-    }
+    override fun toString(): String = "Asset(code=$code, name=$name, market=${market.code})"
 }

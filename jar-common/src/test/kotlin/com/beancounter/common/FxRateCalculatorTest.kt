@@ -81,8 +81,8 @@ internal class FxRateCalculatorTest {
                 currencyPairs = pairs,
                 rateMap =
                     mapOf(
-                        Pair(NZD.code, FxRate(USD, NZD, BigDecimal(rawRate))),
-                        Pair(USD.code, FxRate(USD, USD, BigDecimal.ONE)),
+                        Pair(NZD.code, FxRate(from = USD, to = NZD, rate = BigDecimal(rawRate))),
+                        Pair(USD.code, FxRate(from = USD, to = USD, rate = BigDecimal.ONE)),
                     ),
             )
 
@@ -93,7 +93,8 @@ internal class FxRateCalculatorTest {
         with(fromJson) {
             assertThat(data).isNotNull
             assertThat(data.rates)
-                .hasSize(3).containsKeys(nzdUsd, usdUsd, usdNzd)
+                .hasSize(3)
+                .containsKeys(nzdUsd, usdUsd, usdNzd)
             assertThat(data.rates[usdUsd])
                 .hasFieldOrPropertyWithValue(FROM_CODE, USD.code)
                 .hasFieldOrPropertyWithValue(TO_CODE, USD.code)

@@ -83,7 +83,7 @@ class PositionValuationServiceTest {
     fun setup() {
         valuationService =
             PositionValuationService(
-                MarketValue(Gains()),
+                MarketValue(Gains(), DateUtils()),
                 fxUtils,
                 priceService,
                 fxRateService,

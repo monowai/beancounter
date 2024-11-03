@@ -3,8 +3,8 @@ package com.beancounter.marketdata.fx.fxrates
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.currency.CurrencyService
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 /**
@@ -20,15 +20,15 @@ class EcbService
     ) {
         private val ecbDate = EcbDate(dateUtils)
 
-        @Cacheable("fx.rates")
-        fun getRates(asAt: String): Collection<FxRate> {
+        @RateLimiter(name = "fxRates")
+        fun getRates(asAt: String): List<FxRate> {
             val ecbRates =
                 fxGateway.getRatesForSymbols(
                     ecbDate.getValidDate(asAt),
                     currencyService.baseCurrency.code,
                     currencyService.currenciesAs,
                 )
-            val results: MutableCollection<FxRate> = ArrayList()
+            val results: MutableList<FxRate> = ArrayList()
             if (ecbRates?.rates != null) {
                 for (code in ecbRates.rates.keys) {
                     results.add(
@@ -36,7 +36,7 @@ class EcbService
                             currencyService.baseCurrency,
                             currencyService.getCode(code),
                             ecbRates.rates[code] ?: error("No rate"),
-                            ecbRates.date.toString(),
+                            ecbDate.dateUtils.getDate(ecbRates.date.toString()),
                         ),
                     )
                 }

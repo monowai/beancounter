@@ -9,7 +9,9 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.currency.CurrencyService
@@ -37,7 +39,7 @@ import java.time.LocalDate
  * FX MVC tests for rates at today and historic dates
  */
 @SpringMvcDbTest
-internal class FxMvcTests {
+internal class FxFullStackTest {
     private var dateUtils = DateUtils()
 
     @Autowired
@@ -51,6 +53,7 @@ internal class FxMvcTests {
 
     @MockBean
     private lateinit var fxGateway: FxGateway
+
     private val date = "2019-08-27"
 
     @Test
@@ -67,7 +70,12 @@ internal class FxMvcTests {
         val theRates = results.rates
 
         // Assert that the necessary currency pairs are present in the result
-        assertThat(theRates.keys).containsExactlyInAnyOrder(nzdUsd, usdNzd, IsoCurrencyPair(usd, usd), IsoCurrencyPair(nzd, nzd))
+        assertThat(theRates.keys).containsExactlyInAnyOrder(
+            nzdUsd,
+            usdNzd,
+            IsoCurrencyPair(usd, usd),
+            IsoCurrencyPair(nzd, nzd),
+        )
 
         // Assert that each currency pair has a non-null date associated with its rate
         for (isoCurrencyPair in theRates.keys) {
@@ -89,14 +97,13 @@ internal class FxMvcTests {
     private fun mockProviderRates() {
         `when`(
             fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)),
+        ).thenReturn(
+            ExRatesResponse(
+                USD.code,
+                LocalDate.now(),
+                getFxRates(),
+            ),
         )
-            .thenReturn(
-                ExRatesResponse(
-                    USD.code,
-                    LocalDate.now(),
-                    getFxRates(),
-                ),
-            )
     }
 
     @Test
@@ -137,20 +144,56 @@ internal class FxMvcTests {
         fxRequest: FxRequest,
         expectedResult: ResultMatcher = status().isOk,
         mediaType: MediaType = MediaType.APPLICATION_JSON,
-    ) = mockMvc.perform(
-        MockMvcRequestBuilders.post(FX_ROOT)
-            .with(
-                SecurityMockMvcRequestPostProcessors.jwt()
-                    .jwt(mockAuthConfig.getUserToken(Constants.systemUser)),
-            )
-            .with(SecurityMockMvcRequestPostProcessors.csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(
-                objectMapper.writeValueAsString(fxRequest),
-            ),
-    ).andExpect(expectedResult)
+    ) = mockMvc
+        .perform(
+            MockMvcRequestBuilders
+                .post(FX_ROOT)
+                .with(
+                    SecurityMockMvcRequestPostProcessors
+                        .jwt()
+                        .jwt(mockAuthConfig.getUserToken(Constants.systemUser)),
+                ).with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(fxRequest),
+                ),
+        ).andExpect(expectedResult)
         .andExpect(MockMvcResultMatchers.content().contentType(mediaType))
         .andReturn()
+
+    @Test
+    fun ratesRetrieved() {
+        val testDate = "2019-07-26"
+        `when`(fxGateway.getRatesForSymbols(eq(testDate), eq(USD.code), eq(currencyService.currenciesAs)))
+            .thenReturn(
+                ExRatesResponse(
+                    base = USD.code,
+                    date = dateUtils.getDate(testDate),
+                    mapOf(
+                        NZD.code to BigDecimal("1.5"),
+                        AUD.code to BigDecimal("1.2"),
+                        SGD.code to BigDecimal("1.3"),
+                    ),
+                ),
+            )
+        val fxRequest =
+            FxRequest(
+                testDate,
+                pairs =
+                    mutableSetOf(
+                        IsoCurrencyPair(USD.code, NZD.code),
+                        IsoCurrencyPair(USD.code, AUD.code),
+                        IsoCurrencyPair(USD.code, SGD.code),
+                    ),
+            )
+        val mvcResult = fxPost(fxRequest)
+        val (results) =
+            objectMapper
+                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+        assertThat(results.rates)
+            .isNotNull
+            .hasSize(fxRequest.pairs.size) // 3 in the request, 3 in the response
+    }
 
     @Test
     fun earliestRateDateValid() {

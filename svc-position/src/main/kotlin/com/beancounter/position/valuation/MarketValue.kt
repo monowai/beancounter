@@ -8,6 +8,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -21,6 +22,7 @@ private const val CASH = "CASH"
 @Service
 class MarketValue(
     private val gains: Gains,
+    private val dateUtils: DateUtils = DateUtils(),
 ) {
     fun value(
         positions: Positions,
@@ -44,7 +46,7 @@ class MarketValue(
         valuationContexts.forEach { (context, currency) ->
             val rate =
                 if (context == Position.In.TRADE) {
-                    FxRate(tradeCurrency, tradeCurrency, BigDecimal.ONE, positions.asAt)
+                    FxRate(tradeCurrency, tradeCurrency, BigDecimal.ONE, dateUtils.getDate(positions.asAt))
                 } else {
                     rate(tradeCurrency, currency, positions.asAt, rates)
                 }
@@ -95,7 +97,7 @@ class MarketValue(
         rates: Map<IsoCurrencyPair, FxRate>,
     ): FxRate =
         if (from.code == to.code) {
-            FxRate(from, to, BigDecimal.ONE, asAt)
+            FxRate(from, to, BigDecimal.ONE, dateUtils.getDate(asAt))
         } else {
             rates[IsoCurrencyPair(from.code, to.code)]
                 ?: throw BusinessException("No rate available for ${from.code} to ${to.code}")

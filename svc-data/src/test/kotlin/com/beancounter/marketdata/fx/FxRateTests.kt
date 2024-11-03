@@ -8,7 +8,7 @@ import com.beancounter.common.utils.FxRateCalculator
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
-import com.beancounter.marketdata.fx.FxMvcTests.Companion.FX_MOCK
+import com.beancounter.marketdata.fx.FxFullStackTest.Companion.FX_MOCK
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -37,10 +37,12 @@ internal class FxRateTests {
         val (rates) = FxRateCalculator.compute(currencyPairs = pairs, rateMap = rateTable)
         val audUsd = rates[AUD_USD] // < 1
         val usdAud = rates[USD_AUD] // > 1
-        assertThat(audUsd).isNotNull
+        assertThat(audUsd)
+            .isNotNull
             .hasFieldOrPropertyWithValue("rate", BigDecimal("0.74148222"))
         assertThat(usdAud)
-            .isNotNull.hasFieldOrPropertyWithValue("rate", usdAud!!.rate)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("rate", usdAud!!.rate)
     }
 
     private val rateTable: Map<String, FxRate>
@@ -55,9 +57,7 @@ internal class FxRateTests {
     private fun getRate(
         to: String,
         rate: String,
-    ): FxRate {
-        return FxRate(USD, Currency(to), BigDecimal(rate))
-    }
+    ): FxRate = FxRate(from = USD, to = Currency(to), rate = BigDecimal(rate))
 
     companion object {
         private val USD_USD = IsoCurrencyPair(USD.code, USD.code)

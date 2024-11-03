@@ -65,9 +65,7 @@ class PriceService internal constructor(
     }
 
     @Async("priceExecutor")
-    fun write(priceResponse: PriceResponse): Future<Iterable<MarketData>?> {
-        return CompletableFuture.completedFuture(handle(priceResponse))
-    }
+    fun write(priceResponse: PriceResponse): Future<Iterable<MarketData>?> = CompletableFuture.completedFuture(handle(priceResponse))
 
     /**
      * Persistence and distribution of MarketData objects.
@@ -93,9 +91,8 @@ class PriceService internal constructor(
         }
     }
 
-    private fun isCorporateEvent(marketData: MarketData): Boolean {
-        return marketData.asset.isKnown && (isDividend(marketData) || isSplit(marketData))
-    }
+    private fun isCorporateEvent(marketData: MarketData): Boolean =
+        marketData.asset.isKnown && (isDividend(marketData) || isSplit(marketData))
 
     fun purge() {
         marketDataRepo.deleteAll()

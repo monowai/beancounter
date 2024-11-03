@@ -64,7 +64,7 @@ class CurrencyService {
             for ((code) in values) {
                 if (result == null) {
                     result = Optional.ofNullable(code).map { str: String? -> StringBuilder(str) }.orElse(null)
-                } else {
+                } else if (code != base) {
                     result.append(",").append(code)
                 }
             }

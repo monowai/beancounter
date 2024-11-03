@@ -10,11 +10,14 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.fx.FxRateRepository
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.fx.fxrates.EcbService
+import com.beancounter.marketdata.markets.MarketService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,22 +31,28 @@ internal class TrnMigratorTest {
 
     private var currencyService = Mockito.mock(CurrencyService::class.java)
 
-    private var fxRateService = FxRateService(ecbService, currencyService)
+    private var marketService = Mockito.mock(MarketService::class.java)
+
+    private var fxRateRepository = Mockito.mock(FxRateRepository::class.java)
+
+    private var fxRateService = FxRateService(ecbService, currencyService, marketService, fxRateRepository = fxRateRepository)
     private var trnMigrator = TrnMigrator(fxRateService)
     private val tradeDateStr = "2021-11-11"
     val tradeDate = DateUtils().getFormattedDate(tradeDateStr)
 
     @BeforeEach
     fun setUp() {
+        Mockito.`when`(marketService.getMarket(US.code)).thenReturn(US)
         Mockito
             .`when`(assetService.findOrCreate(AssetInput("CASH", NZD.code)))
             .thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
+        Mockito.`when`(currencyService.baseCurrency).thenReturn(USD)
         Mockito.`when`(ecbService.getRates(tradeDateStr)).thenReturn(
             listOf(
-                FxRate(USD, NZD, BigDecimal("2.00"), tradeDateStr),
-                FxRate(USD, USD, BigDecimal("1.00"), tradeDateStr),
+                FxRate(from = USD, to = NZD, rate = BigDecimal("2.00"), date = tradeDate),
+                FxRate(from = USD, to = USD, rate = BigDecimal("1.00"), date = tradeDate),
             ),
         )
     }

@@ -4,6 +4,7 @@ import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.fx.EcbMockUtils
+import com.beancounter.marketdata.fx.FxRateRepository
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
 import com.beancounter.marketdata.fx.fxrates.FxGateway
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
@@ -43,6 +44,9 @@ import java.math.BigDecimal
 class FxBase : ContractVerifierBase() {
     @MockBean
     private lateinit var fxGateway: FxGateway
+
+    @MockBean
+    private lateinit var fxRateRepository: FxRateRepository
 
     @MockBean
     private lateinit var fxTransactions: FxTransactions
@@ -176,7 +180,7 @@ class FxBase : ContractVerifierBase() {
                     myr,
                 ),
             ],
-            "2019-07-27",
+            "1999-01-04",
         )
     }
 
@@ -184,12 +188,13 @@ class FxBase : ContractVerifierBase() {
         exRatesResponse: ExRatesResponse,
         rateDate: String = exRatesResponse.date.toString(),
     ) {
-        Mockito.`when`(
-            fxGateway.getRatesForSymbols(
-                rateDate,
-                Constants.USD.code,
-                exRatesResponse.rates.keys.joinToString(","),
-            ),
-        ).thenReturn(exRatesResponse)
+        Mockito
+            .`when`(
+                fxGateway.getRatesForSymbols(
+                    exRatesResponse.date.toString(),
+                    Constants.USD.code,
+                    exRatesResponse.rates.keys.joinToString(","),
+                ),
+            ).thenReturn(exRatesResponse)
     }
 }

@@ -65,6 +65,12 @@ class TokenService(
     companion object {
         const val BEARER = "Bearer"
 
+        /**
+         * Checks if the given authentication is token-based.
+         *
+         * @param authentication The authentication object to check.
+         * @return True if the authentication is token-based, false otherwise.
+         */
         private fun isTokenBased(authentication: Authentication): Boolean =
             authentication.javaClass.isAssignableFrom(JwtAuthenticationToken::class.java)
     }

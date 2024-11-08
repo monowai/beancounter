@@ -20,6 +20,9 @@ data class PriceRequest(
     @JsonIgnore
     var resolvedAsset: Asset? = null
 
+    /**
+     * Helper methods to deal with PriceRequest Objects
+     */
     companion object {
         @JvmStatic
         fun of(
@@ -35,25 +38,17 @@ data class PriceRequest(
         }
 
         @JvmStatic
-        fun of(assetInput: AssetInput): PriceRequest {
-            return PriceRequest(dateUtils.offsetDateString(TODAY), arrayListOf(parse(assetInput)))
-        }
+        fun of(assetInput: AssetInput): PriceRequest = PriceRequest(dateUtils.offsetDateString(TODAY), arrayListOf(parse(assetInput)))
 
-        private fun parse(assetInput: AssetInput): PriceAsset {
-            return PriceAsset(market = assetInput.market, code = assetInput.code)
-        }
+        private fun parse(assetInput: AssetInput): PriceAsset = PriceAsset(market = assetInput.market, code = assetInput.code)
 
-        private fun parse(asset: Asset): PriceAsset {
-            return PriceAsset(asset.market.code, asset.code, assetId = asset.id)
-        }
+        private fun parse(asset: Asset): PriceAsset = PriceAsset(asset.market.code, asset.code, assetId = asset.id)
 
         @JvmStatic
         fun of(
             asset: Asset,
             date: String = TODAY,
-        ): PriceRequest {
-            return PriceRequest(date, arrayListOf(PriceAsset(asset)))
-        }
+        ): PriceRequest = PriceRequest(date, arrayListOf(PriceAsset(asset)))
 
         fun of(
             date: String,

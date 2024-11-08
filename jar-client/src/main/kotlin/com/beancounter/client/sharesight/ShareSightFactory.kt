@@ -15,21 +15,18 @@ class ShareSightFactory(
     val shareSightDivi: ShareSightDividendAdapter,
     val shareSightTrade: ShareSightTradeAdapter,
 ) {
+    private val tradeTypes = setOf("BUY", "SELL", "SPLIT")
+
     /**
      * Figure out if we're dealing with a Trade or Dividend row.
      *
      * @param row analyze this
      * @return appropriate transformer
      */
-    fun adapter(row: List<String>): TrnAdapter {
-        return if (TRADE_TYPES.contains(row[ShareSightTradeAdapter.TYPE].uppercase(Locale.getDefault()))) {
+    fun adapter(row: List<String>): TrnAdapter =
+        if (tradeTypes.contains(row[ShareSightTradeAdapter.TYPE].uppercase(Locale.getDefault()))) {
             shareSightTrade
         } else {
             shareSightDivi
         }
-    }
-
-    companion object {
-        private val TRADE_TYPES = mutableSetOf("BUY", "SELL", "SPLIT")
-    }
 }

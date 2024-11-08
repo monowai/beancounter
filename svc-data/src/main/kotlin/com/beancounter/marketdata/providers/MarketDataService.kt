@@ -28,6 +28,8 @@ class MarketDataService
         private val providerUtils: ProviderUtils,
         private val priceService: PriceService,
     ) {
+        private val log = LoggerFactory.getLogger(MarketDataService::class.java)
+
         @Transactional
         fun backFill(asset: Asset) {
             val byFactory = providerUtils.splitProviders(providerUtils.getInputs(mutableListOf(asset)))
@@ -150,9 +152,5 @@ class MarketDataService
             if (response.isPresent) {
                 priceService.purge(response.get())
             }
-        }
-
-        companion object {
-            private val log = LoggerFactory.getLogger(MarketDataService::class.java)
         }
     }

@@ -58,6 +58,9 @@ class AuthTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+    /**
+     * Constants for the tests.
+     */
     companion object {
         private const val HELLO = "/api/hello"
         const val WHAT = "/api/what"
@@ -66,17 +69,21 @@ class AuthTest {
     @Test
     fun has_NoTokenAndIsUnauthorized() {
         var result =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get(HELLO)
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(HELLO)
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
                 .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
         result =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get(WHAT)
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(WHAT)
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
                 .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
     }
@@ -84,7 +91,8 @@ class AuthTest {
     @Test
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
     fun has_AuthorityToSayHello() {
-        mockMvc.perform(MockMvcRequestBuilders.get(HELLO))
+        mockMvc
+            .perform(MockMvcRequestBuilders.get(HELLO))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
@@ -93,7 +101,8 @@ class AuthTest {
     @Test
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_USER])
     fun has_NoAuthorityToSayWhat() {
-        mockMvc.perform(MockMvcRequestBuilders.get(WHAT))
+        mockMvc
+            .perform(MockMvcRequestBuilders.get(WHAT))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
@@ -103,17 +112,21 @@ class AuthTest {
     @Throws(Exception::class)
     @WithMockUser(username = "testUser", authorities = ["no-valid-auth"])
     fun has_tokenButNoRoleToSayAnything() {
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(HELLO)
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isForbidden)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(HELLO)
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
 
         val result =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get(WHAT)
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isForbidden)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(WHAT)
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isForbidden)
                 .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
@@ -122,14 +135,10 @@ class AuthTest {
     internal class SimpleController {
         @GetMapping(HELLO)
         @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_USER}')")
-        fun sayHello(): String {
-            return "hello"
-        }
+        fun sayHello(): String = "hello"
 
         @GetMapping(WHAT)
         @PreAuthorize("hasAuthority('${AuthConstants.ADMIN}')")
-        fun sayWhat(): String {
-            return "no one can call this"
-        }
+        fun sayWhat(): String = "no one can call this"
     }
 }

@@ -23,7 +23,7 @@ management:
       mode: SIMPLE
 
 sentry:
-  enabled: true
+  enabled: false
   environment: local
   traces-sample-rate: 1
   debug: false
@@ -71,6 +71,9 @@ endpoints:
   default.web.enabled: true
 
 logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
   level:
     root: debug
     javax: error

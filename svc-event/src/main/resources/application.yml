@@ -4,6 +4,12 @@ server:
     context-path: '/api'
   shutdown: graceful
 
+sentry:
+  enabled: false
+  environment: local
+  traces-sample-rate: 1
+  debug: false
+
 management:
   server:
     port: 9521
@@ -23,6 +29,9 @@ management:
 
 
 logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
   level:
     root: debug
     javax: error

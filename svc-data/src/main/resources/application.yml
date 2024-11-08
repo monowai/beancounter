@@ -26,7 +26,7 @@ management:
         include: "*"
 
 sentry:
-  enabled: true
+  enabled: false
   environment: local
   traces-sample-rate: 1
   debug: false
@@ -40,6 +40,9 @@ otel:
     exporter: none
 
 logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
   level:
     root: info
     javax: error

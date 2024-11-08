@@ -33,6 +33,7 @@ dependencies {
     "org.springframework.security:spring-security-oauth2-jose",
     "org.springframework.boot:spring-boot-starter-actuator",
     "org.springframework.boot:spring-boot-starter-integration",
+    "io.sentry:sentry-openfeign:${sentryVersion}",
     "org.jetbrains.kotlinx:kotlinx-coroutines-core",
     "org.jetbrains.kotlinx:kotlinx-coroutines-reactor",
     "com.fasterxml.jackson.module:jackson-module-kotlin",

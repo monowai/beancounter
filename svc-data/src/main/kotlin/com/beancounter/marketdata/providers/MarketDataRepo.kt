@@ -2,7 +2,9 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.query.Param
 import java.time.LocalDate
 import java.util.Optional
 
@@ -24,4 +26,10 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         assetId: String,
         date: LocalDate,
     )
+
+    @Query("SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate")
+    fun findByAssetInAndPriceDate(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("priceDate") priceDate: LocalDate,
+    ): List<MarketData>
 }

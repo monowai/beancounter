@@ -10,7 +10,7 @@ import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
@@ -40,9 +40,14 @@ class TestPriceService {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_MarketDataFoundOnDate() {
-        val priceRequest = PriceRequest("2019-10-18", arrayListOf(PriceAsset("NASDAQ", "EBAY", assetId = "EBAY")))
-        Mockito.`when`(tokenService.bearerToken).thenReturn("")
+    fun is_TodaysPriceForEbayFound() {
+        val priceRequest =
+            PriceRequest(
+                "2019-10-18",
+                currentMode = true, // Hack to make contract testing easier
+                assets = listOf(PriceAsset("NASDAQ", "EBAY", assetId = "EBAY")),
+            )
+        `when`(tokenService.bearerToken).thenReturn("")
         val response = priceService.getPrices(priceRequest)
 
         assertThat(response).isNotNull

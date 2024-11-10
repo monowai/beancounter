@@ -10,13 +10,10 @@ import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 
 /**
  * Persist prices obtained from providers and detect if Corporate Events need to be dispatched.
@@ -64,26 +61,21 @@ class PriceService internal constructor(
         return response
     }
 
-    @Async("priceExecutor")
-    fun write(priceResponse: PriceResponse): Future<Iterable<MarketData>?> = CompletableFuture.completedFuture(handle(priceResponse))
-
     /**
      * Persistence and distribution of MarketData objects.
      */
     fun handle(priceResponse: PriceResponse): Iterable<MarketData>? {
-        val createSet: MutableCollection<MarketData> = ArrayList()
-        for (marketData in priceResponse.data) {
-            if (!cashUtils.isCash(marketData.asset)) {
-                val existing = getMarketData(marketData.asset, marketData.priceDate)
-                if (existing.isEmpty) {
-                    // Create
-                    createSet.add(marketData)
-                }
-                if (eventProducer != null && isCorporateEvent(marketData)) {
-                    eventProducer!!.write(marketData)
-                }
+        val createSet =
+            priceResponse.data
+                .filter { !cashUtils.isCash(it.asset) }
+                .filter { getMarketData(it.asset, it.priceDate).isEmpty }
+
+        priceResponse.data
+            .filter { !cashUtils.isCash(it.asset) && isCorporateEvent(it) }
+            .forEach { marketData ->
+                eventProducer?.write(marketData)
             }
-        }
+
         return if (createSet.isEmpty()) {
             createSet
         } else {
@@ -101,4 +93,10 @@ class PriceService internal constructor(
     fun purge(marketData: MarketData) {
         marketDataRepo.deleteById(marketData.id)
     }
+
+    // In PriceService.kt
+    fun getMarketData(
+        assets: Collection<Asset>,
+        date: LocalDate,
+    ): Collection<MarketData> = marketDataRepo.findByAssetInAndPriceDate(assets, date)
 }

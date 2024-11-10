@@ -90,10 +90,6 @@
           "code": "NASDAQ",
           "currencyId": "USD",
           "timezoneId": "US/Eastern",
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",

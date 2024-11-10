@@ -5,7 +5,6 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
-import com.beancounter.marketdata.providers.MarketDataService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -33,7 +32,6 @@ class AssetController
     @Autowired
     internal constructor(
         private val assetService: AssetService,
-        private val marketDataService: MarketDataService,
     ) {
         @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getAsset(
@@ -60,5 +58,5 @@ class AssetController
         @ResponseStatus(HttpStatus.ACCEPTED)
         fun backFill(
             @PathVariable assetId: String,
-        ) = marketDataService.backFill(assetService.find(assetId))
+        ) = assetService.backFill(assetId)
     }

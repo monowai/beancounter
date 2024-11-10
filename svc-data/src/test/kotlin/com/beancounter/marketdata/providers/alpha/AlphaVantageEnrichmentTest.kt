@@ -10,18 +10,16 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.URL_ASSETS_MARKET_CODE
 import com.beancounter.marketdata.utils.RegistrationUtils
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -51,19 +49,10 @@ class AlphaVantageEnrichmentTest {
     private lateinit var dateUtils: DateUtils
 
     @Autowired
-    private lateinit var mdFactory: MdFactory
-
-    @Autowired
-    private lateinit var marketService: MarketService
-
-    @Autowired
     private lateinit var marketDataService: MarketDataService
 
     @Autowired
     private lateinit var alphaConfig: AlphaConfig
-
-    @Autowired
-    private lateinit var priceService: PriceService
 
     @Autowired
     private lateinit var assetService: AssetService
@@ -78,7 +67,7 @@ class AlphaVantageEnrichmentTest {
 
     @BeforeEach
     fun mockServices() {
-        Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
+        `when`(dateUtils.isToday(anyString())).thenReturn(true)
         AlphaMockUtils.mockAlphaAssets()
         // Set up a user account
         token = mockAuthConfig.getUserToken(Constants.systemUser)
@@ -114,8 +103,8 @@ class AlphaVantageEnrichmentTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
 
-        val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        assertThat(data)
+        val (assetResponse) = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
+        assertThat(assetResponse)
             .isNotNull
             .hasFieldOrPropertyWithValue(AlphaConstants.P_CODE, code)
             .hasFieldOrProperty(AlphaConstants.P_MARKET)
@@ -123,9 +112,9 @@ class AlphaVantageEnrichmentTest {
             .hasFieldOrPropertyWithValue(AlphaConstants.P_SYMBOL, symbol)
             .hasFieldOrPropertyWithValue(AlphaConstants.P_NAME, "AXA Framlington Health Fund Z GBP Acc")
 
-        assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
-        Mockito.`when`(dateUtils.offsetDateString(anyString())).thenReturn(DateUtils().offsetDateString())
-        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(data))
+        assertThat(alphaConfig.getPriceCode(assetResponse)).isEqualTo(symbol)
+        `when`(dateUtils.offsetDateString(anyString())).thenReturn(DateUtils().offsetDateString())
+        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(assetResponse, date = "today"))
         assertThat(priceResponse.data).isNotNull
         val price = BigDecimal("3.1620")
         assertThat(
@@ -155,7 +144,7 @@ class AlphaVantageEnrichmentTest {
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
-        val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        val (data) = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
         assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(AlphaConstants.P_CODE, amp)
@@ -185,7 +174,7 @@ class AlphaVantageEnrichmentTest {
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
-        val (data1) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        val (data1) = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
         assertThat(data1).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.P_NAME, null)
     }
 }

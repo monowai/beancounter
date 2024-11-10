@@ -14,7 +14,7 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -55,7 +55,7 @@ internal class ShareSightAdapterTest {
 
     @Test
     fun is_IgnoreRatesCorrect() {
-        Assertions.assertThat(shareSightConfig.isCalculateRates).isTrue
+        assertThat(shareSightConfig.isCalculateRates).isTrue
     }
 
     private fun verifyMarketCode(
@@ -66,7 +66,7 @@ internal class ShareSightAdapterTest {
         row.add("1")
         row.add(code)
         val asset = shareSightFactory.shareSightDivi.resolveAsset(row)
-        Assertions.assertThat(asset.market.code)
+        assertThat(asset.market.code)
             .isEqualTo(expectedAsset.market.code)
     }
 
@@ -115,9 +115,9 @@ internal class ShareSightAdapterTest {
                     .transform(trustedTrnImportRequest),
             )
         }
-        Assertions.assertThat(trnInputs).hasSize(2)
+        assertThat(trnInputs).hasSize(2)
         for (trn in trnInputs) {
-            Assertions.assertThat(trn)
+            assertThat(trn)
                 .hasFieldOrProperty("callerRef")
                 .hasFieldOrProperty("assetId")
                 .hasFieldOrProperty("fees")

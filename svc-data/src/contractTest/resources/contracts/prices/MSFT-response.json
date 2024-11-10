@@ -5,7 +5,7 @@
         "id": "MSFT",
         "code": "MSFT",
         "market": {
-          "code": "NYSE",
+          "code": "NASDAQ",
           "currency": {
             "code": "USD",
             "name": "Dollar",

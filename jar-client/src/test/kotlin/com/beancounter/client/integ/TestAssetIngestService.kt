@@ -43,7 +43,8 @@ class TestAssetIngestService {
             assetIngestService.resolveAsset(
                 AssetInput(nasdaq, msft),
             )
-        assertThat(asset).isNotNull
+        assertThat(asset)
+            .isNotNull
             .hasFieldOrProperty("id")
             .hasFieldOrProperty("market")
             .hasFieldOrProperty("market.currency")

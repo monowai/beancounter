@@ -2,7 +2,10 @@ package com.contracts.data
 
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.AAPL
+import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.alpha.AlphaGateway
 import com.beancounter.marketdata.providers.alpha.F_CHANGE
 import com.beancounter.marketdata.providers.alpha.F_DATE
@@ -15,7 +18,7 @@ import com.beancounter.marketdata.providers.alpha.F_VOLUME
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.math.BigDecimal
 
@@ -30,14 +33,27 @@ class PricesBase : ContractVerifierBase() {
     private lateinit var assetService: AssetService
 
     @MockBean
+    private lateinit var marketDataRepo: MarketDataRepo
+
+    @MockBean
     private lateinit var dateUtils: DateUtils
 
     @BeforeEach
     fun initAssets() {
         AssetsBase().mockAssets(assetService)
+        val ebay = AAPL.copy(id = "EBAY", code = "EBAY", name = "eBay Inc.")
+        `when`(assetService.find(ebay.id))
+            .thenReturn(ebay)
+
+        `when`(assetService.find(AAPL.id))
+            .thenReturn(AAPL)
+
+        `when`(assetService.find(MSFT.id))
+            .thenReturn(MSFT)
+
         mockPrices()
-        Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
-        Mockito.`when`(dateUtils.getDate()).thenReturn(DateUtils().getDate())
+        `when`(dateUtils.isToday(anyString())).thenReturn(true)
+        `when`(dateUtils.getDate()).thenReturn(DateUtils().getDate())
     }
 
     fun mockPrices() {
@@ -83,7 +99,7 @@ class PricesBase : ContractVerifierBase() {
 
     private fun mockPriceResponse(marketData: AlphaPriceResponse) {
         val response = mapOf(Pair("Global Quote", marketData))
-        Mockito.`when`(
+        `when`(
             alphaGateway
                 .getCurrent(marketData.symbol, "demo"),
         ).thenReturn(objectMapper.writeValueAsString(response))

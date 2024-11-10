@@ -6,7 +6,6 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
-import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -17,7 +16,6 @@ import java.math.BigDecimal
 
 internal class TestMarketData {
     private val dateUtils = DateUtils()
-    private val bcJson = BcJson()
 
     @Test
     fun is_MarketDataSerializing() {
@@ -53,14 +51,16 @@ internal class TestMarketData {
     @Test
     fun is_QuantitiesWorking() {
         val quantityValues = QuantityValues()
-        AssertionsForClassTypes.assertThat(quantityValues)
+        AssertionsForClassTypes
+            .assertThat(quantityValues)
             .hasFieldOrPropertyWithValue("sold", BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("purchased", BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("adjustment", BigDecimal.ZERO)
         AssertionsForClassTypes.assertThat(quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
         val json = objectMapper.writeValueAsString(quantityValues)
         assertThat(objectMapper.readValue<QuantityValues>(json))
-            .usingRecursiveComparison().isEqualTo(quantityValues)
+            .usingRecursiveComparison()
+            .isEqualTo(quantityValues)
     }
 
     @Test
@@ -75,7 +75,8 @@ internal class TestMarketData {
         val json = objectMapper.writeValueAsString(priceRequest)
         val (_, assets) = objectMapper.readValue<PriceRequest>(json)
         assertThat(assets.iterator().next())
-            .usingRecursiveComparison().isEqualTo(
+            .usingRecursiveComparison()
+            .isEqualTo(
                 priceRequest.assets.iterator().next(),
             )
     }
@@ -83,11 +84,14 @@ internal class TestMarketData {
     companion object {
         fun compare(mdResponse: MarketData) {
             assertThat(mdResponse)
-                .usingRecursiveComparison().ignoringFields("marketData", "asset")
+                .usingRecursiveComparison()
+                .ignoringFields("marketData", "asset")
             assertThat(mdResponse.asset.market)
-                .usingRecursiveComparison().ignoringFields("marketData.asset.market")
+                .usingRecursiveComparison()
+                .ignoringFields("marketData.asset.market")
             assertThat(mdResponse.asset)
-                .usingRecursiveComparison().ignoringFields("marketData.asset", "market")
+                .usingRecursiveComparison()
+                .ignoringFields("marketData.asset", "market")
         }
     }
 }

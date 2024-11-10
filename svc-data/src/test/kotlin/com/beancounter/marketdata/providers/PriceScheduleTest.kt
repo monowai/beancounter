@@ -70,20 +70,23 @@ class PriceScheduleTest {
         val code = "AMP"
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         mockMvc =
-            MockMvcBuilders.webAppContextSetup(context)
+            MockMvcBuilders
+                .webAppContextSetup(context)
                 .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
                 .build()
 
         marketDataService.purge()
         assetService.purge()
         val asxMarket = marketService.getMarket(ASX.code, false)
-        Mockito.`when`(
-            enrichmentFactory.getEnricher(asxMarket),
-        ).thenReturn(DefaultEnricher())
+        Mockito
+            .`when`(
+                enrichmentFactory.getEnricher(asxMarket),
+            ).thenReturn(DefaultEnricher())
 
         val assetInput = AssetInput(ASX.code, code = code)
         val assetResult = assetService.findOrCreate(assetInput)
-        Mockito.`when`(alphaPriceService.getMarketData(PriceRequest(anyString(), setOf(PriceAsset(assetResult)))))
+        Mockito
+            .`when`(alphaPriceService.getMarketData(PriceRequest(anyString(), listOf(PriceAsset(assetResult)))))
             .thenReturn(setOf(MarketData(assetResult)))
         priceSchedule.updatePrices()
         Thread.sleep(2000) // Async reads/writes

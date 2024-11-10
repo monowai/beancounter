@@ -31,7 +31,7 @@ import java.math.BigDecimal
 internal class PriceControllerRefreshTests
     @Autowired
     private constructor(
-        private val dateUtils: DateUtils,
+        dateUtils: DateUtils,
         private val mockMvc: MockMvc,
         private val mockAuthConfig: MockAuthConfig,
     ) {
@@ -58,15 +58,18 @@ internal class PriceControllerRefreshTests
         @Autowired
         fun mockAlphaPriceService(assetService: AssetService) {
             Mockito.`when`(assetService.find(asset.id)).thenReturn(asset)
-            Mockito.`when`(alphaPriceService.isMarketSupported(US))
+            Mockito
+                .`when`(alphaPriceService.isMarketSupported(US))
                 .thenReturn(true)
 
-            Mockito.`when`(alphaPriceService.getId())
+            Mockito
+                .`when`(alphaPriceService.getId())
                 .thenReturn(AlphaPriceService.ID)
 
             assertThat(mdFactory.getMarketDataProvider(US).getId())
                 .isEqualTo(AlphaPriceService.ID)
-            Mockito.`when`(alphaPriceService.getDate(asset.market, priceRequest))
+            Mockito
+                .`when`(alphaPriceService.getDate(asset.market, priceRequest))
                 .thenReturn(testDate)
         }
 
@@ -74,30 +77,44 @@ internal class PriceControllerRefreshTests
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_refreshServiceTestWorking() {
             // Start price setup
-            Mockito.`when`(alphaPriceService.getMarketData(priceRequest = priceRequest))
+            Mockito
+                .`when`(alphaPriceService.getMarketData(priceRequest = priceRequest))
                 .thenReturn(listOf(MarketData(asset = asset, close = BigDecimal("10.00"))))
 
             val response = marketDataService.getPriceResponse(priceRequest)
             assertThat(response.data)
-                .isNotNull.hasSize(1)
+                .isNotNull
+                .hasSize(1)
 
-            assertThat(response.data.iterator().next().close)
-                .isEqualTo(BigDecimal("10.00"))
+            assertThat(
+                response.data
+                    .iterator()
+                    .next()
+                    .close,
+            ).isEqualTo(BigDecimal("10.00"))
             // End setup
 
             // TEST perform refresh. Make sure the price we get is set correctly to 11 and not 10
-            Mockito.`when`(alphaPriceService.getMarketData(priceRequest = priceRequest))
+            Mockito
+                .`when`(alphaPriceService.getMarketData(priceRequest = priceRequest))
                 .thenReturn(listOf(MarketData(asset = asset, close = BigDecimal("11.00"))))
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/prices/refresh/{assetId}/{date}", asset.id, testDate)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                    .contentType(MediaType.APPLICATION_JSON_VALUE),
-            )
-                .andExpect(
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/prices/refresh/{assetId}/{date}", asset.id, testDate)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andExpect(
                     MockMvcResultMatchers.status().isOk,
                 )
 
-            assertThat(marketDataService.getPriceResponse(priceRequest).data.iterator().next().close)
-                .isEqualTo(BigDecimal("11.00"))
+            assertThat(
+                marketDataService
+                    .getPriceResponse(priceRequest)
+                    .data
+                    .iterator()
+                    .next()
+                    .close,
+            ).isEqualTo(BigDecimal("11.00"))
         }
     }

@@ -58,7 +58,8 @@ class AssetService internal constructor(
             val market = marketService.getMarket(assetInput.market, false)
             // Fill in missing asset attributes
             val asset =
-                enrichmentFactory.getEnricher(market)
+                enrichmentFactory
+                    .getEnricher(market)
                     .enrich(
                         id = keyGenUtils.id,
                         market = market,
@@ -132,16 +133,20 @@ class AssetService internal constructor(
                 marketCode.uppercase(Locale.getDefault()),
                 findCode,
             )
-        return optionalAsset.map { asset: Asset ->
-            assetHydrationService.hydrateAsset(asset)
-        }.orElse(null)
+        return optionalAsset
+            .map { asset: Asset ->
+                assetHydrationService.hydrateAsset(asset)
+            }.orElse(null)
     }
 
-    fun findAllAssets(): Stream<Asset> {
-        return assetRepository.findAllAssets()
-    }
+    fun findAllAssets(): Stream<Asset> = assetRepository.findAllAssets()
 
     fun purge() = assetRepository.deleteAll()
+
+    fun backFill(assetId: String) {
+        val asset = find(assetId)
+        marketDataService.backFill(asset)
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetService::class.java)

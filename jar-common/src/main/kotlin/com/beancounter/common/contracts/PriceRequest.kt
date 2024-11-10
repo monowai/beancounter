@@ -13,8 +13,8 @@ import java.math.BigDecimal
  */
 data class PriceRequest(
     val date: String = TODAY,
-    val assets: Collection<PriceAsset>,
-    val currentMode: Boolean = true,
+    val assets: List<PriceAsset>,
+    val currentMode: Boolean = date == TODAY,
     val closePrice: BigDecimal = BigDecimal.ZERO,
 ) {
     @JsonIgnore

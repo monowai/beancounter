@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.Status
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.fasterxml.jackson.core.JsonProcessingException
 
@@ -31,12 +32,11 @@ class AssetUtils {
             id = code,
             name = code,
             market = market,
+            status = Status.Active,
         )
 
         @JvmStatic
-        fun split(assets: Collection<PriceAsset>): Map<String, List<PriceAsset>> {
-            return assets.groupByTo(mutableMapOf(), PriceAsset::market)
-        }
+        fun split(assets: Collection<PriceAsset>): Map<String, List<PriceAsset>> = assets.groupByTo(mutableMapOf(), PriceAsset::market)
 
         /**
          * Helper for tests that returns the "serialized" view of an asset.

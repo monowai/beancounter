@@ -69,7 +69,7 @@ internal class DataProviderArgumentsTest {
 
     @Test
     fun is_SplitByMarket() {
-        val assets: MutableCollection<PriceAsset> = ArrayList()
+        val assets: MutableList<PriceAsset> = mutableListOf()
         val marketA = "AAA"
         val code = "ABC"
         assets.add(
@@ -112,10 +112,7 @@ internal class DataProviderArgumentsTest {
             )
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
             providerUtils.splitProviders(assetInputs)
-        assertThat(splitResults).hasSize(1)
-        splitResults.forEach {
-            assertThat(it.value).hasSize(1)
-        }
+        assertThat(splitResults).hasSize(0)
     }
 
     @Test
@@ -133,43 +130,37 @@ internal class DataProviderArgumentsTest {
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
             providerUtils.splitProviders(assetInputs)
         assertThat(splitResults)
-            .hasSize(1)
-
-        splitResults.forEach {
-            assertThat(it.value).isEmpty()
-        }
+            .hasSize(0)
     }
 
     private fun getProviderUtils(market: Market): ProviderUtils {
         val marketService = Mockito.mock(MarketService::class.java)
-        Mockito.`when`(marketService.getMarket(market.code))
+        Mockito
+            .`when`(marketService.getMarket(market.code))
             .thenReturn(market)
         val mdFactory = Mockito.mock(MdFactory::class.java)
         Mockito.`when`(mdFactory.getMarketDataProvider(market)).thenReturn(CashProviderService())
         return ProviderUtils(mdFactory, marketService)
     }
 
-    private class TestConfig(private val batchSize: Int) : DataProviderConfig {
+    private class TestConfig(
+        private val batchSize: Int,
+    ) : DataProviderConfig {
         private val dateUtils = DateUtils()
 
-        override fun getBatchSize(): Int {
-            return batchSize
-        }
+        override fun getBatchSize(): Int = batchSize
 
         override fun getMarketDate(
             market: Market,
             date: String,
             currentMode: Boolean,
-        ): LocalDate {
-            return if (dateUtils.isToday(date)) {
+        ): LocalDate =
+            if (dateUtils.isToday(date)) {
                 dateUtils.date
             } else {
                 dateUtils.getFormattedDate(date)
             }
-        }
 
-        override fun getPriceCode(asset: Asset): String {
-            return asset.code
-        }
+        override fun getPriceCode(asset: Asset): String = asset.code
     }
 }

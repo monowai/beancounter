@@ -3,6 +3,7 @@ package com.beancounter.common.contracts
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.math.BigDecimal
@@ -27,18 +28,22 @@ data class PriceRequest(
         fun of(
             date: String = TODAY,
             assets: Collection<AssetInput>,
-            currentMode: Boolean = date == TODAY,
+            currentMode: Boolean = true,
         ): PriceRequest {
-            val priceAssets = assets.map { PriceAsset(market = it.market, code = it.code) }
+            val priceAssets = assets.map { parse(it) }
             return PriceRequest(date, priceAssets, currentMode)
         }
 
         @JvmStatic
-        fun of(input: AssetInput): PriceRequest =
+        fun of(assetInput: AssetInput): PriceRequest =
             PriceRequest(
-                TODAY,
-                listOf(PriceAsset(market = input.market, code = input.code)),
+                dateUtils.offsetDateString(TODAY),
+                listOf(parse(assetInput)),
             )
+
+        private fun parse(input: AssetInput): PriceAsset = PriceAsset(market = input.market, code = input.code)
+
+        private fun parse(asset: Asset): PriceAsset = PriceAsset(asset.market.code, asset.code, assetId = asset.id)
 
         @JvmStatic
         fun of(
@@ -47,19 +52,14 @@ data class PriceRequest(
         ): PriceRequest = PriceRequest(date, listOf(PriceAsset(asset)))
 
         fun of(
-            date: String = TODAY,
+            date: String,
             positions: Positions,
-            currentMode: Boolean = date == TODAY,
+            currentMode: Boolean = true,
         ): PriceRequest {
-            val priceAssets =
-                positions.positions.values.map {
-                    PriceAsset(
-                        it.asset.market.code,
-                        it.asset.code,
-                        assetId = it.asset.id,
-                    )
-                }
+            val priceAssets = positions.positions.values.map { parse(it.asset) }
             return PriceRequest(date, priceAssets, currentMode)
         }
+
+        private val dateUtils = DateUtils()
     }
 }

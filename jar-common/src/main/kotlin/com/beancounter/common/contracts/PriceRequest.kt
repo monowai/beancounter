@@ -38,7 +38,8 @@ data class PriceRequest(
         }
 
         @JvmStatic
-        fun of(assetInput: AssetInput): PriceRequest = PriceRequest(dateUtils.offsetDateString(TODAY), arrayListOf(parse(assetInput)))
+        fun of(assetInput: AssetInput): PriceRequest =
+            PriceRequest(dateUtils.offsetDateString(TODAY), listOf(parse(assetInput)))
 
         private fun parse(assetInput: AssetInput): PriceAsset = PriceAsset(market = assetInput.market, code = assetInput.code)
 

@@ -19,11 +19,12 @@ import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
@@ -59,14 +60,12 @@ internal class PriceControllerTests
 
         @BeforeEach
         fun setUp() {
-            Mockito
-                .`when`(
-                    assetService.find(asset.id),
-                ).thenReturn(asset)
-            Mockito
-                .`when`(
-                    assetService.findLocally(AssetInput(asset.market.code, asset.code)),
-                ).thenReturn(asset)
+            `when`(
+                assetService.find(asset.id),
+            ).thenReturn(asset)
+            `when`(
+                assetService.findLocally(AssetInput(asset.market.code, asset.code)),
+            ).thenReturn(asset)
 
             val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)
             priceDate =
@@ -74,10 +73,20 @@ internal class PriceControllerTests
                     asset.market,
                     PriceRequest.of(AssetInput(market = asset.market.code, code = asset.code)),
                 )
-            Mockito
-                .`when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, priceDate))
+            `when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, priceDate))
                 .thenReturn(
                     Optional.of(
+                        MarketData(
+                            asset,
+                            close = mockPrice,
+                            open = mockPrice,
+                            priceDate = priceDate,
+                        ),
+                    ),
+                )
+            `when`(marketDataRepo.findByAssetInAndPriceDate(listOf(asset), priceDate))
+                .thenReturn(
+                    listOf(
                         MarketData(
                             asset,
                             close = mockPrice,
@@ -133,7 +142,7 @@ internal class PriceControllerTests
                         MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
                     ).andReturn()
                     .response.contentAsString
-            val (data) = objectMapper.readValue(json, PriceResponse::class.java)
+            val (data) = objectMapper.readValue<PriceResponse>(json)
             assertThat(data).isNotNull.hasSize(1)
             val marketData = data.iterator().next()
             assertThat(marketData)
@@ -149,11 +158,10 @@ internal class PriceControllerTests
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_MdCollectionReturnedForCashAssets() {
             val resolvableAsset = getTestAsset(CASH_MARKET, assetCode)
-            Mockito
-                .`when`(assetService.findLocally(AssetInput(CASH_MARKET.code, assetCode)))
+            `when`(assetService.findLocally(AssetInput(CASH_MARKET.code, assetCode)))
                 .thenReturn(resolvableAsset)
 
-            Mockito.`when`(assetService.find(resolvableAsset.id)).thenReturn(resolvableAsset)
+            `when`(assetService.find(resolvableAsset.id)).thenReturn(resolvableAsset)
             val assetInputs =
                 listOf(
                     PriceAsset(resolvableAsset),
@@ -194,22 +202,20 @@ internal class PriceControllerTests
                     closePrice = BigDecimal("999.0"),
                 )
 
-            Mockito
-                .`when`(assetService.find(assetCode))
+            `when`(assetService.find(assetCode))
                 .thenReturn(offMarketAsset)
 
-            Mockito
-                .`when`(
-                    marketDataRepo.save(
-                        MarketData(
-                            asset = offMarketAsset,
-                            priceDate = DateUtils().getFormattedDate(offMarketPrice.date),
-                            close = offMarketPrice.closePrice,
-                        ),
+            `when`(
+                marketDataRepo.save(
+                    MarketData(
+                        asset = offMarketAsset,
+                        priceDate = DateUtils().getFormattedDate(offMarketPrice.date),
+                        close = offMarketPrice.closePrice,
                     ),
-                ).thenReturn(
-                    MarketData(asset = offMarketAsset, close = offMarketPrice.closePrice),
-                )
+                ),
+            ).thenReturn(
+                MarketData(asset = offMarketAsset, close = offMarketPrice.closePrice),
+            )
             val json =
                 mockMvc
                     .perform(
@@ -258,9 +264,9 @@ internal class PriceControllerTests
                     ).andReturn()
                     .response
                     .contentAsString
-            val (data) = objectMapper.readValue(json, PriceResponse::class.java)
-            assertThat(data).isNotNull.hasSize(1)
-            assertThat(data.iterator().next())
+            val (priceResponse) = objectMapper.readValue<PriceResponse>(json)
+            assertThat(priceResponse).isNotNull.hasSize(1)
+            assertThat(priceResponse.iterator().next())
                 .hasFieldOrProperty("asset.id")
                 .hasFieldOrPropertyWithValue("asset.market.code", asset.market.code)
                 .hasFieldOrPropertyWithValue("open", mockPrice)

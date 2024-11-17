@@ -59,20 +59,16 @@ class MarketDataService
                 buildDateCache(cachedDates, marketDataProvider, assets, priceRequest)
                 val priceDate =
                     cachedDates[
-                        assets
-                            .iterator()
-                            .next()
-                            .market.timezone.id,
+                        assets.iterator().next().market.timezone.id,
                     ]!!
-
+                val existingPrices = priceService.getMarketData(assets, priceDate)
                 val assetsIterator = assets.iterator()
                 while (assetsIterator.hasNext()) {
                     val asset = assetsIterator.next()
-                    val marketData = getMarketData(asset, priceRequest, priceDate)
-                    if (marketData.isPresent) {
-                        val mdValue = marketData.get()
-                        mdValue.asset = asset
-                        foundInDb.add(mdValue)
+                    val existingPrice = existingPrices.find { it.asset.id == asset.id }
+                    if (existingPrice != null) {
+                        existingPrice.asset = asset
+                        foundInDb.add(existingPrice)
                         assetsIterator.remove()
                     }
                 }
@@ -81,7 +77,7 @@ class MarketDataService
                         byProviders[marketDataProvider],
                         priceDate,
                         marketDataProvider,
-                        priceRequest.currentMode,
+                        priceRequest,
                     )
                 if (marketDataProvider.isApiSupported()) {
                     foundOverApi.addAll(results)
@@ -113,8 +109,8 @@ class MarketDataService
                 cachedDates.computeIfAbsent(asset.market.timezone.id) {
                     getMarketDate(marketDataProvider, asset, priceRequest)
                 }
+            }
         }
-    }
 
         private fun getMarketData(
             asset: Asset,
@@ -126,11 +122,17 @@ class MarketDataService
             providerAssets: MutableCollection<Asset>?,
             priceDate: LocalDate,
             marketDataPriceProvider: MarketDataPriceProvider,
-            currentMode: Boolean,
+            request: PriceRequest,
         ): Collection<MarketData> {
             if (!providerAssets!!.isEmpty()) {
                 val assetInputs = providerUtils.getInputs(providerAssets)
-                val priceRequest = PriceRequest(priceDate.toString(), assetInputs, currentMode)
+                val priceRequest =
+                    PriceRequest(
+                        priceDate.toString(),
+                        assets = assetInputs,
+                        currentMode = request.currentMode,
+                        closePrice = request.closePrice,
+                    )
                 return marketDataPriceProvider.getMarketData(priceRequest)
             }
             return listOf()

@@ -13,7 +13,6 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.assertj.core.api.Assertions.assertThat
@@ -32,9 +31,6 @@ class RealEstateAssetTest {
 
     @Autowired
     private lateinit var marketDataService: MarketDataService
-
-    @Autowired
-    private lateinit var mdFactory: MdFactory
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig

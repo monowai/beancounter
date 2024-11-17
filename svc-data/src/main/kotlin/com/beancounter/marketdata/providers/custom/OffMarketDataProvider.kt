@@ -9,6 +9,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.MarketDataRepo
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -23,9 +24,20 @@ class OffMarketDataProvider(
     val marketDataRepo: MarketDataRepo,
     val dateUtils: DateUtils,
 ) : MarketDataPriceProvider {
-    private fun getMarketData(asset: Asset): MarketData {
+    private fun getMarketData(
+        asset: Asset,
+        defaultPrice: BigDecimal,
+    ): MarketData {
         val closest = marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(asset, priceDate)
-        return if (closest.isPresent) getMarketData(asset, closest.get()) else MarketData(asset, priceDate)
+        return if (closest.isPresent) {
+            getMarketData(asset, closest.get())
+        } else {
+            MarketData(
+                asset,
+                priceDate,
+                close = defaultPrice,
+            )
+        }
     }
 
     fun getMarketData(
@@ -33,14 +45,10 @@ class OffMarketDataProvider(
         from: MarketData,
     ): MarketData = MarketData(asset, close = from.close, priceDate = priceDate)
 
-    override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-        val results: MutableCollection<MarketData> = ArrayList(priceRequest.assets.size)
-        for ((_, _, resolvedAsset) in priceRequest.assets) {
-            if (resolvedAsset != null) {
-                results.add(getMarketData(resolvedAsset))
-            }
+    override fun getMarketData(priceRequest: PriceRequest): List<MarketData> {
+        return priceRequest.assets.mapNotNull { (_, _, resolvedAsset) ->
+            resolvedAsset?.let { getMarketData(it, priceRequest.closePrice) }
         }
-        return results
     }
 
     override fun getId(): String = ID

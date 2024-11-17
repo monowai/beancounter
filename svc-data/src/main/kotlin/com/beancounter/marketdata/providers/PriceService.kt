@@ -98,5 +98,5 @@ class PriceService internal constructor(
     fun getMarketData(
         assets: Collection<Asset>,
         date: LocalDate,
-    ): Collection<MarketData> = marketDataRepo.findByAssetInAndPriceDate(assets, date)
+    ): List<MarketData> = marketDataRepo.findByAssetInAndPriceDate(assets, date)
 }

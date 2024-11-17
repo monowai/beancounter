@@ -35,7 +35,8 @@ internal class TrnMigratorTest {
 
     private var fxRateRepository = Mockito.mock(FxRateRepository::class.java)
 
-    private var fxRateService = FxRateService(ecbService, currencyService, marketService, fxRateRepository = fxRateRepository)
+    private var fxRateService =
+        FxRateService(ecbService, currencyService, marketService, fxRateRepository = fxRateRepository)
     private var trnMigrator = TrnMigrator(fxRateService)
     private val tradeDateStr = "2021-11-11"
     val tradeDate = DateUtils().getFormattedDate(tradeDateStr)

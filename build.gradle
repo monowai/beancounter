@@ -1,41 +1,40 @@
-
 buildscript {
-    apply from: 'dependencies.gradle'
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
-        classpath("org.jmailen.gradle:kotlinter-gradle:4.3.0")
-    }
+  apply from: 'dependencies.gradle'
+  dependencies {
+    classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
+    classpath("org.jmailen.gradle:kotlinter-gradle:4.3.0")
+  }
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
-    id 'org.jetbrains.kotlin.plugin.spring' version "$kotlinVersion"
-    id 'io.spring.dependency-management' version '1.1.5'
-    id "com.osacky.doctor" version "0.10.0"
+  id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
+  id 'org.jetbrains.kotlin.plugin.spring' version "$kotlinVersion"
+  id 'io.spring.dependency-management' version '1.1.5'
+  id "com.osacky.doctor" version "0.10.0"
 }
 
 
 repositories {
-    mavenLocal()
-    mavenCentral()
-    gradlePluginPortal()
+  mavenLocal()
+  mavenCentral()
+  gradlePluginPortal()
 }
 
 subprojects {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        gradlePluginPortal()
-    }
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    gradlePluginPortal()
+  }
 
-    apply plugin: 'kotlin'
-    tasks.withType(JavaCompile) {
-        options.compilerArgs.addAll('-Xlint:unchecked','-parameters')
-        options.deprecation = true
-    }
-    tasks.named('build') {
-        dependsOn 'formatKotlin'
-    }
+  apply plugin: 'kotlin'
+  tasks.withType(JavaCompile) {
+    options.compilerArgs.addAll('-Xlint:unchecked', '-parameters')
+    options.deprecation = true
+  }
+  tasks.named('build') {
+    dependsOn 'formatKotlin'
+  }
 }
 
 group = 'com.beancounter'

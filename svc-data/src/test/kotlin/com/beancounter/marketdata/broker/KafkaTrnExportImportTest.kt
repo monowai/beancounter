@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.broker
 
 import com.beancounter.auth.AuthUtilService
-import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.AssetService
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
@@ -33,7 +32,6 @@ import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnImportService
 import com.beancounter.marketdata.trn.TrnService
@@ -82,16 +80,10 @@ class KafkaTrnExportImportTest {
     private lateinit var mockMvc: MockMvc
 
     @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
-
-    @Autowired
     lateinit var marketDataService: MarketDataService
 
     @Autowired
     lateinit var assetService: AssetService
-
-    @Autowired
-    lateinit var priceWriter: PriceWriter
 
     @Autowired
     lateinit var portfolioService: PortfolioService
@@ -136,6 +128,8 @@ class KafkaTrnExportImportTest {
 
     @BeforeEach
     fun mockEnv() {
+        assertThat(fxTransactions).isNotNull
+        assertThat(mdFactory).isNotNull
         `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
         assertThat(currencyService.currencies).isNotEmpty
         assertThat(eventProducer.kafkaEnabled).isTrue
@@ -148,7 +142,12 @@ class KafkaTrnExportImportTest {
         `when`(fxService.getRates(any(), any())).thenReturn(
             FxResponse(
                 FxPairResults(
-                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(from = USD, to = USD, date = dateUtils.getDate("2000-01-01")))),
+                    mapOf(
+                        Pair(
+                            IsoCurrencyPair(USD.code, ""),
+                            FxRate(from = USD, to = USD, date = dateUtils.getDate("2000-01-01")),
+                        ),
+                    ),
                 ),
             ),
         )

@@ -1,36 +1,36 @@
 // Common config for a Kotlin/Spring builds
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
 }
 checkstyle {
-    toolVersion = '10.12.3'
-    configFile = project.file('../checkstyle.xml')
-    configDirectory = file("$rootProject.projectDir/buildtools")
+  toolVersion = '10.12.3'
+  configFile = project.file('../checkstyle.xml')
+  configDirectory = file("$rootProject.projectDir/buildtools")
 
-    configProperties = [
-            'javaCommon.cache.file': "${buildDir}/javaCommon.cache",
-    ]
-    ignoreFailures = false
-    showViolations = true
+  configProperties = [
+    'javaCommon.cache.file': "${buildDir}/javaCommon.cache",
+  ]
+  ignoreFailures = false
+  showViolations = true
 }
 
 test {
-    useJUnitPlatform()
+  useJUnitPlatform()
 //    testLogging {
 //        events "failed"
 //    }
 }
 jacoco {
-    toolVersion = "$jacocoVersion"
+  toolVersion = "$jacocoVersion"
 }
 
 jacocoTestReport {
-    reports {
-        xml.required = true
-        html.required = false
-    }
+  reports {
+    xml.required = true
+    html.required = false
+  }
 }
 
 check.dependsOn jacocoTestReport

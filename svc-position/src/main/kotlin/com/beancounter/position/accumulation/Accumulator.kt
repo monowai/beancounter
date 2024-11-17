@@ -84,7 +84,12 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
 
         when {
             TrnType.isCashCredited(trn.trnType) -> trnBehaviourFactory[DEPOSIT].accumulate(trn, positions, cashPosition)
-            TrnType.isCashDebited(trn.trnType) -> trnBehaviourFactory[WITHDRAWAL].accumulate(trn, positions, cashPosition)
+            TrnType.isCashDebited(trn.trnType) ->
+                trnBehaviourFactory[WITHDRAWAL].accumulate(
+                    trn,
+                    positions,
+                    cashPosition,
+                )
         }
 
         cashPosition.dateValues.last = trn.tradeDate

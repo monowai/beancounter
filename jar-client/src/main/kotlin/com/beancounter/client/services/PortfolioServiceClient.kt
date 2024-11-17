@@ -87,7 +87,10 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
             @PathVariable("code") code: String,
         ): PortfolioResponse
 
-        @GetMapping(value = ["/api/portfolios/asset/{assetId}/{tradeDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(
+            value = ["/api/portfolios/asset/{assetId}/{tradeDate}"],
+            produces = [MediaType.APPLICATION_JSON_VALUE],
+        )
         fun getWhereHeld(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("assetId") assetId: String,

@@ -114,9 +114,11 @@ internal class PreviousClosePriceDateTest {
                 DayOfWeek.MONDAY -> {
                     3L // Close of business Friday
                 }
+
                 DayOfWeek.SUNDAY -> {
                     2L // CoB Friday
                 }
+
                 else -> {
                     1L // CoB Yesterday
                 }

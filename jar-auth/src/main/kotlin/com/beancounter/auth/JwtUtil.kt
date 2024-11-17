@@ -46,8 +46,8 @@ internal object JwtUtil {
 
     fun getSignatureAlgorithms(jwkSource: JWKSource<SecurityContext>): Set<SignatureAlgorithm> {
         val jwkMatcher =
-            JWKMatcher.Builder().publicOnly(true).keyUses(KeyUse.SIGNATURE, null)
-                .keyTypes(KeyType.RSA, KeyType.EC).build()
+            JWKMatcher.Builder().publicOnly(true).keyUses(KeyUse.SIGNATURE, null).keyTypes(KeyType.RSA, KeyType.EC)
+                .build()
         val jwsAlgorithms: MutableSet<JWSAlgorithm> = HashSet()
         try {
             val jwks = jwkSource[JWKSelector(jwkMatcher), null]
@@ -90,11 +90,7 @@ internal object JwtUtil {
                 Assert.isTrue(configuration["jwks_uri"] != null, "The public JWK set URI must not be null")
                 return configuration
             } catch (ex: RuntimeException) {
-                if (!(
-                        ex is HttpClientErrorException &&
-                            ex.statusCode.is4xxClientError
-                    )
-                ) {
+                if (!(ex is HttpClientErrorException && ex.statusCode.is4xxClientError)) {
                     throw IllegalArgumentException(errorMessage, ex)
                 }
                 // else try another endpoint

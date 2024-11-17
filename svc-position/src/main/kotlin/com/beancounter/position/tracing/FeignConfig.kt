@@ -1,4 +1,5 @@
 package com.beancounter.position.tracing
+
 import feign.Feign
 import io.sentry.openfeign.SentryCapability
 import org.springframework.context.annotation.Bean

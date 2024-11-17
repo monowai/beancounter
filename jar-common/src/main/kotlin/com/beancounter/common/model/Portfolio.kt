@@ -6,7 +6,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import java.math.BigDecimal
 
 /**

@@ -1,11 +1,11 @@
 plugins {
-    id 'io.spring.dependency-management'
-    id 'org.jetbrains.kotlin.jvm'
-    id 'kotlin-spring'
-    id 'idea'
-    id 'checkstyle'
-    id 'jacoco'
-    id 'org.jmailen.kotlinter'
+  id 'io.spring.dependency-management'
+  id 'org.jetbrains.kotlin.jvm'
+  id 'kotlin-spring'
+  id 'idea'
+  id 'checkstyle'
+  id 'jacoco'
+  id 'org.jmailen.kotlinter'
 }
 apply from: '../kotlin-spring.gradle'
 
@@ -14,57 +14,57 @@ version = '0.0.1-SNAPSHOT'
 
 
 dependencies {
-    implementation(
-            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
-            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
-            project(":jar-common"),
-            project(":jar-auth"),
-            'com.google.guava:guava:33.0.0-jre',
-            "com.fasterxml.jackson.core:jackson-databind",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-            "org.springframework.security:spring-security-oauth2-resource-server",
-            "org.springframework.security:spring-security-oauth2-jose",
-            "com.fasterxml.jackson.module:jackson-module-kotlin",
-            "org.jetbrains.kotlin:kotlin-reflect",
-            "io.github.resilience4j:resilience4j-annotations",
-            "io.github.resilience4j:resilience4j-circuitbreaker",
-            "io.github.resilience4j:resilience4j-retry",
-            "io.github.resilience4j:resilience4j-timelimiter",
-            "org.springframework.cloud:spring-cloud-starter-openfeign"
-    )
-    testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module: 'junit-vintage-engine' }
-    testImplementation(
-            "org.assertj:assertj-core",
-            "org.springframework.boot:spring-boot-starter-test",
-            "org.springframework.security:spring-security-test",
-            "org.springframework.cloud:spring-cloud-contract-wiremock",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            // Needed for spring-cloud-contract-wiremock :\
-            "org.springframework.boot:spring-boot-starter-webflux",
-            testFixtures(project(":jar-auth")),
-    )
-    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
-        transitive = false
-    }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+  implementation(
+    platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+    platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
+    project(":jar-common"),
+    project(":jar-auth"),
+    'com.google.guava:guava:33.0.0-jre',
+    "com.fasterxml.jackson.core:jackson-databind",
+    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+    "org.springframework.security:spring-security-oauth2-resource-server",
+    "org.springframework.security:spring-security-oauth2-jose",
+    "com.fasterxml.jackson.module:jackson-module-kotlin",
+    "org.jetbrains.kotlin:kotlin-reflect",
+    "io.github.resilience4j:resilience4j-annotations",
+    "io.github.resilience4j:resilience4j-circuitbreaker",
+    "io.github.resilience4j:resilience4j-retry",
+    "io.github.resilience4j:resilience4j-timelimiter",
+    "org.springframework.cloud:spring-cloud-starter-openfeign"
+  )
+  testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module: 'junit-vintage-engine' }
+  testImplementation(
+    "org.assertj:assertj-core",
+    "org.springframework.boot:spring-boot-starter-test",
+    "org.springframework.security:spring-security-test",
+    "org.springframework.cloud:spring-cloud-contract-wiremock",
+    "org.springframework.cloud:spring-cloud-contract-stub-runner",
+    // Needed for spring-cloud-contract-wiremock :\
+    "org.springframework.boot:spring-boot-starter-webflux",
+    testFixtures(project(":jar-auth")),
+  )
+  testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
+    transitive = false
+  }
+  implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
 }
 
 idea {
-    module {
-        inheritOutputDirs = false
-        downloadSources = true
-        outputDir = file("$buildDir/classes/main/")
-        testOutputDir = file("$buildDir/classes/main/")
-    }
+  module {
+    inheritOutputDirs = false
+    downloadSources = true
+    outputDir = file("$buildDir/classes/main/")
+    testOutputDir = file("$buildDir/classes/main/")
+  }
 }
 
 jacoco {
-    toolVersion = "$jacocoVersion"
+  toolVersion = "$jacocoVersion"
 }
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 kotlin {
-    jvmToolchain(21)
+  jvmToolchain(21)
 }

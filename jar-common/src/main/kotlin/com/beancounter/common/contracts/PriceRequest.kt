@@ -30,18 +30,18 @@ data class PriceRequest(
             assets: Collection<AssetInput>,
             currentMode: Boolean = true,
         ): PriceRequest {
-            val priceAsset = arrayListOf<PriceAsset>()
-            for (asset in assets) {
-                priceAsset.add(parse(asset))
-            }
-            return PriceRequest(date, priceAsset, currentMode)
+            val priceAssets = assets.map { parse(it) }
+            return PriceRequest(date, priceAssets, currentMode)
         }
 
         @JvmStatic
         fun of(assetInput: AssetInput): PriceRequest =
-            PriceRequest(dateUtils.offsetDateString(TODAY), listOf(parse(assetInput)))
+            PriceRequest(
+                dateUtils.offsetDateString(TODAY),
+                listOf(parse(assetInput)),
+            )
 
-        private fun parse(assetInput: AssetInput): PriceAsset = PriceAsset(market = assetInput.market, code = assetInput.code)
+        private fun parse(input: AssetInput): PriceAsset = PriceAsset(market = input.market, code = input.code)
 
         private fun parse(asset: Asset): PriceAsset = PriceAsset(asset.market.code, asset.code, assetId = asset.id)
 
@@ -49,18 +49,15 @@ data class PriceRequest(
         fun of(
             asset: Asset,
             date: String = TODAY,
-        ): PriceRequest = PriceRequest(date, arrayListOf(PriceAsset(asset)))
+        ): PriceRequest = PriceRequest(date, listOf(PriceAsset(asset)))
 
         fun of(
             date: String,
             positions: Positions,
             currentMode: Boolean = true,
         ): PriceRequest {
-            val priceAsset = arrayListOf<PriceAsset>()
-            for (position in positions.positions) {
-                priceAsset.add(parse(position.value.asset))
-            }
-            return PriceRequest(date, priceAsset, currentMode)
+            val priceAssets = positions.positions.values.map { parse(it.asset) }
+            return PriceRequest(date, priceAssets, currentMode)
         }
 
         private val dateUtils = DateUtils()

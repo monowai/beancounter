@@ -1,12 +1,12 @@
 plugins {
-    id 'io.spring.dependency-management'
-    id 'org.jetbrains.kotlin.jvm'
-    id 'kotlin-spring'
-    id 'idea'
-    id 'checkstyle'
-    id 'jacoco'
-    id 'org.jmailen.kotlinter'
-    id "java-test-fixtures"
+  id 'io.spring.dependency-management'
+  id 'org.jetbrains.kotlin.jvm'
+  id 'kotlin-spring'
+  id 'idea'
+  id 'checkstyle'
+  id 'jacoco'
+  id 'org.jmailen.kotlinter'
+  id "java-test-fixtures"
 }
 
 apply from: '../kotlin-spring.gradle'
@@ -14,51 +14,51 @@ apply from: '../kotlin-spring.gradle'
 version = '0.0.1'
 build.dependsOn formatKotlin
 dependencies {
-    implementation(
-            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
-            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
-            project(":jar-common"),
-            "jakarta.servlet:jakarta.servlet-api:6.0.0",
-            "com.fasterxml.jackson.core:jackson-databind",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-            "org.springframework:spring-webmvc",
-            "org.springframework.cloud:spring-cloud-starter-openfeign",
-            "org.springframework.security:spring-security-config",
-            "org.springframework.security:spring-security-oauth2-resource-server",
-            "org.springframework.security:spring-security-oauth2-jose"
-    )
-    compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude module: 'junit-vintage-engine'
-    }
-    testImplementation(
-            "org.junit.jupiter:junit-jupiter",
-            'org.assertj:assertj-core:3.23.1',
-            "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
-            "com.fasterxml.jackson.module:jackson-module-kotlin",
-            "org.springframework.boot:spring-boot-autoconfigure",
-            "org.springframework.security:spring-security-test",
-            "org.springframework.security:spring-security-oauth2-client"
+  implementation(
+    platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+    platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
+    project(":jar-common"),
+    "jakarta.servlet:jakarta.servlet-api:6.0.0",
+    "com.fasterxml.jackson.core:jackson-databind",
+    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+    "org.springframework:spring-webmvc",
+    "org.springframework.cloud:spring-cloud-starter-openfeign",
+    "org.springframework.security:spring-security-config",
+    "org.springframework.security:spring-security-oauth2-resource-server",
+    "org.springframework.security:spring-security-oauth2-jose"
+  )
+  compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
+  testImplementation("org.springframework.boot:spring-boot-starter-test") {
+    exclude module: 'junit-vintage-engine'
+  }
+  testImplementation(
+    "org.junit.jupiter:junit-jupiter",
+    'org.assertj:assertj-core:3.23.1',
+    "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
+    "com.fasterxml.jackson.module:jackson-module-kotlin",
+    "org.springframework.boot:spring-boot-autoconfigure",
+    "org.springframework.security:spring-security-test",
+    "org.springframework.security:spring-security-oauth2-client"
 
-    )
-    testFixturesImplementation(
-            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
-            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
-            project(":jar-common"),
-            "org.springframework.boot:spring-boot-starter-test",
-            "org.springframework.security:spring-security-config",
-            "org.springframework.security:spring-security-test",
-            "org.springframework.security:spring-security-oauth2-client",
-            "org.springframework.security:spring-security-oauth2-resource-server",
-            "org.springframework.security:spring-security-oauth2-jose"
+  )
+  testFixturesImplementation(
+    platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+    platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
+    project(":jar-common"),
+    "org.springframework.boot:spring-boot-starter-test",
+    "org.springframework.security:spring-security-config",
+    "org.springframework.security:spring-security-test",
+    "org.springframework.security:spring-security-oauth2-client",
+    "org.springframework.security:spring-security-oauth2-resource-server",
+    "org.springframework.security:spring-security-oauth2-jose"
 
-    )
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+  )
+  implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 kotlin {
-    jvmToolchain(21)
+  jvmToolchain(21)
 }
 

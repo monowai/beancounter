@@ -1,10 +1,10 @@
 pluginManagement {
-    repositories {
-        mavenLocal()
-        //maven { url "https://repo.spring.io/milestone" }
-        mavenCentral()
-        gradlePluginPortal()
-    }
+  repositories {
+    mavenLocal()
+    //maven { url "https://repo.spring.io/milestone" }
+    mavenCentral()
+    gradlePluginPortal()
+  }
 }
 //subprojects {
 //    apply from: rootProject.file('logback.xml')

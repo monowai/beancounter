@@ -7,7 +7,6 @@ import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.stereotype.Service
 import java.util.Optional
 

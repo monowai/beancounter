@@ -12,7 +12,6 @@ import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.markets.MarketService
 import org.slf4j.LoggerFactory
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
@@ -43,7 +42,6 @@ class FxRateService(
         return existingRate
     }
 
-    @Cacheable("fx.rates")
     override fun getRates(
         fxRequest: FxRequest,
         token: String,
@@ -55,7 +53,9 @@ class FxRateService(
         val dateToFind = getDate(fxRequest.rateDate)
         var rates = fxRateRepository.findByDateRange(dateToFind)
         if (rates.size <= 1) { // You should always get the base rate of 1
-            LoggerFactory.getLogger(FxRateService::class.java).info("Retrieving ECB rates ${fxRequest.rateDate}")
+            LoggerFactory
+                .getLogger(FxRateService::class.java)
+                .info("Retrieving ECB rates $dateToFind/${fxRequest.rateDate}")
             rates = ecbService.getRates(fxRequest.rateDate).toMutableList()
             fxRateRepository.saveAll(rates)
             // Add in the base rate of 1 for USD

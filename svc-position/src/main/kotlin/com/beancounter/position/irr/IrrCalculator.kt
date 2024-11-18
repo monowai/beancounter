@@ -2,7 +2,6 @@ import com.beancounter.common.model.PeriodicCashFlows
 import org.apache.commons.math3.analysis.UnivariateFunction
 import org.apache.commons.math3.analysis.solvers.BrentSolver
 import org.apache.commons.math3.analysis.solvers.UnivariateSolver
-import org.apache.commons.math3.exception.NoBracketingException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -58,11 +57,7 @@ class IrrCalculator(
     ): Double {
         val npvFunction = NPVFunction(periodicCashFlows, firstDate)
 
-        return try {
-            solver.solve(1000, npvFunction, -0.9999, 10000.0, guess)
-        } catch (e: NoBracketingException) {
-            throw IllegalArgumentException("XIRR did not converge", e)
-        }
+        return solver.solve(1000, npvFunction, -0.999999, 1000000.0, guess)
     }
 
     private class NPVFunction(

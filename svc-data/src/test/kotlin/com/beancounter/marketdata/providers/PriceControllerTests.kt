@@ -269,7 +269,7 @@ internal class PriceControllerTests
             assertThat(priceResponse.iterator().next())
                 .hasFieldOrProperty("asset.id")
                 .hasFieldOrPropertyWithValue("asset.market.code", asset.market.code)
-                .hasFieldOrPropertyWithValue("open", mockPrice)
                 .hasFieldOrPropertyWithValue("priceDate", priceDate)
+                .hasFieldOrPropertyWithValue("open", mockPrice)
         }
     }

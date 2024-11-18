@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.MoneyValues
+import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
@@ -19,15 +20,22 @@ import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
 import com.beancounter.position.valuation.RoiCalculator
+import io.sentry.Breadcrumb
+import io.sentry.Sentry
+import io.sentry.SentryLevel
 import io.sentry.kotlin.SentryContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.apache.commons.math3.exception.NoBracketingException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Value the positions.
+ */
 @Service
 class PositionValuationService(
     private val marketValue: MarketValue,
@@ -38,8 +46,9 @@ class PositionValuationService(
     private val dateUtils: DateUtils,
     private val irrCalculator: IrrCalculator,
 ) {
-    val percentUtils = PercentUtils()
-    val roiCalculator = RoiCalculator()
+    private val percentUtils = PercentUtils()
+    private val roiCalculator = RoiCalculator()
+    private val logger = LoggerFactory.getLogger(PositionValuationService::class.java)
 
     fun value(
         positions: Positions,
@@ -75,7 +84,8 @@ class PositionValuationService(
 
         calculateMarketValues(positions, priceResponse, fxResponse, tradeCurrency)
         calculateWeightsAndGains(positions)
-        val irr = BigDecimal(irrCalculator.calculate(positions.periodicCashFlows))
+        val irr =
+            calculateIrrSafely(positions.periodicCashFlows, "Failed to calculate IRR for ${positions.portfolio.code}")
         baseTotals.irr = irr
         pfTotals.irr = irr
         tradeTotals.irr = irr
@@ -140,7 +150,11 @@ class PositionValuationService(
             if (position.asset.market.code != "CASH") {
                 position.periodicCashFlows.add(position, theDate)
                 positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
-                val irr = BigDecimal(irrCalculator.calculate(position.periodicCashFlows))
+                val irr =
+                    calculateIrrSafely(
+                        positions.periodicCashFlows,
+                        "Failed to calculate IRR for ${position.asset.code}",
+                    )
                 setTotals(tradeTotals, tradeMoneyValues, roi, irr)
                 setTotals(baseTotals, baseMoneyValues, roi, irr)
                 setTotals(refTotals, portfolioMoneyValues, roi, irr)
@@ -191,6 +205,25 @@ class PositionValuationService(
                 throw IllegalStateException("Thread was interrupted while fetching market data.", e)
             }
         }
+
+    private fun calculateIrrSafely(
+        periodicCashFlows: PeriodicCashFlows,
+        message: String,
+    ): BigDecimal {
+        return try {
+            BigDecimal(irrCalculator.calculate(periodicCashFlows))
+        } catch (e: NoBracketingException) {
+            logger.error("Failed to calculate IRR", e)
+            val breadcrumb =
+                Breadcrumb(message).apply {
+                    category = "data"
+                    level = SentryLevel.ERROR
+                }
+            Sentry.addBreadcrumb(breadcrumb)
+
+            BigDecimal.ZERO
+        }
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(PositionValuationService::class.java)

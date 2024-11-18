@@ -112,7 +112,7 @@ internal class DataProviderArgumentsTest {
             )
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
             providerUtils.splitProviders(assetInputs)
-        assertThat(splitResults).hasSize(0)
+        assertThat(splitResults).hasSize(1) // Active Asset
     }
 
     @Test
@@ -127,7 +127,7 @@ internal class DataProviderArgumentsTest {
                 notActive,
             )
         val assetInputs: MutableCollection<PriceAsset> = arrayListOf(priceAsset)
-        val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
+        val splitResults: Map<MarketDataPriceProvider, Collection<Asset>> =
             providerUtils.splitProviders(assetInputs)
         assertThat(splitResults)
             .hasSize(0)

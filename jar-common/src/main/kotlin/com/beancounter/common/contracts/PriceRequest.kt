@@ -3,7 +3,6 @@ package com.beancounter.common.contracts
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Positions
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.math.BigDecimal
@@ -37,7 +36,7 @@ data class PriceRequest(
         @JvmStatic
         fun of(assetInput: AssetInput): PriceRequest =
             PriceRequest(
-                dateUtils.offsetDateString(TODAY),
+                TODAY,
                 listOf(parse(assetInput)),
             )
 
@@ -59,7 +58,5 @@ data class PriceRequest(
             val priceAssets = positions.positions.values.map { parse(it.asset) }
             return PriceRequest(date, priceAssets, currentMode)
         }
-
-        private val dateUtils = DateUtils()
     }
 }

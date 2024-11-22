@@ -152,7 +152,7 @@ class PositionValuationService(
                 positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
                 val irr =
                     calculateIrrSafely(
-                        positions.periodicCashFlows,
+                        position.periodicCashFlows,
                         "Failed to calculate IRR for ${position.asset.code}",
                     )
                 setTotals(tradeTotals, tradeMoneyValues, roi, irr)

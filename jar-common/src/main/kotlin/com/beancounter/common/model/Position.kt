@@ -58,4 +58,8 @@ class Position(val asset: Asset, portfolio: Portfolio?, tradeCurrency: Currency 
         }
         throw BusinessException("$reportCurrency Position does not exist for ${asset.name}")
     }
+
+    override fun toString(): String {
+        return "Position(asset=$asset)"
+    }
 }

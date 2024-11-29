@@ -2,6 +2,7 @@ package com.beancounter.marketdata.portfolio
 
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import java.time.LocalDate
@@ -16,7 +17,7 @@ interface PortfolioRepository : CrudRepository<Portfolio, String> {
         systemUser: SystemUser,
     ): Optional<Portfolio>
 
-    fun findByOwner(systemUser: SystemUser): Iterable<Portfolio>
+    fun findByOwner(systemUser: SystemUser, sort: Sort): Iterable<Portfolio>
 
     @Query(
         "select distinct t.portfolio from Trn t " +

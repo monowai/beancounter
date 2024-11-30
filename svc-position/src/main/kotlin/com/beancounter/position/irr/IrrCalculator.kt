@@ -56,8 +56,8 @@ class IrrCalculator(
         firstDate: LocalDate,
     ): Double {
         val npvFunction = NPVFunction(periodicCashFlows, firstDate)
-
-        return solver.solve(1000, npvFunction, -0.999999, 1000000.0, guess)
+        val result = solver.solve(1000, npvFunction, -0.999999, 1000000.0, guess)
+        return String.format("%.8f", result).toDouble()
     }
 
     private class NPVFunction(

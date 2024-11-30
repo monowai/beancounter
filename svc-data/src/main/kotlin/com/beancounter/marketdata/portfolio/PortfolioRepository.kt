@@ -17,7 +17,10 @@ interface PortfolioRepository : CrudRepository<Portfolio, String> {
         systemUser: SystemUser,
     ): Optional<Portfolio>
 
-    fun findByOwner(systemUser: SystemUser, sort: Sort): Iterable<Portfolio>
+    fun findByOwner(
+        systemUser: SystemUser,
+        sort: Sort = Sort.by(Sort.Order.asc("code")),
+    ): Iterable<Portfolio>
 
     @Query(
         "select distinct t.portfolio from Trn t " +

@@ -17,7 +17,6 @@
           },
           "priceTime": "19:00",
           "daysToSubtract": 1,
-          "enricher": "ECHO",
           "multiplier": 1.0
         },
         "priceSymbol": "USD",
@@ -58,7 +57,6 @@
           },
           "priceTime": "19:00",
           "daysToSubtract": 1,
-          "enricher": "ECHO",
           "multiplier": 1.0
         },
         "priceSymbol": "NZD",

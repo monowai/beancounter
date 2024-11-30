@@ -68,47 +68,33 @@ internal class DataProviderArgumentsTest {
     }
 
     @Test
-    fun is_SplitByMarket() {
-        val assets: MutableList<PriceAsset> = mutableListOf()
-        val marketA = "AAA"
-        val code = "ABC"
-        assets.add(
-            PriceAsset(
-                marketA,
-                code,
-                getTestAsset(Market(marketA), code),
-            ),
-        )
-        val marketB = "BBB"
-        assets.add(
-            PriceAsset(
-                marketB,
-                code,
-                getTestAsset(Market(marketB), code),
-            ),
-        )
-        val marketC = "CCC"
-        assets.add(
-            PriceAsset(
-                marketC,
-                code,
-                getTestAsset(Market(marketC), code),
-            ),
-        )
+    fun `split by provider groups by market`() {
+        val assets =
+            listOf(
+                PriceAsset("AAA", "ABC", Asset("ABC", "ABC1", "ABC", Market("AAA"))),
+                PriceAsset("BBB", "ABC", Asset("ABC", "ABC2", "ABC", Market("BBB"))),
+                PriceAsset("CCC", "ABC", Asset("ABC", "ABC3", "ABC", Market("CCC"))),
+            )
         val priceRequest = PriceRequest(assets = assets)
-        val testConfig = TestConfig(10)
-        val providerArguments = getInstance(priceRequest, testConfig)
-        val batch: Map<Int, String?> = providerArguments.batch
-        assertThat(batch)
-            .containsOnlyKeys(0, 1, 2)
+        val providerArguments = getInstance(priceRequest, TestConfig(10))
+
+        val batch = providerArguments.batch
+        assertThat(batch).containsOnlyKeys(0, 1, 2)
     }
 
     @Test
     fun activeAssetsByProvider() {
         val providerUtils = getProviderUtils(NYSE)
+        val resolvedAsset =
+            Asset(
+                id = "123",
+                code = twee,
+                market = NYSE,
+                status = Status.Active,
+            )
         val assetInputs: MutableCollection<PriceAsset> =
             arrayListOf(
-                PriceAsset(NYSE.code, twee, assetId = twee),
+                PriceAsset(NYSE.code, twee, resolvedAsset),
             )
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
             providerUtils.splitProviders(assetInputs)

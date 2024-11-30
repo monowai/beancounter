@@ -56,5 +56,5 @@ data class Asset(
     val isKnown: Boolean
         get() = !code.equals(id, ignoreCase = true)
 
-    override fun toString(): String = "Asset(code=$code, name=$name, market=${market.code})"
+    override fun toString(): String = "Asset(code=$code, name=$name)"
 }

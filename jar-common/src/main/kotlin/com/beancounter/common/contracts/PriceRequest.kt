@@ -7,21 +7,15 @@ import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.math.BigDecimal
 
-/**
- * Arguments by which prices on a date are located.
- */
 data class PriceRequest(
     val date: String = TODAY,
-    val assets: List<PriceAsset>,
+    val assets: List<PriceAsset> = listOf(),
     val currentMode: Boolean = date == TODAY,
     val closePrice: BigDecimal = BigDecimal.ZERO,
 ) {
     @JsonIgnore
     var resolvedAsset: Asset? = null
 
-    /**
-     * Helper methods to deal with PriceRequest Objects
-     */
     companion object {
         @JvmStatic
         fun of(
@@ -29,34 +23,36 @@ data class PriceRequest(
             assets: Collection<AssetInput>,
             currentMode: Boolean = true,
         ): PriceRequest {
-            val priceAssets = assets.map { parse(it) }
-            return PriceRequest(date, priceAssets, currentMode)
+            return PriceRequest(date, assets.map { parse(it) }, currentMode)
         }
 
         @JvmStatic
-        fun of(assetInput: AssetInput): PriceRequest =
-            PriceRequest(
-                TODAY,
-                listOf(parse(assetInput)),
-            )
+        fun of(assetInput: AssetInput): PriceRequest {
+            return PriceRequest(TODAY, listOf(parse(assetInput)))
+        }
 
-        private fun parse(input: AssetInput): PriceAsset = PriceAsset(market = input.market, code = input.code)
+        private fun parse(input: AssetInput): PriceAsset {
+            return PriceAsset(market = input.market, code = input.code)
+        }
 
-        private fun parse(asset: Asset): PriceAsset = PriceAsset(asset.market.code, asset.code, assetId = asset.id)
+        private fun parse(asset: Asset): PriceAsset {
+            return PriceAsset(asset.market.code, asset.code, assetId = asset.id)
+        }
 
         @JvmStatic
         fun of(
             asset: Asset,
             date: String = TODAY,
-        ): PriceRequest = PriceRequest(date, listOf(PriceAsset(asset)))
+        ): PriceRequest {
+            return PriceRequest(date, listOf(PriceAsset(asset)))
+        }
 
         fun of(
             date: String,
             positions: Positions,
             currentMode: Boolean = true,
         ): PriceRequest {
-            val priceAssets = positions.positions.values.map { parse(it.asset) }
-            return PriceRequest(date, priceAssets, currentMode)
+            return PriceRequest(date, positions.positions.values.map { parse(it.asset) }, currentMode)
         }
     }
 }

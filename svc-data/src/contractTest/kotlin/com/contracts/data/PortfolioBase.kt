@@ -17,6 +17,7 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
+import org.springframework.data.domain.Sort
 import java.io.File
 import java.io.IOException
 import java.util.Optional
@@ -91,7 +92,7 @@ class PortfolioBase : ContractVerifierBase() {
             val portfolioCode = "TEST"
 
             // All Portfolio
-            Mockito.`when`(portfolioRepository.findByOwner(systemUser)).thenReturn(
+            Mockito.`when`(portfolioRepository.findByOwner(systemUser, Sort.by(Sort.Order.asc("code")))).thenReturn(
                 objectMapper.readValue(
                     ClassPathResource("contracts/portfolio/portfolios.json").file,
                     PortfoliosResponse::class.java,

@@ -10,7 +10,6 @@ import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.Locale
@@ -32,8 +31,8 @@ class PortfolioService internal constructor(
         val owner = systemUserService.getOrThrow
         val results: MutableCollection<Portfolio> = ArrayList()
         portfolioRepository.saveAll(
-                portfolioInputAdapter.prepare(owner, portfolios),
-            ).forEach(Consumer { e: Portfolio -> results.add(e) })
+            portfolioInputAdapter.prepare(owner, portfolios),
+        ).forEach(Consumer { e: Portfolio -> results.add(e) })
         return results
     }
 
@@ -46,13 +45,14 @@ class PortfolioService internal constructor(
     val portfolios: Collection<Portfolio>
         get() {
             val systemUser = systemUserService.getOrThrow
-            val portfolios = if (systemUser.id == "beancounter:system") {
-                portfolioRepository.findAll().toList()
-            } else {
-                portfolioRepository.findByOwner(
-                    systemUser, Sort.by(Sort.Direction.ASC, "name")
-                ).toList()
-            }
+            val portfolios =
+                if (systemUser.id == "beancounter:system") {
+                    portfolioRepository.findAll().toList()
+                } else {
+                    portfolioRepository.findByOwner(
+                        systemUser,
+                    ).toList()
+                }
             return portfolios
         }
 
@@ -81,15 +81,16 @@ class PortfolioService internal constructor(
         val systemUser = systemUserService.getOrThrow
         log.trace("Searching on behalf of {}", systemUser.id)
         val found = portfolioRepository.findByCodeAndOwner(code.uppercase(Locale.getDefault()), systemUser)
-        val portfolio = found.orElseThrow {
-            BusinessException(
-                String.format(
-                    "Could not find a portfolio with code %s owned by %s",
-                    code,
-                    systemUser.id,
-                ),
-            )
-        }
+        val portfolio =
+            found.orElseThrow {
+                BusinessException(
+                    String.format(
+                        "Could not find a portfolio with code %s owned by %s",
+                        code,
+                        systemUser.id,
+                    ),
+                )
+            }
         if (canView(portfolio)) {
             return portfolio
         }

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.assets
 
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
@@ -146,6 +147,19 @@ class AssetService internal constructor(
     fun backFill(assetId: String) {
         val asset = find(assetId)
         marketDataService.backFill(asset)
+    }
+
+    fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
+        val assets = assetRepository.findAllById(priceRequest.assets.map { it.assetId })
+        val resolvedAssets =
+            priceRequest.assets.map { priceAsset ->
+                val asset = assets.find { it.id == priceAsset.assetId }
+                if (asset != null) {
+                    priceAsset.resolvedAsset = assetHydrationService.hydrateAsset(asset)
+                }
+                priceAsset
+            }
+        return priceRequest.copy(assets = resolvedAssets)
     }
 
     companion object {

@@ -73,28 +73,26 @@ internal class PriceControllerTests
                     asset.market,
                     PriceRequest.of(AssetInput(market = asset.market.code, code = asset.code)),
                 )
-            `when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, priceDate))
-                .thenReturn(
-                    Optional.of(
-                        MarketData(
-                            asset,
-                            close = mockPrice,
-                            open = mockPrice,
-                            priceDate = priceDate,
-                        ),
+            `when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, priceDate)).thenReturn(
+                Optional.of(
+                    MarketData(
+                        asset,
+                        close = mockPrice,
+                        open = mockPrice,
+                        priceDate = priceDate,
                     ),
-                )
-            `when`(marketDataRepo.findByAssetInAndPriceDate(listOf(asset), priceDate))
-                .thenReturn(
-                    listOf(
-                        MarketData(
-                            asset,
-                            close = mockPrice,
-                            open = mockPrice,
-                            priceDate = priceDate,
-                        ),
+                ),
+            )
+            `when`(marketDataRepo.findByAssetInAndPriceDate(listOf(asset), priceDate)).thenReturn(
+                listOf(
+                    MarketData(
+                        asset,
+                        close = mockPrice,
+                        open = mockPrice,
+                        priceDate = priceDate,
                     ),
-                )
+                ),
+            )
         }
 
         @Test
@@ -106,18 +104,15 @@ internal class PriceControllerTests
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_MarketsReturned() {
             val json =
-                mockMvc
-                    .perform(
-                        MockMvcRequestBuilders
-                            .get("/markets")
-                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                            .contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andExpect(
-                        MockMvcResultMatchers.status().isOk,
-                    ).andExpect(
-                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andReturn()
-                    .response.contentAsString
+                mockMvc.perform(
+                    MockMvcRequestBuilders.get("/markets")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andExpect(
+                    MockMvcResultMatchers.status().isOk,
+                ).andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn().response.contentAsString
             val (data) = objectMapper.readValue(json, MarketResponse::class.java)
             assertThat(data).isNotNull.isNotEmpty
         }
@@ -127,28 +122,23 @@ internal class PriceControllerTests
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_PriceFromMarketAssetFound() {
             val json =
-                mockMvc
-                    .perform(
-                        MockMvcRequestBuilders
-                            .get(
-                                "/prices/{marketId}/{assetId}",
-                                asset.market.code,
-                                asset.code,
-                            ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                            .contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andExpect(
-                        MockMvcResultMatchers.status().isOk,
-                    ).andExpect(
-                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andReturn()
-                    .response.contentAsString
+                mockMvc.perform(
+                    MockMvcRequestBuilders.get(
+                        "/prices/{marketId}/{assetId}",
+                        asset.market.code,
+                        asset.code,
+                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andExpect(
+                    MockMvcResultMatchers.status().isOk,
+                ).andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn().response.contentAsString
             val (data) = objectMapper.readValue<PriceResponse>(json)
             assertThat(data).isNotNull.hasSize(1)
             val marketData = data.iterator().next()
-            assertThat(marketData)
-                .hasFieldOrPropertyWithValue("asset.id", asset.id)
-                .hasFieldOrPropertyWithValue("open", mockPrice)
-                .hasFieldOrPropertyWithValue("priceDate", priceDate)
+            assertThat(marketData).hasFieldOrPropertyWithValue("asset.id", asset.id)
+                .hasFieldOrPropertyWithValue("open", mockPrice).hasFieldOrPropertyWithValue("priceDate", priceDate)
         }
 
         private val assetCode = "assetCode"
@@ -157,38 +147,48 @@ internal class PriceControllerTests
         @Tag("wiremock")
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_MdCollectionReturnedForCashAssets() {
-            val resolvableAsset = getTestAsset(CASH_MARKET, assetCode)
-            `when`(assetService.findLocally(AssetInput(CASH_MARKET.code, assetCode)))
-                .thenReturn(resolvableAsset)
-
-            `when`(assetService.find(resolvableAsset.id)).thenReturn(resolvableAsset)
-            val assetInputs =
+            val cashAsset = getTestAsset(CASH_MARKET, assetCode)
+            val assetInput =
                 listOf(
-                    PriceAsset(resolvableAsset),
+                    PriceAsset(market = CASH_MARKET.code, code = assetCode),
                 )
-            val json =
-                mockMvc
-                    .perform(
-                        MockMvcRequestBuilders
-                            .post("/prices")
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                            .content(
-                                objectMapper.writeValueAsString(
-                                    PriceRequest(assets = assetInputs),
-                                ),
+
+            val priceRequest =
+                PriceRequest(
+                    assets = assetInput,
+                )
+
+            val resolved =
+                PriceRequest(
+                    assets =
+                        listOf(
+                            PriceAsset(
+                                market = CASH_MARKET.code,
+                                code = assetCode,
+                                resolvedAsset = cashAsset,
                             ),
-                    ).andExpect(
-                        MockMvcResultMatchers.status().isOk,
-                    ).andExpect(
-                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andReturn()
-                    .response
-                    .contentAsString
+                        ),
+                )
+
+            // Add in the resolved asset
+            `when`(assetService.resolveAssets(priceRequest))
+                .thenReturn(resolved)
+
+            val json =
+                mockMvc.perform(
+                    MockMvcRequestBuilders.post("/prices").contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())).content(
+                            objectMapper.writeValueAsString(
+                                priceRequest,
+                            ),
+                        ),
+                ).andExpect(
+                    MockMvcResultMatchers.status().isOk,
+                ).andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn().response.contentAsString
             val (data) = objectMapper.readValue(json, PriceResponse::class.java)
-            assertThat(data)
-                .isNotNull
-                .hasSize(assetInputs.size)
+            assertThat(data).isNotNull.hasSize(assetInput.size)
         }
 
         @Test
@@ -202,8 +202,7 @@ internal class PriceControllerTests
                     closePrice = BigDecimal("999.0"),
                 )
 
-            `when`(assetService.find(assetCode))
-                .thenReturn(offMarketAsset)
+            `when`(assetService.find(assetCode)).thenReturn(offMarketAsset)
 
             `when`(
                 marketDataRepo.save(
@@ -217,30 +216,21 @@ internal class PriceControllerTests
                 MarketData(asset = offMarketAsset, close = offMarketPrice.closePrice),
             )
             val json =
-                mockMvc
-                    .perform(
-                        MockMvcRequestBuilders
-                            .post("/prices/write")
-                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                            .content(
-                                objectMapper.writeValueAsString(
-                                    offMarketPrice,
-                                ),
+                mockMvc.perform(
+                    MockMvcRequestBuilders.post("/prices/write").contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())).content(
+                            objectMapper.writeValueAsString(
+                                offMarketPrice,
                             ),
-                    ).andExpect(
-                        MockMvcResultMatchers.status().isOk,
-                    ).andExpect(
-                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andReturn()
-                    .response
-                    .contentAsString
+                        ),
+                ).andExpect(
+                    MockMvcResultMatchers.status().isOk,
+                ).andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn().response.contentAsString
             val (data) = objectMapper.readValue(json, PriceResponse::class.java)
-            assertThat(data)
-                .isNotNull
-                .hasSize(1)
-            assertThat(data.iterator().next())
-                .hasFieldOrPropertyWithValue("close", offMarketPrice.closePrice)
+            assertThat(data).isNotNull.hasSize(1)
+            assertThat(data.iterator().next()).hasFieldOrPropertyWithValue("close", offMarketPrice.closePrice)
         }
 
         @Test
@@ -248,28 +238,22 @@ internal class PriceControllerTests
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_ValuationRequestHydratingAssets() {
             val json =
-                mockMvc
-                    .perform(
-                        MockMvcRequestBuilders
-                            .get(
-                                "/prices/{marketCode}/{assetCode}",
-                                asset.market.code,
-                                asset.code,
-                            ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                            .contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andExpect(
-                        MockMvcResultMatchers.status().isOk,
-                    ).andExpect(
-                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
-                    ).andReturn()
-                    .response
-                    .contentAsString
+                mockMvc.perform(
+                    MockMvcRequestBuilders.get(
+                        "/prices/{marketCode}/{assetCode}",
+                        asset.market.code,
+                        asset.code,
+                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andExpect(
+                    MockMvcResultMatchers.status().isOk,
+                ).andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn().response.contentAsString
             val (priceResponse) = objectMapper.readValue<PriceResponse>(json)
             assertThat(priceResponse).isNotNull.hasSize(1)
-            assertThat(priceResponse.iterator().next())
-                .hasFieldOrProperty("asset.id")
+            assertThat(priceResponse.iterator().next()).hasFieldOrProperty("asset.id")
                 .hasFieldOrPropertyWithValue("asset.market.code", asset.market.code)
-                .hasFieldOrPropertyWithValue("priceDate", priceDate)
-                .hasFieldOrPropertyWithValue("open", mockPrice)
+                .hasFieldOrPropertyWithValue("priceDate", priceDate).hasFieldOrPropertyWithValue("open", mockPrice)
         }
     }

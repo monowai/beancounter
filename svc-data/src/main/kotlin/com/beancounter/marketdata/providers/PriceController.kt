@@ -102,25 +102,8 @@ class PriceController(
     fun getPrices(
         @RequestBody priceRequest: PriceRequest,
     ): PriceResponse {
-        val systemUser = systemUserService.getActiveUser()
-        for (priceAsset in priceRequest.assets) {
-            val asset =
-                if (priceAsset.assetId.isNotEmpty()) {
-                    assetService.find(priceAsset.assetId)
-                } else {
-                    assetService.findLocally(
-                        AssetInput(
-                            market = priceAsset.market,
-                            code = priceAsset.code,
-                            owner = systemUser?.id ?: "",
-                        ),
-                    )
-                }
-            if (asset != null) {
-                priceAsset.resolvedAsset = asset
-            }
-        }
-        return marketDataService.getPriceResponse(priceRequest)
+        val withResolvedAssets = assetService.resolveAssets(priceRequest)
+        return marketDataService.getPriceResponse(withResolvedAssets)
     }
 
     @GetMapping("/refresh/{assetId}/{date}")

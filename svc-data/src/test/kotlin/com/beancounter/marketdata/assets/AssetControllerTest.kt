@@ -32,9 +32,7 @@ import java.util.Locale
  * MVC tests for Assets
  */
 @SpringMvcDbTest
-internal class AssetControllerTest(
-    @Autowired var enrichmentFactory: EnrichmentFactory,
-) {
+internal class AssetControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 

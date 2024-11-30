@@ -1,10 +1,13 @@
 package com.contracts.data
 
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
+import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.MSFT
-import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.alpha.AlphaGateway
 import com.beancounter.marketdata.providers.alpha.F_CHANGE
@@ -15,6 +18,7 @@ import com.beancounter.marketdata.providers.alpha.F_OPEN
 import com.beancounter.marketdata.providers.alpha.F_PREVIOUS_CLOSE
 import com.beancounter.marketdata.providers.alpha.F_PRICE
 import com.beancounter.marketdata.providers.alpha.F_VOLUME
+import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.ArgumentMatchers.anyString
@@ -30,27 +34,52 @@ class PricesBase : ContractVerifierBase() {
     internal lateinit var alphaGateway: AlphaGateway
 
     @MockBean
-    private lateinit var assetService: AssetService
+    private lateinit var assetRepository: AssetRepository
 
     @MockBean
     private lateinit var marketDataRepo: MarketDataRepo
+
+    @MockBean
+    private lateinit var cashBalancesBean: CashBalancesBean
 
     @MockBean
     private lateinit var dateUtils: DateUtils
 
     @BeforeEach
     fun initAssets() {
-        AssetsBase().mockAssets(assetService)
         val ebay = AAPL.copy(id = "EBAY", code = "EBAY", name = "eBay Inc.")
-        `when`(assetService.find(ebay.id))
-            .thenReturn(ebay)
+        `when`(assetRepository.findAllById(listOf(ebay.id)))
+            .thenReturn(listOf(ebay))
 
-        `when`(assetService.find(AAPL.id))
-            .thenReturn(AAPL)
+        `when`(assetRepository.findAllById(listOf(AAPL.id)))
+            .thenReturn(listOf(AAPL))
 
-        `when`(assetService.find(MSFT.id))
-            .thenReturn(MSFT)
+        `when`(assetRepository.findAllById(listOf(MSFT.id)))
+            .thenReturn(listOf(MSFT))
 
+        val cashMarket = Market("CASH")
+        `when`(assetRepository.findAllById(listOf("AAPL", "USD", "NZD")))
+            .thenReturn(
+                listOf(
+                    Asset(
+                        "USD",
+                        "USD",
+                        category = CASH_MARKET.code,
+                        priceSymbol = "USD",
+                        name = "USD Balance",
+                        market = cashMarket,
+                    ),
+                    Asset(
+                        "NZD",
+                        "NZD",
+                        category = CASH_MARKET.code,
+                        priceSymbol = "NZD",
+                        name = "NZD Balance",
+                        market = cashMarket,
+                    ),
+                    AAPL,
+                ),
+            )
         mockPrices()
         `when`(dateUtils.isToday(anyString())).thenReturn(true)
         `when`(dateUtils.getDate()).thenReturn(DateUtils().getDate())

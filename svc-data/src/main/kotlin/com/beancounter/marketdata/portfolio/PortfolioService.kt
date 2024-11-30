@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
@@ -37,9 +38,16 @@ class PortfolioService internal constructor(
     }
 
     @Transactional(Transactional.TxType.SUPPORTS)
-    fun canView(found: Portfolio): Boolean {
+    fun canView(portfolio: Portfolio): Boolean {
         val systemUser = systemUserService.getOrThrow
-        return systemUser.id == AuthConstants.SYSTEM || found.owner.id == systemUser.id
+        return isViewable(systemUser, portfolio)
+    }
+
+    private fun isViewable(
+        systemUser: SystemUser,
+        portfolio: Portfolio,
+    ): Boolean {
+        return systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id
     }
 
     val portfolios: Collection<Portfolio>

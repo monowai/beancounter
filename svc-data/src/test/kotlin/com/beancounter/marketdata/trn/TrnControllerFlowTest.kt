@@ -26,7 +26,6 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
-import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRADE_DATE
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRNS_ROOT
@@ -54,9 +53,6 @@ class TrnControllerFlowTest(
 ) {
     @Autowired
     private lateinit var dateUtils: DateUtils
-
-    @Autowired
-    private lateinit var marketService: MarketService
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory

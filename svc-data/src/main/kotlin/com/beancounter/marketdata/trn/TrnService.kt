@@ -7,6 +7,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -20,11 +21,12 @@ import java.util.function.Consumer
  */
 @Service
 @Transactional
-class TrnService internal constructor(
+class TrnService(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
+    private val assetService: AssetService,
 ) {
     fun getPortfolioTrn(
         portfolio: Portfolio,
@@ -85,31 +87,32 @@ class TrnService internal constructor(
         return trnRepository.deleteByPortfolioId(portfolio.id)
     }
 
-    private fun postProcess(trn: Trn): Trn {
-        trn.asset = trnAdapter.hydrate(trn.asset)!!
-        trn.cashAsset = trnAdapter.hydrate(trn.cashAsset)
-        val upgraded = trnMigrator.upgrade(trn)
-        if (upgraded.version != trn.version) {
-            trnRepository.save(upgraded)
+    private fun postProcess(trns: List<Trn>): List<Trn> {
+        val assets =
+            trns.flatMap {
+                listOfNotNull(assetService.hydrate(it.asset), assetService.hydrate(it.cashAsset))
+            }.associateBy { it.id }
+
+        for (trn in trns) {
+            trn.asset = assets[trn.asset.id]!!
+            trn.cashAsset = trn.cashAsset?.let { assets[it.id] }
+            val upgraded = trnMigrator.upgrade(trn)
+            if (upgraded.version != trn.version) {
+                trnRepository.save(upgraded)
+            }
         }
-        return upgraded
+        return trns
     }
 
     internal fun postProcess(
         trns: Iterable<Trn>,
         secure: Boolean = true,
     ): Collection<Trn> {
-        val results: MutableCollection<Trn> = ArrayList()
-        for (trn in trns) {
-            val add = !secure || portfolioService.canView(trn.portfolio)
-            if (add) {
-                results.add(postProcess(trn))
-            }
-        }
-        return if (results.isEmpty()) {
-            emptySet()
+        if (secure) {
+            val filteredTrns = trns.filter { portfolioService.canView(it.portfolio) }
+            return postProcess(filteredTrns)
         } else {
-            results
+            return postProcess(trns.toList())
         }
     }
 

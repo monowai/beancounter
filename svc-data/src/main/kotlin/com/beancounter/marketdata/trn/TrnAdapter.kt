@@ -81,11 +81,12 @@ class TrnAdapter(
         )
     }
 
+    // Set the Market and AssetCategory ob
     fun hydrate(asset: Asset?): Asset? {
         return if (asset == null) {
             null
         } else {
-            assetService.find(asset.id)
+            assetService.hydrate(asset)
         }
     }
 }

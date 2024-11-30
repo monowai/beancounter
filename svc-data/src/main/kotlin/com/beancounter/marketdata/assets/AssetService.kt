@@ -155,11 +155,19 @@ class AssetService internal constructor(
             priceRequest.assets.map { priceAsset ->
                 val asset = assets.find { it.id == priceAsset.assetId }
                 if (asset != null) {
-                    priceAsset.resolvedAsset = assetHydrationService.hydrateAsset(asset)
+                    priceAsset.resolvedAsset = hydrate(asset)
                 }
                 priceAsset
             }
         return priceRequest.copy(assets = resolvedAssets)
+    }
+
+    fun hydrate(asset: Asset?): Asset? {
+        return if (asset == null) {
+            null
+        } else {
+            assetHydrationService.hydrateAsset(asset)
+        }
     }
 
     companion object {

@@ -8,7 +8,6 @@ import java.util.Optional
  * CRUD repo for SystemUser.  A SystemUser can own portfolios in BC.
  */
 interface SystemUserRepository : CrudRepository<SystemUser, String?> {
-
     fun findByEmail(email: String): Optional<SystemUser>
 
     fun findByAuth0(auto0: String): Optional<SystemUser>

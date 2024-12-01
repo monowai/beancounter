@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.util.Optional
 
@@ -71,6 +72,7 @@ class SystemUserService(
         return systemUserRepository.findByEmail(tokenService.getEmail()).orElse(null)
     }
 
+    @Cacheable("system.user")
     fun find(): SystemUser? {
         val result =
             if (tokenService.hasEmail()) {

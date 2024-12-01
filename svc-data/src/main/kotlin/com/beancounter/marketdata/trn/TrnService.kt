@@ -111,8 +111,8 @@ class TrnService(
         secure: Boolean = true,
     ): Collection<Trn> {
         if (secure) {
-            val systemUser = systemUserService.getOrThrow
-            val filteredTrns = trns.filter { portfolioService.isViewable(systemUser, it.portfolio) }
+            //val systemUser = systemUserService.getOrThrow
+            val filteredTrns = trns.filter { portfolioService.canView(it.portfolio) }
             return postProcess(filteredTrns)
         } else {
             return postProcess(trns.toList())

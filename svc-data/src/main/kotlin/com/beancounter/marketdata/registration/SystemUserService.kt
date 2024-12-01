@@ -7,9 +7,7 @@ import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
-import java.util.Optional
 
 /**
  * Registration of authenticated users.
@@ -20,6 +18,7 @@ class SystemUserService(
     private val systemUserRepository: SystemUserRepository,
     private val tokenService: TokenService,
     private val authProviders: AuthProviders,
+    private val systemUserCache: SystemUserCache,
 ) : Registration {
     fun registerSystemAccount(id: String): RegistrationResponse {
         if (!isServiceAccount()) {
@@ -44,8 +43,15 @@ class SystemUserService(
         if (!tokenService.hasEmail()) {
             throw BusinessException("No email. This token cannot be registered for user activities.")
         }
-
-        val result = find()
+        val subject: String? =
+            if (tokenService.isAuth0()) {
+                tokenService.subject
+            } else if (tokenService.isGoogle()) {
+                tokenService.subject
+            } else {
+                null
+            }
+        val result = systemUserCache.find(tokenService.getEmail(), subject)
         val jwt = tokenService.jwt.token
         return if (result == null) {
             RegistrationResponse(
@@ -70,21 +76,6 @@ class SystemUserService(
     fun find(id: String?): SystemUser? {
         if (id == null) return null
         return systemUserRepository.findByEmail(tokenService.getEmail()).orElse(null)
-    }
-
-    @Cacheable("system.user")
-    fun find(): SystemUser? {
-        val result =
-            if (tokenService.hasEmail()) {
-                systemUserRepository.findByEmail(tokenService.getEmail())
-            } else if (tokenService.isAuth0()) {
-                systemUserRepository.findByAuth0(tokenService.subject)
-            } else if (tokenService.isGoogle()) {
-                systemUserRepository.findByGoogleId(tokenService.subject)
-            } else {
-                Optional.ofNullable(null)
-            }
-        return result.orElse(null)
     }
 
     fun getActiveUser(): SystemUser? = find(tokenService.subject)

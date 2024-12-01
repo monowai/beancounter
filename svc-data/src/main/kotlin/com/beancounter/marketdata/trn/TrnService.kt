@@ -70,9 +70,7 @@ class TrnService(
             trnRepository.findByPortfolioId(
                 portfolio.id,
                 tradeDate,
-                Sort
-                    .by("tradeDate")
-                    .and(Sort.by("asset.code")),
+                Sort.by("tradeDate").and(Sort.by("asset.code")),
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
@@ -112,7 +110,10 @@ class TrnService(
     ): Collection<Trn> {
         if (secure) {
             val systemUser = systemUserService.getOrThrow
-            val filteredTrns = trns.filter { portfolioService.isViewable(systemUser, it.portfolio) }
+            val filteredTrns =
+                trns.filter {
+                    portfolioService.isViewable(systemUser, it.portfolio)
+                }
             return postProcess(filteredTrns)
         } else {
             return postProcess(trns.toList())

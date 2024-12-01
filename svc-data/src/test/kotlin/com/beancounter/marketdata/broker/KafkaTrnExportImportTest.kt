@@ -163,9 +163,7 @@ class KafkaTrnExportImportTest {
                     base = USD.code,
                 ),
             )
-        val systemUser = SystemUser("mike")
-        val token = authUtilService.authenticate(systemUser, AuthUtilService.AuthProvider.AUTH0).token
-        systemUserService.register()
+        val (_, token) = loginMike()
 
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull.hasSize(1)
@@ -206,9 +204,16 @@ class KafkaTrnExportImportTest {
             .isNotNull
             .hasNoNullFieldsOrProperties()
         consumer.close()
-        authUtilService.authenticate(systemUser, AuthUtilService.AuthProvider.AUTH0)
+        loginMike()
         val imported = trnService.findForPortfolio(portfolio, dateUtils.date)
         assertThat(imported).hasSize(trnRequest.data.size)
+    }
+
+    private fun loginMike(): Pair<SystemUser, Jwt> {
+        val systemUser = SystemUser("mike")
+        val token = authUtilService.authenticate(systemUser, AuthUtilService.AuthProvider.AUTH0).token
+        systemUserService.register()
+        return Pair(systemUser, token)
     }
 
     private fun importRows(
@@ -217,6 +222,7 @@ class KafkaTrnExportImportTest {
         expectedTrns: Int,
     ) {
         trnService.purge(portfolio)
+        loginMike()
         assertThat(trnService.findForPortfolio(portfolio, dateUtils.date)).isEmpty()
         val csvRows = File(fileName).useLines { it.toList() }
         assertThat(csvRows).hasSize(expectedTrns)

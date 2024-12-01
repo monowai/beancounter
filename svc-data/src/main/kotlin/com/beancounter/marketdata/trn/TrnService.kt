@@ -9,6 +9,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -27,6 +28,7 @@ class TrnService(
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
     private val assetService: AssetService,
+    private val systemUserService: SystemUserService,
 ) {
     fun getPortfolioTrn(
         portfolio: Portfolio,
@@ -109,7 +111,8 @@ class TrnService(
         secure: Boolean = true,
     ): Collection<Trn> {
         if (secure) {
-            val filteredTrns = trns.filter { portfolioService.canView(it.portfolio) }
+            val systemUser = systemUserService.getOrThrow
+            val filteredTrns = trns.filter { portfolioService.isViewable(systemUser, it.portfolio) }
             return postProcess(filteredTrns)
         } else {
             return postProcess(trns.toList())

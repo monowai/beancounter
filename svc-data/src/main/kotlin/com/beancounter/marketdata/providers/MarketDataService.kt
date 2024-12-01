@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
+import com.beancounter.marketdata.providers.cash.CashProviderService.Companion.ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,7 +62,18 @@ class MarketDataService
                     cachedDates[
                         assets.iterator().next().market.timezone.id,
                     ]!!
-                val existingPrices = priceService.getMarketData(assets, priceDate)
+                val existingPrices =
+                    if (marketDataProvider.getId() == ID) {
+                        // Cash is constant
+                        getFromProvider(
+                            byProviders[marketDataProvider],
+                            priceDate,
+                            marketDataProvider,
+                            priceRequest,
+                        )
+                    } else {
+                        priceService.getMarketData(assets, priceDate)
+                    }
                 val assetsIterator = assets.iterator()
                 while (assetsIterator.hasNext()) {
                     val asset = assetsIterator.next()

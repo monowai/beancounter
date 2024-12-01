@@ -43,7 +43,7 @@ class PortfolioService internal constructor(
         return isViewable(systemUser, portfolio)
     }
 
-    private fun isViewable(
+    fun isViewable(
         systemUser: SystemUser,
         portfolio: Portfolio,
     ): Boolean {

@@ -103,7 +103,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: asset.prices, asset.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
+    cache-names: system.user, asset.prices, asset.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
   jpa:
     open-in-view: false
     generate-ddl: true

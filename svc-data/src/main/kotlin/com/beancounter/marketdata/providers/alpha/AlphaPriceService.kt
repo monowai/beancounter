@@ -31,7 +31,7 @@ import kotlin.collections.set
 class AlphaPriceService(
     private val alphaConfig: AlphaConfig,
 ) : MarketDataPriceProvider {
-    @Value("\${beancounter.market.providers.ALPHA.key:demo}")
+    @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
     private lateinit var alphaProxy: AlphaProxy
     private lateinit var alphaPriceAdapter: AlphaPriceAdapter

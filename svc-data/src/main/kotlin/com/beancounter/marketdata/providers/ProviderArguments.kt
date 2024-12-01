@@ -36,7 +36,7 @@ class ProviderArguments(
      *
      * @param asset BeanCounter Asset
      */
-    fun addAsset(
+    fun batchAsset(
         asset: Asset,
         requestedDate: String,
     ) {
@@ -63,14 +63,14 @@ class ProviderArguments(
         }
     }
 
-    fun getAssets(batchId: Int): Array<String> = batch[batchId]!!.split(delimiter).toTypedArray()
+    fun getAssets(batchId: Int): List<String> = batch[batchId]!!.split(delimiter)
 
-    fun getBatchConfigs(): Map<Int, DatedBatch?> {
-        return datedBatches
+    fun getBatchConfigs(id: Int): DatedBatch? {
+        return datedBatches[id]
     }
 
-    fun getDpToBc(): Map<String, Asset> {
-        return dpToBc
+    fun getAsset(dataProviderKey: String): Asset {
+        return dpToBc[dataProviderKey]!!
     }
 
     companion object {
@@ -93,8 +93,11 @@ class ProviderArguments(
                 assets
                     .filter { it.resolvedAsset != null }
                     .forEach { asset ->
-                        providerArguments.addAsset(asset.resolvedAsset!!, priceRequest.date)
+                        // Add the asset to the batch, bumping it if it exceeds
+                        // the number of assets per request
+                        providerArguments.batchAsset(asset.resolvedAsset!!, priceRequest.date)
                     }
+                // This looks unnecessary.
                 providerArguments.bumpBatch()
             }
 

@@ -27,7 +27,7 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         try {
             val assets = providerArguments.getAssets(batchId)
             for (dpAsset in assets) {
-                val asset = providerArguments.getDpToBc()[dpAsset]
+                val asset = providerArguments.getAsset(dpAsset)
                 setPriceResponse(asset, response, results, providerArguments)
             }
         } catch (e: IOException) {
@@ -115,7 +115,7 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         asset: Asset?,
         providerArguments: ProviderArguments,
     ): MarketData {
-        var date = providerArguments.getBatchConfigs()[0]?.date
+        var date = providerArguments.getBatchConfigs(0)?.date
 
         if (date == null) {
             date = providerArguments.date

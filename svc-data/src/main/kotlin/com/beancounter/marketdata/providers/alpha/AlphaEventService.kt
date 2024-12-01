@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AlphaEventService(val alphaGateway: AlphaGateway, val alphaConfig: AlphaConfig) {
-    @Value("\${beancounter.market.providers.ALPHA.key:demo}")
+    @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
 
     @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits

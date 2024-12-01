@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers
+package com.beancounter.marketdata.providers.marketstack
 
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PriceAsset
@@ -9,6 +9,8 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MarketDataRepo
+import com.beancounter.marketdata.providers.MarketDataService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,7 +20,7 @@ import java.time.LocalDate
 
 @SpringMvcDbTest
 @Transactional
-class MarketDataRepoIntegrationTest {
+class MarketStackDataRepoIntegrationTest {
     @Autowired
     lateinit var marketDataRepo: MarketDataRepo
 
@@ -54,7 +56,6 @@ class MarketDataRepoIntegrationTest {
             )
         marketDataRepo.save(marketData)
 
-        // Fetch MarketData using findByAssetInAndPriceDate
         val result = marketDataRepo.findByAssetInAndPriceDate(listOf(asset), priceDate)
 
         // Verify the Asset is returned in the MarketData object

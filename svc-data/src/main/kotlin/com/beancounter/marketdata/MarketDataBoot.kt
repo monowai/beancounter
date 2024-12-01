@@ -14,11 +14,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @SpringBootApplication(
     scanBasePackageClasses = [WebAuthFilterConfig::class, FxTransactions::class, ShareSightConfig::class],
     scanBasePackages = [
-        "com.beancounter.marketdata",
         "com.beancounter.auth",
         "com.beancounter.common.utils",
         "com.beancounter.common.telemetry",
         "com.beancounter.common.exception",
+        "com.beancounter.marketdata",
     ],
 )
 @EntityScan("com.beancounter.common.model")

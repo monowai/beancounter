@@ -4,7 +4,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
-import com.beancounter.marketdata.providers.wtd.WtdService
+import com.beancounter.marketdata.providers.marketstack.MarketStackService
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -21,12 +21,12 @@ class MdFactory internal constructor(
     cashProviderService: CashProviderService,
     alphaPriceService: AlphaPriceService,
     offMarketDataProvider: OffMarketDataProvider,
-    wtdService: WtdService,
+    marketStackService: MarketStackService,
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
             Pair(CashProviderService.ID, cashProviderService),
-            Pair(WtdService.ID, wtdService),
+            Pair(MarketStackService.ID, marketStackService),
             Pair(AlphaPriceService.ID, alphaPriceService),
             Pair(OffMarketDataProvider.ID, offMarketDataProvider),
         )

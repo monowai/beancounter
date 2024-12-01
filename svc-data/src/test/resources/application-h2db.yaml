@@ -16,12 +16,12 @@ beancounter:
   enricher: DEFAULT
 
   market.providers:
-    ALPHA:
+    alpha:
       markets: NASDAQ,AMEX,NYSE,ASX,LON,US
 
-    WTD:
+    mstack:
       markets: NZX
 
-    FX:
+    fx:
       url: http://localhost:${wiremock.server.port:0}
       key: test

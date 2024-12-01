@@ -1,0 +1,27 @@
+{
+  "pagination": {
+    "limit": 100,
+    "offset": 0,
+    "count": 1,
+    "total": 1
+  },
+  "data": [
+    {
+      "open": 1.35,
+      "high": 1.36,
+      "low": 1.33,
+      "close": 1.335,
+      "volume": 4254049.0,
+      "adj_high": null,
+      "adj_low": null,
+      "adj_close": 1.335,
+      "adj_open": null,
+      "adj_volume": null,
+      "split_factor": 1.0,
+      "dividend": 0.0,
+      "symbol": "AMP.XASX",
+      "exchange": "XASX",
+      "date": "2021-02-22T00:00:00+0000"
+    }
+  ]
+}

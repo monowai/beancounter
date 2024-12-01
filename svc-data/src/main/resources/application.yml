@@ -87,6 +87,10 @@ spring:
           alphaVantage:
             url: https://www.alphavantage.co
             loggerLevel: NONE # BASIC, FULL, HEADERS
+          marketstack:
+            url: https://www.marketstack.com
+            loggerLevel: NONE # BASIC, FULL, HEADERS
+
 
   security:
     oauth2:
@@ -249,7 +253,7 @@ beancounter:
         timezoneId: US/Eastern
         currencyId: USD
         aliases:
-          FIGI: US
+          figi: US
 
       - code: US
         timezoneId: US/Eastern
@@ -259,44 +263,46 @@ beancounter:
         timezoneId: Australia/Sydney
         currencyId: AUD
         aliases:
-          WTD: AX
-          FIGI: AU
+          mstack: XASX
+          sharesight: AX
+          figi: AU
 
       - code: NZX
         timezoneId: Pacific/Auckland
         currencyId: NZD
         aliases:
-          WTD: NZ
-          ALPHA: NZ
-          FIGI: NZ
+          mstack: NZ
+          alpha: NZ
+          figi: NZ
 
       - code: SGX
         currencyId: SGD
         timezoneId: Asia/Singapore
         aliases:
-          FIGI: SG
+          figi: SG
 
       - code: LON
         # UK assets priced in pence.
         currencyId: GBP
         timezoneId: Europe/London
         multiplier: .01
+        aliases:
+          mstack: XLON
     providers:
-      # ToDo: default provider
-      ALPHA:
+      alpha:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: US,NASDAQ,AMEX,NYSE,ASX,LON,NZX
+        markets: US,NASDAQ,AMEX,NYSE,LON,NZX
 
-      WTD:
-        url: https://www.worldtradingdata.com
-        batchSize: 2
-        markets:
+      mstack:
+        url: https://api.marketstack.com
+        batchSize: 10
+        markets: ASX
 
-      CUSTOM:
+      custom:
         batchSize: 1
         markets: CUSTOM
 
-      OFFM:
+      offm:
         batchSize: 1
         markets: OFFM

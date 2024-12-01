@@ -41,7 +41,7 @@ import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.URL_ASSETS_MARK
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAdjustedResponse
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAlphaAssets
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockSearchResponse
-import com.beancounter.marketdata.providers.wtd.WtdService
+import com.beancounter.marketdata.providers.marketstack.MarketStackService
 import com.beancounter.marketdata.trn.cash.CashServices
 import com.beancounter.marketdata.utils.DateUtilsMocker
 import com.beancounter.marketdata.utils.RegistrationUtils
@@ -190,7 +190,7 @@ internal class AlphaPriceApiTest {
                 .getMarketData(priceRequest)
 
         // Coverage - AV does not support this market, but we expect a price
-        assertThat(mdFactory.getMarketDataProvider(WtdService.ID).isMarketSupported(nasdaq)).isFalse
+        assertThat(mdFactory.getMarketDataProvider(MarketStackService.ID).isMarketSupported(nasdaq)).isFalse
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull

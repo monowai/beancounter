@@ -2,8 +2,8 @@ package com.beancounter.marketdata
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.utils.KafkaUtils
-import com.beancounter.marketdata.broker.KafkaMarketDataTest.Companion.TOPIC_EVENT
-import com.beancounter.marketdata.broker.KafkaMarketDataTest.Companion.TOPIC_MV
+import com.beancounter.marketdata.broker.KafkaMarketStackDataTest.Companion.TOPIC_EVENT
+import com.beancounter.marketdata.broker.KafkaMarketStackDataTest.Companion.TOPIC_MV
 import com.beancounter.marketdata.broker.KafkaTrnExportImportTest.Companion.TOPIC_CSV_IO
 import jakarta.transaction.Transactional
 import org.junit.jupiter.api.Tag

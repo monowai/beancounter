@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "no_valid_symbols_provided",
+    "message": "At least one valid symbol must be provided"
+  }
+}

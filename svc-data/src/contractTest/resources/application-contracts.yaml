@@ -4,15 +4,15 @@ auth:
 beancounter:
   market:
     providers:
-      MOCK:
+      mock:
         markets: MOCK
 
-      ALPHA:
+      alpha:
         url: https://www.alphavantage.co
         batchSize: 1
         markets: NASDAQ,AMEX,NYSE,NZX,ASX
 
-#      WTD:
+#      mstack:
 #        url: https://www.worldtradingdata.com
 #        batchSize: 2
 #        markets: NASDAQ,AMEX,NYSE,NZX,ASX

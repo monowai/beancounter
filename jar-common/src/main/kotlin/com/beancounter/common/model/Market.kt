@@ -33,5 +33,8 @@ data class Market(
     val daysToSubtract: Int = 1,
     val enricher: String? = null,
     val multiplier: BigDecimal = BigDecimal("1.0"),
-//    val type: String = "Public",
-)
+) {
+    fun getAlias(market: String): String? {
+        return aliases[market.lowercase()]
+    }
+}

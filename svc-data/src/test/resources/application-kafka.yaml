@@ -17,7 +17,7 @@ spring:
 beancounter:
   market:
     providers:
-      FIGI:
+      figi:
         enabled: false
       FX:
         url: http://localhost:${wiremock.server.port:0}

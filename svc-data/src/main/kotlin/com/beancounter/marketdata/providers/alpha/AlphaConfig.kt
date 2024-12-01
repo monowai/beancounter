@@ -25,7 +25,7 @@ class AlphaConfig(
     val dateUtils: DateUtils = DateUtils(),
     val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
 ) : DataProviderConfig {
-    @Value("\${beancounter.market.providers.ALPHA.markets}")
+    @Value("\${beancounter.market.providers.alpha.markets}")
     var markets: String? = null
 
     companion object {

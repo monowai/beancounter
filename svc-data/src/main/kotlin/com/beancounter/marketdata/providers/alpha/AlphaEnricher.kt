@@ -26,7 +26,7 @@ class AlphaEnricher(
     AssetEnricher {
     private val objectMapper = alphaConfig.getObjectMapper()
 
-    @Value("\${beancounter.market.providers.ALPHA.key:demo}")
+    @Value("\${beancounter.market.providers.alpha.key:demo}")
     private val apiKey: String = "demo"
 
     @Cacheable("asset.search")

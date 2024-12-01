@@ -32,7 +32,7 @@ import java.math.BigDecimal
  */
 
 @SpringMvcKafkaTest
-class KafkaMarketDataTest {
+class KafkaMarketStackDataTest {
     companion object {
         const val TOPIC_EVENT = "topicEvent"
         const val TOPIC_MV = "topicMv"

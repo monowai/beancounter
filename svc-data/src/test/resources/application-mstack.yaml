@@ -2,12 +2,12 @@ beancounter:
   enricher: MOCK
   market:
     providers:
-      ALPHA:
+      alpha:
         markets: NZX
-      WTD:
+      mstack:
         url: http://localhost:${wiremock.server.port}
         markets: NASDAQ,AMEX,NYSE,ASX
       #      FX:
       #        url: http://localhost:7777
-      MOCK:
+      mock:
         markets: MOCK

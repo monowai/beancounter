@@ -12,7 +12,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
-import com.beancounter.marketdata.providers.wtd.WtdService
+import com.beancounter.marketdata.providers.marketstack.MarketStackService.Companion.ID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -52,7 +52,7 @@ class MarketServiceTest {
         val nasdaq = marketService.getMarket(Constants.NASDAQ.code)
         assertThat(marketService.getMarket("nys")).isEqualTo(nyse)
         assertThat(marketService.getMarket("NZ")).isEqualTo(nzx)
-        assertThat(marketService.getMarket("AX")).isEqualTo(asx)
+        assertThat(marketService.getMarket("XASX")).isEqualTo(asx)
         assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq)
         assertThat(marketService.getMarket(OffMarketDataProvider.ID)).isNotNull.hasFieldOrPropertyWithValue(
             "currencyId",
@@ -82,20 +82,20 @@ class MarketServiceTest {
     }
 
     @Test
-    fun is_AliasForWtdAndNzxResolving() {
+    fun is_AliasForMarketStackAndNzxResolving() {
         val market = marketService.getMarket(Constants.NZX.code)
         assertThat(market)
             .isNotNull
             .hasFieldOrProperty("aliases")
             .hasFieldOrPropertyWithValue("currency.code", NZD.code)
-        assertThat(market.aliases[WtdService.ID]).isEqualTo("NZ").isNotNull
+        assertThat(market.getAlias(ID)).isEqualTo("NZ").isNotNull
     }
 
     @Test
     fun does_MarketDataAliasNasdaqResolveToNull() {
         val market = marketService.getMarket(Constants.NASDAQ.code)
         assertThat(market).isNotNull.hasFieldOrProperty("aliases")
-        assertThat(market.aliases[WtdService.ID]).isBlank
+        assertThat(market.getAlias(ID)).isBlank
     }
 
     @Test

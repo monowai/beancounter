@@ -12,7 +12,7 @@ import java.util.Locale
  * Rate limited integration to OpenFigi.
  */
 @Service
-@ConditionalOnProperty(value = ["beancounter.marketdata.provider.FIGI.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(value = ["beancounter.marketdata.provider.figi.enabled"], matchIfMissing = true)
 class FigiProxy internal constructor(
     val figiConfig: FigiConfig,
     val figiGateway: FigiGateway,
@@ -20,8 +20,6 @@ class FigiProxy internal constructor(
 ) {
     private val filter: List<String> =
         arrayListOf("COMMON STOCK", "REIT", "DEPOSITARY RECEIPT", "MUTUAL FUND")
-    // private lateinit var figiGateway: FigiGateway
-    // private lateinit var figiAdapter: FigiAdapter
 
     @RateLimiter(name = "figi")
     fun find(

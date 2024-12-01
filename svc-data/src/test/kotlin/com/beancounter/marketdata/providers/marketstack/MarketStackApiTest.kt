@@ -1,9 +1,8 @@
-package com.beancounter.marketdata.providers.wtd
+package com.beancounter.marketdata.providers.marketstack
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
@@ -11,11 +10,13 @@ import com.beancounter.marketdata.Constants.Companion.AMP
 import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.providers.wtd.WtdConfigTest.Companion.CONTRACTS
+import com.beancounter.marketdata.providers.marketstack.MarketStackResponseTest.Companion.CONTRACTS
+import com.beancounter.marketdata.providers.marketstack.MarketStackService.Companion.ID
+import com.beancounter.marketdata.providers.marketstack.model.MarketStackData
+import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -36,133 +37,103 @@ import kotlin.collections.set
  * @since 2019-03-04
  */
 @SpringBootTest
-@ActiveProfiles("wtd")
+@ActiveProfiles("mstack")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
-@Disabled
-internal class WorldTradingDataApiTest {
+internal class MarketStackApiTest {
     private val dateUtils = DateUtils()
     private val priceDate = "2019-11-15"
 
     @Autowired
-    private lateinit var wtdService: WtdService
+    private lateinit var marketStackService: MarketStackService
 
-    @Test
-    fun is_AsxMarketConvertedToAx() {
-        val response =
-            getResponseMap(
-                ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file,
-            )
-        val assets = mutableListOf(PriceAsset(AMP))
-
-        stubFor(
-            WireMock
-                .get(
-                    WireMock.urlEqualTo(
-                        "/api/v1/history_multi_single_day?symbol=${AMP.code}.AX&date=$priceDate&api_token=demo",
-                    ),
-                ).willReturn(
-                    WireMock
-                        .aResponse()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(objectMapper.writeValueAsString(response))
-                        .withStatus(200),
-                ),
-        )
-        val mdResult =
-            wtdService.getMarketData(
-                PriceRequest(priceDate, assets),
-            )
-        assertThat(mdResult)
-            .isNotNull
-            .hasSize(1)
-    }
-
-    private val testDate = "2019-03-08"
+    private val testDate = "2024-11-29"
 
     private val closeField = "close"
     private val assetField = "asset"
     private val openField = "open"
+    private val sourceField = "source"
 
     private val priceDateField = "priceDate"
 
     @Test
-    fun is_MarketDataDateOverridingRequestDate() {
+    fun `returns prices based when we override the requested date`() {
         val inputs = mutableListOf(PriceAsset(AAPL), PriceAsset(MSFT))
 
         // While the request date is relative to "Today", we are testing that we get back
         //  the date as set in the response from the provider.
-        mockWtdResponse(
+        mockResponse(
             inputs,
             priceDate,
             false,
-            ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file,
+            ClassPathResource("$CONTRACTS/${AAPL.code}-${MSFT.code}.json").file,
         )
-        val mdResult = wtdService.getMarketData(PriceRequest(priceDate, inputs))
+        val mdResult = marketStackService.getMarketData(PriceRequest(priceDate, inputs))
         assertThat(mdResult)
             .isNotNull
             .hasSize(2)
-        for (marketData in mdResult) {
+        mdResult.forEach { marketData ->
             if (marketData.asset == MSFT) {
                 assertThat(marketData)
                     .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getFormattedDate(testDate))
                     .hasFieldOrPropertyWithValue(assetField, MSFT)
-                    .hasFieldOrPropertyWithValue(openField, BigDecimal("109.16"))
-                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("110.51"))
+                    .hasFieldOrPropertyWithValue(openField, BigDecimal("420.09"))
+                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("423.46"))
             } else if (marketData.asset == AAPL) {
                 assertThat(marketData)
                     .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getFormattedDate(testDate))
                     .hasFieldOrPropertyWithValue(assetField, AAPL)
-                    .hasFieldOrPropertyWithValue(openField, BigDecimal("170.32"))
-                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("172.91"))
+                    .hasFieldOrPropertyWithValue(openField, BigDecimal("234.81"))
+                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("237.33"))
             }
         }
     }
 
     @Test
-    fun is_WtdInvalidAssetPriceDefaulting() {
-        val inputs =
+    fun `returns a price of zero when a price does not exist on the day`() {
+        val assets =
             listOf(
                 PriceAsset(AAPL),
-                PriceAsset(getTestAsset(NASDAQ, "${MSFT.code}x")),
+                PriceAsset(MSFT),
             )
 
         val utcToday = dateUtils.offsetDateString()
 
-        mockWtdResponse(
-            inputs,
+        mockResponse(
+            assets,
             utcToday,
             false,
             ClassPathResource("$CONTRACTS/${AAPL.code}.json").file,
         )
         val mdResult =
-            wtdService
-                .getMarketData(PriceRequest(assets = inputs))
+            marketStackService.getMarketData(PriceRequest(assets = assets))
         assertThat(mdResult)
             .isNotNull
-            .hasSize(2)
+            .hasSize(assets.size)
 
         // If an invalid asset, then we have a ZERO price
         for (marketData in mdResult) {
             if (marketData.asset == MSFT) {
                 assertThat(marketData)
-                    .hasFieldOrProperty("date")
+                    .hasFieldOrProperty(priceDateField)
                     .hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
+                    .hasFieldOrPropertyWithValue(sourceField, ID)
             } else if (marketData.asset == AAPL) {
                 assertThat(marketData)
                     .hasFieldOrProperty(priceDateField)
-                    .hasFieldOrPropertyWithValue(openField, BigDecimal("170.32"))
-                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("172.91"))
+                    .hasFieldOrPropertyWithValue(openField, BigDecimal("234.81"))
+                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("237.33"))
+                    .hasFieldOrPropertyWithValue(sourceField, ID)
             }
         }
     }
 
     @Test
-    fun is_NoDataReturned() {
+    fun `no data returns`() {
         val inputs = listOf(PriceAsset(MSFT))
-        mockWtdResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/NoData.json").file)
+        mockResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/no-data.json").file)
         val prices =
-            wtdService.getMarketData(
+            marketStackService.getMarketData(
                 PriceRequest(priceDate, inputs),
             )
         assertThat(prices).hasSize(inputs.size)
@@ -171,12 +142,23 @@ internal class WorldTradingDataApiTest {
         ).hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
     }
 
+    @Test
+    fun `asx Asset Price returns`() {
+        val inputs = listOf(PriceAsset(AMP))
+        mockResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file)
+        val prices =
+            marketStackService.getMarketData(
+                PriceRequest(priceDate, inputs),
+            )
+        assertThat(prices).hasSize(inputs.size)
+        assertThat(
+            prices.iterator().next(),
+        ).hasFieldOrPropertyWithValue(closeField, BigDecimal("1.335"))
+    }
+
     companion object {
         @JvmStatic
-        operator fun get(
-            date: String,
-            prices: Map<String, WtdMarketData>,
-        ): WtdResponse = WtdResponse(date, prices)
+        operator fun get(prices: List<MarketStackData>): MarketStackResponse = MarketStackResponse(data = prices)
 
         /**
          * Mock the WTD response.
@@ -188,26 +170,26 @@ internal class WorldTradingDataApiTest {
          * @throws IOException error
          */
         @JvmStatic
-        fun mockWtdResponse(
+        fun mockResponse(
             assets: Collection<PriceAsset>,
             asAt: String?,
             overrideAsAt: Boolean,
             jsonFile: File?,
         ) {
             var assetArg: StringBuilder? = null
-            for ((_, _, asset) in assets) {
-                assertThat(asset).isNotNull
-                assertThat(asset!!.market).isNotNull
-                val market = asset.market
+            for ((_, _, resolvedAsset) in assets) {
+                assertThat(resolvedAsset).isNotNull
+                assertThat(resolvedAsset!!.market).isNotNull
+                val market = resolvedAsset.market
                 var suffix = ""
-                if (!market.code.equals("NASDAQ", ignoreCase = true)) {
-                    // Horrible hack to support WTD contract mocking ASX/AX
-                    suffix = "." + if (market.code.equals(ASX.code, ignoreCase = true)) "AX" else market.code
+                if (!market.code.equals(NASDAQ.code, ignoreCase = true)) {
+                    // Horrible hack to support MarketStack contract mocking ASX/AX
+                    suffix = "." + if (market.code.equals(ASX.code, ignoreCase = true)) "XASX" else market.code
                 }
                 if (assetArg != null) {
-                    assetArg.append("%2C").append(asset.code).append(suffix)
+                    assetArg.append("%2C").append(resolvedAsset.code).append(suffix)
                 } else {
-                    assetArg = StringBuilder(asset.code).append(suffix)
+                    assetArg = StringBuilder(resolvedAsset.code).append(suffix)
                 }
             }
             val response = getResponseMap(jsonFile)
@@ -218,9 +200,7 @@ internal class WorldTradingDataApiTest {
                 WireMock
                     .get(
                         WireMock.urlEqualTo(
-                            "/api/v1/history_multi_single_day?symbol=" + assetArg +
-                                "&date=" + asAt +
-                                "&api_token=demo",
+                            "/v1/eod/$asAt?symbols=$assetArg&access_key=demo",
                         ),
                     ).willReturn(
                         WireMock

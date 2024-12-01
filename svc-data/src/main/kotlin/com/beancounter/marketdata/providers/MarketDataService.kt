@@ -157,7 +157,7 @@ class MarketDataService
         ): LocalDate {
             val marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
             if (!CashUtils().isCash(asset)) {
-                log.debug("Requested date: ${priceRequest.date}, resolvedDate: $marketDate")
+                log.trace("Requested date: ${priceRequest.date}, resolvedDate: $marketDate")
             }
             return marketDate
         }

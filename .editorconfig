@@ -5,18 +5,19 @@ root = true
 [*]
 end_of_line = lf
 insert_final_newline = true
-
-# Matches multiple files with brace expansion notation
-# Set default charset
-[*.{kt,kts}]
 charset = utf-8
 
-# 4 space indentation
-[*.kt]
+# 4 space indentation for Kotlin files
+[*.{kt,kts}]
 indent_style = space
 indent_size = 4
 
-# Tab indentation (no size specified)
+# 2 space indentation for Gradle files
+[*.gradle]
+indent_style = space
+indent_size = 2
+
+# Tab indentation (no size specified) for Makefile
 [Makefile]
 indent_style = tab
 
@@ -32,11 +33,11 @@ indent_size = 2
 
 # Tab indentation in all Markdown files
 [*.md]
-trim_trailing_whitespace = false
+trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 
-# Checkstyle and ktlint
-[{*.gradle,*.xml,*.yml,*.yaml}]
+# 2 space indentation for XML, YAML, and YML files
+[{*.xml,*.yml,*.yaml}]
 indent_style = space
 indent_size = 2

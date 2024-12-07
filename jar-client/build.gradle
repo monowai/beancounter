@@ -3,7 +3,6 @@ plugins {
   id 'org.jetbrains.kotlin.jvm'
   id 'kotlin-spring'
   id 'idea'
-  id 'checkstyle'
   id 'jacoco'
   id 'org.jmailen.kotlinter'
 }

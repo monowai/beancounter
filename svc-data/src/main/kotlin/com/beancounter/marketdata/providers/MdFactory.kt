@@ -38,13 +38,9 @@ class MdFactory internal constructor(
      * @return the provider that supports the asset
      */
     @Cacheable("provider")
-    fun getMarketDataProvider(market: Market): MarketDataPriceProvider {
-        return resolveProvider(market)
-    }
+    fun getMarketDataProvider(market: Market): MarketDataPriceProvider = resolveProvider(market)
 
-    fun getMarketDataProvider(provider: String): MarketDataPriceProvider {
-        return providers[provider.uppercase(Locale.getDefault())]!!
-    }
+    fun getMarketDataProvider(provider: String): MarketDataPriceProvider = providers[provider.uppercase(Locale.getDefault())]!!
 
     private fun resolveProvider(market: Market): MarketDataPriceProvider {
         // ToDo: Map Market to Provider

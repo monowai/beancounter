@@ -11,8 +11,21 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
+/**
+ * Adapter class for converting MarketStack API responses to internal MarketData objects.
+ * This class handles the transformation of data received from the MarketStack API into
+ * the format used by the application. It includes methods for converting individual
+ * data points and handling errors in the API response.
+ *
+ * The main method `toMarketData` processes a batch of data and returns a collection
+ * of MarketData objects. It also includes helper methods for creating default
+ * MarketData objects when the API response contains errors or missing data.
+ *
+ */
 @Service
 class MarketStackAdapter : MarketDataAdapter {
+    private val log = LoggerFactory.getLogger(MarketStackAdapter::class.java)
+
     fun toMarketData(
         providerArguments: ProviderArguments,
         batchId: Int,
@@ -83,9 +96,5 @@ class MarketStackAdapter : MarketDataAdapter {
         val result = MarketData(asset, source = MarketStackService.ID)
         result.close = BigDecimal.ZERO
         return result
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(MarketStackAdapter::class.java)
     }
 }

@@ -14,6 +14,15 @@ import org.springframework.stereotype.Service
 class TokenService(
     val authConfig: AuthConfig,
 ) {
+    /**
+     * Checks if the given authentication is token-based.
+     *
+     * @param authentication The authentication object to check.
+     * @return True if the authentication is token-based, false otherwise.
+     */
+    private fun isTokenBased(authentication: Authentication): Boolean =
+        authentication.javaClass.isAssignableFrom(JwtAuthenticationToken::class.java)
+
     val jwt: JwtAuthenticationToken
         get() {
             val authentication = SecurityContextHolder.getContext().authentication
@@ -62,16 +71,10 @@ class TokenService(
             return isSystem && !isUser
         }
 
+    /**
+     * Token Constants
+     */
     companion object {
         const val BEARER = "Bearer"
-
-        /**
-         * Checks if the given authentication is token-based.
-         *
-         * @param authentication The authentication object to check.
-         * @return True if the authentication is token-based, false otherwise.
-         */
-        private fun isTokenBased(authentication: Authentication): Boolean =
-            authentication.javaClass.isAssignableFrom(JwtAuthenticationToken::class.java)
     }
 }

@@ -16,11 +16,14 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /**
- * WorldTradingData api configuration.
+ * MarketStack api response tests.
  */
 class MarketStackResponseTest {
     private val dateUtils = DateUtils()
 
+    /**
+     * Test Constants for MarketStack
+     */
     companion object {
         const val CONTRACTS = "/mock/mstack"
     }

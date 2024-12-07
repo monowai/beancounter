@@ -1,3 +1,9 @@
 package com.beancounter.marketdata.providers.marketstack.model
 
-data class MarketStackError(val code: String, val message: String)
+/**
+ * Error response from the MarketDataProvider.
+ */
+data class MarketStackError(
+    val code: String,
+    val message: String,
+)

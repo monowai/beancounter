@@ -31,7 +31,7 @@ import java.math.BigDecimal
 import kotlin.collections.set
 
 /**
- * WorldTradingData API tests. This is now a redundant service. It was taken over by MarketStack.com
+ * MarketStack API tests using WireMock.
  *
  * @author mikeh
  * @since 2019-03-04
@@ -112,18 +112,20 @@ internal class MarketStackApiTest {
             .hasSize(assets.size)
 
         // If an invalid asset, then we have a ZERO price
-        for (marketData in mdResult) {
-            if (marketData.asset == MSFT) {
-                assertThat(marketData)
-                    .hasFieldOrProperty(priceDateField)
-                    .hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
-                    .hasFieldOrPropertyWithValue(sourceField, ID)
-            } else if (marketData.asset == AAPL) {
-                assertThat(marketData)
-                    .hasFieldOrProperty(priceDateField)
-                    .hasFieldOrPropertyWithValue(openField, BigDecimal("234.81"))
-                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("237.33"))
-                    .hasFieldOrPropertyWithValue(sourceField, ID)
+        mdResult.forEach { marketData ->
+            when (marketData.asset) {
+                MSFT ->
+                    assertThat(marketData)
+                        .hasFieldOrProperty(priceDateField)
+                        .hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
+                        .hasFieldOrPropertyWithValue(sourceField, ID)
+
+                AAPL ->
+                    assertThat(marketData)
+                        .hasFieldOrProperty(priceDateField)
+                        .hasFieldOrPropertyWithValue(openField, BigDecimal("234.81"))
+                        .hasFieldOrPropertyWithValue(closeField, BigDecimal("237.33"))
+                        .hasFieldOrPropertyWithValue(sourceField, ID)
             }
         }
     }
@@ -138,24 +140,29 @@ internal class MarketStackApiTest {
             )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
-            prices.iterator().next(),
+            prices.first(),
         ).hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
     }
 
     @Test
-    fun `asx Asset Price returns`() {
+    fun `asx market is correctly resolved and appended so Asset Price returns`() {
         val inputs = listOf(PriceAsset(AMP))
-        mockResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file)
-        val prices =
-            marketStackService.getMarketData(
-                PriceRequest(priceDate, inputs),
-            )
+        mockResponse(
+            inputs,
+            priceDate,
+            true,
+            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file,
+        )
+        val prices = marketStackService.getMarketData(PriceRequest(priceDate, inputs))
         assertThat(prices).hasSize(inputs.size)
         assertThat(
-            prices.iterator().next(),
+            prices.first(),
         ).hasFieldOrPropertyWithValue(closeField, BigDecimal("1.335"))
     }
 
+    /**
+     * Constants for MarketStack.
+     **/
     companion object {
         @JvmStatic
         operator fun get(prices: List<MarketStackData>): MarketStackResponse = MarketStackResponse(data = prices)
@@ -172,9 +179,9 @@ internal class MarketStackApiTest {
         @JvmStatic
         fun mockResponse(
             assets: Collection<PriceAsset>,
-            asAt: String?,
+            asAt: String,
             overrideAsAt: Boolean,
-            jsonFile: File?,
+            jsonFile: File,
         ) {
             var assetArg: StringBuilder? = null
             for ((_, _, resolvedAsset) in assets) {
@@ -193,7 +200,7 @@ internal class MarketStackApiTest {
                 }
             }
             val response = getResponseMap(jsonFile)
-            if (asAt != null && overrideAsAt) {
+            if (overrideAsAt) {
                 response["date"] = asAt
             }
             stubFor(
@@ -216,11 +223,11 @@ internal class MarketStackApiTest {
          * Helper to return a Map from a JSON file.
          *
          * @param jsonFile input file
-         * @return Map
+         * @return MutableMap
          * @throws IOException err
          */
         @JvmStatic
-        fun getResponseMap(jsonFile: File?): HashMap<String, Any> {
+        fun getResponseMap(jsonFile: File?): MutableMap<String, Any> {
             val mapType =
                 objectMapper.typeFactory
                     .constructMapType(LinkedHashMap::class.java, String::class.java, Any::class.java)

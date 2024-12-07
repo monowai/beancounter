@@ -15,6 +15,7 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.ASSET_ROOT
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,9 +29,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.Locale
 
-/**
- * MVC tests for Assets
- */
+private const val ID = "id"
+
+private const val NAME = "name"
+
 @SpringMvcDbTest
 internal class AssetControllerTest {
     @Autowired
@@ -38,8 +40,6 @@ internal class AssetControllerTest {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
-    private val pId = "id"
-    private val pName = "name"
 
     @Autowired
     fun setup(enrichmentFactory: EnrichmentFactory) {
@@ -47,13 +47,13 @@ internal class AssetControllerTest {
     }
 
     @Test
-    fun is_AssetCreationAndFindByWorking() {
+    fun `create asset then find by id`() {
         val firstAsset = getTestAsset(market = NASDAQ, code = "MyCode")
         val secondAsset = getTestAsset(market = NASDAQ, code = "Second")
         val assetInputMap =
             mapOf(
-                Pair(toKey(firstAsset), getAssetInput(NASDAQ.code, firstAsset.code)),
-                Pair(toKey(secondAsset), getAssetInput(NASDAQ.code, secondAsset.code)),
+                toKey(firstAsset) to getAssetInput(NASDAQ.code, firstAsset.code),
+                toKey(secondAsset) to getAssetInput(NASDAQ.code, secondAsset.code),
             )
         var mvcResult =
             mockMvc
@@ -68,13 +68,12 @@ internal class AssetControllerTest {
                 .andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
-        val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
-        assertThat(data).hasSize(2)
 
-        // marketCode is for persistence only,  Clients should rely on the
-        //   hydrated Market object
+        val (data) = objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
+        assertThat(data).hasSize(assetInputMap.size)
         isAssetValid(data[toKey(firstAsset)]!!, firstAsset)
         isAssetValid(data[toKey(secondAsset)]!!, secondAsset)
+
         val asset = data[toKey(secondAsset)]
         mvcResult =
             mockMvc
@@ -86,35 +85,21 @@ internal class AssetControllerTest {
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
 
-        // Find by Primary Key
-        val (data1) =
-            objectMapper.readValue(
-                mvcResult.response.contentAsString,
-                AssetResponse::class.java,
-            )
+        val (data1) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data1).isEqualTo(asset)
 
-        // By Market/Asset
         mvcResult =
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get(
-                            "$ASSET_ROOT/{marketCode}/{assetCode}",
-                            asset.market.code,
-                            asset.code,
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())),
+                        .get("$ASSET_ROOT/{marketCode}/{assetCode}", asset.market.code, asset.code)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())),
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
 
-        assertThat(
-            objectMapper
-                .readValue(
-                    mvcResult.response.contentAsString,
-                    AssetResponse::class.java,
-                ).data,
-        ).isEqualTo(asset)
+        assertThat(objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java).data)
+            .isEqualTo(asset)
     }
 
     private fun isAssetValid(
@@ -123,20 +108,19 @@ internal class AssetControllerTest {
     ) {
         assertThat(dataAsset)
             .isNotNull
-            .hasFieldOrProperty(pId)
+            .hasFieldOrProperty(ID)
             .hasFieldOrProperty("market")
-            .hasFieldOrPropertyWithValue(pName, asset.name)
+            .hasFieldOrPropertyWithValue(NAME, asset.name)
             .hasFieldOrPropertyWithValue("code", asset.code.uppercase(Locale.getDefault()))
             .hasFieldOrPropertyWithValue("marketCode", NASDAQ.code)
             .hasFieldOrPropertyWithValue("version", "1")
             .hasFieldOrPropertyWithValue("status", Status.Active)
-            .hasFieldOrProperty(pId)
     }
 
     @Test
-    fun is_PostSameAssetTwiceBehaving() {
+    fun `create same asset twice has same ID`() {
         var asset = AssetInput(NASDAQ.code, "MyCodeX", "\"quotes should be removed\"", null)
-        var assetRequest = AssetRequest(mapOf(Pair(toKey(asset), asset)))
+        var assetRequest = AssetRequest(mapOf(toKey(asset) to asset))
         var mvcResult =
             mockMvc
                 .perform(
@@ -149,19 +133,18 @@ internal class AssetControllerTest {
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
+
         var assetUpdateResponse =
-            objectMapper
-                .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
+            objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
         val createdAsset = assetUpdateResponse.data[toKey(asset)]
         assertThat(createdAsset)
             .isNotNull
-            .hasFieldOrProperty(pId)
-            .hasFieldOrPropertyWithValue(pName, "quotes should be removed")
+            .hasFieldOrProperty(ID)
+            .hasFieldOrPropertyWithValue(NAME, "quotes should be removed")
             .hasFieldOrProperty("market")
 
-        // Send it a second time, should not change
         asset = AssetInput(NASDAQ.code, "MyCodeX", "Random Change", null)
-        assetRequest = AssetRequest(mapOf(Pair(toKey(asset), asset)))
+        assetRequest = AssetRequest(mapOf(toKey(asset) to asset))
         mvcResult =
             mockMvc
                 .perform(
@@ -174,16 +157,15 @@ internal class AssetControllerTest {
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
+
         assetUpdateResponse =
-            objectMapper
-                .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
+            objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
         val updatedAsset = assetUpdateResponse.data[toKey(asset)]
         assertThat(updatedAsset).isEqualTo(createdAsset)
     }
 
     @Test
-    fun is_MissingAssetBadRequest() {
-        // Invalid market
+    fun `missing asset throws bad request`() {
         var result =
             mockMvc
                 .perform(
@@ -197,7 +179,6 @@ internal class AssetControllerTest {
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
 
-        // Invalid Asset
         result =
             mockMvc
                 .perform(

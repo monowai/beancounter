@@ -12,7 +12,6 @@ import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInsta
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -23,60 +22,58 @@ import java.time.LocalDate
  * @since 2019-03-03
  */
 @Service
-class MarketStackService
-    @Autowired
-    internal constructor(
-        private val marketStackProxy: MarketStackProxy,
-        private val marketStackConfig: MarketStackConfig,
-        private val marketStackAdapter: MarketStackAdapter,
-        private val dateUtils: DateUtils,
-    ) : MarketDataPriceProvider {
-        private val log = LoggerFactory.getLogger(MarketStackService::class.java)
+class MarketStackService(
+    private val marketStackProxy: MarketStackProxy,
+    private val marketStackConfig: MarketStackConfig,
+    private val marketStackAdapter: MarketStackAdapter,
+    private val dateUtils: DateUtils,
+) : MarketDataPriceProvider {
+    private val log = LoggerFactory.getLogger(MarketStackService::class.java)
 
-        @PostConstruct
-        fun logStatus() {
-            log.info(
-                "BEANCOUNTER_MARKET_PROVIDERS_MSTACK_KEY: {}",
-                if (marketStackConfig.apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **",
-            )
+    @PostConstruct
+    fun logStatus() {
+        log.info(
+            "BEANCOUNTER_MARKET_PROVIDERS_MSTACK_KEY: {}",
+            if (marketStackConfig.apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **",
+        )
+    }
+
+    override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
+        val apiRequests: MutableMap<Int, MarketStackResponse> = mutableMapOf()
+        val providerArguments = getInstance(priceRequest, marketStackConfig, dateUtils)
+        for (batch in providerArguments.batch.keys) {
+            apiRequests[batch] =
+                marketStackProxy.getPrices(
+                    providerArguments,
+                    batch,
+                    marketStackConfig.apiKey,
+                )
         }
+        log.trace("Assets price processing complete.")
+        return getMarketData(providerArguments, apiRequests)
+    }
 
-        override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-            val apiRequests: MutableMap<Int, MarketStackResponse> = mutableMapOf()
-            val providerArguments = getInstance(priceRequest, marketStackConfig, dateUtils)
-            for (batch in providerArguments.batch.keys) {
-                apiRequests[batch] =
-                    marketStackProxy.getPrices(
-                        providerArguments,
-                        batch,
-                        marketStackConfig.apiKey,
-                    )
+    private fun getMarketData(
+        providerArguments: ProviderArguments,
+        marketStackResponses: MutableMap<Int, MarketStackResponse>,
+    ): Collection<MarketData> {
+        val results: MutableCollection<MarketData> = mutableListOf()
+        for (key in marketStackResponses.keys) {
+            marketStackResponses[key]?.let {
+                val x = marketStackAdapter.toMarketData(providerArguments, key, it)
+                results.addAll(x)
             }
-            log.trace("Assets price processing complete.")
-            return getMarketData(providerArguments, apiRequests)
         }
+        return results
+    }
 
-        private fun getMarketData(
-            providerArguments: ProviderArguments,
-            marketStackResponses: MutableMap<Int, MarketStackResponse>,
-        ): Collection<MarketData> {
-            val results: MutableCollection<MarketData> = mutableListOf()
-            for (key in marketStackResponses.keys) {
-                marketStackResponses[key]?.let {
-                    val x = marketStackAdapter.toMarketData(providerArguments, key, it)
-                    results.addAll(x)
-                }
-            }
-            return results
-        }
+    override fun getId(): String = ID
 
-        override fun getId(): String = ID
-
-        override fun isMarketSupported(market: Market): Boolean =
-            if (marketStackConfig.markets!!.isBlank()) {
+    override fun isMarketSupported(market: Market): Boolean =
+        if (marketStackConfig.markets!!.isBlank()) {
             false
-            } else {
-                marketStackConfig.markets!!.contains(market.code)
+        } else {
+            marketStackConfig.markets!!.contains(market.code)
         }
 
     override fun getDate(

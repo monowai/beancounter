@@ -16,7 +16,6 @@ import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.accumulation.Accumulator
-import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.Helper.Companion.convert
 import com.beancounter.position.valuation.Helper.Companion.deposit
 import org.assertj.core.api.Assertions.assertThat
@@ -39,15 +38,12 @@ class CashValuationTests {
     @Autowired
     private lateinit var accumulator: Accumulator
 
-    @Autowired
-    private lateinit var currencyResolver: CurrencyResolver
-
     val usdCash = getTestAsset(code = USD.code, market = Constants.CASH)
     val nzdCash = getTestAsset(code = NZD.code, market = Constants.CASH)
     val sgdCash = getTestAsset(code = SGD.code, market = Constants.CASH)
 
     @Test
-    fun averageCostOfCash() {
+    fun `does cost of cash average`() {
         val usdBalance = BigDecimal("10000.00")
         val sgdBalance = BigDecimal("20000.00")
         val rate = usdBalance.divide(sgdBalance)
@@ -123,7 +119,7 @@ class CashValuationTests {
     }
 
     @Test
-    fun cashLadderBalancesWithFx() {
+    fun `cash ladder balances crossing currencies with FX`() {
         val positions = Positions(portfolio = Portfolio(id = "FxCashFlows", currency = USD, base = NZD))
         // Initial Deposit
         val nzdBalance = BigDecimal("12000.00")

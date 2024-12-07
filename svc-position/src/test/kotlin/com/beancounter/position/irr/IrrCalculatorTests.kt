@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
+private const val START_DATE = "2024-01-01"
+
 /**
  * validate various cash flow scenarios.
  */
@@ -65,7 +67,7 @@ class IrrCalculatorTests {
                 "2023-04-10" to 50.0,
                 "2023-07-01" to 50.0,
                 "2023-10-01" to 50.0,
-                "2024-01-01" to marketValue,
+                START_DATE to marketValue,
             ),
             .269,
         )
@@ -75,7 +77,7 @@ class IrrCalculatorTests {
     fun testCalculateIRR_Dividend() {
         testCalculateIRR(
             listOf(
-                "2024-01-01" to initialCost,
+                START_DATE to initialCost,
                 "2024-03-01" to 50.0,
                 "2024-07-01" to marketValue,
             ),
@@ -87,7 +89,7 @@ class IrrCalculatorTests {
     fun testCalculateIRR_ShortHoldingPeriod() {
         testCalculateIRR(
             listOf(
-                "2024-01-01" to initialCost,
+                START_DATE to initialCost,
                 "2024-01-05" to marketValue,
             ),
             .1,
@@ -100,7 +102,7 @@ class IrrCalculatorTests {
             listOf(
                 "2023-01-01" to initialCost,
                 "2023-12-31" to 100.0,
-                "2024-01-01" to 900.00,
+                START_DATE to 900.00,
             ),
             0.0,
         )
@@ -110,7 +112,7 @@ class IrrCalculatorTests {
     fun testCalculateIRR_LossShortTermHolding() {
         testCalculateIRR(
             listOf(
-                "2024-01-01" to initialCost,
+                START_DATE to initialCost,
                 "2024-01-10" to marketValue - 400,
             ),
             -0.3,

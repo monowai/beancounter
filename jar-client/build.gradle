@@ -1,12 +1,11 @@
 plugins {
-  id 'io.spring.dependency-management'
-  id 'org.jetbrains.kotlin.jvm'
-  id 'kotlin-spring'
-  id 'idea'
-  id 'jacoco'
-  id 'org.jmailen.kotlinter'
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.jvm)
+  alias(libs.plugins.kotlin.spring)
+  alias(libs.plugins.jacoco)
+  alias(libs.plugins.kotlinter)
+  //alias(libs.plugins.spring.contract)
 }
-apply from: '../kotlin-spring.gradle'
 
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
@@ -14,8 +13,9 @@ version = '0.0.1-SNAPSHOT'
 
 dependencies {
   implementation(
-    platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
-    platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
+    platform(libs.spring.boot.dependencies),
+    platform(libs.spring.cloud.dependencies),
+    //platform("org.springframework.cloud:spring-cloud-dependencies"),
     project(":jar-common"),
     project(":jar-auth"),
     'com.google.guava:guava:33.0.0-jre',
@@ -25,10 +25,8 @@ dependencies {
     "org.springframework.security:spring-security-oauth2-jose",
     "com.fasterxml.jackson.module:jackson-module-kotlin",
     "org.jetbrains.kotlin:kotlin-reflect",
-    "io.github.resilience4j:resilience4j-annotations",
-    "io.github.resilience4j:resilience4j-circuitbreaker",
-    "io.github.resilience4j:resilience4j-retry",
-    "io.github.resilience4j:resilience4j-timelimiter",
+    libs.resilience4j,
+    libs.resilience4j.annotations,
     "org.springframework.cloud:spring-cloud-starter-openfeign"
   )
   testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module: 'junit-vintage-engine' }
@@ -49,21 +47,11 @@ dependencies {
 
 }
 
-idea {
-  module {
-    inheritOutputDirs = false
-    downloadSources = true
-    outputDir = file("$buildDir/classes/main/")
-    testOutputDir = file("$buildDir/classes/main/")
-  }
-}
-
-jacoco {
-  toolVersion = "$jacocoVersion"
-}
-repositories {
-  mavenCentral()
-}
-kotlin {
-  jvmToolchain(21)
-}
+//idea {
+//  module {
+//    inheritOutputDirs = false
+//    downloadSources = true
+//    outputDir = file("$buildDir/classes/main/")
+//    testOutputDir = file("$buildDir/classes/main/")
+//  }
+//}

@@ -1,21 +1,17 @@
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
-  id 'io.spring.dependency-management'
-  id 'org.jetbrains.kotlin.jvm'
-  id 'kotlin-spring'
-  id 'idea'
-  id 'jacoco'
-  id 'org.jmailen.kotlinter'
-  id 'org.springframework.boot' version "${springVersion}"
-  id 'org.springframework.cloud.contract' version "${verifierVersion}"
-  id 'com.gorylenko.gradle-git-properties' version "${gitProperties}"
+  alias(libs.plugins.jvm)
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.contract)
+  alias(libs.plugins.kotlin.spring)
+  alias(libs.plugins.java.test.fixtures)
+  alias(libs.plugins.sentry)
+  alias(libs.plugins.git.properties)
+  alias(libs.plugins.download)
   id 'maven-publish'
-  id "io.sentry.jvm.gradle" version "4.12.0"
-  id "de.undercouch.download" version "5.6.0"
 }
-
-apply from: '../kotlin-spring.gradle'
 
 version = "0.1.1"
 publishing {
@@ -36,8 +32,8 @@ dependencyManagement {
 
 dependencies {
   implementation(
-    platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
-    platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
+    platform(libs.spring.boot.dependencies),
+    platform(libs.spring.cloud.dependencies),
     project(":jar-common"),
     project(":jar-auth"),
     project(":jar-client"),
@@ -45,9 +41,8 @@ dependencies {
     "org.springframework.boot:spring-boot-starter-data-jpa",
     "org.springframework.boot:spring-boot-starter-logging",
     "org.springframework.cloud:spring-cloud-starter-openfeign",
-    "io.sentry:sentry-openfeign:${sentryVersion}",
-    "io.sentry:sentry-jdbc:${sentryVersion}",
-    // "io.sentry:sentry-kafka:${sentryVersion}",
+    libs.sentry.openfeign,
+    "io.sentry:sentry-jdbc",
     "org.springframework.boot:spring-boot-starter-aop",
     "org.springframework.boot:spring-boot-starter-security",
     "org.springframework.security:spring-security-oauth2-resource-server",
@@ -56,14 +51,11 @@ dependencies {
     "org.springframework.boot:spring-boot-starter-integration",
     "org.jetbrains.kotlinx:kotlinx-coroutines-reactor",
     "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-    "io.github.resilience4j:resilience4j-spring-cloud2",
-    "io.github.resilience4j:resilience4j-circuitbreaker",
-    "io.github.resilience4j:resilience4j-annotations",
-    "io.github.resilience4j:resilience4j-ratelimiter",
-    "io.github.resilience4j:resilience4j-timelimiter",
+    libs.resilience4j,
+    libs.resilience4j.annotations,
     "com.github.ben-manes.caffeine:caffeine",
     "com.h2database:h2", // Dev
-    "org.postgresql:postgresql:${postgresVersion}",
+    libs.postgresql,
     "org.springframework.kafka:spring-kafka",
     'com.opencsv:opencsv:5.7.1',
   )
@@ -72,7 +64,7 @@ dependencies {
     "org.springframework.boot:spring-boot-configuration-processor"
   )
   contractTestImplementation(
-    'org.springframework.cloud:spring-cloud-starter-contract-verifier',
+    "org.springframework.cloud:spring-cloud-starter-contract-verifier",
   )
   testImplementation(
     "org.assertj:assertj-core",
@@ -84,7 +76,7 @@ dependencies {
     "org.junit.jupiter:junit-jupiter",
     "org.junit.platform:junit-platform-suite-api",
     "org.junit.platform:junit-platform-suite-engine",
-    "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
+    libs.mockito.kotlin,
     testFixtures(project(":jar-auth")),
   )
   implementation "org.jetbrains.kotlin:kotlin-stdlib"
@@ -94,6 +86,7 @@ contracts {
   testMode = 'EXPLICIT'
   failOnInProgress = false
   testFramework = "JUNIT5"
+  failOnNoContracts = false
   packageWithBaseClasses = "com.contracts.data"
   baseClassForTests = "com.contracts.data.ContractVerifierBase"
 }
@@ -139,9 +132,6 @@ gitProperties {
 bootBuildImage {
   imageName = "monowai/bc-data"
 }
-kotlin {
-  jvmToolchain(21)
-}
 
 def isCI = System.getenv('CI')?.toBoolean() ?: false
 
@@ -176,7 +166,7 @@ tasks.register('copySentryAgent', Copy) {
   into 'lib'
   dependsOn downloadSentryAgent
 }
-
-tasks.build {
-  dependsOn copySentryAgent
-}
+//
+//tasks.build {
+//  dependsOn copySentryAgent
+//}

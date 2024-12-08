@@ -1,25 +1,23 @@
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
-  id 'io.spring.dependency-management'
-  id 'org.jetbrains.kotlin.jvm'
-  id 'kotlin-spring'
-  id 'idea'
-  id 'jacoco'
-  id 'org.jmailen.kotlinter'
-  id 'org.springframework.boot' version "${springVersion}"
-  id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
-  id "io.sentry.jvm.gradle" version "4.12.0"
-  id "de.undercouch.download" version "5.6.0"
+  alias(libs.plugins.jvm)
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.kotlin.spring)
+  alias(libs.plugins.java.test.fixtures)
+  alias(libs.plugins.sentry)
+  alias(libs.plugins.git.properties)
+  alias(libs.plugins.download)
+  id 'maven-publish'
 }
-apply from: '../kotlin-spring.gradle'
 
 version = "0.1.1"
 
 dependencies {
   implementation(
-    platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
-    platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
+    platform(libs.spring.boot.dependencies),
+    platform(libs.spring.cloud.dependencies),
     project(":jar-common"),
     project(":jar-auth"),
     project(":jar-client"),
@@ -32,18 +30,15 @@ dependencies {
     "org.springframework.security:spring-security-oauth2-jose",
     "org.springframework.boot:spring-boot-starter-actuator",
     "org.springframework.boot:spring-boot-starter-integration",
-    "io.sentry:sentry-openfeign:${sentryVersion}",
+    libs.sentry.openfeign,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core",
     "org.jetbrains.kotlinx:kotlinx-coroutines-reactor",
     "com.fasterxml.jackson.module:jackson-module-kotlin",
-    "io.github.resilience4j:resilience4j-spring-cloud2",
-    "io.github.resilience4j:resilience4j-circuitbreaker",
-    "io.github.resilience4j:resilience4j-annotations",
-    "io.github.resilience4j:resilience4j-ratelimiter",
-    "io.github.resilience4j:resilience4j-timelimiter",
+    libs.resilience4j,
+    libs.resilience4j.annotations,
     "com.github.ben-manes.caffeine:caffeine",
     "com.h2database:h2",
-    "org.postgresql:postgresql:${postgresVersion}",
+    libs.postgresql,
     "org.springframework.kafka:spring-kafka"
   )
 
@@ -59,14 +54,13 @@ dependencies {
     "org.springframework.boot:spring-boot-starter-test",
     "org.springframework.cloud:spring-cloud-contract-stub-runner",
     "org.springframework.security:spring-security-test",
-    "io.sentry:sentry-openfeign:${sentryVersion}",
-    "io.sentry:sentry-jdbc:${sentryVersion}",
+    "io.sentry:sentry-jdbc",
     "org.springframework.cloud:spring-cloud-contract-wiremock",
     "org.springframework.kafka:spring-kafka-test",
-    "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
-    "io.kotest:kotest-runner-junit5:${kotestVersion}",
-    "io.kotest:kotest-assertions-core:${kotestVersion}",
-    "io.kotest:kotest-framework-engine:${kotestVersion}",
+    libs.mockito.kotlin,
+    libs.kotest.runner.junit5,
+    libs.kotest.assertions.core,
+    libs.kotest.framework.engine,
     testFixtures(project(":jar-auth")),
 
   )
@@ -88,12 +82,8 @@ gitProperties {
 bootBuildImage {
   imageName = "monowai/bc-event"
 }
-repositories {
-  mavenCentral()
-}
-kotlin {
-  jvmToolchain(21)
-}
+
+
 def isCI = System.getenv('CI')?.toBoolean() ?: false
 
 sentry {
@@ -111,19 +101,14 @@ sentry {
   }
 }
 
-
 tasks.register('downloadSentryAgent', Download) {
-  src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentryVersion}/sentry-opentelemetry-agent-${sentryVersion}.jar"
-  dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar").get().asFile
+  src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry-opentelemetry-agent-${sentry}.jar"
+  dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().asFile
   onlyIfNewer true
 }
 
 tasks.register('copySentryAgent', Copy) {
-  from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar")
+  from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar")
   into 'lib'
   dependsOn downloadSentryAgent
-}
-
-tasks.build {
-  dependsOn copySentryAgent
 }

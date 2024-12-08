@@ -1,14 +1,10 @@
 plugins {
-  id 'org.springframework.boot' version "${springVersion}"
-  id 'io.spring.dependency-management'
-  id 'org.jetbrains.kotlin.jvm'
-  id 'kotlin-spring'
-  id 'idea'
-  id 'jacoco'
-  id 'org.jmailen.kotlinter'
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.kotlin.spring)
+  alias(libs.plugins.jvm)
 }
 
-apply from: '../kotlin-spring.gradle'
 version = "0.1.1"
 ext {
   set('springShellVersion', "3.3.3")
@@ -16,13 +12,13 @@ ext {
 
 dependencyManagement {
   imports {
-    mavenBom "org.springframework.shell:spring-shell-dependencies:${springShellVersion}"
-    mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    mavenBom "org.springframework.shell:spring-shell-dependencies:3.3.3"
+    mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.3"
   }
 }
 dependencies {
   implementation(
-    "org.springframework.shell:spring-shell-starter-jansi:${springShellVersion}",
+    "org.springframework.shell:spring-shell-starter-jansi:3.3.3",
     "org.springframework.cloud:spring-cloud-starter-openfeign",
     project(":jar-common"),
     project(":jar-client"),
@@ -58,14 +54,4 @@ dependencies {
     transitive = false
   }
   implementation "org.jetbrains.kotlin:kotlin-stdlib"
-}
-
-jacoco {
-  toolVersion = "$jacocoVersion"
-}
-repositories {
-  mavenCentral()
-}
-kotlin {
-  jvmToolchain(21)
 }

@@ -38,6 +38,8 @@ dependencies {
 
   )
   testFixturesImplementation(
+    platform(libs.spring.boot.dependencies),
+    platform(libs.spring.cloud.dependencies),
     project(":jar-common"),
     "org.springframework.boot:spring-boot-starter-test",
     "org.springframework.security:spring-security-config",

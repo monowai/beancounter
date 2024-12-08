@@ -5,5 +5,6 @@ import com.beancounter.common.model.Trn
 /**
  * Responses to a TrnRequest.
  */
-data class TrnResponse(override val data: Collection<Trn> = arrayListOf()) :
-    Payload<Collection<Trn>>
+data class TrnResponse(
+    override val data: Collection<Trn> = arrayListOf(),
+) : Payload<Collection<Trn>>

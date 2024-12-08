@@ -15,21 +15,23 @@ class AssetKeyUtils {
          * @return string that can be used to pull the asset from a map
          */
         @JvmStatic
-        fun toKey(asset: Asset): String {
-            return toKey(asset.code, asset.market.code)
-        }
+        fun toKey(asset: Asset): String =
+            toKey(
+                asset.code,
+                asset.market.code,
+            )
 
         @JvmStatic
-        fun toKey(asset: AssetInput): String {
-            return toKey(asset.code, asset.market)
-        }
+        fun toKey(asset: AssetInput): String =
+            toKey(
+                asset.code,
+                asset.market,
+            )
 
         @JvmStatic
         fun toKey(
             asset: String,
             market: String,
-        ): String {
-            return "$asset:$market"
-        }
+        ): String = "$asset:$market"
     }
 }

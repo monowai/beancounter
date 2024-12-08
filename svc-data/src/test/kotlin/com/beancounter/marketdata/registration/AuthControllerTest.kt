@@ -34,25 +34,44 @@ class AuthControllerTest {
 
     @Test
     fun unauthenticatedUserCanRequestTokenByPassword() {
-        val loginRequest = LoginRequest("user", "password")
-        val mockResponse = OpenIdResponse("abc", "scope", 0L, "type")
-        Mockito.`when`(
-            mockAuthConfig.authGateway
-                .login(
-                    loginService
-                        .passwordRequest(loginRequest.user, loginRequest.password),
-                ),
-        )
-            .thenReturn(mockResponse)
+        val loginRequest =
+            LoginRequest(
+                "user",
+                "password",
+            )
+        val mockResponse =
+            OpenIdResponse(
+                "abc",
+                "scope",
+                0L,
+                "type",
+            )
+        Mockito
+            .`when`(
+                mockAuthConfig.authGateway
+                    .login(
+                        loginService
+                            .passwordRequest(
+                                loginRequest.user,
+                                loginRequest.password,
+                            ),
+                    ),
+            ).thenReturn(mockResponse)
         val performed =
-            mockMvc.perform(
-                MockMvcRequestBuilders.post("/auth")
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .content(objectMapper.writeValueAsString(loginRequest))
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/auth")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
                 .andReturn()
-        val response = objectMapper.readValue(performed.response.contentAsString, OpenIdResponse::class.java)
+        val response =
+            objectMapper.readValue(
+                performed.response.contentAsString,
+                OpenIdResponse::class.java,
+            )
         assertThat(response).isNotNull().usingRecursiveComparison().isEqualTo(mockResponse)
     }
 }

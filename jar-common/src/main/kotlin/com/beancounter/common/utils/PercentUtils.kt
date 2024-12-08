@@ -15,19 +15,25 @@ class PercentUtils {
     fun percent(
         currentValue: BigDecimal?,
         oldValue: BigDecimal?,
-    ): BigDecimal {
-        return percent(currentValue, oldValue, percentScale)
-    }
+    ): BigDecimal =
+        percent(
+            currentValue,
+            oldValue,
+            percentScale,
+        )
 
     fun percent(
         previous: BigDecimal?,
         current: BigDecimal?,
         percentScale: Int,
-    ): BigDecimal {
-        return if (numberUtils.isUnset(previous) || numberUtils.isUnset(current)) {
+    ): BigDecimal =
+        if (numberUtils.isUnset(previous) || numberUtils.isUnset(current)) {
             BigDecimal.ZERO
         } else {
-            previous!!.divide(current, percentScale, RoundingMode.HALF_UP)
+            previous!!.divide(
+                current,
+                percentScale,
+                RoundingMode.HALF_UP,
+            )
         }
-    }
 }

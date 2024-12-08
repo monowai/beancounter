@@ -21,8 +21,8 @@ class Helper {
             portfolio: Portfolio,
             tradeBaseRate: BigDecimal = BigDecimal.ONE,
             tradePortfolioRate: BigDecimal = BigDecimal.ONE,
-        ): Trn {
-            return Trn(
+        ): Trn =
+            Trn(
                 trnType = TrnType.DEPOSIT,
                 portfolio = portfolio,
                 asset = cashAsset,
@@ -33,7 +33,6 @@ class Helper {
                 tradeBaseRate = tradeBaseRate,
                 tradePortfolioRate = tradePortfolioRate,
             )
-        }
 
         @JvmStatic
         fun convert(
@@ -44,8 +43,8 @@ class Helper {
             portfolio: Portfolio,
             tradeBaseRate: BigDecimal = BigDecimal.ONE,
             tradePortfolioRate: BigDecimal = BigDecimal.ONE,
-        ): Trn {
-            return Trn(
+        ): Trn =
+            Trn(
                 trnType = TrnType.FX_BUY,
                 portfolio = portfolio,
                 asset = credit,
@@ -58,6 +57,5 @@ class Helper {
                 // Amount to debit
                 cashAmount = debitAmount.multiply(BigDecimal("-1")),
             )
-        }
     }
 }

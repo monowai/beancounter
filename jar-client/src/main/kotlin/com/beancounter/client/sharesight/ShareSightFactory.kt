@@ -15,7 +15,12 @@ class ShareSightFactory(
     val shareSightDivi: ShareSightDividendAdapter,
     val shareSightTrade: ShareSightTradeAdapter,
 ) {
-    private val tradeTypes = setOf("BUY", "SELL", "SPLIT")
+    private val tradeTypes =
+        setOf(
+            "BUY",
+            "SELL",
+            "SPLIT",
+        )
 
     /**
      * Figure out if we're dealing with a Trade or Dividend row.

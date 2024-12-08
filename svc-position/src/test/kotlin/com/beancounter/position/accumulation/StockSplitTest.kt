@@ -26,37 +26,81 @@ internal class StockSplitTest {
 
     @Test
     fun is_QuantityWorkingForSplit() {
-        val apple = getTestAsset(NASDAQ, AAPL)
+        val apple =
+            getTestAsset(
+                NASDAQ,
+                AAPL,
+            )
         val positions = Positions()
 
         val tradeAmount = BigDecimal("2000")
-        val buyTrn = Trn(trnType = TrnType.BUY, asset = apple, quantity = hundred, tradeAmount = tradeAmount)
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = apple,
+                quantity = hundred,
+                tradeAmount = tradeAmount,
+            )
 
-        val position = buyBehaviour.accumulate(buyTrn, positions)
+        val position =
+            buyBehaviour.accumulate(
+                buyTrn,
+                positions,
+            )
         val totalField = "total"
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(totalField, hundred)
-        val stockSplit = Trn(trnType = TrnType.SPLIT, asset = apple, quantity = BigDecimal("7"))
-        splitBehaviour.accumulate(stockSplit, positions)
+            .hasFieldOrPropertyWithValue(
+                totalField,
+                hundred,
+            )
+        val stockSplit =
+            Trn(
+                trnType = TrnType.SPLIT,
+                asset = apple,
+                quantity = BigDecimal("7"),
+            )
+        splitBehaviour.accumulate(
+            stockSplit,
+            positions,
+        )
 
         // 7 for one split
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(totalField, BigDecimal(700))
+            .hasFieldOrPropertyWithValue(
+                totalField,
+                BigDecimal(700),
+            )
         val costBasis =
             Objects
                 .requireNonNull(
-                    position.getMoneyValues(Position.In.TRADE, position.asset.market.currency),
+                    position.getMoneyValues(
+                        Position.In.TRADE,
+                        position.asset.market.currency,
+                    ),
                 ).costBasis
-        assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
-            .hasFieldOrPropertyWithValue("costBasis", costBasis)
+        assertThat(
+            position.getMoneyValues(
+                Position.In.TRADE,
+                position.asset.market.currency,
+            ),
+        ).hasFieldOrPropertyWithValue(
+            "costBasis",
+            costBasis,
+        )
 
         // Another buy at the adjusted price
-        buyBehaviour.accumulate(buyTrn, positions)
+        buyBehaviour.accumulate(
+            buyTrn,
+            positions,
+        )
 
         val eightHundred = BigDecimal(800)
         // 7 for one split
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(totalField, eightHundred)
+            .hasFieldOrPropertyWithValue(
+                totalField,
+                eightHundred,
+            )
 
         // Sell the entire position
         sellBehaviour.accumulate(
@@ -69,11 +113,20 @@ internal class StockSplitTest {
             positions,
         )
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(totalField, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                totalField,
+                BigDecimal.ZERO,
+            )
 
         // Repurchase; total should be equal to the quantity we just purchased
-        buyBehaviour.accumulate(buyTrn, positions)
+        buyBehaviour.accumulate(
+            buyTrn,
+            positions,
+        )
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(totalField, buyTrn.quantity)
+            .hasFieldOrPropertyWithValue(
+                totalField,
+                buyTrn.quantity,
+            )
     }
 }

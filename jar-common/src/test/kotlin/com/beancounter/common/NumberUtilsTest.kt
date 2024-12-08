@@ -15,14 +15,29 @@ class NumberUtilsTest {
 
     @Test
     fun `isZeroAndNullSafe should correctly identify unset values and handle nulls`() {
-        val zeroValues = listOf(null, BigDecimal("0"), BigDecimal("0.00"))
+        val zeroValues =
+            listOf(
+                null,
+                BigDecimal("0"),
+                BigDecimal("0.00"),
+            )
         zeroValues.forEach { value ->
             assertThat(numberUtils.isUnset(value)).isTrue()
         }
 
         // Test MathUtils behavior with null and empty string inputs
-        assertThat(MathUtils.parse(null, NumberFormat.getInstance())).isZero()
-        assertThat(MathUtils.parse("", NumberFormat.getInstance())).isEqualTo(BigDecimal.ZERO)
+        assertThat(
+            MathUtils.parse(
+                null,
+                NumberFormat.getInstance(),
+            ),
+        ).isZero()
+        assertThat(
+            MathUtils.parse(
+                "",
+                NumberFormat.getInstance(),
+            ),
+        ).isEqualTo(BigDecimal.ZERO)
 
         // Check null-safe handling
         assertThat(MathUtils.nullSafe(null)).isEqualTo(BigDecimal.ZERO)

@@ -8,7 +8,9 @@ import java.math.BigDecimal
  * @author mikeh
  * @since 2019-01-28
  */
-data class MoneyValues(val currency: Currency) {
+data class MoneyValues(
+    val currency: Currency,
+) {
     var dividends: BigDecimal = BigDecimal.ZERO
 
     // Cost in Currency terms

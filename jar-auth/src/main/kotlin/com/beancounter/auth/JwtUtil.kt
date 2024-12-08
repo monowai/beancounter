@@ -41,13 +41,26 @@ internal object JwtUtil {
 
     fun getConfigurationForIssuerLocation(issuer: String): Map<String, Any> {
         val uri = URI.create(issuer)
-        return getConfiguration(issuer, oidc(uri), oidcRfc8414(uri), oauth(uri))
+        return getConfiguration(
+            issuer,
+            oidc(uri),
+            oidcRfc8414(uri),
+            oauth(uri),
+        )
     }
 
     fun getSignatureAlgorithms(jwkSource: JWKSource<SecurityContext>): Set<SignatureAlgorithm> {
         val jwkMatcher =
-            JWKMatcher.Builder().publicOnly(true).keyUses(KeyUse.SIGNATURE, null).keyTypes(KeyType.RSA, KeyType.EC)
-                .build()
+            JWKMatcher
+                .Builder()
+                .publicOnly(true)
+                .keyUses(
+                    KeyUse.SIGNATURE,
+                    null,
+                ).keyTypes(
+                    KeyType.RSA,
+                    KeyType.EC,
+                ).build()
         val jwsAlgorithms: MutableSet<JWSAlgorithm> = HashSet()
         try {
             val jwks = jwkSource[JWKSelector(jwkMatcher), null]
@@ -73,7 +86,10 @@ internal object JwtUtil {
                 signatureAlgorithms.add(signatureAlgorithm)
             }
         }
-        Assert.notEmpty(signatureAlgorithms, "Failed to find any algorithms from the JWK set")
+        Assert.notEmpty(
+            signatureAlgorithms,
+            "Failed to find any algorithms from the JWK set",
+        )
         return signatureAlgorithms
     }
 
@@ -81,17 +97,29 @@ internal object JwtUtil {
         issuer: String,
         vararg uris: URI,
     ): Map<String, Any> {
-        val errorMessage = "Unable to resolve the Configuration with the provided Issuer of \"$issuer\""
+        val errorMessage =
+            "Unable to resolve the Configuration with the provided Issuer of \"$issuer\""
         for (uri in uris) {
             try {
                 val request = RequestEntity.get(uri).build()
-                val response = rest.exchange(request, STRING_OBJECT_MAP)
-                val configuration = response.body ?: throw SystemException("Unable to obtain JWT Config")
-                Assert.isTrue(configuration["jwks_uri"] != null, "The public JWK set URI must not be null")
+                val response =
+                    rest.exchange(
+                        request,
+                        STRING_OBJECT_MAP,
+                    )
+                val configuration =
+                    response.body ?: throw SystemException("Unable to obtain JWT Config")
+                Assert.isTrue(
+                    configuration["jwks_uri"] != null,
+                    "The public JWK set URI must not be null",
+                )
                 return configuration
             } catch (ex: RuntimeException) {
                 if (!(ex is HttpClientErrorException && ex.statusCode.is4xxClientError)) {
-                    throw IllegalArgumentException(errorMessage, ex)
+                    throw IllegalArgumentException(
+                        errorMessage,
+                        ex,
+                    )
                 }
                 // else try another endpoint
             }

@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.RequestMethod
 /**
  * Integration calls to svc-position.
  */
-@FeignClient(name = "bcPosition", url = "\${position.url:http://localhost:9500}")
+@FeignClient(
+    name = "bcPosition",
+    url = "\${position.url:http://localhost:9500}",
+)
 interface PositionGateway {
     @RequestMapping(
         method = [RequestMethod.POST],

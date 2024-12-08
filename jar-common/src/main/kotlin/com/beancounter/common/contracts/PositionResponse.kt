@@ -5,4 +5,6 @@ import com.beancounter.common.model.Positions
 /**
  * Response to a request.
  */
-data class PositionResponse(override val data: Positions = Positions()) : Payload<Positions>
+data class PositionResponse(
+    override val data: Positions = Positions(),
+) : Payload<Positions>

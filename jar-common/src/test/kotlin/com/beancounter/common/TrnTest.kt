@@ -21,7 +21,11 @@ private const val V_BATCH = "batch"
  */
 class TrnTest {
     private val simpleRef = "simpleRef"
-    private val batch = DateUtils().getFormattedDate().toString().replace("-", "")
+    private val batch =
+        DateUtils().getFormattedDate().toString().replace(
+            "-",
+            "",
+        )
 
     @Test
     fun is_trnVersion() {
@@ -30,14 +34,22 @@ class TrnTest {
             Trn(
                 id = id,
                 trnType = TrnType.BUY,
-                asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
+                asset =
+                AssetUtils.getTestAsset(
+                    Constants.NYSE,
+                    simpleRef,
+                ),
                 portfolio = PortfolioUtils.getPortfolio(),
             )
         val trn =
             Trn(
                 id = id,
                 trnType = TrnType.BUY,
-                asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
+                asset =
+                AssetUtils.getTestAsset(
+                    Constants.NYSE,
+                    simpleRef,
+                ),
                 portfolio = PortfolioUtils.getPortfolio(),
                 version = "0",
             )
@@ -51,7 +63,12 @@ class TrnTest {
     fun is_TrnIdDefaulting() {
         val fromNull: CallerRef = CallerRef.from(callerRef = CallerRef())
         assertThat(fromNull).hasNoNullFieldsOrProperties()
-        val id = CallerRef(V_PROVIDER, V_BATCH, "456")
+        val id =
+            CallerRef(
+                V_PROVIDER,
+                V_BATCH,
+                "456",
+            )
         assertThat(CallerRef.from(id)).usingRecursiveComparison().isEqualTo(id)
     }
 
@@ -60,8 +77,13 @@ class TrnTest {
         val fromNull: CallerRef = CallerRef.from(CallerRef())
         assertThat(fromNull)
             .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue(V_PROVIDER, "BC")
-            .hasFieldOrPropertyWithValue(V_BATCH, batch) // Defaults to today
+            .hasFieldOrPropertyWithValue(
+                V_PROVIDER,
+                "BC",
+            ).hasFieldOrPropertyWithValue(
+                V_BATCH,
+                batch,
+            ) // Defaults to today
     }
 
     @Test
@@ -74,19 +96,42 @@ class TrnTest {
 
         assertThat(CallerRef.from(callerRef))
             .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue(batchProp, batch)
-        callerRef = CallerRef(simpleRef, simpleRef, simpleRef)
+            .hasFieldOrPropertyWithValue(
+                batchProp,
+                batch,
+            )
+        callerRef =
+            CallerRef(
+                simpleRef,
+                simpleRef,
+                simpleRef,
+            )
         assertThat(CallerRef.from(callerRef))
-            .hasFieldOrPropertyWithValue(batchProp, simpleRef)
-            .hasFieldOrPropertyWithValue(providerProp, simpleRef)
-            .hasFieldOrPropertyWithValue(callerIdProp, simpleRef)
+            .hasFieldOrPropertyWithValue(
+                batchProp,
+                simpleRef,
+            ).hasFieldOrPropertyWithValue(
+                providerProp,
+                simpleRef,
+            ).hasFieldOrPropertyWithValue(
+                callerIdProp,
+                simpleRef,
+            )
 
         // Called ID not specified
-        callerRef = CallerRef(simpleRef, simpleRef)
+        callerRef =
+            CallerRef(
+                simpleRef,
+                simpleRef,
+            )
         assertThat(CallerRef.from(callerRef))
-            .hasFieldOrPropertyWithValue(batchProp, simpleRef)
-            .hasFieldOrPropertyWithValue(providerProp, simpleRef)
-            .hasFieldOrProperty(callerIdProp)
+            .hasFieldOrPropertyWithValue(
+                batchProp,
+                simpleRef,
+            ).hasFieldOrPropertyWithValue(
+                providerProp,
+                simpleRef,
+            ).hasFieldOrProperty(callerIdProp)
     }
 
     @Test
@@ -95,7 +140,11 @@ class TrnTest {
             Trn(
                 id = "any",
                 trnType = TrnType.BUY,
-                asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
+                asset =
+                AssetUtils.getTestAsset(
+                    Constants.NYSE,
+                    simpleRef,
+                ),
                 portfolio = PortfolioUtils.getPortfolio(),
             )
         assertThat(trn.asset.market.currency).isNotNull

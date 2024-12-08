@@ -64,8 +64,10 @@ class PortfolioExceptionTests {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get(PORTFOLIO_BY_CODE, "does not exist")
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .get(
+                        PORTFOLIO_BY_CODE,
+                        "does not exist",
+                    ).with(SecurityMockMvcRequestPostProcessors.csrf())
                     .contentType(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
@@ -76,8 +78,10 @@ class PortfolioExceptionTests {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get(PORTFOLIO_BY_ID, "invalidId")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .get(
+                        PORTFOLIO_BY_ID,
+                        "invalidId",
+                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
                     .contentType(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
@@ -106,7 +110,14 @@ class PortfolioExceptionTests {
                             SecurityMockMvcRequestPostProcessors.csrf(),
                         ).content(
                             objectMapper
-                                .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput, portfolioInput))),
+                                .writeValueAsBytes(
+                                    PortfoliosRequest(
+                                        arrayListOf(
+                                            portfolioInput,
+                                            portfolioInput,
+                                        ),
+                                    ),
+                                ),
                         ).contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(MockMvcResultMatchers.status().isConflict)
                 .andReturn()
@@ -118,7 +129,10 @@ class PortfolioExceptionTests {
     }
 
     @Test
-    @WithMockUser(username = "unregisteredUser", authorities = [AuthConstants.SCOPE_BC])
+    @WithMockUser(
+        username = "unregisteredUser",
+        authorities = [AuthConstants.SCOPE_BC],
+    )
     fun unregisteredUserRejected() {
         val portfolioInput =
             PortfolioInput(

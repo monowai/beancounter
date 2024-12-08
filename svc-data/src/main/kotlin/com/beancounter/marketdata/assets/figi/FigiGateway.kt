@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.RequestMethod
  * @author mikeh
  * @since 2019-03-03
  */
-@FeignClient(name = "figi", url = "\${beancounter.market.providers.figi.url:https://api.openfigi.com}")
+@FeignClient(
+    name = "figi",
+    url = "\${beancounter.market.providers.figi.url:https://api.openfigi.com}",
+)
 interface FigiGateway {
     // https://bsym.bloomberg.com/api#post-v2-search
     @RequestMapping(

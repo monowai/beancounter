@@ -55,8 +55,17 @@ class ShareSightTradeAdapter(
         assert(trustedTrnImportRequest != null)
         val row = trustedTrnImportRequest!!.row
         val ttype = row[TYPE]
-        if (ttype.equals("", ignoreCase = true)) {
-            throw BusinessException(String.format("Unsupported type %s", row[TYPE]))
+        if (ttype.equals(
+                "",
+                ignoreCase = true,
+            )
+        ) {
+            throw BusinessException(
+                String.format(
+                    "Unsupported type %s",
+                    row[TYPE],
+                ),
+            )
         }
         val trnType = TrnType.valueOf(ttype.uppercase(Locale.getDefault()))
         val comment = if (row.size == 13) nullSafe(row[COMMENTS]) else null
@@ -65,34 +74,59 @@ class ShareSightTradeAdapter(
         var tradeAmount = BigDecimal.ZERO
         return try {
             if (trnType !== TrnType.SPLIT) {
-                tradeRate = parse(row[FX_RATE], shareSightConfig.numberFormat)
-                fees = calcFees(row, tradeRate)
-                tradeAmount = calcTradeAmount(row, tradeRate)
+                tradeRate =
+                    parse(
+                        row[FX_RATE],
+                        shareSightConfig.numberFormat,
+                    )
+                fees =
+                    calcFees(
+                        row,
+                        tradeRate,
+                    )
+                tradeAmount =
+                    calcTradeAmount(
+                        row,
+                        tradeRate,
+                    )
             }
             val asset = resolveAsset(row)
             if (asset == null) {
-                log.error("Unable to resolve asset [{}]", row)
+                log.error(
+                    "Unable to resolve asset [{}]",
+                    row,
+                )
                 throw BusinessException("Unable to resolve asset [%s]\", row")
             }
             val trnInput =
                 TrnInput(
-                    CallerRef(trustedTrnImportRequest.portfolio.id, "", row[ID]),
+                    CallerRef(
+                        trustedTrnImportRequest.portfolio.id,
+                        "",
+                        row[ID],
+                    ),
                     asset.id,
                     trnType = trnType,
                     quantity =
-                        parse(
-                            row[QUANTITY],
-                            shareSightConfig.numberFormat,
-                        ),
+                    parse(
+                        row[QUANTITY],
+                        shareSightConfig.numberFormat,
+                    ),
                     tradeCurrency = row[CURRENCY],
                     cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
                     tradeDate =
-                        dateUtils.getFormattedDate(
-                            row[DATE],
-                            listOf(shareSightConfig.dateFormat),
-                        ),
+                    dateUtils.getFormattedDate(
+                        row[DATE],
+                        listOf(shareSightConfig.dateFormat),
+                    ),
                     fees = fees,
-                    price = MathUtils.nullSafe(parse(row[PRICE], shareSightConfig.numberFormat)),
+                    price =
+                    MathUtils.nullSafe(
+                        parse(
+                            row[PRICE],
+                            shareSightConfig.numberFormat,
+                        ),
+                    ),
                     tradeAmount = tradeAmount,
                     comments = comment,
                 )
@@ -101,7 +135,11 @@ class ShareSightTradeAdapter(
             trnInput
         } catch (e: ParseException) {
             val message = e.message
-            throw logFirst("TRADE", message, row)
+            throw logFirst(
+                "TRADE",
+                message,
+                row,
+            )
         }
     }
 
@@ -110,11 +148,18 @@ class ShareSightTradeAdapter(
         row: List<String>,
         tradeRate: BigDecimal?,
     ): BigDecimal {
-        val result = parse(row[BROKERAGE], shareSightConfig.numberFormat)
+        val result =
+            parse(
+                row[BROKERAGE],
+                shareSightConfig.numberFormat,
+            )
         return if (shareSightConfig.isCalculateAmount) {
             result
         } else {
-            return divide(result, tradeRate)
+            return divide(
+                result,
+                tradeRate,
+            )
         }
     }
 
@@ -130,17 +175,27 @@ class ShareSightTradeAdapter(
         row: List<String>,
         tradeRate: BigDecimal?,
     ): BigDecimal {
-        var result = parse(row[VALUE], shareSightConfig.numberFormat)
+        var result =
+            parse(
+                row[VALUE],
+                shareSightConfig.numberFormat,
+            )
         result =
             if (shareSightConfig.isCalculateAmount) {
                 val q = BigDecimal(row[QUANTITY])
                 val p = BigDecimal(row[PRICE])
-                val f =
-                    MathUtils.nullSafe(MathUtils[row[BROKERAGE]])
-                tradeCalculator.amount(q, p, f)
+                val f = MathUtils.nullSafe(MathUtils[row[BROKERAGE]])
+                tradeCalculator.amount(
+                    q,
+                    p,
+                    f,
+                )
             } else {
                 // ShareSight store tradeAmount in portfolio currency, BC stores in Trade CCY
-                return multiplyAbs(result, tradeRate)
+                return multiplyAbs(
+                    result,
+                    tradeRate,
+                )
             }
         return result
     }
@@ -160,7 +215,13 @@ class ShareSightTradeAdapter(
     override fun resolveAsset(row: List<String>): Asset? {
         val assetCode = row[CODE]
         val marketCode = row[MARKET]
-        val asset = assetIngestService.resolveAsset(AssetInput(marketCode, assetCode))
+        val asset =
+            assetIngestService.resolveAsset(
+                AssetInput(
+                    marketCode,
+                    assetCode,
+                ),
+            )
         return if (!filter.inFilter(asset)) {
             null
         } else {

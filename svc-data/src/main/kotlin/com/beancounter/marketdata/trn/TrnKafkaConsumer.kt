@@ -13,11 +13,17 @@ import org.springframework.stereotype.Controller
  * Listens to a Kafka queue for Transactions to process.
  */
 @Controller
-@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["kafka.enabled"],
+    matchIfMissing = true,
+)
 class TrnKafkaConsumer(
     val trnImportService: TrnImportService,
 ) {
-    @KafkaListener(topics = ["#{@trnCsvTopic}"], errorHandler = "bcErrorHandler")
+    @KafkaListener(
+        topics = ["#{@trnCsvTopic}"],
+        errorHandler = "bcErrorHandler",
+    )
     fun fromCsvImport(payload: String): TrnResponse =
         TrnResponse(
             trnImportService.fromCsvImport(
@@ -27,7 +33,10 @@ class TrnKafkaConsumer(
             ),
         )
 
-    @KafkaListener(topics = ["#{@trnEventTopic}"], errorHandler = "bcErrorHandler")
+    @KafkaListener(
+        topics = ["#{@trnEventTopic}"],
+        errorHandler = "bcErrorHandler",
+    )
     fun fromTrnRequest(payload: String?): TrnResponse =
         TrnResponse(
             trnImportService.fromTrnRequest(

@@ -7,36 +7,112 @@ import java.time.LocalDate
 
 class MarketCalendarTests {
     private val market = "TEST"
-    private val christmasDay: LocalDate = LocalDate.of(2023, 12, 25)
-    private val boxingDay: LocalDate = LocalDate.of(2023, 12, 26)
+    private val christmasDay: LocalDate =
+        LocalDate.of(
+            2023,
+            12,
+            25,
+        )
+    private val boxingDay: LocalDate =
+        LocalDate.of(
+            2023,
+            12,
+            26,
+        )
     private val markets = listOf(market)
 
     private val marketCalendarConfig =
         MarketCalendarConfig(
             listOf(
-                MarketHolidayAnnual(christmasDay.dayOfMonth, christmasDay.monthValue.toString(), "*", markets),
-                MarketHolidayAnnual(boxingDay.dayOfMonth, boxingDay.monthValue.toString(), "*", markets),
+                MarketHolidayAnnual(
+                    christmasDay.dayOfMonth,
+                    christmasDay.monthValue.toString(),
+                    "*",
+                    markets,
+                ),
+                MarketHolidayAnnual(
+                    boxingDay.dayOfMonth,
+                    boxingDay.monthValue.toString(),
+                    "*",
+                    markets,
+                ),
             ),
         )
 
     @Test
     fun nzChristmasOnMondayToFriday() {
         val marketCalendar = MarketCalendar(marketCalendarConfig)
-        assertThat(marketCalendar.isMarketHoliday(market, christmasDay)).isTrue()
-        assertThat(marketCalendar.isMarketHoliday(market, boxingDay)).isTrue()
-        assertThat(marketCalendar.getNextBusinessDay(christmasDay, marketCalendarConfig.marketHolidays(2023, market)))
-            .isEqualTo(LocalDate.of(2023, 12, 27))
+        assertThat(
+            marketCalendar.isMarketHoliday(
+                market,
+                christmasDay,
+            ),
+        ).isTrue()
+        assertThat(
+            marketCalendar.isMarketHoliday(
+                market,
+                boxingDay,
+            ),
+        ).isTrue()
+        assertThat(
+            marketCalendar.getNextBusinessDay(
+                christmasDay,
+                marketCalendarConfig.marketHolidays(
+                    2023,
+                    market,
+                ),
+            ),
+        ).isEqualTo(
+            LocalDate.of(
+                2023,
+                12,
+                27,
+            ),
+        )
     }
 
     @Test
     @Disabled
     fun nzChristmasOnWeekend() {
         val marketCalendar = MarketCalendar(marketCalendarConfig)
-        val christmasDay = LocalDate.of(2021, 12, 25)
-        val boxingDay = LocalDate.of(2021, 12, 26)
-        assertThat(marketCalendar.isMarketHoliday(market, christmasDay)).isTrue()
-        assertThat(marketCalendar.isMarketHoliday(market, boxingDay)).isTrue()
-        assertThat(marketCalendar.getNextBusinessDay(christmasDay, marketCalendarConfig.marketHolidays(2021, market)))
-            .isEqualTo(LocalDate.of(2021, 12, 29))
+        val christmasDay =
+            LocalDate.of(
+                2021,
+                12,
+                25,
+            )
+        val boxingDay =
+            LocalDate.of(
+                2021,
+                12,
+                26,
+            )
+        assertThat(
+            marketCalendar.isMarketHoliday(
+                market,
+                christmasDay,
+            ),
+        ).isTrue()
+        assertThat(
+            marketCalendar.isMarketHoliday(
+                market,
+                boxingDay,
+            ),
+        ).isTrue()
+        assertThat(
+            marketCalendar.getNextBusinessDay(
+                christmasDay,
+                marketCalendarConfig.marketHolidays(
+                    2021,
+                    market,
+                ),
+            ),
+        ).isEqualTo(
+            LocalDate.of(
+                2021,
+                12,
+                29,
+            ),
+        )
     }
 }

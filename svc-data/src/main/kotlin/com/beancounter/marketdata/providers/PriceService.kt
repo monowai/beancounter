@@ -36,9 +36,18 @@ class PriceService internal constructor(
         date: LocalDate,
         closePrice: BigDecimal = BigDecimal.ZERO,
     ): Optional<MarketData> {
-        val response = marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)
+        val response =
+            marketDataRepo.findByAssetIdAndPriceDate(
+                asset.id,
+                date,
+            )
         if (response.isPresent) return response
-        return handleOffMarketPrice(asset, closePrice, date, response)
+        return handleOffMarketPrice(
+            asset,
+            closePrice,
+            date,
+            response,
+        )
     }
 
     private fun handleOffMarketPrice(
@@ -68,7 +77,12 @@ class PriceService internal constructor(
         val createSet =
             priceResponse.data
                 .filter { !cashUtils.isCash(it.asset) }
-                .filter { getMarketData(it.asset, it.priceDate).isEmpty }
+                .filter {
+                    getMarketData(
+                        it.asset,
+                        it.priceDate,
+                    ).isEmpty
+                }
 
         priceResponse.data
             .filter { !cashUtils.isCash(it.asset) && isCorporateEvent(it) }
@@ -98,5 +112,9 @@ class PriceService internal constructor(
     fun getMarketData(
         assets: Collection<Asset>,
         date: LocalDate,
-    ): List<MarketData> = marketDataRepo.findByAssetInAndPriceDate(assets, date)
+    ): List<MarketData> =
+        marketDataRepo.findByAssetInAndPriceDate(
+            assets,
+            date,
+        )
 }

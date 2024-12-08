@@ -30,13 +30,19 @@ data class TrnInput(
     var tradeCashRate: BigDecimal = BigDecimal.ZERO,
     // Trade CCY to portfolio Currency. Calculated if zero
     var tradePortfolioRate: BigDecimal = BigDecimal.ZERO,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd",
+    ) @JsonSerialize(using = LocalDateSerializer::class) @JsonDeserialize(
+        using = LocalDateDeserializer::class,
+    )
     val tradeDate: LocalDate = DateUtils().date,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd",
+    ) @JsonSerialize(using = LocalDateSerializer::class) @JsonDeserialize(
+        using = LocalDateDeserializer::class,
+    )
     var settleDate: LocalDate? = null,
     // In trade Currency
     val fees: BigDecimal = BigDecimal.ZERO,

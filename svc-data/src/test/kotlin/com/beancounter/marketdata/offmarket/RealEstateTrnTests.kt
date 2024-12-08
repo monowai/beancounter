@@ -82,20 +82,40 @@ class RealEstateTrnTests {
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
         enrichmentFactory.register(DefaultEnricher())
-        Mockito.`when`(fxClientService.getRates(any(), any()))
-            .thenReturn(FxResponse(FxPairResults()))
+        Mockito
+            .`when`(
+                fxClientService.getRates(
+                    any(),
+                    any(),
+                ),
+            ).thenReturn(FxResponse(FxPairResults()))
     }
 
     @Test
     fun is_BuyHouse() {
-        mockAuthConfig.login(SystemUser(), systemUserService)
-        val house = AssetInput.toRealEstate(USD, "USAPT", "NY Apartment", "test-user")
+        mockAuthConfig.login(
+            SystemUser(),
+            systemUserService,
+        )
+        val house =
+            AssetInput.toRealEstate(
+                USD,
+                "USAPT",
+                "NY Apartment",
+                "test-user",
+            )
         val houseAsset =
-            assetService.handle(
-                AssetRequest(
-                    mapOf(Pair(house.code, house)),
-                ),
-            ).data[house.code]
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            Pair(
+                                house.code,
+                                house,
+                            ),
+                        ),
+                    ),
+                ).data[house.code]
         assertThat(houseAsset).isNotNull
         val portfolio = bcMvcHelper.portfolio(PortfolioInput("RE-TEST"))
         val purchase =
@@ -131,7 +151,11 @@ class RealEstateTrnTests {
                 portfolio,
                 TrnRequest(
                     portfolio.id,
-                    arrayOf(purchase, reduce, increase),
+                    arrayOf(
+                        purchase,
+                        reduce,
+                        increase,
+                    ),
                 ),
             )
         assertThat(trns).isNotNull.hasSize(3)
@@ -139,17 +163,36 @@ class RealEstateTrnTests {
         val iterator = trns.iterator()
         val b = iterator.next()
         assertThat(b)
-            .extracting(pTradeAmount, pCashAmount)
-            .containsExactly(tenK, BigDecimal.ZERO.minus(tenK))
+            .extracting(
+                pTradeAmount,
+                pCashAmount,
+            ).containsExactly(
+                tenK,
+                BigDecimal.ZERO.minus(tenK),
+            )
 
         val r = iterator.next()
         assertThat(r)
-            .extracting(pTradeAmount, pQuantity, pCashAmount)
-            .containsExactly(oneK, oneK, BigDecimal.ZERO)
+            .extracting(
+                pTradeAmount,
+                pQuantity,
+                pCashAmount,
+            ).containsExactly(
+                oneK,
+                oneK,
+                BigDecimal.ZERO,
+            )
 
         val i = iterator.next()
         assertThat(i)
-            .extracting(pTradeAmount, pQuantity, pCashAmount)
-            .containsExactly(oneK, oneK, BigDecimal.ZERO)
+            .extracting(
+                pTradeAmount,
+                pQuantity,
+                pCashAmount,
+            ).containsExactly(
+                oneK,
+                oneK,
+                BigDecimal.ZERO,
+            )
     }
 }

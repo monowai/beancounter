@@ -69,7 +69,10 @@ class PositionValuationService(
                 getValuationData(positions)
             }
         if (priceResponse.data.isEmpty()) {
-            log.info("No prices found on date {}", positions.asAt)
+            log.info(
+                "No prices found on date {}",
+                positions.asAt,
+            )
             return positions // Prevent NPE
         }
 
@@ -78,14 +81,31 @@ class PositionValuationService(
         val pfTotals = Totals(positions.portfolio.currency)
         val tradeTotals = Totals(tradeCurrency)
 
-        positions.setTotal(Position.In.BASE, baseTotals)
-        positions.setTotal(Position.In.PORTFOLIO, pfTotals)
-        positions.setTotal(Position.In.TRADE, tradeTotals)
+        positions.setTotal(
+            Position.In.BASE,
+            baseTotals,
+        )
+        positions.setTotal(
+            Position.In.PORTFOLIO,
+            pfTotals,
+        )
+        positions.setTotal(
+            Position.In.TRADE,
+            tradeTotals,
+        )
 
-        calculateMarketValues(positions, priceResponse, fxResponse, tradeCurrency)
+        calculateMarketValues(
+            positions,
+            priceResponse,
+            fxResponse,
+            tradeCurrency,
+        )
         calculateWeightsAndGains(positions)
         val irr =
-            calculateIrrSafely(positions.periodicCashFlows, "Failed to calculate IRR for ${positions.portfolio.code}")
+            calculateIrrSafely(
+                positions.periodicCashFlows,
+                "Failed to calculate IRR for ${positions.portfolio.code}",
+            )
         baseTotals.irr = irr
         pfTotals.irr = irr
         tradeTotals.irr = irr
@@ -118,11 +138,28 @@ class PositionValuationService(
         val refTotals = positions.totals[Position.In.PORTFOLIO]!!
         val tradeTotals = positions.totals[Position.In.TRADE]!!
         for (marketData in priceResponse.data) {
-            val position = marketValue.value(positions, marketData, fxResponse.data.rates)
+            val position =
+                marketValue.value(
+                    positions,
+                    marketData,
+                    fxResponse.data.rates,
+                )
 
-            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
-            val refMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, position.asset.market.currency)
-            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, tradeCurrency)
+            val baseMoneyValues =
+                position.getMoneyValues(
+                    Position.In.BASE,
+                    positions.portfolio.base,
+                )
+            val refMoneyValues =
+                position.getMoneyValues(
+                    Position.In.PORTFOLIO,
+                    position.asset.market.currency,
+                )
+            val tradeMoneyValues =
+                position.getMoneyValues(
+                    Position.In.TRADE,
+                    tradeCurrency,
+                )
 
             baseTotals.marketValue = baseTotals.marketValue.add(baseMoneyValues.marketValue)
             refTotals.marketValue = refTotals.marketValue.add(refMoneyValues.marketValue)
@@ -136,28 +173,70 @@ class PositionValuationService(
         val tradeTotals = positions.totals[Position.In.TRADE]!!
         val theDate = dateUtils.getDate(positions.asAt)
         for (position in positions.positions.values) {
-            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
-            tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.marketValue)
+            val tradeMoneyValues =
+                position.getMoneyValues(
+                    Position.In.TRADE,
+                    position.asset.market.currency,
+                )
+            tradeMoneyValues.weight =
+                percentUtils.percent(
+                    tradeMoneyValues.marketValue,
+                    refTotals.marketValue,
+                )
 
-            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
-            baseMoneyValues.weight = percentUtils.percent(baseMoneyValues.marketValue, baseTotals.marketValue)
+            val baseMoneyValues =
+                position.getMoneyValues(
+                    Position.In.BASE,
+                    positions.portfolio.base,
+                )
+            baseMoneyValues.weight =
+                percentUtils.percent(
+                    baseMoneyValues.marketValue,
+                    baseTotals.marketValue,
+                )
 
-            val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
-            portfolioMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, tradeTotals.marketValue)
+            val portfolioMoneyValues =
+                position.getMoneyValues(
+                    Position.In.PORTFOLIO,
+                    positions.portfolio.currency,
+                )
+            portfolioMoneyValues.weight =
+                percentUtils.percent(
+                    tradeMoneyValues.marketValue,
+                    tradeTotals.marketValue,
+                )
 
             val roi = roiCalculator.calculateROI(tradeMoneyValues)
 
             if (position.asset.market.code != "CASH") {
-                position.periodicCashFlows.add(position, theDate)
+                position.periodicCashFlows.add(
+                    position,
+                    theDate,
+                )
                 positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
                 val irr =
                     calculateIrrSafely(
                         position.periodicCashFlows,
                         "Failed to calculate IRR for ${position.asset.code}",
                     )
-                setTotals(tradeTotals, tradeMoneyValues, roi, irr)
-                setTotals(baseTotals, baseMoneyValues, roi, irr)
-                setTotals(refTotals, portfolioMoneyValues, roi, irr)
+                setTotals(
+                    tradeTotals,
+                    tradeMoneyValues,
+                    roi,
+                    irr,
+                )
+                setTotals(
+                    baseTotals,
+                    baseMoneyValues,
+                    roi,
+                    irr,
+                )
+                setTotals(
+                    refTotals,
+                    portfolioMoneyValues,
+                    roi,
+                    irr,
+                )
             } else {
                 tradeTotals.cash = tradeTotals.cash.add(tradeMoneyValues.marketValue)
                 baseTotals.cash = baseTotals.cash.add(baseMoneyValues.marketValue)
@@ -186,34 +265,57 @@ class PositionValuationService(
     ): ValuationData =
         withContext(SentryContext()) {
             try {
-                val fxRequest = fxUtils.buildRequest(positions.portfolio.base, positions)
-                val priceRequest = PriceRequest.of(positions.asAt, positions)
+                val fxRequest =
+                    fxUtils.buildRequest(
+                        positions.portfolio.base,
+                        positions,
+                    )
+                val priceRequest =
+                    PriceRequest.of(
+                        positions.asAt,
+                        positions,
+                    )
                 val priceDeferred =
                     async {
-                        priceService.getPrices(priceRequest, token)
+                        priceService.getPrices(
+                            priceRequest,
+                            token,
+                        )
                     }
                 val fxDeferred =
                     async {
-                        fxRateService.getRates(fxRequest, token)
+                        fxRateService.getRates(
+                            fxRequest,
+                            token,
+                        )
                     }
 
                 val prices = priceDeferred.await()
                 val rates = fxDeferred.await()
 
-                ValuationData(prices, rates)
+                ValuationData(
+                    prices,
+                    rates,
+                )
             } catch (e: CancellationException) {
-                throw IllegalStateException("Thread was interrupted while fetching market data.", e)
+                throw IllegalStateException(
+                    "Thread was interrupted while fetching market data.",
+                    e,
+                )
             }
         }
 
     private fun calculateIrrSafely(
         periodicCashFlows: PeriodicCashFlows,
         message: String,
-    ): BigDecimal {
-        return try {
+    ): BigDecimal =
+        try {
             BigDecimal(irrCalculator.calculate(periodicCashFlows))
         } catch (e: NoBracketingException) {
-            logger.error("Failed to calculate IRR", e)
+            logger.error(
+                "Failed to calculate IRR",
+                e,
+            )
             val breadcrumb =
                 Breadcrumb(message).apply {
                     category = "data"
@@ -223,7 +325,6 @@ class PositionValuationService(
 
             BigDecimal.ZERO
         }
-    }
 
     companion object {
         private val log = LoggerFactory.getLogger(PositionValuationService::class.java)

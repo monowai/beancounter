@@ -51,7 +51,8 @@ class RegisterBase {
     fun mockRegistration() {
         RestAssured.port = Integer.valueOf(port)
         val jwt = authUtilService.authenticate(systemUser)
-        Mockito.`when`(systemUserService.register())
+        Mockito
+            .`when`(systemUserService.register())
             .thenReturn(RegistrationResponse(systemUser))
         Mockito.`when`(tokenService.subject).thenReturn(jwt.token.subject)
         ContractHelper(authUtilService).defaultUser(

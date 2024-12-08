@@ -18,7 +18,11 @@ class KafkaUtilsTest {
         assertThat(result.contains("com.beancounter"))
         val handler = kafkaUtils.bcErrorHandler()
         val message: Message<*> = ErrorMessage(failedException)
-        val errorResult = handler.handleError(message, failedException)
+        val errorResult =
+            handler.handleError(
+                message,
+                failedException,
+            )
         assertThat(errorResult).isNotNull
     }
 }

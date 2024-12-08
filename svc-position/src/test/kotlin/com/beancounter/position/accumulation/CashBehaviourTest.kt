@@ -43,18 +43,40 @@ internal class CashBehaviourTest {
                 portfolio = PortfolioUtils.getPortfolio(),
             )
         val positions = Positions()
-        val position = accumulator.accumulate(trn, positions)
-        assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, trn.quantity)
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, trn.quantity)
-            .hasFieldOrPropertyWithValue(PROP_PURCHASES, trn.quantity)
+        val position =
+            accumulator.accumulate(
+                trn,
+                positions,
+            )
+        assertThat(
+            position.getMoneyValues(
+                Position.In.TRADE,
+                Currency(usdCashBalance.priceSymbol!!),
+            ),
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            trn.quantity,
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            trn.quantity,
+        ).hasFieldOrPropertyWithValue(
+            PROP_PURCHASES,
+            trn.quantity,
+        )
 
-        assertThat(position.quantityValues).hasFieldOrPropertyWithValue("precision", 2)
+        assertThat(position.quantityValues).hasFieldOrPropertyWithValue(
+            "precision",
+            2,
+        )
     }
 
     @Test
     fun is_DepositAccumulatedForSell() {
-        val asset = getTestAsset(NASDAQ, AAPL)
+        val asset =
+            getTestAsset(
+                NASDAQ,
+                AAPL,
+            )
         val trn =
             Trn(
                 trnType = TrnType.SELL,
@@ -69,16 +91,37 @@ internal class CashBehaviourTest {
             )
 
         val positions = Positions()
-        val position = accumulator.accumulate(trn, positions)
-        assertThat(position).hasFieldOrPropertyWithValue("asset", asset)
+        val position =
+            accumulator.accumulate(
+                trn,
+                positions,
+            )
+        assertThat(position).hasFieldOrPropertyWithValue(
+            "asset",
+            asset,
+        )
         assertThat(positions.positions).hasSize(2)
         val cashPosition = positions.getOrCreate(usdCashBalance)
         assertThat(cashPosition.quantityValues)
-            .hasFieldOrPropertyWithValue("purchased", cashAmount.abs())
-        assertThat(cashPosition.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, trn.cashAmount)
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, trn.cashAmount)
-            .hasFieldOrPropertyWithValue(PROP_PURCHASES, trn.cashAmount)
+            .hasFieldOrPropertyWithValue(
+                "purchased",
+                cashAmount.abs(),
+            )
+        assertThat(
+            cashPosition.getMoneyValues(
+                Position.In.TRADE,
+                Currency(usdCashBalance.priceSymbol!!),
+            ),
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            trn.cashAmount,
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            trn.cashAmount,
+        ).hasFieldOrPropertyWithValue(
+            PROP_PURCHASES,
+            trn.cashAmount,
+        )
     }
 
     @Test
@@ -93,19 +136,43 @@ internal class CashBehaviourTest {
                 portfolio = PortfolioUtils.getPortfolio(),
             )
         val positions = Positions()
-        val position = accumulator.accumulate(trn, positions)
+        val position =
+            accumulator.accumulate(
+                trn,
+                positions,
+            )
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(PROP_SOLD, cashAmount)
-            .hasFieldOrPropertyWithValue(PROP_TOTAL, cashAmount)
-        assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, trn.quantity)
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, trn.quantity)
-            .hasFieldOrPropertyWithValue("sales", trn.quantity)
+            .hasFieldOrPropertyWithValue(
+                PROP_SOLD,
+                cashAmount,
+            ).hasFieldOrPropertyWithValue(
+                PROP_TOTAL,
+                cashAmount,
+            )
+        assertThat(
+            position.getMoneyValues(
+                Position.In.TRADE,
+                Currency(usdCashBalance.priceSymbol!!),
+            ),
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            trn.quantity,
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            trn.quantity,
+        ).hasFieldOrPropertyWithValue(
+            "sales",
+            trn.quantity,
+        )
     }
 
     @Test
     fun is_WithdrawalAccumulatedForBuy() {
-        val asset = getTestAsset(NASDAQ, AAPL)
+        val asset =
+            getTestAsset(
+                NASDAQ,
+                AAPL,
+            )
         val trn =
             Trn(
                 trnType = TrnType.BUY,
@@ -118,15 +185,36 @@ internal class CashBehaviourTest {
                 portfolio = PortfolioUtils.getPortfolio(),
             )
         val positions = Positions()
-        val position = accumulator.accumulate(trn, positions)
-        assertThat(position).hasFieldOrPropertyWithValue("asset", asset)
+        val position =
+            accumulator.accumulate(
+                trn,
+                positions,
+            )
+        assertThat(position).hasFieldOrPropertyWithValue(
+            "asset",
+            asset,
+        )
         assertThat(positions.positions).hasSize(2)
         val cashPosition = positions.getOrCreate(usdCashBalance)
         assertThat(cashPosition.quantityValues)
-            .hasFieldOrPropertyWithValue(PROP_SOLD, cashAmount)
-        assertThat(cashPosition.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(PROP_PURCHASES, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, cashAmount)
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, cashAmount)
+            .hasFieldOrPropertyWithValue(
+                PROP_SOLD,
+                cashAmount,
+            )
+        assertThat(
+            cashPosition.getMoneyValues(
+                Position.In.TRADE,
+                Currency(usdCashBalance.priceSymbol!!),
+            ),
+        ).hasFieldOrPropertyWithValue(
+            PROP_PURCHASES,
+            BigDecimal.ZERO,
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            cashAmount,
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            cashAmount,
+        )
     }
 }

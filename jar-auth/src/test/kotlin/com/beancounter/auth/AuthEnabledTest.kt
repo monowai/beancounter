@@ -50,7 +50,12 @@ class AuthEnabledTest {
     @Test
     fun isConfigCorrect() {
         assertThat(authConfig)
-            .hasFieldOrPropertyWithValue("audience", audience)
-            .hasFieldOrPropertyWithValue("claimEmail", "some-email")
+            .hasFieldOrPropertyWithValue(
+                "audience",
+                audience,
+            ).hasFieldOrPropertyWithValue(
+                "claimEmail",
+                "some-email",
+            )
     }
 }

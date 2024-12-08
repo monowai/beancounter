@@ -50,7 +50,8 @@ class TestEvent {
         val json = objectMapper.writeValueAsBytes(eventRequest)
         val fromJson = objectMapper.readValue<EventRequest>(json)
         assertThat(fromJson.data)
-            .usingRecursiveComparison().ignoringFields("id")
+            .usingRecursiveComparison()
+            .ignoringFields("id")
     }
 
     @Test
@@ -64,7 +65,12 @@ class TestEvent {
                 ),
             )
         val json = objectMapper.writeValueAsString(trustedEventInput)
-        assertThat(objectMapper.readValue(json, TrustedEventInput::class.java))
-            .usingRecursiveComparison().isEqualTo(trustedEventInput)
+        assertThat(
+            objectMapper.readValue(
+                json,
+                TrustedEventInput::class.java,
+            ),
+        ).usingRecursiveComparison()
+            .isEqualTo(trustedEventInput)
     }
 }

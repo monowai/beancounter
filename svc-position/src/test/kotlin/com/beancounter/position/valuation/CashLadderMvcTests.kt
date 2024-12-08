@@ -52,49 +52,93 @@ internal class CashLadderMvcTests {
     @Test
     fun positionRequestFromTransactions() {
         val date = "2021-10-18"
-        val apple = getTestAsset(code = "AAPL", market = NASDAQ)
+        val apple =
+            getTestAsset(
+                code = "AAPL",
+                market = NASDAQ,
+            )
 
-        val usdCash = getTestAsset(code = USD.code, market = CASH)
-        val nzdCash = getTestAsset(code = NZD.code, market = CASH)
+        val usdCash =
+            getTestAsset(
+                code = USD.code,
+                market = CASH,
+            )
+        val nzdCash =
+            getTestAsset(
+                code = NZD.code,
+                market = CASH,
+            )
         val json =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                    .contentType(MediaType.APPLICATION_JSON_VALUE),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(
+                            "/{portfolioCode}/$date",
+                            portfolio.code,
+                        ).with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken()),
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(
                     MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
                 ).andReturn()
                 .response
                 .contentAsString
 
-        val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
+        val positionResponse =
+            objectMapper.readValue(
+                json,
+                PositionResponse::class.java,
+            )
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", portfolio.code)
+            .hasFieldOrPropertyWithValue(
+                "code",
+                portfolio.code,
+            )
         assertThat(positionResponse.data.asAt).isEqualTo(date)
 
         assertThat(positionResponse.data.positions)
             .hasSize(3)
-            .containsKeys(toKey(apple), toKey(usdCash), toKey(nzdCash))
+            .containsKeys(
+                toKey(apple),
+                toKey(usdCash),
+                toKey(nzdCash),
+            )
 
         // Working back.  The stock purchase should debit cash
         assertThat(positionResponse.data.positions[toKey(apple)]!!.moneyValues)
             .isNotNull
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.quantityValues)
-            .hasFieldOrPropertyWithValue("total", BigDecimal("2500.0"))
+            .hasFieldOrPropertyWithValue(
+                "total",
+                BigDecimal("2500.0"),
+            )
 
         val cashResult = "2500.00"
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue("marketValue", BigDecimal(cashResult))
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal(cashResult))
+            .hasFieldOrPropertyWithValue(
+                "marketValue",
+                BigDecimal(cashResult),
+            ).hasFieldOrPropertyWithValue(
+                PROP_COST_VALUE,
+                BigDecimal(cashResult),
+            )
 
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.quantityValues)
-            .hasFieldOrPropertyWithValue("total", BigDecimal("3507.46"))
+            .hasFieldOrPropertyWithValue(
+                "total",
+                BigDecimal("3507.46"),
+            )
 
         // Cash does not track purchases and sales totals.
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal("3507.46")) // Purchases - Sales
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_VALUE,
+                BigDecimal("3507.46"),
+            ) // Purchases - Sales
     }
 }

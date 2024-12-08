@@ -45,7 +45,12 @@ class MarketStackDataRepoIntegrationTest {
         val assetRequest = AssetRequest(mapOf("TEST" to assetInput))
         val assetResponse = assetService.handle(assetRequest)
         val asset = assetResponse.data.values.first()
-        val priceDate = LocalDate.of(2024, 11, 15)
+        val priceDate =
+            LocalDate.of(
+                2024,
+                11,
+                15,
+            )
 
         // Create MarketData
         val marketData =
@@ -56,7 +61,11 @@ class MarketStackDataRepoIntegrationTest {
             )
         marketDataRepo.save(marketData)
 
-        val result = marketDataRepo.findByAssetInAndPriceDate(listOf(asset), priceDate)
+        val result =
+            marketDataRepo.findByAssetInAndPriceDate(
+                listOf(asset),
+                priceDate,
+            )
 
         // Verify the Asset is returned in the MarketData object
         assertThat(result).isNotEmpty

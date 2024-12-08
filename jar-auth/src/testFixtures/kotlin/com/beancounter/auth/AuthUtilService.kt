@@ -1,7 +1,7 @@
 package com.beancounter.auth
 
 import com.beancounter.common.model.SystemUser
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
@@ -30,21 +30,13 @@ class AuthUtilService(
         systemUser: SystemUser,
         authProvider: AuthProvider = AuthProvider.ID,
     ): JwtAuthenticationToken {
-        Mockito.`when`(jwtDecoder.decode(systemUser.email))
-            .thenReturn(
-                when (authProvider) {
-                    AuthProvider.GOOGLE -> tokenUtils.getGoogleToken(systemUser)
-                    AuthProvider.AUTH0 ->
-                        tokenUtils.getAuth0Token(
-                            systemUser,
-                        )
-
-                    else ->
-                        tokenUtils.getSystemUserToken(
-                            systemUser,
-                        )
-                },
-            )
+        `when`(jwtDecoder.decode(systemUser.email)).thenReturn(
+            when (authProvider) {
+                AuthProvider.GOOGLE -> tokenUtils.getGoogleToken(systemUser)
+                AuthProvider.AUTH0 -> tokenUtils.getAuth0Token(systemUser)
+                else -> tokenUtils.getSystemUserToken(systemUser)
+            },
+        )
         val jwt =
             JwtAuthenticationToken(
                 jwtDecoder.decode(
@@ -63,7 +55,10 @@ class AuthUtilService(
             JwtAuthenticationToken(
                 tokenUtils.getSystemToken(systemUser),
             )
-        return jwtAuthenticationToken(jwt, systemUser)
+        return jwtAuthenticationToken(
+            jwt,
+            systemUser,
+        )
     }
 
     fun authenticateNoRoles(
@@ -74,7 +69,10 @@ class AuthUtilService(
             JwtAuthenticationToken(
                 tokenUtils.getNoRolesToken(systemUser),
             )
-        return jwtAuthenticationToken(jwt, systemUser)
+        return jwtAuthenticationToken(
+            jwt,
+            systemUser,
+        )
     }
 
     private fun jwtAuthenticationToken(
@@ -82,10 +80,9 @@ class AuthUtilService(
         systemUser: SystemUser,
     ): JwtAuthenticationToken {
         SecurityContextHolder.getContext().authentication = jwt
-        Mockito.`when`(jwtDecoder.decode(systemUser.id))
-            .thenReturn(
-                jwt.token,
-            )
+        `when`(jwtDecoder.decode(systemUser.id)).thenReturn(
+            jwt.token,
+        )
         return jwt
     }
 }

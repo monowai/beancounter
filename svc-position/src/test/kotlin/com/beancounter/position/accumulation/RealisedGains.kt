@@ -35,9 +35,21 @@ class RealisedGains {
 
     @BeforeEach
     fun setup() {
-        microsoft = AssetUtils.getTestAsset(Constants.NASDAQ, "MSFT")
-        intel = AssetUtils.getTestAsset(Constants.NASDAQ, "INTC")
-        bidu = AssetUtils.getTestAsset(Constants.NASDAQ, "BIDU")
+        microsoft =
+            AssetUtils.getTestAsset(
+                Constants.NASDAQ,
+                "MSFT",
+            )
+        intel =
+            AssetUtils.getTestAsset(
+                Constants.NASDAQ,
+                "INTC",
+            )
+        bidu =
+            AssetUtils.getTestAsset(
+                Constants.NASDAQ,
+                "BIDU",
+            )
         positions = Positions(PortfolioUtils.getPortfolio())
     }
 
@@ -51,19 +63,41 @@ class RealisedGains {
         // Calculate and check the cost basis correctness after all BUY transactions
         val position = positions.getOrCreate(bidu) // Assume a getter for the position by asset
         val tradeMoney = position.getMoneyValues(Position.In.TRADE)
-        assertCostBasisCorrectness(position, tradeMoney)
+        assertCostBasisCorrectness(
+            position,
+            tradeMoney,
+        )
 
         // Process and verify the SELL transactions
-        processAndVerifySellTransactions(positions, position, tradeMoney)
+        processAndVerifySellTransactions(
+            positions,
+            position,
+            tradeMoney,
+        )
     }
 
     private fun accumulateMultipleBuys(positions: Positions) {
         val buys =
             listOf(
-                Trn(trnType = TrnType.BUY, asset = bidu, quantity = BigDecimal(8), tradeAmount = BigDecimal("1695.02")),
-                Trn(trnType = TrnType.BUY, asset = bidu, quantity = BigDecimal(2), tradeAmount = BigDecimal("405.21")),
+                Trn(
+                    trnType = TrnType.BUY,
+                    asset = bidu,
+                    quantity = BigDecimal(8),
+                    tradeAmount = BigDecimal("1695.02"),
+                ),
+                Trn(
+                    trnType = TrnType.BUY,
+                    asset = bidu,
+                    quantity = BigDecimal(2),
+                    tradeAmount = BigDecimal("405.21"),
+                ),
             )
-        buys.forEach { buy -> accumulator.accumulate(buy, positions) }
+        buys.forEach { buy ->
+            accumulator.accumulate(
+                buy,
+                positions,
+            )
+        }
     }
 
     private fun assertCostBasisCorrectness(
@@ -74,7 +108,10 @@ class RealisedGains {
             position.quantityValues
                 .getTotal()
                 .multiply(tradeMoney.averageCost)
-                .setScale(2, RoundingMode.HALF_UP)
+                .setScale(
+                    2,
+                    RoundingMode.HALF_UP,
+                )
         assertThat(calculatedCostBasis).isEqualTo(tradeMoney.costBasis)
     }
 
@@ -99,14 +136,24 @@ class RealisedGains {
                 ),
             )
         sells.forEach { sell ->
-            accumulator.accumulate(sell, positions)
+            accumulator.accumulate(
+                sell,
+                positions,
+            )
             // Specific assertions can be added here if needed for each sell
         }
 
         assertThat(tradeMoney)
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_SALES, BigDecimal("2712.64"))
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, BigDecimal("612.41"))
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_SALES,
+                BigDecimal("2712.64"),
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                BigDecimal("612.41"),
+            )
 
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
     }

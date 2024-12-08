@@ -12,14 +12,27 @@ import org.junit.jupiter.api.Test
 internal class TestPositionBuckets {
     @Test
     fun is_PositionSerializing() {
-        val positionRequest = PositionRequest("ABC", ArrayList())
+        val positionRequest =
+            PositionRequest(
+                "ABC",
+                ArrayList(),
+            )
         var json: String = objectMapper.writeValueAsString(positionRequest)
-        assertThat(objectMapper.readValue(json, PositionRequest::class.java))
-            .usingRecursiveComparison().isEqualTo(positionRequest)
+        assertThat(
+            objectMapper.readValue(
+                json,
+                PositionRequest::class.java,
+            ),
+        ).usingRecursiveComparison()
+            .isEqualTo(positionRequest)
         val positionResponse = PositionResponse(Positions(getPortfolio()))
         json = objectMapper.writeValueAsString(positionResponse)
-        assertThat(objectMapper.readValue(json, PositionResponse::class.java))
-            .isNotNull
+        assertThat(
+            objectMapper.readValue(
+                json,
+                PositionResponse::class.java,
+            ),
+        ).isNotNull
             .hasFieldOrProperty(Payload.DATA)
     }
 }

@@ -31,7 +31,13 @@ class EnrichmentTest {
     @Test
     fun is_FigiEnrichment() {
         val enricher: AssetEnricher = FigiEnricher(DefaultEnricher())
-        val asset = Asset(code = code, id = id, name = null, market = NYSE)
+        val asset =
+            Asset(
+                code = code,
+                id = id,
+                name = null,
+                market = NYSE,
+            )
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name
         assertThat(enricher.canEnrich(asset)).isFalse
@@ -43,11 +49,20 @@ class EnrichmentTest {
         val alphaProxy = Mockito.mock(AlphaProxy::class.java)
         val enricher: AssetEnricher =
             AlphaEnricher(
-                AlphaConfig(dateUtils = dateUtils, PreviousClosePriceDate(dateUtils)),
+                AlphaConfig(
+                    dateUtils = dateUtils,
+                    PreviousClosePriceDate(dateUtils),
+                ),
                 DefaultEnricher(),
                 alphaProxy,
             )
-        val asset = Asset(code = code, id = id, name = null, market = NYSE)
+        val asset =
+            Asset(
+                code = code,
+                id = id,
+                name = null,
+                market = NYSE,
+            )
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name
         assertThat(enricher.canEnrich(asset)).isFalse
@@ -60,18 +75,41 @@ class EnrichmentTest {
         val systemUserService = Mockito.mock(SystemUserService::class.java)
         val enricher: AssetEnricher = OffMarketEnricher(systemUserService)
         val sysUserId = "sysUserId"
-        Mockito.`when`(
-            systemUserService.getOrThrow,
-        ).thenReturn(SystemUser(sysUserId))
+        Mockito
+            .`when`(
+                systemUserService.getOrThrow,
+            ).thenReturn(SystemUser(sysUserId))
 
-        Mockito.`when`(
-            keyGenUtils.id,
-        ).thenReturn(keyGenId)
-        val asset = Asset(code = code, id = id, name = null, market = offMarket)
+        Mockito
+            .`when`(
+                keyGenUtils.id,
+            ).thenReturn(keyGenId)
+        val asset =
+            Asset(
+                code = code,
+                id = id,
+                name = null,
+                market = offMarket,
+            )
         assertThat(enricher.canEnrich(asset)).isTrue
-        val enriched = enricher.enrich(asset.id, offMarket, AssetInput.toRealEstate(USD, code, "Anything", "test-user"))
+        val enriched =
+            enricher.enrich(
+                asset.id,
+                offMarket,
+                AssetInput.toRealEstate(
+                    USD,
+                    code,
+                    "Anything",
+                    "test-user",
+                ),
+            )
         assertThat(enriched)
-            .hasFieldOrPropertyWithValue("systemUser.id", sysUserId)
-            .hasFieldOrPropertyWithValue("code", "$sysUserId.${code.uppercase()}")
+            .hasFieldOrPropertyWithValue(
+                "systemUser.id",
+                sysUserId,
+            ).hasFieldOrPropertyWithValue(
+                "code",
+                "$sysUserId.${code.uppercase()}",
+            )
     }
 }

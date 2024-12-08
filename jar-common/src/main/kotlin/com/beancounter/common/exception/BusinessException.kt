@@ -6,4 +6,6 @@ package com.beancounter.common.exception
  * @author mikeh
  * @since 2019-02-03
  */
-class BusinessException(message: String?) : RuntimeException(message)
+class BusinessException(
+    message: String?,
+) : RuntimeException(message)

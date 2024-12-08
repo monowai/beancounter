@@ -14,7 +14,9 @@ import java.math.BigDecimal
  * These are psuedo cash transactions that do not support cashAssetId.
  */
 @Service
-class BalanceBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStrategy {
+class BalanceBehaviour(
+    val currencyResolver: CurrencyResolver,
+) : AccumulationStrategy {
     private val cashCost = CashCost()
     override val supportedType: TrnType
         get() = TrnType.BALANCE
@@ -26,19 +28,34 @@ class BalanceBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStr
     ): Position {
         position.quantityValues.purchased = trn.tradeAmount
         cashCost.value(
-            currencyResolver.getMoneyValues(Position.In.BASE, trn.tradeCurrency, trn.portfolio, position),
+            currencyResolver.getMoneyValues(
+                Position.In.BASE,
+                trn.tradeCurrency,
+                trn.portfolio,
+                position,
+            ),
             position,
             trn.tradeAmount,
             trn.tradeBaseRate,
         )
         cashCost.value(
-            currencyResolver.getMoneyValues(Position.In.PORTFOLIO, trn.tradeCurrency, trn.portfolio, position),
+            currencyResolver.getMoneyValues(
+                Position.In.PORTFOLIO,
+                trn.tradeCurrency,
+                trn.portfolio,
+                position,
+            ),
             position,
             trn.tradeAmount,
             trn.tradePortfolioRate,
         )
         cashCost.value(
-            currencyResolver.getMoneyValues(Position.In.TRADE, trn.tradeCurrency, trn.portfolio, position),
+            currencyResolver.getMoneyValues(
+                Position.In.TRADE,
+                trn.tradeCurrency,
+                trn.portfolio,
+                position,
+            ),
             position,
             trn.tradeAmount,
             BigDecimal.ONE,

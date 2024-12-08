@@ -27,7 +27,10 @@ class UserCommands(
 
     @ShellMethod("Identify yourself")
     fun login(
-        @ShellOption(help = "User ID", defaultValue = "") user: String?,
+        @ShellOption(
+            help = "User ID",
+            defaultValue = "",
+        ) user: String?,
     ) {
         val u =
             if (user.isNullOrBlank()) {
@@ -35,25 +38,29 @@ class UserCommands(
             } else {
                 user
             }
-        val password = lineReader.readLine("Password: ", '*')
-        registrationService.login(LoginRequest(u, password))
+        val password =
+            lineReader.readLine(
+                "Password: ",
+                '*',
+            )
+        registrationService.login(
+            LoginRequest(
+                u,
+                password,
+            ),
+        )
     }
 
     @ShellMethod("What's my access token?")
-    fun token(): String {
-        return registrationService.token
-    }
+    fun token(): String = registrationService.token
 
     @ShellMethod("Who am I?")
-    fun me(): String {
-        return writer.writeValueAsString(registrationService.me())
-    }
+    fun me(): String = writer.writeValueAsString(registrationService.me())
 
     @ShellMethod("Register your Account")
-    fun register(): String {
-        return writer.writeValueAsString(
+    fun register(): String =
+        writer.writeValueAsString(
             registrationService
                 .register(RegistrationRequest()),
         )
-    }
 }

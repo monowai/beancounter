@@ -37,7 +37,10 @@ class AssetIngestService internal constructor(
             AssetRequest(
                 mapOf(
                     Pair(
-                        toKey(assetInput.code, market.code),
+                        toKey(
+                            assetInput.code,
+                            market.code,
+                        ),
                         AssetInput(
                             market.code,
                             code = assetInput.code,
@@ -57,6 +60,8 @@ class AssetIngestService internal constructor(
                         assetInput.market,
                     ),
                 )
-        return response.data.values.iterator().next()
+        return response.data.values
+            .iterator()
+            .next()
     }
 }

@@ -26,11 +26,15 @@ class WiremockAuth {
             // Mock expired token response
             // Todo: Not properly implemented as it expects JSON body.  Need to figure out mocking multipart params.
             WireMock.stubFor(
-                WireMock.post("/oauth/token")
+                WireMock
+                    .post("/oauth/token")
                     .willReturn(
-                        WireMock.aResponse()
-                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(
+                        WireMock
+                            .aResponse()
+                            .withHeader(
+                                HttpHeaders.CONTENT_TYPE,
+                                MediaType.APPLICATION_JSON_VALUE,
+                            ).withBody(
                                 objectMapper.writeValueAsString(
                                     objectMapper.readValue(
                                         ClassPathResource(token)
@@ -38,30 +42,36 @@ class WiremockAuth {
                                         HashMap::class.java,
                                     ),
                                 ),
-                            )
-                            .withStatus(200),
+                            ).withStatus(200),
                     ),
             )
 
             WireMock.stubFor(
-                WireMock.get("/.well-known/openid-configuration")
+                WireMock
+                    .get("/.well-known/openid-configuration")
                     .willReturn(
-                        WireMock.aResponse()
-                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(
+                        WireMock
+                            .aResponse()
+                            .withHeader(
+                                HttpHeaders.CONTENT_TYPE,
+                                MediaType.APPLICATION_JSON_VALUE,
+                            ).withBody(
                                 objectMapper.writeValueAsString(
                                     remapLocalhostForWiremock(authConfig),
                                 ),
-                            )
-                            .withStatus(200),
+                            ).withStatus(200),
                     ),
             )
             WireMock.stubFor(
-                WireMock.get("/.well-known/jwks.json")
+                WireMock
+                    .get("/.well-known/jwks.json")
                     .willReturn(
-                        WireMock.aResponse()
-                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(
+                        WireMock
+                            .aResponse()
+                            .withHeader(
+                                HttpHeaders.CONTENT_TYPE,
+                                MediaType.APPLICATION_JSON_VALUE,
+                            ).withBody(
                                 objectMapper.writeValueAsString(
                                     objectMapper.readValue(
                                         ClassPathResource("./auth0-jwks.json")
@@ -69,8 +79,7 @@ class WiremockAuth {
                                         HashMap::class.java,
                                     ),
                                 ),
-                            )
-                            .withStatus(200),
+                            ).withStatus(200),
                     ),
             )
         }
@@ -92,7 +101,10 @@ class WiremockAuth {
             configuration.forEach { entry ->
                 results[entry.key.toString()] =
                     if (entry.value.toString().startsWith(localTemplate)) {
-                        entry.value.toString().replace(localTemplate, authConfig.issuer)
+                        entry.value.toString().replace(
+                            localTemplate,
+                            authConfig.issuer,
+                        )
                     } else {
                         entry.value.toString()
                     }

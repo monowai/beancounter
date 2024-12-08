@@ -23,36 +23,86 @@ class MarketStackAdapterTest {
     fun `transform should return correct MarketData collection`() {
         val providerArguments = Mockito.mock(ProviderArguments::class.java)
         val batchId = 1
-        val apple = Asset("AAPL", market = NASDAQ)
-        val microsoft = Asset("MSFT", market = NASDAQ)
+        val apple =
+            Asset(
+                "AAPL",
+                market = NASDAQ,
+            )
+        val microsoft =
+            Asset(
+                "MSFT",
+                market = NASDAQ,
+            )
 
-        val datedBatch = DatedBatch(batchId, "today")
+        val datedBatch =
+            DatedBatch(
+                batchId,
+                "today",
+            )
         val appleData = createMarketStackData(apple.code)
         val msData = createMarketStackData(microsoft.code)
 
-        val response = MarketStackResponse(data = listOf(appleData, msData))
+        val response =
+            MarketStackResponse(
+                data =
+                listOf(
+                    appleData,
+                    msData,
+                ),
+            )
 
-        `when`(providerArguments.getAssets(batchId)).thenReturn(listOf(apple.code, microsoft.code))
+        `when`(providerArguments.getAssets(batchId)).thenReturn(
+            listOf(
+                apple.code,
+                microsoft.code,
+            ),
+        )
         `when`(providerArguments.getAsset(apple.code)).thenReturn(apple)
         `when`(providerArguments.getAsset(microsoft.code)).thenReturn(microsoft)
         `when`(providerArguments.getBatchConfigs(batchId)).thenReturn(datedBatch)
 
-        val result = marketStackAdapter.toMarketData(providerArguments, batchId, response)
+        val result =
+            marketStackAdapter.toMarketData(
+                providerArguments,
+                batchId,
+                response,
+            )
 
-        assertEquals(2, result.size)
+        assertEquals(
+            2,
+            result.size,
+        )
         result.forEach { marketData ->
             val expectedData = if (marketData.asset == apple) appleData else msData
-            assertEquals(expectedData.date.toLocalDate(), marketData.priceDate)
-            assertEquals(expectedData.close, marketData.close)
-            assertEquals(expectedData.open, marketData.open)
-            assertEquals(expectedData.high, marketData.high)
-            assertEquals(expectedData.low, marketData.low)
-            assertEquals(expectedData.volume, marketData.volume)
+            assertEquals(
+                expectedData.date.toLocalDate(),
+                marketData.priceDate,
+            )
+            assertEquals(
+                expectedData.close,
+                marketData.close,
+            )
+            assertEquals(
+                expectedData.open,
+                marketData.open,
+            )
+            assertEquals(
+                expectedData.high,
+                marketData.high,
+            )
+            assertEquals(
+                expectedData.low,
+                marketData.low,
+            )
+            assertEquals(
+                expectedData.volume,
+                marketData.volume,
+            )
         }
     }
 
-    private fun createMarketStackData(symbol: String): MarketStackData {
-        return MarketStackData(
+    private fun createMarketStackData(symbol: String): MarketStackData =
+        MarketStackData(
             date = LocalDateTime.now(),
             close = BigDecimal("150.00"),
             open = BigDecimal("145.00"),
@@ -62,5 +112,4 @@ class MarketStackAdapterTest {
             symbol = symbol,
             exchange = NASDAQ.code,
         )
-    }
 }

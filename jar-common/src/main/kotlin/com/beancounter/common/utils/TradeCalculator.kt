@@ -10,14 +10,20 @@ import java.math.BigDecimal
  */
 @Service
 @Import(NumberUtils::class)
-class TradeCalculator(val numberUtils: NumberUtils) {
+class TradeCalculator(
+    val numberUtils: NumberUtils,
+) {
     fun amount(
         quantity: BigDecimal,
         price: BigDecimal,
         fees: BigDecimal = BigDecimal.ZERO,
     ): BigDecimal {
         var result: BigDecimal?
-        result = MathUtils.multiplyAbs(quantity, price)
+        result =
+            MathUtils.multiplyAbs(
+                quantity,
+                price,
+            )
         if (!numberUtils.isUnset(fees)) {
             result = result.add(fees)
         }
@@ -29,6 +35,10 @@ class TradeCalculator(val numberUtils: NumberUtils) {
      */
     fun amount(trnInput: TrnInput): BigDecimal {
         if (numberUtils.isSet(trnInput.tradeAmount)) return trnInput.tradeAmount
-        return amount(trnInput.quantity, trnInput.price, trnInput.fees)
+        return amount(
+            trnInput.quantity,
+            trnInput.price,
+            trnInput.fees,
+        )
     }
 }

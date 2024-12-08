@@ -54,7 +54,9 @@ class MarketServiceTest {
         assertThat(marketService.getMarket("NZ")).isEqualTo(nzx)
         assertThat(marketService.getMarket("XASX")).isEqualTo(asx)
         assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq)
-        assertThat(marketService.getMarket(OffMarketDataProvider.ID)).isNotNull.hasFieldOrPropertyWithValue(
+        assertThat(
+            marketService.getMarket(OffMarketDataProvider.ID),
+        ).isNotNull.hasFieldOrPropertyWithValue(
             "currencyId",
             USD.code,
         )
@@ -65,9 +67,14 @@ class MarketServiceTest {
         val market = marketService.getMarket(CashProviderService.ID)
         assertThat(market)
             .isNotNull
-            .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(ZoneOffset.UTC))
-            .hasFieldOrProperty("currency")
-            .hasFieldOrPropertyWithValue("currency.code", USD.code)
+            .hasFieldOrPropertyWithValue(
+                "timezone",
+                TimeZone.getTimeZone(ZoneOffset.UTC),
+            ).hasFieldOrProperty("currency")
+            .hasFieldOrPropertyWithValue(
+                "currency.code",
+                USD.code,
+            )
     }
 
     @Test
@@ -87,7 +94,10 @@ class MarketServiceTest {
         assertThat(market)
             .isNotNull
             .hasFieldOrProperty("aliases")
-            .hasFieldOrPropertyWithValue("currency.code", NZD.code)
+            .hasFieldOrPropertyWithValue(
+                "currency.code",
+                NZD.code,
+            )
         assertThat(market.getAlias(ID)).isEqualTo("NZ").isNotNull
     }
 
@@ -101,7 +111,10 @@ class MarketServiceTest {
     @Test
     fun is_IllegalArgumentsHandled() {
         assertThrows(BusinessException::class.java) {
-            marketService.getMarket(null, true)
+            marketService.getMarket(
+                null,
+                true,
+            )
         }
     }
 

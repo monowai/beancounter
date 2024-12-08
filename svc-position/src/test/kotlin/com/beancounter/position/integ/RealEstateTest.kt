@@ -55,7 +55,11 @@ class RealEstateTest {
 
     @Test
     fun `values real estate with no market value`() {
-        val results = valuationService.build(portfolio, date)
+        val results =
+            valuationService.build(
+                portfolio,
+                date,
+            )
 
         // Assert: Check overall results data integrity
         assertThat(results.data)
@@ -79,7 +83,10 @@ class RealEstateTest {
             expectedCosts[position.key]?.let { expectedCostValue ->
                 assertThat(position.value.moneyValues[Position.In.TRADE])
                     .describedAs("Cost basis for ${position.key} should be correct")
-                    .hasFieldOrPropertyWithValue(PROP_COST_BASIS, expectedCostValue)
+                    .hasFieldOrPropertyWithValue(
+                        PROP_COST_BASIS,
+                        expectedCostValue,
+                    )
             }
         }
     }

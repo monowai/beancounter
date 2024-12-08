@@ -15,7 +15,11 @@ import java.time.LocalDate
  * Configuration settings for MarketStack Data.
  */
 @Configuration
-@Import(MarketStackService::class, MarketStackProxy::class, MarketStackAdapter::class)
+@Import(
+    MarketStackService::class,
+    MarketStackProxy::class,
+    MarketStackAdapter::class,
+)
 class MarketStackConfig(
     val marketService: MarketService,
 ) : DataProviderConfig {

@@ -23,7 +23,10 @@ private const val SPAN_ID = "spanId"
 @Component
 @DependsOn("propertySourcesPlaceholderConfigurer")
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ConditionalOnProperty(name = ["sentry.enabled"], havingValue = "true")
+@ConditionalOnProperty(
+    name = ["sentry.enabled"],
+    havingValue = "true",
+)
 class OtelTraceIdFilter : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -31,9 +34,18 @@ class OtelTraceIdFilter : OncePerRequestFilter() {
         filterChain: FilterChain,
     ) {
         try {
-            MDC.put(TRACE_ID, Span.fromContext(Context.current()).spanContext.traceId)
-            MDC.put(SPAN_ID, Span.fromContext(Context.current()).spanContext.spanId)
-            filterChain.doFilter(request, response)
+            MDC.put(
+                TRACE_ID,
+                Span.fromContext(Context.current()).spanContext.traceId,
+            )
+            MDC.put(
+                SPAN_ID,
+                Span.fromContext(Context.current()).spanContext.spanId,
+            )
+            filterChain.doFilter(
+                request,
+                response,
+            )
         } finally {
             MDC.remove(TRACE_ID)
             MDC.remove(SPAN_ID)

@@ -41,7 +41,9 @@ class SystemUserService(
         }
 
         if (!tokenService.hasEmail()) {
-            throw BusinessException("No email. This token cannot be registered for user activities.")
+            throw BusinessException(
+                "No email. This token cannot be registered for user activities.",
+            )
         }
         val subject: String? =
             if (tokenService.isAuth0()) {
@@ -51,7 +53,11 @@ class SystemUserService(
             } else {
                 null
             }
-        val result = systemUserCache.find(tokenService.getEmail(), subject)
+        val result =
+            systemUserCache.find(
+                tokenService.getEmail(),
+                subject,
+            )
         val jwt = tokenService.jwt.token
         return if (result == null) {
             RegistrationResponse(
@@ -65,7 +71,12 @@ class SystemUserService(
             )
         } else {
             //
-            RegistrationResponse(authProviders.capture(result, jwt))
+            RegistrationResponse(
+                authProviders.capture(
+                    result,
+                    jwt,
+                ),
+            )
         }
     }
 

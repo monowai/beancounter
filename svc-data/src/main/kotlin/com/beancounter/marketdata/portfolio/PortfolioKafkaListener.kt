@@ -7,13 +7,23 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 
 @Service
-@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["kafka.enabled"],
+    matchIfMissing = true,
+)
 class PortfolioKafkaListener(
     private val portfolioService: PortfolioService,
 ) {
-    @KafkaListener(topics = ["#{@posMvTopic}"], errorHandler = "bcErrorHandler")
+    @KafkaListener(
+        topics = ["#{@posMvTopic}"],
+        errorHandler = "bcErrorHandler",
+    )
     fun listen(portfolioJson: String) {
-        val portfolio = objectMapper.readValue(portfolioJson, Portfolio::class.java)
+        val portfolio =
+            objectMapper.readValue(
+                portfolioJson,
+                Portfolio::class.java,
+            )
         portfolioService.maintain(portfolio)
     }
 }

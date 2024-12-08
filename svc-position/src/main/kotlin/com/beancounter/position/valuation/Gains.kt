@@ -19,6 +19,7 @@ class Gains {
         if (total.signum() != 0) {
             moneyValues.unrealisedGain = moneyValues.marketValue.subtract(moneyValues.costValue)
         }
-        moneyValues.totalGain = moneyValues.unrealisedGain.add(moneyValues.dividends).add(moneyValues.realisedGain)
+        moneyValues.totalGain =
+            moneyValues.unrealisedGain.add(moneyValues.dividends).add(moneyValues.realisedGain)
     }
 }

@@ -14,5 +14,10 @@ data class TrustedTrnImportRequest(
     override val importFormat: ImportFormat = ImportFormat.BC,
     override var message: String = "",
     val row: List<String> = emptyList(),
-    var callerRef: CallerRef = CallerRef(portfolio.owner.id, row[1], row[2]),
+    var callerRef: CallerRef =
+        CallerRef(
+            portfolio.owner.id,
+            row[1],
+            row[2],
+        ),
 ) : TrnImport

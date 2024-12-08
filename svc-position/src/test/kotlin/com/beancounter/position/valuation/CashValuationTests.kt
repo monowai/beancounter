@@ -38,9 +38,21 @@ class CashValuationTests {
     @Autowired
     private lateinit var accumulator: Accumulator
 
-    val usdCash = getTestAsset(code = USD.code, market = Constants.CASH)
-    val nzdCash = getTestAsset(code = NZD.code, market = Constants.CASH)
-    val sgdCash = getTestAsset(code = SGD.code, market = Constants.CASH)
+    val usdCash =
+        getTestAsset(
+            code = USD.code,
+            market = Constants.CASH,
+        )
+    val nzdCash =
+        getTestAsset(
+            code = NZD.code,
+            market = Constants.CASH,
+        )
+    val sgdCash =
+        getTestAsset(
+            code = SGD.code,
+            market = Constants.CASH,
+        )
 
     @Test
     fun `does cost of cash average`() {
@@ -48,7 +60,14 @@ class CashValuationTests {
         val sgdBalance = BigDecimal("20000.00")
         val rate = usdBalance.divide(sgdBalance)
 
-        val positions = Positions(portfolio = Portfolio(id = "CostOfCash", currency = SGD))
+        val positions =
+            Positions(
+                portfolio =
+                Portfolio(
+                    id = "CostOfCash",
+                    currency = SGD,
+                ),
+            )
 
         accumulator.accumulate(
             convert(
@@ -64,14 +83,29 @@ class CashValuationTests {
         )
         val usdPosition = positions.getOrCreate(usdCash)
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, USD)
+            .hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                PROP_CURRENCY,
+                USD,
+            )
         assertThat(usdPosition.moneyValues[Position.In.PORTFOLIO])
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, rate)
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.currency)
+            .hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                rate,
+            ).hasFieldOrPropertyWithValue(
+                PROP_CURRENCY,
+                positions.portfolio.currency,
+            )
         assertThat(usdPosition.moneyValues[Position.In.BASE])
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, rate)
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.base)
+            .hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                rate,
+            ).hasFieldOrPropertyWithValue(
+                PROP_CURRENCY,
+                positions.portfolio.base,
+            )
     }
 
     @Test
@@ -79,7 +113,14 @@ class CashValuationTests {
         val usdBalance = BigDecimal("1000.00")
         val expectedRate = BigDecimal("0.5")
 
-        val positions = Positions(portfolio = Portfolio(id = "AssetCost", currency = SGD))
+        val positions =
+            Positions(
+                portfolio =
+                Portfolio(
+                    id = "AssetCost",
+                    currency = SGD,
+                ),
+            )
 
         accumulator.accumulate(
             deposit(
@@ -91,7 +132,11 @@ class CashValuationTests {
             ),
             positions,
         )
-        val testAsset = getTestAsset(US, "AnyAsset")
+        val testAsset =
+            getTestAsset(
+                US,
+                "AnyAsset",
+            )
         accumulator.accumulate(
             Trn(
                 callerRef = CallerRef(),
@@ -108,23 +153,50 @@ class CashValuationTests {
         )
         val equityPosition = positions.getOrCreate(testAsset)
         assertThat(equityPosition.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, USD)
+            .hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                PROP_CURRENCY,
+                USD,
+            )
         assertThat(equityPosition.moneyValues[Position.In.PORTFOLIO])
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedRate)
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.currency)
+            .hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                expectedRate,
+            ).hasFieldOrPropertyWithValue(
+                PROP_CURRENCY,
+                positions.portfolio.currency,
+            )
         assertThat(equityPosition.moneyValues[Position.In.BASE])
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedRate)
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.base)
+            .hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                expectedRate,
+            ).hasFieldOrPropertyWithValue(
+                PROP_CURRENCY,
+                positions.portfolio.base,
+            )
     }
 
     @Test
     fun `cash ladder balances crossing currencies with FX`() {
-        val positions = Positions(portfolio = Portfolio(id = "FxCashFlows", currency = USD, base = NZD))
+        val positions =
+            Positions(
+                portfolio =
+                Portfolio(
+                    id = "FxCashFlows",
+                    currency = USD,
+                    base = NZD,
+                ),
+            )
         // Initial Deposit
         val nzdBalance = BigDecimal("12000.00")
         accumulator.accumulate(
-            deposit(nzdCash, nzdBalance, portfolio = positions.portfolio),
+            deposit(
+                nzdCash,
+                nzdBalance,
+                portfolio = positions.portfolio,
+            ),
             positions,
         )
         assertThat(positions.isMixedCurrencies).isFalse()
@@ -140,7 +212,10 @@ class CashValuationTests {
             ),
             positions,
         )
-        assertThat(positions.positions).containsKeys(toKey(nzdCash), toKey(sgdCash))
+        assertThat(positions.positions).containsKeys(
+            toKey(nzdCash),
+            toKey(sgdCash),
+        )
         // NZD Balance has been Sold
         assertThat(
             positions

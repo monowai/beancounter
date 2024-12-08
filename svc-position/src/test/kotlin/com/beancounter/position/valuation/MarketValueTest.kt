@@ -46,7 +46,11 @@ internal class MarketValueTest {
     private val buyBehaviour: AccumulationStrategy = BuyBehaviour()
     private val sellBehaviour: AccumulationStrategy = SellBehaviour()
     private val portfolio = getPortfolio()
-    private val asset = getTestAsset(NASDAQ, "ABC")
+    private val asset =
+        getTestAsset(
+            NASDAQ,
+            "ABC",
+        )
     private val simpleRate = BigDecimal("0.20")
 
     @Test
@@ -64,7 +68,11 @@ internal class MarketValueTest {
                 ),
                 positions,
             )
-        val marketData = MarketData(asset, close = BigDecimal("10.00"))
+        val marketData =
+            MarketData(
+                asset,
+                close = BigDecimal("10.00"),
+            )
         marketData.previousClose = BigDecimal("5.00")
 
         // Revalue based on marketData prices
@@ -77,11 +85,28 @@ internal class MarketValueTest {
         targetValues.totalGain = thousandShort
         targetValues.unrealisedGain = thousandShort
         targetValues.gainOnDay = gainOnDay
-        targetValues.marketValue = multiplyAbs(hundred, marketData.close)
-        val fxRateMap = getRates(positions.portfolio, asset, simpleRate)
-        MarketValue(Gains()).value(positions, marketData, fxRateMap)
-        assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
-            .usingRecursiveComparison()
+        targetValues.marketValue =
+            multiplyAbs(
+                hundred,
+                marketData.close,
+            )
+        val fxRateMap =
+            getRates(
+                positions.portfolio,
+                asset,
+                simpleRate,
+            )
+        MarketValue(Gains()).value(
+            positions,
+            marketData,
+            fxRateMap,
+        )
+        assertThat(
+            position.getMoneyValues(
+                Position.In.TRADE,
+                position.asset.market.currency,
+            ),
+        ).usingRecursiveComparison()
             .isEqualTo(targetValues)
         val baseValues = MoneyValues(USD)
         baseValues.averageCost = twenty
@@ -92,15 +117,29 @@ internal class MarketValueTest {
         baseValues.totalGain = thousandShort
         baseValues.unrealisedGain = thousandShort
         baseValues.gainOnDay = gainOnDay
-        baseValues.marketValue = nullSafe(multiplyAbs(oneHundred, marketData.close))
-        assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
-            .usingRecursiveComparison()
+        baseValues.marketValue =
+            nullSafe(
+                multiplyAbs(
+                    oneHundred,
+                    marketData.close,
+                ),
+            )
+        assertThat(
+            position.getMoneyValues(
+                Position.In.BASE,
+                positions.portfolio.base,
+            ),
+        ).usingRecursiveComparison()
             .isEqualTo(baseValues)
         val pfValues = MoneyValues(positions.portfolio.currency)
 
         pfValues.costBasis = fourH
         pfValues.purchases = fourH
-        pfValues.priceData = of(marketData, simpleRate)
+        pfValues.priceData =
+            of(
+                marketData,
+                simpleRate,
+            )
         pfValues.marketValue = BigDecimal("200.00")
         pfValues.averageCost = BigDecimal("4.00")
         pfValues.costValue = fourH
@@ -141,7 +180,11 @@ internal class MarketValueTest {
             )
 
         val positions = Positions(portfolio)
-        val position = buyBehaviour.accumulate(buyTrn, positions)
+        val position =
+            buyBehaviour.accumulate(
+                buyTrn,
+                positions,
+            )
         val sellTrn =
             Trn(
                 trnType = TrnType.SELL,
@@ -151,16 +194,34 @@ internal class MarketValueTest {
                 tradePortfolioRate = simpleRate,
                 portfolio = portfolio,
             )
-        sellBehaviour.accumulate(sellTrn, positions)
+        sellBehaviour.accumulate(
+            sellTrn,
+            positions,
+        )
         val marketData =
             MarketData(
                 asset,
                 close = BigDecimal("10.00"),
                 previousClose = BigDecimal("9.00"),
             )
-        MarketValue(Gains()).value(positions, marketData, fxRateMap)
-        verifyTradeBaseMoneyValues(MoneyValues(USD), marketData, buyTrn, sellTrn, position)
-        verifyPortfolioMoneyValues(MoneyValues(portfolio.currency), marketData, simpleRate, position)
+        MarketValue(Gains()).value(
+            positions,
+            marketData,
+            fxRateMap,
+        )
+        verifyTradeBaseMoneyValues(
+            MoneyValues(USD),
+            marketData,
+            buyTrn,
+            sellTrn,
+            position,
+        )
+        verifyPortfolioMoneyValues(
+            MoneyValues(portfolio.currency),
+            marketData,
+            simpleRate,
+            position,
+        )
     }
 
     private fun verifyTradeBaseMoneyValues(
@@ -172,18 +233,30 @@ internal class MarketValueTest {
     ) {
         usdValues.marketValue = BigDecimal("0")
         usdValues.averageCost = BigDecimal.ZERO
-        usdValues.priceData = of(marketData, BigDecimal.ONE)
+        usdValues.priceData =
+            of(
+                marketData,
+                BigDecimal.ONE,
+            )
         usdValues.purchases = buyTrn.tradeAmount
         usdValues.sales = sellTrn.tradeAmount
         usdValues.costValue = BigDecimal.ZERO
         usdValues.realisedGain = oneThousand
         usdValues.unrealisedGain = BigDecimal.ZERO
         usdValues.totalGain = oneThousand
-        assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
-            .usingRecursiveComparison()
+        assertThat(
+            position.getMoneyValues(
+                Position.In.TRADE,
+                position.asset.market.currency,
+            ),
+        ).usingRecursiveComparison()
             .isEqualTo(usdValues)
-        assertThat(position.getMoneyValues(Position.In.BASE, portfolio.base))
-            .usingRecursiveComparison()
+        assertThat(
+            position.getMoneyValues(
+                Position.In.BASE,
+                portfolio.base,
+            ),
+        ).usingRecursiveComparison()
             .isEqualTo(usdValues)
     }
 
@@ -195,21 +268,33 @@ internal class MarketValueTest {
     ) {
         pfValues.marketValue = BigDecimal("0")
         pfValues.averageCost = BigDecimal.ZERO
-        pfValues.priceData = of(marketData, simpleRate)
+        pfValues.priceData =
+            of(
+                marketData,
+                simpleRate,
+            )
         pfValues.purchases = fourH
         pfValues.costValue = BigDecimal.ZERO
         pfValues.sales = BigDecimal("600.00")
         pfValues.realisedGain = twoH
         pfValues.unrealisedGain = BigDecimal.ZERO
         pfValues.totalGain = twoH
-        assertThat(position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency))
-            .usingRecursiveComparison()
+        assertThat(
+            position.getMoneyValues(
+                Position.In.PORTFOLIO,
+                portfolio.currency,
+            ),
+        ).usingRecursiveComparison()
             .isEqualTo(pfValues)
     }
 
     @Test
     fun is_MarketValueWithNoPriceComputedForBuyBehaviour() {
-        val asset = getTestAsset(NASDAQ, "ABC")
+        val asset =
+            getTestAsset(
+                NASDAQ,
+                "ABC",
+            )
         val simpleRate = BigDecimal("0.20")
         val buyTrn =
             Trn(
@@ -224,12 +309,27 @@ internal class MarketValueTest {
         // Behaviour tests manage their own Positions.
         val positions = Positions(getPortfolio())
 
-        positions.add(buyBehaviour.accumulate(buyTrn, positions))
+        positions.add(
+            buyBehaviour.accumulate(
+                buyTrn,
+                positions,
+            ),
+        )
         val marketData = MarketData(asset)
-        val fxRateMap = getRates(buyTrn.portfolio, asset, simpleRate)
+        val fxRateMap =
+            getRates(
+                buyTrn.portfolio,
+                asset,
+                simpleRate,
+            )
 
         // Revalue based on No Market data
-        val result = MarketValue(Gains()).value(positions, marketData, fxRateMap)
+        val result =
+            MarketValue(Gains()).value(
+                positions,
+                marketData,
+                fxRateMap,
+            )
         assertThat(result).isNotNull.hasFieldOrProperty("moneyValues")
     }
 

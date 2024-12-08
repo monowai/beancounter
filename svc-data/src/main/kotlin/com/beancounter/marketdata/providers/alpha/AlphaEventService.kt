@@ -16,28 +16,38 @@ import org.springframework.stereotype.Service
  * service will drop anything that is not considered an event.
  */
 @Service
-class AlphaEventService(val alphaGateway: AlphaGateway, val alphaConfig: AlphaConfig) {
+class AlphaEventService(
+    val alphaGateway: AlphaGateway,
+    val alphaConfig: AlphaConfig,
+) {
     @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
 
-    @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
+    @RateLimiter(name = "alphaVantage")
+    // AV "Free Plan" rate limits
     @Cacheable("alpha.asset.event")
     fun getEvents(asset: Asset): PriceResponse {
-        val json = alphaGateway.getAdjusted(asset.code, apiKey)
+        val json =
+            alphaGateway.getAdjusted(
+                asset.code,
+                apiKey,
+            )
         if (json.contains("Error Message")) {
             log.error("Provider API error $json")
             return PriceResponse()
         }
         val priceResponse: PriceResponse =
-            alphaConfig.getObjectMapper()
-                .readValue(json, PriceResponse::class.java)
+            alphaConfig
+                .getObjectMapper()
+                .readValue(
+                    json,
+                    PriceResponse::class.java,
+                )
         val events = priceResponse.data.filter(this::inFilter)
         return PriceResponse(events)
     }
 
-    private fun inFilter(marketData: MarketData): Boolean {
-        return (isSplit(marketData) || isDividend(marketData))
-    }
+    private fun inFilter(marketData: MarketData): Boolean = (isSplit(marketData) || isDividend(marketData))
 
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)

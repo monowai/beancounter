@@ -74,19 +74,33 @@ internal class PortfolioControllerTests {
                 USD.code,
                 NZD.code,
             )
-        val portfolioResponse = portfolioCreate(portfolioInput, mockMvc, token)
+        val portfolioResponse =
+            portfolioCreate(
+                portfolioInput,
+                mockMvc,
+                token,
+            )
         assertThat(portfolioResponse.data).hasSize(1)
         val portfolio = portfolioResponse.data.iterator().next()
 
         // Found by code
-        val portfolioResponseByCode = portfolioByCode(portfolio.code, mockMvc, token)
+        val portfolioResponseByCode =
+            portfolioByCode(
+                portfolio.code,
+                mockMvc,
+                token,
+            )
 
         assertThat(portfolioResponseByCode)
             .isNotNull
             .hasNoNullFieldsOrProperties()
 
         assertThat(
-            portfolioById(portfolio.id, mockMvc, token),
+            portfolioById(
+                portfolio.id,
+                mockMvc,
+                token,
+            ),
         ).usingRecursiveComparison().isEqualTo(portfolioResponseByCode.data)
 
         assertThat(
@@ -100,8 +114,9 @@ internal class PortfolioControllerTests {
                                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                                 .contentType(MediaType.APPLICATION_JSON),
                         ).andExpect(MockMvcResultMatchers.status().isOk)
-                        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                        .andReturn()
+                        .andExpect(
+                            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON),
+                        ).andReturn()
                         .response.contentAsString,
                     PortfoliosResponse::class.java,
                 ).data,
@@ -120,7 +135,12 @@ internal class PortfolioControllerTests {
                 ),
             )
 
-        val portfoliosResponse = portfolioCreate(portfolios, mockMvc, token)
+        val portfoliosResponse =
+            portfolioCreate(
+                portfolios,
+                mockMvc,
+                token,
+            )
 
         assertThat(portfoliosResponse)
             .isNotNull
@@ -132,15 +152,24 @@ internal class PortfolioControllerTests {
                 Consumer { foundPortfolio: Portfolio ->
                     assertThat(foundPortfolio)
                         .hasFieldOrProperty(P_ID)
-                        .hasFieldOrPropertyWithValue(P_CODE, portfolios.iterator().next().code)
                         .hasFieldOrPropertyWithValue(
+                            P_CODE,
+                            portfolios.iterator().next().code,
+                        ).hasFieldOrPropertyWithValue(
                             P_NAME,
                             portfolios.iterator().next().name,
-                        ).hasFieldOrPropertyWithValue(P_CCY_CODE, portfolios.iterator().next().currency)
-                        .hasFieldOrProperty("owner")
+                        ).hasFieldOrPropertyWithValue(
+                            P_CCY_CODE,
+                            portfolios.iterator().next().currency,
+                        ).hasFieldOrProperty("owner")
                         .hasFieldOrProperty("base")
-                        .hasFieldOrPropertyWithValue("marketValue", java.math.BigDecimal.ZERO)
-                        .hasFieldOrPropertyWithValue("irr", java.math.BigDecimal.ZERO)
+                        .hasFieldOrPropertyWithValue(
+                            "marketValue",
+                            java.math.BigDecimal.ZERO,
+                        ).hasFieldOrPropertyWithValue(
+                            "irr",
+                            java.math.BigDecimal.ZERO,
+                        )
                 },
             )
     }
@@ -155,7 +184,12 @@ internal class PortfolioControllerTests {
                 NZD.code,
             )
 
-        val created = portfolioCreate(portfolioInput, mockMvc, token).data
+        val created =
+            portfolioCreate(
+                portfolioInput,
+                mockMvc,
+                token,
+            ).data
         assertThat(created)
             .hasSize(1)
         val id = created.iterator().next().id
@@ -163,8 +197,10 @@ internal class PortfolioControllerTests {
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .delete(PORTFOLIO_BY_ID, id)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .delete(
+                            PORTFOLIO_BY_ID,
+                            id,
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -198,8 +234,10 @@ internal class PortfolioControllerTests {
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .patch(PORTFOLIO_BY_ID, id)
-                        .with(csrf())
+                        .patch(
+                            PORTFOLIO_BY_ID,
+                            id,
+                        ).with(csrf())
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .content(objectMapper.writeValueAsBytes(updateTo))
                         .contentType(MediaType.APPLICATION_JSON),
@@ -208,15 +246,31 @@ internal class PortfolioControllerTests {
                 .andReturn()
         val (data) =
             objectMapper
-                .readValue(patchResult.response.contentAsString, PortfolioResponse::class.java)
+                .readValue(
+                    patchResult.response.contentAsString,
+                    PortfolioResponse::class.java,
+                )
         assertThat(owner).isNotNull
         // ID and SystemUser are immutable:
         assertThat(data)
-            .hasFieldOrPropertyWithValue(P_ID, id)
-            .hasFieldOrPropertyWithValue(P_NAME, updateTo.name)
-            .hasFieldOrPropertyWithValue(P_CODE, updateTo.code)
-            .hasFieldOrPropertyWithValue(P_CCY_CODE, updateTo.currency)
-            .hasFieldOrPropertyWithValue("base.code", updateTo.base)
-            .hasFieldOrPropertyWithValue("owner.id", owner.id)
+            .hasFieldOrPropertyWithValue(
+                P_ID,
+                id,
+            ).hasFieldOrPropertyWithValue(
+                P_NAME,
+                updateTo.name,
+            ).hasFieldOrPropertyWithValue(
+                P_CODE,
+                updateTo.code,
+            ).hasFieldOrPropertyWithValue(
+                P_CCY_CODE,
+                updateTo.currency,
+            ).hasFieldOrPropertyWithValue(
+                "base.code",
+                updateTo.base,
+            ).hasFieldOrPropertyWithValue(
+                "owner.id",
+                owner.id,
+            )
     }
 }

@@ -15,18 +15,48 @@ private const val OFF_MARKET = "OFFM"
 class RealEstateInputTest {
     @Test
     fun is_RealEstateDefaulting() {
-        val apartment = AssetInput.toRealEstate(NZD, "APT", "Apartment", "test-user")
-        val house = AssetInput.toRealEstate(USD, "HOUSE", "House", "test-user")
+        val apartment =
+            AssetInput.toRealEstate(
+                NZD,
+                "APT",
+                "Apartment",
+                "test-user",
+            )
+        val house =
+            AssetInput.toRealEstate(
+                USD,
+                "HOUSE",
+                "House",
+                "test-user",
+            )
         assertThat(apartment)
-            .hasFieldOrPropertyWithValue("market", OFF_MARKET)
-            .hasFieldOrPropertyWithValue("category", AssetCategory.RE)
-            .hasFieldOrPropertyWithValue("name", "Apartment")
-            .hasFieldOrPropertyWithValue("code", apartment.code)
+            .hasFieldOrPropertyWithValue(
+                "market",
+                OFF_MARKET,
+            ).hasFieldOrPropertyWithValue(
+                "category",
+                AssetCategory.RE,
+            ).hasFieldOrPropertyWithValue(
+                "name",
+                "Apartment",
+            ).hasFieldOrPropertyWithValue(
+                "code",
+                apartment.code,
+            )
 
         assertThat(house)
-            .hasFieldOrPropertyWithValue("market", OFF_MARKET)
-            .hasFieldOrPropertyWithValue("category", AssetCategory.RE)
-            .hasFieldOrPropertyWithValue("name", "House")
-            .hasFieldOrPropertyWithValue("code", house.code)
+            .hasFieldOrPropertyWithValue(
+                "market",
+                OFF_MARKET,
+            ).hasFieldOrPropertyWithValue(
+                "category",
+                AssetCategory.RE,
+            ).hasFieldOrPropertyWithValue(
+                "name",
+                "House",
+            ).hasFieldOrPropertyWithValue(
+                "code",
+                house.code,
+            )
     }
 }

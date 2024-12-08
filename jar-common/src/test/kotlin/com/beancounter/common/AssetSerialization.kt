@@ -24,22 +24,44 @@ class AssetSerialization {
     @Test
     @Throws(Exception::class)
     fun assetUpdateResponseSerializes() {
-        val asset = getJsonAsset("BBB", "AAA")
+        val asset =
+            getJsonAsset(
+                "BBB",
+                "AAA",
+            )
         val assetMap = HashMap<String, Asset>()
         assetMap[toKey(asset)] = asset
-        assetMap["second"] = getJsonAsset("Whee", "Twee")
+        assetMap["second"] =
+            getJsonAsset(
+                "Whee",
+                "Twee",
+            )
         val assetUpdateResponse = AssetUpdateResponse(assetMap)
         assertThat(assetUpdateResponse.data).containsKeys(toKey(asset))
         val json = objectMapper.writeValueAsString(assetUpdateResponse)
-        val fromJson = objectMapper.readValue(json, AssetUpdateResponse::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                AssetUpdateResponse::class.java,
+            )
         assertThat(fromJson.data).containsKeys(toKey(asset))
     }
 
     @Test
     @Throws(Exception::class)
     fun assetResponseSerializes() {
-        val assetResponse = AssetResponse(Asset(code = "YYY", market = Market("XXX")))
-        val fromJson = objectMapper.readValue(objectMapper.writeValueAsString(assetResponse), AssetResponse::class.java)
+        val assetResponse =
+            AssetResponse(
+                Asset(
+                    code = "YYY",
+                    market = Market("XXX"),
+                ),
+            )
+        val fromJson =
+            objectMapper.readValue(
+                objectMapper.writeValueAsString(assetResponse),
+                AssetResponse::class.java,
+            )
         assertThat(fromJson.data)
             .isEqualTo(assetResponse.data)
     }
@@ -69,45 +91,99 @@ class AssetSerialization {
         results.add(withDefaults)
         val searchResponse = AssetSearchResponse(results)
         val json = objectMapper.writeValueAsString(searchResponse)
-        val fromJson = objectMapper.readValue(json, AssetSearchResponse::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                AssetSearchResponse::class.java,
+            )
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()
-            .usingRecursiveComparison().isEqualTo(searchResponse)
+            .usingRecursiveComparison()
+            .isEqualTo(searchResponse)
         assertThat(fromJson.data).isNotEmpty
-        assertThat(fromJson.data.iterator().next().type).isNotNull
+        assertThat(
+            fromJson.data
+                .iterator()
+                .next()
+                .type,
+        ).isNotNull
     }
 
     @Test
     @Throws(Exception::class)
     fun assetRequestSerializes() {
-        val asset = getJsonAsset("BBB", "AAA")
+        val asset =
+            getJsonAsset(
+                "BBB",
+                "AAA",
+            )
         val values = HashMap<String, AssetInput>()
-        values[toKey(asset)] = AssetUtils.getAssetInput("BBB", "AAA")
-        values["second"] = AssetUtils.getAssetInput("Whee", "Twee")
+        values[toKey(asset)] =
+            AssetUtils.getAssetInput(
+                "BBB",
+                "AAA",
+            )
+        values["second"] =
+            AssetUtils.getAssetInput(
+                "Whee",
+                "Twee",
+            )
         val assetRequest = AssetRequest(values)
         assertThat(assetRequest.data)
             .containsKeys(toKey(asset))
         val json = objectMapper.writeValueAsString(assetRequest)
-        val (data) = objectMapper.readValue(json, AssetRequest::class.java)
+        val (data) =
+            objectMapper.readValue(
+                json,
+                AssetRequest::class.java,
+            )
         assertThat(data).hasSize(assetRequest.data.size)
         for (key in data.keys) {
             assertThat(data[key])
-                .usingRecursiveComparison().isEqualTo(assetRequest.data[key])
+                .usingRecursiveComparison()
+                .isEqualTo(assetRequest.data[key])
         }
     }
 
     @Test
     fun dataProviderAsset() {
-        val asset = AssetUtils.getTestAsset(Market("1"), "2")
-        val assetInput = AssetInput(market = "amarket", code = "acode", resolvedAsset = asset)
+        val asset =
+            AssetUtils.getTestAsset(
+                Market("1"),
+                "2",
+            )
+        val assetInput =
+            AssetInput(
+                market = "amarket",
+                code = "acode",
+                resolvedAsset = asset,
+            )
         assertThat(assetInput)
-            .hasFieldOrPropertyWithValue("market", "amarket")
-            .hasFieldOrPropertyWithValue("code", "acode")
-            .hasFieldOrPropertyWithValue("resolvedAsset", asset)
-            .hasFieldOrPropertyWithValue("name", null)
+            .hasFieldOrPropertyWithValue(
+                "market",
+                "amarket",
+            ).hasFieldOrPropertyWithValue(
+                "code",
+                "acode",
+            ).hasFieldOrPropertyWithValue(
+                "resolvedAsset",
+                asset,
+            ).hasFieldOrPropertyWithValue(
+                "name",
+                null,
+            )
 
         val json = objectMapper.writeValueAsString(assetInput)
-        assertThat(objectMapper.readValue(json, AssetInput::class.java))
-            .hasNoNullFieldsOrPropertiesExcept("resolvedAsset", "name", "currency", "owner")
+        assertThat(
+            objectMapper.readValue(
+                json,
+                AssetInput::class.java,
+            ),
+        ).hasNoNullFieldsOrPropertiesExcept(
+            "resolvedAsset",
+            "name",
+            "currency",
+            "owner",
+        )
     }
 }

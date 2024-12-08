@@ -47,10 +47,24 @@ internal class ShareSightAdapterTest {
 
     @Test
     fun is_ExchangeAliasReturnedInAssetCode() {
-        var expectedAsset = getTestAsset(NYSE, "ABBV")
-        verifyMarketCode("ABBV.NYSE", expectedAsset)
-        expectedAsset = getTestAsset(ASX, "AMP")
-        verifyMarketCode("AMP.AX", expectedAsset)
+        var expectedAsset =
+            getTestAsset(
+                NYSE,
+                "ABBV",
+            )
+        verifyMarketCode(
+            "ABBV.NYSE",
+            expectedAsset,
+        )
+        expectedAsset =
+            getTestAsset(
+                ASX,
+                "AMP",
+            )
+        verifyMarketCode(
+            "AMP.AX",
+            expectedAsset,
+        )
     }
 
     @Test
@@ -73,33 +87,105 @@ internal class ShareSightAdapterTest {
     @Test
     fun is_AssetsSetIntoTransaction() {
         var row: MutableList<String> = mutableListOf()
-        row.add(ShareSightTradeAdapter.ID, "1")
-        row.add(ShareSightTradeAdapter.MARKET, ASX.code)
-        row.add(ShareSightTradeAdapter.CODE, "BHP")
-        row.add(ShareSightTradeAdapter.NAME, "Test Asset")
-        row.add(ShareSightTradeAdapter.TYPE, "buy")
-        row.add(ShareSightTradeAdapter.DATE, "21/01/2019")
-        row.add(ShareSightTradeAdapter.QUANTITY, "10")
-        row.add(ShareSightTradeAdapter.PRICE, "12.23")
-        row.add(ShareSightTradeAdapter.BROKERAGE, "12.99")
-        row.add(ShareSightTradeAdapter.CURRENCY, "AUD")
-        row.add(ShareSightTradeAdapter.FX_RATE, "99.99")
-        row.add(ShareSightTradeAdapter.VALUE, "2097.85")
+        row.add(
+            ShareSightTradeAdapter.ID,
+            "1",
+        )
+        row.add(
+            ShareSightTradeAdapter.MARKET,
+            ASX.code,
+        )
+        row.add(
+            ShareSightTradeAdapter.CODE,
+            "BHP",
+        )
+        row.add(
+            ShareSightTradeAdapter.NAME,
+            "Test Asset",
+        )
+        row.add(
+            ShareSightTradeAdapter.TYPE,
+            "buy",
+        )
+        row.add(
+            ShareSightTradeAdapter.DATE,
+            "21/01/2019",
+        )
+        row.add(
+            ShareSightTradeAdapter.QUANTITY,
+            "10",
+        )
+        row.add(
+            ShareSightTradeAdapter.PRICE,
+            "12.23",
+        )
+        row.add(
+            ShareSightTradeAdapter.BROKERAGE,
+            "12.99",
+        )
+        row.add(
+            ShareSightTradeAdapter.CURRENCY,
+            "AUD",
+        )
+        row.add(
+            ShareSightTradeAdapter.FX_RATE,
+            "99.99",
+        )
+        row.add(
+            ShareSightTradeAdapter.VALUE,
+            "2097.85",
+        )
         val rows: MutableList<List<String>> = ArrayList()
         rows.add(row)
         row = ArrayList()
-        row.add(ShareSightTradeAdapter.ID, "2")
-        row.add(ShareSightTradeAdapter.MARKET, "NASDAQ")
-        row.add(ShareSightTradeAdapter.CODE, "MSFT")
-        row.add(ShareSightTradeAdapter.NAME, "Microsoft")
-        row.add(ShareSightTradeAdapter.TYPE, "buy")
-        row.add(ShareSightTradeAdapter.DATE, "21/01/2019")
-        row.add(ShareSightTradeAdapter.QUANTITY, "10")
-        row.add(ShareSightTradeAdapter.PRICE, "12.23")
-        row.add(ShareSightTradeAdapter.BROKERAGE, "12.99")
-        row.add(ShareSightTradeAdapter.CURRENCY, "USD")
-        row.add(ShareSightTradeAdapter.FX_RATE, "99.99")
-        row.add(ShareSightTradeAdapter.VALUE, "2097.85")
+        row.add(
+            ShareSightTradeAdapter.ID,
+            "2",
+        )
+        row.add(
+            ShareSightTradeAdapter.MARKET,
+            "NASDAQ",
+        )
+        row.add(
+            ShareSightTradeAdapter.CODE,
+            "MSFT",
+        )
+        row.add(
+            ShareSightTradeAdapter.NAME,
+            "Microsoft",
+        )
+        row.add(
+            ShareSightTradeAdapter.TYPE,
+            "buy",
+        )
+        row.add(
+            ShareSightTradeAdapter.DATE,
+            "21/01/2019",
+        )
+        row.add(
+            ShareSightTradeAdapter.QUANTITY,
+            "10",
+        )
+        row.add(
+            ShareSightTradeAdapter.PRICE,
+            "12.23",
+        )
+        row.add(
+            ShareSightTradeAdapter.BROKERAGE,
+            "12.99",
+        )
+        row.add(
+            ShareSightTradeAdapter.CURRENCY,
+            "USD",
+        )
+        row.add(
+            ShareSightTradeAdapter.FX_RATE,
+            "99.99",
+        )
+        row.add(
+            ShareSightTradeAdapter.VALUE,
+            "2097.85",
+        )
         rows.add(row)
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
         val portfolio = getPortfolio()

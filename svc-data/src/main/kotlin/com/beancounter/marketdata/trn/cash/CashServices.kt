@@ -16,7 +16,10 @@ import java.math.BigDecimal
  * Cash calculation services for a pre-populated TrnInput.
  */
 @Service
-class CashServices(val assetService: AssetService, val currencyService: CurrencyService) {
+class CashServices(
+    val assetService: AssetService,
+    val currencyService: CurrencyService,
+) {
     fun getCashImpact(
         trnInput: TrnInput,
         tradeAmount: BigDecimal = trnInput.tradeAmount,
@@ -27,9 +30,15 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
             }
             val rate = trnInput.tradeCashRate
             if (creditsCash.contains(trnInput.trnType)) {
-                return MathUtils.divide(tradeAmount.abs(), rate)
+                return MathUtils.divide(
+                    tradeAmount.abs(),
+                    rate,
+                )
             } else if (debitsCash.contains(trnInput.trnType)) {
-                return MathUtils.divide(BigDecimal.ZERO.minus(tradeAmount.abs()), rate)
+                return MathUtils.divide(
+                    BigDecimal.ZERO.minus(tradeAmount.abs()),
+                    rate,
+                )
             }
         }
         return BigDecimal.ZERO
@@ -48,14 +57,22 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
                 return null // no cash to look up.
             }
             // Generic Cash Balance
-            return assetService.findOrCreate(AssetInput(CASH, cashCurrency))
+            return assetService.findOrCreate(
+                AssetInput(
+                    CASH,
+                    cashCurrency,
+                ),
+            )
         }
         return assetService.find(cashAssetId)
     }
 
-    fun getCashAsset(trnInput: TrnInput): Asset? {
-        return getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
-    }
+    fun getCashAsset(trnInput: TrnInput): Asset? =
+        getCashAsset(
+            trnInput.trnType,
+            trnInput.cashAssetId,
+            trnInput.cashCurrency,
+        )
 
     companion object {
         const val CASH = "CASH"

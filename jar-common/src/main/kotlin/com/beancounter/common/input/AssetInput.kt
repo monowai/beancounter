@@ -27,15 +27,14 @@ data class AssetInput(
         fun toCash(
             currency: Currency,
             name: String,
-        ): AssetInput {
-            return AssetInput(
+        ): AssetInput =
+            AssetInput(
                 "CASH",
                 code = name,
                 name = name,
                 currency = currency.code,
                 category = cashAsset,
             )
-        }
 
         @JvmStatic
         fun toRealEstate(
@@ -43,8 +42,8 @@ data class AssetInput(
             code: String,
             name: String,
             owner: String,
-        ): AssetInput {
-            return AssetInput(
+        ): AssetInput =
+            AssetInput(
                 "OFFM",
                 code = code,
                 name = name,
@@ -52,6 +51,5 @@ data class AssetInput(
                 category = AssetCategory.RE,
                 owner = owner,
             )
-        }
     }
 }

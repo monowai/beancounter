@@ -16,7 +16,10 @@ class MoneyValuesTest {
     @Test
     fun `default values for MoneyObject are correct`() {
         val moneyValues = MoneyValues(TestMarkets.USD)
-        Assertions.assertThat(moneyValues).hasNoNullFieldsOrPropertiesExcept("priceData", "weight")
+        Assertions.assertThat(moneyValues).hasNoNullFieldsOrPropertiesExcept(
+            "priceData",
+            "weight",
+        )
     }
 
     @Test
@@ -34,8 +37,20 @@ class MoneyValuesTest {
         moneyValues.resetCosts()
 
         // Then all specified fields should be reset to BigDecimal.ZERO
-        assertEquals(BigDecimal.ZERO, moneyValues.averageCost, "Average cost should be reset to zero")
-        assertEquals(BigDecimal.ZERO, moneyValues.costValue, "Cost value should be reset to zero")
-        assertEquals(BigDecimal.ZERO, moneyValues.costBasis, "Cost basis should be reset to zero")
+        assertEquals(
+            BigDecimal.ZERO,
+            moneyValues.averageCost,
+            "Average cost should be reset to zero",
+        )
+        assertEquals(
+            BigDecimal.ZERO,
+            moneyValues.costValue,
+            "Cost value should be reset to zero",
+        )
+        assertEquals(
+            BigDecimal.ZERO,
+            moneyValues.costBasis,
+            "Cost basis should be reset to zero",
+        )
     }
 }

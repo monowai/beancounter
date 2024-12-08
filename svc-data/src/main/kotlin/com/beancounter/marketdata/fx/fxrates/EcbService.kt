@@ -12,35 +12,35 @@ import org.springframework.stereotype.Service
  */
 @Service
 class EcbService
-    @Autowired
-    internal constructor(
-        private val fxGateway: FxGateway,
-        private val currencyService: CurrencyService,
-        dateUtils: DateUtils,
-    ) {
-        private val ecbDate = EcbDate(dateUtils)
+@Autowired
+internal constructor(
+    private val fxGateway: FxGateway,
+    private val currencyService: CurrencyService,
+    dateUtils: DateUtils,
+) {
+    private val ecbDate = EcbDate(dateUtils)
 
-        @RateLimiter(name = "fxRates")
-        fun getRates(asAt: String): List<FxRate> {
-            val ecbRates =
-                fxGateway.getRatesForSymbols(
-                    ecbDate.getValidDate(asAt),
-                    currencyService.baseCurrency.code,
-                    currencyService.currenciesAs,
+    @RateLimiter(name = "fxRates")
+    fun getRates(asAt: String): List<FxRate> {
+        val ecbRates =
+            fxGateway.getRatesForSymbols(
+                ecbDate.getValidDate(asAt),
+                currencyService.baseCurrency.code,
+                currencyService.currenciesAs,
+            )
+        val results: MutableList<FxRate> = ArrayList()
+        if (ecbRates?.rates != null) {
+            for (code in ecbRates.rates.keys) {
+                results.add(
+                    FxRate(
+                        currencyService.baseCurrency,
+                        currencyService.getCode(code),
+                        ecbRates.rates[code] ?: error("No rate"),
+                        ecbDate.dateUtils.getDate(ecbRates.date.toString()),
+                    ),
                 )
-            val results: MutableList<FxRate> = ArrayList()
-            if (ecbRates?.rates != null) {
-                for (code in ecbRates.rates.keys) {
-                    results.add(
-                        FxRate(
-                            currencyService.baseCurrency,
-                            currencyService.getCode(code),
-                            ecbRates.rates[code] ?: error("No rate"),
-                            ecbDate.dateUtils.getDate(ecbRates.date.toString()),
-                        ),
-                    )
-                }
             }
-            return results
         }
+        return results
     }
+}

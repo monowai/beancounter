@@ -21,7 +21,12 @@ object EcbMockUtils {
     operator fun get(
         date: String,
         rates: Map<String, BigDecimal>,
-    ): ExRatesResponse = ExRatesResponse(USD.code, dateUtils.getFormattedDate(date), rates)
+    ): ExRatesResponse =
+        ExRatesResponse(
+            USD.code,
+            dateUtils.getFormattedDate(date),
+            rates,
+        )
 
     @JvmStatic
     fun getRateMap(

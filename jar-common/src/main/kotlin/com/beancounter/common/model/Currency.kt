@@ -12,7 +12,11 @@ data class Currency(
     var name: String? = "Dollar",
     var symbol: String? = "$",
 ) {
-    constructor(code: String) : this(code, "Dollar", "$")
+    constructor(code: String) : this(
+        code,
+        "Dollar",
+        "$",
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

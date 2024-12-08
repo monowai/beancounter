@@ -12,7 +12,10 @@ import org.springframework.stereotype.Service
 /**
  * Publish notification of a corporate action transaction affecting a portfolio
  */
-@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["kafka.enabled"],
+    matchIfMissing = true,
+)
 @Service
 class EventPublisher {
     @Value("\${beancounter.topics.trn.event:bc-trn-event-dev}")
@@ -21,7 +24,10 @@ class EventPublisher {
 
     @PostConstruct
     fun logConfig() {
-        log.info("TRN-EVENT: {} ", topicTrnEvent)
+        log.info(
+            "TRN-EVENT: {} ",
+            topicTrnEvent,
+        )
     }
 
     @Autowired
@@ -30,7 +36,10 @@ class EventPublisher {
     }
 
     fun send(trnEvent: TrustedTrnEvent) {
-        kafkaTemplate.send(topicTrnEvent, trnEvent)
+        kafkaTemplate.send(
+            topicTrnEvent,
+            trnEvent,
+        )
     }
 
     companion object {

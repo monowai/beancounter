@@ -34,7 +34,11 @@ class FxRateCalculator private constructor() {
         ): FxPairResults {
             val rates =
                 currencyPairs.associateWith { pair ->
-                    calculateRate(pair, rateMap, asAt)
+                    calculateRate(
+                        pair,
+                        rateMap,
+                        asAt,
+                    )
                 }
             return FxPairResults(rates)
         }
@@ -44,20 +48,45 @@ class FxRateCalculator private constructor() {
             rateMap: Map<String, FxRate>,
             asAt: String,
         ): FxRate {
-            if (!pair.from.equals(pair.to, ignoreCase = true)) {
-                val fromRate = getRate(pair.from, rateMap)
-                val toRate = getRate(pair.to, rateMap)
+            if (!pair.from.equals(
+                    pair.to,
+                    ignoreCase = true,
+                )
+            ) {
+                val fromRate =
+                    getRate(
+                        pair.from,
+                        rateMap,
+                    )
+                val toRate =
+                    getRate(
+                        pair.to,
+                        rateMap,
+                    )
                 val rate =
                     if (pair.from == "USD") {
                         toRate.rate
                     } else {
-                        toRate.rate.divide(fromRate.rate, 8, RoundingMode.HALF_UP)
+                        toRate.rate.divide(
+                            fromRate.rate,
+                            8,
+                            RoundingMode.HALF_UP,
+                        )
                     }
-                return FxRate(fromRate.to, toRate.to, rate, dateUtils.getDate(asAt))
+                return FxRate(
+                    fromRate.to,
+                    toRate.to,
+                    rate,
+                    dateUtils.getDate(asAt),
+                )
             } else {
                 return FxRate(
-                    rateMap[pair.from]?.from ?: throw IllegalArgumentException("Rate for ${pair.from} not found"),
-                    rateMap[pair.to]?.to ?: throw IllegalArgumentException("Rate for ${pair.to} not found"),
+                    rateMap[pair.from]?.from ?: throw IllegalArgumentException(
+                        "Rate for ${pair.from} not found",
+                    ),
+                    rateMap[pair.to]?.to ?: throw IllegalArgumentException(
+                        "Rate for ${pair.to} not found",
+                    ),
                     BigDecimal.ONE,
                     dateUtils.getDate(asAt),
                 )

@@ -14,7 +14,10 @@ import org.springframework.context.annotation.Configuration
  * Persists the currency objects for each supported market.
  */
 @Configuration
-class CashBalancesBean(val currencyService: CurrencyService, val assetService: AssetService) {
+class CashBalancesBean(
+    val currencyService: CurrencyService,
+    val assetService: AssetService,
+) {
     @Autowired
     fun createCashBalanceAssets(marketConfig: MarketConfig): AssetUpdateResponse {
         val assets = mutableMapOf<String, AssetInput>()

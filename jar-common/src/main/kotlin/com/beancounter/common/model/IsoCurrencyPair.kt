@@ -3,10 +3,11 @@ package com.beancounter.common.model
 /**
  * Consistent representation of a currency pairing
  */
-data class IsoCurrencyPair(val from: String, val to: String) {
-    override fun toString(): String {
-        return "$from:$to"
-    }
+data class IsoCurrencyPair(
+    val from: String,
+    val to: String,
+) {
+    override fun toString(): String = "$from:$to"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -33,7 +34,10 @@ data class IsoCurrencyPair(val from: String, val to: String) {
             if (from.code == to.code) {
                 return null
             }
-            return IsoCurrencyPair(from.code, to.code)
+            return IsoCurrencyPair(
+                from.code,
+                to.code,
+            )
         }
     }
 }

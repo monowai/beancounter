@@ -14,7 +14,10 @@ import java.time.LocalDate
  */
 @Service
 @Transactional
-class TrnQueryService(val trnService: TrnService, val trnRepository: TrnRepository) {
+class TrnQueryService(
+    val trnService: TrnService,
+    val trnRepository: TrnRepository,
+) {
     /**
      * Trades in a portfolio for the specified asset.
      *
@@ -41,7 +44,10 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
             portfolio.code,
             assetId,
         )
-        return trnService.postProcess(results, false)
+        return trnService.postProcess(
+            results,
+            false,
+        )
     }
 
     private val typeFilter =
@@ -59,9 +65,12 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
     fun findAssetTrades(
         portfolio: Portfolio,
         assetId: String,
-    ): Collection<Trn> {
-        return trnResponse(portfolio, assetId, typeFilter)
-    }
+    ): Collection<Trn> =
+        trnResponse(
+            portfolio,
+            assetId,
+            typeFilter,
+        )
 
     /**
      * Corporate actions
@@ -77,7 +86,11 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
         val typeFilter = ArrayList<TrnType>()
         typeFilter.add(TrnType.DIVI)
         typeFilter.add(TrnType.SPLIT)
-        return trnResponse(portfolio, assetId, typeFilter)
+        return trnResponse(
+            portfolio,
+            assetId,
+            typeFilter,
+        )
     }
 
     private fun trnResponse(
@@ -91,7 +104,9 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
                     portfolio.id,
                     assetId,
                     typeFilter,
-                    Sort.by("tradeDate").descending()
+                    Sort
+                        .by("tradeDate")
+                        .descending()
                         .and(Sort.by("asset.code")),
                 )
         log.debug(
@@ -100,7 +115,10 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
             portfolio.code,
             assetId,
         )
-        return trnService.postProcess(results, true)
+        return trnService.postProcess(
+            results,
+            true,
+        )
     }
 
     companion object {

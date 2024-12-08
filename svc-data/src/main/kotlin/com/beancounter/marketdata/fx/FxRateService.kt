@@ -66,7 +66,13 @@ class FxRateService(
         }
         val mappedRates = rates.associateBy { it.to.code }.toMutableMap()
 
-        return FxResponse(FxRateCalculator.compute(fxRequest.rateDate, fxRequest.pairs, mappedRates))
+        return FxResponse(
+            FxRateCalculator.compute(
+                fxRequest.rateDate,
+                fxRequest.pairs,
+                mappedRates,
+            ),
+        )
     }
 
     private val dateUtils = DateUtils()

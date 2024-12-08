@@ -31,10 +31,39 @@ class BuyBehaviour(
         position: Position,
     ): Position {
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
-        value(trn, position, TRADE, costRate(TRADE, trn.cashAsset, positions))
+        value(
+            trn,
+            position,
+            TRADE,
+            costRate(
+                TRADE,
+                trn.cashAsset,
+                positions,
+            ),
+        )
         // Use cost of cash for Base and Portfolio(?) rate if cash is impacted
-        value(trn, position, PORTFOLIO, costRate(PORTFOLIO, trn.cashAsset, positions, trn.tradePortfolioRate))
-        value(trn, position, BASE, costRate(BASE, trn.cashAsset, positions, trn.tradeBaseRate))
+        value(
+            trn,
+            position,
+            PORTFOLIO,
+            costRate(
+                PORTFOLIO,
+                trn.cashAsset,
+                positions,
+                trn.tradePortfolioRate,
+            ),
+        )
+        value(
+            trn,
+            position,
+            BASE,
+            costRate(
+                BASE,
+                trn.cashAsset,
+                positions,
+                trn.tradeBaseRate,
+            ),
+        )
         return position
     }
 
@@ -62,21 +91,41 @@ class BuyBehaviour(
         val moneyValues =
             position.getMoneyValues(
                 `in`,
-                currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
+                currencyResolver.resolve(
+                    `in`,
+                    trn.portfolio,
+                    trn.tradeCurrency,
+                ),
             )
         moneyValues.purchases =
             moneyValues.purchases.add(
-                multiply(trn.tradeAmount, rate),
+                multiply(
+                    trn.tradeAmount,
+                    rate,
+                ),
             )
         moneyValues.costBasis =
             moneyValues.costBasis.add(
-                multiply(trn.tradeAmount, rate),
+                multiply(
+                    trn.tradeAmount,
+                    rate,
+                ),
             )
-        if (moneyValues.costBasis != BigDecimal.ZERO && position.quantityValues.getTotal()
+        if (moneyValues.costBasis != BigDecimal.ZERO &&
+            position.quantityValues
+                .getTotal()
                 .compareTo(BigDecimal.ZERO) != 0
         ) {
-            moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
+            moneyValues.averageCost =
+                averageCost.value(
+                    moneyValues.costBasis,
+                    position.quantityValues.getTotal(),
+                )
         }
-        moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
+        moneyValues.costValue =
+            averageCost.getCostValue(
+                position,
+                moneyValues,
+            )
     }
 }

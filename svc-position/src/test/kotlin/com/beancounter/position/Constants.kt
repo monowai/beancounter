@@ -38,7 +38,11 @@ class Constants {
                 code = "${NZD.code} $BALANCE",
                 id = "${NZD.code} $BALANCE",
                 name = "${NZD.code} Balance",
-                market = Market(CASH.code, NZD.code),
+                market =
+                Market(
+                    CASH.code,
+                    NZD.code,
+                ),
                 priceSymbol = NZD.code,
                 category = CASH.code,
             )

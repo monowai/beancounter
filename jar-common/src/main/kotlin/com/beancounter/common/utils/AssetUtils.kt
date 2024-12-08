@@ -36,7 +36,11 @@ class AssetUtils {
         )
 
         @JvmStatic
-        fun split(assets: Collection<PriceAsset>): Map<String, List<PriceAsset>> = assets.groupByTo(mutableMapOf(), PriceAsset::market)
+        fun split(assets: Collection<PriceAsset>): Map<String, List<PriceAsset>> =
+            assets.groupByTo(
+                mutableMapOf(),
+                PriceAsset::market,
+            )
 
         /**
          * Helper for tests that returns the "serialized" view of an asset.
@@ -52,19 +56,35 @@ class AssetUtils {
             market: String,
             code: String,
         ): Asset {
-            val asset = getTestAsset(Market(market), code)
-            return objectMapper.readValue(objectMapper.writeValueAsString(asset), Asset::class.java)
+            val asset =
+                getTestAsset(
+                    Market(market),
+                    code,
+                )
+            return objectMapper.readValue(
+                objectMapper.writeValueAsString(asset),
+                Asset::class.java,
+            )
         }
 
         @JvmStatic
         fun getAssetInput(
             market: String,
             code: String,
-        ) = AssetInput(market, code, name = code)
+        ) = AssetInput(
+            market,
+            code,
+            name = code,
+        )
 
         @JvmStatic
         fun getAssetInput(asset: Asset) =
-            AssetInput(market = asset.market.code, code = asset.code, name = asset.code, resolvedAsset = asset)
+            AssetInput(
+                market = asset.market.code,
+                code = asset.code,
+                name = asset.code,
+                resolvedAsset = asset,
+            )
 
         /**
          * Template for a generic cash balance asset.

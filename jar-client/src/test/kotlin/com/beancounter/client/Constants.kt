@@ -19,7 +19,11 @@ class Constants {
         val EUR = Currency("EUR")
         val NYSE = Market("NYSE")
         val NASDAQ = Market("NASDAQ")
-        val ASX = Market("ASX", AUD.code)
+        val ASX =
+            Market(
+                "ASX",
+                AUD.code,
+            )
         private val owner =
             SystemUser(
                 id = "blah@blah.com",

@@ -94,9 +94,16 @@ class TrnControllerTest {
         assertThat(currencyService.currencies).isNotEmpty
 
         token = mockAuthConfig.getUserToken(Constants.systemUser)
-        bcMvcHelper = BcMvcHelper(mockMvc, token)
+        bcMvcHelper =
+            BcMvcHelper(
+                mockMvc,
+                token,
+            )
 
-        RegistrationUtils.registerUser(mockMvc, token)
+        RegistrationUtils.registerUser(
+            mockMvc,
+            token,
+        )
         assertThat(figiProxy).isNotNull
         msft =
             bcMvcHelper.asset(
@@ -119,31 +126,49 @@ class TrnControllerTest {
                 ),
             )
         val mvcResult =
-            mockMvc.perform(
-                get(URI_TRN_FOR_PORTFOLIO, portfolio.id, dateUtils.today())
-                    .with(
-                        SecurityMockMvcRequestPostProcessors.jwt()
+            mockMvc
+                .perform(
+                    get(
+                        URI_TRN_FOR_PORTFOLIO,
+                        portfolio.id,
+                        dateUtils.today(),
+                    ).with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
                             .jwt(token),
                     ),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
                 .andReturn()
         val body = mvcResult.response.contentAsString
         assertThat(body).isNotNull
-        assertThat(objectMapper.readValue(body, TrnResponse::class.java).data)
-            .isNotNull.hasSize(0)
+        assertThat(
+            objectMapper
+                .readValue(
+                    body,
+                    TrnResponse::class.java,
+                ).data,
+        ).isNotNull
+            .hasSize(0)
     }
 
     @Test
     fun is_ExistingDividendFound() {
         val portfolioA =
             bcMvcHelper.portfolio(
-                PortfolioInput("DIV-TEST", "is_ExistingDividendFound", currency = NZD.code),
+                PortfolioInput(
+                    "DIV-TEST",
+                    "is_ExistingDividendFound",
+                    currency = NZD.code,
+                ),
             )
         // Creating in random order and assert retrieved in Sort Order.
         val trnInput =
             TrnInput(
-                CallerRef(batch = "DIV-TEST", callerId = "1"),
+                CallerRef(
+                    batch = "DIV-TEST",
+                    callerId = "1",
+                ),
                 msft.id,
                 trnType = TrnType.DIVI,
                 quantity = BigDecimal.TEN,
@@ -152,11 +177,22 @@ class TrnControllerTest {
                 price = BigDecimal.TEN,
             )
         val existingTrns = arrayOf(trnInput)
-        val trnRequest = TrnRequest(portfolioA.id, existingTrns)
-        trnService.save(portfolioA, trnRequest)
+        val trnRequest =
+            TrnRequest(
+                portfolioA.id,
+                existingTrns,
+            )
+        trnService.save(
+            portfolioA,
+            trnRequest,
+        )
         val divi = existingTrns.iterator().next()
 
-        val trustedTrnEvent = TrustedTrnEvent(portfolioA, trnInput = divi)
+        val trustedTrnEvent =
+            TrustedTrnEvent(
+                portfolioA,
+                trnInput = divi,
+            )
         assertThat(trnService.existing(trustedTrnEvent)).isNotNull.isNotEmpty
 
         // Record date is earlier than an existing trn trade date
@@ -166,26 +202,30 @@ class TrnControllerTest {
             .isNotNull.isNotEmpty // Within 20 days of proposed trade date
 
         val findByAsset =
-            mockMvc.perform(
-                get(
-                    "$TRNS_ROOT/{portfolioId}/asset/{assetId}/events",
-                    portfolioA.id,
-                    msft.id,
-                )
-                    .contentType(APPLICATION_JSON)
-                    .with(
-                        SecurityMockMvcRequestPostProcessors.jwt()
-                            .jwt(token),
-                    ),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    get(
+                        "$TRNS_ROOT/{portfolioId}/asset/{assetId}/events",
+                        portfolioA.id,
+                        msft.id,
+                    ).contentType(APPLICATION_JSON)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(token),
+                        ),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(
-                    MockMvcResultMatchers.content()
+                    MockMvcResultMatchers
+                        .content()
                         .contentType(APPLICATION_JSON),
-                )
-                .andReturn()
+                ).andReturn()
         val trnResponse =
             objectMapper
-                .readValue(findByAsset.response.contentAsString, TrnResponse::class.java)
+                .readValue(
+                    findByAsset.response.contentAsString,
+                    TrnResponse::class.java,
+                )
         assertThat(trnResponse.data).isNotEmpty.hasSize(1) // 1 MSFT dividend
     }
 
@@ -200,26 +240,35 @@ class TrnControllerTest {
                 ),
             )
 
-        mockMvc.perform(
-            get("$TRNS_ROOT/{portfolioId}/{trnId}", portfolio.id, "x123x")
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt()
+        mockMvc
+            .perform(
+                get(
+                    "$TRNS_ROOT/{portfolioId}/{trnId}",
+                    portfolio.id,
+                    "x123x",
+                ).with(
+                    SecurityMockMvcRequestPostProcessors
+                        .jwt()
                         .jwt(token),
                 ),
-        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()
     }
 
     @Test
     fun is_deleteThrowingForIllegalTrnId() {
-        mockMvc.perform(
-            delete("$TRNS_ROOT/{trnId}", "illegalTrnId")
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt()
+        mockMvc
+            .perform(
+                delete(
+                    "$TRNS_ROOT/{trnId}",
+                    "illegalTrnId",
+                ).with(
+                    SecurityMockMvcRequestPostProcessors
+                        .jwt()
                         .jwt(token),
                 ),
-        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()
     }

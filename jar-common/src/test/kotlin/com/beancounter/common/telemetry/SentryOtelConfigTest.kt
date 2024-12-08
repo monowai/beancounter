@@ -21,12 +21,13 @@ import org.springframework.test.context.TestPropertySource
 @SpringBootTest(classes = [SentryOtelConfig::class, PropertySourcesPlaceholderConfigurer::class])
 @TestPropertySource(
     properties = [
-        "sentry.dsn=https://1234f81278756cfe5644f42516cb2d4e@o4508146873466880.ingest.nowhere.sentry.io/1238146878447696",
+        "sentry.dsn=" +
+            "https://1234f81278756cfe5644f42516cb2d4e@o4508146873466880.ingest.nowhere.sentry.io/1238146878447696",
         "sentry.environment=test-env",
         "sentry.debug=true",
         "sentry.traces-sample-rate=0.5",
-        "sentry.enabled=true",
-    ],
+        "sentry.enabled=true"
+    ]
 )
 class SentryOtelConfigTest {
     @Autowired
@@ -53,7 +54,7 @@ class SentryOtelConfigTest {
         val result =
             sentryOtelConfig.filterTransaction(
                 transaction,
-                filter,
+                filter
             )
 
         assertNull(result)
@@ -63,7 +64,11 @@ class SentryOtelConfigTest {
     fun `filterTransaction should return transaction for api transaction route`() {
         val transaction = sentryTransaction("/api/resource")
 
-        val result = sentryOtelConfig.filterTransaction(transaction, filter)
+        val result =
+            sentryOtelConfig.filterTransaction(
+                transaction,
+                filter
+            )
 
         assertNotNull(result)
     }

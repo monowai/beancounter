@@ -17,7 +17,9 @@ import java.math.BigDecimal
  * Convert Alpha MarketData to BeanCounter MarketData
  */
 @Service
-class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
+class AlphaPriceAdapter(
+    val alphaConfig: AlphaConfig,
+) : MarketDataAdapter {
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int,
@@ -28,7 +30,12 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
             val assets = providerArguments.getAssets(batchId)
             for (dpAsset in assets) {
                 val asset = providerArguments.getAsset(dpAsset)
-                setPriceResponse(asset, response, results, providerArguments)
+                setPriceResponse(
+                    asset,
+                    response,
+                    results,
+                    providerArguments,
+                )
             }
         } catch (e: IOException) {
             throw SystemException(e.message)
@@ -42,10 +49,24 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         results: MutableCollection<MarketData>,
         providerArguments: ProviderArguments,
     ) {
-        if (isMdResponse(asset, response)) {
-            setPriceResponse(response, asset, results, providerArguments)
+        if (isMdResponse(
+                asset,
+                response,
+            )
+        ) {
+            setPriceResponse(
+                response,
+                asset,
+                results,
+                providerArguments,
+            )
         } else {
-            results.add(getDefault(asset, providerArguments))
+            results.add(
+                getDefault(
+                    asset,
+                    providerArguments,
+                ),
+            )
         }
     }
 
@@ -55,16 +76,31 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         results: MutableCollection<MarketData>,
         providerArguments: ProviderArguments,
     ) {
-        val priceResponse = alphaConfig.getObjectMapper().readValue(response, PriceResponse::class.java)
+        val priceResponse =
+            alphaConfig.getObjectMapper().readValue(
+                response,
+                PriceResponse::class.java,
+            )
         if (priceResponse != null && priceResponse.data.isNotEmpty()) {
             for (marketData in priceResponse.data) {
                 marketData.asset = asset!! // Return BC view of the asset, not MarketProviders
-                normalise(asset.market, marketData)
-                log.trace("Valued {} ", asset.name)
+                normalise(
+                    asset.market,
+                    marketData,
+                )
+                log.trace(
+                    "Valued {} ",
+                    asset.name,
+                )
                 results.add(marketData)
             }
         } else {
-            results.add(getDefault(asset, providerArguments))
+            results.add(
+                getDefault(
+                    asset,
+                    providerArguments,
+                ),
+            )
         }
     }
 
@@ -73,12 +109,42 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         marketData: MarketData,
     ) {
         if (market.multiplier.compareTo(BigDecimal.ONE) != 0) {
-            marketData.close = multiplyAbs(marketData.close, market.multiplier, 4)
-            marketData.open = multiplyAbs(marketData.open, market.multiplier, 4)
-            marketData.high = multiplyAbs(marketData.high, market.multiplier, 4)
-            marketData.low = multiplyAbs(marketData.low, market.multiplier, 4)
-            marketData.previousClose = multiplyAbs(marketData.previousClose, market.multiplier, 4)
-            marketData.change = multiplyAbs(marketData.change, market.multiplier, 4)
+            marketData.close =
+                multiplyAbs(
+                    marketData.close,
+                    market.multiplier,
+                    4,
+                )
+            marketData.open =
+                multiplyAbs(
+                    marketData.open,
+                    market.multiplier,
+                    4,
+                )
+            marketData.high =
+                multiplyAbs(
+                    marketData.high,
+                    market.multiplier,
+                    4,
+                )
+            marketData.low =
+                multiplyAbs(
+                    marketData.low,
+                    market.multiplier,
+                    4,
+                )
+            marketData.previousClose =
+                multiplyAbs(
+                    marketData.previousClose,
+                    market.multiplier,
+                    4,
+                )
+            marketData.change =
+                multiplyAbs(
+                    marketData.change,
+                    market.multiplier,
+                    4,
+                )
         }
     }
 
@@ -105,7 +171,11 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         }
         if (field != null) {
             val resultMessage = alphaConfig.getObjectMapper().readTree(result)
-            log.debug("API returned [{}] for {}", resultMessage[field], asset)
+            log.debug(
+                "API returned [{}] for {}",
+                resultMessage[field],
+                asset,
+            )
             return false
         }
         return true
@@ -122,7 +192,10 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         }
         val priceDate = alphaConfig.dateUtils.getFormattedDate(date)
 
-        return MarketData(asset!!, priceDate)
+        return MarketData(
+            asset!!,
+            priceDate,
+        )
     }
 
     companion object {

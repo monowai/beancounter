@@ -48,9 +48,17 @@ internal class AlphaBehaviourTest {
             )
         assertThat(marketData)
             .isNotNull
-            .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
+            .hasNoNullFieldsOrPropertiesExcept(
+                "id",
+                "requestDate",
+            )
         assertThat(marketData.data).isNotNull.isNotEmpty
-        assertThat(marketData.data.iterator().next().changePercent).isEqualTo("0.008812")
+        assertThat(
+            marketData.data
+                .iterator()
+                .next()
+                .changePercent,
+        ).isEqualTo("0.008812")
     }
 
     @Test
@@ -85,7 +93,10 @@ internal class AlphaBehaviourTest {
             )
         assertThat(marketData)
             .isNotNull
-            .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
+            .hasNoNullFieldsOrPropertiesExcept(
+                "id",
+                "requestDate",
+            )
     }
 
     @Test
@@ -95,23 +106,43 @@ internal class AlphaBehaviourTest {
                 ClassPathResource("$ALPHA_MOCK/alphavantage-nasdaq.json").file,
             )
         assertThat(asset)
-            .hasFieldOrPropertyWithValue("code", "NDAQ")
-            .hasFieldOrPropertyWithValue("market.code", "US")
+            .hasFieldOrPropertyWithValue(
+                "code",
+                "NDAQ",
+            ).hasFieldOrPropertyWithValue(
+                "market.code",
+                "US",
+            )
     }
 
     private fun validateResponse(jsonFile: File): MarketData {
-        val priceResponse = priceMapper.readValue(jsonFile, PriceResponse::class.java)
+        val priceResponse =
+            priceMapper.readValue(
+                jsonFile,
+                PriceResponse::class.java,
+            )
         assertThat(priceResponse.data).isNotNull.isNotEmpty
         val marketData = priceResponse.data.iterator().next()
         assertThat(marketData)
             .isNotNull
             .hasFieldOrProperty("asset")
             .hasFieldOrProperty("priceDate")
-            .hasFieldOrPropertyWithValue("open", BigDecimal("119.3700"))
-            .hasFieldOrPropertyWithValue("high", BigDecimal("121.6100"))
-            .hasFieldOrPropertyWithValue("low", BigDecimal("119.2700"))
-            .hasFieldOrPropertyWithValue("close", BigDecimal("121.3000"))
-            .hasFieldOrPropertyWithValue("volume", BigDecimal("958346").intValueExact())
+            .hasFieldOrPropertyWithValue(
+                "open",
+                BigDecimal("119.3700"),
+            ).hasFieldOrPropertyWithValue(
+                "high",
+                BigDecimal("121.6100"),
+            ).hasFieldOrPropertyWithValue(
+                "low",
+                BigDecimal("119.2700"),
+            ).hasFieldOrPropertyWithValue(
+                "close",
+                BigDecimal("121.3000"),
+            ).hasFieldOrPropertyWithValue(
+                "volume",
+                BigDecimal("958346").intValueExact(),
+            )
         return marketData
     }
 
@@ -122,25 +153,46 @@ internal class AlphaBehaviourTest {
         assertThat(alphaPriceService.isMarketSupported(NZX))
             .isFalse
         assertThat(alphaConfig.getPriceCode(MSFT)).isEqualTo(MSFT.code)
-        val ohi = getTestAsset(NYSE, "OHI")
+        val ohi =
+            getTestAsset(
+                NYSE,
+                "OHI",
+            )
         assertThat(alphaConfig.getPriceCode(ohi)).isEqualTo("OHI")
-        val abc = getTestAsset(Market("AMEX"), "ABC")
+        val abc =
+            getTestAsset(
+                Market("AMEX"),
+                "ABC",
+            )
         assertThat(alphaConfig.getPriceCode(abc)).isEqualTo("ABC")
-        val nzx = getTestAsset(NZX, "AIRNZ")
+        val nzx =
+            getTestAsset(
+                NZX,
+                "AIRNZ",
+            )
         assertThat(alphaConfig.getPriceCode(nzx)).isEqualTo("AIRNZ.NZX")
     }
 
     @Test
     fun is_PriceDateAccountingForWeekends() {
         // Sunday
-        val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-26")
+        val computedDate =
+            alphaConfig.getMarketDate(
+                NASDAQ,
+                "2020-04-26",
+            )
         // Resolves to Friday
         assertThat(computedDate).isEqualTo(dateUtils.getFormattedDate("2020-04-24"))
     }
 
     @Test
     fun is_PriceDateInThePastConstant() {
-        val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-28", false)
+        val computedDate =
+            alphaConfig.getMarketDate(
+                NASDAQ,
+                "2020-04-28",
+                false,
+            )
         assertThat(computedDate).isEqualTo(dateUtils.getFormattedDate("2020-04-28"))
     }
 }

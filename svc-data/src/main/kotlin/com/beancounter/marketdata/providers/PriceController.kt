@@ -27,7 +27,9 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/prices")
-@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
+@PreAuthorize(
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+)
 class PriceController(
     private val marketDataService: MarketDataService,
     private val assetService: AssetService,
@@ -50,8 +52,19 @@ class PriceController(
         @PathVariable("assetCode") assetCode: String,
     ): PriceResponse {
         val asset =
-            assetService.findLocally(AssetInput(marketCode, assetCode))
-                ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
+            assetService.findLocally(
+                AssetInput(
+                    marketCode,
+                    assetCode,
+                ),
+            )
+                ?: throw BusinessException(
+                    String.format(
+                        "Asset not found %s/%s",
+                        marketCode,
+                        assetCode,
+                    ),
+                )
         return marketDataService.getPriceResponse(
             PriceRequest.of(
                 asset = asset,
@@ -78,9 +91,7 @@ class PriceController(
     @GetMapping(value = ["/{assetId}/events"])
     fun getEvents(
         @PathVariable("assetId") assetId: String,
-    ): PriceResponse {
-        return eventService.getEvents(assetService.find(assetId))
-    }
+    ): PriceResponse = eventService.getEvents(assetService.find(assetId))
 
     @PostMapping("/write")
     fun writeOffMarketPrice(
@@ -89,11 +100,12 @@ class PriceController(
         val asset = assetService.find(offMarketPriceRequest.assetId)
         return PriceResponse(
             listOf(
-                priceService.getMarketData(
-                    asset = asset,
-                    date = dateUtils.getFormattedDate(offMarketPriceRequest.date),
-                    closePrice = offMarketPriceRequest.closePrice,
-                ).get(),
+                priceService
+                    .getMarketData(
+                        asset = asset,
+                        date = dateUtils.getFormattedDate(offMarketPriceRequest.date),
+                        closePrice = offMarketPriceRequest.closePrice,
+                    ).get(),
             ),
         )
     }
@@ -110,5 +122,9 @@ class PriceController(
     fun refreshPrices(
         @PathVariable assetId: String,
         @PathVariable(required = false) date: String = TODAY,
-    ): PriceResponse = priceRefresh.refreshPrice(assetId, date)
+    ): PriceResponse =
+        priceRefresh.refreshPrice(
+            assetId,
+            date,
+        )
 }

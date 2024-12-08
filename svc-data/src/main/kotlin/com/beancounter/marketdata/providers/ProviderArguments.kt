@@ -51,7 +51,10 @@ class ProviderArguments(
 
         val datedBatch =
             datedBatches.getOrPut(currentBatch) {
-                DatedBatch(currentBatch, valuationDate)
+                DatedBatch(
+                    currentBatch,
+                    valuationDate,
+                )
             }
 
         val searchKey = batch[datedBatch.batchId]?.let { it + delimiter + dpKey } ?: dpKey
@@ -65,13 +68,9 @@ class ProviderArguments(
 
     fun getAssets(batchId: Int): List<String> = batch[batchId]!!.split(delimiter)
 
-    fun getBatchConfigs(id: Int): DatedBatch? {
-        return datedBatches[id]
-    }
+    fun getBatchConfigs(id: Int): DatedBatch? = datedBatches[id]
 
-    fun getAsset(dataProviderKey: String): Asset {
-        return dpToBc[dataProviderKey]!!
-    }
+    fun getAsset(dataProviderKey: String): Asset = dpToBc[dataProviderKey]!!
 
     companion object {
         /**
@@ -86,7 +85,11 @@ class ProviderArguments(
             dataProviderConfig: DataProviderConfig,
             dateUtils: DateUtils = DateUtils(),
         ): ProviderArguments {
-            val providerArguments = ProviderArguments(dataProviderConfig, dateUtils)
+            val providerArguments =
+                ProviderArguments(
+                    dataProviderConfig,
+                    dateUtils,
+                )
             providerArguments.date = priceRequest.date
 
             split(priceRequest.assets).forEach { (_, assets) ->
@@ -95,7 +98,10 @@ class ProviderArguments(
                     .forEach { asset ->
                         // Add the asset to the batch, bumping it if it exceeds
                         // the number of assets per request
-                        providerArguments.batchAsset(asset.resolvedAsset!!, priceRequest.date)
+                        providerArguments.batchAsset(
+                            asset.resolvedAsset!!,
+                            priceRequest.date,
+                        )
                     }
                 // This looks unnecessary.
                 providerArguments.bumpBatch()

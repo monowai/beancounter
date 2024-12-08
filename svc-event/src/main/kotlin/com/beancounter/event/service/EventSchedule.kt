@@ -22,7 +22,10 @@ class EventSchedule(
         this.loginService = loginService
     }
 
-    @Scheduled(cron = "#{@eventsSchedule}", zone = "#{@scheduleZone}")
+    @Scheduled(
+        cron = "#{@eventsSchedule}",
+        zone = "#{@scheduleZone}",
+    )
     fun processEventsForRange() {
         log.info("Checking for corporate events to process")
         if (loginService != null) {
@@ -30,12 +33,19 @@ class EventSchedule(
         }
         val end = dateUtils.date
         val start = end.minusDays(5)
-        val events = eventService.findInRange(start, end)
+        val events =
+            eventService.findInRange(
+                start,
+                end,
+            )
         for (event in events) {
             eventService.processEvent(event)
         }
         if (!events.isEmpty()) {
-            log.info("Processed {} events", events.size)
+            log.info(
+                "Processed {} events",
+                events.size,
+            )
         }
     }
 

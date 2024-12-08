@@ -31,25 +31,51 @@ class AssetServiceTest {
             assetService.handle(
                 AssetRequest(
                     mapOf(
-                        aapl to AssetInput(NASDAQ.code, aapl, name = "Apple Inc."),
-                        googl to AssetInput(NASDAQ.code, googl, name = "Alphabet Inc."),
+                        aapl to
+                            AssetInput(
+                                NASDAQ.code,
+                                aapl,
+                                name = "Apple Inc.",
+                            ),
+                        googl to
+                            AssetInput(
+                                NASDAQ.code,
+                                googl,
+                                name = "Alphabet Inc.",
+                            ),
                     ),
                 ),
             )
         val priceAssets =
             listOf(
-                PriceAsset(NASDAQ.code, "AAPL", assetId = assets.data[aapl]!!.id),
-                PriceAsset(NASDAQ.code, "GOOGL", assetId = assets.data[googl]!!.id),
+                PriceAsset(
+                    NASDAQ.code,
+                    "AAPL",
+                    assetId = assets.data[aapl]!!.id,
+                ),
+                PriceAsset(
+                    NASDAQ.code,
+                    "GOOGL",
+                    assetId = assets.data[googl]!!.id,
+                ),
             )
         val priceRequest = PriceRequest(assets = priceAssets)
 
         val result = assetService.resolveAssets(priceRequest)
 
         assertThat(result.assets).hasSize(2)
-        assertThat(result.assets[0].resolvedAsset).isNotNull
-            .hasNoNullFieldsOrPropertiesExcept("systemUser", "priceSymbol")
-        assertThat(result.assets[1].resolvedAsset).isNotNull
-            .hasNoNullFieldsOrPropertiesExcept("systemUser", "priceSymbol")
+        assertThat(result.assets[0].resolvedAsset)
+            .isNotNull
+            .hasNoNullFieldsOrPropertiesExcept(
+                "systemUser",
+                "priceSymbol",
+            )
+        assertThat(result.assets[1].resolvedAsset)
+            .isNotNull
+            .hasNoNullFieldsOrPropertiesExcept(
+                "systemUser",
+                "priceSymbol",
+            )
 
         // val byProviders = ProviderUtils().splitProviders(priceRequest.assets)
     }

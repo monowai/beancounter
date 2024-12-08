@@ -131,18 +131,30 @@ class StubbedEvents {
                 assetId = "MSFT",
                 rate = BigDecimal("0.2625"),
             )
-        val trnEvent = positionService.process(portfolio, corporateEvent)
+        val trnEvent =
+            positionService.process(
+                portfolio,
+                corporateEvent,
+            )
         assertThat(trnEvent.trnInput.trnType).isEqualTo(TrnType.IGNORE)
     }
 
     @Test
     fun is_DividendTransactionGenerated() {
-        val consumerProps = KafkaTestUtils.consumerProps("event-test", "false", embeddedKafkaBroker)
+        val consumerProps =
+            KafkaTestUtils.consumerProps(
+                "event-test",
+                "false",
+                embeddedKafkaBroker,
+            )
         consumerProps["session.timeout.ms"] = 6000
         consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         val cf = DefaultKafkaConsumerFactory<String, String>(consumerProps)
         val consumer = cf.createConsumer()
-        embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TRN_EVENT)
+        embeddedKafkaBroker.consumeFromEmbeddedTopics(
+            consumer,
+            TRN_EVENT,
+        )
         val corporateEvent =
             CorporateEvent(
                 trnType = TrnType.DIVI,
@@ -156,19 +168,27 @@ class StubbedEvents {
         assertThat(trnEvents).isNotNull.hasSize(1)
 
         // Check the receiver gets what we send
-        verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
+        verify(
+            portfolio,
+            trnEvents,
+            KafkaTestUtils.getSingleRecord(
+                consumer,
+                TRN_EVENT,
+            ),
+        )
         val events = eventService.forAsset(KMI)
         assertThat(events).hasSize(1)
         val (id) = events.iterator().next()
         val token = mockAuthConfig.getUserToken(systemUser)
         // Reprocess the corporate event
         val mvcResult =
-            mockMvc.perform(
-                post("/$id")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-            ).andExpect(
-                status().isAccepted,
-            ).andReturn()
+            mockMvc
+                .perform(
+                    post("/$id")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                ).andExpect(
+                    status().isAccepted,
+                ).andReturn()
 
         val eventsResponse =
             objectMapper.readValue(
@@ -176,26 +196,42 @@ class StubbedEvents {
                 CorporateEventResponse::class.java,
             )
         assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
-        verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
+        verify(
+            portfolio,
+            trnEvents,
+            KafkaTestUtils.getSingleRecord(
+                consumer,
+                TRN_EVENT,
+            ),
+        )
         consumer.close()
 
-        mockMvc.perform(
-            post("/backfill/${portfolio.id}/$caDate/$caDate")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-        ).andExpect(
-            status().isAccepted,
-        ).andReturn()
+        mockMvc
+            .perform(
+                post("/backfill/${portfolio.id}/$caDate/$caDate")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+            ).andExpect(
+                status().isAccepted,
+            ).andReturn()
 
         Thread.sleep(400)
 
-        Mockito.verify(
-            backfillService,
-            Mockito.times(1),
-        ).backFillEvents(portfolio.id, caDate, caDate)
+        Mockito
+            .verify(
+                backfillService,
+                Mockito.times(1),
+            ).backFillEvents(
+                portfolio.id,
+                caDate,
+                caDate,
+            )
 
         // Verify that the backfill request is dispatched, but not for cash
-        Mockito.verify(eventService, Mockito.times(1))
-            .process(any())
+        Mockito
+            .verify(
+                eventService,
+                Mockito.times(1),
+            ).process(any())
     }
 
     // We're working with exactly the same event, so output should be the same
@@ -205,23 +241,42 @@ class StubbedEvents {
         consumerRecord: ConsumerRecord<String, String>,
     ) {
         assertThat(consumerRecord.value()).isNotNull
-        val received = objectMapper.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)
+        val received =
+            objectMapper.readValue(
+                consumerRecord.value(),
+                TrustedTrnEvent::class.java,
+            )
         val (portfolio1, importFormat, message, trnInput) = trnEvents.iterator().next()
         assertThat(portfolio1)
-            .usingRecursiveComparison().isEqualTo(portfolio)
+            .usingRecursiveComparison()
+            .isEqualTo(portfolio)
         assertTrue(importFormat == ImportFormat.BC)
         assertThat(message).isEmpty()
         assertThat(received)
             .isNotNull
             .hasFieldOrProperty("trnInput")
-            .hasFieldOrPropertyWithValue("portfolio.id", portfolio1.id)
+            .hasFieldOrPropertyWithValue(
+                "portfolio.id",
+                portfolio1.id,
+            )
         assertThat(trnInput)
             .isNotNull
-            .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
-            .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("14.70"))
-            .hasFieldOrPropertyWithValue("tax", BigDecimal("6.30"))
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal("80.0"))
+            .hasFieldOrPropertyWithValue(
+                "trnType",
+                TrnType.DIVI,
+            ).hasFieldOrPropertyWithValue(
+                "status",
+                TrnStatus.PROPOSED,
+            ).hasFieldOrPropertyWithValue(
+                "tradeAmount",
+                BigDecimal("14.70"),
+            ).hasFieldOrPropertyWithValue(
+                "tax",
+                BigDecimal("6.30"),
+            ).hasFieldOrPropertyWithValue(
+                "quantity",
+                BigDecimal("80.0"),
+            )
     }
 
     companion object {

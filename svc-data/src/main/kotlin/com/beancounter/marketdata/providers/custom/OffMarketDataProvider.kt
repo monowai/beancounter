@@ -28,9 +28,16 @@ class OffMarketDataProvider(
         asset: Asset,
         defaultPrice: BigDecimal,
     ): MarketData {
-        val closest = marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(asset, priceDate)
+        val closest =
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(
+                asset,
+                priceDate,
+            )
         return if (closest.isPresent) {
-            getMarketData(asset, closest.get())
+            getMarketData(
+                asset,
+                closest.get(),
+            )
         } else {
             MarketData(
                 asset,
@@ -43,17 +50,30 @@ class OffMarketDataProvider(
     fun getMarketData(
         asset: Asset,
         from: MarketData,
-    ): MarketData = MarketData(asset, close = from.close, priceDate = priceDate)
+    ): MarketData =
+        MarketData(
+            asset,
+            close = from.close,
+            priceDate = priceDate,
+        )
 
-    override fun getMarketData(priceRequest: PriceRequest): List<MarketData> {
-        return priceRequest.assets.mapNotNull { (_, _, resolvedAsset) ->
-            resolvedAsset?.let { getMarketData(it, priceRequest.closePrice) }
+    override fun getMarketData(priceRequest: PriceRequest): List<MarketData> =
+        priceRequest.assets.mapNotNull { (_, _, resolvedAsset) ->
+            resolvedAsset?.let {
+                getMarketData(
+                    it,
+                    priceRequest.closePrice,
+                )
+            }
         }
-    }
 
     override fun getId(): String = ID
 
-    override fun isMarketSupported(market: Market): Boolean = getId().equals(market.code, ignoreCase = true)
+    override fun isMarketSupported(market: Market): Boolean =
+        getId().equals(
+            market.code,
+            ignoreCase = true,
+        )
 
     val priceDate: LocalDate
         get() = dateUtils.getDate()

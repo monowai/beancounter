@@ -14,8 +14,8 @@ class FigiAdapter {
         assetCode: String,
         defaultName: String? = null,
         id: String,
-    ): Asset {
-        return Asset(
+    ): Asset =
+        Asset(
             code = assetCode,
             id = id,
             name = defaultName,
@@ -24,7 +24,6 @@ class FigiAdapter {
             priceSymbol = assetCode,
             category = "Equity",
         )
-    }
 
     fun transform(
         market: Market,
@@ -32,7 +31,13 @@ class FigiAdapter {
         figiAsset: FigiAsset,
         id: String,
     ): Asset {
-        val asset = transform(market, assetCode, defaultName = figiAsset.name, id = id)
+        val asset =
+            transform(
+                market,
+                assetCode,
+                defaultName = figiAsset.name,
+                id = id,
+            )
         asset.name = figiAsset.name
         asset.category = figiAsset.securityType2
         return asset

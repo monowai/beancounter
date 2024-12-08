@@ -73,13 +73,17 @@ internal class EventControllerTest {
     fun validateBadRequestResponse() {
         // Execute the request and directly retrieve and parse the response body
         val message =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-            )
-                .andExpect(MockMvcResultMatchers.status().isBadRequest)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-                .andReturn()
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(
+                            "/{eventId}",
+                            "event.getId()",
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                .andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON),
+                ).andReturn()
                 .response
                 .contentAsString
                 .let { responseBody ->
@@ -119,10 +123,14 @@ internal class EventControllerTest {
 
     private fun eventsById(event: CorporateEvent): CorporateEventResponse? {
         val mvcResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/{eventId}", event.id)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(
+                            "/{eventId}",
+                            event.id,
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         return objectMapper.readValue(
@@ -133,10 +141,14 @@ internal class EventControllerTest {
 
     private fun eventsByAssetId(event: CorporateEvent): CorporateEventResponses? {
         val mvcResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(
+                            "/asset/{assetId}",
+                            event.assetId,
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         val events =

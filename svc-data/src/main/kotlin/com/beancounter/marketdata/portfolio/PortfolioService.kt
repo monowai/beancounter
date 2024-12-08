@@ -31,24 +31,29 @@ class PortfolioService internal constructor(
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = systemUserService.getOrThrow
         val results: MutableCollection<Portfolio> = ArrayList()
-        portfolioRepository.saveAll(
-            portfolioInputAdapter.prepare(owner, portfolios),
-        ).forEach(Consumer { e: Portfolio -> results.add(e) })
+        portfolioRepository
+            .saveAll(
+                portfolioInputAdapter.prepare(
+                    owner,
+                    portfolios,
+                ),
+            ).forEach(Consumer { e: Portfolio -> results.add(e) })
         return results
     }
 
     @Transactional(Transactional.TxType.SUPPORTS)
     fun canView(portfolio: Portfolio): Boolean {
         val systemUser = systemUserService.getOrThrow
-        return isViewable(systemUser, portfolio)
+        return isViewable(
+            systemUser,
+            portfolio,
+        )
     }
 
     fun isViewable(
         systemUser: SystemUser,
         portfolio: Portfolio,
-    ): Boolean {
-        return systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id
-    }
+    ): Boolean = systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id
 
     val portfolios: Collection<Portfolio>
         get() {
@@ -57,9 +62,10 @@ class PortfolioService internal constructor(
                 if (systemUser.id == "beancounter:system") {
                     portfolioRepository.findAll().toList()
                 } else {
-                    portfolioRepository.findByOwner(
-                        systemUser,
-                    ).toList()
+                    portfolioRepository
+                        .findByOwner(
+                            systemUser,
+                        ).toList()
                 }
             return portfolios
         }
@@ -78,17 +84,36 @@ class PortfolioService internal constructor(
     fun find(id: String): Portfolio {
         val found = portfolioRepository.findById(id)
         val portfolio =
-            found.orElseThrow { BusinessException(String.format("Could not find a portfolio with ID %s", id)) }
+            found.orElseThrow {
+                BusinessException(
+                    String.format(
+                        "Could not find a portfolio with ID %s",
+                        id,
+                    ),
+                )
+            }
         if (canView(portfolio)) {
             return portfolio
         }
-        throw BusinessException(String.format("Could not find a portfolio with ID %s", id))
+        throw BusinessException(
+            String.format(
+                "Could not find a portfolio with ID %s",
+                id,
+            ),
+        )
     }
 
     fun findByCode(code: String): Portfolio {
         val systemUser = systemUserService.getOrThrow
-        log.trace("Searching on behalf of {}", systemUser.id)
-        val found = portfolioRepository.findByCodeAndOwner(code.uppercase(Locale.getDefault()), systemUser)
+        log.trace(
+            "Searching on behalf of {}",
+            systemUser.id,
+        )
+        val found =
+            portfolioRepository.findByCodeAndOwner(
+                code.uppercase(Locale.getDefault()),
+                systemUser,
+            )
         val portfolio =
             found.orElseThrow {
                 BusinessException(
@@ -102,7 +127,12 @@ class PortfolioService internal constructor(
         if (canView(portfolio)) {
             return portfolio
         }
-        throw BusinessException(String.format("Could not find a portfolio with code %s", code))
+        throw BusinessException(
+            String.format(
+                "Could not find a portfolio with code %s",
+                code,
+            ),
+        )
     }
 
     fun update(
@@ -110,7 +140,12 @@ class PortfolioService internal constructor(
         portfolioInput: PortfolioInput?,
     ): Portfolio {
         val existing = find(id)
-        return portfolioRepository.save(portfolioInputAdapter.fromInput(portfolioInput!!, existing))
+        return portfolioRepository.save(
+            portfolioInputAdapter.fromInput(
+                portfolioInput!!,
+                existing,
+            ),
+        )
     }
 
     fun maintain(portfolio: Portfolio): Portfolio = portfolioRepository.save(portfolio)
@@ -126,8 +161,16 @@ class PortfolioService internal constructor(
         tradeDate: LocalDate?,
     ): PortfoliosResponse {
         val recordDate = tradeDate ?: dateUtils.getFormattedDate(dateUtils.today())
-        val portfolios = portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate)
-        log.trace("Found {} notional holders for assetId: {}", portfolios.size, assetId)
+        val portfolios =
+            portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
+                assetId!!,
+                recordDate,
+            )
+        log.trace(
+            "Found {} notional holders for assetId: {}",
+            portfolios.size,
+            assetId,
+        )
         return PortfoliosResponse(portfolios)
     }
 

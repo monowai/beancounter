@@ -28,9 +28,19 @@ data class CallerRef(
         @JvmStatic
         fun from(callerRef: CallerRef): CallerRef {
             val provider = callerRef.provider.ifBlank { DEFAULT_PROVIDER }
-            val batch = callerRef.batch.ifBlank { dateUtils.getFormattedDate().toString().replace("-", "") }
+            val batch =
+                callerRef.batch.ifBlank {
+                    dateUtils.getFormattedDate().toString().replace(
+                        "-",
+                        "",
+                    )
+                }
             val callerId = callerRef.callerId.ifBlank { keyGenUtils.id }
-            return CallerRef(provider, batch, callerId)
+            return CallerRef(
+                provider,
+                batch,
+                callerId,
+            )
         }
     }
 }

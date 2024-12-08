@@ -11,7 +11,15 @@ class CurrencyKeyDeserializer : KeyDeserializer() {
     override fun deserializeKey(
         key: String,
         ctxt: DeserializationContext,
-    ): IsoCurrencyPair {
-        return IsoCurrencyPair(key.substring(0, 3), key.substring(4, 7))
-    }
+    ): IsoCurrencyPair =
+        IsoCurrencyPair(
+            key.substring(
+                0,
+                3,
+            ),
+            key.substring(
+                4,
+                7,
+            ),
+        )
 }

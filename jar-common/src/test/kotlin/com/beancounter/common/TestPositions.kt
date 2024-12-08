@@ -30,13 +30,33 @@ internal class TestPositions {
     @Test
     @Throws(Exception::class)
     fun is_PositionResponseChainSerializing() {
-        val asset = getJsonAsset("MARKET", "TEST")
-        val positions = Positions(PortfolioUtils.getPortfolio("T", SGD))
+        val asset =
+            getJsonAsset(
+                "MARKET",
+                "TEST",
+            )
+        val positions =
+            Positions(
+                PortfolioUtils.getPortfolio(
+                    "T",
+                    SGD,
+                ),
+            )
         val position = positions.add(Position(asset))
 
-        assertThat(position.getMoneyValues(Position.In.TRADE, asset.market.currency).currency)
-            .isEqualTo(USD)
-        position.getMoneyValues(Position.In.TRADE, asset.market.currency).dividends = BigDecimal("100")
+        assertThat(
+            position
+                .getMoneyValues(
+                    Position.In.TRADE,
+                    asset.market.currency,
+                ).currency,
+        ).isEqualTo(USD)
+        position
+            .getMoneyValues(
+                Position.In.TRADE,
+                asset.market.currency,
+            ).dividends =
+            BigDecimal("100")
         position.quantityValues.purchased = BigDecimal(200)
 
         position.dateValues =
@@ -60,8 +80,20 @@ internal class TestPositions {
 
     @Test
     fun is_MixedTradeCurrenciesHandled() {
-        val usdAsset = Asset(code = "USDAsset", market = Market("USMarket"))
-        val nzdAsset = Asset(code = "NZDAsset", market = Market("NZMarket", NZD.code))
+        val usdAsset =
+            Asset(
+                code = "USDAsset",
+                market = Market("USMarket"),
+            )
+        val nzdAsset =
+            Asset(
+                code = "NZDAsset",
+                market =
+                Market(
+                    "NZMarket",
+                    NZD.code,
+                ),
+            )
         val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))
         assertThat(positions.isMixedCurrencies).isFalse
         positions.add(positions.getOrCreate(usdAsset))
@@ -72,25 +104,47 @@ internal class TestPositions {
 
     @Test
     fun is_DateValuesSetFromTransaction() {
-        val asset = getTestAsset(Market("Code"), "Dates")
+        val asset =
+            getTestAsset(
+                Market("Code"),
+                "Dates",
+            )
         val expectedDate = "2018-12-01"
         val firstTradeDate = dateUtils.getFormattedDate(expectedDate)
         val secondTradeDate = dateUtils.getFormattedDate("2018-12-02")
         val positions = Positions(PortfolioUtils.getPortfolio("Twee"))
-        var position = positions.getOrCreate(asset, firstTradeDate)
+        var position =
+            positions.getOrCreate(
+                asset,
+                firstTradeDate,
+            )
         positions.add(position)
         // Calling this should not set the "first" trade date.
-        position = positions.getOrCreate(asset, secondTradeDate)
+        position =
+            positions.getOrCreate(
+                asset,
+                secondTradeDate,
+            )
         assertThat(position.dateValues)
-            .hasFieldOrPropertyWithValue("opened", dateUtils.getFormattedDate(expectedDate))
+            .hasFieldOrPropertyWithValue(
+                "opened",
+                dateUtils.getFormattedDate(expectedDate),
+            )
     }
 
     @Test
     fun is_GetPositionNonNull() {
         val positions = Positions(PortfolioUtils.getPortfolio())
-        val asset = getTestAsset(NYSE, "AnyCode")
+        val asset =
+            getTestAsset(
+                NYSE,
+                "AnyCode",
+            )
         val position = positions.getOrCreate(asset)
-        assertThat(position).isNotNull.hasFieldOrPropertyWithValue("asset", asset)
+        assertThat(position).isNotNull.hasFieldOrPropertyWithValue(
+            "asset",
+            asset,
+        )
     }
 
     @Test
@@ -101,14 +155,26 @@ internal class TestPositions {
             Trn(
                 id = "any",
                 trnType = TrnType.BUY,
-                asset = getJsonAsset("RandomMarket", "Blah"),
+                asset =
+                getJsonAsset(
+                    "RandomMarket",
+                    "Blah",
+                ),
                 portfolio = PortfolioUtils.getPortfolio(),
             )
         trns.add(trn)
-        val positionRequest = PositionRequest("TWEE", trns)
+        val positionRequest =
+            PositionRequest(
+                "TWEE",
+                trns,
+            )
 
         val json = objectMapper.writeValueAsString(positionRequest)
-        val fromJson = objectMapper.readValue(json, PositionRequest::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                PositionRequest::class.java,
+            )
         assertThat(fromJson.portfolioId).isEqualTo(positionRequest.portfolioId)
         assertThat(fromJson.trns).hasSize(positionRequest.trns.size)
         for (trnJson in fromJson.trns) {
@@ -119,11 +185,16 @@ internal class TestPositions {
     @Test
     @Throws(Exception::class)
     fun is_TotalsSerializing() {
-        val totals = Totals(USD, BigDecimal("200.99"))
+        val totals =
+            Totals(
+                USD,
+                BigDecimal("200.99"),
+            )
         val json = objectMapper.writeValueAsString(totals)
         val fromJson = objectMapper.readValue<Totals>(json)
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()
-            .usingRecursiveComparison().isEqualTo(totals)
+            .usingRecursiveComparison()
+            .isEqualTo(totals)
     }
 }

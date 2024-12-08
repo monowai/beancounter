@@ -15,12 +15,20 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/auth")
-@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
-class AuthController(val loginService: LoginService) {
+@ConditionalOnProperty(
+    value = ["auth.enabled"],
+    havingValue = "true",
+    matchIfMissing = false,
+)
+class AuthController(
+    val loginService: LoginService,
+) {
     @PostMapping
     fun token(
         @RequestBody loginParams: LoginRequest,
-    ): OpenIdResponse {
-        return loginService.login(loginParams.user, loginParams.password)
-    }
+    ): OpenIdResponse =
+        loginService.login(
+            loginParams.user,
+            loginParams.password,
+        )
 }

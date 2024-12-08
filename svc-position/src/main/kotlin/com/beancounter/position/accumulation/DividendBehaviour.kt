@@ -14,7 +14,9 @@ import java.math.BigDecimal
  * Logic to accumulate a dividend transaction event into a position.
  */
 @Service
-class DividendBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver()) : AccumulationStrategy {
+class DividendBehaviour(
+    val currencyResolver: CurrencyResolver = CurrencyResolver(),
+) : AccumulationStrategy {
     override val supportedType: TrnType
         get() = TrnType.DIVI
 
@@ -24,8 +26,18 @@ class DividendBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolve
         position: Position,
     ): Position {
         position.dateValues.lastDividend = trn.tradeDate
-        value(trn, position, Position.In.TRADE, BigDecimal.ONE)
-        value(trn, position, Position.In.BASE, trn.tradeBaseRate)
+        value(
+            trn,
+            position,
+            Position.In.TRADE,
+            BigDecimal.ONE,
+        )
+        value(
+            trn,
+            position,
+            Position.In.BASE,
+            trn.tradeBaseRate,
+        )
         value(
             trn,
             position,
@@ -44,12 +56,19 @@ class DividendBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolve
         val moneyValues =
             position.getMoneyValues(
                 `in`,
-                currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
+                currencyResolver.resolve(
+                    `in`,
+                    trn.portfolio,
+                    trn.tradeCurrency,
+                ),
             )
         moneyValues.dividends =
             add(
                 moneyValues.dividends,
-                multiply(trn.tradeAmount, rate),
+                multiply(
+                    trn.tradeAmount,
+                    rate,
+                ),
             )
     }
 }

@@ -38,11 +38,24 @@ internal class TrnInputTest {
         val price = BigDecimal("10.99")
         val trnInput =
             TrnInput(
-                callerRef = CallerRef(ONE, ONE, abc),
+                callerRef =
+                CallerRef(
+                    ONE,
+                    ONE,
+                    abc,
+                ),
                 tradeDate = DateUtils().getFormattedDate("2019-10-10"),
                 settleDate = DateUtils().getFormattedDate("2019-10-10"),
-                assetId = getTestAsset(NYSE, "MSFT").id,
-                cashAssetId = toKey("USD-X", "USER"),
+                assetId =
+                getTestAsset(
+                    NYSE,
+                    "MSFT",
+                ).id,
+                cashAssetId =
+                toKey(
+                    "USD-X",
+                    "USER",
+                ),
                 cashCurrency = USD.code,
                 fees = BigDecimal.ONE,
                 price = price,
@@ -53,9 +66,17 @@ internal class TrnInputTest {
                 comments = "Comment",
             )
 
-        val trnRequest = TrnRequest(abc.lowercase(Locale.getDefault()), arrayOf(trnInput))
+        val trnRequest =
+            TrnRequest(
+                abc.lowercase(Locale.getDefault()),
+                arrayOf(trnInput),
+            )
         val json = objectMapper.writeValueAsString(trnRequest)
-        val fromJson = objectMapper.readValue(json, TrnRequest::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                TrnRequest::class.java,
+            )
         assertThat(fromJson)
             .isNotNull
             .isEqualTo(trnRequest)
@@ -65,23 +86,38 @@ internal class TrnInputTest {
         val fromTrn: TrnInput = fromJson.data.iterator().next()
         assertThat(fromTrn.callerRef).usingRecursiveComparison().isEqualTo(trnInput.callerRef)
         assertThat(fromTrn)
-            .usingRecursiveComparison().isEqualTo(trnInput)
+            .usingRecursiveComparison()
+            .isEqualTo(trnInput)
     }
 
     @Test
     @Throws(Exception::class)
     fun is_TransactionResponseSerializing() {
         val trnType = TrnType.BUY
-        val asset = getTestAsset(NYSE, "TEST")
+        val asset =
+            getTestAsset(
+                NYSE,
+                "TEST",
+            )
         val portfolio = getPortfolio("TWEE")
-        portfolio.owner = SystemUser("123", "whee", true)
+        portfolio.owner =
+            SystemUser(
+                "123",
+                "whee",
+                true,
+            )
         val trn =
             Trn(
                 id = "PK",
                 trnType = trnType,
                 tradeDate = LocalDate.now(),
                 asset = asset,
-                callerRef = CallerRef(ONE, ONE, "TEST"),
+                callerRef =
+                CallerRef(
+                    ONE,
+                    ONE,
+                    "TEST",
+                ),
                 price = BigDecimal("100.01"),
                 portfolio = portfolio,
             )
@@ -93,16 +129,29 @@ internal class TrnInputTest {
         trns.add(trn)
         val trnResponse = TrnResponse(trns)
 
-        val fromJson = objectMapper.readValue(objectMapper.writeValueAsString(trnResponse), TrnResponse::class.java)
-        val fromAsset: Asset = fromJson.data.iterator().next().asset
+        val fromJson =
+            objectMapper.readValue(
+                objectMapper.writeValueAsString(trnResponse),
+                TrnResponse::class.java,
+            )
+        val fromAsset: Asset =
+            fromJson.data
+                .iterator()
+                .next()
+                .asset
         // Market.aliases are not serialized
         assertThat(fromAsset.market)
-            .usingRecursiveComparison().ignoringFields("market", "aliases")
+            .usingRecursiveComparison()
+            .ignoringFields(
+                "market",
+                "aliases",
+            )
         assertThat(fromAsset)
             .usingRecursiveComparison()
         assertThat(fromJson.data).hasSize(1)
         assertThat(fromJson.data.iterator().next())
-            .usingRecursiveComparison().ignoringFields("asset")
+            .usingRecursiveComparison()
+            .ignoringFields("asset")
     }
 
     private val portfolioProp = "portfolio"
@@ -112,17 +161,34 @@ internal class TrnInputTest {
     @Test
     @Throws(Exception::class)
     fun is_TrustedTrnRequestValid() {
-        val row: List<String> = listOf(abc, abc, abc)
-        val ttr = TrustedTrnImportRequest(getPortfolio("TWEE"), row = row)
+        val row: List<String> =
+            listOf(
+                abc,
+                abc,
+                abc,
+            )
+        val ttr =
+            TrustedTrnImportRequest(
+                getPortfolio("TWEE"),
+                row = row,
+            )
         assertThat(ttr)
-            .hasFieldOrPropertyWithValue(importFormatProp, ImportFormat.BC)
-            .hasFieldOrPropertyWithValue(messageProp, "")
-            .hasFieldOrProperty(portfolioProp)
+            .hasFieldOrPropertyWithValue(
+                importFormatProp,
+                ImportFormat.BC,
+            ).hasFieldOrPropertyWithValue(
+                messageProp,
+                "",
+            ).hasFieldOrProperty(portfolioProp)
             .hasFieldOrProperty("callerRef")
             .hasFieldOrProperty("row")
 
         val json = objectMapper.writeValueAsString(ttr)
-        val fromJson = objectMapper.readValue(json, TrustedTrnImportRequest::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                TrustedTrnImportRequest::class.java,
+            )
         assertThat(fromJson)
             .usingRecursiveComparison()
             .ignoringFields(portfolioProp)
@@ -146,13 +212,21 @@ internal class TrnInputTest {
             )
 
         assertThat(ttr)
-            .hasFieldOrPropertyWithValue(importFormatProp, ImportFormat.BC)
-            .hasFieldOrProperty(portfolioProp)
-            .hasFieldOrPropertyWithValue(messageProp, "the message")
-            .hasFieldOrProperty("trnInput")
+            .hasFieldOrPropertyWithValue(
+                importFormatProp,
+                ImportFormat.BC,
+            ).hasFieldOrProperty(portfolioProp)
+            .hasFieldOrPropertyWithValue(
+                messageProp,
+                "the message",
+            ).hasFieldOrProperty("trnInput")
 
         val json = objectMapper.writeValueAsString(ttr)
-        val fromJson = objectMapper.readValue(json, TrustedTrnEvent::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                TrustedTrnEvent::class.java,
+            )
         assertThat(fromJson)
             .usingRecursiveComparison()
             .isEqualTo(ttr)
@@ -168,8 +242,10 @@ internal class TrnInputTest {
             )
 
         assertThat(ttr)
-            .hasFieldOrPropertyWithValue(importFormatProp, ImportFormat.BC)
-            .hasFieldOrProperty(portfolioProp)
+            .hasFieldOrPropertyWithValue(
+                importFormatProp,
+                ImportFormat.BC,
+            ).hasFieldOrProperty(portfolioProp)
             .hasFieldOrProperty("trnInput")
 
         compare(ttr)
@@ -177,7 +253,11 @@ internal class TrnInputTest {
 
     private fun compare(ttr: TrustedTrnEvent) {
         val json = objectMapper.writeValueAsString(ttr)
-        val fromJson = objectMapper.readValue(json, TrustedTrnEvent::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                TrustedTrnEvent::class.java,
+            )
         assertThat(fromJson)
             .usingRecursiveComparison()
             .isEqualTo(ttr)
@@ -185,12 +265,21 @@ internal class TrnInputTest {
 
     @Test
     fun is_TrnQuerySerializing() {
-        val trustedTrnQuery = TrustedTrnQuery(portfolio = getPortfolio(), assetId = "123")
+        val trustedTrnQuery =
+            TrustedTrnQuery(
+                portfolio = getPortfolio(),
+                assetId = "123",
+            )
         val json = objectMapper.writeValueAsString(trustedTrnQuery)
-        val fromJson = objectMapper.readValue(json, TrustedTrnQuery::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                TrustedTrnQuery::class.java,
+            )
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()
-            .usingRecursiveComparison().isEqualTo(trustedTrnQuery)
+            .usingRecursiveComparison()
+            .isEqualTo(trustedTrnQuery)
 
         assertThat(fromJson.toString()).isNotNull
     }

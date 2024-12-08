@@ -18,7 +18,11 @@ class SerializationTests {
     @Test
     fun is_MachineToMachineJsonCorrect() {
         val clientCredentialsRequest =
-            LoginService.ClientCredentialsRequest(client_id = "abc", client_secret = secret, audience = "my-audience")
+            LoginService.ClientCredentialsRequest(
+                client_id = "abc",
+                client_secret = secret,
+                audience = "my-audience",
+            )
         assertThat(clientCredentialsRequest.grant_type).isNotNull
         val json = objectMapper.writeValueAsString(clientCredentialsRequest)
         assertThat(json).contains(
@@ -31,7 +35,11 @@ class SerializationTests {
         )
         val fromJson: Map<String, String> = objectMapper.readValue(json)
         assertThat(fromJson)
-            .containsKeys(oidClientId, oidSecret, oidGrantType)
+            .containsKeys(
+                oidClientId,
+                oidSecret,
+                oidGrantType,
+            )
     }
 
     @Test
@@ -57,7 +65,11 @@ class SerializationTests {
             secret,
         )
         val fromJson: Map<String, String> = objectMapper.readValue(json)
-        assertThat(fromJson).isNotEmpty
-            .containsKeys(oidClientId, oidGrantType)
+        assertThat(fromJson)
+            .isNotEmpty
+            .containsKeys(
+                oidClientId,
+                oidGrantType,
+            )
     }
 }

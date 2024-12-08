@@ -66,11 +66,27 @@ class FxTransactionsRatesTest {
     fun ratesAreSet() {
         val portfolio = PortfolioUtils.getPortfolio()
         val trnInput = TrnInput()
-        val fxRequest = fxTransactions.getFxRequest(portfolio, trnInput)
+        val fxRequest =
+            fxTransactions.getFxRequest(
+                portfolio,
+                trnInput,
+            )
         val rate = BigDecimal("1.50")
         val fxPairResults =
             FxPairResults(
-                mapOf(Pair(IsoCurrencyPair(USD.code, NZD.code), FxRate(from = USD, to = NZD, rate = rate))),
+                mapOf(
+                    Pair(
+                        IsoCurrencyPair(
+                            USD.code,
+                            NZD.code,
+                        ),
+                        FxRate(
+                            from = USD,
+                            to = NZD,
+                            rate = rate,
+                        ),
+                    ),
+                ),
             )
         Mockito
             .`when`(fxClientService.getRates(fxRequest))
@@ -81,11 +97,23 @@ class FxTransactionsRatesTest {
             )
 
         Mockito.`when`(tokenService.bearerToken).thenReturn("")
-        fxTransactions.setRates(portfolio, trnInput)
+        fxTransactions.setRates(
+            portfolio,
+            trnInput,
+        )
         assertThat(trnInput)
-            .hasFieldOrPropertyWithValue("tradeCurrency", USD.code)
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", rate)
+            .hasFieldOrPropertyWithValue(
+                "tradeCurrency",
+                USD.code,
+            ).hasFieldOrPropertyWithValue(
+                "tradeCashRate",
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                "tradeBaseRate",
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                "tradePortfolioRate",
+                rate,
+            )
     }
 }

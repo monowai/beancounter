@@ -26,7 +26,11 @@ import java.math.BigDecimal
  */
 @SpringBootTest(classes = [Accumulator::class])
 internal class MoneyValueTrnTest {
-    private val microsoft = getTestAsset(NASDAQ, "MSFT")
+    private val microsoft =
+        getTestAsset(
+            NASDAQ,
+            "MSFT",
+        )
 
     @Autowired
     private lateinit var accumulator: Accumulator
@@ -59,33 +63,64 @@ internal class MoneyValueTrnTest {
         assertThat(position.quantityValues.getTotal())
             .isEqualTo(hundred)
         assertThat(position.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(pPurchases, twoK)
-            .hasFieldOrPropertyWithValue(pCostBasis, twoK)
+            .hasFieldOrPropertyWithValue(
+                pPurchases,
+                twoK,
+            ).hasFieldOrPropertyWithValue(
+                pCostBasis,
+                twoK,
+            )
         assertThat(position.getMoneyValues(Position.In.BASE))
-            .hasFieldOrPropertyWithValue(pPurchases, twoK)
-            .hasFieldOrPropertyWithValue(pCostBasis, twoK)
+            .hasFieldOrPropertyWithValue(
+                pPurchases,
+                twoK,
+            ).hasFieldOrPropertyWithValue(
+                pCostBasis,
+                twoK,
+            )
 
         val amount = BigDecimal("3448.00")
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
-            .hasFieldOrPropertyWithValue(pPurchases, amount)
-            .hasFieldOrPropertyWithValue(pCostBasis, amount)
+            .hasFieldOrPropertyWithValue(
+                pPurchases,
+                amount,
+            ).hasFieldOrPropertyWithValue(
+                pCostBasis,
+                amount,
+            )
         dividendBehaviour.accumulate(
             dividendTrn(),
             positions,
         )
         assertThat(position.quantityValues.getTotal())
             .isEqualTo(hundred)
-        assertThat(position.getMoneyValues(Position.In.TRADE)).hasFieldOrPropertyWithValue(pDividends, ten)
-        assertThat(position.getMoneyValues(Position.In.BASE)).hasFieldOrPropertyWithValue(pDividends, ten)
+        assertThat(position.getMoneyValues(Position.In.TRADE)).hasFieldOrPropertyWithValue(
+            pDividends,
+            ten,
+        )
+        assertThat(position.getMoneyValues(Position.In.BASE)).hasFieldOrPropertyWithValue(
+            pDividends,
+            ten,
+        )
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
-            .hasFieldOrPropertyWithValue(pDividends, BigDecimal("17.24"))
+            .hasFieldOrPropertyWithValue(
+                pDividends,
+                BigDecimal("17.24"),
+            )
         assertThat(position.dateValues.lastDividend).isNotNull
         assertThat(
             dateUtils.isToday(position.dateValues.lastDividend!!.toString()),
         )
-        splitBehaviour.accumulate(splitTrn(), positions)
+        splitBehaviour.accumulate(
+            splitTrn(),
+            positions,
+        )
 
-        val deepCopy = objectMapper.readValue(objectMapper.writeValueAsBytes(position), Position::class.java)
+        val deepCopy =
+            objectMapper.readValue(
+                objectMapper.writeValueAsBytes(position),
+                Position::class.java,
+            )
         assertThat(position.getMoneyValues(Position.In.TRADE).costBasis)
             .isEqualTo(deepCopy.getMoneyValues(Position.In.TRADE).costBasis)
         assertThat(position.getMoneyValues(Position.In.BASE).costBasis)
@@ -96,7 +131,10 @@ internal class MoneyValueTrnTest {
             sellTrn(position),
             positions,
         )
-        validatePosition(position, amount)
+        validatePosition(
+            position,
+            amount,
+        )
     }
 
     private fun buyTrn() =

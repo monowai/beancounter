@@ -16,13 +16,14 @@ import java.time.LocalDate
  */
 data class TrustedTrnQuery(
     val portfolio: Portfolio,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd",
+    )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val tradeDate: LocalDate = DateUtils().date,
     val assetId: String,
 ) {
-    override fun toString(): String {
-        return "TrustedTrnQuery(portfolio=$portfolio, tradeDate=$tradeDate, assetId=$assetId)"
-    }
+    override fun toString(): String = "TrustedTrnQuery(portfolio=$portfolio, tradeDate=$tradeDate, assetId=$assetId)"
 }

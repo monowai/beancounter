@@ -67,18 +67,48 @@ class ShareSightRatesInTrn {
         Assertions.assertThat(portfolio).isNotNull
 
         // Trade is in USD
-        row.add(ShareSightDividendAdapter.ID, "ABC")
-        row.add(ShareSightDividendAdapter.CODE, "ABBV.NYS")
-        row.add(ShareSightDividendAdapter.NAME, "Test Asset")
-        row.add(ShareSightDividendAdapter.DATE, "21/01/2019")
+        row.add(
+            ShareSightDividendAdapter.ID,
+            "ABC",
+        )
+        row.add(
+            ShareSightDividendAdapter.CODE,
+            "ABBV.NYS",
+        )
+        row.add(
+            ShareSightDividendAdapter.NAME,
+            "Test Asset",
+        )
+        row.add(
+            ShareSightDividendAdapter.DATE,
+            "21/01/2019",
+        )
         val rate = "0.8074" // Sharesight Trade to Reference Rate
-        row.add(ShareSightDividendAdapter.FX_RATE, rate)
-        row.add(ShareSightDividendAdapter.CURRENCY, USD.code) // TradeCurrency
+        row.add(
+            ShareSightDividendAdapter.FX_RATE,
+            rate,
+        )
+        row.add(
+            ShareSightDividendAdapter.CURRENCY,
+            USD.code,
+        ) // TradeCurrency
         val net = "15.85"
-        row.add(ShareSightDividendAdapter.NET, net)
-        row.add(ShareSightDividendAdapter.TAX, BigDecimal.ZERO.toString())
-        row.add(ShareSightDividendAdapter.GROSS, net)
-        row.add(ShareSightDividendAdapter.COMMENTS, testComment)
+        row.add(
+            ShareSightDividendAdapter.NET,
+            net,
+        )
+        row.add(
+            ShareSightDividendAdapter.TAX,
+            BigDecimal.ZERO.toString(),
+        )
+        row.add(
+            ShareSightDividendAdapter.GROSS,
+            net,
+        )
+        row.add(
+            ShareSightDividendAdapter.COMMENTS,
+            testComment,
+        )
         val dividends = shareSightFactory.adapter(row)
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
@@ -88,22 +118,39 @@ class ShareSightRatesInTrn {
             )
         val trn = dividends.from(trustedTrnImportRequest)
         val fxRate = BigDecimal(rate)
-        Assertions.assertThat(trn) // Id comes from svc-data/contracts/assets
-            .hasFieldOrPropertyWithValue("callerRef.callerId", "ABC")
-            .hasFieldOrPropertyWithValue("assetId", "BguoVZpoRxWeWrITp7DEuw")
-            .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
+        Assertions
+            .assertThat(trn) // Id comes from svc-data/contracts/assets
             .hasFieldOrPropertyWithValue(
+                "callerRef.callerId",
+                "ABC",
+            ).hasFieldOrPropertyWithValue(
+                "assetId",
+                "BguoVZpoRxWeWrITp7DEuw",
+            ).hasFieldOrPropertyWithValue(
+                "tradeCashRate",
+                fxRate,
+            ).hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiplyAbs(BigDecimal(net), fxRate),
-            )
-            .hasFieldOrPropertyWithValue(
+                multiplyAbs(
+                    BigDecimal(net),
+                    fxRate,
+                ),
+            ).hasFieldOrPropertyWithValue(
                 "cashAmount",
-                multiplyAbs(BigDecimal(net), fxRate),
-            )
-            .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("comments", row[ShareSightDividendAdapter.COMMENTS])
-            .hasFieldOrPropertyWithValue("tradeCurrency", USD.code)
-            .hasFieldOrProperty("tradeDate")
+                multiplyAbs(
+                    BigDecimal(net),
+                    fxRate,
+                ),
+            ).hasFieldOrPropertyWithValue(
+                "tax",
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                "comments",
+                row[ShareSightDividendAdapter.COMMENTS],
+            ).hasFieldOrPropertyWithValue(
+                "tradeCurrency",
+                USD.code,
+            ).hasFieldOrProperty("tradeDate")
     }
 
     @Test
@@ -111,9 +158,18 @@ class ShareSightRatesInTrn {
     fun is_TradeRowWithFxConverted() {
         val fxRate = "0.8988"
         val tradeAmount = "2097.85"
-        val row: List<String> = getRow("buy", fxRate, tradeAmount)
+        val row: List<String> =
+            getRow(
+                "buy",
+                fxRate,
+                tradeAmount,
+            )
         // Portfolio is in NZD
-        val portfolio = getPortfolio("is_TradeRowWithFxConverted", NZD)
+        val portfolio =
+            getPortfolio(
+                "is_TradeRowWithFxConverted",
+                NZD,
+            )
         // System base currency
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
@@ -124,19 +180,34 @@ class ShareSightRatesInTrn {
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
 
         log.info(objectMapper.writeValueAsString(trn))
-        Assertions.assertThat(trn)
-            .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal(10))
-            .hasFieldOrPropertyWithValue("price", BigDecimal("12.23"))
-            .hasFieldOrPropertyWithValue("fees", BigDecimal("14.45"))
+        Assertions
+            .assertThat(trn)
             .hasFieldOrPropertyWithValue(
+                "trnType",
+                TrnType.BUY,
+            ).hasFieldOrPropertyWithValue(
+                "quantity",
+                BigDecimal(10),
+            ).hasFieldOrPropertyWithValue(
+                "price",
+                BigDecimal("12.23"),
+            ).hasFieldOrPropertyWithValue(
+                "fees",
+                BigDecimal("14.45"),
+            ).hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiplyAbs(BigDecimal(tradeAmount), BigDecimal(fxRate)),
-            )
-            .hasFieldOrPropertyWithValue("comments", testComment)
-            .hasFieldOrProperty("tradeCurrency")
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal(fxRate))
-            .hasFieldOrProperty("tradeDate")
+                multiplyAbs(
+                    BigDecimal(tradeAmount),
+                    BigDecimal(fxRate),
+                ),
+            ).hasFieldOrPropertyWithValue(
+                "comments",
+                testComment,
+            ).hasFieldOrProperty("tradeCurrency")
+            .hasFieldOrPropertyWithValue(
+                "tradeCashRate",
+                BigDecimal(fxRate),
+            ).hasFieldOrProperty("tradeDate")
     }
 
     companion object {

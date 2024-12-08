@@ -46,12 +46,28 @@ class MarketValue(
         valuationContexts.forEach { (context, currency) ->
             val rate =
                 if (context == Position.In.TRADE) {
-                    FxRate(tradeCurrency, tradeCurrency, BigDecimal.ONE, dateUtils.getDate(positions.asAt))
+                    FxRate(
+                        tradeCurrency,
+                        tradeCurrency,
+                        BigDecimal.ONE,
+                        dateUtils.getDate(positions.asAt),
+                    )
                 } else {
-                    rate(tradeCurrency, currency, positions.asAt, rates)
+                    rate(
+                        tradeCurrency,
+                        currency,
+                        positions.asAt,
+                        rates,
+                    )
                 }
 
-            value(position, context, marketData, rate, isCash)
+            value(
+                position,
+                context,
+                marketData,
+                rate,
+                isCash,
+            )
         }
 
         return position
@@ -67,26 +83,38 @@ class MarketValue(
         val total = position.quantityValues.getTotal()
         val moneyValues = position.getMoneyValues(positionIn)
 
-        moneyValues.priceData = of(mktData, rate.rate)
+        moneyValues.priceData =
+            of(
+                mktData,
+                rate.rate,
+            )
         if (total.signum() == 0) {
             moneyValues.marketValue = BigDecimal.ZERO
         } else {
             val close = moneyValues.priceData.close
             moneyValues.marketValue =
                 Objects.requireNonNull(
-                    multiply(close, total),
+                    multiply(
+                        close,
+                        total,
+                    ),
                 )!!
 
             if (!isCash) {
-                moneyValues.gainOnDay = (close.subtract(moneyValues.priceData.previousClose)).multiply(total)
+                moneyValues.gainOnDay =
+                    (close.subtract(moneyValues.priceData.previousClose)).multiply(total)
             }
         }
         if (isCash) {
             moneyValues.realisedGain = BigDecimal.ZERO // Will figure this out later
             moneyValues.unrealisedGain = moneyValues.marketValue.subtract(moneyValues.costBasis)
-            moneyValues.totalGain = moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
+            moneyValues.totalGain =
+                moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
         } else {
-            gains.value(total, moneyValues)
+            gains.value(
+                total,
+                moneyValues,
+            )
         }
     }
 
@@ -97,9 +125,19 @@ class MarketValue(
         rates: Map<IsoCurrencyPair, FxRate>,
     ): FxRate =
         if (from.code == to.code) {
-            FxRate(from, to, BigDecimal.ONE, dateUtils.getDate(asAt))
+            FxRate(
+                from,
+                to,
+                BigDecimal.ONE,
+                dateUtils.getDate(asAt),
+            )
         } else {
-            rates[IsoCurrencyPair(from.code, to.code)]
+            rates[
+                IsoCurrencyPair(
+                    from.code,
+                    to.code,
+                ),
+            ]
                 ?: throw BusinessException("No rate available for ${from.code} to ${to.code}")
         }
 }

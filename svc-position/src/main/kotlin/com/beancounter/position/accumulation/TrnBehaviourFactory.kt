@@ -30,8 +30,11 @@ import java.util.EnumMap
     BalanceBehaviour::class,
 )
 @Service
-class TrnBehaviourFactory(strategies: List<AccumulationStrategy>) {
-    private val trnBehaviours: MutableMap<TrnType, AccumulationStrategy> = EnumMap(TrnType::class.java)
+class TrnBehaviourFactory(
+    strategies: List<AccumulationStrategy>,
+) {
+    private val trnBehaviours: MutableMap<TrnType, AccumulationStrategy> =
+        EnumMap(TrnType::class.java)
 
     init {
         strategies.forEach { strategy ->

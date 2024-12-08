@@ -43,9 +43,17 @@ class CsvIngester : AbstractIngester() {
             }
         }
         if (reader == null) {
-            throw SystemException(String.format("Unable to resolve %s", trimmedFile))
+            throw SystemException(
+                String.format(
+                    "Unable to resolve %s",
+                    trimmedFile,
+                ),
+            )
         }
-        log.info("Import {}", trimmedFile)
+        log.info(
+            "Import {}",
+            trimmedFile,
+        )
     }
 
     // Skip header

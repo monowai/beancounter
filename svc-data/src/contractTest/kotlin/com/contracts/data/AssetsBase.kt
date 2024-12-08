@@ -22,19 +22,29 @@ class AssetsBase : ContractVerifierBase() {
 
     @BeforeEach
     fun mockAssets() {
-        Mockito.`when`(assetService.find("KMI"))
+        Mockito
+            .`when`(assetService.find("KMI"))
             .thenReturn(
-                objectMapper.readValue(
-                    ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
-                    AssetResponse::class.java,
-                ).data,
+                objectMapper
+                    .readValue(
+                        ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
+                        AssetResponse::class.java,
+                    ).data,
             )
-        Mockito.`when`(assetService.findOrCreate(AssetInput("NASDAQ", "NDAQ")))
-            .thenReturn(
-                objectMapper.readValue(
-                    ClassPathResource("contracts/assets/ndaq-asset.json").file,
-                    AssetResponse::class.java,
-                ).data,
+        Mockito
+            .`when`(
+                assetService.findOrCreate(
+                    AssetInput(
+                        "NASDAQ",
+                        "NDAQ",
+                    ),
+                ),
+            ).thenReturn(
+                objectMapper
+                    .readValue(
+                        ClassPathResource("contracts/assets/ndaq-asset.json").file,
+                        AssetResponse::class.java,
+                    ).data,
             )
         mockAssets(assetService)
     }
@@ -92,9 +102,18 @@ class AssetsBase : ContractVerifierBase() {
         jsonResponse: File,
         assetService: AssetService,
     ) {
-        val assetRequest = objectMapper.readValue(jsonRequest, AssetRequest::class.java)
-        val assetUpdateResponse = objectMapper.readValue(jsonResponse, AssetUpdateResponse::class.java)
-        Mockito.`when`(assetService.handle(assetRequest))
+        val assetRequest =
+            objectMapper.readValue(
+                jsonRequest,
+                AssetRequest::class.java,
+            )
+        val assetUpdateResponse =
+            objectMapper.readValue(
+                jsonResponse,
+                AssetUpdateResponse::class.java,
+            )
+        Mockito
+            .`when`(assetService.handle(assetRequest))
             .thenReturn(assetUpdateResponse)
 
         val keys = assetUpdateResponse.data.keys
@@ -102,15 +121,15 @@ class AssetsBase : ContractVerifierBase() {
             val theAsset = assetUpdateResponse.data[key]
             theAsset!!.id
             Mockito.`when`(assetService.find(theAsset.id)).thenReturn(theAsset)
-            Mockito.`when`(
-                assetService.findLocally(
-                    AssetInput(
-                        theAsset.market.code.uppercase(Locale.getDefault()),
-                        theAsset.code.uppercase(Locale.getDefault()),
+            Mockito
+                .`when`(
+                    assetService.findLocally(
+                        AssetInput(
+                            theAsset.market.code.uppercase(Locale.getDefault()),
+                            theAsset.code.uppercase(Locale.getDefault()),
+                        ),
                     ),
-                ),
-            )
-                .thenReturn(theAsset)
+                ).thenReturn(theAsset)
         }
     }
 }

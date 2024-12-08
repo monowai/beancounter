@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.RequestMethod
  * @author mikeh
  * @since 2019-03-03
  */
-@FeignClient(name = "alphaVantage", url = "\${beancounter.market.providers.alpha.url:https://www.alphavantage.co}")
+@FeignClient(
+    name = "alphaVantage",
+    url = "\${beancounter.market.providers.alpha.url:https://www.alphavantage.co}",
+)
 interface AlphaGateway {
     @RequestMapping(
         method = [RequestMethod.GET],

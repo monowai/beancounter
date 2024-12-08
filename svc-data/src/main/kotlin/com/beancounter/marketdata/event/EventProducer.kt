@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service
  * Kafka Corporate Action/Event subscriber.
  */
 @Service
-@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["kafka.enabled"],
+    matchIfMissing = true,
+)
 class EventProducer {
     @Value("\${kafka.enabled:true}")
     var kafkaEnabled: Boolean = false
@@ -29,7 +32,10 @@ class EventProducer {
 
     @PostConstruct
     fun logConfig() {
-        log.info("BEANCOUNTER_TOPICS_CA_EVENT: {}", topicEvent)
+        log.info(
+            "BEANCOUNTER_TOPICS_CA_EVENT: {}",
+            topicEvent,
+        )
     }
 
     @Autowired
@@ -51,17 +57,23 @@ class EventProducer {
                 rate = marketData.dividend,
                 split = marketData.split,
             )
-        log.trace("Dispatch {} ... {}", topicEvent, marketData)
-        kafkaCaProducer.send(topicEvent, TrustedEventInput(corporateEvent))
+        log.trace(
+            "Dispatch {} ... {}",
+            topicEvent,
+            marketData,
+        )
+        kafkaCaProducer.send(
+            topicEvent,
+            TrustedEventInput(corporateEvent),
+        )
     }
 
-    private fun isValidEvent(marketData: MarketData?): Boolean {
-        return if (marketData == null) {
+    private fun isValidEvent(marketData: MarketData?): Boolean =
+        if (marketData == null) {
             false
         } else {
             isSplit(marketData) || isDividend(marketData)
         }
-    }
 
     companion object {
         private val log = LoggerFactory.getLogger(EventProducer::class.java)

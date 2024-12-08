@@ -22,7 +22,11 @@ internal class TestMarketData {
         val marketDataCollection: MutableCollection<MarketData> = ArrayList()
         val marketData =
             MarketData(
-                asset = getJsonAsset("Market", "Asset"),
+                asset =
+                getJsonAsset(
+                    "Market",
+                    "Asset",
+                ),
                 source = "TEST",
                 priceDate = dateUtils.getFormattedDate("2012-10-01"),
                 open = BigDecimal.ONE,
@@ -53,9 +57,16 @@ internal class TestMarketData {
         val quantityValues = QuantityValues()
         AssertionsForClassTypes
             .assertThat(quantityValues)
-            .hasFieldOrPropertyWithValue("sold", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("purchased", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("adjustment", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                "sold",
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                "purchased",
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                "adjustment",
+                BigDecimal.ZERO,
+            )
         AssertionsForClassTypes.assertThat(quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
         val json = objectMapper.writeValueAsString(quantityValues)
         assertThat(objectMapper.readValue<QuantityValues>(json))
@@ -69,7 +80,11 @@ internal class TestMarketData {
             PriceRequest(
                 "2019-11-11",
                 arrayListOf(
-                    PriceAsset("XYZ", "ABC", assetId = "ABC"),
+                    PriceAsset(
+                        "XYZ",
+                        "ABC",
+                        assetId = "ABC",
+                    ),
                 ),
             )
         val json = objectMapper.writeValueAsString(priceRequest)
@@ -85,13 +100,19 @@ internal class TestMarketData {
         fun compare(mdResponse: MarketData) {
             assertThat(mdResponse)
                 .usingRecursiveComparison()
-                .ignoringFields("marketData", "asset")
+                .ignoringFields(
+                    "marketData",
+                    "asset",
+                )
             assertThat(mdResponse.asset.market)
                 .usingRecursiveComparison()
                 .ignoringFields("marketData.asset.market")
             assertThat(mdResponse.asset)
                 .usingRecursiveComparison()
-                .ignoringFields("marketData.asset", "market")
+                .ignoringFields(
+                    "marketData.asset",
+                    "market",
+                )
         }
     }
 }

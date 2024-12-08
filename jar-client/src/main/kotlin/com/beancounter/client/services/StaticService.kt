@@ -29,9 +29,7 @@ class StaticService(
 ) : MarketService {
     @NonNull
     @Retry(name = "data")
-    override fun getMarkets(): MarketResponse {
-        return staticGateway.getMarkets(tokenService.bearerToken)
-    }
+    override fun getMarkets(): MarketResponse = staticGateway.getMarkets(tokenService.bearerToken)
 
     val currencies: CurrencyResponse
         get() = staticGateway.getCurrencies(tokenService.bearerToken)
@@ -42,18 +40,27 @@ class StaticService(
         }
         val currencies = currencies.data
         for (currency in currencies) {
-            if (currency.code.equals(currencyCode, ignoreCase = true)) {
+            if (currency.code.equals(
+                    currencyCode,
+                    ignoreCase = true,
+                )
+            ) {
                 return currency
             }
         }
-        throw BusinessException(String.format("Unable to resolve the currency %s", currencyCode))
+        throw BusinessException(
+            String.format(
+                "Unable to resolve the currency %s",
+                currencyCode,
+            ),
+        )
     }
 
     @Cacheable("market")
     override fun getMarket(
         @NonNull marketCode: String,
-    ): Market {
-        return try {
+    ): Market =
+        try {
             val (data) =
                 staticGateway.getMarketByCode(
                     tokenService.bearerToken,
@@ -66,25 +73,36 @@ class StaticService(
         } catch (re: FeignException) {
             throw BusinessException("Error resolving market code $marketCode")
         }
-    }
 
     /**
      * API calls to the BC-DATA service to obtain the data.
      */
-    @FeignClient(name = "static", url = "\${marketdata.url:http://localhost:9510}")
+    @FeignClient(
+        name = "static",
+        url = "\${marketdata.url:http://localhost:9510}",
+    )
     interface StaticGateway {
-        @GetMapping(value = ["/api/markets"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(
+            value = ["/api/markets"],
+            produces = [MediaType.APPLICATION_JSON_VALUE],
+        )
         fun getMarkets(
             @RequestHeader("Authorization") bearerToken: String?,
         ): MarketResponse
 
-        @GetMapping(value = ["/api/markets/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(
+            value = ["/api/markets/{code}"],
+            produces = [MediaType.APPLICATION_JSON_VALUE],
+        )
         fun getMarketByCode(
             @RequestHeader("Authorization") bearerToken: String?,
             @PathVariable code: String?,
         ): MarketResponse
 
-        @GetMapping(value = ["/api/currencies"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(
+            value = ["/api/currencies"],
+            produces = [MediaType.APPLICATION_JSON_VALUE],
+        )
         fun getCurrencies(
             @RequestHeader("Authorization") bearerToken: String?,
         ): CurrencyResponse

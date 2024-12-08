@@ -20,9 +20,15 @@ data class Portfolio(
     @Id val id: String,
     val code: String = id,
     val name: String = code,
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     val marketValue: BigDecimal = BigDecimal.ZERO,
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     val irr: BigDecimal = BigDecimal.ZERO,
     @ManyToOne val currency: Currency = Currency("USD"),
     @ManyToOne val base: Currency = currency,

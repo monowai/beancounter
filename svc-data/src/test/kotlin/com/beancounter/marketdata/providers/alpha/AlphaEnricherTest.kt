@@ -37,23 +37,59 @@ class AlphaEnricherTest {
             ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/global-empty.json").file,
         )
 
-        val assetRequest = AssetRequest(AssetInput(Constants.NASDAQ.code, key, "My Default Name"))
+        val assetRequest =
+            AssetRequest(
+                AssetInput(
+                    Constants.NASDAQ.code,
+                    key,
+                    "My Default Name",
+                ),
+            )
         val assetResponse = assetService.handle(assetRequest)
         assertThat(assetResponse).isNotNull
         assertThat(assetResponse.data)
             .hasSize(1)
-            .containsKey(assetRequest.data.iterator().next().key)
+            .containsKey(
+                assetRequest.data
+                    .iterator()
+                    .next()
+                    .key,
+            )
 
-        val createdAsset = assetResponse.data.iterator().next().value
+        val createdAsset =
+            assetResponse.data
+                .iterator()
+                .next()
+                .value
         assertThat(createdAsset)
-            .hasFieldOrPropertyWithValue("name", createdAsset.name)
-            .hasFieldOrPropertyWithValue("code", createdAsset.code)
+            .hasFieldOrPropertyWithValue(
+                "name",
+                createdAsset.name,
+            ).hasFieldOrPropertyWithValue(
+                "code",
+                createdAsset.code,
+            )
     }
 
     @Test
     fun is_currencyMatching() {
-        assertThat(alphaEnricher.currencyMatch("GBX", "GBP")).isTrue
-        assertThat(alphaEnricher.currencyMatch("GBP", "GBP")).isTrue
-        assertThat(alphaEnricher.currencyMatch("AUD", "GBP")).isFalse
+        assertThat(
+            alphaEnricher.currencyMatch(
+                "GBX",
+                "GBP",
+            ),
+        ).isTrue
+        assertThat(
+            alphaEnricher.currencyMatch(
+                "GBP",
+                "GBP",
+            ),
+        ).isTrue
+        assertThat(
+            alphaEnricher.currencyMatch(
+                "AUD",
+                "GBP",
+            ),
+        ).isFalse
     }
 }

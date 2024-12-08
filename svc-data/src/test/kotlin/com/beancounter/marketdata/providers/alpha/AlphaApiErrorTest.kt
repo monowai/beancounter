@@ -60,60 +60,82 @@ class AlphaApiErrorTest {
     @Test
     fun is_ApiErrorMessageHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageError.json").file
-        mockGlobalResponse("${AlphaConstants.API}.ERR", jsonFile)
+        mockGlobalResponse(
+            "${AlphaConstants.API}.ERR",
+            jsonFile
+        )
         val asset = Asset(code = AlphaConstants.API, market = Market("ERR", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
 
         val results = alphaProvider.getMarketData(PriceRequest.of(asset))
-        assertThat(results)
-            .isNotNull
-            .hasSize(1)
+        assertThat(results).isNotNull.hasSize(1)
         assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue(P_ASSET, asset)
-            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                P_ASSET,
+                asset
+            ).hasFieldOrPropertyWithValue(
+                P_CLOSE,
+                BigDecimal.ZERO
+            )
     }
 
     @Test
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageInfo.json").file
-        mockGlobalResponse("$api.KEY", jsonFile)
-        val asset = getTestAsset(code = api, market = Market("KEY", Constants.USD.code))
+        mockGlobalResponse(
+            "$api.KEY",
+            jsonFile
+        )
+        val asset =
+            getTestAsset(
+                code = api,
+                market = Market("KEY", Constants.USD.code)
+            )
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
 
         val results =
             alphaProvider.getMarketData(
-                PriceRequest.Companion.of(asset),
+                PriceRequest.Companion.of(asset)
             )
-        assertThat(results)
-            .isNotNull
-            .hasSize(1)
+        assertThat(results).isNotNull.hasSize(1)
         assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue(P_ASSET, asset)
-            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                P_ASSET,
+                asset
+            ).hasFieldOrPropertyWithValue(
+                P_CLOSE,
+                BigDecimal.ZERO
+            )
     }
 
     @Test
     fun is_ApiCallLimitExceededHandled() {
         val nasdaq = marketService.getMarket(Constants.NASDAQ.code)
-        val asset = getTestAsset(code = "ABC", market = nasdaq)
+        val asset =
+            getTestAsset(
+                code = "ABC",
+                market = nasdaq
+            )
         mockGlobalResponse(
             asset.id,
-            ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageNote.json").file,
+            ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageNote.json").file
         )
         assertThat(asset).isNotNull
 
         val results =
-            mdFactory.getMarketDataProvider(AlphaPriceService.ID)
-                .getMarketData(
-                    PriceRequest.of(asset),
-                )
-        assertThat(results)
-            .isNotNull
-            .hasSize(1)
+            mdFactory.getMarketDataProvider(AlphaPriceService.ID).getMarketData(
+                PriceRequest.of(asset)
+            )
+        assertThat(results).isNotNull.hasSize(1)
         val mdpPrice = results.iterator().next()
         assertThat(mdpPrice)
-            .hasFieldOrPropertyWithValue(P_ASSET, asset)
-            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                P_ASSET,
+                asset
+            ).hasFieldOrPropertyWithValue(
+                P_CLOSE,
+                BigDecimal.ZERO
+            )
         assertThat(marketDataService.getPriceResponse(PriceRequest.of(asset))).isNotNull
     }
 }

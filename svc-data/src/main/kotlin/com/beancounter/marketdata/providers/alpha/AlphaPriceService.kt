@@ -49,25 +49,52 @@ class AlphaPriceService(
     fun logStatus() =
         log.info(
             "BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: {}",
-            if (apiKey.substring(0, 4).equals("demo", ignoreCase = true)) "demo" else "** Redacted **",
+            if (apiKey
+                .substring(
+                        0,
+                        4,
+                    ).equals(
+                        "demo",
+                        ignoreCase = true,
+                    )
+            ) {
+                "demo"
+            } else {
+                "** Redacted **"
+            },
         )
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-        val providerArguments = getInstance(priceRequest, alphaConfig)
+        val providerArguments =
+            getInstance(
+                priceRequest,
+                alphaConfig,
+            )
         val requests = mutableMapOf<Int, Deferred<String>>()
 
         for (batchId in providerArguments.batch.keys) {
             requests[batchId] =
                 CoroutineScope(Dispatchers.Default).async {
                     if (priceRequest.currentMode) {
-                        alphaProxy.getCurrent(providerArguments.batch[batchId]!!, apiKey)
+                        alphaProxy.getCurrent(
+                            providerArguments.batch[batchId]!!,
+                            apiKey,
+                        )
                     } else {
-                        alphaProxy.getHistoric(providerArguments.batch[batchId]!!, apiKey)
+                        alphaProxy.getHistoric(
+                            providerArguments.batch[batchId]!!,
+                            apiKey,
+                        )
                     }
                 }
         }
 
-        return runBlocking { getMarketData(providerArguments, requests) }
+        return runBlocking {
+            getMarketData(
+                providerArguments,
+                requests,
+            )
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -107,14 +134,25 @@ class AlphaPriceService(
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest,
-    ) = alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
+    ) = alphaConfig.getMarketDate(
+        market,
+        priceRequest.date,
+        priceRequest.currentMode,
+    )
 
     override fun backFill(asset: Asset): PriceResponse {
-        val json = alphaProxy.getAdjusted(asset.code, apiKey)
+        val json =
+            alphaProxy.getAdjusted(
+                asset.code,
+                apiKey,
+            )
         val priceResponse: PriceResponse =
             alphaConfig
                 .getObjectMapper()
-                .readValue(json, PriceResponse::class.java)
+                .readValue(
+                    json,
+                    PriceResponse::class.java,
+                )
         for (marketData in priceResponse.data) {
             marketData.source = ID
             marketData.asset = asset

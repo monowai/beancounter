@@ -9,7 +9,9 @@ import java.time.LocalDate
  * One date for each split days period is calculated.
  */
 @Service
-class DateSplitter(val dateUtils: DateUtils) {
+class DateSplitter(
+    val dateUtils: DateUtils,
+) {
     fun split(
         days: Int = 25,
         from: String = dateUtils.date.minusDays(days.toLong()).toString(),
@@ -39,11 +41,19 @@ class DateSplitter(val dateUtils: DateUtils) {
         toDate: String,
     ): List<LocalDate> {
         val asAt: String =
-            if (date.equals(DateUtils.TODAY, ignoreCase = true)) {
+            if (date.equals(
+                    DateUtils.TODAY,
+                    ignoreCase = true,
+                )
+            ) {
                 dateUtils.today()
             } else {
                 dateUtils.getFormattedDate(date).toString()
             }
-        return split(from = asAt, until = toDate, days = 1)
+        return split(
+            from = asAt,
+            until = toDate,
+            days = 1,
+        )
     }
 }

@@ -41,7 +41,10 @@ class TestAssetIngestService {
     fun is_HydratedAssetFound() {
         val asset =
             assetIngestService.resolveAsset(
-                AssetInput(nasdaq, msft),
+                AssetInput(
+                    nasdaq,
+                    msft,
+                ),
             )
         assertThat(asset)
             .isNotNull
@@ -53,7 +56,12 @@ class TestAssetIngestService {
     @Test
     fun is_NotFound() {
         assertThrows(BusinessException::class.java) {
-            assetIngestService.resolveAsset(AssetInput(nasdaq, "ABC"))
+            assetIngestService.resolveAsset(
+                AssetInput(
+                    nasdaq,
+                    "ABC",
+                ),
+            )
         }
     }
 }

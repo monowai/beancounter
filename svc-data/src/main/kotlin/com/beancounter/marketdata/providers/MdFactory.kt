@@ -25,10 +25,22 @@ class MdFactory internal constructor(
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
-            Pair(CashProviderService.ID, cashProviderService),
-            Pair(MarketStackService.ID, marketStackService),
-            Pair(AlphaPriceService.ID, alphaPriceService),
-            Pair(OffMarketDataProvider.ID, offMarketDataProvider),
+            Pair(
+                CashProviderService.ID,
+                cashProviderService,
+            ),
+            Pair(
+                MarketStackService.ID,
+                marketStackService,
+            ),
+            Pair(
+                AlphaPriceService.ID,
+                alphaPriceService,
+            ),
+            Pair(
+                OffMarketDataProvider.ID,
+                offMarketDataProvider,
+            ),
         )
 
     /**
@@ -40,7 +52,8 @@ class MdFactory internal constructor(
     @Cacheable("provider")
     fun getMarketDataProvider(market: Market): MarketDataPriceProvider = resolveProvider(market)
 
-    fun getMarketDataProvider(provider: String): MarketDataPriceProvider = providers[provider.uppercase(Locale.getDefault())]!!
+    fun getMarketDataProvider(provider: String): MarketDataPriceProvider =
+        providers[provider.uppercase(Locale.getDefault())]!!
 
     private fun resolveProvider(market: Market): MarketDataPriceProvider {
         // ToDo: Map Market to Provider
@@ -49,7 +62,10 @@ class MdFactory internal constructor(
                 return providers[key]!!
             }
         }
-        log.error("Unable to identify a provider for {}", market)
+        log.error(
+            "Unable to identify a provider for {}",
+            market,
+        )
         return providers[CashProviderService.ID]!!
     }
 

@@ -23,7 +23,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/portfolios")
 @CrossOrigin
-@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
+@PreAuthorize(
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+)
 class PortfolioController internal constructor(
     private val portfolioService: PortfolioService,
     private val dateUtils: DateUtils,
@@ -54,7 +56,13 @@ class PortfolioController internal constructor(
     fun savePortfolio(
         @PathVariable id: String,
         @RequestBody portfolio: PortfolioInput,
-    ): PortfolioResponse = PortfolioResponse(portfolioService.update(id, portfolio))
+    ): PortfolioResponse =
+        PortfolioResponse(
+            portfolioService.update(
+                id,
+                portfolio,
+            ),
+        )
 
     @PostMapping
     fun savePortfolios(
@@ -65,5 +73,9 @@ class PortfolioController internal constructor(
     fun getWhereHeld(
         @PathVariable("assetId") assetId: String,
         @PathVariable("tradeDate") tradeDate: String,
-    ): PortfoliosResponse = portfolioService.findWhereHeld(assetId, dateUtils.getFormattedDate(tradeDate))
+    ): PortfoliosResponse =
+        portfolioService.findWhereHeld(
+            assetId,
+            dateUtils.getFormattedDate(tradeDate),
+        )
 }

@@ -16,24 +16,30 @@ class EnvCommands(
     private val actuatorService: ActuatorService,
 ) {
     @ShellMethod("Current working directory")
-    fun pwd(): String {
-        return FileSystems.getDefault().getPath("")
-            .toAbsolutePath().toString()
-    }
+    fun pwd(): String =
+        FileSystems
+            .getDefault()
+            .getPath("")
+            .toAbsolutePath()
+            .toString()
 
     @ShellMethod
-    fun ping(): String {
-        return actuatorService.ping()
-    }
+    fun ping(): String = actuatorService.ping()
 
     @ShellMethod("Shell configuration")
-    fun env(): String {
-        return ObjectMapper().writerWithDefaultPrettyPrinter()
+    fun env(): String =
+        ObjectMapper()
+            .writerWithDefaultPrettyPrinter()
             .writeValueAsString(
                 mapOf(
-                    Pair("MARKETDATA_URL", envConfig.marketDataUrl),
-                    Pair("ACTUATOR_URL", envConfig.mdActuator),
+                    Pair(
+                        "MARKETDATA_URL",
+                        envConfig.marketDataUrl,
+                    ),
+                    Pair(
+                        "ACTUATOR_URL",
+                        envConfig.mdActuator,
+                    ),
                 ),
             )
-    }
 }

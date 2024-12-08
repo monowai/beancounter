@@ -11,7 +11,5 @@ import java.util.function.Predicate
  * @since 2019-02-03
  */
 class RecordFailurePredicate : Predicate<Throwable?> {
-    override fun test(throwable: Throwable?): Boolean {
-        return throwable !is BusinessException
-    }
+    override fun test(throwable: Throwable?): Boolean = throwable !is BusinessException
 }

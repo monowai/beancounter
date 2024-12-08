@@ -8,14 +8,20 @@ import java.math.BigDecimal
 /**
  * Calculate the cost of cash
  */
-class CashCost(val averageCost: AverageCost = AverageCost()) {
+class CashCost(
+    val averageCost: AverageCost = AverageCost(),
+) {
     fun value(
         moneyValues: MoneyValues,
         position: Position,
         quantity: BigDecimal,
         rate: BigDecimal,
     ) {
-        val amount = MathUtils.multiply(quantity, rate) ?: return
+        val amount =
+            MathUtils.multiply(
+                quantity,
+                rate,
+            ) ?: return
 
         // Update purchases or sales based on the sign of the quantity
         if (quantity > BigDecimal.ZERO) {
@@ -30,8 +36,16 @@ class CashCost(val averageCost: AverageCost = AverageCost()) {
         val totalQuantity = position.quantityValues.getTotal()
         if (totalQuantity.signum() != 0) {
             // Calculate average cost and cost value only if total quantity is not zero
-            moneyValues.averageCost = averageCost.value(moneyValues.costBasis, totalQuantity)
-            moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
+            moneyValues.averageCost =
+                averageCost.value(
+                    moneyValues.costBasis,
+                    totalQuantity,
+                )
+            moneyValues.costValue =
+                averageCost.getCostValue(
+                    position,
+                    moneyValues,
+                )
         } else {
             // Reset monetary values if total quantity is zero
             moneyValues.resetCosts()

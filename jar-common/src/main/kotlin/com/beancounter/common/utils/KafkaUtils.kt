@@ -20,12 +20,11 @@ class KafkaUtils {
      * @return The string representation of the first 'com.beancounter' stack trace element, or
      *         "No BC Classes Found" if no such element exists.
      */
-    fun findBcCause(e: ListenerExecutionFailedException): String {
-        return e.mostSpecificCause.stackTrace
+    fun findBcCause(e: ListenerExecutionFailedException): String =
+        e.mostSpecificCause.stackTrace
             .firstOrNull { it.className.contains("com.beancounter") }
             ?.toString()
             ?: "No BC Classes Found"
-    }
 
     /**
      * Provides a custom error handler for Kafka listeners to log detailed error information.
@@ -40,7 +39,9 @@ class KafkaUtils {
             val bcCause = findBcCause(exception)
             val payload = message.payload
 
-            log.error("Error handling Kafka message. Cause: $cause, BC Class: $bcCause, Payload: $payload")
+            log.error(
+                "Error handling Kafka message. Cause: $cause, BC Class: $bcCause, Payload: $payload",
+            )
 
             // Consider adding error metrics or alerts here if needed
         }

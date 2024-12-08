@@ -12,14 +12,22 @@ import java.util.Locale
  * Rate limited integration to OpenFigi.
  */
 @Service
-@ConditionalOnProperty(value = ["beancounter.marketdata.provider.figi.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["beancounter.marketdata.provider.figi.enabled"],
+    matchIfMissing = true,
+)
 class FigiProxy internal constructor(
     val figiConfig: FigiConfig,
     val figiGateway: FigiGateway,
     val figiAdapter: FigiAdapter,
 ) {
     private val filter: List<String> =
-        arrayListOf("COMMON STOCK", "REIT", "DEPOSITARY RECEIPT", "MUTUAL FUND")
+        arrayListOf(
+            "COMMON STOCK",
+            "REIT",
+            "DEPOSITARY RECEIPT",
+            "MUTUAL FUND",
+        )
 
     @RateLimiter(name = "figi")
     fun find(
@@ -28,13 +36,31 @@ class FigiProxy internal constructor(
         defaultName: String? = null,
         id: String = bcAssetCode,
     ): Asset? {
-        val (figiCode, figiMarket, figiSearch) = resolve(bcAssetCode, market)
+        val (figiCode, figiMarket, figiSearch) =
+            resolve(
+                bcAssetCode,
+                market,
+            )
         val response = resolve(figiSearch)
         if (response?.error != null) {
-            log.debug("Error {}/{} {}", figiMarket, figiCode, response.error)
-            return if (response.error.equals("No identifier found.", ignoreCase = true)) {
+            log.debug(
+                "Error {}/{} {}",
+                figiMarket,
+                figiCode,
+                response.error,
+            )
+            return if (response.error.equals(
+                    "No identifier found.",
+                    ignoreCase = true,
+                )
+            ) {
                 // Unknown, so don't continue to hit the service - add a name value
-                figiAdapter.transform(market, bcAssetCode, defaultName = defaultName, id)
+                figiAdapter.transform(
+                    market,
+                    bcAssetCode,
+                    defaultName = defaultName,
+                    id,
+                )
             } else {
                 null
             }
@@ -49,7 +75,12 @@ class FigiProxy internal constructor(
                         figiMarket,
                         figiCode,
                     )
-                    return figiAdapter.transform(market, bcAssetCode, datum, id)
+                    return figiAdapter.transform(
+                        market,
+                        bcAssetCode,
+                        datum,
+                        id,
+                    )
                 }
             }
         }
@@ -61,7 +92,12 @@ class FigiProxy internal constructor(
         bcAssetCode: String,
         market: Market,
     ): Triple<String, String, FigiSearch> {
-        val figiCode = bcAssetCode.replace(".", "/").uppercase(Locale.getDefault())
+        val figiCode =
+            bcAssetCode
+                .replace(
+                    ".",
+                    "/",
+                ).uppercase(Locale.getDefault())
         val figiMarket = market.aliases[FIGI]!!
         val figiSearch =
             FigiSearch(
@@ -70,7 +106,11 @@ class FigiProxy internal constructor(
                 EQUITY,
                 true,
             )
-        return Triple(figiCode, figiMarket, figiSearch)
+        return Triple(
+            figiCode,
+            figiMarket,
+            figiSearch,
+        )
     }
 
     private fun resolve(figiSearch: FigiSearch): FigiResponse? {
@@ -93,32 +133,51 @@ class FigiProxy internal constructor(
         return figiSearches
     }
 
-    private fun extractResult(search: Collection<FigiResponse?>?): FigiResponse? {
-        return if (search!!.isEmpty()) {
+    private fun extractResult(search: Collection<FigiResponse?>?): FigiResponse? =
+        if (search!!.isEmpty()) {
             null
         } else {
             search.iterator().next()
         }
-    }
 
     private fun findEquity(figiSearch: FigiSearch): FigiResponse? {
         figiSearch.securityType2 = EQUITY
-        return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
+        return extractResult(
+            figiGateway.search(
+                getSearchArgs(figiSearch),
+                figiConfig.apiKey,
+            ),
+        )
     }
 
     private fun findMutualFund(figiSearch: FigiSearch): FigiResponse? {
         figiSearch.securityType2 = MF
-        return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
+        return extractResult(
+            figiGateway.search(
+                getSearchArgs(figiSearch),
+                figiConfig.apiKey,
+            ),
+        )
     }
 
     private fun findReit(figiSearch: FigiSearch): FigiResponse? {
         figiSearch.securityType2 = REIT
-        return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
+        return extractResult(
+            figiGateway.search(
+                getSearchArgs(figiSearch),
+                figiConfig.apiKey,
+            ),
+        )
     }
 
     private fun findAdr(figiSearch: FigiSearch): FigiResponse? {
         figiSearch.securityType2 = ADR
-        return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
+        return extractResult(
+            figiGateway.search(
+                getSearchArgs(figiSearch),
+                figiConfig.apiKey,
+            ),
+        )
     }
 
     companion object {

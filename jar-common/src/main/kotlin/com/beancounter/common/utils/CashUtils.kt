@@ -8,7 +8,5 @@ import org.springframework.stereotype.Service
  */
 @Service
 class CashUtils {
-    fun isCash(asset: Asset): Boolean {
-        return asset.assetCategory.id == "CASH"
-    }
+    fun isCash(asset: Asset): Boolean = asset.assetCategory.id == "CASH"
 }

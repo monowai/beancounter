@@ -12,8 +12,21 @@ class SystemUserTest {
     fun systemUserContractHonoured() {
         val sua = SystemUser("abc")
         val sub = SystemUser("abc")
-        val suMap = mapOf(Pair(sua, sua), Pair(sub, sub))
-        assertThat(suMap).hasSize(1).containsKeys(sua, sub)
+        val suMap =
+            mapOf(
+                Pair(
+                    sua,
+                    sua,
+                ),
+                Pair(
+                    sub,
+                    sub,
+                ),
+            )
+        assertThat(suMap).hasSize(1).containsKeys(
+            sua,
+            sub,
+        )
         assertThat(sua).isEqualTo(sub)
     }
 }

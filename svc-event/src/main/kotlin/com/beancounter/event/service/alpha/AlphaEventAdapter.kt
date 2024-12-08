@@ -19,27 +19,35 @@ import java.math.BigDecimal
 /**
  * Generate a BC corporate event from an AlphaVantage data row.
  */
-class AlphaEventAdapter(private val taxService: TaxService) : Event {
+class AlphaEventAdapter(
+    private val taxService: TaxService,
+) : Event {
     private val dateUtils = DateUtils()
 
     private fun calculateGross(
         currentPosition: Position?,
         rate: BigDecimal?,
-    ): BigDecimal {
-        return nullSafe(multiplyAbs(currentPosition!!.quantityValues.getTotal(), rate))
-    }
+    ): BigDecimal =
+        nullSafe(
+            multiplyAbs(
+                currentPosition!!.quantityValues.getTotal(),
+                rate,
+            ),
+        )
 
     private fun calculateTax(
         currentPosition: Position?,
         gross: BigDecimal?,
-    ): BigDecimal {
-        return nullSafe(
+    ): BigDecimal =
+        nullSafe(
             multiplyAbs(
                 gross,
-                taxService.getRate(currentPosition!!.asset.market.currency.code),
+                taxService.getRate(
+                    currentPosition!!
+                        .asset.market.currency.code,
+                ),
             ),
         )
-    }
 
     override fun calculate(
         portfolio: Portfolio,
@@ -48,27 +56,45 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
     ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
             val trnInput =
-                toDividend(currentPosition, corporateEvent)
+                toDividend(
+                    currentPosition,
+                    corporateEvent,
+                )
                     ?: return TrustedTrnEvent(
                         portfolio,
                         trnInput = TrnInput(trnType = TrnType.IGNORE),
                     ) // We didn't create anything
-            return TrustedTrnEvent(portfolio, trnInput = trnInput)
+            return TrustedTrnEvent(
+                portfolio,
+                trnInput = trnInput,
+            )
         } else if (corporateEvent.trnType == TrnType.SPLIT) {
             return TrustedTrnEvent(
                 portfolio,
                 trnInput =
-                    toSplit(currentPosition, corporateEvent),
+                toSplit(
+                    currentPosition,
+                    corporateEvent,
+                ),
             )
         }
-        throw SystemException(String.format("Unsupported event type %s", corporateEvent.trnType))
+        throw SystemException(
+            String.format(
+                "Unsupported event type %s",
+                corporateEvent.trnType,
+            ),
+        )
     }
 
     private fun toSplit(
         currentPosition: Position,
         corporateEvent: CorporateEvent,
     ): TrnInput {
-        val callerRef = CallerRef(corporateEvent.source, corporateEvent.id!!)
+        val callerRef =
+            CallerRef(
+                corporateEvent.source,
+                corporateEvent.id!!,
+            )
         return TrnInput(
             callerRef,
             currentPosition.asset.id,
@@ -91,9 +117,21 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
                 return null // Don't create forward dated transactions
             }
         }
-        val gross = calculateGross(currentPosition, corporateEvent.rate)
-        val tax = calculateTax(currentPosition, gross)
-        val callerRef = CallerRef(corporateEvent.source, corporateEvent.id!!)
+        val gross =
+            calculateGross(
+                currentPosition,
+                corporateEvent.rate,
+            )
+        val tax =
+            calculateTax(
+                currentPosition,
+                gross,
+            )
+        val callerRef =
+            CallerRef(
+                corporateEvent.source,
+                corporateEvent.id!!,
+            )
         return TrnInput(
             callerRef,
             currentPosition.asset.id,

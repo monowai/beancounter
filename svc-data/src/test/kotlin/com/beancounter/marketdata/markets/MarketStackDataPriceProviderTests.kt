@@ -21,34 +21,44 @@ import org.springframework.beans.factory.annotation.Autowired
  */
 @SpringMvcDbTest
 class MarketStackDataPriceProviderTests
-    @Autowired
-    constructor(
-        private val mdFactory: MdFactory,
-        private val marketService: MarketService,
-    ) {
-        @Test
-        fun is_DefaultMarketProvidersSet() {
-            assertThat(mdFactory.getMarketDataProvider(MarketStackService.ID)).isNotNull
-            assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
-            assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
-            val mdp =
-                mdFactory.getMarketDataProvider(
-                    Market("NonExistent", "ABC"),
-                )
-            assertThat(mdp)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("id", CashProviderService.ID)
-        }
-
-        @Test
-        fun `configured market provider supports expected Market`() {
-            val amp = getTestAsset(marketService.getMarket("ASX"), "AMP")
-            val marketProvider = mdFactory.getMarketDataProvider(amp.market)
-            assertThat(marketProvider.getId()).isEqualTo(AlphaPriceService.ID)
-        }
-
-        @Test
-        fun is_InvalidMarketException() {
-            assertThrows(BusinessException::class.java) { marketService.getMarket("illegal") }
-        }
+@Autowired
+constructor(
+    private val mdFactory: MdFactory,
+    private val marketService: MarketService,
+) {
+    @Test
+    fun is_DefaultMarketProvidersSet() {
+        assertThat(mdFactory.getMarketDataProvider(MarketStackService.ID)).isNotNull
+        assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
+        assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
+        val mdp =
+            mdFactory.getMarketDataProvider(
+                Market(
+                    "NonExistent",
+                    "ABC",
+                ),
+            )
+        assertThat(mdp)
+            .isNotNull
+            .hasFieldOrPropertyWithValue(
+                "id",
+                CashProviderService.ID,
+            )
     }
+
+    @Test
+    fun `configured market provider supports expected Market`() {
+        val amp =
+            getTestAsset(
+                marketService.getMarket("ASX"),
+                "AMP",
+            )
+        val marketProvider = mdFactory.getMarketDataProvider(amp.market)
+        assertThat(marketProvider.getId()).isEqualTo(AlphaPriceService.ID)
+    }
+
+    @Test
+    fun is_InvalidMarketException() {
+        assertThrows(BusinessException::class.java) { marketService.getMarket("illegal") }
+    }
+}

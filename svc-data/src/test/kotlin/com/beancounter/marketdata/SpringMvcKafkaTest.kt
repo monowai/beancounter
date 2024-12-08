@@ -36,7 +36,8 @@ import kotlin.annotation.AnnotationTarget.CLASS
     ],
 )
 @SpringBootTest
-@Tag("kafka") // Slow Test
+@Tag("kafka")
+// Slow Test
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc

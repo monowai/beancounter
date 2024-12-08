@@ -33,7 +33,10 @@ class TrnAdapter(
         trnRequest: TrnRequest,
     ): List<Trn> =
         trnRequest.data.map { trnInput ->
-            map(portfolio = portfolio, trnInput = trnInput)
+            map(
+                portfolio = portfolio,
+                trnInput = trnInput,
+            )
         }
 
     fun map(
@@ -41,7 +44,10 @@ class TrnAdapter(
         trnInput: TrnInput,
         existing: Trn? = null,
     ): Trn {
-        fxTransactions.setRates(portfolio, trnInput)
+        fxTransactions.setRates(
+            portfolio,
+            trnInput,
+        )
 
         val cashAsset = cashServices.getCashAsset(trnInput)
         var cashCurrency: Currency? = null
@@ -70,7 +76,11 @@ class TrnAdapter(
             tradeCashRate = trnInput.tradeCashRate,
             tradeBaseRate = trnInput.tradeBaseRate,
             tradePortfolioRate = trnInput.tradePortfolioRate,
-            cashAmount = cashServices.getCashImpact(trnInput, tradeAmount),
+            cashAmount =
+            cashServices.getCashImpact(
+                trnInput,
+                tradeAmount,
+            ),
             portfolio = portfolio,
             // Sign this value
             settleDate = trnInput.settleDate,
@@ -82,11 +92,10 @@ class TrnAdapter(
     }
 
     // Set the Market and AssetCategory ob
-    fun hydrate(asset: Asset?): Asset? {
-        return if (asset == null) {
+    fun hydrate(asset: Asset?): Asset? =
+        if (asset == null) {
             null
         } else {
             assetService.hydrate(asset)
         }
-    }
 }

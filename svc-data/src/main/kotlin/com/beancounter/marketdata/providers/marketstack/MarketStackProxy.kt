@@ -14,7 +14,9 @@ import java.time.LocalDateTime
  * @since 2019-03-06
  */
 @Service
-class MarketStackProxy(val marketStackAdapter: MarketStackAdapter) {
+class MarketStackProxy(
+    val marketStackAdapter: MarketStackAdapter,
+) {
     private lateinit var marketStackGateway: MarketStackGateway
 
     @Autowired(required = false)
@@ -29,7 +31,12 @@ class MarketStackProxy(val marketStackAdapter: MarketStackAdapter) {
     ): MarketStackResponse {
         val assets = providerArguments.batch[batch]!!
         val marketOpenDate = providerArguments.getBatchConfigs(batch)?.date!!
-        val response = marketStackGateway.getPrices(assets, marketOpenDate, apiKey)
+        val response =
+            marketStackGateway.getPrices(
+                assets,
+                marketOpenDate,
+                apiKey,
+            )
         val missingPrices = mutableListOf<MarketStackData>()
         if (response.data.size != assets.split(",").size) {
             val missingAssets =

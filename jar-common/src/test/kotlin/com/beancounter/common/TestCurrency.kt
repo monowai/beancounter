@@ -14,44 +14,72 @@ import org.junit.jupiter.api.Test
 internal class TestCurrency {
     @Test
     fun is_CurrencySerializing() {
-        val currency = Currency("SomeCode", "Some Name", "$")
+        val currency =
+            Currency(
+                "SomeCode",
+                "Some Name",
+                "$",
+            )
         assertThat(currency).isNotNull
         val json = objectMapper.writeValueAsString(currency)
-        val fromJson = objectMapper.readValue(json, Currency::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                Currency::class.java,
+            )
         assertThat(fromJson).isEqualTo(currency)
     }
 
     @Test
     fun is_CurrencyResponseSerializing() {
         val currencies: MutableCollection<Currency> = ArrayList()
-        val currency = Currency("SomeId", "Some Name", "$")
+        val currency =
+            Currency(
+                "SomeId",
+                "Some Name",
+                "$",
+            )
         currencies.add(currency)
         val currencyResponse = CurrencyResponse(currencies)
         val json = objectMapper.writeValueAsString(currencyResponse)
-        val fromJson = objectMapper.readValue(json, CurrencyResponse::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                CurrencyResponse::class.java,
+            )
         assertThat(fromJson).isEqualTo(currencyResponse)
     }
 
     @Test
     fun is_GetCurrencyWorking() {
         val currency = Currency("NZD")
-        assertThat(currency).hasFieldOrPropertyWithValue("code", "NZD")
+        assertThat(currency).hasFieldOrPropertyWithValue(
+            "code",
+            "NZD",
+        )
     }
 
     @Test
     fun is_CurrencyPairConsistent() {
         val trade = "NZD"
         val report = "USD"
-        val byCode = IsoCurrencyPair(report, trade)
-        val byCurrency = toPair(Currency(report), Currency(trade))
+        val byCode =
+            IsoCurrencyPair(
+                report,
+                trade,
+            )
+        val byCurrency =
+            toPair(
+                Currency(report),
+                Currency(trade),
+            )
         assertThat(byCode).usingRecursiveComparison().isEqualTo(byCurrency)
         assertThat(
             toPair(
                 Currency(report),
                 Currency(report),
             ),
-        )
-            .isNull()
+        ).isNull()
     }
 
     @Test
@@ -64,8 +92,13 @@ internal class TestCurrency {
         nzd.symbol = "%"
 
         assertThat(nzd)
-            .hasFieldOrPropertyWithValue("name", "Aotearoa")
-            .hasFieldOrPropertyWithValue("symbol", "%")
+            .hasFieldOrPropertyWithValue(
+                "name",
+                "Aotearoa",
+            ).hasFieldOrPropertyWithValue(
+                "symbol",
+                "%",
+            )
     }
 
     @Test
@@ -78,16 +111,30 @@ internal class TestCurrency {
         currencies[sgd] = sgd
         assertThat(currencies)
             .hasSize(2)
-            .containsKeys(nzd, sgd)
+            .containsKeys(
+                nzd,
+                sgd,
+            )
     }
 
     @Test
     fun is_IsoPairContractHonoured() {
-        val pairA = IsoCurrencyPair("USD", "NZD")
-        val pairB = IsoCurrencyPair("USD", "NZD")
+        val pairA =
+            IsoCurrencyPair(
+                "USD",
+                "NZD",
+            )
+        val pairB =
+            IsoCurrencyPair(
+                "USD",
+                "NZD",
+            )
         val pairs = HashMap<IsoCurrencyPair, IsoCurrencyPair>()
         pairs[pairA] = pairA
         pairs[pairB] = pairB
-        assertThat(pairs).hasSize(1).containsKeys(pairA, pairB)
+        assertThat(pairs).hasSize(1).containsKeys(
+            pairA,
+            pairB,
+        )
     }
 }

@@ -44,7 +44,11 @@ class AssetService internal constructor(
                 enricher.enrich(
                     asset.id,
                     asset.market,
-                    AssetInput(asset.market.code, asset.code, category = asset.category.uppercase()),
+                    AssetInput(
+                        asset.market.code,
+                        asset.code,
+                        category = asset.category.uppercase(),
+                    ),
                 )
             assetRepository.save(enriched) // Hmm, not sure the Repo should be here
             return enriched
@@ -56,7 +60,11 @@ class AssetService internal constructor(
         val foundAsset = findLocally(assetInput)
         return if (foundAsset == null) {
             // Is the market supported?
-            val market = marketService.getMarket(assetInput.market, false)
+            val market =
+                marketService.getMarket(
+                    assetInput.market,
+                    false,
+                )
             // Fill in missing asset attributes
             val asset =
                 enrichmentFactory
@@ -108,7 +116,9 @@ class AssetService internal constructor(
 
     override fun find(assetId: String): Asset {
         val result: Optional<Asset> =
-            assetRepository.findById(assetId).map { asset: Asset -> assetHydrationService.hydrateAsset(asset) }
+            assetRepository
+                .findById(assetId)
+                .map { asset: Asset -> assetHydrationService.hydrateAsset(asset) }
         if (result.isPresent) {
             return result.get()
         }
@@ -123,11 +133,18 @@ class AssetService internal constructor(
         val market = marketService.getMarket(marketCode.uppercase())
         val findCode =
             if (market.code == OffMarketEnricher.ID) {
-                OffMarketEnricher.parseCode(SystemUser(assetInput.owner), code)
+                OffMarketEnricher.parseCode(
+                    SystemUser(assetInput.owner),
+                    code,
+                )
             } else {
                 code.uppercase(Locale.getDefault())
             }
-        log.trace("Search for {}/{}", marketCode, code)
+        log.trace(
+            "Search for {}/{}",
+            marketCode,
+            code,
+        )
 
         val optionalAsset =
             assetRepository.findByMarketCodeAndCode(
@@ -162,13 +179,12 @@ class AssetService internal constructor(
         return priceRequest.copy(assets = resolvedAssets)
     }
 
-    fun hydrate(asset: Asset?): Asset? {
-        return if (asset == null) {
+    fun hydrate(asset: Asset?): Asset? =
+        if (asset == null) {
             null
         } else {
             assetHydrationService.hydrateAsset(asset)
         }
-    }
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetService::class.java)

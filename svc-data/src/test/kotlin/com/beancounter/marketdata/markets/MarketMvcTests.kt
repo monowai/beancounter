@@ -33,24 +33,38 @@ internal class MarketMvcTests {
         mockMvc: MockMvc,
         mockAuthConfig: MockAuthConfig,
     ): Jwt {
-        token = mockAuthConfig.getUserToken(SystemUser("MarketMvcTests", "MarketMvcTests@testing.com"))
-        registerUser(mockMvc, token)
+        token =
+            mockAuthConfig.getUserToken(
+                SystemUser(
+                    "MarketMvcTests",
+                    "MarketMvcTests@testing.com",
+                ),
+            )
+        registerUser(
+            mockMvc,
+            token,
+        )
         return token
     }
 
     @Test
     fun is_AllMarketsFound() {
         val mvcResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/markets")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/markets")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         val marketResponse =
             objectMapper
-                .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
+                .readValue(
+                    mvcResult.response.contentAsString,
+                    MarketResponse::class.java,
+                )
         Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotEmpty
     }
@@ -59,32 +73,46 @@ internal class MarketMvcTests {
     @Throws(Exception::class)
     fun is_SingleMarketFoundCaseInsensitive() {
         val mvcResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/markets/nzx")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/markets/nzx")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         val marketResponse =
             objectMapper
-                .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
+                .readValue(
+                    mvcResult.response.contentAsString,
+                    MarketResponse::class.java,
+                )
         Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotNull.hasSize(1)
         val nzx = marketResponse.data!!.iterator().next()
-        Assertions.assertThat(nzx).hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher")
+        Assertions
+            .assertThat(nzx)
+            .hasNoNullFieldsOrPropertiesExcept(
+                "currencyId",
+                "timezoneId",
+                "enricher",
+            )
     }
 
     @Test
     @Throws(Exception::class)
     fun is_SingleMarketBadRequest() {
         val result =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/markets/non-existent")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
-        Assertions.assertThat(result.andReturn().resolvedException)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/markets/non-existent")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+        Assertions
+            .assertThat(result.andReturn().resolvedException)
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
     }

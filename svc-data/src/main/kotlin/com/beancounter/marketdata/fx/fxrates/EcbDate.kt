@@ -8,15 +8,17 @@ import java.time.LocalDate
  *
  * Today is treated as T-1
  */
-class EcbDate(val dateUtils: DateUtils) {
-    private fun earliestDate(): LocalDate {
-        return dateUtils.getDate(EARLIEST)
-    }
+class EcbDate(
+    val dateUtils: DateUtils,
+) {
+    private fun earliestDate(): LocalDate = dateUtils.getDate(EARLIEST)
 
     fun getValidDate(tradeDate: String): String {
         if (dateUtils.isToday(tradeDate)) {
-            return dateUtils.getFormattedDate(dateUtils.offsetDateString(tradeDate))
-                .minusDays(1).toString()
+            return dateUtils
+                .getFormattedDate(dateUtils.offsetDateString(tradeDate))
+                .minusDays(1)
+                .toString()
         }
         val requestedDate = dateUtils.getDate(tradeDate)
         return if (requestedDate.isBefore(earliestDate())) {

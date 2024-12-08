@@ -20,7 +20,12 @@ class IngestionRequestTest {
             )
         assertThat(ingestionRequest.ratesIgnored).isTrue
         val json = objectMapper.writeValueAsString(ingestionRequest)
-        assertThat(objectMapper.readValue(json, IngestionRequest::class.java))
-            .usingRecursiveComparison().isEqualTo(ingestionRequest)
+        assertThat(
+            objectMapper.readValue(
+                json,
+                IngestionRequest::class.java,
+            ),
+        ).usingRecursiveComparison()
+            .isEqualTo(ingestionRequest)
     }
 }

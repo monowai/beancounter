@@ -28,13 +28,18 @@ data class Market(
     var currency: Currency = Currency(currencyId),
     @JsonSerialize(using = LocalTimeSerializer::class)
     @JsonDeserialize(using = LocalTimeDeserializer::class)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    val priceTime: LocalTime = LocalTime.of(19, 0),
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "HH:mm",
+    )
+    val priceTime: LocalTime =
+        LocalTime.of(
+            19,
+            0,
+        ),
     val daysToSubtract: Int = 1,
     val enricher: String? = null,
     val multiplier: BigDecimal = BigDecimal("1.0"),
 ) {
-    fun getAlias(market: String): String? {
-        return aliases[market.lowercase()]
-    }
+    fun getAlias(market: String): String? = aliases[market.lowercase()]
 }

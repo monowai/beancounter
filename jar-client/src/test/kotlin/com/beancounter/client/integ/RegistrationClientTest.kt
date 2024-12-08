@@ -40,15 +40,21 @@ class RegistrationClientTest {
     @Test
     fun registeringAuthenticatedUser() {
         mockAuthConfig.login()
-        Mockito.`when`(registrationGateway.register(tokenService.bearerToken, RegistrationRequest()))
-            .thenReturn(RegistrationResponse(SystemUser()))
+        Mockito
+            .`when`(
+                registrationGateway.register(
+                    tokenService.bearerToken,
+                    RegistrationRequest(),
+                ),
+            ).thenReturn(RegistrationResponse(SystemUser()))
 
         val registeredUser =
             registrationService
                 .register(RegistrationRequest())
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
 
-        Mockito.`when`(registrationGateway.me(tokenService.bearerToken))
+        Mockito
+            .`when`(registrationGateway.me(tokenService.bearerToken))
             .thenReturn(RegistrationResponse(registeredUser))
 
         val me = registrationService.me()

@@ -57,7 +57,11 @@ class DateUtils(
     fun today(): String = LocalDate.now(zoneId).toString()
 
     val date: LocalDate
-        get() = getFormattedDate(TODAY, listOf(FORMAT))
+        get() =
+            getFormattedDate(
+                TODAY,
+                listOf(FORMAT),
+            )
 
     /**
      * Creates an OffsetDateTime object from the specified date and time, using UTC as the time zone.
@@ -69,7 +73,12 @@ class DateUtils(
     fun offset(
         date: String = TODAY,
         time: LocalTime = LocalTime.now(zoneId),
-    ): OffsetDateTime = OffsetDateTime.of(getFormattedDate(date), time, UTC)
+    ): OffsetDateTime =
+        OffsetDateTime.of(
+            getFormattedDate(date),
+            time,
+            UTC,
+        )
 
     /**
      * Converts the specified date string to an ISO local date string using the offset method.
@@ -86,7 +95,12 @@ class DateUtils(
      */
     fun getFormattedDate(
         inDate: String = TODAY,
-        dateFormats: List<String> = listOf("yyyy-MM-dd", "yyyy-MM-d", "yyyy-M-d"),
+        dateFormats: List<String> =
+            listOf(
+                "yyyy-MM-dd",
+                "yyyy-MM-d",
+                "yyyy-M-d",
+            ),
     ): LocalDate {
         if (inDate.lowercase(Locale.getDefault()) == TODAY) {
             return LocalDate.now(zoneId)
@@ -94,7 +108,10 @@ class DateUtils(
 
         for (format in dateFormats) {
             try {
-                return LocalDate.parse(inDate, DateTimeFormatter.ofPattern(format))
+                return LocalDate.parse(
+                    inDate,
+                    DateTimeFormatter.ofPattern(format),
+                )
             } catch (e: DateTimeParseException) {
                 // Continue to the next format
             }
@@ -138,6 +155,9 @@ class DateUtils(
         if (isToday(date)) {
             OffsetDateTime.now(UTC)
         } else {
-            OffsetDateTime.of(getFormattedDate(date).atTime(LocalTime.now()), UTC)
+            OffsetDateTime.of(
+                getFormattedDate(date).atTime(LocalTime.now()),
+                UTC,
+            )
         }
 }

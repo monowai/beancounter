@@ -30,6 +30,8 @@ data class MarketStackData(
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = DATE_TIME_FORMAT,
-    ) @JsonSerialize(using = LocalDateTimeSerializer::class) @JsonDeserialize(using = LocalDateTimeDeserializer::class) val date:
-        LocalDateTime,
+    ) @JsonSerialize(using = LocalDateTimeSerializer::class) @JsonDeserialize(
+        using = LocalDateTimeDeserializer::class,
+    )
+    val date: LocalDateTime,
 )

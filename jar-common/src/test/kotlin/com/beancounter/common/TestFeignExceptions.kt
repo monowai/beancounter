@@ -34,7 +34,8 @@ class TestFeignExceptions {
     fun is_FeignBusinessExceptionThrown() {
         val springFeignDecoder = SpringFeignDecoder()
         val response =
-            Response.builder()
+            Response
+                .builder()
                 .reason("Business Logic")
                 .status(HttpStatus.BAD_REQUEST.value())
                 .request(
@@ -45,11 +46,13 @@ class TestFeignExceptions {
                         empty(),
                         requestTemplate,
                     ),
-                )
-                .build()
+                ).build()
         assertThrows(BusinessException::class.java) {
             validBusinessException(
-                springFeignDecoder.decode(Constants.TEST, response),
+                springFeignDecoder.decode(
+                    Constants.TEST,
+                    response,
+                ),
             )
         }
     }
@@ -58,7 +61,8 @@ class TestFeignExceptions {
     fun is_FeignSystemExceptionThrown() {
         val springFeignDecoder = SpringFeignDecoder()
         val response =
-            Response.builder()
+            Response
+                .builder()
                 .reason(INT_ERROR)
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .request(
@@ -69,11 +73,13 @@ class TestFeignExceptions {
                         empty(),
                         requestTemplate,
                     ),
-                )
-                .build()
+                ).build()
         assertThrows(SystemException::class.java) {
             validSystemException(
-                springFeignDecoder.decode(Constants.TEST, response),
+                springFeignDecoder.decode(
+                    Constants.TEST,
+                    response,
+                ),
             )
         }
     }
@@ -82,7 +88,8 @@ class TestFeignExceptions {
     fun is_FeignExceptionThrown() {
         val springFeignDecoder = SpringFeignDecoder()
         val response =
-            Response.builder()
+            Response
+                .builder()
                 .reason(INT_ERROR)
                 .status(HttpStatus.SWITCHING_PROTOCOLS.value())
                 .request(
@@ -93,10 +100,13 @@ class TestFeignExceptions {
                         empty(),
                         requestTemplate,
                     ),
-                )
-                .build()
+                ).build()
         assertThrows(FeignException::class.java) {
-            val e = springFeignDecoder.decode(Constants.TEST, response)
+            val e =
+                springFeignDecoder.decode(
+                    Constants.TEST,
+                    response,
+                )
             assertThat(e.message).contains("101 Integration Error")
             throw e
         }
@@ -107,7 +117,8 @@ class TestFeignExceptions {
         val springFeignDecoder = SpringFeignDecoder()
         val reason = "Unauthorized"
         val response =
-            Response.builder()
+            Response
+                .builder()
                 .reason(reason)
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .request(
@@ -118,10 +129,13 @@ class TestFeignExceptions {
                         empty(),
                         requestTemplate,
                     ),
-                )
-                .build()
+                ).build()
         assertThrows(UnauthorizedException::class.java) {
-            val e = springFeignDecoder.decode(Constants.TEST, response)
+            val e =
+                springFeignDecoder.decode(
+                    Constants.TEST,
+                    response,
+                )
             assertThat(e.message).contains(reason)
             throw e
         }
@@ -137,7 +151,8 @@ class TestFeignExceptions {
                 path = "",
             )
         val response =
-            Response.builder()
+            Response
+                .builder()
                 .reason("Integration Reason")
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .request(
@@ -148,15 +163,16 @@ class TestFeignExceptions {
                         empty(),
                         RequestTemplate(),
                     ),
-                )
-                .body(
+                ).body(
                     objectMapper.writeValueAsString(springExceptionMessage),
                     Charset.defaultCharset(),
-                )
-                .build()
+                ).build()
         assertThrows(SystemException::class.java) {
             validIntegrationException(
-                springFeignDecoder.decode(Constants.TEST, response),
+                springFeignDecoder.decode(
+                    Constants.TEST,
+                    response,
+                ),
             )
         }
     }
@@ -166,7 +182,8 @@ class TestFeignExceptions {
         val springFeignDecoder = SpringFeignDecoder()
         val reason = "Forbidden"
         val response =
-            Response.builder()
+            Response
+                .builder()
                 .reason(reason)
                 .status(FORBIDDEN.value())
                 .request(
@@ -177,10 +194,13 @@ class TestFeignExceptions {
                         empty(),
                         requestTemplate,
                     ),
-                )
-                .build()
+                ).build()
         assertThrows(ForbiddenException::class.java) {
-            val e = springFeignDecoder.decode(Constants.TEST, response)
+            val e =
+                springFeignDecoder.decode(
+                    Constants.TEST,
+                    response,
+                )
             assertThat(e.message).contains(reason)
             throw e
         }
@@ -195,20 +215,32 @@ class TestFeignExceptions {
 
     private fun validSystemException(e: Exception) {
         assertThat(e)
-            .hasFieldOrPropertyWithValue(MESSAGE, INT_ERROR)
+            .hasFieldOrPropertyWithValue(
+                MESSAGE,
+                INT_ERROR,
+            )
         throw e
     }
 
     private fun validIntegrationException(e: Exception) {
         val springExceptionMessage: SpringExceptionMessage =
-            objectMapper.readValue(e.message, SpringExceptionMessage::class.java)
+            objectMapper.readValue(
+                e.message,
+                SpringExceptionMessage::class.java,
+            )
         assertThat(springExceptionMessage)
-            .hasFieldOrPropertyWithValue(MESSAGE, INT_ERROR)
+            .hasFieldOrPropertyWithValue(
+                MESSAGE,
+                INT_ERROR,
+            )
         throw e
     }
 
     private fun validBusinessException(e: Exception) {
-        assertThat(e).hasFieldOrPropertyWithValue(MESSAGE, "Business Logic")
+        assertThat(e).hasFieldOrPropertyWithValue(
+            MESSAGE,
+            "Business Logic",
+        )
         throw e
     }
 }

@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service
  * Logic to accumulate a buy transaction into a position.
  */
 @Service
-class DepositBehaviour(val cashAccumulator: CashAccumulator) : AccumulationStrategy {
+class DepositBehaviour(
+    val cashAccumulator: CashAccumulator,
+) : AccumulationStrategy {
     override val supportedType: TrnType
         get() = TrnType.DEPOSIT
 
@@ -19,8 +21,18 @@ class DepositBehaviour(val cashAccumulator: CashAccumulator) : AccumulationStrat
         positions: Positions,
         position: Position,
     ): Position {
-        val cashPosition = getCashPosition(trn, position, positions)
+        val cashPosition =
+            getCashPosition(
+                trn,
+                position,
+                positions,
+            )
         val quantity = if (TrnType.isCash(trn.trnType)) trn.quantity else trn.cashAmount
-        return cashAccumulator.accumulate(cashPosition, position, quantity, trn)
+        return cashAccumulator.accumulate(
+            cashPosition,
+            position,
+            quantity,
+            trn,
+        )
     }
 }

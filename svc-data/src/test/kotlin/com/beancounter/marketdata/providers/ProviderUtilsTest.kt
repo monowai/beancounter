@@ -20,8 +20,18 @@ class ProviderUtilsTest {
                 Mockito.mock(MdFactory::class.java),
                 Mockito.mock(MarketService::class.java),
             )
-        val activeAsset = Asset(code = "FindMe", market = NASDAQ, status = Status.Active)
-        val inactiveAsset = Asset(code = "IgnoreMe", market = NASDAQ, status = Status.Inactive)
+        val activeAsset =
+            Asset(
+                code = "FindMe",
+                market = NASDAQ,
+                status = Status.Active,
+            )
+        val inactiveAsset =
+            Asset(
+                code = "IgnoreMe",
+                market = NASDAQ,
+                status = Status.Inactive,
+            )
         assertThat(
             providerUtils.getInputs(
                 listOf(

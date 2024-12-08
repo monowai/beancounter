@@ -26,8 +26,13 @@ internal class TestAsset {
                 "Thing",
             )
         assertThat(asset)
-            .hasFieldOrPropertyWithValue("status", Status.Active)
-            .hasFieldOrPropertyWithValue("version", "1")
+            .hasFieldOrPropertyWithValue(
+                "status",
+                Status.Active,
+            ).hasFieldOrPropertyWithValue(
+                "version",
+                "1",
+            )
     }
 
     @Test
@@ -38,8 +43,14 @@ internal class TestAsset {
                 "ACODE",
             )
         val keyIn = toKey(asset)
-        assertThat(toKey(AssetInput("MCODE", "ACODE")))
-            .isEqualTo(keyIn)
+        assertThat(
+            toKey(
+                AssetInput(
+                    "MCODE",
+                    "ACODE",
+                ),
+            ),
+        ).isEqualTo(keyIn)
         val assetInput = getAssetInput(asset)
         assertThat(assetInput)
             .hasFieldOrProperty("code")
@@ -48,7 +59,9 @@ internal class TestAsset {
         assertThat(toKey(assetInput))
             .isEqualTo(keyIn)
         assertThat(fromKey(keyIn))
-            .isEqualTo(asset).usingRecursiveComparison().ignoringFields("id")
+            .isEqualTo(asset)
+            .usingRecursiveComparison()
+            .ignoringFields("id")
     }
 
     @Test
@@ -56,14 +69,44 @@ internal class TestAsset {
         val assets: MutableCollection<PriceAsset> = ArrayList()
         val marketCodeA = "AAA"
         val assetCodeB = "ABC"
-        assets.add(PriceAsset(marketCodeA, assetCodeB, assetId = assetCodeB))
+        assets.add(
+            PriceAsset(
+                marketCodeA,
+                assetCodeB,
+                assetId = assetCodeB,
+            ),
+        )
         val assetCodeOne = "123"
-        assets.add(PriceAsset(marketCodeA, assetCodeOne, assetId = assetCodeOne))
+        assets.add(
+            PriceAsset(
+                marketCodeA,
+                assetCodeOne,
+                assetId = assetCodeOne,
+            ),
+        )
         val marketCodeB = "BBB"
-        assets.add(PriceAsset(marketCodeB, assetCodeB, assetId = assetCodeB))
-        assets.add(PriceAsset(marketCodeB, assetCodeOne, assetId = assetCodeOne))
+        assets.add(
+            PriceAsset(
+                marketCodeB,
+                assetCodeB,
+                assetId = assetCodeB,
+            ),
+        )
+        assets.add(
+            PriceAsset(
+                marketCodeB,
+                assetCodeOne,
+                assetId = assetCodeOne,
+            ),
+        )
         val marketCodeC = "CCC"
-        assets.add(PriceAsset(marketCodeC, assetCodeOne, assetId = assetCodeOne))
+        assets.add(
+            PriceAsset(
+                marketCodeC,
+                assetCodeOne,
+                assetId = assetCodeOne,
+            ),
+        )
         val results = split(assets)
         assertThat(results.size).isEqualTo(3)
         assertThat(results[marketCodeA]).hasSize(2)
@@ -74,25 +117,49 @@ internal class TestAsset {
     @Test
     fun assetFoundInRequest() {
         val market = Market("ABC")
-        val assetInput = AssetInput(market.code, "123")
-        val ar = AssetRequest(assetInput, market.code)
+        val assetInput =
+            AssetInput(
+                market.code,
+                "123",
+            )
+        val ar =
+            AssetRequest(
+                assetInput,
+                market.code,
+            )
         assertThat(ar.data).containsKey(market.code)
     }
 
     @Test
     fun defaultsFromAsset() {
-        val assetInput = AssetInput(market = "a", code = "B")
+        val assetInput =
+            AssetInput(
+                market = "a",
+                code = "B",
+            )
         assertThat(assetInput)
-            .hasFieldOrPropertyWithValue("market", "a")
-            .hasFieldOrPropertyWithValue("code", "B")
-            .hasFieldOrProperty("resolvedAsset")
+            .hasFieldOrPropertyWithValue(
+                "market",
+                "a",
+            ).hasFieldOrPropertyWithValue(
+                "code",
+                "B",
+            ).hasFieldOrProperty("resolvedAsset")
     }
 
     private fun fromKey(key: String): Asset {
         val marketAsset = key.split(":").toTypedArray()
         if (marketAsset.size != 2) {
-            throw BusinessException(String.format("Unable to parse the key %s", key))
+            throw BusinessException(
+                String.format(
+                    "Unable to parse the key %s",
+                    key,
+                ),
+            )
         }
-        return getTestAsset(Market(marketAsset[1]), marketAsset[0])
+        return getTestAsset(
+            Market(marketAsset[1]),
+            marketAsset[0],
+        )
     }
 }

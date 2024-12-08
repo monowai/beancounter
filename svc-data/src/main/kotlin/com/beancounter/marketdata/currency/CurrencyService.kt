@@ -29,11 +29,17 @@ class CurrencyService {
 
     @PostConstruct
     private fun persist() {
-        log.info("Persisting {} default currencies", values.size)
+        log.info(
+            "Persisting {} default currencies",
+            values.size,
+        )
         if (!values.isEmpty()) {
             val result = currencyRepository.saveAll(this.values)
             for (currency in result) {
-                log.trace("Persisted {}", currency)
+                log.trace(
+                    "Persisted {}",
+                    currency,
+                )
             }
         }
     }
@@ -63,7 +69,11 @@ class CurrencyService {
             var result: java.lang.StringBuilder? = null
             for ((code) in values) {
                 if (result == null) {
-                    result = Optional.ofNullable(code).map { str: String? -> StringBuilder(str) }.orElse(null)
+                    result =
+                        Optional
+                            .ofNullable(code)
+                            .map { str: String? -> StringBuilder(str) }
+                            .orElse(null)
                 } else if (code != base) {
                     result.append(",").append(code)
                 }

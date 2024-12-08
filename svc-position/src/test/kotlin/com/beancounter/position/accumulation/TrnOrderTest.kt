@@ -35,36 +35,50 @@ internal class TrnOrderTest {
      */
     @Test
     fun do_UnorderedTransactionsError() {
-        val apple = getTestAsset(NASDAQ, AAPL)
+        val apple =
+            getTestAsset(
+                NASDAQ,
+                AAPL,
+            )
         val positions = Positions(getPortfolio())
         val today = LocalDate.now()
-        val yesterday = today.minus(-1, ChronoUnit.DAYS)
+        val yesterday =
+            today.minus(
+                -1,
+                ChronoUnit.DAYS,
+            )
         val buyYesterday =
             Trn(
                 trnType = TrnType.BUY,
                 tradeDate =
-                    yesterday
-                        .atStartOfDay(dateUtils.zoneId)
-                        .toLocalDate(),
+                yesterday
+                    .atStartOfDay(dateUtils.zoneId)
+                    .toLocalDate(),
                 asset = apple,
                 quantity = hundred,
                 tradeAmount = twoK,
             )
-        accumulator.accumulate(buyYesterday, positions)
+        accumulator.accumulate(
+            buyYesterday,
+            positions,
+        )
         val buyToday =
             Trn(
                 trnType = TrnType.BUY,
                 tradeDate =
-                    today
-                        .atStartOfDay(dateUtils.zoneId)
-                        .toLocalDate(),
+                today
+                    .atStartOfDay(dateUtils.zoneId)
+                    .toLocalDate(),
                 asset = apple,
                 quantity = hundred,
                 tradeAmount = twoK,
             )
 
         assertThrows(BusinessException::class.java) {
-            accumulator.accumulate(buyToday, positions)
+            accumulator.accumulate(
+                buyToday,
+                positions,
+            )
         }
     }
 }

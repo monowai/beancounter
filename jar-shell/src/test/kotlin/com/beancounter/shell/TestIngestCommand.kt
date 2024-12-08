@@ -51,7 +51,8 @@ class TestIngestCommand {
 
     @BeforeEach
     fun mockServices() {
-        Mockito.`when`(portfolioService.getPortfolioByCode(pfCode))
+        Mockito
+            .`when`(portfolioService.getPortfolioByCode(pfCode))
             .thenReturn(getPortfolio(pfCode))
         mockIngester.setPortfolioService(portfolioService)
         Mockito.`when`(trnWriter.id()).thenReturn(mock)
@@ -60,17 +61,20 @@ class TestIngestCommand {
 
     @Test
     fun is_IngestionCommandRunning() {
-        ingestionFactory.add(mock.uppercase(), mockIngester)
-        // Make sure we are not case-sensitive when finding the ingestion approach to use.
-        Assertions.assertThat(
-            ingestionCommand.ingest(
-                mock,
-                mock,
-                pfCode,
-                pfCode,
-            ),
+        ingestionFactory.add(
+            mock.uppercase(),
+            mockIngester,
         )
-            .isEqualTo("Done")
+        // Make sure we are not case-sensitive when finding the ingestion approach to use.
+        Assertions
+            .assertThat(
+                ingestionCommand.ingest(
+                    mock,
+                    mock,
+                    pfCode,
+                    pfCode,
+                ),
+            ).isEqualTo("Done")
     }
 
     @Service

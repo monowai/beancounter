@@ -58,15 +58,20 @@ class PositionService(
 
     @PostConstruct
     fun logConfig() {
-        log.info("position.url: {}", positionUrl)
+        log.info(
+            "position.url: {}",
+            positionUrl,
+        )
     }
 
     fun findWhereHeld(
         assetId: String,
         date: LocalDate,
-    ): PortfoliosResponse {
-        return portfolioService.getWhereHeld(assetId, date)
-    }
+    ): PortfoliosResponse =
+        portfolioService.getWhereHeld(
+            assetId,
+            date,
+        )
 
     fun process(
         portfolio: Portfolio,
@@ -75,14 +80,23 @@ class PositionService(
         val positionResponse =
             positionGateway.query(
                 tokenService.bearerToken,
-                TrustedTrnQuery(portfolio, event.recordDate, event.assetId),
+                TrustedTrnQuery(
+                    portfolio,
+                    event.recordDate,
+                    event.assetId,
+                ),
             )
         if (positionResponse != null && positionResponse.data.hasPositions()) {
             for (position in positionResponse.data.positions.values) {
                 // Cash positions do not have Events and Interest is not currently calculated.
                 if (includePosition(position)) {
-                    return behaviourFactory.getAdapter(event)
-                        .calculate(positionResponse.data.portfolio, position, event)
+                    return behaviourFactory
+                        .getAdapter(event)
+                        .calculate(
+                            positionResponse.data.portfolio,
+                            position,
+                            event,
+                        )
                 }
             }
         }
@@ -97,9 +111,7 @@ class PositionService(
     fun getPositions(
         portfolio: Portfolio,
         asAt: String,
-    ): PositionResponse {
-        return positionGateway[tokenService.bearerToken, portfolio.id, asAt]
-    }
+    ): PositionResponse = positionGateway[tokenService.bearerToken, portfolio.id, asAt]
 
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)

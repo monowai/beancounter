@@ -25,13 +25,21 @@ class RoiCalculationTests {
 
         val expectedROI = BigDecimal(".10") // Example expected result, assuming compounding effect
         val result =
-            RoiCalculator().calculateROI(moneyValues)
-                .setScale(2, RoundingMode.HALF_UP)
+            RoiCalculator()
+                .calculateROI(moneyValues)
+                .setScale(
+                    2,
+                    RoundingMode.HALF_UP,
+                )
         assertThat(result).isEqualTo(expectedROI)
     }
 
     val portfolio = PortfolioUtils.getPortfolio()
-    val asset = AssetUtils.getTestAsset(Constants.NASDAQ, "ABC")
+    val asset =
+        AssetUtils.getTestAsset(
+            Constants.NASDAQ,
+            "ABC",
+        )
 
     private fun getCurrentlyHeldValues(): MoneyValues {
         val positions = Positions(portfolio)
@@ -50,8 +58,12 @@ class RoiCalculationTests {
 
         val expectedROI = BigDecimal(".10") // Example expected result, assuming compounding effect
         val result =
-            RoiCalculator().calculateROI(moneyValues)
-                .setScale(2, RoundingMode.HALF_UP)
+            RoiCalculator()
+                .calculateROI(moneyValues)
+                .setScale(
+                    2,
+                    RoundingMode.HALF_UP,
+                )
         assertThat(result).isEqualTo(expectedROI)
     }
 

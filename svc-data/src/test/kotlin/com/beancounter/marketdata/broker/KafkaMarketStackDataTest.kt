@@ -59,10 +59,31 @@ class KafkaMarketStackDataTest {
 
     @Test
     fun corporateEventDispatched() {
-        val data: MutableMap<String, AssetInput> = mutableMapOf(Pair("a", AssetInput(NASDAQ.code, "TWEE")))
+        val data: MutableMap<String, AssetInput> =
+            mutableMapOf(
+                Pair(
+                    "a",
+                    AssetInput(
+                        NASDAQ.code,
+                        "TWEE",
+                    ),
+                ),
+            )
         val assetRequest = AssetRequest(data)
         `when`(assetService.handle(assetRequest))
-            .thenReturn(AssetUpdateResponse(mapOf(Pair("a", getTestAsset(code = "id", market = NASDAQ)))))
+            .thenReturn(
+                AssetUpdateResponse(
+                    mapOf(
+                        Pair(
+                            "a",
+                            getTestAsset(
+                                code = "id",
+                                market = NASDAQ,
+                            ),
+                        ),
+                    ),
+                ),
+            )
         val assetResult = assetService.handle(assetRequest)
         assertThat(assetResult.data).hasSize(1).containsKeys("a")
         val asset = assetResult.data["a"]
@@ -86,7 +107,11 @@ class KafkaMarketStackDataTest {
                 embeddedKafkaBroker,
             )
 
-        val consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_EVENT)
+        val consumerRecord =
+            KafkaTestUtils.getSingleRecord(
+                consumer,
+                TOPIC_EVENT,
+            )
         consumer.close()
         assertThat(consumerRecord.value()).isNotNull
         val (eventInput) =
@@ -95,8 +120,12 @@ class KafkaMarketStackDataTest {
                 TrustedEventInput::class.java,
             )
         assertThat(eventInput)
-            .hasFieldOrPropertyWithValue("rate", marketData.dividend)
-            .hasFieldOrPropertyWithValue("assetId", asset.id)
-            .hasFieldOrProperty("recordDate")
+            .hasFieldOrPropertyWithValue(
+                "rate",
+                marketData.dividend,
+            ).hasFieldOrPropertyWithValue(
+                "assetId",
+                asset.id,
+            ).hasFieldOrProperty("recordDate")
     }
 }

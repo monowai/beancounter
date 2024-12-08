@@ -50,34 +50,73 @@ class SystemUserServiceTest {
 
     @Test
     fun registerUserWithNoEmailFails() {
-        val auth0User = SystemUser(email = "", auth0 = AUTH0ID)
-        authUtilService.authenticate(auth0User, AuthUtilService.AuthProvider.AUTH0)
+        val auth0User =
+            SystemUser(
+                email = "",
+                auth0 = AUTH0ID,
+            )
+        authUtilService.authenticate(
+            auth0User,
+            AuthUtilService.AuthProvider.AUTH0,
+        )
         assertThrows(BusinessException::class.java) { systemUserService.register() }
     }
 
     @Test
     fun registerAuth0User() {
-        val auth0User = SystemUser(email = "auth0", auth0 = AUTH0ID)
-        authUtilService.authenticate(auth0User, AuthUtilService.AuthProvider.AUTH0)
+        val auth0User =
+            SystemUser(
+                email = "auth0",
+                auth0 = AUTH0ID,
+            )
+        authUtilService.authenticate(
+            auth0User,
+            AuthUtilService.AuthProvider.AUTH0,
+        )
         val result = systemUserService.register()
-        assertThat(result).isNotNull
-            .hasFieldOrPropertyWithValue(EMAIL, auth0User.email)
-            .hasFieldOrPropertyWithValue(AUTH0, auth0User.auth0)
-            .hasFieldOrPropertyWithValue(ACTIVE, true)
-            .hasFieldOrPropertyWithValue(GOOGLE, "")
+        assertThat(result)
+            .isNotNull
+            .hasFieldOrPropertyWithValue(
+                EMAIL,
+                auth0User.email,
+            ).hasFieldOrPropertyWithValue(
+                AUTH0,
+                auth0User.auth0,
+            ).hasFieldOrPropertyWithValue(
+                ACTIVE,
+                true,
+            ).hasFieldOrPropertyWithValue(
+                GOOGLE,
+                "",
+            )
 
         assertThat(systemUserService.getActiveUser()).isNotNull
     }
 
     @Test
     fun registerGoogleUser() {
-        val googleUser = SystemUser(email = "gmail", googleId = GOOGLEID)
-        authUtilService.authenticate(googleUser, AuthUtilService.AuthProvider.GOOGLE)
+        val googleUser =
+            SystemUser(
+                email = "gmail",
+                googleId = GOOGLEID,
+            )
+        authUtilService.authenticate(
+            googleUser,
+            AuthUtilService.AuthProvider.GOOGLE,
+        )
         val result = systemUserService.register()
-        assertThat(result).isNotNull
-            .hasFieldOrPropertyWithValue(EMAIL, googleUser.email)
-            .hasFieldOrPropertyWithValue(ACTIVE, true)
-            .hasFieldOrPropertyWithValue(GOOGLE, googleUser.googleId)
+        assertThat(result)
+            .isNotNull
+            .hasFieldOrPropertyWithValue(
+                EMAIL,
+                googleUser.email,
+            ).hasFieldOrPropertyWithValue(
+                ACTIVE,
+                true,
+            ).hasFieldOrPropertyWithValue(
+                GOOGLE,
+                googleUser.googleId,
+            )
 
         assertThat(systemUserService.getActiveUser()).isNotNull
         assertThat(systemUserService.getOrThrow).isNotNull
@@ -94,43 +133,79 @@ class SystemUserServiceTest {
     @Test
     fun auth0AndGoogleId() {
         authUtilService.authenticate(
-            SystemUser(email = USER_EMAIL, auth0 = AUTH0ID),
+            SystemUser(
+                email = USER_EMAIL,
+                auth0 = AUTH0ID,
+            ),
             AuthUtilService.AuthProvider.AUTH0,
         )
         systemUserService.register()
         authUtilService.authenticate(
-            SystemUser(email = USER_EMAIL, googleId = GOOGLEID),
+            SystemUser(
+                email = USER_EMAIL,
+                googleId = GOOGLEID,
+            ),
             AuthUtilService.AuthProvider.GOOGLE,
         )
-        assertThat(systemUserService.register()).isNotNull
-            .hasFieldOrPropertyWithValue(EMAIL, USER_EMAIL)
-            .hasFieldOrPropertyWithValue(ACTIVE, true)
-            .hasFieldOrPropertyWithValue(GOOGLE, GOOGLEID)
-            .hasFieldOrPropertyWithValue(AUTH0, AUTH0ID)
+        assertThat(systemUserService.register())
+            .isNotNull
+            .hasFieldOrPropertyWithValue(
+                EMAIL,
+                USER_EMAIL,
+            ).hasFieldOrPropertyWithValue(
+                ACTIVE,
+                true,
+            ).hasFieldOrPropertyWithValue(
+                GOOGLE,
+                GOOGLEID,
+            ).hasFieldOrPropertyWithValue(
+                AUTH0,
+                AUTH0ID,
+            )
     }
 
     @Test
     fun googleIdAndAuth0() {
         // Inverse test
         authUtilService.authenticate(
-            SystemUser(email = GMAIL, googleId = GOOGLEID),
+            SystemUser(
+                email = GMAIL,
+                googleId = GOOGLEID,
+            ),
             AuthUtilService.AuthProvider.GOOGLE,
         )
         systemUserService.register()
         authUtilService.authenticate(
-            SystemUser(email = GMAIL, auth0 = AUTH0ID),
+            SystemUser(
+                email = GMAIL,
+                auth0 = AUTH0ID,
+            ),
             AuthUtilService.AuthProvider.AUTH0,
         )
-        assertThat(systemUserService.register()).isNotNull
-            .hasFieldOrPropertyWithValue(EMAIL, GMAIL)
-            .hasFieldOrPropertyWithValue(ACTIVE, true)
-            .hasFieldOrPropertyWithValue(GOOGLE, GOOGLEID)
-            .hasFieldOrPropertyWithValue(AUTH0, AUTH0ID)
+        assertThat(systemUserService.register())
+            .isNotNull
+            .hasFieldOrPropertyWithValue(
+                EMAIL,
+                GMAIL,
+            ).hasFieldOrPropertyWithValue(
+                ACTIVE,
+                true,
+            ).hasFieldOrPropertyWithValue(
+                GOOGLE,
+                GOOGLEID,
+            ).hasFieldOrPropertyWithValue(
+                AUTH0,
+                AUTH0ID,
+            )
     }
 
     @Test
     fun systemAccount() {
-        val systemUser = SystemUser(email = "", auth0 = GOOGLEID)
+        val systemUser =
+            SystemUser(
+                email = "",
+                auth0 = GOOGLEID,
+            )
         authUtilService.authenticateM2M(
             systemUser,
             AuthUtilService.AuthProvider.AUTH0,

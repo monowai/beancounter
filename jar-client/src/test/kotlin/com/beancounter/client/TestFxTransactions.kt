@@ -1,6 +1,5 @@
 package com.beancounter.client
 
-import com.beancounter.auth.TokenService
 import com.beancounter.client.Constants.Companion.NZD
 import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.ingest.FxTransactions
@@ -23,12 +22,29 @@ import java.math.BigDecimal
 class TestFxTransactions {
     @Test
     fun is_TrnDefaultsSetting() {
-        val tradeBase = IsoCurrencyPair(USD.code, NZD.code)
-        val tradePf = IsoCurrencyPair(USD.code, NZD.code)
-        val tradeCash = IsoCurrencyPair(USD.code, NZD.code)
+        val tradeBase =
+            IsoCurrencyPair(
+                USD.code,
+                NZD.code,
+            )
+        val tradePf =
+            IsoCurrencyPair(
+                USD.code,
+                NZD.code,
+            )
+        val tradeCash =
+            IsoCurrencyPair(
+                USD.code,
+                NZD.code,
+            )
         val mapRates: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
         val temp = Currency("TEMP")
-        val one = FxRate(from = temp, to = temp, rate = BigDecimal.ONE)
+        val one =
+            FxRate(
+                from = temp,
+                to = temp,
+                rate = BigDecimal.ONE,
+            )
         mapRates[tradeBase] = one
         mapRates[tradePf] = one
         mapRates[tradeCash] = one
@@ -38,17 +54,32 @@ class TestFxTransactions {
         fxRequest.addTradeBase(tradeBase)
         fxRequest.addTradePf(tradePf)
         fxRequest.addTradeCash(tradeCash)
-        val trnInput = TrnInput(CallerRef(), "ABC", price = BigDecimal.TEN)
+        val trnInput =
+            TrnInput(
+                CallerRef(),
+                "ABC",
+                price = BigDecimal.TEN,
+            )
         val fxTransactions =
             FxTransactions(
                 Mockito.mock(FxService::class.java),
-                Mockito.mock(TokenService::class.java),
             )
-        fxTransactions.setRates(pairResults, fxRequest, trnInput)
+        fxTransactions.setRates(
+            pairResults,
+            fxRequest,
+            trnInput,
+        )
         assertThat(trnInput)
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(
+                "tradeCashRate",
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                "tradeBaseRate",
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                "tradePortfolioRate",
+                BigDecimal.ONE,
+            )
     }
 
     @Test
@@ -56,7 +87,6 @@ class TestFxTransactions {
         val fxTransactions =
             FxTransactions(
                 Mockito.mock(FxService::class.java),
-                Mockito.mock(TokenService::class.java),
             )
 
         assertThat(
@@ -81,7 +111,12 @@ class TestFxTransactions {
                 null,
             ),
         ).isNotNull
-            .hasFieldOrPropertyWithValue("from", "NZD")
-            .hasFieldOrPropertyWithValue("to", "USD")
+            .hasFieldOrPropertyWithValue(
+                "from",
+                "NZD",
+            ).hasFieldOrPropertyWithValue(
+                "to",
+                "USD",
+            )
     }
 }

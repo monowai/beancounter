@@ -28,16 +28,21 @@ internal class CurrencyMvcTests {
     fun is_CurrencyDataReturning() {
         val token = TokenUtils(authConfig).getSystemUserToken(SystemUser("currencies"))
         val mvcResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/currencies")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/currencies")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         val currencyResponse =
             objectMapper
-                .readValue(mvcResult.response.contentAsString, CurrencyResponse::class.java)
+                .readValue(
+                    mvcResult.response.contentAsString,
+                    CurrencyResponse::class.java,
+                )
         Assertions.assertThat(currencyResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(currencyResponse.data).isNotEmpty
     }

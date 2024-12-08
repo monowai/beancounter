@@ -107,7 +107,10 @@ class FxBase : ContractVerifierBase() {
                     ),
                 "2019-10-18" to
                     mapOf(
-                        Pair(Constants.NZD.code, BigDecimal("1.41030000")),
+                        Pair(
+                            Constants.NZD.code,
+                            BigDecimal("1.41030000"),
+                        ),
                     ),
                 "2021-10-18" to
                     EcbMockUtils.getRateMap(

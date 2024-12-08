@@ -29,8 +29,16 @@ import org.springframework.stereotype.Service
     CurrencyResolver::class,
     IrrCalculator::class,
 )
-class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
-    private val cashSet = setOf(BALANCE, FX_BUY, DEPOSIT, WITHDRAWAL)
+class Accumulator(
+    private val trnBehaviourFactory: TrnBehaviourFactory,
+) {
+    private val cashSet =
+        setOf(
+            BALANCE,
+            FX_BUY,
+            DEPOSIT,
+            WITHDRAWAL,
+        )
 
     /**
      * Processes a transaction and updates the corresponding position.
@@ -45,15 +53,27 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
         positions: Positions,
     ): Position {
         val position = positions.getOrCreate(trn)
-        position.getMoneyValues(Position.In.TRADE, trn.tradeCurrency)
+        position.getMoneyValues(
+            Position.In.TRADE,
+            trn.tradeCurrency,
+        )
         if (trn.trnType !== DIVI) {
-            ensureDateSequential(trn, position)
+            ensureDateSequential(
+                trn,
+                position,
+            )
         }
-        trnBehaviourFactory[trn.trnType].accumulate(trn, positions)
+        trnBehaviourFactory[trn.trnType].accumulate(
+            trn,
+            positions,
+        )
         position.dateValues.last = trn.tradeDate
 
         if (isCash(trn)) {
-            accumulateCash(trn, positions)
+            accumulateCash(
+                trn,
+                positions,
+            )
         }
         position.periodicCashFlows.add(trn)
 
@@ -67,8 +87,7 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
      * @return True if cash should be accumulated, false otherwise.
      */
     private fun isCash(trn: Trn): Boolean =
-        trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType) &&
-            trn.trnType !in cashSet
+        trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType) && trn.trnType !in cashSet
 
     /**
      * Accumulates cash-related transactions to the corresponding position based on the transaction type.
@@ -80,10 +99,20 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
         trn: Trn,
         positions: Positions,
     ) {
-        val cashPosition = positions.getOrCreate(trn.cashAsset!!, trn.tradeDate)
+        val cashPosition =
+            positions.getOrCreate(
+                trn.cashAsset!!,
+                trn.tradeDate,
+            )
 
         when {
-            TrnType.isCashCredited(trn.trnType) -> trnBehaviourFactory[DEPOSIT].accumulate(trn, positions, cashPosition)
+            TrnType.isCashCredited(trn.trnType) ->
+                trnBehaviourFactory[DEPOSIT].accumulate(
+                    trn,
+                    positions,
+                    cashPosition,
+                )
+
             TrnType.isCashDebited(trn.trnType) ->
                 trnBehaviourFactory[WITHDRAWAL].accumulate(
                     trn,
@@ -110,7 +139,9 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
         val positionDate = position.dateValues.last
 
         if (positionDate != null && tradeDate < positionDate) {
-            throw BusinessException("Date sequence problem for transaction on ${trn.tradeDate} with last position date on $positionDate")
+            throw BusinessException(
+                "Date sequence problem for transaction on ${trn.tradeDate} with last position date on $positionDate",
+            )
         }
     }
 }

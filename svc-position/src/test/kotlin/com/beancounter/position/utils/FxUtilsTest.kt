@@ -30,37 +30,87 @@ internal class FxUtilsTest {
 
     @Test
     fun is_CurrencyPairResultsAsExpected() {
-        val asset = Position(getTestAsset(NASDAQ, "Test")).asset
+        val asset =
+            Position(
+                getTestAsset(
+                    NASDAQ,
+                    "Test",
+                ),
+            ).asset
         val validCurrency = asset.market.currency
-        assertThat(toPair(NZD, validCurrency))
-            .isNotNull // From != To
+        assertThat(
+            toPair(
+                NZD,
+                validCurrency,
+            ),
+        ).isNotNull // From != To
     }
 
     @Test
     fun is_FxRequestCorrect() {
-        val portfolio = Portfolio("ABC", currency = SGD)
+        val portfolio =
+            Portfolio(
+                "ABC",
+                currency = SGD,
+            )
         val positions = Positions(portfolio)
-        val gbpMarket = Market(GBP.code, GBP.code)
+        val gbpMarket =
+            Market(
+                GBP.code,
+                GBP.code,
+            )
         val usdMarket = Market(USD.code)
 
         positions.add(
-            getPosition(getTestAsset(gbpMarket, "$GBP.code Asset"), positions),
+            getPosition(
+                getTestAsset(
+                    gbpMarket,
+                    "$GBP.code Asset",
+                ),
+                positions,
+            ),
         )
         positions.add(
-            getPosition(getTestAsset(usdMarket, "$USD.code Asset"), positions),
+            getPosition(
+                getTestAsset(
+                    usdMarket,
+                    "$USD.code Asset",
+                ),
+                positions,
+            ),
         )
         positions.add(
-            getPosition(getTestAsset(usdMarket, "$USD.code Asset Other"), positions),
+            getPosition(
+                getTestAsset(
+                    usdMarket,
+                    "$USD.code Asset Other",
+                ),
+                positions,
+            ),
         )
-        with(fxUtils.buildRequest(USD, positions)) {
+        with(
+            fxUtils.buildRequest(
+                USD,
+                positions,
+            ),
+        ) {
             assertThat(pairs).hasSize(3)
             assertThat(pairs).containsExactlyInAnyOrder(
                 // TRADE:PF
-                IsoCurrencyPair(USD.code, SGD.code),
+                IsoCurrencyPair(
+                    USD.code,
+                    SGD.code,
+                ),
                 // PF:TRADE
-                IsoCurrencyPair(GBP.code, SGD.code),
+                IsoCurrencyPair(
+                    GBP.code,
+                    SGD.code,
+                ),
                 // BASE:TRADE
-                IsoCurrencyPair(GBP.code, USD.code),
+                IsoCurrencyPair(
+                    GBP.code,
+                    USD.code,
+                ),
             )
         }
     }

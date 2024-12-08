@@ -21,7 +21,11 @@ import org.springframework.web.bind.annotation.RequestBody
  * OpenID client-credential login service to service M2M authentication requests
  */
 @Service
-@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["auth.enabled"],
+    havingValue = "true",
+    matchIfMissing = true,
+)
 class LoginService(
     private val authGateway: AuthGateway,
     val jwtDecoder: JwtDecoder,
@@ -33,7 +37,11 @@ class LoginService(
         user: String,
         password: String,
     ): OpenIdResponse {
-        val passwordRequest = passwordRequest(user, password)
+        val passwordRequest =
+            passwordRequest(
+                user,
+                password,
+            )
         val response = authGateway.login(passwordRequest)
         log.info("Logged in $user")
         return response
@@ -116,8 +124,15 @@ class LoginService(
     /**
      * Obtain a token from BC-DATA that can be used by the client app.
      */
-    @FeignClient(name = "auth0", url = "\${auth.uri:https://beancounter.eu.auth0.com/}")
-    @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
+    @FeignClient(
+        name = "auth0",
+        url = "\${auth.uri:https://beancounter.eu.auth0.com/}",
+    )
+    @ConditionalOnProperty(
+        value = ["auth.enabled"],
+        havingValue = "true",
+        matchIfMissing = true,
+    )
     interface AuthGateway {
         @PostMapping(
             value = ["oauth/token"],

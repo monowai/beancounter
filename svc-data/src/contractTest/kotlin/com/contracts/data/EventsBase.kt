@@ -29,14 +29,24 @@ class EventsBase : ContractVerifierBase() {
     @Autowired
     private lateinit var alphaEventService: AlphaEventService
 
-    private val asset = getTestAsset(code = "NDAQ", market = NASDAQ)
+    private val asset =
+        getTestAsset(
+            code = "NDAQ",
+            market = NASDAQ,
+        )
 
     @BeforeEach
     fun doIt() {
-        Mockito.`when`(assetService.find(asset.id))
+        Mockito
+            .`when`(assetService.find(asset.id))
             .thenReturn(asset)
-        Mockito.`when`(alphaGateway.getAdjusted(asset.id, "demo"))
-            .thenReturn(
+        Mockito
+            .`when`(
+                alphaGateway.getAdjusted(
+                    asset.id,
+                    "demo",
+                ),
+            ).thenReturn(
                 objectMapper.writeValueAsString(
                     objectMapper.readTree(
                         ClassPathResource("alpha/ndaq-events-full.json").file,

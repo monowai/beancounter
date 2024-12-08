@@ -36,14 +36,17 @@ class RoiCalculator {
         }
         val returns = moneyValues.totalGain
         return returns
-            .divide(costBasis, 6, RoundingMode.HALF_UP)
+            .divide(
+                costBasis,
+                6,
+                RoundingMode.HALF_UP,
+            )
     }
 
-    private fun costBasis(moneyValues: MoneyValues): BigDecimal {
-        return if (moneyValues.costValue.compareTo(BigDecimal.ZERO) == 0) {
+    private fun costBasis(moneyValues: MoneyValues): BigDecimal =
+        if (moneyValues.costValue.compareTo(BigDecimal.ZERO) == 0) {
             moneyValues.purchases
         } else {
             moneyValues.costValue
         }
-    }
 }

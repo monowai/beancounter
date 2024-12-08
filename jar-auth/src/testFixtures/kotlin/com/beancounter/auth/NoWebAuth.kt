@@ -11,18 +11,20 @@ import org.springframework.stereotype.Service
  * Handles the scenario where you want absolutely no Auth in your config.
  */
 @Service
-@ConditionalOnProperty("auth.enabled", havingValue = "false")
+@ConditionalOnProperty(
+    "auth.enabled",
+    havingValue = "false",
+)
 @ConditionalOnBean(HttpSecurity::class)
 class NoWebAuth {
     @Bean
-    fun configure(http: HttpSecurity): SecurityFilterChain {
-        return http // ...
+    fun configure(http: HttpSecurity): SecurityFilterChain =
+        http // ...
             .authorizeHttpRequests { auth ->
                 auth
-                    .anyRequest().permitAll()
-            }
-            .csrf { csrf ->
+                    .anyRequest()
+                    .permitAll()
+            }.csrf { csrf ->
                 csrf.disable()
             }.build()
-    }
 }

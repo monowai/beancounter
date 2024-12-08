@@ -13,7 +13,9 @@ import java.util.Locale
  */
 @Service
 @Transactional
-class EnrichmentFactory(val defaultEnricher: DefaultEnricher) {
+class EnrichmentFactory(
+    val defaultEnricher: DefaultEnricher,
+) {
     private var enrichers: MutableMap<String, AssetEnricher> = HashMap()
 
     @Value("\${beancounter.enricher:ALPHA}")

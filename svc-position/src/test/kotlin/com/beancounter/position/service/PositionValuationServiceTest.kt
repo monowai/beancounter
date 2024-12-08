@@ -83,7 +83,10 @@ class PositionValuationServiceTest {
     fun setup() {
         valuationService =
             PositionValuationService(
-                MarketValue(Gains(), DateUtils()),
+                MarketValue(
+                    Gains(),
+                    DateUtils(),
+                ),
                 fxUtils,
                 priceService,
                 fxRateService,
@@ -97,24 +100,61 @@ class PositionValuationServiceTest {
     fun `value should correctly compute values when assets are not empty`() {
         // Arrange
         whenever(tokenService.bearerToken).thenReturn("Token Value")
-        val asset = Asset(code = "Asset1", market = US)
-        val assetInputs = setOf(AssetInput(US.code, asset.code))
+        val asset =
+            Asset(
+                code = "Asset1",
+                market = US,
+            )
+        val assetInputs =
+            setOf(
+                AssetInput(
+                    US.code,
+                    asset.code,
+                ),
+            )
         val positions = Positions(portfolio)
-        positions.add(Position(asset, portfolio))
-        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
-        whenever(priceService.getPrices(any(), any())).thenReturn(
+        positions.add(
+            Position(
+                asset,
+                portfolio,
+            ),
+        )
+        whenever(
+            fxUtils.buildRequest(
+                any(),
+                any(),
+            ),
+        ).thenReturn(FxRequest())
+        whenever(
+            priceService.getPrices(
+                any(),
+                any(),
+            ),
+        ).thenReturn(
             PriceResponse(
                 listOf(MarketData(asset)),
             ),
         )
-        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+        whenever(
+            fxRateService.getRates(
+                any(),
+                any(),
+            ),
+        ).thenReturn(FxResponse())
 
         // Act
-        val result = valuationService.value(positions, assetInputs)
+        val result =
+            valuationService.value(
+                positions,
+                assetInputs,
+            )
 
         // Assert
         assertThat(result).isNotNull
-        verify(priceService).getPrices(any(), any()) // Verifies that prices were indeed fetched
+        verify(priceService).getPrices(
+            any(),
+            any(),
+        ) // Verifies that prices were indeed fetched
     }
 
     @Test
@@ -122,7 +162,11 @@ class PositionValuationServiceTest {
         val positions = Positions(portfolio)
 
         // Act
-        val result = valuationService.value(positions, emptyList())
+        val result =
+            valuationService.value(
+                positions,
+                emptyList(),
+            )
 
         // Assert
         assertThat(result).isEqualTo(positions)

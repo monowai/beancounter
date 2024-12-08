@@ -57,7 +57,10 @@ class OffMarketPriceDataTest {
 
     @Autowired
     fun setAuth(mockAuthConfig: MockAuthConfig) {
-        mockAuthConfig.login(SystemUser(id = owner), this.systemUserService)
+        mockAuthConfig.login(
+            SystemUser(id = owner),
+            this.systemUserService,
+        )
     }
 
     @Test
@@ -84,23 +87,30 @@ class OffMarketPriceDataTest {
                     ),
                 ),
             )
-        val asset = assetResponse.data.iterator().next().value
+        val asset =
+            assetResponse.data
+                .iterator()
+                .next()
+                .value
 
         // No price exists, so return 0
         val prices =
             marketDataService.getPriceResponse(
                 priceRequest =
-                    PriceRequest(
-                        assets =
-                            listOf(
-                                PriceAsset(asset),
-                            ),
+                PriceRequest(
+                    assets =
+                    listOf(
+                        PriceAsset(asset),
                     ),
+                ),
             )
 
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())
-            .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                "close",
+                BigDecimal.ZERO,
+            )
     }
 
     @Test
@@ -121,16 +131,21 @@ class OffMarketPriceDataTest {
                     ),
                 ),
             )
-        val asset = assetResponse.data.iterator().next().value
+        val asset =
+            assetResponse.data
+                .iterator()
+                .next()
+                .value
 
         val priceResponse =
             PriceResponse(
                 listOf(
-                    priceService.getMarketData(
-                        asset = asset,
-                        date = DateUtils().getFormattedDate("2022-01-01"),
-                        closePrice = BigDecimal.TEN,
-                    ).get(),
+                    priceService
+                        .getMarketData(
+                            asset = asset,
+                            date = DateUtils().getFormattedDate("2022-01-01"),
+                            closePrice = BigDecimal.TEN,
+                        ).get(),
                 ),
             )
 
@@ -140,16 +155,21 @@ class OffMarketPriceDataTest {
         val prices =
             marketDataService.getPriceResponse(
                 priceRequest =
-                    PriceRequest(
-                        assets =
-                            listOf(
-                                PriceAsset(asset),
-                            ),
+                PriceRequest(
+                    assets =
+                    listOf(
+                        PriceAsset(asset),
                     ),
+                ),
             )
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())
-            .hasFieldOrPropertyWithValue("close", BigDecimal("10.000000"))
-            .hasFieldOrPropertyWithValue("asset.market.code", OffMarketDataProvider.ID)
+            .hasFieldOrPropertyWithValue(
+                "close",
+                BigDecimal("10.000000"),
+            ).hasFieldOrPropertyWithValue(
+                "asset.market.code",
+                OffMarketDataProvider.ID,
+            )
     }
 }

@@ -52,11 +52,29 @@ internal class PriceRefreshTest {
     fun updatePrices() {
         val keyGenUtils = KeyGenUtils()
         val code = keyGenUtils.id
-        Mockito.`when`(
-            alphaPriceService.getMarketData(
-                PriceRequest(TODAY, listOf(PriceAsset(NASDAQ.code, code = code))),
-            ),
-        ).thenReturn(listOf(MarketData(Asset(code = "", market = NASDAQ))))
+        Mockito
+            .`when`(
+                alphaPriceService.getMarketData(
+                    PriceRequest(
+                        TODAY,
+                        listOf(
+                            PriceAsset(
+                                NASDAQ.code,
+                                code = code,
+                            ),
+                        ),
+                    ),
+                ),
+            ).thenReturn(
+                listOf(
+                    MarketData(
+                        Asset(
+                            code = "",
+                            market = NASDAQ,
+                        ),
+                    ),
+                ),
+            )
         val asset =
             assetRepository.save(
                 Asset(

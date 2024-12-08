@@ -24,9 +24,21 @@ class OffMarketEnricher(
     ): Asset {
         val systemUser = systemUserService.getOrThrow
         return Asset(
-            code = parseCode(systemUser, assetInput.code),
+            code =
+            parseCode(
+                systemUser,
+                assetInput.code,
+            ),
             id = id,
-            name = if (assetInput.name != null) assetInput.name!!.replace("\"", "") else null,
+            name =
+            if (assetInput.name != null) {
+                assetInput.name!!.replace(
+                    "\"",
+                    "",
+                )
+            } else {
+                null
+            },
             market = market,
             marketCode = market.code,
             priceSymbol = assetInput.currency,
@@ -35,13 +47,9 @@ class OffMarketEnricher(
         )
     }
 
-    override fun canEnrich(asset: Asset): Boolean {
-        return id() == asset.market.code
-    }
+    override fun canEnrich(asset: Asset): Boolean = id() == asset.market.code
 
-    override fun id(): String {
-        return ID
-    }
+    override fun id(): String = ID
 
     companion object {
         const val ID = OffMarketDataProvider.ID

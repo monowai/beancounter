@@ -7,8 +7,14 @@ import org.springframework.stereotype.Service
 import java.util.Optional
 
 @Service
-class SystemUserCache(val tokenService: TokenService, val systemUserRepository: SystemUserRepository) {
-    @Cacheable(value = ["system.user"], unless = "#result == null")
+class SystemUserCache(
+    val tokenService: TokenService,
+    val systemUserRepository: SystemUserRepository,
+) {
+    @Cacheable(
+        value = ["system.user"],
+        unless = "#result == null",
+    )
     fun find(
         email: String?,
         subject: String?,

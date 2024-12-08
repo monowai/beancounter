@@ -9,5 +9,9 @@ import org.springframework.context.annotation.Import
  * Configuration class to import necessary services.
  */
 @Configuration
-@Import(TaxService::class, AlphaEventAdapter::class, EventBehaviourFactory::class)
+@Import(
+    TaxService::class,
+    AlphaEventAdapter::class,
+    EventBehaviourFactory::class,
+)
 class AlphaEventConfig

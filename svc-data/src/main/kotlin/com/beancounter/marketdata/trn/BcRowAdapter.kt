@@ -46,24 +46,35 @@ class BcRowAdapter(
             )
         val cashCurrency = trustedTrnImportRequest.row[Columns.CashCurrency.ordinal].trim()
         val cashAccount = trustedTrnImportRequest.row[Columns.CashAccount.ordinal].trim()
-        val cashAssetId = getCashAssetId(trnType, asset, cashAccount, cashCurrency)
+        val cashAssetId =
+            getCashAssetId(
+                trnType,
+                asset,
+                cashAccount,
+                cashCurrency,
+            )
         val quantity =
-            MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[Columns.Quantity.ordinal]))
+            MathUtils.nullSafe(
+                MathUtils.parse(trustedTrnImportRequest.row[Columns.Quantity.ordinal]),
+            )
         val price =
             MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[Columns.Price.ordinal]))
-        val fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[Columns.Fees.ordinal]))
+        val fees =
+            MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[Columns.Fees.ordinal]))
         val tradeBaseRate = MathUtils.parse(trustedTrnImportRequest.row[Columns.BaseRate.ordinal])
         val tradeAmount =
-            MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[Columns.TradeAmount.ordinal]))
+            MathUtils.nullSafe(
+                MathUtils.parse(trustedTrnImportRequest.row[Columns.TradeAmount.ordinal]),
+            )
 
         return TrnInput(
             callerRef =
-                CallerRef(
-                    // SystemUserId
-                    trustedTrnImportRequest.portfolio.owner.id,
-                    trustedTrnImportRequest.row[Columns.Batch.ordinal].trim(),
-                    trustedTrnImportRequest.row[Columns.CallerId.ordinal].trim(),
-                ),
+            CallerRef(
+                // SystemUserId
+                trustedTrnImportRequest.portfolio.owner.id,
+                trustedTrnImportRequest.row[Columns.Batch.ordinal].trim(),
+                trustedTrnImportRequest.row[Columns.CallerId.ordinal].trim(),
+            ),
             assetId = asset.id,
             trnType = trnType,
             quantity = quantity,
@@ -90,7 +101,11 @@ class BcRowAdapter(
             if (TrnType.isCash(trnType)) {
                 asset
             } else {
-                cashServices.getCashAsset(trnType, cashAccount, cashCurrency)
+                cashServices.getCashAsset(
+                    trnType,
+                    cashAccount,
+                    cashCurrency,
+                )
             }
         return cashAsset?.id
     }

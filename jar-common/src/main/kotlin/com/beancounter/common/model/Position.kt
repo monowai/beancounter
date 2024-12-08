@@ -10,8 +10,15 @@ import java.util.EnumMap
  * @author mikeh
  * @since 2019-01-28
  */
-class Position(val asset: Asset, portfolio: Portfolio?, tradeCurrency: Currency = asset.market.currency) {
-    constructor(asset: Asset) : this(asset, null)
+class Position(
+    val asset: Asset,
+    portfolio: Portfolio?,
+    tradeCurrency: Currency = asset.market.currency,
+) {
+    constructor(asset: Asset) : this(
+        asset,
+        null,
+    )
 
     @JsonIgnore
     val periodicCashFlows = PeriodicCashFlows()
@@ -29,10 +36,19 @@ class Position(val asset: Asset, portfolio: Portfolio?, tradeCurrency: Currency 
     }
 
     init {
-        getMoneyValues(In.TRADE, tradeCurrency)
+        getMoneyValues(
+            In.TRADE,
+            tradeCurrency,
+        )
         if (portfolio != null) {
-            getMoneyValues(In.PORTFOLIO, portfolio.currency)
-            getMoneyValues(In.BASE, portfolio.base)
+            getMoneyValues(
+                In.PORTFOLIO,
+                portfolio.currency,
+            )
+            getMoneyValues(
+                In.BASE,
+                portfolio.base,
+            )
         }
     }
 
@@ -47,9 +63,7 @@ class Position(val asset: Asset, portfolio: Portfolio?, tradeCurrency: Currency 
     fun getMoneyValues(
         reportCurrency: In,
         currency: Currency,
-    ): MoneyValues {
-        return moneyValues.getOrPut(reportCurrency) { MoneyValues(currency) }
-    }
+    ): MoneyValues = moneyValues.getOrPut(reportCurrency) { MoneyValues(currency) }
 
     @JsonIgnore
     fun getMoneyValues(reportCurrency: In): MoneyValues {
@@ -59,7 +73,5 @@ class Position(val asset: Asset, portfolio: Portfolio?, tradeCurrency: Currency 
         throw BusinessException("$reportCurrency Position does not exist for ${asset.name}")
     }
 
-    override fun toString(): String {
-        return "Position(asset=$asset)"
-    }
+    override fun toString(): String = "Position(asset=$asset)"
 }

@@ -37,10 +37,18 @@ class IrrCalculator(
         val firstDate = periodicCashFlows.cashFlows.minByOrNull { it.date }?.date ?: LocalDate.now()
         val lastDate = periodicCashFlows.cashFlows.maxByOrNull { it.date }?.date ?: LocalDate.now()
 
-        return if (ChronoUnit.DAYS.between(firstDate, lastDate) < minHoldingDays) {
+        return if (ChronoUnit.DAYS.between(
+                firstDate,
+                lastDate,
+            ) < minHoldingDays
+        ) {
             calculateSimpleROI(periodicCashFlows)
         } else {
-            calculateXIRR(periodicCashFlows, guess, firstDate)
+            calculateXIRR(
+                periodicCashFlows,
+                guess,
+                firstDate,
+            )
         }
     }
 
@@ -55,9 +63,24 @@ class IrrCalculator(
         guess: Double,
         firstDate: LocalDate,
     ): Double {
-        val npvFunction = NPVFunction(periodicCashFlows, firstDate)
-        val result = solver.solve(1000, npvFunction, -0.999999, 1000000.0, guess)
-        return String.format("%.8f", result).toDouble()
+        val npvFunction =
+            NPVFunction(
+                periodicCashFlows,
+                firstDate,
+            )
+        val result =
+            solver.solve(
+                1000,
+                npvFunction,
+                -0.999999,
+                1000000.0,
+                guess,
+            )
+        return String
+            .format(
+                "%.8f",
+                result,
+            ).toDouble()
     }
 
     private class NPVFunction(

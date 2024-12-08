@@ -11,10 +11,24 @@ internal class TestFilter {
     fun is_FilteredAssetsCaseInsensitive() {
         val filter = Filter("Code")
         Assertions.assertThat(filter.hasFilter()).isTrue
-        Assertions.assertThat(filter.inFilter(getTestAsset(NYSE, "Code")))
-            .isTrue
-        Assertions.assertThat(filter.inFilter(getTestAsset(NYSE, "code")))
-            .isTrue
+        Assertions
+            .assertThat(
+                filter.inFilter(
+                    getTestAsset(
+                        NYSE,
+                        "Code",
+                    ),
+                ),
+            ).isTrue
+        Assertions
+            .assertThat(
+                filter.inFilter(
+                    getTestAsset(
+                        NYSE,
+                        "code",
+                    ),
+                ),
+            ).isTrue
     }
 
     @Test

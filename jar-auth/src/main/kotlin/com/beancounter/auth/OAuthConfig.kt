@@ -32,7 +32,11 @@ import java.util.Objects
  * @see com.beancounter.auth.MockAuthConfig
  */
 @Configuration
-@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+    value = ["auth.enabled"],
+    havingValue = "true",
+    matchIfMissing = false,
+)
 @Import(AuthConfig::class)
 class OAuthConfig(
     @Autowired(required = false) val cacheManager: CacheManager?,
@@ -55,33 +59,46 @@ class OAuthConfig(
         // call a couple of functions. The Spring class is inconveniently package protected.
         val configuration = JwtUtil.getConfigurationForIssuerLocation(authConfig.issuer)
         val jwkSetUri = configuration["jwks_uri"].toString()
-        val jwkSource = RemoteJWKSet<SecurityContext>(URI.create(jwkSetUri).toURL(), DefaultResourceRetriever())
+        val jwkSource =
+            RemoteJWKSet<SecurityContext>(
+                URI.create(jwkSetUri).toURL(),
+                DefaultResourceRetriever(),
+            )
         val jwtDecoder =
-            NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
+            NimbusJwtDecoder
+                .withJwkSetUri(jwkSetUri)
                 .jwsAlgorithms { algos: MutableSet<SignatureAlgorithm?> ->
                     algos.addAll(
                         JwtUtil.getSignatureAlgorithms(jwkSource),
                     )
-                }
-                .restOperations(jwtRestOperations)
+                }.restOperations(jwtRestOperations)
                 .cache(Objects.requireNonNull(getTokenCache()))
                 .build()
         val audienceValidator: OAuth2TokenValidator<Jwt> = AudienceValidator(authConfig.audience)
         val withAudience: OAuth2TokenValidator<Jwt> =
-            DelegatingOAuth2TokenValidator(JwtValidators.createDefaultWithIssuer(authConfig.issuer), audienceValidator)
+            DelegatingOAuth2TokenValidator(
+                JwtValidators.createDefaultWithIssuer(authConfig.issuer),
+                audienceValidator,
+            )
         jwtDecoder.setJwtValidator(withAudience)
         return jwtDecoder
     }
 
-    internal class AudienceValidator(private val audience: String) : OAuth2TokenValidator<Jwt> {
-        val error = OAuth2Error("invalid_token", "The required audience is missing", null)
+    internal class AudienceValidator(
+        private val audience: String,
+    ) : OAuth2TokenValidator<Jwt> {
+        val error =
+            OAuth2Error(
+                "invalid_token",
+                "The required audience is missing",
+                null,
+            )
 
-        override fun validate(jwt: Jwt): OAuth2TokenValidatorResult {
-            return if (jwt.audience.contains(audience)) {
+        override fun validate(jwt: Jwt): OAuth2TokenValidatorResult =
+            if (jwt.audience.contains(audience)) {
                 OAuth2TokenValidatorResult.success()
             } else {
                 OAuth2TokenValidatorResult.failure(error)
             }
-        }
     }
 }

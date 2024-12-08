@@ -20,15 +20,15 @@ import org.springframework.stereotype.Component
 @Import(CurrencyService::class)
 @Component
 class MarketConfig
-    @Autowired
-    constructor(
-        val values: Collection<Market>,
-        val currencyService: CurrencyService,
-    ) {
-        @Cacheable("providers")
-        fun getProviders(): Map<String, Market> =
-            values.associateByTo(mutableMapOf()) {
-                it.currency = currencyService.getCode(it.currencyId)
-                it.code
-            }
-    }
+@Autowired
+constructor(
+    val values: Collection<Market>,
+    val currencyService: CurrencyService,
+) {
+    @Cacheable("providers")
+    fun getProviders(): Map<String, Market> =
+        values.associateByTo(mutableMapOf()) {
+            it.currency = currencyService.getCode(it.currencyId)
+            it.code
+        }
+}

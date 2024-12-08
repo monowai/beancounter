@@ -27,15 +27,27 @@ import java.time.LocalDate
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["source", "asset_id", "priceDate"])])
 data class MarketData(
     @ManyToOne var asset: Asset,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = DateUtils.FORMAT,
+    )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate = LocalDate.now(),
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     var close: BigDecimal = BigDecimal.ZERO,
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     var open: BigDecimal = BigDecimal.ZERO,
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     var previousClose: BigDecimal = BigDecimal.ZERO,
 ) {
     constructor(
@@ -52,7 +64,12 @@ data class MarketData(
         volume: Int = 0,
         dividend: BigDecimal = BigDecimal.ZERO,
         split: BigDecimal = BigDecimal.ONE,
-    ) : this(asset, priceDate, close, open) {
+    ) : this(
+        asset,
+        priceDate,
+        close,
+        open,
+    ) {
         this.source = source
         this.priceDate = priceDate
         this.low = low
@@ -75,34 +92,48 @@ data class MarketData(
 
     var source: String = "ALPHA"
 
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     var low: BigDecimal = BigDecimal.ZERO
 
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     var high: BigDecimal = BigDecimal.ZERO
 
-    @Column(precision = 7, scale = 4)
+    @Column(
+        precision = 7,
+        scale = 4,
+    )
     var change: BigDecimal = BigDecimal.ZERO
 
-    @Column(precision = 7, scale = 4)
+    @Column(
+        precision = 7,
+        scale = 4,
+    )
     var changePercent: BigDecimal = BigDecimal.ZERO
     var volume: Int = 0
 
-    @Column(precision = 7, scale = 4)
+    @Column(
+        precision = 7,
+        scale = 4,
+    )
     var dividend: BigDecimal = BigDecimal.ZERO
 
-    @Column(precision = 7, scale = 4)
+    @Column(
+        precision = 7,
+        scale = 4,
+    )
     var split: BigDecimal = BigDecimal.ONE
 
     companion object {
         @JvmStatic
-        fun isSplit(marketData: MarketData): Boolean {
-            return BigDecimal.ONE.compareTo(marketData.split) != 0
-        }
+        fun isSplit(marketData: MarketData): Boolean = BigDecimal.ONE.compareTo(marketData.split) != 0
 
         @JvmStatic
-        fun isDividend(marketData: MarketData): Boolean {
-            return BigDecimal.ZERO.compareTo(marketData.dividend) != 0
-        }
+        fun isDividend(marketData: MarketData): Boolean = BigDecimal.ZERO.compareTo(marketData.dividend) != 0
     }
 }

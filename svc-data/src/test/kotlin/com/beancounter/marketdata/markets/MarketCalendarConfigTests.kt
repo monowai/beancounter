@@ -21,7 +21,12 @@ class MarketCalendarConfigTests {
 
     @Test
     fun marketHolidaysArePresentAndEmpty() {
-        assertThat(marketCalendarConfig.marketHolidays(2014, NZX.code)).isNotNull.isEmpty()
+        assertThat(
+            marketCalendarConfig.marketHolidays(
+                2014,
+                NZX.code,
+            ),
+        ).isNotNull.isEmpty()
     }
 
     @Test
@@ -32,9 +37,19 @@ class MarketCalendarConfigTests {
         val year = 2014
         val marketCalendar =
             MarketCalendarConfig(
-                listOf(MarketHolidayAnnual(day, Month.DECEMBER.value.toString(), markets = markets)),
+                listOf(
+                    MarketHolidayAnnual(
+                        day,
+                        Month.DECEMBER.value.toString(),
+                        markets = markets,
+                    ),
+                ),
             )
-        val result = marketCalendar.buildMarketHolidays(year, market)
+        val result =
+            marketCalendar.buildMarketHolidays(
+                year,
+                market,
+            )
         assertThat(result).isNotEmpty.hasSize(1)
         assertThat(
             result[0],

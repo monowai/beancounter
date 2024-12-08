@@ -63,7 +63,19 @@ internal class FxFullStackTest {
         val fxRequest =
             FxRequest(
                 rateDate = date,
-                pairs = mutableSetOf(nzdUsd, usdNzd, IsoCurrencyPair(usd, usd), IsoCurrencyPair(nzd, nzd)),
+                pairs =
+                mutableSetOf(
+                    nzdUsd,
+                    usdNzd,
+                    IsoCurrencyPair(
+                        usd,
+                        usd,
+                    ),
+                    IsoCurrencyPair(
+                        nzd,
+                        nzd,
+                    ),
+                ),
             )
 
         val results = getResults(fxRequest)
@@ -73,8 +85,14 @@ internal class FxFullStackTest {
         assertThat(theRates.keys).containsExactlyInAnyOrder(
             nzdUsd,
             usdNzd,
-            IsoCurrencyPair(usd, usd),
-            IsoCurrencyPair(nzd, nzd),
+            IsoCurrencyPair(
+                usd,
+                usd,
+            ),
+            IsoCurrencyPair(
+                nzd,
+                nzd,
+            ),
         )
 
         // Assert that each currency pair has a non-null date associated with its rate
@@ -87,7 +105,10 @@ internal class FxFullStackTest {
         val mvcResult = fxPost(fxRequest)
         val (results) =
             objectMapper
-                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+                .readValue(
+                    mvcResult.response.contentAsString,
+                    FxResponse::class.java,
+                )
         assertThat(results.rates)
             .isNotNull
             .hasSize(fxRequest.pairs.size)
@@ -96,7 +117,11 @@ internal class FxFullStackTest {
 
     private fun mockProviderRates() {
         `when`(
-            fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)),
+            fxGateway.getRatesForSymbols(
+                eq(date),
+                eq(USD.code),
+                eq(currencyService.currenciesAs),
+            ),
         ).thenReturn(
             ExRatesResponse(
                 USD.code,
@@ -109,18 +134,26 @@ internal class FxFullStackTest {
     @Test
     fun is_NullDateReturningCurrent() {
         val fxRequest = FxRequest(pairs = mutableSetOf(nzdUsd))
-        `when`(fxGateway.getRatesForSymbols(any(), eq(usd), eq(currencyService.currenciesAs)))
-            .thenReturn(
-                ExRatesResponse(
-                    usd,
-                    LocalDate.now(),
-                    getFxRates(),
-                ),
-            )
+        `when`(
+            fxGateway.getRatesForSymbols(
+                any(),
+                eq(usd),
+                eq(currencyService.currenciesAs),
+            ),
+        ).thenReturn(
+            ExRatesResponse(
+                usd,
+                LocalDate.now(),
+                getFxRates(),
+            ),
+        )
         val mvcResult = fxPost(fxRequest)
         val (results) =
             objectMapper
-                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+                .readValue(
+                    mvcResult.response.contentAsString,
+                    FxResponse::class.java,
+                )
         assertThat(results.rates)
             .isNotNull
             .hasSize(fxRequest.pairs.size)
@@ -164,32 +197,49 @@ internal class FxFullStackTest {
     @Test
     fun ratesRetrieved() {
         val testDate = "2019-07-26"
-        `when`(fxGateway.getRatesForSymbols(eq(testDate), eq(USD.code), eq(currencyService.currenciesAs)))
-            .thenReturn(
-                ExRatesResponse(
-                    base = USD.code,
-                    date = dateUtils.getDate(testDate),
-                    mapOf(
-                        NZD.code to BigDecimal("1.5"),
-                        AUD.code to BigDecimal("1.2"),
-                        SGD.code to BigDecimal("1.3"),
-                    ),
+        `when`(
+            fxGateway.getRatesForSymbols(
+                eq(testDate),
+                eq(USD.code),
+                eq(currencyService.currenciesAs),
+            ),
+        ).thenReturn(
+            ExRatesResponse(
+                base = USD.code,
+                date = dateUtils.getDate(testDate),
+                mapOf(
+                    NZD.code to BigDecimal("1.5"),
+                    AUD.code to BigDecimal("1.2"),
+                    SGD.code to BigDecimal("1.3"),
                 ),
-            )
+            ),
+        )
         val fxRequest =
             FxRequest(
                 testDate,
                 pairs =
-                    mutableSetOf(
-                        IsoCurrencyPair(USD.code, NZD.code),
-                        IsoCurrencyPair(USD.code, AUD.code),
-                        IsoCurrencyPair(USD.code, SGD.code),
+                mutableSetOf(
+                    IsoCurrencyPair(
+                        USD.code,
+                        NZD.code,
                     ),
+                    IsoCurrencyPair(
+                        USD.code,
+                        AUD.code,
+                    ),
+                    IsoCurrencyPair(
+                        USD.code,
+                        SGD.code,
+                    ),
+                ),
             )
         val mvcResult = fxPost(fxRequest)
         val (results) =
             objectMapper
-                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+                .readValue(
+                    mvcResult.response.contentAsString,
+                    FxResponse::class.java,
+                )
         assertThat(results.rates)
             .isNotNull
             .hasSize(fxRequest.pairs.size) // 3 in the request, 3 in the response
@@ -207,10 +257,19 @@ internal class FxFullStackTest {
         val date = "2019-08-27"
         val from = "ANC"
         val to = "SDF"
-        val invalid = IsoCurrencyPair(from, to)
+        val invalid =
+            IsoCurrencyPair(
+                from,
+                to,
+            )
         val fxRequest = FxRequest(date)
         fxRequest.add(invalid)
-        val mvcResult = fxPost(fxRequest, status().is4xxClientError, MediaType.APPLICATION_PROBLEM_JSON)
+        val mvcResult =
+            fxPost(
+                fxRequest,
+                status().is4xxClientError,
+                MediaType.APPLICATION_PROBLEM_JSON,
+            )
         val someException =
             java.util.Optional.ofNullable(
                 mvcResult.resolvedException as BusinessException,
@@ -223,8 +282,16 @@ internal class FxFullStackTest {
         val nzd = NZD.code
         val usd = USD.code
         const val FX_ROOT = "/fx"
-        val usdNzd = IsoCurrencyPair(usd, nzd)
-        val nzdUsd = IsoCurrencyPair(nzd, usd)
+        val usdNzd =
+            IsoCurrencyPair(
+                usd,
+                nzd,
+            )
+        val nzdUsd =
+            IsoCurrencyPair(
+                nzd,
+                usd,
+            )
         const val FX_MOCK = "/mock/fx"
     }
 }

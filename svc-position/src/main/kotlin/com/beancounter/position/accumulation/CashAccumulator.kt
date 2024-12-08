@@ -12,7 +12,9 @@ import java.math.BigDecimal
  * Generic cash accumulation behaviour.
  */
 @Service
-class CashAccumulator(val currencyResolver: CurrencyResolver) {
+class CashAccumulator(
+    val currencyResolver: CurrencyResolver,
+) {
     private val cashCost = CashCost()
 
     fun accumulate(
@@ -28,19 +30,34 @@ class CashAccumulator(val currencyResolver: CurrencyResolver) {
         }
 
         cashCost.value(
-            currencyResolver.getMoneyValues(Position.In.TRADE, trn.cashCurrency!!, trn.portfolio, position),
+            currencyResolver.getMoneyValues(
+                Position.In.TRADE,
+                trn.cashCurrency!!,
+                trn.portfolio,
+                position,
+            ),
             cashPosition,
             quantity,
             BigDecimal.ONE,
         ) // Cash trade currency
         cashCost.value(
-            currencyResolver.getMoneyValues(Position.In.BASE, trn.cashCurrency!!, trn.portfolio, position),
+            currencyResolver.getMoneyValues(
+                Position.In.BASE,
+                trn.cashCurrency!!,
+                trn.portfolio,
+                position,
+            ),
             cashPosition,
             quantity,
             trn.tradeBaseRate,
         )
         cashCost.value(
-            currencyResolver.getMoneyValues(Position.In.PORTFOLIO, trn.cashCurrency!!, trn.portfolio, position),
+            currencyResolver.getMoneyValues(
+                Position.In.PORTFOLIO,
+                trn.cashCurrency!!,
+                trn.portfolio,
+                position,
+            ),
             cashPosition,
             quantity,
             trn.tradePortfolioRate,

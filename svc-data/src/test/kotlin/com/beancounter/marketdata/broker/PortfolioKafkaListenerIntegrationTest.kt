@@ -39,11 +39,18 @@ class PortfolioKafkaListenerIntegrationTest {
                 marketValue = BigDecimal.TEN,
                 irr = BigDecimal.ONE,
             )
-        kafkaTemplate.send(kafkaConfig.topicPosMvName, portfolio)
+        kafkaTemplate.send(
+            kafkaConfig.topicPosMvName,
+            portfolio,
+        )
 
         // Wait for the listener to process the message
-        await().atMost(10, TimeUnit.SECONDS).untilAsserted {
-            verify(portfolioService).maintain(portfolio)
-        }
+        await()
+            .atMost(
+                10,
+                TimeUnit.SECONDS,
+            ).untilAsserted {
+                verify(portfolioService).maintain(portfolio)
+            }
     }
 }

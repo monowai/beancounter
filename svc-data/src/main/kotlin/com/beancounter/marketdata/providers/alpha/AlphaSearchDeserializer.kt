@@ -24,7 +24,10 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
         if (metaData != null) {
             val collectionType =
                 mapper.typeFactory
-                    .constructCollectionType(ArrayList::class.java, HashMap::class.java)
+                    .constructCollectionType(
+                        ArrayList::class.java,
+                        HashMap::class.java,
+                    )
             val rows =
                 mapper.readValue<Collection<Map<String, String>>>(
                     source[BEST_MATCHES].toString(),

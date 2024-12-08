@@ -31,23 +31,30 @@ class RegistrationControllerTest {
     @Test
     fun is_RegisterMeWorking() {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
-        registerUser(mockMvc, token)
-        mockMvc.perform(
-            MockMvcRequestBuilders.post("/register")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .content(objectMapper.writeValueAsString(RegistrationRequest()))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+        registerUser(
+            mockMvc,
+            token,
+        )
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/register")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(RegistrationRequest()))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn()
 
         val meResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/me")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/me")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
                 .andReturn()
 
         assertThat(meResult.response.status).isEqualTo(HttpStatus.OK.value())
@@ -56,13 +63,18 @@ class RegistrationControllerTest {
     @Test
     fun is_MeWithNoToken() {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
-        registerUser(mockMvc, token)
+        registerUser(
+            mockMvc,
+            token,
+        )
         val performed =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/me")
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/me")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
                 .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
     }
@@ -76,12 +88,14 @@ class RegistrationControllerTest {
             )
         val token = mockAuthConfig.getUserToken(user)
         val performed =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/me")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isForbidden)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/me")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isForbidden)
                 .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
     }

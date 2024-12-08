@@ -14,7 +14,9 @@ import java.time.ZonedDateTime
  * Market TZ utilities to calculate close dates
  */
 @Service
-class PreviousClosePriceDate(private val dateUtils: DateUtils) {
+class PreviousClosePriceDate(
+    private val dateUtils: DateUtils,
+) {
     companion object {
         val log: Logger = LoggerFactory.getLogger(this::class.java)
     }
@@ -23,9 +25,13 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
         utcRequestDateTime: ZonedDateTime,
         market: Market,
         isCurrent: Boolean = dateUtils.isToday(utcRequestDateTime.toLocalDate().toString()),
-    ): LocalDate {
-        return if (isCurrent) {
-            val pricesAvailable = getPricesAvailable(utcRequestDateTime, market)
+    ): LocalDate =
+        if (isCurrent) {
+            val pricesAvailable =
+                getPricesAvailable(
+                    utcRequestDateTime,
+                    market,
+                )
             val daysToSubtract =
                 getDaysToSubtract(
                     market,
@@ -44,20 +50,21 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
         } else {
             // Just account for work days
             log.debug("Returning last working day relative to requested date")
-            getPriceDate(utcRequestDateTime, 0)
+            getPriceDate(
+                utcRequestDateTime,
+                0,
+            )
         }
-    }
 
     fun getPricesAvailable(
         marketLocal: ZonedDateTime,
         market: Market,
-    ): OffsetDateTime {
-        return OffsetDateTime.of(
+    ): OffsetDateTime =
+        OffsetDateTime.of(
             marketLocal.toLocalDate(),
             market.priceTime,
             marketLocal.offset,
         )
-    }
 
     private fun getDaysToSubtract(
         market: Market,

@@ -28,13 +28,30 @@ class PortfolioServiceTest {
         Mockito.`when`(tokenService.isServiceToken).thenReturn(true)
         assertThat(systemUserService.registerSystemAccount("beancounter:system")).isNotNull
 
-        val results = portfolioService.save(listOf(PortfolioInput("TEST", "Test Portfolio", "USD", currency = "USD")))
+        val results =
+            portfolioService.save(
+                listOf(
+                    PortfolioInput(
+                        "TEST",
+                        "Test Portfolio",
+                        "USD",
+                        currency = "USD",
+                    ),
+                ),
+            )
         assertThat(results).hasSize(1)
         val portfolio = results.iterator().next()
         assertThat(portfolio)
-            .hasFieldOrPropertyWithValue("code", "TEST")
-            .hasFieldOrPropertyWithValue("marketValue", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("irr", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                "code",
+                "TEST",
+            ).hasFieldOrPropertyWithValue(
+                "marketValue",
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                "irr",
+                BigDecimal.ZERO,
+            )
         val result =
             portfolioService.maintain(
                 // Update props. Privileged action!
@@ -48,7 +65,12 @@ class PortfolioServiceTest {
                 ),
             )
         assertThat(result)
-            .hasFieldOrPropertyWithValue("marketValue", BigDecimal.TEN)
-            .hasFieldOrPropertyWithValue("irr", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(
+                "marketValue",
+                BigDecimal.TEN,
+            ).hasFieldOrPropertyWithValue(
+                "irr",
+                BigDecimal.ONE,
+            )
     }
 }

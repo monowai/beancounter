@@ -96,34 +96,50 @@ class TrnBase {
         authUtilService.authenticate(
             ContractHelper.getSystemUser(),
         )
-        Mockito.`when`(systemUserService.getOrThrow)
+        Mockito
+            .`when`(systemUserService.getOrThrow)
             .thenReturn(ContractHelper.getSystemUser())
 
         // This test depends on assets and portfolios being available
         AssetsBase().mockAssets(assetService)
-        PortfolioBase.portfolios(systemUser, keyGenUtils, portfolioRepository)
+        PortfolioBase.portfolios(
+            systemUser,
+            keyGenUtils,
+            portfolioRepository,
+        )
 
         mockTrnPostResponse(PortfolioBase.testPortfolio)
-        mockTrnServiceResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json")
-        mockTrnServiceResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json", "2019-10-18")
-        mockTrnServiceResponse(PortfolioBase.emptyPortfolio, "contracts/trn/trns-empty-response.json")
+        mockTrnServiceResponse(
+            PortfolioBase.testPortfolio,
+            "contracts/trn/trns-test-response.json",
+        )
+        mockTrnServiceResponse(
+            PortfolioBase.testPortfolio,
+            "contracts/trn/trns-test-response.json",
+            "2019-10-18",
+        )
+        mockTrnServiceResponse(
+            PortfolioBase.emptyPortfolio,
+            "contracts/trn/trns-empty-response.json",
+        )
         mockTrnServiceResponse(
             cashPortfolio(),
             "contracts/trn/cash/ladder-response.json",
             AS_AT_DATE,
         )
 
-        Mockito.`when`(
-            trnQueryService.findAssetTrades(
-                PortfolioBase.testPortfolio,
-                "KMI",
-                dateUtils.getDate("2020-05-01"),
-            ),
-        )
-            .thenReturn(
-                objectMapper.readValue<TrnResponse>(
-                    ClassPathResource("contracts/trn/trn-for-asset-response.json").file,
-                ).data,
+        Mockito
+            .`when`(
+                trnQueryService.findAssetTrades(
+                    PortfolioBase.testPortfolio,
+                    "KMI",
+                    dateUtils.getDate("2020-05-01"),
+                ),
+            ).thenReturn(
+                objectMapper
+                    .readValue<TrnResponse>(
+                        ClassPathResource("contracts/trn/trn-for-asset-response.json").file,
+                    ).data,
             )
     }
 
@@ -143,10 +159,16 @@ class TrnBase {
     }
 
     private fun mockPortfolio(portfolio: Portfolio) {
-        Mockito.`when`(portfolioRepository.findById(portfolio.id))
+        Mockito
+            .`when`(portfolioRepository.findById(portfolio.id))
             .thenReturn(Optional.of(portfolio))
-        Mockito.`when`(portfolioRepository.findByCodeAndOwner(portfolio.code, systemUser))
-            .thenReturn(Optional.of(portfolio))
+        Mockito
+            .`when`(
+                portfolioRepository.findByCodeAndOwner(
+                    portfolio.code,
+                    systemUser,
+                ),
+            ).thenReturn(Optional.of(portfolio))
     }
 
     fun mockTrnServiceResponse(
@@ -155,28 +177,35 @@ class TrnBase {
         date: String = "today",
     ) {
         val jsonFile = ClassPathResource(trnFile).file
-        val trnResponse = objectMapper.readValue(jsonFile, TrnResponse::class.java)
-        Mockito.`when`(
-            trnService.findForPortfolio(
-                portfolio,
-                dateUtils.getFormattedDate(date),
-            ),
-        ).thenReturn(trnResponse.data)
+        val trnResponse =
+            objectMapper.readValue(
+                jsonFile,
+                TrnResponse::class.java,
+            )
+        Mockito
+            .`when`(
+                trnService.findForPortfolio(
+                    portfolio,
+                    dateUtils.getFormattedDate(date),
+                ),
+            ).thenReturn(trnResponse.data)
     }
 
     fun mockTrnPostResponse(portfolio: Portfolio) {
-        Mockito.`when`(
-            trnService.save(
-                portfolio,
-                objectMapper.readValue(
-                    ClassPathResource("contracts/trn/client-csv-request.json").file,
-                    TrnRequest::class.java,
+        Mockito
+            .`when`(
+                trnService.save(
+                    portfolio,
+                    objectMapper.readValue(
+                        ClassPathResource("contracts/trn/client-csv-request.json").file,
+                        TrnRequest::class.java,
+                    ),
                 ),
-            ),
-        ).thenReturn(
-            objectMapper.readValue<TrnResponse>(
-                ClassPathResource("contracts/trn/client-csv-response.json").file,
-            ).data,
-        )
+            ).thenReturn(
+                objectMapper
+                    .readValue<TrnResponse>(
+                        ClassPathResource("contracts/trn/client-csv-response.json").file,
+                    ).data,
+            )
     }
 }

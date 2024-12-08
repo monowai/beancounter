@@ -60,26 +60,47 @@ class RealEstateAssetTest {
     @Test
     fun isOffMarketAssetCreated() {
         val sysUser = SystemUser(id = "test-user")
-        val token = mockAuthConfig.login(sysUser, this.systemUserService)
+        val token =
+            mockAuthConfig.login(
+                sysUser,
+                this.systemUserService,
+            )
         assertThat(token)
             .isNotNull
-            .hasFieldOrPropertyWithValue("subject", sysUser.id)
+            .hasFieldOrPropertyWithValue(
+                "subject",
+                sysUser.id,
+            )
 
         val category = assetCategoryConfig.get(reInput.category.uppercase())
         val assetResponse =
             assetService.handle(
                 AssetRequest(
-                    mapOf(Pair(NZD.code, reInput)),
+                    mapOf(
+                        Pair(
+                            NZD.code,
+                            reInput,
+                        ),
+                    ),
                 ),
             )
         assertThat(assetResponse.data).hasSize(1)
         val reAsset = assetResponse.data[NZD.code]
         assertThat(reAsset)
             .isNotNull
-            .hasFieldOrPropertyWithValue("assetCategory", category)
-            .hasFieldOrPropertyWithValue("name", reInput.name)
-            .hasFieldOrPropertyWithValue("priceSymbol", NZD.code)
-            .hasFieldOrPropertyWithValue("systemUser", sysUser)
+            .hasFieldOrPropertyWithValue(
+                "assetCategory",
+                category,
+            ).hasFieldOrPropertyWithValue(
+                "name",
+                reInput.name,
+            ).hasFieldOrPropertyWithValue(
+                "priceSymbol",
+                NZD.code,
+            ).hasFieldOrPropertyWithValue(
+                "systemUser",
+                sysUser,
+            )
 
         // Make sure we don't create the same asset for the same user twice
         assertThat(assetService.findOrCreate(reInput))
@@ -90,7 +111,11 @@ class RealEstateAssetTest {
             .isEqualTo(reAsset)
 
         // Price Flow
-        val marketData = priceService.getMarketData(reAsset!!, dateUtils.date)
+        val marketData =
+            priceService.getMarketData(
+                reAsset!!,
+                dateUtils.date,
+            )
         assertThat(marketData.isPresent).isFalse() // no price exists
         val housePrice = BigDecimal("10000.99")
         val priceResponse =
@@ -104,6 +129,9 @@ class RealEstateAssetTest {
 
         assertThat(priceResponse.data).isNotNull()
         assertThat(priceResponse.data.iterator().next())
-            .hasFieldOrPropertyWithValue("close", housePrice)
+            .hasFieldOrPropertyWithValue(
+                "close",
+                housePrice,
+            )
     }
 }

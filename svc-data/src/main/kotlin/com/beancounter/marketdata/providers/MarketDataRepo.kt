@@ -27,7 +27,9 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         date: LocalDate,
     )
 
-    @Query("SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate")
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate",
+    )
     fun findByAssetInAndPriceDate(
         @Param("assets") assets: Collection<Asset>,
         @Param("priceDate") priceDate: LocalDate,

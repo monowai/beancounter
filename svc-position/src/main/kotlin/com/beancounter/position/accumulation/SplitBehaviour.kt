@@ -33,21 +33,33 @@ class SplitBehaviour(
             position,
             position.getMoneyValues(
                 Position.In.TRADE,
-                currencyResolver.resolve(Position.In.TRADE, trn.portfolio, trn.tradeCurrency),
+                currencyResolver.resolve(
+                    Position.In.TRADE,
+                    trn.portfolio,
+                    trn.tradeCurrency,
+                ),
             ),
         )
         value(
             position,
             position.getMoneyValues(
                 Position.In.BASE,
-                currencyResolver.resolve(Position.In.BASE, trn.portfolio, trn.tradeCurrency),
+                currencyResolver.resolve(
+                    Position.In.BASE,
+                    trn.portfolio,
+                    trn.tradeCurrency,
+                ),
             ),
         )
         value(
             position,
             position.getMoneyValues(
                 Position.In.PORTFOLIO,
-                currencyResolver.resolve(Position.In.PORTFOLIO, trn.portfolio, trn.tradeCurrency),
+                currencyResolver.resolve(
+                    Position.In.PORTFOLIO,
+                    trn.portfolio,
+                    trn.tradeCurrency,
+                ),
             ),
         )
         return position
@@ -58,8 +70,16 @@ class SplitBehaviour(
         moneyValues: MoneyValues,
     ) {
         if (moneyValues.costBasis != BigDecimal.ZERO) {
-            moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
+            moneyValues.averageCost =
+                averageCost.value(
+                    moneyValues.costBasis,
+                    position.quantityValues.getTotal(),
+                )
         }
-        moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
+        moneyValues.costValue =
+            averageCost.getCostValue(
+                position,
+                moneyValues,
+            )
     }
 }

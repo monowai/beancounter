@@ -21,7 +21,12 @@ class PeriodicCashFlows {
                 } else {
                     BigDecimal.ZERO.minus(it.tradeAmount)
                 }
-            cashFlows.add(CashFlow(amount.toDouble(), it.tradeDate))
+            cashFlows.add(
+                CashFlow(
+                    amount.toDouble(),
+                    it.tradeDate,
+                ),
+            )
         }
     }
 
@@ -30,15 +35,28 @@ class PeriodicCashFlows {
         date: LocalDate,
     ) {
         if (position.quantityValues.hasPosition()) {
-            cashFlows.add(CashFlow(position.moneyValues[Position.In.TRADE]!!.marketValue.toDouble(), date))
+            cashFlows.add(
+                CashFlow(
+                    position.moneyValues[Position.In.TRADE]!!.marketValue.toDouble(),
+                    date,
+                ),
+            )
         }
     }
 
     fun addAll(toAdd: List<CashFlow>) {
         val dateToAmountMap =
-            (cashFlows + toAdd).groupBy(CashFlow::date)
+            (cashFlows + toAdd)
+                .groupBy(CashFlow::date)
                 .mapValues { (_, cashFlows) -> cashFlows.sumOf(CashFlow::amount) }
         cashFlows.clear()
-        cashFlows.addAll(dateToAmountMap.map { (date, amount) -> CashFlow(amount, date) })
+        cashFlows.addAll(
+            dateToAmountMap.map { (date, amount) ->
+                CashFlow(
+                    amount,
+                    date,
+                )
+            },
+        )
     }
 }

@@ -47,7 +47,12 @@ class PricesBase : ContractVerifierBase() {
 
     @BeforeEach
     fun initAssets() {
-        val ebay = AAPL.copy(id = "EBAY", code = "EBAY", name = "eBay Inc.")
+        val ebay =
+            AAPL.copy(
+                id = "EBAY",
+                code = "EBAY",
+                name = "eBay Inc.",
+            )
         `when`(assetRepository.findAllById(listOf(ebay.id)))
             .thenReturn(listOf(ebay))
 
@@ -58,28 +63,35 @@ class PricesBase : ContractVerifierBase() {
             .thenReturn(listOf(MSFT))
 
         val cashMarket = Market("CASH")
-        `when`(assetRepository.findAllById(listOf("AAPL", "USD", "NZD")))
-            .thenReturn(
+        `when`(
+            assetRepository.findAllById(
                 listOf(
-                    Asset(
-                        "USD",
-                        "USD",
-                        category = CASH_MARKET.code,
-                        priceSymbol = "USD",
-                        name = "USD Balance",
-                        market = cashMarket,
-                    ),
-                    Asset(
-                        "NZD",
-                        "NZD",
-                        category = CASH_MARKET.code,
-                        priceSymbol = "NZD",
-                        name = "NZD Balance",
-                        market = cashMarket,
-                    ),
-                    AAPL,
+                    "AAPL",
+                    "USD",
+                    "NZD",
                 ),
-            )
+            ),
+        ).thenReturn(
+            listOf(
+                Asset(
+                    "USD",
+                    "USD",
+                    category = CASH_MARKET.code,
+                    priceSymbol = "USD",
+                    name = "USD Balance",
+                    market = cashMarket,
+                ),
+                Asset(
+                    "NZD",
+                    "NZD",
+                    category = CASH_MARKET.code,
+                    priceSymbol = "NZD",
+                    name = "NZD Balance",
+                    market = cashMarket,
+                ),
+                AAPL,
+            ),
+        )
         mockPrices()
         `when`(dateUtils.isToday(anyString())).thenReturn(true)
         `when`(dateUtils.getDate()).thenReturn(DateUtils().getDate())
@@ -127,10 +139,19 @@ class PricesBase : ContractVerifierBase() {
     }
 
     private fun mockPriceResponse(marketData: AlphaPriceResponse) {
-        val response = mapOf(Pair("Global Quote", marketData))
+        val response =
+            mapOf(
+                Pair(
+                    "Global Quote",
+                    marketData,
+                ),
+            )
         `when`(
             alphaGateway
-                .getCurrent(marketData.symbol, "demo"),
+                .getCurrent(
+                    marketData.symbol,
+                    "demo",
+                ),
         ).thenReturn(objectMapper.writeValueAsString(response))
     }
 

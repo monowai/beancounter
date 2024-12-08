@@ -12,10 +12,15 @@ import org.springframework.shell.standard.ShellOption
  * Obtain Markets from the backend in response to a user command request.
  */
 @ShellComponent
-class DataCommands internal constructor(private val staticService: StaticService) {
+class DataCommands internal constructor(
+    private val staticService: StaticService,
+) {
     @ShellMethod("Supported markets")
     fun markets(
-        @ShellOption(help = "Optional market code", defaultValue = "__NULL__") marketCode: String?,
+        @ShellOption(
+            help = "Optional market code",
+            defaultValue = "__NULL__",
+        ) marketCode: String?,
     ): String {
         return if (marketCode != null) {
             val market =

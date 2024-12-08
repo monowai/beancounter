@@ -40,7 +40,10 @@ class HttpWriter(
             log.info("Back filling FX rates...")
             rows = trnInputs.size
             for (trnInput in trnInputs) {
-                fxTransactions.setRates(portfolio!!, trnInput)
+                fxTransactions.setRates(
+                    portfolio!!,
+                    trnInput,
+                )
             }
             log.info(
                 "Writing {} transactions to portfolio {}",
@@ -54,14 +57,15 @@ class HttpWriter(
                         trnInputs.toTypedArray(),
                     )
                 val (data) = trnService.write(trnRequest)
-                log.info("Wrote {}", data.size)
+                log.info(
+                    "Wrote {}",
+                    data.size,
+                )
             }
             log.info("Complete!")
         }
         reset()
     }
 
-    override fun id(): String {
-        return "HTTP"
-    }
+    override fun id(): String = "HTTP"
 }

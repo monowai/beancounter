@@ -16,20 +16,40 @@ class TestRegistration {
     fun registrationSerializes() {
         val registrationRequest = RegistrationRequest(false)
         val json = objectMapper.writeValueAsString(registrationRequest)
-        assertThat(objectMapper.readValue(json, RegistrationRequest::class.java))
-            .usingRecursiveComparison().isEqualTo(registrationRequest)
+        assertThat(
+            objectMapper.readValue(
+                json,
+                RegistrationRequest::class.java,
+            ),
+        ).usingRecursiveComparison()
+            .isEqualTo(registrationRequest)
     }
 
     @Test
     fun systemUserSerializes() {
-        val systemUser = SystemUser(UUID.randomUUID().toString(), "no-one@nowhere.com")
+        val systemUser =
+            SystemUser(
+                UUID.randomUUID().toString(),
+                "no-one@nowhere.com",
+            )
         var json = objectMapper.writeValueAsString(systemUser)
-        assertThat(objectMapper.readValue(json, SystemUser::class.java))
-            .usingRecursiveComparison().isEqualTo(systemUser)
+        assertThat(
+            objectMapper.readValue(
+                json,
+                SystemUser::class.java,
+            ),
+        ).usingRecursiveComparison()
+            .isEqualTo(systemUser)
 
         val response = RegistrationResponse(systemUser)
         json = objectMapper.writeValueAsString(response)
-        assertThat(objectMapper.readValue(json, RegistrationResponse::class.java).data)
-            .usingRecursiveComparison().isEqualTo(response.data)
+        assertThat(
+            objectMapper
+                .readValue(
+                    json,
+                    RegistrationResponse::class.java,
+                ).data,
+        ).usingRecursiveComparison()
+            .isEqualTo(response.data)
     }
 }

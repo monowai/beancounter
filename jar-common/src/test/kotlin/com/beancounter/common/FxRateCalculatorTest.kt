@@ -31,21 +31,42 @@ internal class FxRateCalculatorTest {
     @Test
     fun is_FxRequestSerializationAssumptions() {
         val fxRequest = FxRequest()
-        fxRequest.addTradeBase(IsoCurrencyPair(USD.code, NZD.code))
-        fxRequest.addTradePf(IsoCurrencyPair(USD.code, NZD.code))
-        fxRequest.addTradeCash(IsoCurrencyPair(USD.code, NZD.code))
+        fxRequest.addTradeBase(
+            IsoCurrencyPair(
+                USD.code,
+                NZD.code,
+            ),
+        )
+        fxRequest.addTradePf(
+            IsoCurrencyPair(
+                USD.code,
+                NZD.code,
+            ),
+        )
+        fxRequest.addTradeCash(
+            IsoCurrencyPair(
+                USD.code,
+                NZD.code,
+            ),
+        )
         val json = objectMapper.writeValueAsString(fxRequest)
         val fromJson = objectMapper.readValue<FxRequest>(json)
         assertThat(fromJson)
-            .hasAllNullFieldsOrPropertiesExcept("rateDate", "pairs")
-            .isEqualTo(fxRequest)
+            .hasAllNullFieldsOrPropertiesExcept(
+                "rateDate",
+                "pairs",
+            ).isEqualTo(fxRequest)
         assertThat(fromJson.pairs).hasSize(1)
     }
 
     @Test
     @Throws(Exception::class)
     fun is_RateRequestSerializing() {
-        val pair = IsoCurrencyPair("THIS", "THAT")
+        val pair =
+            IsoCurrencyPair(
+                "THIS",
+                "THAT",
+            )
         val fxRequest = FxRequest("")
         fxRequest.addTradeBase(pair)
         fxRequest.addTradePf(pair)
@@ -60,8 +81,19 @@ internal class FxRateCalculatorTest {
 
     @Test
     fun is_FxRequestPairsIgnoringDuplicates() {
-        val pair = IsoCurrencyPair("THIS", "THAT")
-        val fxRequest = FxRequest("", mutableSetOf(pair, pair))
+        val pair =
+            IsoCurrencyPair(
+                "THIS",
+                "THAT",
+            )
+        val fxRequest =
+            FxRequest(
+                "",
+                mutableSetOf(
+                    pair,
+                    pair,
+                ),
+            )
         fxRequest.add(pair)
         fxRequest.add(pair)
         assertThat(fxRequest.pairs).hasSize(1)
@@ -69,10 +101,27 @@ internal class FxRateCalculatorTest {
 
     @Test
     fun `Verify FX Response Serialization and Data Integrity`() {
-        val nzdUsd = IsoCurrencyPair(NZD.code, USD.code)
-        val usdNzd = IsoCurrencyPair(USD.code, NZD.code)
-        val usdUsd = IsoCurrencyPair(USD.code, USD.code)
-        val pairs = arrayListOf(nzdUsd, usdNzd, usdUsd)
+        val nzdUsd =
+            IsoCurrencyPair(
+                NZD.code,
+                USD.code,
+            )
+        val usdNzd =
+            IsoCurrencyPair(
+                USD.code,
+                NZD.code,
+            )
+        val usdUsd =
+            IsoCurrencyPair(
+                USD.code,
+                USD.code,
+            )
+        val pairs =
+            arrayListOf(
+                nzdUsd,
+                usdNzd,
+                usdUsd,
+            )
 
         val rawRate = "1.41030000"
         val crossRate = ".70906899"
@@ -80,10 +129,24 @@ internal class FxRateCalculatorTest {
             FxRateCalculator.compute(
                 currencyPairs = pairs,
                 rateMap =
-                    mapOf(
-                        Pair(NZD.code, FxRate(from = USD, to = NZD, rate = BigDecimal(rawRate))),
-                        Pair(USD.code, FxRate(from = USD, to = USD, rate = BigDecimal.ONE)),
+                mapOf(
+                    Pair(
+                        NZD.code,
+                        FxRate(
+                            from = USD,
+                            to = NZD,
+                            rate = BigDecimal(rawRate),
+                        ),
                     ),
+                    Pair(
+                        USD.code,
+                        FxRate(
+                            from = USD,
+                            to = USD,
+                            rate = BigDecimal.ONE,
+                        ),
+                    ),
+                ),
             )
 
         // Verify serialization works without error.
@@ -94,19 +157,44 @@ internal class FxRateCalculatorTest {
             assertThat(data).isNotNull
             assertThat(data.rates)
                 .hasSize(3)
-                .containsKeys(nzdUsd, usdUsd, usdNzd)
+                .containsKeys(
+                    nzdUsd,
+                    usdUsd,
+                    usdNzd,
+                )
             assertThat(data.rates[usdUsd])
-                .hasFieldOrPropertyWithValue(FROM_CODE, USD.code)
-                .hasFieldOrPropertyWithValue(TO_CODE, USD.code)
-                .hasFieldOrPropertyWithValue(RATE, BigDecimal.ONE)
+                .hasFieldOrPropertyWithValue(
+                    FROM_CODE,
+                    USD.code,
+                ).hasFieldOrPropertyWithValue(
+                    TO_CODE,
+                    USD.code,
+                ).hasFieldOrPropertyWithValue(
+                    RATE,
+                    BigDecimal.ONE,
+                )
             assertThat(data.rates[nzdUsd])
-                .hasFieldOrPropertyWithValue(FROM_CODE, NZD.code)
-                .hasFieldOrPropertyWithValue(TO_CODE, USD.code)
-                .hasFieldOrPropertyWithValue(RATE, BigDecimal(crossRate)) // Inverts the rate as USD is involved
+                .hasFieldOrPropertyWithValue(
+                    FROM_CODE,
+                    NZD.code,
+                ).hasFieldOrPropertyWithValue(
+                    TO_CODE,
+                    USD.code,
+                ).hasFieldOrPropertyWithValue(
+                    RATE,
+                    BigDecimal(crossRate),
+                ) // Inverts the rate as USD is involved
             assertThat(data.rates[usdNzd])
-                .hasFieldOrPropertyWithValue(FROM_CODE, USD.code)
-                .hasFieldOrPropertyWithValue(TO_CODE, NZD.code)
-                .hasFieldOrPropertyWithValue(RATE, BigDecimal(rawRate)) // Raw rate
+                .hasFieldOrPropertyWithValue(
+                    FROM_CODE,
+                    USD.code,
+                ).hasFieldOrPropertyWithValue(
+                    TO_CODE,
+                    NZD.code,
+                ).hasFieldOrPropertyWithValue(
+                    RATE,
+                    BigDecimal(rawRate),
+                ) // Raw rate
         }
     }
 }

@@ -34,11 +34,24 @@ class MarketStackAdapter : MarketDataAdapter {
         val results: MutableCollection<MarketData> = mutableListOf()
         response.data.forEach { data ->
             if (response.error != null) {
-                log.trace("{} - {}", response.error.message, providerArguments.getAssets(batchId))
-                results.add(getDefault(providerArguments.getAsset(data.symbol), data.symbol, providerArguments.date))
+                log.trace(
+                    "{} - {}",
+                    response.error.message,
+                    providerArguments.getAssets(batchId),
+                )
+                results.add(
+                    getDefault(
+                        providerArguments.getAsset(data.symbol),
+                        data.symbol,
+                        providerArguments.date,
+                    ),
+                )
             } else {
                 results.add(
-                    getMarketData(data, providerArguments),
+                    getMarketData(
+                        data,
+                        providerArguments,
+                    ),
                 )
             }
         }
@@ -51,7 +64,11 @@ class MarketStackAdapter : MarketDataAdapter {
     ): MarketData {
         val bcAsset = providerArguments.getAsset(marketStackData.symbol)
         if (marketStackData.close == BigDecimal.ZERO) {
-            return getDefault(bcAsset, marketStackData.symbol, providerArguments.date)
+            return getDefault(
+                bcAsset,
+                marketStackData.symbol,
+                providerArguments.date,
+            )
         } else {
             val marketData =
                 MarketData(
@@ -73,7 +90,10 @@ class MarketStackAdapter : MarketDataAdapter {
         exchange: String,
         date: LocalDateTime,
     ): MarketStackData {
-        log.trace("{} - unable to locate a price", asset)
+        log.trace(
+            "{} - unable to locate a price",
+            asset,
+        )
         return MarketStackData(
             symbol = asset,
             exchange = exchange,
@@ -93,7 +113,11 @@ class MarketStackAdapter : MarketDataAdapter {
             asset.name,
             priceDate,
         )
-        val result = MarketData(asset, source = MarketStackService.ID)
+        val result =
+            MarketData(
+                asset,
+                source = MarketStackService.ID,
+            )
         result.close = BigDecimal.ZERO
         return result
     }

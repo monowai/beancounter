@@ -17,14 +17,25 @@ class EventReceiverConfig {
 
     @Bean
     fun topicEvent(): NewTopic =
-        TopicBuilder.name(topicCaEvent)
+        TopicBuilder
+            .name(topicCaEvent)
             .partitions(1)
             .replicas(1)
-            .compact().build().also { log.info("topics.ca.event: {}", topicCaEvent) }
+            .compact()
+            .build()
+            .also {
+                log.info(
+                    "topics.ca.event: {}",
+                    topicCaEvent,
+                )
+            }
 
     @Bean
     fun caTopic(): String? {
-        log.info("CA-EVENT: {} ", topicCaEvent)
+        log.info(
+            "CA-EVENT: {} ",
+            topicCaEvent,
+        )
         return topicCaEvent
     }
 

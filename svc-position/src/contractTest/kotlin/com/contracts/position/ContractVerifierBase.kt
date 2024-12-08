@@ -70,8 +70,12 @@ class ContractVerifierBase {
         `when`(portfolioServiceClient.getPortfolioById(portfolioId))
             .thenReturn(testPortfolio)
 
-        `when`(portfolioServiceClient.getPortfolioById(portfolioId, BEARER_TOKEN))
-            .thenReturn(testPortfolio)
+        `when`(
+            portfolioServiceClient.getPortfolioById(
+                portfolioId,
+                BEARER_TOKEN,
+            ),
+        ).thenReturn(testPortfolio)
 
         `when`(
             valuationService.build(
@@ -104,7 +108,11 @@ class ContractVerifierBase {
         )
 
         `when`(
-            valuationService.getPositions(testPortfolio, valuationDate, true),
+            valuationService.getPositions(
+                testPortfolio,
+                valuationDate,
+                true,
+            ),
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/test-response.json").file,

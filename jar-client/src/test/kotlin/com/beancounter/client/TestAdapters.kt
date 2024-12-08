@@ -45,24 +45,51 @@ class TestAdapters {
     fun is_DividendIllegalNumber() {
         val row: MutableList<String> = arrayListOf()
 
-        row.add(ShareSightDividendAdapter.ID, "1")
-        row.add(ShareSightDividendAdapter.CODE, "market")
-        row.add(ShareSightDividendAdapter.NAME, "name")
-        row.add(ShareSightDividendAdapter.DATE, "date")
-        row.add(ShareSightDividendAdapter.FX_RATE, "A.B")
+        row.add(
+            ShareSightDividendAdapter.ID,
+            "1",
+        )
+        row.add(
+            ShareSightDividendAdapter.CODE,
+            "market",
+        )
+        row.add(
+            ShareSightDividendAdapter.NAME,
+            "name",
+        )
+        row.add(
+            ShareSightDividendAdapter.DATE,
+            "date",
+        )
+        row.add(
+            ShareSightDividendAdapter.FX_RATE,
+            "A.B",
+        )
         val request =
             TrustedTrnImportRequest(
                 getPortfolio(),
                 importFormat = ImportFormat.SHARESIGHT,
                 row = row,
             )
-        val dividendAdapter: TrnAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService, dateUtils)
+        val dividendAdapter: TrnAdapter =
+            ShareSightDividendAdapter(
+                shareSightConfig,
+                assetIngestService,
+                dateUtils,
+            )
         Assertions.assertThrows(BusinessException::class.java) { dividendAdapter.from(request) }
     }
 
     @Test
     fun is_NullTrnTypeCorrect() {
-        val row: List<String> = arrayListOf("", "", "", "null", "")
+        val row: List<String> =
+            arrayListOf(
+                "",
+                "",
+                "",
+                "null",
+                "",
+            )
 
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
@@ -78,12 +105,23 @@ class TestAdapters {
                 dateUtils,
                 tradeCalculator,
             )
-        Assertions.assertThrows(BusinessException::class.java) { tradeAdapter.from(trustedTrnImportRequest) }
+        Assertions.assertThrows(BusinessException::class.java) {
+            tradeAdapter.from(
+                trustedTrnImportRequest,
+            )
+        }
     }
 
     @Test
     fun is_BlankTrnTypeCorrect() {
-        val row: List<String> = arrayListOf("", "", "", "", "")
+        val row: List<String> =
+            arrayListOf(
+                "",
+                "",
+                "",
+                "",
+                "",
+            )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 getPortfolio(),
@@ -97,20 +135,48 @@ class TestAdapters {
                 dateUtils,
                 tradeCalculator,
             )
-        Assertions.assertThrows(BusinessException::class.java) { tradeAdapter.from(trustedTrnImportRequest) }
+        Assertions.assertThrows(BusinessException::class.java) {
+            tradeAdapter.from(
+                trustedTrnImportRequest,
+            )
+        }
     }
 
     @Test
     fun is_ValidTradeRow() {
         val row: MutableList<String> = arrayListOf()
-        row.add(ShareSightTradeAdapter.ID, "1")
-        row.add(ShareSightTradeAdapter.MARKET, "market") // Header Row
-        row.add(ShareSightTradeAdapter.CODE, "code")
-        row.add(ShareSightTradeAdapter.NAME, "name")
-        row.add(ShareSightTradeAdapter.TYPE, "BUY")
-        row.add(ShareSightTradeAdapter.DATE, "date")
-        row.add(ShareSightTradeAdapter.QUANTITY, "quantity")
-        row.add(ShareSightTradeAdapter.PRICE, "price")
+        row.add(
+            ShareSightTradeAdapter.ID,
+            "1",
+        )
+        row.add(
+            ShareSightTradeAdapter.MARKET,
+            "market",
+        ) // Header Row
+        row.add(
+            ShareSightTradeAdapter.CODE,
+            "code",
+        )
+        row.add(
+            ShareSightTradeAdapter.NAME,
+            "name",
+        )
+        row.add(
+            ShareSightTradeAdapter.TYPE,
+            "BUY",
+        )
+        row.add(
+            ShareSightTradeAdapter.DATE,
+            "date",
+        )
+        row.add(
+            ShareSightTradeAdapter.QUANTITY,
+            "quantity",
+        )
+        row.add(
+            ShareSightTradeAdapter.PRICE,
+            "price",
+        )
         val shareSightTradeAdapter =
             ShareSightTradeAdapter(
                 shareSightConfig,
@@ -124,18 +190,54 @@ class TestAdapters {
     @Test
     fun is_TradeAmountComputed() {
         val row: MutableList<String> = arrayListOf()
-        row.add(ShareSightTradeAdapter.ID, "1")
-        row.add(ShareSightTradeAdapter.MARKET, "NYSE") // Header Row
-        row.add(ShareSightTradeAdapter.CODE, "ABC")
-        row.add(ShareSightTradeAdapter.NAME, "name")
-        row.add(ShareSightTradeAdapter.TYPE, "BUY")
-        row.add(ShareSightTradeAdapter.DATE, "23/11/2018")
-        row.add(ShareSightTradeAdapter.QUANTITY, "10")
-        row.add(ShareSightTradeAdapter.PRICE, "10.0")
-        row.add(ShareSightTradeAdapter.BROKERAGE, "5.0")
-        row.add(ShareSightTradeAdapter.CURRENCY, USD.code)
-        row.add(ShareSightTradeAdapter.FX_RATE, "null")
-        row.add(ShareSightTradeAdapter.VALUE, "null")
+        row.add(
+            ShareSightTradeAdapter.ID,
+            "1",
+        )
+        row.add(
+            ShareSightTradeAdapter.MARKET,
+            "NYSE",
+        ) // Header Row
+        row.add(
+            ShareSightTradeAdapter.CODE,
+            "ABC",
+        )
+        row.add(
+            ShareSightTradeAdapter.NAME,
+            "name",
+        )
+        row.add(
+            ShareSightTradeAdapter.TYPE,
+            "BUY",
+        )
+        row.add(
+            ShareSightTradeAdapter.DATE,
+            "23/11/2018",
+        )
+        row.add(
+            ShareSightTradeAdapter.QUANTITY,
+            "10",
+        )
+        row.add(
+            ShareSightTradeAdapter.PRICE,
+            "10.0",
+        )
+        row.add(
+            ShareSightTradeAdapter.BROKERAGE,
+            "5.0",
+        )
+        row.add(
+            ShareSightTradeAdapter.CURRENCY,
+            USD.code,
+        )
+        row.add(
+            ShareSightTradeAdapter.FX_RATE,
+            "null",
+        )
+        row.add(
+            ShareSightTradeAdapter.VALUE,
+            "null",
+        )
         val shareSightTradeAdapter =
             ShareSightTradeAdapter(
                 shareSightConfig,
@@ -143,8 +245,20 @@ class TestAdapters {
                 dateUtils,
                 tradeCalculator,
             )
-        Mockito.`when`(assetIngestService.resolveAsset(AssetInput(NYSE.code, "ABC")))
-            .thenReturn(getTestAsset(NYSE, "ABC"))
+        Mockito
+            .`when`(
+                assetIngestService.resolveAsset(
+                    AssetInput(
+                        NYSE.code,
+                        "ABC",
+                    ),
+                ),
+            ).thenReturn(
+                getTestAsset(
+                    NYSE,
+                    "ABC",
+                ),
+            )
         val result =
             shareSightTradeAdapter.from(
                 TrustedTrnImportRequest(
@@ -154,23 +268,61 @@ class TestAdapters {
                 ),
             )
         assertThat(result)
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("105.00"))
+            .hasFieldOrPropertyWithValue(
+                "tradeAmount",
+                BigDecimal("105.00"),
+            )
     }
 
     @Test
     fun is_ValidDividendRow() {
         val row: MutableList<String> = arrayListOf()
-        row.add(ShareSightTradeAdapter.ID, "1")
-        row.add(ShareSightDividendAdapter.CODE, "code") // Header Row
-        row.add(ShareSightDividendAdapter.NAME, "code")
-        row.add(ShareSightDividendAdapter.DATE, "name")
-        row.add(ShareSightDividendAdapter.FX_RATE, "1.0")
-        row.add(ShareSightDividendAdapter.CURRENCY, "date")
-        row.add(ShareSightDividendAdapter.NET, "quantity")
-        row.add(ShareSightDividendAdapter.TAX, "tax")
-        row.add(ShareSightDividendAdapter.GROSS, "gross")
-        row.add(ShareSightDividendAdapter.COMMENTS, "comments")
-        val dividendAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService, dateUtils)
+        row.add(
+            ShareSightTradeAdapter.ID,
+            "1",
+        )
+        row.add(
+            ShareSightDividendAdapter.CODE,
+            "code",
+        ) // Header Row
+        row.add(
+            ShareSightDividendAdapter.NAME,
+            "code",
+        )
+        row.add(
+            ShareSightDividendAdapter.DATE,
+            "name",
+        )
+        row.add(
+            ShareSightDividendAdapter.FX_RATE,
+            "1.0",
+        )
+        row.add(
+            ShareSightDividendAdapter.CURRENCY,
+            "date",
+        )
+        row.add(
+            ShareSightDividendAdapter.NET,
+            "quantity",
+        )
+        row.add(
+            ShareSightDividendAdapter.TAX,
+            "tax",
+        )
+        row.add(
+            ShareSightDividendAdapter.GROSS,
+            "gross",
+        )
+        row.add(
+            ShareSightDividendAdapter.COMMENTS,
+            "comments",
+        )
+        val dividendAdapter =
+            ShareSightDividendAdapter(
+                shareSightConfig,
+                assetIngestService,
+                dateUtils,
+            )
         assertThat(dividendAdapter.isValid(row)).isTrue
     }
 }

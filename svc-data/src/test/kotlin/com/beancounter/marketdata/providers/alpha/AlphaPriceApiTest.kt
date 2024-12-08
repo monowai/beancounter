@@ -77,7 +77,10 @@ import org.springframework.web.context.WebApplicationContext
  * @since 2019-03-04
  */
 @SpringBootTest(classes = [MarketDataBoot::class, MockAuthConfig::class])
-@ActiveProfiles("h2db", "alpha")
+@ActiveProfiles(
+    "h2db",
+    "alpha",
+)
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 internal class AlphaPriceApiTest {
@@ -124,13 +127,17 @@ internal class AlphaPriceApiTest {
         DateUtilsMocker.mockToday(dateUtils)
         mockAlphaAssets()
         mockMvc =
-            MockMvcBuilders.webAppContextSetup(context)
+            MockMvcBuilders
+                .webAppContextSetup(context)
                 .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
                 .build()
 
         // Set up a user account
         token = mockAuthConfig.getUserToken(Constants.systemUser)
-        RegistrationUtils.registerUser(mockMvc, token)
+        RegistrationUtils.registerUser(
+            mockMvc,
+            token,
+        )
     }
 
     private val amp = "AMP"
@@ -139,35 +146,60 @@ internal class AlphaPriceApiTest {
     fun is_BrkBTranslated() {
         val code = "BRK.B"
         val mvcResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get(URL_ASSETS_MARKET_CODE, NYSE.code, code)
-                    .with(
-                        SecurityMockMvcRequestPostProcessors.jwt()
-                            .jwt(token),
-                    )
-                    .contentType(MediaType.APPLICATION_JSON),
-            )
-                .andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(
+                            URL_ASSETS_MARKET_CODE,
+                            NYSE.code,
+                            code,
+                        ).with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(token),
+                        ).contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         val (data) =
             objectMapper
-                .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+                .readValue(
+                    mvcResult.response.contentAsString,
+                    AssetResponse::class.java,
+                )
         val brkB = "BRK-B"
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue(P_CODE, code)
-            .hasFieldOrProperty(P_MARKET)
-            .hasFieldOrPropertyWithValue(P_SYMBOL, brkB)
-            .hasFieldOrPropertyWithValue(P_NAME, "Berkshire Hathaway Inc.")
+            .hasFieldOrPropertyWithValue(
+                P_CODE,
+                code,
+            ).hasFieldOrProperty(P_MARKET)
+            .hasFieldOrPropertyWithValue(
+                P_SYMBOL,
+                brkB,
+            ).hasFieldOrPropertyWithValue(
+                P_NAME,
+                "Berkshire Hathaway Inc.",
+            )
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(brkB)
     }
 
     @Test
     fun is_EmptyGlobalResponseHandled() {
         val jsonFile = ClassPathResource("${AlphaMockUtils.ALPHA_MOCK}/global-empty.json").file
-        AlphaMockUtils.mockGlobalResponse("$API.EMPTY", jsonFile)
-        val asset = Asset(code = API, market = Market("EMPTY", USD.code))
+        AlphaMockUtils.mockGlobalResponse(
+            "$API.EMPTY",
+            jsonFile,
+        )
+        val asset =
+            Asset(
+                code = API,
+                market =
+                Market(
+                    "EMPTY",
+                    USD.code,
+                ),
+            )
 
         assertNotNull {
             mdFactory
@@ -181,21 +213,37 @@ internal class AlphaPriceApiTest {
     @Test
     fun is_CurrentPriceFound() {
         val jsonFile = ClassPathResource("${AlphaMockUtils.ALPHA_MOCK}/global-response.json").file
-        AlphaMockUtils.mockGlobalResponse(MSFT.code, jsonFile)
-        val nasdaq = Market(NASDAQ.code, USD.code)
-        val asset = getTestAsset(market = nasdaq, code = MSFT.code)
+        AlphaMockUtils.mockGlobalResponse(
+            MSFT.code,
+            jsonFile,
+        )
+        val nasdaq =
+            Market(
+                NASDAQ.code,
+                USD.code,
+            )
+        val asset =
+            getTestAsset(
+                market = nasdaq,
+                code = MSFT.code,
+            )
         val priceRequest = of(asset = asset)
         val mdResult =
-            mdFactory.getMarketDataProvider(AlphaPriceService.ID)
+            mdFactory
+                .getMarketDataProvider(AlphaPriceService.ID)
                 .getMarketData(priceRequest)
 
         // Coverage - AV does not support this market, but we expect a price
-        assertThat(mdFactory.getMarketDataProvider(MarketStackService.ID).isMarketSupported(nasdaq)).isFalse
+        assertThat(
+            mdFactory.getMarketDataProvider(MarketStackService.ID).isMarketSupported(nasdaq),
+        ).isFalse
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
-            .hasFieldOrPropertyWithValue(P_ASSET, asset)
-            .hasFieldOrProperty(P_CLOSE)
+            .hasFieldOrPropertyWithValue(
+                P_ASSET,
+                asset,
+            ).hasFieldOrProperty(P_CLOSE)
             .hasFieldOrProperty(P_OPEN)
             .hasFieldOrProperty(P_LOW)
             .hasFieldOrProperty(P_HIGH)
@@ -205,16 +253,23 @@ internal class AlphaPriceApiTest {
 
     @Test
     fun is_CurrentPriceAsxFound() {
-        val asset = getTestAsset(code = amp, market = ASX)
+        val asset =
+            getTestAsset(
+                code = amp,
+                market = ASX,
+            )
         val priceRequest = of(asset)
         val mdResult =
-            mdFactory.getMarketDataProvider(AlphaPriceService.ID)
+            mdFactory
+                .getMarketDataProvider(AlphaPriceService.ID)
                 .getMarketData(priceRequest)
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
-            .hasFieldOrPropertyWithValue(P_ASSET, asset)
-            .hasFieldOrProperty(P_CLOSE)
+            .hasFieldOrPropertyWithValue(
+                P_ASSET,
+                asset,
+            ).hasFieldOrProperty(P_CLOSE)
             .hasFieldOrProperty(P_OPEN)
             .hasFieldOrProperty(P_LOW)
             .hasFieldOrProperty(P_HIGH)
@@ -237,7 +292,19 @@ internal class AlphaPriceApiTest {
         )
         val (data) =
             assetService
-                .handle(AssetRequest(mapOf(Pair(P_KEY, AssetInput(NYSE.code, code)))))
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            Pair(
+                                P_KEY,
+                                AssetInput(
+                                    NYSE.code,
+                                    code,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
         val asset = data[P_KEY]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult =
@@ -257,20 +324,38 @@ internal class AlphaPriceApiTest {
     fun is_BackFillWritingDividendEvent() {
         priceService.setEventWriter(mockEventProducer)
         val assetCode = "KMI"
-        mockSearchResponse(assetCode, ClassPathResource("$mockAlpha/kmi-search.json").file)
+        mockSearchResponse(
+            assetCode,
+            ClassPathResource("$mockAlpha/kmi-search.json").file,
+        )
         val file = ClassPathResource("$mockAlpha/kmi-backfill-response.json").file
-        mockAdjustedResponse(assetCode, file)
+        mockAdjustedResponse(
+            assetCode,
+            file,
+        )
         val asset =
-            assetService.handle(
-                AssetRequest(mapOf(Pair(P_KEY, AssetInput(NASDAQ.code, assetCode)))),
-            ).data[P_KEY]
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            Pair(
+                                P_KEY,
+                                AssetInput(
+                                    NASDAQ.code,
+                                    assetCode,
+                                ),
+                            ),
+                        ),
+                    ),
+                ).data[P_KEY]
         assertThat(asset).isNotNull.hasFieldOrProperty("id")
         marketDataService.backFill(asset!!)
         Thread.sleep(300)
-        Mockito.verify(
-            mockEventProducer,
-            // Found the Dividend request; ignored the prices
-            Mockito.times(1),
-        ).write(any())
+        Mockito
+            .verify(
+                mockEventProducer,
+                // Found the Dividend request; ignored the prices
+                Mockito.times(1),
+            ).write(any())
     }
 }

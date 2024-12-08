@@ -24,7 +24,11 @@ import org.springframework.web.bind.annotation.RequestHeader
  * Handles client side registration duties.
  */
 @Service
-@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+    value = ["auth.enabled"],
+    havingValue = "true",
+    matchIfMissing = false,
+)
 class RegistrationService(
     private val registrationGateway: RegistrationGateway,
     private val jwtDecoder: JwtDecoder,
@@ -33,11 +37,7 @@ class RegistrationService(
     fun login(loginRequest: LoginRequest): OpenIdResponse {
         val openIdResponse = registrationGateway.auth(loginRequest)
         SecurityContextHolder.getContext().authentication =
-            JwtAuthenticationToken(
-                jwtDecoder.decode(
-                    openIdResponse.token,
-                ),
-            )
+            JwtAuthenticationToken(jwtDecoder.decode(openIdResponse.token))
         log.info("Logged in ${loginRequest.user}")
         return openIdResponse
     }
@@ -45,14 +45,15 @@ class RegistrationService(
     fun register(registrationRequest: RegistrationRequest): SystemUser {
         val (data) =
             registrationGateway
-                .register(token, registrationRequest)
+                .register(
+                    token,
+                    registrationRequest,
+                )
                 ?: throw UnauthorizedException("Your request was rejected. Have you logged in?")
         return data
     }
 
-    fun me(): SystemUser {
-        return registrationGateway.me(token).data
-    }
+    fun me(): SystemUser = registrationGateway.me(token).data
 
     val token: String
         get() = tokenService.bearerToken
@@ -60,7 +61,10 @@ class RegistrationService(
     /**
      * HTTP gateway calls to svc-data
      */
-    @FeignClient(name = "registrationGw", url = "\${marketdata.url:http://localhost:9510}")
+    @FeignClient(
+        name = "registrationGw",
+        url = "\${marketdata.url:http://localhost:9510}",
+    )
     interface RegistrationGateway {
         @PostMapping(
             value = ["/api/register"],

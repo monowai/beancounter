@@ -17,23 +17,26 @@ class DefaultEnricher : AssetEnricher {
         id: String,
         market: Market,
         assetInput: AssetInput,
-    ): Asset {
-        return Asset(
+    ): Asset =
+        Asset(
             code = assetInput.code.uppercase(Locale.getDefault()),
             id = id,
-            name = if (assetInput.name != null) assetInput.name!!.replace("\"", "") else null,
+            name =
+            if (assetInput.name != null) {
+                assetInput.name!!.replace(
+                    "\"",
+                    "",
+                )
+            } else {
+                null
+            },
             market = market,
             marketCode = market.code,
             priceSymbol = assetInput.currency,
             category = assetInput.category,
         )
-    }
 
-    override fun canEnrich(asset: Asset): Boolean {
-        return true
-    }
+    override fun canEnrich(asset: Asset): Boolean = true
 
-    override fun id(): String {
-        return "DEFAULT"
-    }
+    override fun id(): String = "DEFAULT"
 }

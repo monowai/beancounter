@@ -20,7 +20,11 @@ class IrrCalculatorTests {
     private val irrService = IrrCalculator()
     private val initialCost = -1000.0
     private val marketValue = 1100.0
-    private val asset = AssetUtils.getTestAsset(US, "AnyAsset")
+    private val asset =
+        AssetUtils.getTestAsset(
+            US,
+            "AnyAsset",
+        )
     private val dateUtils = DateUtils()
 
     @Test
@@ -125,7 +129,11 @@ class IrrCalculatorTests {
     ) {
         val periodicCashFlows = getPeriodicCashFlows(cashFlows)
         val irr = irrService.calculate(periodicCashFlows)
-        assertEquals(expectedIrr, irr, 0.001)
+        assertEquals(
+            expectedIrr,
+            irr,
+            0.001,
+        )
     }
 
     private fun getPeriodicCashFlows(cashFlows: List<Pair<String, Double>>): PeriodicCashFlows {

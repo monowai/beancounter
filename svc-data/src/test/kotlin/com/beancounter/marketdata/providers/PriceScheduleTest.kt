@@ -77,17 +77,31 @@ class PriceScheduleTest {
 
         marketDataService.purge()
         assetService.purge()
-        val asxMarket = marketService.getMarket(ASX.code, false)
+        val asxMarket =
+            marketService.getMarket(
+                ASX.code,
+                false,
+            )
         Mockito
             .`when`(
                 enrichmentFactory.getEnricher(asxMarket),
             ).thenReturn(DefaultEnricher())
 
-        val assetInput = AssetInput(ASX.code, code = code)
+        val assetInput =
+            AssetInput(
+                ASX.code,
+                code = code,
+            )
         val assetResult = assetService.findOrCreate(assetInput)
         Mockito
-            .`when`(alphaPriceService.getMarketData(PriceRequest(anyString(), listOf(PriceAsset(assetResult)))))
-            .thenReturn(setOf(MarketData(assetResult)))
+            .`when`(
+                alphaPriceService.getMarketData(
+                    PriceRequest(
+                        anyString(),
+                        listOf(PriceAsset(assetResult)),
+                    ),
+                ),
+            ).thenReturn(setOf(MarketData(assetResult)))
         priceSchedule.updatePrices()
         Thread.sleep(2000) // Async reads/writes
         val price =

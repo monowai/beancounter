@@ -6,4 +6,6 @@ import com.beancounter.common.event.CorporateEvent
 /**
  * Payload representation of a Corporate Action event.
  */
-data class CorporateEventResponse(override val data: CorporateEvent) : Payload<CorporateEvent>
+data class CorporateEventResponse(
+    override val data: CorporateEvent,
+) : Payload<CorporateEvent>

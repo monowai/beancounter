@@ -69,22 +69,23 @@ class LoginServiceTest {
     @Test
     fun is_m2mLoginWorking() {
         val token = authUtilService.authenticateM2M(SystemUser())
-        Mockito.`when`(
-            authGateway.login(
-                LoginService.ClientCredentialsRequest(
-                    mockAuthConfig.authConfig.clientId,
-                    mockAuthConfig.authConfig.clientSecret,
-                    mockAuthConfig.authConfig.audience,
+        Mockito
+            .`when`(
+                authGateway.login(
+                    LoginService.ClientCredentialsRequest(
+                        mockAuthConfig.authConfig.clientId,
+                        mockAuthConfig.authConfig.clientSecret,
+                        mockAuthConfig.authConfig.audience,
+                    ),
                 ),
-            ),
-        ).thenReturn(
-            OpenIdResponse(
-                token.token.tokenValue,
-                "beancounter beancounter:system",
-                Duration.ofSeconds(20_000).seconds,
-                BEARER,
-            ),
-        )
+            ).thenReturn(
+                OpenIdResponse(
+                    token.token.tokenValue,
+                    "beancounter beancounter:system",
+                    Duration.ofSeconds(20_000).seconds,
+                    BEARER,
+                ),
+            )
 
         loginService.loginM2m().token.isNotEmpty()
         assertTrue(tokenService.isServiceToken)
@@ -93,22 +94,23 @@ class LoginServiceTest {
     @Test
     fun is_accountWithNoRulesNeitherServiceOrUser() {
         val token = authUtilService.authenticateNoRoles(SystemUser())
-        Mockito.`when`(
-            authGateway.login(
-                LoginService.ClientCredentialsRequest(
-                    mockAuthConfig.authConfig.clientId,
-                    mockAuthConfig.authConfig.clientSecret,
-                    mockAuthConfig.authConfig.audience,
+        Mockito
+            .`when`(
+                authGateway.login(
+                    LoginService.ClientCredentialsRequest(
+                        mockAuthConfig.authConfig.clientId,
+                        mockAuthConfig.authConfig.clientSecret,
+                        mockAuthConfig.authConfig.audience,
+                    ),
                 ),
-            ),
-        ).thenReturn(
-            OpenIdResponse(
-                token.token.tokenValue,
-                "beancounter beancounter:system",
-                Duration.ofSeconds(20_000).seconds,
-                BEARER,
-            ),
-        )
+            ).thenReturn(
+                OpenIdResponse(
+                    token.token.tokenValue,
+                    "beancounter beancounter:system",
+                    Duration.ofSeconds(20_000).seconds,
+                    BEARER,
+                ),
+            )
 
         loginService.loginM2m().token.isNotEmpty()
         assertFalse(tokenService.isServiceToken)
@@ -123,11 +125,24 @@ class LoginServiceTest {
                 ClassPathResource("user-token-response.json").file,
             )
 
-        Mockito.`when`(mockAuthConfig.jwtDecoder.decode(systemUser.email))
+        Mockito
+            .`when`(mockAuthConfig.jwtDecoder.decode(systemUser.email))
             .thenReturn(token.token)
-        Mockito.`when`(authGateway.login(loginService.passwordRequest("user", "password")))
-            .thenReturn(response)
-        loginService.login("user", "password").token.isNotEmpty()
+        Mockito
+            .`when`(
+                authGateway.login(
+                    loginService.passwordRequest(
+                        "user",
+                        "password",
+                    ),
+                ),
+            ).thenReturn(response)
+        loginService
+            .login(
+                "user",
+                "password",
+            ).token
+            .isNotEmpty()
         assertFalse(tokenService.isServiceToken)
     }
 

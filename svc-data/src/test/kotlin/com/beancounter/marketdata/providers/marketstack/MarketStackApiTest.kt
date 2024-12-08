@@ -58,7 +58,11 @@ internal class MarketStackApiTest {
 
     @Test
     fun `returns prices based when we override the requested date`() {
-        val inputs = mutableListOf(PriceAsset(AAPL), PriceAsset(MSFT))
+        val inputs =
+            mutableListOf(
+                PriceAsset(AAPL),
+                PriceAsset(MSFT),
+            )
 
         // While the request date is relative to "Today", we are testing that we get back
         //  the date as set in the response from the provider.
@@ -68,23 +72,47 @@ internal class MarketStackApiTest {
             false,
             ClassPathResource("$CONTRACTS/${AAPL.code}-${MSFT.code}.json").file,
         )
-        val mdResult = marketStackService.getMarketData(PriceRequest(priceDate, inputs))
+        val mdResult =
+            marketStackService.getMarketData(
+                PriceRequest(
+                    priceDate,
+                    inputs,
+                ),
+            )
         assertThat(mdResult)
             .isNotNull
             .hasSize(2)
         mdResult.forEach { marketData ->
             if (marketData.asset == MSFT) {
                 assertThat(marketData)
-                    .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getFormattedDate(testDate))
-                    .hasFieldOrPropertyWithValue(assetField, MSFT)
-                    .hasFieldOrPropertyWithValue(openField, BigDecimal("420.09"))
-                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("423.46"))
+                    .hasFieldOrPropertyWithValue(
+                        priceDateField,
+                        dateUtils.getFormattedDate(testDate),
+                    ).hasFieldOrPropertyWithValue(
+                        assetField,
+                        MSFT,
+                    ).hasFieldOrPropertyWithValue(
+                        openField,
+                        BigDecimal("420.09"),
+                    ).hasFieldOrPropertyWithValue(
+                        closeField,
+                        BigDecimal("423.46"),
+                    )
             } else if (marketData.asset == AAPL) {
                 assertThat(marketData)
-                    .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getFormattedDate(testDate))
-                    .hasFieldOrPropertyWithValue(assetField, AAPL)
-                    .hasFieldOrPropertyWithValue(openField, BigDecimal("234.81"))
-                    .hasFieldOrPropertyWithValue(closeField, BigDecimal("237.33"))
+                    .hasFieldOrPropertyWithValue(
+                        priceDateField,
+                        dateUtils.getFormattedDate(testDate),
+                    ).hasFieldOrPropertyWithValue(
+                        assetField,
+                        AAPL,
+                    ).hasFieldOrPropertyWithValue(
+                        openField,
+                        BigDecimal("234.81"),
+                    ).hasFieldOrPropertyWithValue(
+                        closeField,
+                        BigDecimal("237.33"),
+                    )
             }
         }
     }
@@ -117,15 +145,27 @@ internal class MarketStackApiTest {
                 MSFT ->
                     assertThat(marketData)
                         .hasFieldOrProperty(priceDateField)
-                        .hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
-                        .hasFieldOrPropertyWithValue(sourceField, ID)
+                        .hasFieldOrPropertyWithValue(
+                            closeField,
+                            BigDecimal.ZERO,
+                        ).hasFieldOrPropertyWithValue(
+                            sourceField,
+                            ID,
+                        )
 
                 AAPL ->
                     assertThat(marketData)
                         .hasFieldOrProperty(priceDateField)
-                        .hasFieldOrPropertyWithValue(openField, BigDecimal("234.81"))
-                        .hasFieldOrPropertyWithValue(closeField, BigDecimal("237.33"))
-                        .hasFieldOrPropertyWithValue(sourceField, ID)
+                        .hasFieldOrPropertyWithValue(
+                            openField,
+                            BigDecimal("234.81"),
+                        ).hasFieldOrPropertyWithValue(
+                            closeField,
+                            BigDecimal("237.33"),
+                        ).hasFieldOrPropertyWithValue(
+                            sourceField,
+                            ID,
+                        )
             }
         }
     }
@@ -133,15 +173,26 @@ internal class MarketStackApiTest {
     @Test
     fun `no data returns`() {
         val inputs = listOf(PriceAsset(MSFT))
-        mockResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/no-data.json").file)
+        mockResponse(
+            inputs,
+            priceDate,
+            true,
+            ClassPathResource("$CONTRACTS/no-data.json").file,
+        )
         val prices =
             marketStackService.getMarketData(
-                PriceRequest(priceDate, inputs),
+                PriceRequest(
+                    priceDate,
+                    inputs,
+                ),
             )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
             prices.first(),
-        ).hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
+        ).hasFieldOrPropertyWithValue(
+            closeField,
+            BigDecimal.ZERO,
+        )
     }
 
     @Test
@@ -153,11 +204,20 @@ internal class MarketStackApiTest {
             true,
             ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file,
         )
-        val prices = marketStackService.getMarketData(PriceRequest(priceDate, inputs))
+        val prices =
+            marketStackService.getMarketData(
+                PriceRequest(
+                    priceDate,
+                    inputs,
+                ),
+            )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
             prices.first(),
-        ).hasFieldOrPropertyWithValue(closeField, BigDecimal("1.335"))
+        ).hasFieldOrPropertyWithValue(
+            closeField,
+            BigDecimal("1.335"),
+        )
     }
 
     /**
@@ -189,9 +249,22 @@ internal class MarketStackApiTest {
                 assertThat(resolvedAsset!!.market).isNotNull
                 val market = resolvedAsset.market
                 var suffix = ""
-                if (!market.code.equals(NASDAQ.code, ignoreCase = true)) {
+                if (!market.code.equals(
+                        NASDAQ.code,
+                        ignoreCase = true,
+                    )
+                ) {
                     // Horrible hack to support MarketStack contract mocking ASX/AX
-                    suffix = "." + if (market.code.equals(ASX.code, ignoreCase = true)) "XASX" else market.code
+                    suffix = "." +
+                        if (market.code.equals(
+                                ASX.code,
+                                ignoreCase = true,
+                            )
+                        ) {
+                            "XASX"
+                        } else {
+                            market.code
+                        }
                 }
                 if (assetArg != null) {
                     assetArg.append("%2C").append(resolvedAsset.code).append(suffix)
@@ -212,8 +285,10 @@ internal class MarketStackApiTest {
                     ).willReturn(
                         WireMock
                             .aResponse()
-                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(objectMapper.writeValueAsString(response))
+                            .withHeader(
+                                HttpHeaders.CONTENT_TYPE,
+                                MediaType.APPLICATION_JSON_VALUE,
+                            ).withBody(objectMapper.writeValueAsString(response))
                             .withStatus(200),
                     ),
             )
@@ -230,8 +305,15 @@ internal class MarketStackApiTest {
         fun getResponseMap(jsonFile: File?): MutableMap<String, Any> {
             val mapType =
                 objectMapper.typeFactory
-                    .constructMapType(LinkedHashMap::class.java, String::class.java, Any::class.java)
-            return objectMapper.readValue(jsonFile, mapType)
+                    .constructMapType(
+                        LinkedHashMap::class.java,
+                        String::class.java,
+                        Any::class.java,
+                    )
+            return objectMapper.readValue(
+                jsonFile,
+                mapType,
+            )
         }
     }
 }

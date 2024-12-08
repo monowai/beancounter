@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service
  * Enrich assets from bloomberg OpenFigi if supported.
  */
 @Service
-class FigiEnricher(val defaultEnricher: DefaultEnricher) : AssetEnricher {
+class FigiEnricher(
+    val defaultEnricher: DefaultEnricher,
+) : AssetEnricher {
     private lateinit var figiProxy: FigiProxy
 
     @Autowired(required = false)
@@ -25,19 +27,18 @@ class FigiEnricher(val defaultEnricher: DefaultEnricher) : AssetEnricher {
         id: String,
         market: Market,
         assetInput: AssetInput,
-    ): Asset {
-        return figiProxy.find(market, assetInput.code, id = id) ?: defaultEnricher.enrich(
+    ): Asset =
+        figiProxy.find(
+            market,
+            assetInput.code,
+            id = id,
+        ) ?: defaultEnricher.enrich(
             id,
             market,
             assetInput,
         )
-    }
 
-    override fun canEnrich(asset: Asset): Boolean {
-        return asset.name == null
-    }
+    override fun canEnrich(asset: Asset): Boolean = asset.name == null
 
-    override fun id(): String {
-        return "FIGI"
-    }
+    override fun id(): String = "FIGI"
 }

@@ -19,7 +19,11 @@ import java.math.BigDecimal
  * Pojo Price tests
  */
 class TestPriceData {
-    private val asset = Asset(code = "ABC", market = NYSE)
+    private val asset =
+        Asset(
+            code = "ABC",
+            market = NYSE,
+        )
 
     @Test
     fun is_PriceDataWithRates() {
@@ -30,20 +34,50 @@ class TestPriceData {
         marketData.open = BigDecimal("2.00")
         marketData.close = BigDecimal("2.00")
 
-        val noFx = PriceData.of(marketData, BigDecimal("1.0"))
+        val noFx =
+            PriceData.of(
+                marketData,
+                BigDecimal("1.0"),
+            )
         assertThat(noFx)
-            .hasFieldOrPropertyWithValue(P_OPEN, marketData.open)
-            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, marketData.previousClose)
-            .hasFieldOrPropertyWithValue(P_CLOSE, marketData.close)
-            .hasFieldOrPropertyWithValue(P_CHANGE, marketData.change)
-            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, marketData.changePercent)
-        val withFx = PriceData.of(marketData, two)
+            .hasFieldOrPropertyWithValue(
+                P_OPEN,
+                marketData.open,
+            ).hasFieldOrPropertyWithValue(
+                P_PREVIOUS_CLOSE,
+                marketData.previousClose,
+            ).hasFieldOrPropertyWithValue(
+                P_CLOSE,
+                marketData.close,
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE,
+                marketData.change,
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE_PERCENT,
+                marketData.changePercent,
+            )
+        val withFx =
+            PriceData.of(
+                marketData,
+                two,
+            )
         assertThat(withFx)
-            .hasFieldOrPropertyWithValue(P_OPEN, BigDecimal("4.00"))
-            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal("4.00"))
-            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, BigDecimal("2.00"))
-            .hasFieldOrPropertyWithValue(P_CHANGE, BigDecimal("2.00"))
-            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, BigDecimal("0.5000"))
+            .hasFieldOrPropertyWithValue(
+                P_OPEN,
+                BigDecimal("4.00"),
+            ).hasFieldOrPropertyWithValue(
+                P_CLOSE,
+                BigDecimal("4.00"),
+            ).hasFieldOrPropertyWithValue(
+                P_PREVIOUS_CLOSE,
+                BigDecimal("2.00"),
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE,
+                BigDecimal("2.00"),
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE_PERCENT,
+                BigDecimal("0.5000"),
+            )
     }
 
     @Test
@@ -55,18 +89,44 @@ class TestPriceData {
         marketData.change = BigDecimal("0.43")
         marketData.changePercent = BigDecimal("0.0104")
 
-        val noFx = PriceData.of(marketData, BigDecimal("1.0"))
+        val noFx =
+            PriceData.of(
+                marketData,
+                BigDecimal("1.0"),
+            )
         assertThat(noFx)
-            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, marketData.previousClose)
-            .hasFieldOrPropertyWithValue(P_CLOSE, marketData.close)
-            .hasFieldOrPropertyWithValue(P_CHANGE, marketData.change)
-            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, marketData.changePercent)
-        val withFx = PriceData.of(marketData, two)
+            .hasFieldOrPropertyWithValue(
+                P_PREVIOUS_CLOSE,
+                marketData.previousClose,
+            ).hasFieldOrPropertyWithValue(
+                P_CLOSE,
+                marketData.close,
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE,
+                marketData.change,
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE_PERCENT,
+                marketData.changePercent,
+            )
+        val withFx =
+            PriceData.of(
+                marketData,
+                two,
+            )
         assertThat(withFx)
-            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, BigDecimal("81.84"))
-            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal("82.70"))
-            .hasFieldOrPropertyWithValue(P_CHANGE, BigDecimal("0.86"))
-            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, BigDecimal("0.0104"))
+            .hasFieldOrPropertyWithValue(
+                P_PREVIOUS_CLOSE,
+                BigDecimal("81.84"),
+            ).hasFieldOrPropertyWithValue(
+                P_CLOSE,
+                BigDecimal("82.70"),
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE,
+                BigDecimal("0.86"),
+            ).hasFieldOrPropertyWithValue(
+                P_CHANGE_PERCENT,
+                BigDecimal("0.0104"),
+            )
     }
 
     @Test
@@ -78,7 +138,11 @@ class TestPriceData {
         marketData.change = one
         marketData.open = two
         marketData.close = two
-        var withFx = PriceData.of(marketData, BigDecimal("1.1"))
+        var withFx =
+            PriceData.of(
+                marketData,
+                BigDecimal("1.1"),
+            )
         assertThat(withFx).isNotNull
 
         val noFx = PriceData.of(marketData)
@@ -90,7 +154,11 @@ class TestPriceData {
         mdWithFx.change = one
         mdWithFx.open = two
 
-        withFx = PriceData.of(mdWithFx, BigDecimal("1.1"))
+        withFx =
+            PriceData.of(
+                mdWithFx,
+                BigDecimal("1.1"),
+            )
         assertThat(withFx).isNotNull
     }
 }

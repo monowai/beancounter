@@ -21,12 +21,21 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/fx")
 @CrossOrigin
-@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
+@PreAuthorize(
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+)
 class FxController
-    @Autowired
-    internal constructor(private val fxRateService: FxRateService, private val tokenService: TokenService) {
-        @PostMapping
-        fun getRates(
-            @RequestBody fxRequest: FxRequest,
-        ): FxResponse = fxRateService.getRates(fxRequest, tokenService.bearerToken)
-    }
+@Autowired
+internal constructor(
+    private val fxRateService: FxRateService,
+    private val tokenService: TokenService,
+) {
+    @PostMapping
+    fun getRates(
+        @RequestBody fxRequest: FxRequest,
+    ): FxResponse =
+        fxRateService.getRates(
+            fxRequest,
+            tokenService.bearerToken,
+        )
+}

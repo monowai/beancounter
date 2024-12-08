@@ -38,13 +38,22 @@ internal class TradeCalculatorTest {
 
     @Test
     fun amountWithoutFees() {
-        val amount = tradeCalculator.amount(quantity, price)
+        val amount =
+            tradeCalculator.amount(
+                quantity,
+                price,
+            )
         assertThat(amount).isEqualTo(amount)
     }
 
     @Test
     fun amountWithFees() {
-        val amount = tradeCalculator.amount(quantity, price, BigDecimal("10.01"))
+        val amount =
+            tradeCalculator.amount(
+                quantity,
+                price,
+                BigDecimal("10.01"),
+            )
         assertThat(amount).isEqualTo(BigDecimal("129.91"))
     }
 
@@ -62,7 +71,12 @@ internal class TradeCalculatorTest {
 
     @Test
     fun testAmountFromTrnInputWithoutTradeAmount() {
-        val trnInput = TrnInput(assetId = ANY, price = price, quantity = quantity)
+        val trnInput =
+            TrnInput(
+                assetId = ANY,
+                price = price,
+                quantity = quantity,
+            )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }
 

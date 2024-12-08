@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service
  * ingest CSV KAFKA jar-shell/src/test/resources/trades.csv TEST
  */
 @Service
-@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = false)
+@ConditionalOnProperty(
+    value = ["kafka.enabled"],
+    matchIfMissing = false,
+)
 class KafkaTrnProducer(
     private val shareSightFactory: ShareSightFactory,
     private val kafkaCsvTrnProducer: KafkaTemplate<String, TrustedTrnImportRequest>,
@@ -27,9 +30,12 @@ class KafkaTrnProducer(
     private lateinit var topicTrnCsv: String
 
     @Bean
-    fun topicTrnCvs(): NewTopic {
-        return NewTopic(topicTrnCsv, 1, 1.toShort())
-    }
+    fun topicTrnCvs(): NewTopic =
+        NewTopic(
+            topicTrnCsv,
+            1,
+            1.toShort(),
+        )
 
     override fun reset() {
         // Not a stateful writer
@@ -39,16 +45,21 @@ class KafkaTrnProducer(
         val row = trnRequest.row
         val adapter = shareSightFactory.adapter(row)
         val (_) = adapter.resolveAsset(trnRequest.row) ?: return
-        val result = kafkaCsvTrnProducer.send(topicTrnCsv, trnRequest)
+        val result =
+            kafkaCsvTrnProducer.send(
+                topicTrnCsv,
+                trnRequest,
+            )
         val sendResult = result.get()
-        log.trace("recordMetaData: {}", sendResult.recordMetadata.toString())
+        log.trace(
+            "recordMetaData: {}",
+            sendResult.recordMetadata.toString(),
+        )
     }
 
     override fun flush() {
         // Noop
     }
 
-    override fun id(): String {
-        return "KAFKA"
-    }
+    override fun id(): String = "KAFKA"
 }

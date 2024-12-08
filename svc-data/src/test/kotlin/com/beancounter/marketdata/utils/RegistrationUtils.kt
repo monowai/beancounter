@@ -18,19 +18,18 @@ object RegistrationUtils {
         mockMvc: MockMvc,
         token: Jwt,
     ): Jwt {
-        mockMvc.perform(
-            MockMvcRequestBuilders.post("/register")
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
-                )
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .content(
-                    objectMapper
-                        .writeValueAsBytes(RegistrationRequest()),
-                )
-                .contentType(MediaType.APPLICATION_JSON),
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/register")
+                    .with(
+                        SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
+                    ).with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(
+                        objectMapper
+                            .writeValueAsBytes(RegistrationRequest()),
+                    ).contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
         return token

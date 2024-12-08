@@ -58,10 +58,18 @@ class TestCommands {
     @Test
     fun is_MarketCommandsReturning() {
         var json = dataCommands.markets("NASDAQ")
-        var marketResponse = objectMapper.readValue(json, MarketResponse::class.java)
+        var marketResponse =
+            objectMapper.readValue(
+                json,
+                MarketResponse::class.java,
+            )
         assertThat(marketResponse.data).isNotNull.hasSize(1)
         json = dataCommands.markets(null)
-        marketResponse = objectMapper.readValue(json, MarketResponse::class.java)
+        marketResponse =
+            objectMapper.readValue(
+                json,
+                MarketResponse::class.java,
+            )
         assertThat(marketResponse.data).isNotNull.hasSizeGreaterThan(3)
     }
 
@@ -70,7 +78,11 @@ class TestCommands {
     @Test
     fun is_PortfolioByCode() {
         val json = portfolioCommands.portfolioCode(test)
-        val portfolio = objectMapper.readValue(json, Portfolio::class.java)
+        val portfolio =
+            objectMapper.readValue(
+                json,
+                Portfolio::class.java,
+            )
         assertThat(portfolio).isNotNull
         assertThrows(BusinessException::class.java) {
             portfolioCommands.portfolioCode("is_PortfolioByCode")
@@ -80,7 +92,11 @@ class TestCommands {
     @Test
     fun is_PortfolioById() {
         val json = portfolioCommands.portfolio(test)
-        val portfolio = objectMapper.readValue(json, Portfolio::class.java)
+        val portfolio =
+            objectMapper.readValue(
+                json,
+                Portfolio::class.java,
+            )
         assertThat(portfolio).isNotNull
         assertThrows(BusinessException::class.java) {
             portfolioCommands.portfolioCode("is_PortfolioById")
@@ -96,8 +112,13 @@ class TestCommands {
     fun is_ConfigReturned() {
         val config = envCommands.env()
         assertThat(config).isNotNull
-        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
-        val configMap: HashMap<String, String> = ObjectMapper().readValue(config, typeRef)
+        val typeRef: TypeReference<HashMap<String, String>> =
+            object : TypeReference<HashMap<String, String>>() {}
+        val configMap: HashMap<String, String> =
+            ObjectMapper().readValue(
+                config,
+                typeRef,
+            )
         assertThat(configMap).isNotEmpty
     }
 

@@ -63,32 +63,43 @@ class TestMsftFlow {
         val positionGateway = Mockito.mock(PositionGateway::class.java)
         val (_, _, _, assetId, recordDate) = trustedEvent.data
 
-        Mockito.`when`(
-            positionGateway["demo", assetId, recordDate.toString()],
-        ).thenReturn(positionResponse)
+        Mockito
+            .`when`(
+                positionGateway["demo", assetId, recordDate.toString()],
+            ).thenReturn(positionResponse)
 
         val portfolio = whereHeld.data.iterator().next()
-        Mockito.`when`(
-            positionGateway
-                .query(
-                    "demo",
-                    TrustedTrnQuery(portfolio, recordDate, assetId),
-                ),
-        ).thenReturn(positionResponse)
+        Mockito
+            .`when`(
+                positionGateway
+                    .query(
+                        "demo",
+                        TrustedTrnQuery(
+                            portfolio,
+                            recordDate,
+                            assetId,
+                        ),
+                    ),
+            ).thenReturn(positionResponse)
 
         val portfolioGw = Mockito.mock(PortfolioGw::class.java)
-        Mockito.`when`(
-            portfolioGw.getWhereHeld(
-                "demo",
-                assetId,
-                recordDate.toString(),
-            ),
-        )
-            .thenReturn(whereHeld)
+        Mockito
+            .`when`(
+                portfolioGw.getWhereHeld(
+                    "demo",
+                    assetId,
+                    recordDate.toString(),
+                ),
+            ).thenReturn(whereHeld)
         val tokenService = Mockito.mock(TokenService::class.java)
-        Mockito.`when`(tokenService.bearerToken)
+        Mockito
+            .`when`(tokenService.bearerToken)
             .thenReturn("demo")
-        val portfolioServiceClient = PortfolioServiceClient(portfolioGw, tokenService)
+        val portfolioServiceClient =
+            PortfolioServiceClient(
+                portfolioGw,
+                tokenService,
+            )
         positionService.setTokenService(tokenService)
         positionService.setPortfolioClientService(portfolioServiceClient)
         val results = eventService.process(trustedEvent)

@@ -23,15 +23,29 @@ internal class AlphaApiAssetTest {
                 AlphaMockUtils.ALPHA_MOCK +
                     "/mf-search.json",
             ).file
-        val searchResponse = assetMapper.readValue(jsonFile, AssetSearchResponse::class.java)
-        Assertions.assertThat(searchResponse)
+        val searchResponse =
+            assetMapper.readValue(
+                jsonFile,
+                AssetSearchResponse::class.java,
+            )
+        Assertions
+            .assertThat(searchResponse)
             .isNotNull
             .hasFieldOrProperty(Payload.DATA)
-        Assertions.assertThat(searchResponse.data)
+        Assertions
+            .assertThat(searchResponse.data)
             .hasSize(1)
-        Assertions.assertThat(searchResponse.data.iterator().next())
-            .hasFieldOrPropertyWithValue("name", "AXA Framlington Health Fund Z GBP Acc")
-            .hasFieldOrPropertyWithValue("type", "Mutual Fund")
-            .hasFieldOrPropertyWithValue("symbol", "0P0000XMSV.LON")
+        Assertions
+            .assertThat(searchResponse.data.iterator().next())
+            .hasFieldOrPropertyWithValue(
+                "name",
+                "AXA Framlington Health Fund Z GBP Acc",
+            ).hasFieldOrPropertyWithValue(
+                "type",
+                "Mutual Fund",
+            ).hasFieldOrPropertyWithValue(
+                "symbol",
+                "0P0000XMSV.LON",
+            )
     }
 }

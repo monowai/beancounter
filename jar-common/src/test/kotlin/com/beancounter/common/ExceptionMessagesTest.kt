@@ -31,7 +31,11 @@ internal class ExceptionMessagesTest {
                 path = TEST_UR,
             )
         val json = objectMapper.writeValueAsString(springExceptionMessage)
-        val fromJson = objectMapper.readValue(json, SpringExceptionMessage::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                SpringExceptionMessage::class.java,
+            )
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()
             .usingRecursiveComparison()
@@ -41,14 +45,20 @@ internal class ExceptionMessagesTest {
     private fun throwBusinessException() {
         val businessException = BusinessException(testMessage)
         assertThat(businessException)
-            .hasFieldOrPropertyWithValue(MESSAGE, testMessage)
+            .hasFieldOrPropertyWithValue(
+                MESSAGE,
+                testMessage,
+            )
         throw businessException
     }
 
     private fun throwSystemException() {
         val systemException = SystemException(testMessage)
         assertThat(systemException)
-            .hasFieldOrPropertyWithValue(MESSAGE, testMessage)
+            .hasFieldOrPropertyWithValue(
+                MESSAGE,
+                testMessage,
+            )
         throw systemException
     }
 }

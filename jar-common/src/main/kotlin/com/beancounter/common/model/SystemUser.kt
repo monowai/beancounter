@@ -22,7 +22,10 @@ data class SystemUser(
     var active: Boolean = true,
     val auth0: String = "",
     val googleId: String = "",
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd",
+    )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val since: LocalDate = LocalDate.now(),

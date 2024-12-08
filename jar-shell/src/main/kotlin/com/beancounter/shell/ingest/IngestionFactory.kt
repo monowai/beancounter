@@ -15,13 +15,15 @@ class IngestionFactory {
 
     @Autowired
     fun setCsvIngester(csvIngester: CsvIngester) {
-        add("CSV", csvIngester)
+        add(
+            "CSV",
+            csvIngester,
+        )
     }
 
-    fun getIngester(ingestionRequest: IngestionRequest): Ingester {
-        return ingesterMap[ingestionRequest.reader.uppercase(Locale.getDefault())]
+    fun getIngester(ingestionRequest: IngestionRequest): Ingester =
+        ingesterMap[ingestionRequest.reader.uppercase(Locale.getDefault())]
             ?: throw SystemException("Unable to resolve ingestor for ${ingestionRequest.reader}")
-    }
 
     fun add(
         key: String,

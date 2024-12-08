@@ -11,7 +11,10 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 @EnableCaching
-@ConditionalOnProperty(value = ["cache.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["cache.enabled"],
+    matchIfMissing = true,
+)
 class CacheConfig {
     @PostConstruct
     fun status() {

@@ -19,7 +19,8 @@ import kotlin.annotation.AnnotationTarget.CLASS
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = AFTER_CLASS)
-@Tag("db") // Slow!
+@Tag("db")
+// Slow!
 @ActiveProfiles
 annotation class SpringMvcDbTest(
     /**

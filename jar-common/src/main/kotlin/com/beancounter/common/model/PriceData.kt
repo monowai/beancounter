@@ -17,7 +17,10 @@ import java.time.LocalDate
  * Representation of market data information pertaining to the price of an asset.
  */
 data class PriceData(
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = DateUtils.FORMAT,
+    )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate = LocalDate.now(),
@@ -31,9 +34,11 @@ data class PriceData(
     var volume: Int = 0,
 ) {
     companion object {
-        fun of(marketData: MarketData): PriceData {
-            return of(marketData, BigDecimal.ONE)
-        }
+        fun of(marketData: MarketData): PriceData =
+            of(
+                marketData,
+                BigDecimal.ONE,
+            )
 
         fun of(
             mktData: MarketData,
@@ -42,12 +47,30 @@ data class PriceData(
             val result =
                 PriceData(
                     mktData.priceDate,
-                    multiplyAbs(mktData.open, rate),
-                    multiplyAbs(mktData.close, rate),
-                    multiplyAbs(mktData.low, rate),
-                    multiplyAbs(mktData.high, rate),
-                    multiplyAbs(mktData.previousClose, rate),
-                    multiplyAbs(mktData.change, rate),
+                    multiplyAbs(
+                        mktData.open,
+                        rate,
+                    ),
+                    multiplyAbs(
+                        mktData.close,
+                        rate,
+                    ),
+                    multiplyAbs(
+                        mktData.low,
+                        rate,
+                    ),
+                    multiplyAbs(
+                        mktData.high,
+                        rate,
+                    ),
+                    multiplyAbs(
+                        mktData.previousClose,
+                        rate,
+                    ),
+                    multiplyAbs(
+                        mktData.change,
+                        rate,
+                    ),
                     mktData.changePercent,
                     mktData.volume,
                 )
@@ -59,7 +82,13 @@ data class PriceData(
                 // Convert
                 val change =
                     BigDecimal("1.00")
-                        .subtract(percentUtils.percent(result.previousClose, result.close, 4))
+                        .subtract(
+                            percentUtils.percent(
+                                result.previousClose,
+                                result.close,
+                                4,
+                            ),
+                        )
                 result.changePercent = change
                 result.change = result.close.subtract(result.previousClose)
             }

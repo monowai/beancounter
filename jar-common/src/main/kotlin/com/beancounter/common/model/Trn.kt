@@ -30,19 +30,28 @@ data class Trn(
     @Id
     var id: String = UUID.randomUUID().toString(),
     val trnType: TrnType,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd",
+    )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var tradeDate: LocalDate = DateUtils().date,
     @ManyToOne
     var asset: Asset,
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     val quantity: BigDecimal = BigDecimal.ZERO,
     // In trade Currency - scale is to support Mutual Fund pricing.
     @Embedded
     var callerRef: CallerRef? = null,
     // In trade Currency
-    @Column(precision = 15, scale = 6)
+    @Column(
+        precision = 15,
+        scale = 6,
+    )
     var price: BigDecimal? = null,
     var tradeAmount: BigDecimal = quantity,
     @ManyToOne
@@ -53,18 +62,30 @@ data class Trn(
     @ManyToOne
     var cashCurrency: Currency? = cashAsset?.market?.currency,
     // Trade Currency to system Base Currency
-    @Column(precision = 10, scale = 6)
+    @Column(
+        precision = 10,
+        scale = 6,
+    )
     var tradeCashRate: BigDecimal = BigDecimal.ZERO,
     // Trade CCY to portfolio reference  currency
-    @Column(precision = 10, scale = 6)
+    @Column(
+        precision = 10,
+        scale = 6,
+    )
     var tradeBaseRate: BigDecimal = BigDecimal.ONE,
     // Signed Cash in settlement currency.
-    @Column(precision = 10, scale = 6)
+    @Column(
+        precision = 10,
+        scale = 6,
+    )
     var tradePortfolioRate: BigDecimal = BigDecimal.ONE,
     var cashAmount: BigDecimal = BigDecimal.ZERO,
     @ManyToOne
     var portfolio: Portfolio = PortfolioUtils.getPortfolio(),
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd",
+    )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null,

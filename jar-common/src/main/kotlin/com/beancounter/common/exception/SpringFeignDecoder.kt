@@ -32,7 +32,10 @@ class SpringFeignDecoder : ErrorDecoder {
             try {
                 getMessage(response) ?: "No response body"
             } catch (e: IOException) {
-                log.error("Error reading response body", e)
+                log.error(
+                    "Error reading response body",
+                    e,
+                )
                 return SystemException("Failed to read response body")
             }
 
@@ -43,7 +46,11 @@ class SpringFeignDecoder : ErrorDecoder {
             HttpStatus.FORBIDDEN.value() -> ForbiddenException(reason)
             in 400..499 -> BusinessException(reason)
             in 500..599 -> SystemException(reason)
-            else -> FeignException.errorStatus(methodKey, response)
+            else ->
+                FeignException.errorStatus(
+                    methodKey,
+                    response,
+                )
         }
     }
 

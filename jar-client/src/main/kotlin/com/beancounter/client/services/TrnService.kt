@@ -22,20 +22,36 @@ class TrnService internal constructor(
     private val trnGateway: TrnGateway,
     private val tokenService: TokenService,
 ) {
-    fun write(trnRequest: TrnRequest): TrnResponse = trnGateway.write(tokenService.bearerToken, trnRequest)
+    fun write(trnRequest: TrnRequest): TrnResponse =
+        trnGateway.write(
+            tokenService.bearerToken,
+            trnRequest,
+        )
 
     @CircuitBreaker(name = "default")
-    fun query(trustedTrnQuery: TrustedTrnQuery): TrnResponse = trnGateway.read(tokenService.bearerToken, trustedTrnQuery)
+    fun query(trustedTrnQuery: TrustedTrnQuery): TrnResponse =
+        trnGateway.read(
+            tokenService.bearerToken,
+            trustedTrnQuery,
+        )
 
     fun query(
         portfolio: Portfolio,
         asAt: String = "today",
-    ): TrnResponse = trnGateway.read(tokenService.bearerToken, portfolio.id, asAt)
+    ): TrnResponse =
+        trnGateway.read(
+            tokenService.bearerToken,
+            portfolio.id,
+            asAt,
+        )
 
     /**
      * GatewayProxy to talk to svc-data and obtain the transactions.
      */
-    @FeignClient(name = "trns", url = "\${marketdata.url:http://localhost:9510}")
+    @FeignClient(
+        name = "trns",
+        url = "\${marketdata.url:http://localhost:9510}",
+    )
     interface TrnGateway {
         @PostMapping(
             value = ["/api/trns"],

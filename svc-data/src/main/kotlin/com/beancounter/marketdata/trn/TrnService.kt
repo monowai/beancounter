@@ -34,7 +34,11 @@ class TrnService(
         portfolio: Portfolio,
         trnId: String,
     ): Collection<Trn> {
-        val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
+        val trn =
+            trnRepository.findByPortfolioIdAndId(
+                portfolio.id,
+                trnId,
+            )
         val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         if (result.isEmpty) {
             throw BusinessException("Trn $trnId not found")
@@ -47,7 +51,13 @@ class TrnService(
         trnRequest: TrnRequest,
     ): Collection<Trn> {
         // Figure out
-        val saved = trnRepository.saveAll(trnAdapter.convert(portfolio, trnRequest))
+        val saved =
+            trnRepository.saveAll(
+                trnAdapter.convert(
+                    portfolio,
+                    trnRequest,
+                ),
+            )
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
         if (trnRequest.data.size == 1) {
@@ -83,15 +93,22 @@ class TrnService(
      * @return number of deleted transactions
      */
     fun purge(portfolio: Portfolio): Long {
-        log.debug("Purging transactions for {}", portfolio.code)
+        log.debug(
+            "Purging transactions for {}",
+            portfolio.code,
+        )
         return trnRepository.deleteByPortfolioId(portfolio.id)
     }
 
     private fun postProcess(trns: List<Trn>): List<Trn> {
         val assets =
-            trns.flatMap {
-                listOfNotNull(assetService.hydrate(it.asset), assetService.hydrate(it.cashAsset))
-            }.associateBy { it.id }
+            trns
+                .flatMap {
+                    listOfNotNull(
+                        assetService.hydrate(it.asset),
+                        assetService.hydrate(it.cashAsset),
+                    )
+                }.associateBy { it.id }
 
         for (trn in trns) {
             trn.asset = assets[trn.asset.id]!!
@@ -112,7 +129,10 @@ class TrnService(
             val systemUser = systemUserService.getOrThrow
             val filteredTrns =
                 trns.filter {
-                    portfolioService.isViewable(systemUser, it.portfolio)
+                    portfolioService.isViewable(
+                        systemUser,
+                        it.portfolio,
+                    )
                 }
             return postProcess(filteredTrns)
         } else {
@@ -135,7 +155,12 @@ class TrnService(
     fun delete(trnId: String): Collection<Trn> {
         val result = trnRepository.findById(trnId)
         if (result.isEmpty) {
-            throw BusinessException(String.format("Transaction not found %s", trnId))
+            throw BusinessException(
+                String.format(
+                    "Transaction not found %s",
+                    trnId,
+                ),
+            )
         }
         val trn = result.get()
         val deleted: MutableCollection<Trn> = ArrayList()
@@ -151,8 +176,17 @@ class TrnService(
         trnId: String,
         trnInput: TrnInput,
     ): TrnResponse {
-        val existing = getPortfolioTrn(portfolio, trnId)
-        val trn = trnAdapter.map(portfolio, trnInput, existing.iterator().next())
+        val existing =
+            getPortfolioTrn(
+                portfolio,
+                trnId,
+            )
+        val trn =
+            trnAdapter.map(
+                portfolio,
+                trnInput,
+                existing.iterator().next(),
+            )
         trnRepository.save(trn)
         return TrnResponse(arrayListOf(trn))
     }

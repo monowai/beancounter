@@ -31,28 +31,43 @@ class MarketDataClient internal constructor(
 
     @PostConstruct
     fun logConfig() {
-        log.info("marketdata.url: {}", marketDataUrl)
+        log.info(
+            "marketdata.url: {}",
+            marketDataUrl,
+        )
     }
 
-    override fun handle(assetRequest: AssetRequest): AssetUpdateResponse? {
-        return assetGateway.process(tokenService.bearerToken, assetRequest)
-    }
+    override fun handle(assetRequest: AssetRequest): AssetUpdateResponse? =
+        assetGateway.process(
+            tokenService.bearerToken,
+            assetRequest,
+        )
 
     @Async("taskScheduler")
     override fun backFillEvents(assetId: String) {
         // log.debug("Back fill for {}", assetId)
-        assetGateway.backFill(tokenService.bearerToken, assetId)
+        assetGateway.backFill(
+            tokenService.bearerToken,
+            assetId,
+        )
     }
 
     override fun find(assetId: String): Asset {
-        val (data) = assetGateway.find(tokenService.bearerToken, assetId)
+        val (data) =
+            assetGateway.find(
+                tokenService.bearerToken,
+                assetId,
+            )
         return data
     }
 
     /**
      * Rest API to the asset service.
      */
-    @FeignClient(name = "assets", url = "\${marketdata.url:http://localhost:9510}")
+    @FeignClient(
+        name = "assets",
+        url = "\${marketdata.url:http://localhost:9510}",
+    )
     interface AssetGateway {
         @PostMapping(
             value = ["/api/assets"],

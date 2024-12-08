@@ -20,9 +20,20 @@ import org.springframework.web.cors.CorsConfiguration
 /**
  * Spring-security config to support OAuth2/JWT for MVC endpoints
  */
-@ConditionalOnProperty(value = ["auth.web"], havingValue = "true", matchIfMissing = true)
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
-@Import(AuthConfig::class, OAuthConfig::class, TokenService::class)
+@ConditionalOnProperty(
+    value = ["auth.web"],
+    havingValue = "true",
+    matchIfMissing = true,
+)
+@EnableMethodSecurity(
+    prePostEnabled = true,
+    securedEnabled = true,
+)
+@Import(
+    AuthConfig::class,
+    OAuthConfig::class,
+    TokenService::class,
+)
 @EnableCaching
 @Service
 @EnableWebSecurity
@@ -48,24 +59,35 @@ class WebAuthFilterConfig {
         corsConfiguration.allowedHeaders = headers
         corsConfiguration.allowedOrigins = origins
         corsConfiguration.allowedMethods =
-            listOf("GET", "POST", "PUT", "DELETE", "PUT", "OPTIONS", "PATCH", "DELETE")
+            listOf(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PUT",
+                "OPTIONS",
+                "PATCH",
+                "DELETE",
+            )
         corsConfiguration.allowCredentials = true
 
-        http.authorizeHttpRequests { auth ->
-            auth.requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
-            auth.requestMatchers("$apiPath/auth").permitAll() // Get your token
-            auth.requestMatchers("$apiPath/**").hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users
-            auth.requestMatchers("$actuatorPath/**").hasAuthority(AuthConstants.SCOPE_ADMIN) // Admin users
+        http
+            .authorizeHttpRequests { auth ->
+                auth.requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
+                auth.requestMatchers("$apiPath/auth").permitAll() // Get your token
+                auth
+                    .requestMatchers("$apiPath/**")
+                    .hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users
+                auth
+                    .requestMatchers("$actuatorPath/**")
+                    .hasAuthority(AuthConstants.SCOPE_ADMIN) // Admin users
 //            auth.requestMatchers("$actuatorPath/**").hasRole(AuthConstants.ADMIN) // Admin users
-            auth.anyRequest().permitAll() //
-        }
-            .csrf { csrf ->
+                auth.anyRequest().permitAll() //
+            }.csrf { csrf ->
                 csrf.disable()
-            }
-            .cors { cors ->
+            }.cors { cors ->
                 cors.configurationSource { corsConfiguration }
-            }
-            .oauth2ResourceServer { resourceServer ->
+            }.oauth2ResourceServer { resourceServer ->
                 resourceServer.jwt(Customizer.withDefaults())
             }
         corsConfiguration.exposedHeaders = exposedHeaders

@@ -20,27 +20,29 @@ enum class TrnType {
     ;
 
     companion object {
-        val creditsCash = arrayOf(DEPOSIT, SELL, DIVI)
-        val debitsCash = arrayOf(BUY, WITHDRAWAL, FX_BUY)
+        val creditsCash =
+            arrayOf(
+                DEPOSIT,
+                SELL,
+                DIVI,
+            )
+        val debitsCash =
+            arrayOf(
+                BUY,
+                WITHDRAWAL,
+                FX_BUY,
+            )
 
         @JvmStatic
-        fun isCashImpacted(trnType: TrnType): Boolean {
-            return (trnType != SPLIT && trnType != ADD && trnType != BALANCE)
-        }
+        fun isCashImpacted(trnType: TrnType): Boolean = (trnType != SPLIT && trnType != ADD && trnType != BALANCE)
 
         @JvmStatic
-        fun isCash(trnType: TrnType): Boolean {
-            return (trnType == DEPOSIT || trnType == WITHDRAWAL)
-        }
+        fun isCash(trnType: TrnType): Boolean = (trnType == DEPOSIT || trnType == WITHDRAWAL)
 
         @JvmStatic
-        fun isCashCredited(trnType: TrnType): Boolean {
-            return creditsCash.contains(trnType)
-        }
+        fun isCashCredited(trnType: TrnType): Boolean = creditsCash.contains(trnType)
 
         @JvmStatic
-        fun isCashDebited(trnType: TrnType): Boolean {
-            return debitsCash.contains(trnType)
-        }
+        fun isCashDebited(trnType: TrnType): Boolean = debitsCash.contains(trnType)
     }
 }

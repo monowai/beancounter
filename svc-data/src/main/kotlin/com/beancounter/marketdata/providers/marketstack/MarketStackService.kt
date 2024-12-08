@@ -34,13 +34,26 @@ class MarketStackService(
     fun logStatus() {
         log.info(
             "BEANCOUNTER_MARKET_PROVIDERS_MSTACK_KEY: {}",
-            if (marketStackConfig.apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **",
+            if (marketStackConfig.apiKey.equals(
+                    "DEMO",
+                    ignoreCase = true,
+                )
+            ) {
+                "DEMO"
+            } else {
+                "** Redacted **"
+            },
         )
     }
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val apiRequests: MutableMap<Int, MarketStackResponse> = mutableMapOf()
-        val providerArguments = getInstance(priceRequest, marketStackConfig, dateUtils)
+        val providerArguments =
+            getInstance(
+                priceRequest,
+                marketStackConfig,
+                dateUtils,
+            )
         for (batch in providerArguments.batch.keys) {
             apiRequests[batch] =
                 marketStackProxy.getPrices(
@@ -50,7 +63,10 @@ class MarketStackService(
                 )
         }
         log.trace("Assets price processing complete.")
-        return getMarketData(providerArguments, apiRequests)
+        return getMarketData(
+            providerArguments,
+            apiRequests,
+        )
     }
 
     private fun getMarketData(
@@ -60,7 +76,12 @@ class MarketStackService(
         val results: MutableCollection<MarketData> = mutableListOf()
         for (key in marketStackResponses.keys) {
             marketStackResponses[key]?.let {
-                val x = marketStackAdapter.toMarketData(providerArguments, key, it)
+                val x =
+                    marketStackAdapter.toMarketData(
+                        providerArguments,
+                        key,
+                        it,
+                    )
                 results.addAll(x)
             }
         }
@@ -79,7 +100,11 @@ class MarketStackService(
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest,
-    ): LocalDate = marketStackConfig.getMarketDate(market, priceRequest.date)
+    ): LocalDate =
+        marketStackConfig.getMarketDate(
+            market,
+            priceRequest.date,
+        )
 
     override fun backFill(asset: Asset): PriceResponse = PriceResponse()
 

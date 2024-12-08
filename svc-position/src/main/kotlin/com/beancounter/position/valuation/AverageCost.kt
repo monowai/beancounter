@@ -29,7 +29,10 @@ class AverageCost {
         if (costBasis.signum() == 0) {
             return BigDecimal.ZERO
         }
-        return costBasis.divide(total, getMathContext())
+        return costBasis.divide(
+            total,
+            getMathContext(),
+        )
     }
 
     fun getCostValue(
@@ -37,6 +40,9 @@ class AverageCost {
         moneyValues: MoneyValues,
     ): BigDecimal {
         val quantityValues = position.quantityValues
-        return multiply(moneyValues.averageCost, quantityValues.getTotal())!!
+        return multiply(
+            moneyValues.averageCost,
+            quantityValues.getTotal(),
+        )!!
     }
 }

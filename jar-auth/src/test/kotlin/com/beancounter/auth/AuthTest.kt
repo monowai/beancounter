@@ -89,7 +89,10 @@ class AuthTest {
     }
 
     @Test
-    @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
+    @WithMockUser(
+        username = "testUser",
+        authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER],
+    )
     fun has_AuthorityToSayHello() {
         mockMvc
             .perform(MockMvcRequestBuilders.get(HELLO))
@@ -99,7 +102,10 @@ class AuthTest {
     }
 
     @Test
-    @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_USER])
+    @WithMockUser(
+        username = "testUser",
+        authorities = [AuthConstants.SCOPE_USER],
+    )
     fun has_NoAuthorityToSayWhat() {
         mockMvc
             .perform(MockMvcRequestBuilders.get(WHAT))
@@ -110,7 +116,10 @@ class AuthTest {
 
     @Test
     @Throws(Exception::class)
-    @WithMockUser(username = "testUser", authorities = ["no-valid-auth"])
+    @WithMockUser(
+        username = "testUser",
+        authorities = ["no-valid-auth"],
+    )
     fun has_tokenButNoRoleToSayAnything() {
         mockMvc
             .perform(

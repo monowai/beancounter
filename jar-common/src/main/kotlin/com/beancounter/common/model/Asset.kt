@@ -26,7 +26,11 @@ data class Asset(
     @JsonIgnore val marketCode: String = market.code,
     val priceSymbol: String? = null,
     @JsonIgnore var category: String = "Equity",
-    @Transient var assetCategory: AssetCategory = AssetCategory(category, category),
+    @Transient var assetCategory: AssetCategory =
+        AssetCategory(
+            category,
+            category,
+        ),
     @ManyToOne val systemUser: SystemUser? = null,
     val status: Status = Status.Active,
     var version: String = "1",
@@ -54,7 +58,11 @@ data class Asset(
     @get:JsonIgnore
     @get:Transient
     val isKnown: Boolean
-        get() = !code.equals(id, ignoreCase = true)
+        get() =
+            !code.equals(
+                id,
+                ignoreCase = true,
+            )
 
     override fun toString(): String = "Asset(code=$code, name=$name)"
 }

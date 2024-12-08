@@ -14,5 +14,4 @@ data class TrustedTrnEvent(
     override val importFormat: ImportFormat = ImportFormat.BC,
     override val message: String = "",
     val trnInput: TrnInput = TrnInput(trnType = TrnType.IGNORE),
-) :
-    TrnImport
+) : TrnImport

@@ -38,7 +38,10 @@ class EventLoader(
         loginService.loginM2m()
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
-            loadEvents(portfolio.id, date)
+            loadEvents(
+                portfolio.id,
+                date,
+            )
             log.info("Completed event load for ${portfolio.code}")
         }
     }
@@ -52,13 +55,24 @@ class EventLoader(
         loginService.setAuthContext(authToken)
         val portfolio = portfolioService.getPortfolioById(portfolioId)
         runBlocking {
-            val dates = dateSplitter.dateRange(date, "today")
+            val dates =
+                dateSplitter.dateRange(
+                    date,
+                    "today",
+                )
 
             for (processDate in dates) {
                 launch {
-                    val events = loadEvents(portfolio, processDate, authContext = loginService.loginM2m())
+                    val events =
+                        loadEvents(
+                            portfolio,
+                            processDate,
+                            authContext = loginService.loginM2m(),
+                        )
                     if (events > 0) {
-                        log.trace("Loaded $events events for portfolio: ${portfolio.code}/$portfolioId")
+                        log.trace(
+                            "Loaded $events events for portfolio: ${portfolio.code}/$portfolioId",
+                        )
                     }
                 }
             }
@@ -71,23 +85,36 @@ class EventLoader(
         authContext: OpenIdResponse,
     ): Int {
         loginService.setAuthContext(authContext)
-        val positionResponse = positionService.getPositions(portfolio, date.toString())
+        val positionResponse =
+            positionService.getPositions(
+                portfolio,
+                date.toString(),
+            )
         if (positionResponse.data.positions.values
-                .isEmpty()
+            .isEmpty()
         ) {
             return 0
         }
 
         var totalEvents = 0
 
-        val executor: ExecutorService = Executors.newFixedThreadPool(positionResponse.data.positions.values.size)
+        val executor: ExecutorService =
+            Executors.newFixedThreadPool(positionResponse.data.positions.values.size)
 
         val tasks: List<Callable<Int>> =
             positionResponse.data.positions.values.map { position ->
                 Callable {
-                    val events = load(position, date, authContext)
+                    val events =
+                        load(
+                            position,
+                            date,
+                            authContext,
+                        )
                     if (events != 0) {
-                        backfillService.backFillEvents(portfolio.id, date.toString())
+                        backfillService.backFillEvents(
+                            portfolio.id,
+                            date.toString(),
+                        )
                         log.trace("Published: $events nominal events")
                     }
                     totalEvents += events
@@ -105,7 +132,9 @@ class EventLoader(
                     "Dispatched: $totalEvents nominal events, date: $date",
             )
         } else {
-            log.trace("No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date")
+            log.trace(
+                "No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date",
+            )
         }
 
         return totalEvents
@@ -135,7 +164,9 @@ class EventLoader(
                 }
             }
             if (eventCount != 0) {
-                log.debug("Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}")
+                log.debug(
+                    "Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}",
+                )
             }
         }
         return eventCount

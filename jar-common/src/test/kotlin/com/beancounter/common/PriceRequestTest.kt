@@ -15,7 +15,13 @@ import org.junit.jupiter.api.Test
 class PriceRequestTest {
     @Test
     fun is_PriceRequestForAsset() {
-        val priceRequest = PriceRequest.of(AssetUtils.getTestAsset(Market("NASDAQ"), "EBAY"))
+        val priceRequest =
+            PriceRequest.of(
+                AssetUtils.getTestAsset(
+                    Market("NASDAQ"),
+                    "EBAY",
+                ),
+            )
         assertThat(priceRequest.assets).hasSize(1)
         assertThat(priceRequest.date).isEqualTo(DateUtils.TODAY)
     }
@@ -23,7 +29,13 @@ class PriceRequestTest {
     @Test
     @Disabled
     fun is_OfAssetInput() {
-        val priceRequest = PriceRequest.of(AssetInput(market = "ABC", code = "123"))
+        val priceRequest =
+            PriceRequest.of(
+                AssetInput(
+                    market = "ABC",
+                    code = "123",
+                ),
+            )
         assertThat(priceRequest.assets).hasSize(1)
         val dateUtils = DateUtils()
         assertThat(priceRequest.date).isEqualTo(dateUtils.offsetDateString(dateUtils.today()))

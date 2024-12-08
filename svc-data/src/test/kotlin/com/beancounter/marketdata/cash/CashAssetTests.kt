@@ -34,14 +34,31 @@ class CashAssetTests {
     fun isCashAssetCreated() {
         val cashInput = AssetUtils.getCash(NZD.code)
         val category = assetCategoryConfig.get(cashInput.category.uppercase())
-        val assetResponse = assetService.handle(AssetRequest(mapOf(Pair(NZD.code, cashInput))))
+        val assetResponse =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(
+                        Pair(
+                            NZD.code,
+                            cashInput,
+                        ),
+                    ),
+                ),
+            )
         assertThat(assetResponse.data).hasSize(1)
         val cashAsset = assetResponse.data[NZD.code]
         assertThat(cashAsset)
             .isNotNull
-            .hasFieldOrPropertyWithValue("assetCategory", category)
-            .hasFieldOrPropertyWithValue("name", cashInput.name)
-            .hasFieldOrPropertyWithValue("priceSymbol", NZD.code)
+            .hasFieldOrPropertyWithValue(
+                "assetCategory",
+                category,
+            ).hasFieldOrPropertyWithValue(
+                "name",
+                cashInput.name,
+            ).hasFieldOrPropertyWithValue(
+                "priceSymbol",
+                NZD.code,
+            )
     }
 
     @Test
@@ -53,12 +70,15 @@ class CashAssetTests {
                     USD.code,
                 ),
             )
-        assertThat(found).isNotNull
+        assertThat(found)
+            .isNotNull
             .hasFieldOrPropertyWithValue(
                 "assetCategory.id",
                 CASH,
+            ).hasFieldOrPropertyWithValue(
+                "name",
+                "${USD.code} Balance",
             )
-            .hasFieldOrPropertyWithValue("name", "${USD.code} Balance")
     }
 
     @Test

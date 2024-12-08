@@ -85,8 +85,13 @@ class CashTrnTests {
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
         enrichmentFactory.register(DefaultEnricher())
-        Mockito.`when`(fxClientService.getRates(any(), any()))
-            .thenReturn(FxResponse(FxPairResults()))
+        Mockito
+            .`when`(
+                fxClientService.getRates(
+                    any(),
+                    any(),
+                ),
+            ).thenReturn(FxResponse(FxPairResults()))
     }
 
     @Test
@@ -95,14 +100,26 @@ class CashTrnTests {
         val tradePortfolioRate = BigDecimal("0.698971")
         val cashInput = AssetUtils.getCash(NZD.code)
         val nzCashAsset =
-            assetService.handle(
-                AssetRequest(
-                    mapOf(Pair(NZD.code, cashInput)),
-                ),
-            ).data[NZD.code]
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            Pair(
+                                NZD.code,
+                                cashInput,
+                            ),
+                        ),
+                    ),
+                ).data[NZD.code]
         assertThat(nzCashAsset).isNotNull
         val usPortfolio =
-            bcMvcHelper.portfolio(PortfolioInput(code = "depositCash", base = NZD.code, currency = USD.code))
+            bcMvcHelper.portfolio(
+                PortfolioInput(
+                    code = "depositCash",
+                    base = NZD.code,
+                    currency = USD.code,
+                ),
+            )
         val cashDeposit =
             TrnInput(
                 callerRef = CallerRef(),
@@ -116,16 +133,36 @@ class CashTrnTests {
                 tradeAmount = nzdBalance,
                 price = ONE,
             )
-        val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(cashDeposit)))
+        val trns =
+            trnService.save(
+                usPortfolio,
+                TrnRequest(
+                    usPortfolio.id,
+                    arrayOf(cashDeposit),
+                ),
+            )
         assertThat(trns).isNotNull.hasSize(1)
         val cashTrn = trns.iterator().next()
         assertThat(cashTrn)
-            .hasFieldOrPropertyWithValue(propTradeAmount, cashDeposit.tradeAmount)
-            .hasFieldOrPropertyWithValue(propCashAmount, nzdBalance)
-            .hasFieldOrPropertyWithValue("tradeCashRate", cashDeposit.tradeCashRate)
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", tradePortfolioRate)
-            .hasFieldOrPropertyWithValue("cashAsset", nzCashAsset)
-            .hasFieldOrPropertyWithValue("cashCurrency", NZD)
+            .hasFieldOrPropertyWithValue(
+                propTradeAmount,
+                cashDeposit.tradeAmount,
+            ).hasFieldOrPropertyWithValue(
+                propCashAmount,
+                nzdBalance,
+            ).hasFieldOrPropertyWithValue(
+                "tradeCashRate",
+                cashDeposit.tradeCashRate,
+            ).hasFieldOrPropertyWithValue(
+                "tradePortfolioRate",
+                tradePortfolioRate,
+            ).hasFieldOrPropertyWithValue(
+                "cashAsset",
+                nzCashAsset,
+            ).hasFieldOrPropertyWithValue(
+                "cashCurrency",
+                NZD,
+            )
     }
 
     @Test
@@ -133,7 +170,16 @@ class CashTrnTests {
         val nzCashAsset = getCashBalance(NZD)
         assertThat(nzCashAsset).isNotNull
         val equity =
-            assetService.handle(AssetRequest(AssetInput(NYSE.code, MSFT.code), MSFT.code)).data[MSFT.code]
+            assetService
+                .handle(
+                    AssetRequest(
+                        AssetInput(
+                            NYSE.code,
+                            MSFT.code,
+                        ),
+                        MSFT.code,
+                    ),
+                ).data[MSFT.code]
         val usPortfolio = bcMvcHelper.portfolio(PortfolioInput(code = "buyDebitsCash"))
         val buy =
             TrnInput(
@@ -144,19 +190,47 @@ class CashTrnTests {
                 tradeAmount = fiveK,
                 price = ONE,
             )
-        val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(buy)))
+        val trns =
+            trnService.save(
+                usPortfolio,
+                TrnRequest(
+                    usPortfolio.id,
+                    arrayOf(buy),
+                ),
+            )
         assertThat(trns).isNotNull.hasSize(1)
         val cashTrn = trns.iterator().next()
         assertThat(cashTrn)
-            .hasFieldOrPropertyWithValue(propTradeAmount, buy.tradeAmount)
-            .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-10000.00"))
-            .hasFieldOrPropertyWithValue("tradeCashRate", buy.tradeCashRate)
-            .hasFieldOrPropertyWithValue("cashAsset", nzCashAsset)
-            .hasFieldOrPropertyWithValue("cashCurrency", NZD)
+            .hasFieldOrPropertyWithValue(
+                propTradeAmount,
+                buy.tradeAmount,
+            ).hasFieldOrPropertyWithValue(
+                propCashAmount,
+                BigDecimal("-10000.00"),
+            ).hasFieldOrPropertyWithValue(
+                "tradeCashRate",
+                buy.tradeCashRate,
+            ).hasFieldOrPropertyWithValue(
+                "cashAsset",
+                nzCashAsset,
+            ).hasFieldOrPropertyWithValue(
+                "cashCurrency",
+                NZD,
+            )
     }
 
     fun getCashBalance(currency: Currency): Asset {
         val cashInput = AssetUtils.getCash(currency.code)
-        return assetService.handle(AssetRequest(mapOf(Pair(currency.code, cashInput)))).data[currency.code]!!
+        return assetService
+            .handle(
+                AssetRequest(
+                    mapOf(
+                        Pair(
+                            currency.code,
+                            cashInput,
+                        ),
+                    ),
+                ),
+            ).data[currency.code]!!
     }
 }

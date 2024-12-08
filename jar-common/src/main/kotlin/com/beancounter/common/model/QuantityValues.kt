@@ -18,9 +18,7 @@ class QuantityValues(
     private var precision: Int? = null
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    fun getTotal(): BigDecimal {
-        return purchased.add(sold).add(adjustment)
-    }
+    fun getTotal(): BigDecimal = purchased.add(sold).add(adjustment)
 
     @JsonIgnore
     fun hasPosition() = getTotal().compareTo(BigDecimal.ZERO) != 0
@@ -37,7 +35,5 @@ class QuantityValues(
         this.precision = precision
     }
 
-    override fun toString(): String {
-        return getTotal().toString()
-    }
+    override fun toString(): String = getTotal().toString()
 }

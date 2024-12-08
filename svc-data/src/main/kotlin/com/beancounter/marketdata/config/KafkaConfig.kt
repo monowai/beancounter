@@ -13,7 +13,10 @@ import org.springframework.kafka.config.TopicBuilder
  * Kafka related properties and beans.
  */
 @EnableKafka
-@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
+@ConditionalOnProperty(
+    value = ["kafka.enabled"],
+    matchIfMissing = true,
+)
 @Configuration
 class KafkaConfig {
     @Value("\${beancounter.topics.pos.mv:bc-pos-mv-dev}")
@@ -67,25 +70,37 @@ class KafkaConfig {
 
     @Bean
     fun trnCsvTopic(): String {
-        log.info("BEANCOUNTER_TOPICS_TRN_CSV: {}", topicTrnCsvName)
+        log.info(
+            "BEANCOUNTER_TOPICS_TRN_CSV: {}",
+            topicTrnCsvName,
+        )
         return topicTrnCsvName
     }
 
     @Bean
     fun trnEventTopic(): String {
-        log.info("BEANCOUNTER_TOPICS_TRN_EVENT: {}", topicTrnEventName)
+        log.info(
+            "BEANCOUNTER_TOPICS_TRN_EVENT: {}",
+            topicTrnEventName,
+        )
         return topicTrnEventName
     }
 
     @Bean
     fun priceTopic(): String {
-        log.info("BEANCOUNTER_TOPICS_PRICE: {}", topicPriceName)
+        log.info(
+            "BEANCOUNTER_TOPICS_PRICE: {}",
+            topicPriceName,
+        )
         return topicPriceName
     }
 
     @Bean
     fun posMvTopic(): String =
         topicPosMvName.also {
-            log.info("BEANCOUNTER_TOPICS_POS_MV: {}", topicPosMvName)
+            log.info(
+                "BEANCOUNTER_TOPICS_POS_MV: {}",
+                topicPosMvName,
+            )
         }
 }

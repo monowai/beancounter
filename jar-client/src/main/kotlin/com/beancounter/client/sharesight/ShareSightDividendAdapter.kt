@@ -53,35 +53,45 @@ class ShareSightDividendAdapter(
         val row = trustedTrnImportRequest!!.row
         return try {
             val asset = resolveAsset(row)
-            val tradeRate = parse(row[FX_RATE], shareSightConfig.numberFormat)
+            val tradeRate =
+                parse(
+                    row[FX_RATE],
+                    shareSightConfig.numberFormat,
+                )
             val trnInput =
                 TrnInput(
-                    CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[ID]),
+                    CallerRef(
+                        trustedTrnImportRequest.portfolio.id,
+                        callerId = row[ID],
+                    ),
                     asset.id,
                     trnType = TrnType.DIVI,
                     quantity = BigDecimal.ZERO,
                     tradeCurrency = row[CURRENCY],
-                    tradeDate =
-                        dateUtils.getFormattedDate(
-                            row[DATE],
-                            listOf(shareSightConfig.dateFormat),
-                        ),
+                    tradeDate = dateUtils.getFormattedDate(row[DATE], listOf(shareSightConfig.dateFormat)),
                     fees = BigDecimal.ZERO,
                     price = BigDecimal.ZERO,
                     tradeAmount =
-                        multiplyAbs(
-                            parse(
-                                row[NET],
-                                shareSightConfig.numberFormat,
-                            ),
-                            tradeRate,
+                    multiplyAbs(
+                        parse(
+                            row[NET],
+                            shareSightConfig.numberFormat,
                         ),
-                    tax = multiplyAbs(BigDecimal(row[TAX]), tradeRate),
+                        tradeRate,
+                    ),
+                    tax =
+                    multiplyAbs(
+                        BigDecimal(row[TAX]),
+                        tradeRate,
+                    ),
                     cashAmount =
-                        multiplyAbs(
-                            parse(row[NET], shareSightConfig.numberFormat),
-                            tradeRate,
+                    multiplyAbs(
+                        parse(
+                            row[NET],
+                            shareSightConfig.numberFormat,
                         ),
+                        tradeRate,
+                    ),
                     comments = row[COMMENTS],
                 )
             trnInput.tradeCashRate =
@@ -93,10 +103,18 @@ class ShareSightDividendAdapter(
             trnInput // Result!
         } catch (e: NumberFormatException) {
             val message = e.message
-            throw logFirst("DIVI", message, row)
+            throw logFirst(
+                "DIVI",
+                message,
+                row,
+            )
         } catch (e: ParseException) {
             val message = e.message
-            throw logFirst("DIVI", message, row)
+            throw logFirst(
+                "DIVI",
+                message,
+                row,
+            )
         }
     }
 
@@ -119,13 +137,14 @@ class ShareSightDividendAdapter(
         if (input.isNullOrEmpty()) {
             throw BusinessException("Unable to resolve Asset code")
         }
-        val values =
-            Splitter
-                .on(CharMatcher.anyOf(".:-"))
-                .trimResults()
-                .splitToList(input)
+        val values = Splitter.on(CharMatcher.anyOf(".:-")).trimResults().splitToList(input)
         if (values.isEmpty() || values[0] == input) {
-            throw BusinessException(String.format("Unable to parse %s", input))
+            throw BusinessException(
+                String.format(
+                    "Unable to parse %s",
+                    input,
+                ),
+            )
         }
         return values
     }

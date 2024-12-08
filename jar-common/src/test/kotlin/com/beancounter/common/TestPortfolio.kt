@@ -25,24 +25,40 @@ class TestPortfolio {
         portfolioInputs.add(portfolioInput)
         val portfoliosRequest = PortfoliosRequest(portfolioInputs)
         var json = objectMapper.writeValueAsString(portfoliosRequest)
-        assertThat(objectMapper.readValue(json, PortfoliosRequest::class.java))
-            .usingRecursiveComparison().isEqualTo(portfoliosRequest)
+        assertThat(
+            objectMapper.readValue(
+                json,
+                PortfoliosRequest::class.java,
+            ),
+        ).usingRecursiveComparison().isEqualTo(portfoliosRequest)
+
         val portfolios: MutableCollection<Portfolio> = ArrayList()
         portfolios.add(getPortfolio(portfolioInput.code.uppercase(Locale.getDefault())))
         val portfoliosResponse = PortfoliosResponse(portfolios)
         json = objectMapper.writeValueAsString(portfoliosResponse)
-        val fromJson = objectMapper.readValue(json, PortfoliosResponse::class.java).data
+        val fromJson =
+            objectMapper
+                .readValue(
+                    json,
+                    PortfoliosResponse::class.java,
+                ).data
         assertThat(fromJson).hasSize(portfoliosResponse.data.size)
         assertThat(fromJson.iterator().next())
-            .usingRecursiveComparison().isEqualTo(portfolios.iterator().next())
+            .usingRecursiveComparison()
+            .isEqualTo(portfolios.iterator().next())
     }
 
     @Test
     fun is_PortfolioResponseSerializing() {
         val portfolioResponse = PortfolioResponse(getPortfolio())
         val json = objectMapper.writeValueAsString(portfolioResponse)
-        assertThat(objectMapper.readValue(json, PortfolioResponse::class.java).data)
-            .usingRecursiveComparison().isEqualTo(portfolioResponse.data)
+        assertThat(
+            objectMapper
+                .readValue(
+                    json,
+                    PortfolioResponse::class.java,
+                ).data,
+        ).usingRecursiveComparison().isEqualTo(portfolioResponse.data)
     }
 
     @Test
@@ -59,7 +75,11 @@ class TestPortfolio {
         portfolios.add(portfolio)
         val portfoliosResponse = PortfoliosResponse(portfolios)
         val json = objectMapper.writeValueAsString(portfoliosResponse)
-        val fromJson = objectMapper.readValue(json, PortfoliosResponse::class.java)
+        val fromJson =
+            objectMapper.readValue(
+                json,
+                PortfoliosResponse::class.java,
+            )
         assertThat(fromJson.data).isNotNull.hasSize(1)
         assertThat(fromJson.data.iterator().next()).isEqualTo(portfolio)
     }

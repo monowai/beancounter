@@ -19,12 +19,23 @@ internal class CashProviderServiceTest {
     @Test
     fun is_CashProviderReturningValues() {
         val provider: MarketDataPriceProvider = CashProviderService()
-        val result = provider.getMarketData(of(getTestAsset(CASH_MARKET, NZD.code)))
+        val result =
+            provider.getMarketData(
+                of(
+                    getTestAsset(
+                        CASH_MARKET,
+                        NZD.code,
+                    ),
+                ),
+            )
         assertThat(result)
             .isNotNull
             .isNotEmpty
         val marketData = result.iterator().next()
         assertThat(marketData)
-            .hasFieldOrPropertyWithValue("close", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(
+                "close",
+                BigDecimal.ONE,
+            )
     }
 }

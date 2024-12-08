@@ -43,7 +43,8 @@ class TestUserCommands {
 
     @MockBean
     private lateinit var lineReader: LineReader
-    private var registrationGateway: RegistrationGateway = Mockito.mock(RegistrationGateway::class.java)
+    private var registrationGateway: RegistrationGateway =
+        Mockito.mock(RegistrationGateway::class.java)
 
     @Autowired
     private lateinit var tokenUtils: TokenUtils
@@ -58,7 +59,12 @@ class TestUserCommands {
     }
 
     private fun getUserCommands(): UserCommands {
-        val registrationService = RegistrationService(registrationGateway, jwtDecoder, tokenService)
+        val registrationService =
+            RegistrationService(
+                registrationGateway,
+                jwtDecoder,
+                tokenService,
+            )
         val userCommands = UserCommands(registrationService)
         userCommands.lineReader = lineReader
         return userCommands
@@ -68,48 +74,90 @@ class TestUserCommands {
     fun is_LoginReturningMe() {
         val userId = "simple"
         val password = "password"
-        Mockito.`when`(lineReader.readLine("Password: ", '*'))
-            .thenReturn(password)
+        Mockito
+            .`when`(
+                lineReader.readLine(
+                    "Password: ",
+                    '*',
+                ),
+            ).thenReturn(password)
 
-        val systemUser = SystemUser(userId, EMAIL)
+        val systemUser =
+            SystemUser(
+                userId,
+                EMAIL,
+            )
         mockAuthConfig.login(EMAIL)
         val authResponse =
-            OpenIdResponse(userId, scope = "beancounter", expiry = 0L, refreshToken = "", type = "password")
+            OpenIdResponse(
+                userId,
+                scope = "beancounter",
+                expiry = 0L,
+                refreshToken = "",
+                type = "password",
+            )
 
-        Mockito.`when`(registrationGateway.auth(LoginRequest(userId, password)))
-            .thenReturn(authResponse)
+        Mockito
+            .`when`(
+                registrationGateway.auth(
+                    LoginRequest(
+                        userId,
+                        password,
+                    ),
+                ),
+            ).thenReturn(authResponse)
 
         val userCommands = getUserCommands()
         val jwt = tokenUtils.getSystemUserToken(systemUser)
-        Mockito.`when`(jwtDecoder.decode(authResponse.token))
+        Mockito
+            .`when`(jwtDecoder.decode(authResponse.token))
             .thenReturn(jwt)
 
         // Can I login?
         userCommands.login(userId)
-        Mockito.`when`(
-            registrationGateway.register(tokenService.bearerToken, RegistrationRequest()),
-        ).thenReturn(RegistrationResponse(systemUser))
+        Mockito
+            .`when`(
+                registrationGateway.register(
+                    tokenService.bearerToken,
+                    RegistrationRequest(),
+                ),
+            ).thenReturn(RegistrationResponse(systemUser))
         userCommands.register()
 
         // Is my token in the SecurityContext and am I Me?
-        Mockito.`when`(registrationGateway.me(tokenService.bearerToken))
+        Mockito
+            .`when`(registrationGateway.me(tokenService.bearerToken))
             .thenReturn(RegistrationResponse(systemUser))
-        val me = objectMapper.readValue(userCommands.me(), SystemUser::class.java)
-        assertThat(me).isNotNull.hasFieldOrPropertyWithValue("id", systemUser.id)
+        val me =
+            objectMapper.readValue(
+                userCommands.me(),
+                SystemUser::class.java,
+            )
+        assertThat(me).isNotNull.hasFieldOrPropertyWithValue(
+            "id",
+            systemUser.id,
+        )
         assertThat(userCommands.token()).isEqualTo(tokenService.bearerToken)
-        Mockito.`when`(
-            registrationGateway.register(
-                tokenService.bearerToken,
-                RegistrationRequest(),
-            ),
-        ).thenReturn(RegistrationResponse(systemUser))
+        Mockito
+            .`when`(
+                registrationGateway.register(
+                    tokenService.bearerToken,
+                    RegistrationRequest(),
+                ),
+            ).thenReturn(RegistrationResponse(systemUser))
 
         val registrationResponse = userCommands.register()
         val registered =
             objectMapper
-                .readValue(registrationResponse, SystemUser::class.java)
+                .readValue(
+                    registrationResponse,
+                    SystemUser::class.java,
+                )
         assertThat(registered)
             .isNotNull
-            .hasFieldOrPropertyWithValue("id", systemUser.id)
+            .hasFieldOrPropertyWithValue(
+                "id",
+                systemUser.id,
+            )
     }
 }

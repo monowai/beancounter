@@ -47,9 +47,6 @@ class TrnPortfolioControllerTest {
     @Autowired
     private lateinit var portfolioService: PortfolioService
 
-    @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
-
     @MockBean
     private lateinit var fxTransactions: FxTransactions
 
@@ -60,13 +57,21 @@ class TrnPortfolioControllerTest {
     @Autowired
     fun setupTestEnvironment(mockAuthConfig: MockAuthConfig) {
         initializeAuthentication(mockAuthConfig)
-        registerUser(mockMvc, token)
+        registerUser(
+            mockMvc,
+            token,
+        )
         setupAssetsAndTransactions()
+        assertThat(fxTransactions).isNotNull
     }
 
     private fun initializeAuthentication(mockAuthConfig: MockAuthConfig) {
         token = mockAuthConfig.getUserToken(SystemUser(auth0 = "auth0"))
-        bcMvcHelper = BcMvcHelper(mockMvc, token)
+        bcMvcHelper =
+            BcMvcHelper(
+                mockMvc,
+                token,
+            )
     }
 
     private fun setupAssetsAndTransactions() {
@@ -75,38 +80,73 @@ class TrnPortfolioControllerTest {
     }
 
     private fun postTransactions() {
-        val portfolioA = createPortfolio("PCA", "PCA-NAME")
-        val portfolioB = createPortfolio("PCB", "PCB-NAME")
+        val portfolioA =
+            createPortfolio(
+                "PCA",
+                "PCA-NAME",
+            )
+        val portfolioB =
+            createPortfolio(
+                "PCB",
+                "PCB-NAME",
+            )
 
         val transactionsA =
             arrayOf(
-                createTransactionInput("1", "2016-01-01", BigDecimal.ONE),
-                createTransactionInput("2", BcMvcHelper.TRADE_DATE),
+                createTransactionInput(
+                    "1",
+                    "2016-01-01",
+                    BigDecimal.ONE,
+                ),
+                createTransactionInput(
+                    "2",
+                    BcMvcHelper.TRADE_DATE,
+                ),
             )
         val transactionsB =
             arrayOf(
-                createTransactionInput("3", "2018-10-01"),
-                createTransactionInput("34", "2017-01-01"),
+                createTransactionInput(
+                    "3",
+                    "2018-10-01",
+                ),
+                createTransactionInput(
+                    "34",
+                    "2017-01-01",
+                ),
             )
 
-        postTransaction(portfolioA.id, transactionsA)
-        postTransaction(portfolioB.id, transactionsB)
+        postTransaction(
+            portfolioA.id,
+            transactionsA,
+        )
+        postTransaction(
+            portfolioB.id,
+            transactionsB,
+        )
     }
 
     private fun createPortfolio(
         type: String,
         name: String,
-    ): Portfolio {
-        return bcMvcHelper.portfolio(PortfolioInput(type, name, currency = Constants.NZD.code))
-    }
+    ): Portfolio =
+        bcMvcHelper.portfolio(
+            PortfolioInput(
+                type,
+                name,
+                currency = Constants.NZD.code,
+            ),
+        )
 
     private fun createTransactionInput(
         callerId: String,
         tradeDate: String,
         tradePortfolioRate: BigDecimal = BigDecimal.TEN,
-    ): TrnInput {
-        return TrnInput(
-            CallerRef(batch = BigDecimal.ZERO.toString(), callerId = callerId),
+    ): TrnInput =
+        TrnInput(
+            CallerRef(
+                batch = BigDecimal.ZERO.toString(),
+                callerId = callerId,
+            ),
             msft.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
@@ -114,40 +154,55 @@ class TrnPortfolioControllerTest {
             price = BigDecimal.TEN,
             tradePortfolioRate = tradePortfolioRate,
         )
-    }
 
     private fun postTransaction(
         portfolioId: String,
         transactions: Array<TrnInput>,
     ) {
-        bcMvcHelper.postTrn(TrnRequest(portfolioId, transactions))
+        bcMvcHelper.postTrn(
+            TrnRequest(
+                portfolioId,
+                transactions,
+            ),
+        )
     }
 
     @Test
     fun is_TrnForPortfolioInRangeFound() {
         // All transactions are now in place.
         assertThat(
-            objectMapper.readValue(
-                mockMvc.perform(
-                    MockMvcRequestBuilders.get(
-                        "${BcMvcHelper.PORTFOLIO_ROOT}/asset/{assetId}/{tradeDate}",
-                        msft.id,
-                        BcMvcHelper.TRADE_DATE,
-                    )
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                        .contentType(MediaType.APPLICATION_JSON),
-                ).andExpect(MockMvcResultMatchers.status().isOk)
-                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                    .andReturn().response.contentAsString,
-                PortfoliosResponse::class.java,
-            ).data,
+            objectMapper
+                .readValue(
+                    mockMvc
+                        .perform(
+                            MockMvcRequestBuilders
+                                .get(
+                                    "${BcMvcHelper.PORTFOLIO_ROOT}/asset/{assetId}/{tradeDate}",
+                                    msft.id,
+                                    BcMvcHelper.TRADE_DATE,
+                                ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                                .contentType(MediaType.APPLICATION_JSON),
+                        ).andExpect(MockMvcResultMatchers.status().isOk)
+                        .andExpect(
+                            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON),
+                        ).andReturn()
+                        .response.contentAsString,
+                    PortfoliosResponse::class.java,
+                ).data,
         ).hasSize(2)
         assertThat(
-            portfolioService.findWhereHeld(
-                msft.id,
-                dateUtils.getFormattedDate("2016-01-01"),
-            ).data,
+            portfolioService
+                .findWhereHeld(
+                    msft.id,
+                    dateUtils.getFormattedDate("2016-01-01"),
+                ).data,
         ).hasSize(1)
-        assertThat(portfolioService.findWhereHeld(msft.id, null).data).hasSize(2)
+        assertThat(
+            portfolioService
+                .findWhereHeld(
+                    msft.id,
+                    null,
+                ).data,
+        ).hasSize(2)
     }
 }

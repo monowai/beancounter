@@ -25,7 +25,11 @@ internal class CashServicesTest {
     private val usCashAssetId = "${USD.code} Cash"
 
     private val assetService = Mockito.mock(AssetService::class.java)
-    private val cashServices = CashServices(assetService, Mockito.mock(CurrencyService::class.java))
+    private val cashServices =
+        CashServices(
+            assetService,
+            Mockito.mock(CurrencyService::class.java),
+        )
 
     @Test
     fun is_CashBalanceFromTradeCurrency() {
@@ -40,8 +44,15 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
             )
 
-        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH_MARKET.code, NZD.code)))
-            .thenReturn(nzdCashBalance)
+        Mockito
+            .`when`(
+                assetService.findOrCreate(
+                    AssetInput(
+                        CASH_MARKET.code,
+                        NZD.code,
+                    ),
+                ),
+            ).thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)
     }
@@ -60,8 +71,15 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
             )
 
-        Mockito.`when`(assetService.findOrCreate(AssetInput("CASH", NZD.code)))
-            .thenReturn(nzdCashBalance)
+        Mockito
+            .`when`(
+                assetService.findOrCreate(
+                    AssetInput(
+                        "CASH",
+                        NZD.code,
+                    ),
+                ),
+            ).thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)
     }
@@ -81,7 +99,9 @@ internal class CashServicesTest {
                 tradeCashRate = BigDecimal.ONE,
             )
 
-        assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(BigDecimal("-2222.333")) // Fx of 1.00
+        assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(
+            BigDecimal("-2222.333"),
+        ) // Fx of 1.00
     }
 
     @Test
@@ -96,7 +116,9 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
             )
-        assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(BigDecimal("-5000.00")) // Fx of 1.00
+        assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(
+            BigDecimal("-5000.00"),
+        ) // Fx of 1.00
     }
 
     @Test
@@ -111,7 +133,9 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
             )
-        assertThat(cashServices.getCashImpact(creditInput)).isEqualTo(BigDecimal("5000.00")) // Fx of 1.00
+        assertThat(cashServices.getCashImpact(creditInput)).isEqualTo(
+            BigDecimal("5000.00"),
+        ) // Fx of 1.00
     }
 
     @Test
@@ -141,6 +165,8 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
             )
-        assertThat(cashServices.getCashImpact(fxBuy)).isEqualTo(BigDecimal("-5000.00")) // Fx of 1.00
+        assertThat(cashServices.getCashImpact(fxBuy)).isEqualTo(
+            BigDecimal("-5000.00"),
+        ) // Fx of 1.00
     }
 }

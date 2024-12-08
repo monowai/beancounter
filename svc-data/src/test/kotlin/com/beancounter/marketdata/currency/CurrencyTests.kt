@@ -14,15 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired
  */
 @SpringMvcDbTest
 internal class CurrencyTests
-    @Autowired
-    constructor(
-        private val currencyService: CurrencyService,
-    ) {
-        @Test
-        fun is_CurrencyDataLoading() {
-            assertThat(currencyService.getCode(USD.code))
-                .isNotNull
-            assertThat(currencyService.baseCurrency)
-                .isNotNull
-        }
+@Autowired
+constructor(
+    private val currencyService: CurrencyService,
+) {
+    @Test
+    fun is_CurrencyDataLoading() {
+        assertThat(currencyService.getCode(USD.code))
+            .isNotNull
+        assertThat(currencyService.baseCurrency)
+            .isNotNull
     }
+}

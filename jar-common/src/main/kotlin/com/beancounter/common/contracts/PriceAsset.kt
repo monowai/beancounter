@@ -14,5 +14,10 @@ data class PriceAsset(
     @JsonIgnore var resolvedAsset: Asset? = null,
     val assetId: String = resolvedAsset?.id ?: "",
 ) {
-    constructor(asset: Asset) : this(asset.market.code, asset.code, asset, asset.id)
+    constructor(asset: Asset) : this(
+        asset.market.code,
+        asset.code,
+        asset,
+        asset.id,
+    )
 }

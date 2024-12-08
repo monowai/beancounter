@@ -35,8 +35,18 @@ class SellBehaviour(
         }
         val quantityValues = position.quantityValues
         quantityValues.sold = quantityValues.sold.add(soldQuantity)
-        value(Position.In.TRADE, position, BigDecimal.ONE, trn)
-        value(Position.In.BASE, position, trn.tradeBaseRate, trn)
+        value(
+            Position.In.TRADE,
+            position,
+            BigDecimal.ONE,
+            trn,
+        )
+        value(
+            Position.In.BASE,
+            position,
+            trn.tradeBaseRate,
+            trn,
+        )
         value(
             Position.In.PORTFOLIO,
             position,
@@ -55,19 +65,35 @@ class SellBehaviour(
         val moneyValues =
             position.getMoneyValues(
                 `in`,
-                currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
+                currencyResolver.resolve(
+                    `in`,
+                    trn.portfolio,
+                    trn.tradeCurrency,
+                ),
             )
         moneyValues.sales =
             moneyValues.sales.add(
-                multiply(trn.tradeAmount, rate),
+                multiply(
+                    trn.tradeAmount,
+                    rate,
+                ),
             )
         if (trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0) {
             val unitCost =
-                multiply(trn.tradeAmount, rate)
-                    ?.divide(trn.quantity.abs(), getMathContext())
+                multiply(
+                    trn.tradeAmount,
+                    rate,
+                )?.divide(
+                    trn.quantity.abs(),
+                    getMathContext(),
+                )
             val unitProfit = unitCost?.subtract(moneyValues.averageCost)
             val realisedGain = unitProfit!!.multiply(trn.quantity.abs())
-            moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)
+            moneyValues.realisedGain =
+                add(
+                    moneyValues.realisedGain,
+                    realisedGain,
+                )
         }
         if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) == 0) {
             moneyValues.costBasis = BigDecimal.ZERO
@@ -80,6 +106,10 @@ class SellBehaviour(
             position.quantityValues.purchased = BigDecimal.ZERO
         }
         // If quantity changes, we need to update the cost Value
-        moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
+        moneyValues.costValue =
+            averageCost.getCostValue(
+                position,
+                moneyValues,
+            )
     }
 }

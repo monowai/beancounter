@@ -22,8 +22,7 @@ class AlphaEnricher(
     private val alphaConfig: AlphaConfig,
     private val defaultEnricher: DefaultEnricher,
     private val alphaProxy: AlphaProxy,
-) :
-    AssetEnricher {
+) : AssetEnricher {
     private val objectMapper = alphaConfig.getObjectMapper()
 
     @Value("\${beancounter.market.providers.alpha.key:demo}")
@@ -40,11 +39,18 @@ class AlphaEnricher(
         if (marketCode != null) {
             symbol = "$symbol.$marketCode"
         }
-        val result = alphaProxy.search(symbol, apiKey)
+        val result =
+            alphaProxy.search(
+                symbol,
+                apiKey,
+            )
         // var assetResult: AssetSearchResult? = null
         val assetResult =
             try {
-                getAssetSearchResult(market, result)
+                getAssetSearchResult(
+                    market,
+                    result,
+                )
             } catch (e: JsonProcessingException) {
                 throw SystemException("This shouldn't have happened")
             }
@@ -72,12 +78,20 @@ class AlphaEnricher(
         market: Market,
         result: String?,
     ): AssetSearchResult? {
-        val (data) = objectMapper.readValue(result, AssetSearchResponse::class.java)
+        val (data) =
+            objectMapper.readValue(
+                result,
+                AssetSearchResponse::class.java,
+            )
         if (data.isEmpty()) {
             return null
         }
         val assetResult = data.iterator().next()
-        return if (currencyMatch(assetResult.currency, market.currencyId)) {
+        return if (currencyMatch(
+                assetResult.currency,
+                market.currencyId,
+            )
+        ) {
             assetResult
         } else {
             // Fuzzy search result returned and asset from a different exchange
@@ -96,11 +110,7 @@ class AlphaEnricher(
         return match == currencyId
     }
 
-    override fun canEnrich(asset: Asset): Boolean {
-        return asset.name == null
-    }
+    override fun canEnrich(asset: Asset): Boolean = asset.name == null
 
-    override fun id(): String {
-        return "ALPHA"
-    }
+    override fun id(): String = "ALPHA"
 }

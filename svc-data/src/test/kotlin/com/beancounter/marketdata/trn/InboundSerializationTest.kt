@@ -39,7 +39,10 @@ class InboundSerializationTest {
         assertThat(callerRef)
             .isNotNull
             .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue("provider", portfolio.owner.id)
+            .hasFieldOrPropertyWithValue(
+                "provider",
+                portfolio.owner.id,
+            )
     }
 
     @Test

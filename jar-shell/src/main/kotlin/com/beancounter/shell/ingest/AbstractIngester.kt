@@ -29,9 +29,7 @@ abstract class AbstractIngester : Ingester {
         }
     }
 
-    private fun getWriter(id: String): TrnWriter? {
-        return writers[id.uppercase(Locale.getDefault())]
-    }
+    private fun getWriter(id: String): TrnWriter? = writers[id.uppercase(Locale.getDefault())]
 
     /**
      * Default ingestion flow.
@@ -42,8 +40,16 @@ abstract class AbstractIngester : Ingester {
         val portfolio = portfolioService.getPortfolioByCode(ingestionRequest.portfolioCode!!)
         val writer =
             getWriter(ingestionRequest.writer)
-                ?: throw BusinessException(String.format("Unable to resolve the Writer %s", ingestionRequest.writer))
-        prepare(ingestionRequest, writer)
+                ?: throw BusinessException(
+                    String.format(
+                        "Unable to resolve the Writer %s",
+                        ingestionRequest.writer,
+                    ),
+                )
+        prepare(
+            ingestionRequest,
+            writer,
+        )
         val rows = values
         for ((i, row) in rows.withIndex()) {
             val callerRef =

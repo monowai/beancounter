@@ -21,7 +21,10 @@ import org.springframework.context.annotation.DependsOn
  * Monitor using OTEL and export to Sentry.
  */
 @Suppress("UnstableApiUsage")
-@ConditionalOnProperty(name = ["sentry.enabled"], havingValue = "true")
+@ConditionalOnProperty(
+    name = ["sentry.enabled"],
+    havingValue = "true",
+)
 @Configuration
 @DependsOn("propertySourcesPlaceholderConfigurer")
 class SentryOtelConfig {
@@ -33,10 +36,7 @@ class SentryOtelConfig {
 
     @Bean
     fun sdkTraceProvider(): SdkTracerProvider =
-        SdkTracerProvider
-            .builder()
-            .addSpanProcessor(SentrySpanProcessor())
-            .build()
+        SdkTracerProvider.builder().addSpanProcessor(SentrySpanProcessor()).build()
 
     @Bean
     fun sentryInit(
@@ -49,7 +49,9 @@ class SentryOtelConfig {
     ): Boolean {
         LoggerFactory
             .getLogger(SentryOtelConfig::class.java)
-            .info("SentryConfig: $dsn, environment: $sentryEnv debug: $debug, tracesSampleRate: $tracesSampleRate")
+            .info(
+                "SentryConfig: $dsn, environment: $sentryEnv debug: $debug, tracesSampleRate: $tracesSampleRate",
+            )
 
         val sentryFilterConditions =
             listOf(
@@ -73,7 +75,10 @@ class SentryOtelConfig {
             options.sampleRate = sampleRate
             options.beforeSendTransaction =
                 SentryOptions.BeforeSendTransactionCallback { transaction, _ ->
-                    filterTransaction(transaction, sentryFilterConditions)
+                    filterTransaction(
+                        transaction,
+                        sentryFilterConditions,
+                    )
                 }
         }
         return true
@@ -84,11 +89,11 @@ class SentryOtelConfig {
         sentryFilterConditions: List<Regex>,
     ): SentryTransaction? =
         if (sentryFilterConditions.any {
-                val otelAttributes = getOtelAttributes(getOtelContext(transaction))
-                otelAttributes["http.target"]?.toString()?.let { target ->
-                    it.containsMatchIn(target)
-                } == true
-            }
+            val otelAttributes = getOtelAttributes(getOtelContext(transaction))
+            otelAttributes["http.target"]?.toString()?.let { target ->
+                it.containsMatchIn(target)
+            } == true
+        }
         ) {
             null
         } else {

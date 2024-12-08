@@ -63,9 +63,11 @@ class Positions(
     }
 
     @JsonIgnore
-    fun getOrCreate(asset: Asset): Position {
-        return getOrCreate(asset, LocalDate.now())
-    }
+    fun getOrCreate(asset: Asset): Position =
+        getOrCreate(
+            asset,
+            LocalDate.now(),
+        )
 
     @JsonIgnore
     operator fun contains(asset: Asset) = positions.contains(toKey(asset))
@@ -77,7 +79,14 @@ class Positions(
         tradeCurrency: Currency = asset.market.currency,
     ): Position {
         val firstTrade = !positions.containsKey(toKey(asset))
-        val position = positions[toKey(asset)] ?: add(Position(asset, portfolio, tradeCurrency))
+        val position =
+            positions[toKey(asset)] ?: add(
+                Position(
+                    asset,
+                    portfolio,
+                    tradeCurrency,
+                ),
+            )
         if (firstTrade) {
             position.dateValues.opened = tradeDate
         }
@@ -97,7 +106,10 @@ class Positions(
      * This is the preferred way to getOrCreate a Position.
      */
     @JsonIgnore
-    fun getOrCreate(trn: Trn): Position {
-        return getOrCreate(trn.asset, trn.tradeDate, trn.tradeCurrency)
-    }
+    fun getOrCreate(trn: Trn): Position =
+        getOrCreate(
+            trn.asset,
+            trn.tradeDate,
+            trn.tradeCurrency,
+        )
 }

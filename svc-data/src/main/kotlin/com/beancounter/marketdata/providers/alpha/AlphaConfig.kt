@@ -20,7 +20,11 @@ import java.time.LocalDate
  * Helper functions for Alpha data provider. Enable dependant supporting classes
  */
 @Configuration
-@Import(AlphaPriceService::class, AlphaProxy::class, AlphaPriceAdapter::class)
+@Import(
+    AlphaPriceService::class,
+    AlphaProxy::class,
+    AlphaPriceAdapter::class,
+)
 class AlphaConfig(
     val dateUtils: DateUtils = DateUtils(),
     val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
@@ -36,10 +40,23 @@ class AlphaConfig(
         val module =
             SimpleModule(
                 "AlphaMarketDataDeserializer",
-                Version(1, 0, 0, null, null, null),
+                Version(
+                    1,
+                    0,
+                    0,
+                    null,
+                    null,
+                    null,
+                ),
             )
-        module.addDeserializer(PriceResponse::class.java, AlphaPriceDeserializer())
-        module.addDeserializer(AssetSearchResponse::class.java, AlphaSearchDeserializer())
+        module.addDeserializer(
+            PriceResponse::class.java,
+            AlphaPriceDeserializer(),
+        )
+        module.addDeserializer(
+            AssetSearchResponse::class.java,
+            AlphaSearchDeserializer(),
+        )
         alphaMapper.registerModule(module)
     }
 
@@ -49,7 +66,11 @@ class AlphaConfig(
         if (isNullMarket(market.code)) {
             return null
         }
-        return if (market.code.equals("ASX", ignoreCase = true)) {
+        return if (market.code.equals(
+                "ASX",
+                ignoreCase = true,
+            )
+        ) {
             "AX"
         } else {
             market.code
@@ -58,7 +79,11 @@ class AlphaConfig(
 
     val nullMarket = "NASDAQ|NYSE|AMEX|US"
 
-    fun isNullMarket(marketCode: String) = nullMarket.contains(marketCode, true)
+    fun isNullMarket(marketCode: String) =
+        nullMarket.contains(
+            marketCode,
+            true,
+        )
 
     /**
      * Resolves the Date to use when querying the market.
@@ -87,7 +112,11 @@ class AlphaConfig(
         }
     }
 
-    fun translateSymbol(code: String): String = code.replace(".", "-")
+    fun translateSymbol(code: String): String =
+        code.replace(
+            ".",
+            "-",
+        )
 
     fun getObjectMapper(): ObjectMapper = alphaMapper
 }

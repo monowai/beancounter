@@ -61,7 +61,13 @@ class TestPortfolioCommands {
 
     @Autowired
     fun initAuth(tokenService: TokenService) {
-        portfolioCommands = PortfolioCommands(PortfolioServiceClient(portfolioGw, tokenService))
+        portfolioCommands =
+            PortfolioCommands(
+                PortfolioServiceClient(
+                    portfolioGw,
+                    tokenService,
+                ),
+            )
     }
 
     private val pfCode = "ABC"
@@ -74,26 +80,45 @@ class TestPortfolioCommands {
     @Test
     fun createPortfolio() {
         val owner = systemUser
-        val response = PortfoliosResponse(listOf(getPortfolio(pfCode, owner)))
-        Mockito.`when`(
-            portfolioGw.getPortfolioByCode(
-                Mockito.anyString(),
-                Mockito.anyString(),
-            ),
-        ).thenReturn(PortfolioResponse(getPortfolio(pfCode)))
+        val response =
+            PortfoliosResponse(
+                listOf(
+                    getPortfolio(
+                        pfCode,
+                        owner,
+                    ),
+                ),
+            )
+        Mockito
+            .`when`(
+                portfolioGw.getPortfolioByCode(
+                    Mockito.anyString(),
+                    Mockito.anyString(),
+                ),
+            ).thenReturn(PortfolioResponse(getPortfolio(pfCode)))
 
-        Mockito.`when`(
-            portfolioGw.addPortfolios(
-                Mockito.eq(tokenService.bearerToken),
-                Mockito.isA(PortfoliosRequest::class.java),
-            ),
-        ).thenReturn(response)
+        Mockito
+            .`when`(
+                portfolioGw.addPortfolios(
+                    Mockito.eq(tokenService.bearerToken),
+                    Mockito.isA(PortfoliosRequest::class.java),
+                ),
+            ).thenReturn(response)
 
         val result =
             portfolioCommands
-                .add(pfCode, pfCode, NZD.code, USD.code)
+                .add(
+                    pfCode,
+                    pfCode,
+                    NZD.code,
+                    USD.code,
+                )
         assertThat(result).isNotNull
-        val portfolio = objectMapper.readValue(result, Portfolio::class.java)
+        val portfolio =
+            objectMapper.readValue(
+                result,
+                Portfolio::class.java,
+            )
         assertThat(portfolio)
             .usingRecursiveComparison()
             .ignoringFields("owner")
@@ -104,15 +129,33 @@ class TestPortfolioCommands {
     fun is_AddPortfolioThatExists() {
         val owner = systemUser
         val code = "ZZZ"
-        val existing = getPortfolio(code, owner)
+        val existing =
+            getPortfolio(
+                code,
+                owner,
+            )
         val portfolioResponse = PortfolioResponse(existing)
-        Mockito.`when`(portfolioGw.getPortfolioByCode(tokenService.bearerToken, existing.code))
-            .thenReturn(portfolioResponse) // Portfolio exists
+        Mockito
+            .`when`(
+                portfolioGw.getPortfolioByCode(
+                    tokenService.bearerToken,
+                    existing.code,
+                ),
+            ).thenReturn(portfolioResponse) // Portfolio exists
         val result =
             portfolioCommands
-                .add(code, pfCode, NZD.code, USD.code)
+                .add(
+                    code,
+                    pfCode,
+                    NZD.code,
+                    USD.code,
+                )
         assertThat(result).isNotNull
-        val portfolio = objectMapper.readValue(result, Portfolio::class.java)
+        val portfolio =
+            objectMapper.readValue(
+                result,
+                Portfolio::class.java,
+            )
         assertThat(portfolio)
             .usingRecursiveComparison()
             .isEqualTo(portfolioResponse.data)

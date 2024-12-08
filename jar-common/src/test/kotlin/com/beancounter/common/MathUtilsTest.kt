@@ -25,36 +25,31 @@ internal class MathUtilsTest {
                 BigDecimal(oneThousandDec),
                 BigDecimal.ZERO,
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
                 BigDecimal("0.00"),
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
                 null,
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
                 BigDecimal(ten),
             ),
-        )
-            .isEqualTo(tenThousand)
+        ).isEqualTo(tenThousand)
         assertThat(
             multiplyAbs(
                 null,
                 BigDecimal(ten),
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -64,63 +59,80 @@ internal class MathUtilsTest {
                 BigDecimal(oneThousandDec),
                 BigDecimal(zeroDec),
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
                 BigDecimal(zeroDec),
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
                 null,
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 null,
                 BigDecimal(ten),
             ),
-        )
-            .isEqualTo(BigDecimal.ZERO)
+        ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
                 BigDecimal(ten),
             ),
-        )
-            .isEqualTo("100.00")
+        ).isEqualTo("100.00")
     }
 
     @Test
     fun is_AdditionWorkingToScale() {
         var scaleMe = BigDecimal("100.992")
         // HalfUp
-        assertThat(add(scaleMe, scaleMe)).isEqualTo(BigDecimal("201.98"))
+        assertThat(
+            add(
+                scaleMe,
+                scaleMe,
+            ),
+        ).isEqualTo(BigDecimal("201.98"))
         scaleMe = BigDecimal("100.994")
-        assertThat(add(scaleMe, scaleMe)).isEqualTo(BigDecimal("201.99"))
+        assertThat(
+            add(
+                scaleMe,
+                scaleMe,
+            ),
+        ).isEqualTo(BigDecimal("201.99"))
     }
 
     @Test
     fun is_MathContextDividesToScale() {
         val costBasis = BigDecimal("1000")
         var total = BigDecimal("500.00")
-        assertThat(costBasis.divide(total, getMathContext()))
-            .isEqualTo(BigDecimal("2"))
+        assertThat(
+            costBasis.divide(
+                total,
+                getMathContext(),
+            ),
+        ).isEqualTo(BigDecimal("2"))
         total = BigDecimal("555.00")
-        assertThat(costBasis.divide(total, getMathContext()))
-            .isEqualTo(BigDecimal("1.801801802"))
+        assertThat(
+            costBasis.divide(
+                total,
+                getMathContext(),
+            ),
+        ).isEqualTo(BigDecimal("1.801801802"))
     }
 
     @Test
     @Throws(Exception::class)
     fun is_NumberFormat() {
         val numberFormat = NumberFormat.getInstance(Locale.US)
-        val result = parse("1,000.99", numberFormat)
+        val result =
+            parse(
+                "1,000.99",
+                numberFormat,
+            )
         assertThat(result).isEqualTo("1000.99")
     }
 
@@ -129,8 +141,12 @@ internal class MathUtilsTest {
     fun is_CsvExportedQuotationsHandled() {
         val numberFormat = NumberFormat.getInstance(Locale.US)
         val value = "\"1,180.74\""
-        assertThat(parse(value, numberFormat))
-            .isEqualTo("1180.74")
+        assertThat(
+            parse(
+                value,
+                numberFormat,
+            ),
+        ).isEqualTo("1180.74")
     }
 
     @Test

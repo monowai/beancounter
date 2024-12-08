@@ -94,19 +94,22 @@ object AlphaMockUtils {
         jsonFile: File,
     ) {
         stubFor(
-            WireMock.get(WireMock.urlEqualTo(url))
+            WireMock
+                .get(WireMock.urlEqualTo(url))
                 .willReturn(
-                    WireMock.aResponse()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(
+                    WireMock
+                        .aResponse()
+                        .withHeader(
+                            HttpHeaders.CONTENT_TYPE,
+                            MediaType.APPLICATION_JSON_VALUE,
+                        ).withBody(
                             objectMapper.writeValueAsString(
                                 objectMapper.readValue(
                                     jsonFile,
                                     HashMap::class.java,
                                 ),
                             ),
-                        )
-                        .withStatus(200),
+                        ).withStatus(200),
                 ),
         )
     }
@@ -116,19 +119,23 @@ object AlphaMockUtils {
         file: File,
     ) {
         stubFor(
-            WireMock.get(WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"))
-                .willReturn(
-                    WireMock.aResponse()
-                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(
+            WireMock
+                .get(
+                    WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"),
+                ).willReturn(
+                    WireMock
+                        .aResponse()
+                        .withHeader(
+                            HttpHeaders.CONTENT_TYPE,
+                            MediaType.APPLICATION_JSON_VALUE,
+                        ).withBody(
                             objectMapper.writeValueAsString(
                                 objectMapper.readValue(
                                     file,
                                     HashMap::class.java,
                                 ),
                             ),
-                        )
-                        .withStatus(200),
+                        ).withStatus(200),
                 ),
         )
     }

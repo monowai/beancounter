@@ -24,42 +24,95 @@ class Constants {
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
 
-        val AAPL = getTestAsset(NASDAQ, "AAPL")
-        val MSFT = getTestAsset(NASDAQ, "MSFT")
+        val AAPL =
+            getTestAsset(
+                NASDAQ,
+                "AAPL",
+            )
+        val MSFT =
+            getTestAsset(
+                NASDAQ,
+                "MSFT",
+            )
 
-        val AMP = getTestAsset(ASX, "AMP")
+        val AMP =
+            getTestAsset(
+                ASX,
+                "AMP",
+            )
         val SGD = Currency("SGD")
         val MYR = Currency("MYR")
         val AUD = Currency("AUD")
-        val GBP = Currency(code = "GBP", symbol = "￡")
-        val EUR = Currency("EUR", symbol = "€")
+        val GBP =
+            Currency(
+                code = "GBP",
+                symbol = "￡",
+            )
+        val EUR =
+            Currency(
+                "EUR",
+                symbol = "€",
+            )
         val NZD = Currency("NZD")
 
-        val NZX = Market("NZX", NZD.code)
-        val systemUser = SystemUser("auth0|user", "user@testing.com", auth0 = "auth0")
+        val NZX =
+            Market(
+                "NZX",
+                NZD.code,
+            )
+        val systemUser =
+            SystemUser(
+                "auth0|user",
+                "user@testing.com",
+                auth0 = "auth0",
+            )
 
-        val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
-        val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
+        val msftInput =
+            AssetUtils.getAssetInput(
+                NASDAQ.code,
+                MSFT.code,
+            )
+        val aaplInput =
+            AssetUtils.getAssetInput(
+                NASDAQ.code,
+                AAPL.code,
+            )
 
         val nzdCashBalance =
             Asset(
                 code = NZD.code,
                 id = NZD.code,
                 name = "${NZD.code} Balance",
-                market = Market("CASH", NZD.code),
+                market =
+                Market(
+                    "CASH",
+                    NZD.code,
+                ),
                 priceSymbol = NZD.code,
                 category = "CASH",
-                assetCategory = AssetCategory("CASH", "Cash"),
+                assetCategory =
+                AssetCategory(
+                    "CASH",
+                    "Cash",
+                ),
             )
         val usdCashBalance =
             Asset(
                 code = USD.code,
                 id = USD.code,
                 name = "${USD.code} Balance",
-                market = Market("CASH", USD.code),
+                market =
+                Market(
+                    "CASH",
+                    USD.code,
+                ),
                 priceSymbol = USD.code,
                 category = "CASH",
-                assetCategory = AssetCategory("CASH", "Cash"),
+                assetCategory =
+                AssetCategory(
+                    "CASH",
+                    "Cash",
+                ),
             )
     }
 }

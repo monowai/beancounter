@@ -18,13 +18,24 @@ class IngestionCommand {
 
     @ShellMethod("Ingest a google sheet")
     fun ingest(
-        @ShellOption(help = "CSV, GSHEET", defaultValue = "CSV") reader: String = "CSV",
-        @ShellOption(help = "HTTP, KAFKA", defaultValue = "HTTP") writer: String = "HTTP",
+        @ShellOption(
+            help = "CSV, GSHEET",
+            defaultValue = "CSV",
+        ) reader: String = "CSV",
+        @ShellOption(
+            help = "HTTP, KAFKA",
+            defaultValue = "HTTP",
+        ) writer: String = "HTTP",
         @ShellOption(help = "ID of the item to import - file name, sheetId") file: String,
         @ShellOption(help = "Portfolio code to write to") portfolio: String,
     ): String {
         val ingestionRequest =
-            IngestionRequest(reader = reader, file = file, writer = writer, portfolioCode = portfolio)
+            IngestionRequest(
+                reader = reader,
+                file = file,
+                writer = writer,
+                portfolioCode = portfolio,
+            )
         ingestionFactory.getIngester(ingestionRequest).ingest(ingestionRequest)
         return "Done"
     }

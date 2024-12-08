@@ -16,7 +16,10 @@ import org.springframework.stereotype.Component
 class ShellPrompt : PromptProvider {
     override fun getPrompt(): AttributedString {
         val builder = AttributedStringBuilder()
-        builder.append("bc-shell$ ", AttributedStyle.DEFAULT)
+        builder.append(
+            "bc-shell$ ",
+            AttributedStyle.DEFAULT,
+        )
         return builder.toAttributedString()
     }
 }

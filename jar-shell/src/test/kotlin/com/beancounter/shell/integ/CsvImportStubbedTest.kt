@@ -26,7 +26,9 @@ import org.springframework.test.context.ActiveProfiles
     ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ActiveProfiles("test")
-@SpringBootTest(classes = [IngestionCommand::class, ShareSightConfig::class, ClientConfig::class, IngestionConfig::class])
+@SpringBootTest(
+    classes = [IngestionCommand::class, ShareSightConfig::class, ClientConfig::class, IngestionConfig::class],
+)
 class CsvImportStubbedTest {
     @Autowired
     private lateinit var ingestionCommand: IngestionCommand
@@ -43,7 +45,12 @@ class CsvImportStubbedTest {
     fun is_CsvCommandFlowWorking() {
         val result =
             ingestionCommand
-                .ingest(reader = "CSV", writer = "HTTP", file = "/MSFT.csv", portfolio = "TEST")
+                .ingest(
+                    reader = "CSV",
+                    writer = "HTTP",
+                    file = "/MSFT.csv",
+                    portfolio = "TEST",
+                )
         assertThat(result).isEqualToIgnoringCase("DONE")
     }
 }

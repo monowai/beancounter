@@ -53,7 +53,13 @@ internal class TrnValuationTest {
 
     @Autowired
     fun setToken(mockAuthConfig: MockAuthConfig) {
-        token = mockAuthConfig.getUserToken(SystemUser("test-user", "test-user@testing.com"))
+        token =
+            mockAuthConfig.getUserToken(
+                SystemUser(
+                    "test-user",
+                    "test-user@testing.com",
+                ),
+            )
     }
 
     @Test
@@ -66,18 +72,26 @@ internal class TrnValuationTest {
                 KMI,
             )
         val json =
-            mockMvc.perform(
-                MockMvcRequestBuilders.post("/query")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .content(objectMapper.writeValueAsBytes(query))
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andReturn().response.contentAsString
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/query")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .content(objectMapper.writeValueAsBytes(query))
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn()
+                .response.contentAsString
 
         assertThat(json).isNotNull
 
-        val (data) = objectMapper.readValue(json, PositionResponse::class.java)
+        val (data) =
+            objectMapper.readValue(
+                json,
+                PositionResponse::class.java,
+            )
         assertThat(data).isNotNull.hasFieldOrProperty("positions")
         assertThat(data.positions).hasSize(1)
         val position = data.positions["$KMI:NYSE"]
@@ -90,45 +104,74 @@ internal class TrnValuationTest {
     fun positionRequestFromTransactions() {
         val date = "2019-10-18"
         val json =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .contentType(MediaType.APPLICATION_JSON_VALUE),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(
+                            "/{portfolioCode}/$date",
+                            portfolio.code,
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(
                     MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
                 ).andReturn()
                 .response
                 .contentAsString
 
-        val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
+        val positionResponse =
+            objectMapper.readValue(
+                json,
+                PositionResponse::class.java,
+            )
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
             .isNotNull
-            .hasFieldOrPropertyWithValue(code, portfolio.code)
+            .hasFieldOrPropertyWithValue(
+                code,
+                portfolio.code,
+            )
         assertThat(positionResponse.data.asAt).isEqualTo(date)
-        assertThat(positionResponse.data.getOrCreate(getTestAsset(NASDAQ, "AAPL")))
-            .isNotNull
+        assertThat(
+            positionResponse.data.getOrCreate(
+                getTestAsset(
+                    NASDAQ,
+                    "AAPL",
+                ),
+            ),
+        ).isNotNull
     }
 
     @Test
     fun emptyPortfolioPositionsReturned() {
         val empty = "EMPTY"
         val json =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/{portfolioCode}/${DateUtils.TODAY}", empty)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .contentType(MediaType.APPLICATION_JSON_VALUE),
-            ).andExpect(
-                MockMvcResultMatchers.status().isOk,
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get(
+                            "/{portfolioCode}/${DateUtils.TODAY}",
+                            empty,
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andExpect(
+                    MockMvcResultMatchers.status().isOk,
+                ).andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn()
+                .response.contentAsString
+        val positionResponse =
+            objectMapper.readValue(
+                json,
+                PositionResponse::class.java,
             )
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andReturn().response.contentAsString
-        val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
             .isNotNull
-            .hasFieldOrPropertyWithValue(code, empty)
+            .hasFieldOrPropertyWithValue(
+                code,
+                empty,
+            )
         assertThat(positionResponse.data).isNotNull
         assertThat(positionResponse.data.positions).isEmpty()
     }

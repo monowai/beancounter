@@ -16,7 +16,9 @@ import org.springframework.shell.standard.ShellOption
  * Portfolio Access commands
  */
 @ShellComponent
-class PortfolioCommands(private val portfolioService: PortfolioServiceClient) {
+class PortfolioCommands(
+    private val portfolioService: PortfolioServiceClient,
+) {
     private val log = LoggerFactory.getLogger(PortfolioCommands::class.java)
 
     @ShellMethod("Find portfolio by code")
@@ -48,7 +50,10 @@ class PortfolioCommands(private val portfolioService: PortfolioServiceClient) {
         return writer.writeValueAsString(portfolio)
     }
 
-    @ShellMethod(key = ["add"], value = "Add portfolio")
+    @ShellMethod(
+        key = ["add"],
+        value = "Add portfolio",
+    )
     @Throws(JsonProcessingException::class)
     fun add(
         @ShellOption(help = "Unique Code") code: String,
@@ -61,12 +66,20 @@ class PortfolioCommands(private val portfolioService: PortfolioServiceClient) {
             portfolio = portfolioService.getPortfolioByCode(code)
             return writer.writeValueAsString(portfolio)
         } catch (e: BusinessException) {
-            log.info("Creating portfolio {}", code)
+            log.info(
+                "Creating portfolio {}",
+                code,
+            )
         }
         val portfoliosRequest =
             PortfoliosRequest(
                 setOf(
-                    PortfolioInput(code, name, baseCurrency, currencyCode),
+                    PortfolioInput(
+                        code,
+                        name,
+                        baseCurrency,
+                        currencyCode,
+                    ),
                 ),
             )
         val (data) = portfolioService.add(portfoliosRequest)

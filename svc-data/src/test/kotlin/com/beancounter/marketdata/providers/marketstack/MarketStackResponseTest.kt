@@ -32,7 +32,10 @@ class MarketStackResponseTest {
     fun jsonGoodResponse() {
         val compareTo =
             ZonedDateTime.of(
-                LocalDateTime.parse("2024-11-29T00:00:00+0000", DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)),
+                LocalDateTime.parse(
+                    "2024-11-29T00:00:00+0000",
+                    DateTimeFormatter.ofPattern(DATE_TIME_FORMAT),
+                ),
                 ZoneId.of("UTC"),
             )
 

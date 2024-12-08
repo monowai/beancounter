@@ -45,7 +45,14 @@ class TestPriceService {
             PriceRequest(
                 "2019-10-18",
                 currentMode = true, // Hack to make contract testing easier
-                assets = listOf(PriceAsset("NASDAQ", "EBAY", assetId = "EBAY")),
+                assets =
+                listOf(
+                    PriceAsset(
+                        "NASDAQ",
+                        "EBAY",
+                        assetId = "EBAY",
+                    ),
+                ),
             )
         `when`(tokenService.bearerToken).thenReturn("")
         val response = priceService.getPrices(priceRequest)

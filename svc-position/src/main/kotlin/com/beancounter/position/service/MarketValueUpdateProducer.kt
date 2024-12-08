@@ -11,6 +11,10 @@ class MarketValueUpdateProducer(
     @Value("\${beancounter.topics.pos.mv:bc-pos-mv-dev}") val topicPosMvName: String,
 ) {
     fun sendMessage(payload: Portfolio) {
-        kafkaTemplate.send(topicPosMvName, payload.id, payload)
+        kafkaTemplate.send(
+            topicPosMvName,
+            payload.id,
+            payload,
+        )
     }
 }

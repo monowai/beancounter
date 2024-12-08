@@ -14,17 +14,33 @@ class FigiAdapterTest {
     @Test
     fun is_CodePreserved() {
         val figiAdapter = FigiAdapter()
-        val figiAsset = FigiAsset("BRK", "BRK/B", "Mutual Fund")
+        val figiAsset =
+            FigiAsset(
+                "BRK",
+                "BRK/B",
+                "Mutual Fund",
+            )
         val asset =
             figiAdapter.transform(
-                Market("TEST", USD.code),
+                Market(
+                    "TEST",
+                    USD.code,
+                ),
                 "BRK.B",
                 figiAsset,
                 "ABC",
             )
-        Assertions.assertThat(asset)
-            .hasFieldOrPropertyWithValue("name", "BRK")
-            .hasFieldOrPropertyWithValue("code", "BRK.B")
-            .hasFieldOrPropertyWithValue("category", "Mutual Fund")
+        Assertions
+            .assertThat(asset)
+            .hasFieldOrPropertyWithValue(
+                "name",
+                "BRK",
+            ).hasFieldOrPropertyWithValue(
+                "code",
+                "BRK.B",
+            ).hasFieldOrPropertyWithValue(
+                "category",
+                "Mutual Fund",
+            )
     }
 }

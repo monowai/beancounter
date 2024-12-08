@@ -23,8 +23,14 @@ import java.time.LocalDate
 data class FxRate(
     @ManyToOne val from: Currency,
     @ManyToOne val to: Currency = from,
-    @Column(precision = 15, scale = 6) val rate: BigDecimal = BigDecimal.ONE,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
+    @Column(
+        precision = 15,
+        scale = 6,
+    ) val rate: BigDecimal = BigDecimal.ONE,
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = DateUtils.FORMAT,
+    )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val date: LocalDate = LocalDate.now(),

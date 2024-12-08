@@ -38,17 +38,37 @@ internal class MoneyValueTest {
 
     @BeforeEach
     fun setup() {
-        microsoft = getTestAsset(NASDAQ, "MSFT")
-        intel = getTestAsset(NASDAQ, "INTC")
-        bidu = getTestAsset(NASDAQ, "BIDU")
+        microsoft =
+            getTestAsset(
+                NASDAQ,
+                "MSFT",
+            )
+        intel =
+            getTestAsset(
+                NASDAQ,
+                "INTC",
+            )
+        bidu =
+            getTestAsset(
+                NASDAQ,
+                "BIDU",
+            )
         positions = Positions(getPortfolio())
     }
 
     @Test
     fun `Realized gain is calculated correctly after sale`() {
         setupBuyTransaction()
-        val sellTransaction = createSellTransaction(BigDecimal(50), BigDecimal(2000))
-        val position = accumulator.accumulate(sellTransaction, positions)
+        val sellTransaction =
+            createSellTransaction(
+                BigDecimal(50),
+                BigDecimal(2000),
+            )
+        val position =
+            accumulator.accumulate(
+                sellTransaction,
+                positions,
+            )
 
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal(50))
         assertThat(position.getMoneyValues(Position.In.TRADE).realisedGain)
@@ -59,8 +79,13 @@ internal class MoneyValueTest {
     fun `Quantity and market value are calculated correctly for purchase`() {
         val result = setupBuyTransaction()
         assertThat(result.quantityValues)
-            .hasFieldOrPropertyWithValue("purchased", hundred)
-            .hasFieldOrPropertyWithValue("total", hundred)
+            .hasFieldOrPropertyWithValue(
+                "purchased",
+                hundred,
+            ).hasFieldOrPropertyWithValue(
+                "total",
+                hundred,
+            )
     }
 
     private fun setupBuyTransaction(): Position {
@@ -71,7 +96,10 @@ internal class MoneyValueTest {
                 quantity = hundred,
                 tradeAmount = twoK,
             )
-        return accumulator.accumulate(buyTransaction, positions)
+        return accumulator.accumulate(
+            buyTransaction,
+            positions,
+        )
     }
 
     private fun createSellTransaction(
@@ -99,7 +127,11 @@ internal class MoneyValueTest {
                 quantity = BigDecimal(8),
                 tradeAmount = BigDecimal("1695.02"),
             )
-        val position = accumulator.accumulate(buy, positions)
+        val position =
+            accumulator.accumulate(
+                buy,
+                positions,
+            )
         buy =
             Trn(
                 trnType = TrnType.BUY,
@@ -107,13 +139,19 @@ internal class MoneyValueTest {
                 quantity = BigDecimal(2),
                 tradeAmount = BigDecimal("405.21"),
             )
-        accumulator.accumulate(buy, positions)
+        accumulator.accumulate(
+            buy,
+            positions,
+        )
         val tradeMoney = position.getMoneyValues(Position.In.TRADE)
         assertThat(
             position.quantityValues
                 .getTotal()
                 .multiply(tradeMoney.averageCost)
-                .setScale(2, RoundingMode.HALF_UP),
+                .setScale(
+                    2,
+                    RoundingMode.HALF_UP,
+                ),
         ).isEqualTo(tradeMoney.costBasis)
         val sell =
             Trn(
@@ -122,17 +160,30 @@ internal class MoneyValueTest {
                 quantity = BigDecimal(-3),
                 tradeAmount = BigDecimal("841.63"),
             )
-        accumulator.accumulate(sell, positions)
+        accumulator.accumulate(
+            sell,
+            positions,
+        )
         assertThat(
             position.quantityValues
                 .getTotal()
                 .multiply(tradeMoney.averageCost)
-                .setScale(2, RoundingMode.HALF_UP),
+                .setScale(
+                    2,
+                    RoundingMode.HALF_UP,
+                ),
         ).isEqualTo(tradeMoney.costValue)
         assertThat(tradeMoney)
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, costBasis)
-            .hasFieldOrPropertyWithValue(PROP_SALES, sell.tradeAmount)
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, gainValue)
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                costBasis,
+            ).hasFieldOrPropertyWithValue(
+                PROP_SALES,
+                sell.tradeAmount,
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                gainValue,
+            )
         accumulator.accumulate(
             Trn(
                 trnType = TrnType.SELL,
@@ -143,9 +194,16 @@ internal class MoneyValueTest {
             positions,
         )
         assertThat(position.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_SALES, BigDecimal("2712.64"))
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, BigDecimal("612.41"))
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_SALES,
+                BigDecimal("2712.64"),
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                BigDecimal("612.41"),
+            )
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
     }
 
@@ -167,18 +225,33 @@ internal class MoneyValueTest {
                     tradeAmount = BigDecimal("405.21"),
                 ),
             )
-        initialBuys.forEach { buy -> accumulator.accumulate(buy, positions) }
+        initialBuys.forEach { buy ->
+            accumulator.accumulate(
+                buy,
+                positions,
+            )
+        }
 
         val position = positions.getOrCreate(microsoft)
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(PROP_TOTAL, BigDecimal.TEN)
+            .hasFieldOrPropertyWithValue(
+                PROP_TOTAL,
+                BigDecimal.TEN,
+            )
 
         val expectedAverageCost = BigDecimal("210.023")
 
         assertThat(position.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, costBasis)
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedAverageCost)
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                costBasis,
+            ).hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                expectedAverageCost,
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                BigDecimal.ZERO,
+            )
 
         var sell =
             Trn(
@@ -188,13 +261,23 @@ internal class MoneyValueTest {
                 tradeAmount = BigDecimal("841.63"),
             )
 
-        accumulator.accumulate(sell, positions)
+        accumulator.accumulate(
+            sell,
+            positions,
+        )
 
         // Sell does not affect the cost basis or average cost, but it will create a signed gain
         assertThat(position.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, costBasis)
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedAverageCost)
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, gainValue)
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                costBasis,
+            ).hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                expectedAverageCost,
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                gainValue,
+            )
 
         sell =
             Trn(
@@ -203,13 +286,23 @@ internal class MoneyValueTest {
                 quantity = BigDecimal(7),
                 tradeAmount = BigDecimal("1871.01"),
             )
-        accumulator.accumulate(sell, positions)
+        accumulator.accumulate(
+            sell,
+            positions,
+        )
 
         // Sell down to 0; reset cost basis
         assertThat(position.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, BigDecimal("612.41"))
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                BigDecimal("612.41"),
+            )
     }
 
     @Test
@@ -236,23 +329,51 @@ internal class MoneyValueTest {
             positions,
         )
         assertThat(intelPosition.quantityValues)
-            .hasFieldOrPropertyWithValue(PROP_TOTAL, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                PROP_TOTAL,
+                BigDecimal.ZERO,
+            )
         val realisedGain = BigDecimal("-372.18")
         assertThat(intelPosition.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, realisedGain)
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                realisedGain,
+            )
 
         // Re-enter the position
         val buy =
-            Trn(trnType = TrnType.BUY, asset = intel, quantity = BigDecimal(60), tradeAmount = BigDecimal("1603.32"))
-        accumulator.accumulate(buy, positions)
+            Trn(
+                trnType = TrnType.BUY,
+                asset = intel,
+                quantity = BigDecimal(60),
+                tradeAmount = BigDecimal("1603.32"),
+            )
+        accumulator.accumulate(
+            buy,
+            positions,
+        )
         assertThat(intelPosition.quantityValues)
-            .hasFieldOrPropertyWithValue(PROP_TOTAL, buy.quantity)
+            .hasFieldOrPropertyWithValue(
+                PROP_TOTAL,
+                buy.quantity,
+            )
         assertThat(intelPosition.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, buy.tradeAmount)
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal("26.722"))
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, realisedGain)
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                buy.tradeAmount,
+            ).hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                BigDecimal("26.722"),
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                realisedGain,
+            )
 
         // Second sell taking us back to zero. Verify that the accumulated gains.
         val tradeMoney = intelPosition.getMoneyValues(Position.In.TRADE)
@@ -268,8 +389,15 @@ internal class MoneyValueTest {
             positions,
         )
         assertThat(intelPosition.getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, previousGain.add(BigDecimal("60.99")))
+            .hasFieldOrPropertyWithValue(
+                PROP_COST_BASIS,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_AVERAGE_COST,
+                BigDecimal.ZERO,
+            ).hasFieldOrPropertyWithValue(
+                PROP_REALIZED_GAIN,
+                previousGain.add(BigDecimal("60.99")),
+            )
     }
 }

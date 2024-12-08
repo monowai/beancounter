@@ -38,6 +38,9 @@ import org.springframework.context.annotation.Import
     TokenService::class,
 )
 @EnableFeignClients(basePackages = ["com.beancounter.client"])
-@ImportAutoConfiguration(HttpMessageConvertersAutoConfiguration::class, FeignAutoConfiguration::class)
+@ImportAutoConfiguration(
+    HttpMessageConvertersAutoConfiguration::class,
+    FeignAutoConfiguration::class,
+)
 @Configuration
 class ClientConfig

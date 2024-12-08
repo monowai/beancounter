@@ -1,6 +1,5 @@
 package com.beancounter.client.ingest
 
-import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
@@ -19,7 +18,6 @@ import java.math.BigDecimal
 @Service
 class FxTransactions(
     private val fxClientService: FxService,
-    private val tokenService: TokenService,
 ) {
     private val numberUtils = NumberUtils()
 
@@ -91,13 +89,13 @@ class FxTransactions(
         return fxRequest
     }
 
-    fun needsRates(trnInput: TrnInput): Boolean {
-        return (
+    fun needsRates(trnInput: TrnInput): Boolean =
+        (
             numberUtils.isUnset(trnInput.tradePortfolioRate) ||
                 numberUtils.isUnset(trnInput.tradeBaseRate) ||
                 numberUtils.isUnset(trnInput.tradeCashRate)
-        ) && trnInput.trnType != TrnType.SPLIT
-    }
+            ) &&
+            trnInput.trnType != TrnType.SPLIT
 
     fun setRates(
         portfolio: Portfolio,

@@ -27,7 +27,10 @@ import org.springframework.test.context.ActiveProfiles
 )
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
-@Import(ContractHelper::class, NoWebAuth::class)
+@Import(
+    ContractHelper::class,
+    NoWebAuth::class,
+)
 class ContractVerifierBase {
     @LocalServerPort
     lateinit var port: String

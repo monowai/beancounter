@@ -3,7 +3,8 @@
 ## Features
 
 - Persists core BeanCounter data.
-- Retrieves asset prices via various providers such as [Alpha Advantage](https://www.alphavantage.co/documentation/).
+- Retrieves asset prices via various providers such
+  as [Alpha Advantage](https://www.alphavantage.co/documentation/).
 - Converts market codes as necessary.
 - Provides APIs to request prices for a single asset or a collection of assets.
 

@@ -83,7 +83,11 @@ internal class StubbedTradesWithFx {
         val trades = shareSightFactory.adapter(row)
 
         // Portfolio is in NZD
-        val portfolio = getPortfolio("NZDTest", Currency("NZD"))
+        val portfolio =
+            getPortfolio(
+                "NZDTest",
+                Currency("NZD"),
+            )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
@@ -92,8 +96,14 @@ internal class StubbedTradesWithFx {
             )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
-        fxTransactions.setRates(portfolio, trn)
-        assertTransaction(portfolio, trn)
+        fxTransactions.setRates(
+            portfolio,
+            trn,
+        )
+        assertTransaction(
+            portfolio,
+            trn,
+        )
     }
 
     @Test
@@ -121,7 +131,11 @@ internal class StubbedTradesWithFx {
         val trades = shareSightFactory.adapter(row)
 
         // Portfolio is in NZD
-        val portfolio = getPortfolio("Test", NZD)
+        val portfolio =
+            getPortfolio(
+                "Test",
+                NZD,
+            )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
@@ -130,8 +144,14 @@ internal class StubbedTradesWithFx {
             )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
-        fxTransactions.setRates(portfolio, trn)
-        assertTransaction(portfolio, trn)
+        fxTransactions.setRates(
+            portfolio,
+            trn,
+        )
+        assertTransaction(
+            portfolio,
+            trn,
+        )
     }
 
     private val tradeBaseRateProp = "tradeBaseRate"
@@ -179,14 +199,29 @@ internal class StubbedTradesWithFx {
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         assertThat(fxTransactions).isNotNull
-        fxTransactions.setRates(portfolio, trn)
+        fxTransactions.setRates(
+            portfolio,
+            trn,
+        )
         val fxRate = "1.5692749462"
         assertThat(trn)
-            .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code) // Was tradeAmount calculated?
-            .hasFieldOrPropertyWithValue(tradeAmountProp, BigDecimal("1000.00"))
-            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal(fxRate))
-            .hasFieldOrPropertyWithValue(tradePortfolioRateProp, BigDecimal(fxRate))
+            .hasFieldOrPropertyWithValue(
+                tradeCurrencyProp,
+                USD.code,
+            ) // Was tradeAmount calculated?
+            .hasFieldOrPropertyWithValue(
+                tradeAmountProp,
+                BigDecimal("1000.00"),
+            ).hasFieldOrPropertyWithValue(
+                tradeBaseRateProp,
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                tradeCashRateProp,
+                BigDecimal(fxRate),
+            ).hasFieldOrPropertyWithValue(
+                tradePortfolioRateProp,
+                BigDecimal(fxRate),
+            )
     }
 
     @Test
@@ -210,7 +245,11 @@ internal class StubbedTradesWithFx {
         val trades = shareSightFactory.adapter(row)
 
         // Testing all currency buckets
-        val portfolio = getPortfolio("TEST", USD)
+        val portfolio =
+            getPortfolio(
+                "TEST",
+                USD,
+            )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
@@ -219,14 +258,26 @@ internal class StubbedTradesWithFx {
             )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
-        fxTransactions.setRates(portfolio, trn)
+        fxTransactions.setRates(
+            portfolio,
+            trn,
+        )
 
         // No currencies are defined so rate defaults to 1
         assertThat(trn)
-            .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code)
-            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue(tradePortfolioRateProp, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(
+                tradeCurrencyProp,
+                USD.code,
+            ).hasFieldOrPropertyWithValue(
+                tradeBaseRateProp,
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                tradeCashRateProp,
+                BigDecimal.ONE,
+            ).hasFieldOrPropertyWithValue(
+                tradePortfolioRateProp,
+                BigDecimal.ONE,
+            )
     }
 
     private fun assertTransaction(
@@ -234,12 +285,24 @@ internal class StubbedTradesWithFx {
         trn: TrnInput?,
     ) {
         assertThat(trn)
-            .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
-            .hasFieldOrPropertyWithValue(tradeCurrencyProp, GBP.code)
-            .hasFieldOrPropertyWithValue("cashCurrency", portfolio.currency.code)
-            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("1.24262269"))
-            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("1.87062801"))
-            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("1.87062801"))
-            .hasFieldOrProperty("tradeDate")
+            .hasFieldOrPropertyWithValue(
+                "trnType",
+                TrnType.BUY,
+            ).hasFieldOrPropertyWithValue(
+                tradeCurrencyProp,
+                GBP.code,
+            ).hasFieldOrPropertyWithValue(
+                "cashCurrency",
+                portfolio.currency.code,
+            ).hasFieldOrPropertyWithValue(
+                tradeBaseRateProp,
+                BigDecimal("1.24262269"),
+            ).hasFieldOrPropertyWithValue(
+                tradeCashRateProp,
+                BigDecimal("1.87062801"),
+            ).hasFieldOrPropertyWithValue(
+                tradeCashRateProp,
+                BigDecimal("1.87062801"),
+            ).hasFieldOrProperty("tradeDate")
     }
 }

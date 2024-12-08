@@ -25,7 +25,9 @@ class RegistrationController internal constructor(
     @GetMapping("/me")
     fun getMe(): RegistrationResponse =
         RegistrationResponse(
-            systemUserService.find(tokenService.subject) ?: throw ForbiddenException("Authenticated, but unregistered"),
+            systemUserService.find(tokenService.subject) ?: throw ForbiddenException(
+                "Authenticated, but unregistered",
+            ),
         )
 
     @PostMapping(value = ["/register"])

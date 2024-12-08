@@ -19,13 +19,20 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/markets")
 @CrossOrigin
-@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
-class MarketController internal constructor(private val marketService: MarketService) {
+@PreAuthorize(
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+)
+class MarketController internal constructor(
+    private val marketService: MarketService,
+) {
     @get:GetMapping
     val markets: MarketResponse
         get() = marketService.getMarkets()
 
-    @GetMapping(value = ["/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(
+        value = ["/{code}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+    )
     fun getMarket(
         @PathVariable code: String,
     ): MarketResponse = MarketResponse(setOf(marketService.getMarket(code)))

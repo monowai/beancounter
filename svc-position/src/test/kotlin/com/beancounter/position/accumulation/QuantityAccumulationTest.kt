@@ -45,7 +45,9 @@ internal class QuantityAccumulationTest {
         // Reset purchased to a whole number and verify precision resets to zero
         val wholeNumberQuantity = BigDecimal(100)
         quantityValues.purchased = wholeNumberQuantity
-        assertThat(quantityValues.getPrecision()).isEqualTo(0) // Whole numbers have zero decimal places
+        assertThat(quantityValues.getPrecision()).isEqualTo(
+            0,
+        ) // Whole numbers have zero decimal places
 
         // Setting and verifying a user-defined precision level
         quantityValues.setPrecision(CUSTOM_PRECISION)
@@ -55,13 +57,22 @@ internal class QuantityAccumulationTest {
     @Test
     fun `Verify total quantity after transactions`() {
         val positions = Positions(getPortfolio())
-        val asset = getTestAsset(Market("marketCode"), "CODE")
+        val asset =
+            getTestAsset(
+                Market("marketCode"),
+                "CODE",
+            )
         val twoHundred = BigDecimal(200)
 
         // Perform the first buy transaction
         performAndAssertTransaction(
             positions,
-            Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = hundred,
+                tradeAmount = BigDecimal(2000),
+            ),
             expectedTotal = hundred,
             expectedPurchased = hundred,
             expectedSold = BigDecimal.ZERO,
@@ -70,7 +81,12 @@ internal class QuantityAccumulationTest {
         // Double the position
         performAndAssertTransaction(
             positions,
-            Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = hundred,
+                tradeAmount = BigDecimal(2000),
+            ),
             expectedTotal = twoHundred,
             expectedPurchased = twoHundred,
             expectedSold = BigDecimal.ZERO,
@@ -79,7 +95,12 @@ internal class QuantityAccumulationTest {
         // Perform a sell transaction to halve the position
         performAndAssertTransaction(
             positions,
-            Trn(trnType = TrnType.SELL, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                quantity = hundred,
+                tradeAmount = BigDecimal(2000),
+            ),
             expectedTotal = hundred,
             expectedPurchased = twoHundred,
             expectedSold = BigDecimal(-100),
@@ -88,7 +109,12 @@ internal class QuantityAccumulationTest {
         // Sell down the entire position effectively cleaning
         performAndAssertTransaction(
             positions,
-            Trn(trnType = TrnType.SELL, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                quantity = hundred,
+                tradeAmount = BigDecimal(2000),
+            ),
         )
     }
 
@@ -99,9 +125,22 @@ internal class QuantityAccumulationTest {
         expectedPurchased: BigDecimal = BigDecimal.ZERO,
         expectedSold: BigDecimal = BigDecimal.ZERO,
     ) {
-        val result = accumulator.accumulate(transaction, positions)
-        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(PROP_TOTAL, expectedTotal)
-        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(PROP_PURCHASED, expectedPurchased)
-        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(PROP_SOLD, expectedSold)
+        val result =
+            accumulator.accumulate(
+                transaction,
+                positions,
+            )
+        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(
+            PROP_TOTAL,
+            expectedTotal,
+        )
+        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(
+            PROP_PURCHASED,
+            expectedPurchased,
+        )
+        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(
+            PROP_SOLD,
+            expectedSold,
+        )
     }
 }

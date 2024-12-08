@@ -18,10 +18,17 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
      * @param earlyDate The early date to compare against, default is 1900-01-01.
      * @return A list of FxRate entities that match the criteria.
      */
-    @Query("select f from FxRate f where ((f.date >= :date and f.date <= :date) or f.date <= :earlyDate)")
+    @Query(
+        "select f from FxRate f where ((f.date >= :date and f.date <= :date) or f.date <= :earlyDate)",
+    )
     fun findByDateRange(
         date: LocalDate,
-        earlyDate: LocalDate = LocalDate.of(1900, 1, 1),
+        earlyDate: LocalDate =
+            LocalDate.of(
+                1900,
+                1,
+                1,
+            ),
     ): List<FxRate>
 
     /**
@@ -34,6 +41,11 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     @Query("select f from FxRate f where f.from = :from and f.to = :from and f.date <= :earlyDate")
     fun findBaseRate(
         from: Currency,
-        earlyDate: LocalDate = LocalDate.of(1900, 1, 1),
+        earlyDate: LocalDate =
+            LocalDate.of(
+                1900,
+                1,
+                1,
+            ),
     ): FxRate?
 }

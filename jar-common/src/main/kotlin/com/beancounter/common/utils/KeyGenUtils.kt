@@ -61,16 +61,24 @@ class KeyGenUtils {
         }
         val bytes = decodeBase64(uuidString)
         val bb = ByteBuffer.wrap(ByteArray(16))
-        bb.put(bytes, 0, 16)
+        bb.put(
+            bytes,
+            0,
+            16,
+        )
         bb.clear()
-        return UUID(bb.long, bb.long)
+        return UUID(
+            bb.long,
+            bb.long,
+        )
     }
 
     val id: String
         get() = format(UUID.randomUUID())
 
     companion object {
-        private val CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray()
+        private val CHARS =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray()
         private val i256 = IntArray(256)
 
         init {
@@ -87,7 +95,8 @@ class KeyGenUtils {
             while (i < 15) {
                 // Get the next three bytes.
                 val d: Int =
-                    bytes[i++].toInt() and 0xff shl 16 or (bytes[i++].toInt() and 0xff shl 8) or (bytes[i++].toInt() and 0xff)
+                    bytes[i++].toInt() and 0xff shl 16 or (bytes[i++].toInt() and 0xff shl 8) or
+                        (bytes[i++].toInt() and 0xff)
 
                 // Put them in these four characters
                 chars[j++] = CHARS[d ushr 18 and 0x3f]
@@ -113,9 +122,9 @@ class KeyGenUtils {
                 val d =
                     i256[s[j++].code] shl 18 or (
                         i256[s[j++].code] shl 12
-                    ) or (
+                        ) or (
                         i256[s[j++].code] shl 6
-                    ) or i256[s[j++].code]
+                        ) or i256[s[j++].code]
 
                 // Put them in these three bytes.
                 bytes[i++] = (d shr 16).toByte()

@@ -22,8 +22,18 @@ import org.springframework.stereotype.Service
  * .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuth.getUserToken()))
  */
 @Service
-@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
-@Import(AuthConfig::class, LoginService::class, TokenService::class, TokenUtils::class, AuthUtilService::class)
+@ConditionalOnProperty(
+    value = ["auth.enabled"],
+    havingValue = "true",
+    matchIfMissing = false,
+)
+@Import(
+    AuthConfig::class,
+    LoginService::class,
+    TokenService::class,
+    TokenUtils::class,
+    AuthUtilService::class,
+)
 class MockAuthConfig {
     @MockBean
     lateinit var oAuthConfig: OAuthConfig
@@ -44,13 +54,18 @@ class MockAuthConfig {
         this.tokenUtils = TokenUtils(authConfig)
     }
 
-    fun getUserToken(systemUser: SystemUser = SystemUser(email = "user@testing.com")): Jwt {
-        return tokenUtils.getSystemUserToken(systemUser)
-    }
+    fun getUserToken(systemUser: SystemUser = SystemUser(email = "user@testing.com")): Jwt =
+        tokenUtils.getSystemUserToken(systemUser)
 
-    fun login(email: String = "test@nowhere.com"): Jwt {
-        return login(SystemUser(email, email, auth0 = "auth0"), null)
-    }
+    fun login(email: String = "test@nowhere.com"): Jwt =
+        login(
+            SystemUser(
+                email,
+                email,
+                auth0 = "auth0",
+            ),
+            null,
+        )
 
     /**
      * Log the user in, optionally registering them if an ISystemUser is supplied
@@ -67,7 +82,10 @@ class MockAuthConfig {
         val token = getUserToken(systemUser)
         assertThat(token)
             .isNotNull
-            .hasFieldOrPropertyWithValue("subject", systemUser.id)
+            .hasFieldOrPropertyWithValue(
+                "subject",
+                systemUser.id,
+            )
         registrationService?.register(systemUser)
         return token
     }

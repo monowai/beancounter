@@ -16,7 +16,7 @@ import com.beancounter.shell.integ.TrnCsvKafka.Companion.TOPIC
 import com.beancounter.shell.kafka.KafkaTrnProducer
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -41,20 +41,29 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
     partitions = 1,
     topics = [TOPIC],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = ["log.dir=./build/kafka", "listeners=PLAINTEXT://localhost:\${kafka.broker.port}", "auto.create.topics.enable=true"],
+    brokerProperties = [
+        "log.dir=./build/kafka",
+        "listeners=PLAINTEXT://localhost:\${kafka.broker.port}",
+        "auto.create.topics.enable=true"
+    ]
 )
 @ExtendWith(
-    SpringExtension::class,
+    SpringExtension::class
 )
 @SpringBootTest(
-    classes = [KafkaTrnProducer::class, ShareSightConfig::class, ClientConfig::class, KafkaAutoConfiguration::class],
+    classes = [KafkaTrnProducer::class, ShareSightConfig::class, ClientConfig::class, KafkaAutoConfiguration::class]
 )
 @ActiveProfiles("kafka")
 @AutoConfigureNoAuth
 class TrnCsvKafka {
     private val log = LoggerFactory.getLogger(TrnCsvKafka::class.java)
     private final val abc = "ABC"
-    private val row: List<String> = listOf(abc, abc, abc)
+    private val row: List<String> =
+        listOf(
+            abc,
+            abc,
+            abc
+        )
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -72,13 +81,22 @@ class TrnCsvKafka {
 
     @BeforeEach
     fun mockBeans() {
-        log.debug("!!! {}", embeddedKafkaBroker.brokersAsString)
+        log.debug(
+            "!!! {}",
+            embeddedKafkaBroker.brokersAsString
+        )
         val trnAdapter =
             Mockito.mock(
-                TrnAdapter::class.java,
+                TrnAdapter::class.java
             )
-        Mockito.`when`(trnAdapter.resolveAsset(row))
-            .thenReturn(getTestAsset(MOCK, abc))
+        Mockito.`when`(trnAdapter.resolveAsset(row)).thenReturn(
+            getTestAsset(
+                MOCK,
+                abc
+            )
+        )
+
+        assertThat(authConfig).isNotNull
 
         Mockito.`when`(shareSightFactory.adapter(row)).thenReturn(trnAdapter)
 
@@ -86,13 +104,16 @@ class TrnCsvKafka {
             KafkaTestUtils.consumerProps(
                 "shell-test",
                 "false",
-                embeddedKafkaBroker,
+                embeddedKafkaBroker
             )
         consumerProps["session.timeout.ms"] = 6000
         consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         val cf = DefaultKafkaConsumerFactory<String, String>(consumerProps)
         consumer = cf.createConsumer()
-        embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TOPIC)
+        embeddedKafkaBroker.consumeFromEmbeddedTopics(
+            consumer,
+            TOPIC
+        )
     }
 
     @Test
@@ -101,20 +122,24 @@ class TrnCsvKafka {
             TrustedTrnImportRequest(
                 getPortfolio(),
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         kafkaTrnProducer!!.write(trnRequest)
         log.info("Waiting for Result")
         try {
-            val received = KafkaTestUtils.getSingleRecord(consumer, TOPIC)
-            Assertions.assertThat(received.value()).isNotNull
-            Assertions.assertThat(
+            val received =
+                KafkaTestUtils.getSingleRecord(
+                    consumer,
+                    TOPIC
+                )
+            assertThat(received.value()).isNotNull
+            assertThat(
                 objectMapper.readValue(
                     received.value(),
-                    TrustedTrnImportRequest::class.java,
-                ),
-            )
-                .usingRecursiveComparison().isEqualTo(trnRequest)
+                    TrustedTrnImportRequest::class.java
+                )
+            ).usingRecursiveComparison()
+                .isEqualTo(trnRequest)
         } finally {
             consumer.close()
             embeddedKafkaBroker.destroy()

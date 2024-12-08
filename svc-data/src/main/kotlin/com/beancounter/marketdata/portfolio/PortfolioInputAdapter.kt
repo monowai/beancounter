@@ -23,7 +23,12 @@ class PortfolioInputAdapter internal constructor(
     ): Collection<Portfolio> {
         val results: MutableCollection<Portfolio> = mutableListOf()
         for (portfolio in portfolios) {
-            results.add(prepare(owner, portfolio))
+            results.add(
+                prepare(
+                    owner,
+                    portfolio,
+                ),
+            )
         }
         return results
     }
@@ -32,7 +37,10 @@ class PortfolioInputAdapter internal constructor(
         owner: SystemUser,
         portfolioInput: PortfolioInput,
     ): Portfolio {
-        log.debug("Creating for {}", owner.id)
+        log.debug(
+            "Creating for {}",
+            owner.id,
+        )
         return Portfolio(
             keyGenUtils.id,
             portfolioInput.code.uppercase(Locale.getDefault()),

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping
  */
 @Service
 class ActuatorService(
-    val actuatorGateway: ActuatorGateway,
+    val actuatorGateway: ActuatorGateway
 ) {
     fun ping(): String = actuatorGateway.ping()
 
@@ -19,12 +19,12 @@ class ActuatorService(
      */
     @FeignClient(
         name = "actuatorGw",
-        url = "\${marketdata.actuator:\${marketdata.url}}",
+        url = "\${marketdata.actuator:\${marketdata.url}}"
     )
     interface ActuatorGateway {
         @GetMapping(
             value = ["/actuator/health/ping"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun ping(): String
     }

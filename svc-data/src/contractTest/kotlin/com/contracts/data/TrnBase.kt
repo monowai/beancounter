@@ -40,7 +40,7 @@ const val AS_AT_DATE = "2021-10-18"
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
@@ -94,7 +94,7 @@ class TrnBase {
         RestAssured.port = Integer.valueOf(port)
 
         authUtilService.authenticate(
-            ContractHelper.getSystemUser(),
+            ContractHelper.getSystemUser()
         )
         Mockito
             .`when`(systemUserService.getOrThrow)
@@ -105,27 +105,27 @@ class TrnBase {
         PortfolioBase.portfolios(
             systemUser,
             keyGenUtils,
-            portfolioRepository,
+            portfolioRepository
         )
 
         mockTrnPostResponse(PortfolioBase.testPortfolio)
         mockTrnServiceResponse(
             PortfolioBase.testPortfolio,
-            "contracts/trn/trns-test-response.json",
+            "contracts/trn/trns-test-response.json"
         )
         mockTrnServiceResponse(
             PortfolioBase.testPortfolio,
             "contracts/trn/trns-test-response.json",
-            "2019-10-18",
+            "2019-10-18"
         )
         mockTrnServiceResponse(
             PortfolioBase.emptyPortfolio,
-            "contracts/trn/trns-empty-response.json",
+            "contracts/trn/trns-empty-response.json"
         )
         mockTrnServiceResponse(
             cashPortfolio(),
             "contracts/trn/cash/ladder-response.json",
-            AS_AT_DATE,
+            AS_AT_DATE
         )
 
         Mockito
@@ -133,13 +133,13 @@ class TrnBase {
                 trnQueryService.findAssetTrades(
                     PortfolioBase.testPortfolio,
                     "KMI",
-                    dateUtils.getDate("2020-05-01"),
-                ),
+                    dateUtils.getDate("2020-05-01")
+                )
             ).thenReturn(
                 objectMapper
                     .readValue<TrnResponse>(
-                        ClassPathResource("contracts/trn/trn-for-asset-response.json").file,
-                    ).data,
+                        ClassPathResource("contracts/trn/trn-for-asset-response.json").file
+                    ).data
             )
     }
 
@@ -152,7 +152,7 @@ class TrnBase {
                 name = "cashLadderFlow",
                 currency = Constants.USD,
                 base = Constants.NZD,
-                owner = ContractHelper.getSystemUser(),
+                owner = ContractHelper.getSystemUser()
             )
         mockPortfolio(portfolio)
         return portfolio
@@ -166,28 +166,28 @@ class TrnBase {
             .`when`(
                 portfolioRepository.findByCodeAndOwner(
                     portfolio.code,
-                    systemUser,
-                ),
+                    systemUser
+                )
             ).thenReturn(Optional.of(portfolio))
     }
 
     fun mockTrnServiceResponse(
         portfolio: Portfolio,
         trnFile: String,
-        date: String = "today",
+        date: String = "today"
     ) {
         val jsonFile = ClassPathResource(trnFile).file
         val trnResponse =
             objectMapper.readValue(
                 jsonFile,
-                TrnResponse::class.java,
+                TrnResponse::class.java
             )
         Mockito
             .`when`(
                 trnService.findForPortfolio(
                     portfolio,
-                    dateUtils.getFormattedDate(date),
-                ),
+                    dateUtils.getFormattedDate(date)
+                )
             ).thenReturn(trnResponse.data)
     }
 
@@ -198,14 +198,14 @@ class TrnBase {
                     portfolio,
                     objectMapper.readValue(
                         ClassPathResource("contracts/trn/client-csv-request.json").file,
-                        TrnRequest::class.java,
-                    ),
-                ),
+                        TrnRequest::class.java
+                    )
+                )
             ).thenReturn(
                 objectMapper
                     .readValue<TrnResponse>(
-                        ClassPathResource("contracts/trn/client-csv-response.json").file,
-                    ).data,
+                        ClassPathResource("contracts/trn/client-csv-response.json").file
+                    ).data
             )
     }
 }

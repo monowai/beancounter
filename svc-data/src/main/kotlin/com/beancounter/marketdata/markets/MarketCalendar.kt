@@ -8,7 +8,7 @@ data class MarketHolidayAnnual(
     val day: Int,
     val month: String,
     val year: String = "*",
-    val markets: List<String>,
+    val markets: List<String>
 )
 
 /**
@@ -16,32 +16,32 @@ data class MarketHolidayAnnual(
  */
 @Service
 class MarketCalendar(
-    val marketCalendarConfig: MarketCalendarConfig,
+    val marketCalendarConfig: MarketCalendarConfig
 ) {
     fun isMarketHoliday(
         market: String,
-        date: LocalDate,
+        date: LocalDate
     ): Boolean {
         val holidayMap =
             marketCalendarConfig.marketHolidays(
                 date.year,
-                market,
+                market
             )
 
         return isHoliday(
             date,
-            holidayMap,
+            holidayMap
         ) ||
             isWeekend(date)
     }
 
     fun getNextBusinessDay(
         date: LocalDate,
-        holidayList: List<LocalDate>,
+        holidayList: List<LocalDate>
     ): LocalDate {
         if (!isHoliday(
                 date,
-                holidayList,
+                holidayList
             )
         ) {
             return date
@@ -50,7 +50,7 @@ class MarketCalendar(
         var nextDay = date.plusDays(1)
         while (isHoliday(
                 nextDay,
-                holidayList,
+                holidayList
             ) ||
             isWeekend(nextDay)
         ) {
@@ -61,7 +61,7 @@ class MarketCalendar(
 
     private fun isHoliday(
         date: LocalDate,
-        holidayMap: List<LocalDate>,
+        holidayMap: List<LocalDate>
     ): Boolean = holidayMap.contains(date)
 
     private fun isWeekend(date: LocalDate): Boolean =

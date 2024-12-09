@@ -30,8 +30,8 @@ import java.math.BigDecimal
  */
 @SpringBootTest(
     classes = [
-        Accumulator::class,
-    ],
+        Accumulator::class
+    ]
 )
 @Nested
 class CashValuationTests {
@@ -41,17 +41,17 @@ class CashValuationTests {
     val usdCash =
         getTestAsset(
             code = USD.code,
-            market = Constants.CASH,
+            market = Constants.CASH
         )
     val nzdCash =
         getTestAsset(
             code = NZD.code,
-            market = Constants.CASH,
+            market = Constants.CASH
         )
     val sgdCash =
         getTestAsset(
             code = SGD.code,
-            market = Constants.CASH,
+            market = Constants.CASH
         )
 
     @Test
@@ -63,10 +63,10 @@ class CashValuationTests {
         val positions =
             Positions(
                 portfolio =
-                Portfolio(
-                    id = "CostOfCash",
-                    currency = SGD,
-                ),
+                    Portfolio(
+                        id = "CostOfCash",
+                        currency = SGD
+                    )
             )
 
         accumulator.accumulate(
@@ -77,34 +77,34 @@ class CashValuationTests {
                 debitAmount = sgdBalance,
                 portfolio = positions.portfolio,
                 tradeBaseRate = rate,
-                tradePortfolioRate = rate,
+                tradePortfolioRate = rate
             ),
-            positions,
+            positions
         )
         val usdPosition = positions.getOrCreate(usdCash)
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
-                USD,
+                USD
             )
         assertThat(usdPosition.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                rate,
+                rate
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
-                positions.portfolio.currency,
+                positions.portfolio.currency
             )
         assertThat(usdPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                rate,
+                rate
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
-                positions.portfolio.base,
+                positions.portfolio.base
             )
     }
 
@@ -116,10 +116,10 @@ class CashValuationTests {
         val positions =
             Positions(
                 portfolio =
-                Portfolio(
-                    id = "AssetCost",
-                    currency = SGD,
-                ),
+                    Portfolio(
+                        id = "AssetCost",
+                        currency = SGD
+                    )
             )
 
         accumulator.accumulate(
@@ -128,14 +128,14 @@ class CashValuationTests {
                 balance = usdBalance,
                 portfolio = positions.portfolio,
                 tradeBaseRate = expectedRate,
-                tradePortfolioRate = expectedRate,
+                tradePortfolioRate = expectedRate
             ),
-            positions,
+            positions
         )
         val testAsset =
             getTestAsset(
                 US,
-                "AnyAsset",
+                "AnyAsset"
             )
         accumulator.accumulate(
             Trn(
@@ -147,34 +147,34 @@ class CashValuationTests {
                 cashCurrency = USD,
                 cashAsset = usdCash,
                 tradeAmount = usdBalance,
-                price = BigDecimal.ONE,
+                price = BigDecimal.ONE
             ),
-            positions,
+            positions
         )
         val equityPosition = positions.getOrCreate(testAsset)
         assertThat(equityPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
-                USD,
+                USD
             )
         assertThat(equityPosition.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                expectedRate,
+                expectedRate
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
-                positions.portfolio.currency,
+                positions.portfolio.currency
             )
         assertThat(equityPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                expectedRate,
+                expectedRate
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
-                positions.portfolio.base,
+                positions.portfolio.base
             )
     }
 
@@ -183,11 +183,11 @@ class CashValuationTests {
         val positions =
             Positions(
                 portfolio =
-                Portfolio(
-                    id = "FxCashFlows",
-                    currency = USD,
-                    base = NZD,
-                ),
+                    Portfolio(
+                        id = "FxCashFlows",
+                        currency = USD,
+                        base = NZD
+                    )
             )
         // Initial Deposit
         val nzdBalance = BigDecimal("12000.00")
@@ -195,9 +195,9 @@ class CashValuationTests {
             deposit(
                 nzdCash,
                 nzdBalance,
-                portfolio = positions.portfolio,
+                portfolio = positions.portfolio
             ),
-            positions,
+            positions
         )
         assertThat(positions.isMixedCurrencies).isFalse()
         assertThat(positions.positions).hasSize(1)
@@ -208,13 +208,13 @@ class CashValuationTests {
                 creditAmount = sgdBalance,
                 debit = nzdCash,
                 debitAmount = nzdBalance,
-                portfolio = positions.portfolio,
+                portfolio = positions.portfolio
             ),
-            positions,
+            positions
         )
         assertThat(positions.positions).containsKeys(
             toKey(nzdCash),
-            toKey(sgdCash),
+            toKey(sgdCash)
         )
         // NZD Balance has been Sold
         assertThat(
@@ -222,7 +222,7 @@ class CashValuationTests {
                 .getOrCreate(nzdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(BigDecimal.ZERO),
+                .compareTo(BigDecimal.ZERO)
         ).isEqualTo(0)
         // SGD Balance has been purchased
         assertThat(
@@ -230,7 +230,7 @@ class CashValuationTests {
                 .getOrCreate(sgdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(sgdBalance),
+                .compareTo(sgdBalance)
         ).isEqualTo(0)
         // Swap SGD for USD
         val usdBalance = BigDecimal("8359.43")
@@ -240,9 +240,9 @@ class CashValuationTests {
                 creditAmount = usdBalance,
                 debit = sgdCash,
                 debitAmount = sgdBalance,
-                portfolio = positions.portfolio,
+                portfolio = positions.portfolio
             ),
-            positions,
+            positions
         )
         // Verify cash balance buckets.
         assertThat(
@@ -250,21 +250,21 @@ class CashValuationTests {
                 .getOrCreate(nzdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(BigDecimal.ZERO),
+                .compareTo(BigDecimal.ZERO)
         ).isEqualTo(0)
         assertThat(
             positions
                 .getOrCreate(sgdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(BigDecimal.ZERO),
+                .compareTo(BigDecimal.ZERO)
         ).isEqualTo(0)
         assertThat(
             positions
                 .getOrCreate(usdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(usdBalance),
+                .compareTo(usdBalance)
         ).isEqualTo(0)
         // Withdraw the entire balance and check that cost is 0
         accumulator.accumulate(
@@ -274,9 +274,9 @@ class CashValuationTests {
                 cashAsset = usdCash,
                 price = BigDecimal.ONE,
                 // Amount to receive
-                quantity = usdBalance.multiply(BigDecimal("-1")),
+                quantity = usdBalance.multiply(BigDecimal("-1"))
             ),
-            positions,
+            positions
         )
         val usdPosition = positions.getOrCreate(usdCash)
         assertThat(usdPosition.quantityValues.getTotal().compareTo(BigDecimal.ZERO)).isEqualTo(0)

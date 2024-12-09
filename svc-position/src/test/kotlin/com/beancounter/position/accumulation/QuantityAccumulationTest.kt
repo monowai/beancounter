@@ -46,7 +46,7 @@ internal class QuantityAccumulationTest {
         val wholeNumberQuantity = BigDecimal(100)
         quantityValues.purchased = wholeNumberQuantity
         assertThat(quantityValues.getPrecision()).isEqualTo(
-            0,
+            0
         ) // Whole numbers have zero decimal places
 
         // Setting and verifying a user-defined precision level
@@ -60,7 +60,7 @@ internal class QuantityAccumulationTest {
         val asset =
             getTestAsset(
                 Market("marketCode"),
-                "CODE",
+                "CODE"
             )
         val twoHundred = BigDecimal(200)
 
@@ -71,11 +71,11 @@ internal class QuantityAccumulationTest {
                 trnType = TrnType.BUY,
                 asset = asset,
                 quantity = hundred,
-                tradeAmount = BigDecimal(2000),
+                tradeAmount = BigDecimal(2000)
             ),
             expectedTotal = hundred,
             expectedPurchased = hundred,
-            expectedSold = BigDecimal.ZERO,
+            expectedSold = BigDecimal.ZERO
         )
 
         // Double the position
@@ -85,11 +85,11 @@ internal class QuantityAccumulationTest {
                 trnType = TrnType.BUY,
                 asset = asset,
                 quantity = hundred,
-                tradeAmount = BigDecimal(2000),
+                tradeAmount = BigDecimal(2000)
             ),
             expectedTotal = twoHundred,
             expectedPurchased = twoHundred,
-            expectedSold = BigDecimal.ZERO,
+            expectedSold = BigDecimal.ZERO
         )
 
         // Perform a sell transaction to halve the position
@@ -99,11 +99,11 @@ internal class QuantityAccumulationTest {
                 trnType = TrnType.SELL,
                 asset = asset,
                 quantity = hundred,
-                tradeAmount = BigDecimal(2000),
+                tradeAmount = BigDecimal(2000)
             ),
             expectedTotal = hundred,
             expectedPurchased = twoHundred,
-            expectedSold = BigDecimal(-100),
+            expectedSold = BigDecimal(-100)
         )
 
         // Sell down the entire position effectively cleaning
@@ -113,8 +113,8 @@ internal class QuantityAccumulationTest {
                 trnType = TrnType.SELL,
                 asset = asset,
                 quantity = hundred,
-                tradeAmount = BigDecimal(2000),
-            ),
+                tradeAmount = BigDecimal(2000)
+            )
         )
     }
 
@@ -123,24 +123,24 @@ internal class QuantityAccumulationTest {
         transaction: Trn,
         expectedTotal: BigDecimal = BigDecimal.ZERO,
         expectedPurchased: BigDecimal = BigDecimal.ZERO,
-        expectedSold: BigDecimal = BigDecimal.ZERO,
+        expectedSold: BigDecimal = BigDecimal.ZERO
     ) {
         val result =
             accumulator.accumulate(
                 transaction,
-                positions,
+                positions
             )
         assertThat(result.quantityValues).hasFieldOrPropertyWithValue(
             PROP_TOTAL,
-            expectedTotal,
+            expectedTotal
         )
         assertThat(result.quantityValues).hasFieldOrPropertyWithValue(
             PROP_PURCHASED,
-            expectedPurchased,
+            expectedPurchased
         )
         assertThat(result.quantityValues).hasFieldOrPropertyWithValue(
             PROP_SOLD,
-            expectedSold,
+            expectedSold
         )
     }
 }

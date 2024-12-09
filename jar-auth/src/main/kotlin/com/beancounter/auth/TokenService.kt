@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class TokenService(
-    val authConfig: AuthConfig,
+    val authConfig: AuthConfig
 ) {
     /**
      * Checks if the given authentication is token-based.

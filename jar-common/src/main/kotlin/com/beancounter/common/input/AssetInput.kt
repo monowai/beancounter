@@ -17,7 +17,7 @@ data class AssetInput(
     val currency: String? = null,
     // Case in-sensitive assetCategory ID
     val category: String = "Equity",
-    val owner: String = "",
+    val owner: String = ""
 ) {
     companion object {
         @JvmStatic
@@ -26,14 +26,14 @@ data class AssetInput(
         @JvmStatic
         fun toCash(
             currency: Currency,
-            name: String,
+            name: String
         ): AssetInput =
             AssetInput(
                 "CASH",
                 code = name,
                 name = name,
                 currency = currency.code,
-                category = cashAsset,
+                category = cashAsset
             )
 
         @JvmStatic
@@ -41,7 +41,7 @@ data class AssetInput(
             currency: Currency,
             code: String,
             name: String,
-            owner: String,
+            owner: String
         ): AssetInput =
             AssetInput(
                 "OFFM",
@@ -49,7 +49,7 @@ data class AssetInput(
                 name = name,
                 currency = currency.code,
                 category = AssetCategory.RE,
-                owner = owner,
+                owner = owner
             )
     }
 }

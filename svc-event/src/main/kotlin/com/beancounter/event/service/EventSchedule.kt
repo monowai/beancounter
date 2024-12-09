@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 class EventSchedule(
     private val eventService: EventService,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) {
     private var loginService: LoginService? = null
 
@@ -24,7 +24,7 @@ class EventSchedule(
 
     @Scheduled(
         cron = "#{@eventsSchedule}",
-        zone = "#{@scheduleZone}",
+        zone = "#{@scheduleZone}"
     )
     fun processEventsForRange() {
         log.info("Checking for corporate events to process")
@@ -36,7 +36,7 @@ class EventSchedule(
         val events =
             eventService.findInRange(
                 start,
-                end,
+                end
             )
         for (event in events) {
             eventService.processEvent(event)
@@ -44,7 +44,7 @@ class EventSchedule(
         if (!events.isEmpty()) {
             log.info(
                 "Processed {} events",
-                events.size,
+                events.size
             )
         }
     }

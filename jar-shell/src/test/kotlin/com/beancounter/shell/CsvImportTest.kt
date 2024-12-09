@@ -28,8 +28,8 @@ class CsvImportTest {
             HttpWriter(
                 trnService,
                 rowAdapter,
-                fxTransactions,
-            ),
+                fxTransactions
+            )
         )
         val results = csvIngester.values
         assertThat(results).isNotEmpty.hasSize(5)

@@ -59,7 +59,7 @@ class TrnPortfolioControllerTest {
         initializeAuthentication(mockAuthConfig)
         registerUser(
             mockMvc,
-            token,
+            token
         )
         setupAssetsAndTransactions()
         assertThat(fxTransactions).isNotNull
@@ -70,7 +70,7 @@ class TrnPortfolioControllerTest {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                token,
+                token
             )
     }
 
@@ -83,12 +83,12 @@ class TrnPortfolioControllerTest {
         val portfolioA =
             createPortfolio(
                 "PCA",
-                "PCA-NAME",
+                "PCA-NAME"
             )
         val portfolioB =
             createPortfolio(
                 "PCB",
-                "PCB-NAME",
+                "PCB-NAME"
             )
 
         val transactionsA =
@@ -96,74 +96,74 @@ class TrnPortfolioControllerTest {
                 createTransactionInput(
                     "1",
                     "2016-01-01",
-                    BigDecimal.ONE,
+                    BigDecimal.ONE
                 ),
                 createTransactionInput(
                     "2",
-                    BcMvcHelper.TRADE_DATE,
-                ),
+                    BcMvcHelper.TRADE_DATE
+                )
             )
         val transactionsB =
             arrayOf(
                 createTransactionInput(
                     "3",
-                    "2018-10-01",
+                    "2018-10-01"
                 ),
                 createTransactionInput(
                     "34",
-                    "2017-01-01",
-                ),
+                    "2017-01-01"
+                )
             )
 
         postTransaction(
             portfolioA.id,
-            transactionsA,
+            transactionsA
         )
         postTransaction(
             portfolioB.id,
-            transactionsB,
+            transactionsB
         )
     }
 
     private fun createPortfolio(
         type: String,
-        name: String,
+        name: String
     ): Portfolio =
         bcMvcHelper.portfolio(
             PortfolioInput(
                 type,
                 name,
-                currency = Constants.NZD.code,
-            ),
+                currency = Constants.NZD.code
+            )
         )
 
     private fun createTransactionInput(
         callerId: String,
         tradeDate: String,
-        tradePortfolioRate: BigDecimal = BigDecimal.TEN,
+        tradePortfolioRate: BigDecimal = BigDecimal.TEN
     ): TrnInput =
         TrnInput(
             CallerRef(
                 batch = BigDecimal.ZERO.toString(),
-                callerId = callerId,
+                callerId = callerId
             ),
             msft.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeDate = dateUtils.getFormattedDate(tradeDate),
             price = BigDecimal.TEN,
-            tradePortfolioRate = tradePortfolioRate,
+            tradePortfolioRate = tradePortfolioRate
         )
 
     private fun postTransaction(
         portfolioId: String,
-        transactions: Array<TrnInput>,
+        transactions: Array<TrnInput>
     ) {
         bcMvcHelper.postTrn(
             TrnRequest(
                 portfolioId,
-                transactions,
-            ),
+                transactions
+            )
         )
     }
 
@@ -179,30 +179,30 @@ class TrnPortfolioControllerTest {
                                 .get(
                                     "${BcMvcHelper.PORTFOLIO_ROOT}/asset/{assetId}/{tradeDate}",
                                     msft.id,
-                                    BcMvcHelper.TRADE_DATE,
+                                    BcMvcHelper.TRADE_DATE
                                 ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                                .contentType(MediaType.APPLICATION_JSON),
+                                .contentType(MediaType.APPLICATION_JSON)
                         ).andExpect(MockMvcResultMatchers.status().isOk)
                         .andExpect(
-                            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON),
+                            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)
                         ).andReturn()
                         .response.contentAsString,
-                    PortfoliosResponse::class.java,
-                ).data,
+                    PortfoliosResponse::class.java
+                ).data
         ).hasSize(2)
         assertThat(
             portfolioService
                 .findWhereHeld(
                     msft.id,
-                    dateUtils.getFormattedDate("2016-01-01"),
-                ).data,
+                    dateUtils.getFormattedDate("2016-01-01")
+                ).data
         ).hasSize(1)
         assertThat(
             portfolioService
                 .findWhereHeld(
                     msft.id,
-                    null,
-                ).data,
+                    null
+                ).data
         ).hasSize(2)
     }
 }

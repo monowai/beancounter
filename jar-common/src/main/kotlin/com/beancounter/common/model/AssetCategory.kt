@@ -5,7 +5,7 @@ package com.beancounter.common.model
  */
 data class AssetCategory(
     var id: String,
-    var name: String,
+    var name: String
 ) {
     companion object {
         const val RE: String = "RE"

@@ -29,7 +29,7 @@ private const val BEARER_TOKEN = "no-token"
  */
 @SpringBootTest(
     classes = [PositionBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @AutoConfigureNoAuth
 class ContractVerifierBase {
@@ -61,7 +61,7 @@ class ContractVerifierBase {
                 portfolioId,
                 "${Constants.NZD.code} Portfolio",
                 currency = Currency(Constants.NZD.code),
-                base = Currency(Constants.USD.code),
+                base = Currency(Constants.USD.code)
             )
 
         `when`(portfolioServiceClient.getPortfolioByCode(portfolioId))
@@ -73,8 +73,8 @@ class ContractVerifierBase {
         `when`(
             portfolioServiceClient.getPortfolioById(
                 portfolioId,
-                BEARER_TOKEN,
-            ),
+                BEARER_TOKEN
+            )
         ).thenReturn(testPortfolio)
 
         `when`(
@@ -82,14 +82,14 @@ class ContractVerifierBase {
                 TrustedTrnQuery(
                     testPortfolio,
                     dateUtils.getFormattedDate(valuationDate),
-                    "KMI",
-                ),
-            ),
+                    "KMI"
+                )
+            )
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/kmi-response.json").file,
-                PositionResponse::class.java,
-            ),
+                PositionResponse::class.java
+            )
         )
 
         `when`(
@@ -97,27 +97,27 @@ class ContractVerifierBase {
                 TrustedTrnQuery(
                     testPortfolio,
                     dateUtils.getFormattedDate(valuationDate),
-                    "MSFT",
-                ),
-            ),
+                    "MSFT"
+                )
+            )
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/msft-response.json").file,
-                PositionResponse::class.java,
-            ),
+                PositionResponse::class.java
+            )
         )
 
         `when`(
             valuationService.getPositions(
                 testPortfolio,
                 valuationDate,
-                true,
-            ),
+                true
+            )
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/test-response.json").file,
-                PositionResponse::class.java,
-            ),
+                PositionResponse::class.java
+            )
         )
     }
 }

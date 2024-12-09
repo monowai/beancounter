@@ -8,5 +8,5 @@ package com.beancounter.common.model
  */
 enum class Status {
     Active,
-    Inactive,
+    Inactive
 }

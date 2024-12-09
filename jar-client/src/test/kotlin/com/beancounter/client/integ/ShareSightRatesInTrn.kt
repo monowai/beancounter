@@ -33,7 +33,7 @@ import java.math.BigDecimal
 @ActiveProfiles("infile")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 class ShareSightRatesInTrn {
@@ -69,52 +69,52 @@ class ShareSightRatesInTrn {
         // Trade is in USD
         row.add(
             ShareSightDividendAdapter.ID,
-            "ABC",
+            "ABC"
         )
         row.add(
             ShareSightDividendAdapter.CODE,
-            "ABBV.NYS",
+            "ABBV.NYS"
         )
         row.add(
             ShareSightDividendAdapter.NAME,
-            "Test Asset",
+            "Test Asset"
         )
         row.add(
             ShareSightDividendAdapter.DATE,
-            "21/01/2019",
+            "21/01/2019"
         )
         val rate = "0.8074" // Sharesight Trade to Reference Rate
         row.add(
             ShareSightDividendAdapter.FX_RATE,
-            rate,
+            rate
         )
         row.add(
             ShareSightDividendAdapter.CURRENCY,
-            USD.code,
+            USD.code
         ) // TradeCurrency
         val net = "15.85"
         row.add(
             ShareSightDividendAdapter.NET,
-            net,
+            net
         )
         row.add(
             ShareSightDividendAdapter.TAX,
-            BigDecimal.ZERO.toString(),
+            BigDecimal.ZERO.toString()
         )
         row.add(
             ShareSightDividendAdapter.GROSS,
-            net,
+            net
         )
         row.add(
             ShareSightDividendAdapter.COMMENTS,
-            testComment,
+            testComment
         )
         val dividends = shareSightFactory.adapter(row)
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val trn = dividends.from(trustedTrnImportRequest)
         val fxRate = BigDecimal(rate)
@@ -122,34 +122,34 @@ class ShareSightRatesInTrn {
             .assertThat(trn) // Id comes from svc-data/contracts/assets
             .hasFieldOrPropertyWithValue(
                 "callerRef.callerId",
-                "ABC",
+                "ABC"
             ).hasFieldOrPropertyWithValue(
                 "assetId",
-                "BguoVZpoRxWeWrITp7DEuw",
+                "BguoVZpoRxWeWrITp7DEuw"
             ).hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                fxRate,
+                fxRate
             ).hasFieldOrPropertyWithValue(
                 "tradeAmount",
                 multiplyAbs(
                     BigDecimal(net),
-                    fxRate,
-                ),
+                    fxRate
+                )
             ).hasFieldOrPropertyWithValue(
                 "cashAmount",
                 multiplyAbs(
                     BigDecimal(net),
-                    fxRate,
-                ),
+                    fxRate
+                )
             ).hasFieldOrPropertyWithValue(
                 "tax",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ).hasFieldOrPropertyWithValue(
                 "comments",
-                row[ShareSightDividendAdapter.COMMENTS],
+                row[ShareSightDividendAdapter.COMMENTS]
             ).hasFieldOrPropertyWithValue(
                 "tradeCurrency",
-                USD.code,
+                USD.code
             ).hasFieldOrProperty("tradeDate")
     }
 
@@ -162,20 +162,20 @@ class ShareSightRatesInTrn {
             getRow(
                 "buy",
                 fxRate,
-                tradeAmount,
+                tradeAmount
             )
         // Portfolio is in NZD
         val portfolio =
             getPortfolio(
                 "is_TradeRowWithFxConverted",
-                NZD,
+                NZD
             )
         // System base currency
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
 
@@ -184,29 +184,29 @@ class ShareSightRatesInTrn {
             .assertThat(trn)
             .hasFieldOrPropertyWithValue(
                 "trnType",
-                TrnType.BUY,
+                TrnType.BUY
             ).hasFieldOrPropertyWithValue(
                 "quantity",
-                BigDecimal(10),
+                BigDecimal(10)
             ).hasFieldOrPropertyWithValue(
                 "price",
-                BigDecimal("12.23"),
+                BigDecimal("12.23")
             ).hasFieldOrPropertyWithValue(
                 "fees",
-                BigDecimal("14.45"),
+                BigDecimal("14.45")
             ).hasFieldOrPropertyWithValue(
                 "tradeAmount",
                 multiplyAbs(
                     BigDecimal(tradeAmount),
-                    BigDecimal(fxRate),
-                ),
+                    BigDecimal(fxRate)
+                )
             ).hasFieldOrPropertyWithValue(
                 "comments",
-                testComment,
+                testComment
             ).hasFieldOrProperty("tradeCurrency")
             .hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                BigDecimal(fxRate),
+                BigDecimal(fxRate)
             ).hasFieldOrProperty("tradeDate")
     }
 

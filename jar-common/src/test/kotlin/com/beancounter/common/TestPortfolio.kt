@@ -28,8 +28,8 @@ class TestPortfolio {
         assertThat(
             objectMapper.readValue(
                 json,
-                PortfoliosRequest::class.java,
-            ),
+                PortfoliosRequest::class.java
+            )
         ).usingRecursiveComparison().isEqualTo(portfoliosRequest)
 
         val portfolios: MutableCollection<Portfolio> = ArrayList()
@@ -40,7 +40,7 @@ class TestPortfolio {
             objectMapper
                 .readValue(
                     json,
-                    PortfoliosResponse::class.java,
+                    PortfoliosResponse::class.java
                 ).data
         assertThat(fromJson).hasSize(portfoliosResponse.data.size)
         assertThat(fromJson.iterator().next())
@@ -56,8 +56,8 @@ class TestPortfolio {
             objectMapper
                 .readValue(
                     json,
-                    PortfolioResponse::class.java,
-                ).data,
+                    PortfolioResponse::class.java
+                ).data
         ).usingRecursiveComparison().isEqualTo(portfolioResponse.data)
     }
 
@@ -70,7 +70,7 @@ class TestPortfolio {
                 "id",
                 "email",
                 false,
-                since = LocalDate.now().minusDays(5),
+                since = LocalDate.now().minusDays(5)
             )
         portfolios.add(portfolio)
         val portfoliosResponse = PortfoliosResponse(portfolios)
@@ -78,7 +78,7 @@ class TestPortfolio {
         val fromJson =
             objectMapper.readValue(
                 json,
-                PortfoliosResponse::class.java,
+                PortfoliosResponse::class.java
             )
         assertThat(fromJson.data).isNotNull.hasSize(1)
         assertThat(fromJson.data.iterator().next()).isEqualTo(portfolio)

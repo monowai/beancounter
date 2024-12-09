@@ -63,7 +63,7 @@ class TestUserCommands {
             RegistrationService(
                 registrationGateway,
                 jwtDecoder,
-                tokenService,
+                tokenService
             )
         val userCommands = UserCommands(registrationService)
         userCommands.lineReader = lineReader
@@ -78,14 +78,14 @@ class TestUserCommands {
             .`when`(
                 lineReader.readLine(
                     "Password: ",
-                    '*',
-                ),
+                    '*'
+                )
             ).thenReturn(password)
 
         val systemUser =
             SystemUser(
                 userId,
-                EMAIL,
+                EMAIL
             )
         mockAuthConfig.login(EMAIL)
         val authResponse =
@@ -94,7 +94,7 @@ class TestUserCommands {
                 scope = "beancounter",
                 expiry = 0L,
                 refreshToken = "",
-                type = "password",
+                type = "password"
             )
 
         Mockito
@@ -102,9 +102,9 @@ class TestUserCommands {
                 registrationGateway.auth(
                     LoginRequest(
                         userId,
-                        password,
-                    ),
-                ),
+                        password
+                    )
+                )
             ).thenReturn(authResponse)
 
         val userCommands = getUserCommands()
@@ -119,8 +119,8 @@ class TestUserCommands {
             .`when`(
                 registrationGateway.register(
                     tokenService.bearerToken,
-                    RegistrationRequest(),
-                ),
+                    RegistrationRequest()
+                )
             ).thenReturn(RegistrationResponse(systemUser))
         userCommands.register()
 
@@ -131,19 +131,19 @@ class TestUserCommands {
         val me =
             objectMapper.readValue(
                 userCommands.me(),
-                SystemUser::class.java,
+                SystemUser::class.java
             )
         assertThat(me).isNotNull.hasFieldOrPropertyWithValue(
             "id",
-            systemUser.id,
+            systemUser.id
         )
         assertThat(userCommands.token()).isEqualTo(tokenService.bearerToken)
         Mockito
             .`when`(
                 registrationGateway.register(
                     tokenService.bearerToken,
-                    RegistrationRequest(),
-                ),
+                    RegistrationRequest()
+                )
             ).thenReturn(RegistrationResponse(systemUser))
 
         val registrationResponse = userCommands.register()
@@ -151,13 +151,13 @@ class TestUserCommands {
             objectMapper
                 .readValue(
                     registrationResponse,
-                    SystemUser::class.java,
+                    SystemUser::class.java
                 )
         assertThat(registered)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "id",
-                systemUser.id,
+                systemUser.id
             )
     }
 }

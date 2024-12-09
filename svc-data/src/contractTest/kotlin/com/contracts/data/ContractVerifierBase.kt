@@ -23,13 +23,13 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
 @Import(
     ContractHelper::class,
-    NoWebAuth::class,
+    NoWebAuth::class
 )
 class ContractVerifierBase {
     @LocalServerPort

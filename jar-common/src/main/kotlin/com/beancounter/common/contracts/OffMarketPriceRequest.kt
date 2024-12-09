@@ -9,5 +9,5 @@ import java.math.BigDecimal
 data class OffMarketPriceRequest(
     val assetId: String,
     val date: String = DateUtils().today(),
-    val closePrice: BigDecimal,
+    val closePrice: BigDecimal
 )

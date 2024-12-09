@@ -14,19 +14,19 @@ import java.util.Locale
 @Service
 @ConditionalOnProperty(
     value = ["beancounter.marketdata.provider.figi.enabled"],
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 class FigiProxy internal constructor(
     val figiConfig: FigiConfig,
     val figiGateway: FigiGateway,
-    val figiAdapter: FigiAdapter,
+    val figiAdapter: FigiAdapter
 ) {
     private val filter: List<String> =
         arrayListOf(
             "COMMON STOCK",
             "REIT",
             "DEPOSITARY RECEIPT",
-            "MUTUAL FUND",
+            "MUTUAL FUND"
         )
 
     @RateLimiter(name = "figi")
@@ -34,12 +34,12 @@ class FigiProxy internal constructor(
         market: Market,
         bcAssetCode: String,
         defaultName: String? = null,
-        id: String = bcAssetCode,
+        id: String = bcAssetCode
     ): Asset? {
         val (figiCode, figiMarket, figiSearch) =
             resolve(
                 bcAssetCode,
-                market,
+                market
             )
         val response = resolve(figiSearch)
         if (response?.error != null) {
@@ -47,11 +47,11 @@ class FigiProxy internal constructor(
                 "Error {}/{} {}",
                 figiMarket,
                 figiCode,
-                response.error,
+                response.error
             )
             return if (response.error.equals(
                     "No identifier found.",
-                    ignoreCase = true,
+                    ignoreCase = true
                 )
             ) {
                 // Unknown, so don't continue to hit the service - add a name value
@@ -59,7 +59,7 @@ class FigiProxy internal constructor(
                     market,
                     bcAssetCode,
                     defaultName = defaultName,
-                    id,
+                    id
                 )
             } else {
                 null
@@ -73,13 +73,13 @@ class FigiProxy internal constructor(
                         market,
                         bcAssetCode,
                         figiMarket,
-                        figiCode,
+                        figiCode
                     )
                     return figiAdapter.transform(
                         market,
                         bcAssetCode,
                         datum,
-                        id,
+                        id
                     )
                 }
             }
@@ -90,13 +90,13 @@ class FigiProxy internal constructor(
 
     fun resolve(
         bcAssetCode: String,
-        market: Market,
+        market: Market
     ): Triple<String, String, FigiSearch> {
         val figiCode =
             bcAssetCode
                 .replace(
                     ".",
-                    "/",
+                    "/"
                 ).uppercase(Locale.getDefault())
         val figiMarket = market.aliases[FIGI]!!
         val figiSearch =
@@ -104,12 +104,12 @@ class FigiProxy internal constructor(
                 figiCode,
                 figiMarket,
                 EQUITY,
-                true,
+                true
             )
         return Triple(
             figiCode,
             figiMarket,
-            figiSearch,
+            figiSearch
         )
     }
 
@@ -145,8 +145,8 @@ class FigiProxy internal constructor(
         return extractResult(
             figiGateway.search(
                 getSearchArgs(figiSearch),
-                figiConfig.apiKey,
-            ),
+                figiConfig.apiKey
+            )
         )
     }
 
@@ -155,8 +155,8 @@ class FigiProxy internal constructor(
         return extractResult(
             figiGateway.search(
                 getSearchArgs(figiSearch),
-                figiConfig.apiKey,
-            ),
+                figiConfig.apiKey
+            )
         )
     }
 
@@ -165,8 +165,8 @@ class FigiProxy internal constructor(
         return extractResult(
             figiGateway.search(
                 getSearchArgs(figiSearch),
-                figiConfig.apiKey,
-            ),
+                figiConfig.apiKey
+            )
         )
     }
 
@@ -175,8 +175,8 @@ class FigiProxy internal constructor(
         return extractResult(
             figiGateway.search(
                 getSearchArgs(figiSearch),
-                figiConfig.apiKey,
-            ),
+                figiConfig.apiKey
+            )
         )
     }
 

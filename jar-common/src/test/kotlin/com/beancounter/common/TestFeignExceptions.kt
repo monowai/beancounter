@@ -44,15 +44,15 @@ class TestFeignExceptions {
                         TEST_UR,
                         java.util.HashMap(),
                         empty(),
-                        requestTemplate,
-                    ),
+                        requestTemplate
+                    )
                 ).build()
         assertThrows(BusinessException::class.java) {
             validBusinessException(
                 springFeignDecoder.decode(
                     Constants.TEST,
-                    response,
-                ),
+                    response
+                )
             )
         }
     }
@@ -71,15 +71,15 @@ class TestFeignExceptions {
                         TEST_UR,
                         java.util.HashMap(),
                         empty(),
-                        requestTemplate,
-                    ),
+                        requestTemplate
+                    )
                 ).build()
         assertThrows(SystemException::class.java) {
             validSystemException(
                 springFeignDecoder.decode(
                     Constants.TEST,
-                    response,
-                ),
+                    response
+                )
             )
         }
     }
@@ -98,14 +98,14 @@ class TestFeignExceptions {
                         TEST_UR,
                         java.util.HashMap(),
                         empty(),
-                        requestTemplate,
-                    ),
+                        requestTemplate
+                    )
                 ).build()
         assertThrows(FeignException::class.java) {
             val e =
                 springFeignDecoder.decode(
                     Constants.TEST,
-                    response,
+                    response
                 )
             assertThat(e.message).contains("101 Integration Error")
             throw e
@@ -127,14 +127,14 @@ class TestFeignExceptions {
                         TEST_UR,
                         HashMap(),
                         empty(),
-                        requestTemplate,
-                    ),
+                        requestTemplate
+                    )
                 ).build()
         assertThrows(UnauthorizedException::class.java) {
             val e =
                 springFeignDecoder.decode(
                     Constants.TEST,
-                    response,
+                    response
                 )
             assertThat(e.message).contains(reason)
             throw e
@@ -148,7 +148,7 @@ class TestFeignExceptions {
             SpringExceptionMessage(
                 error = "",
                 message = INT_ERROR,
-                path = "",
+                path = ""
             )
         val response =
             Response
@@ -161,18 +161,18 @@ class TestFeignExceptions {
                         TEST_UR,
                         HashMap(),
                         empty(),
-                        RequestTemplate(),
-                    ),
+                        RequestTemplate()
+                    )
                 ).body(
                     objectMapper.writeValueAsString(springExceptionMessage),
-                    Charset.defaultCharset(),
+                    Charset.defaultCharset()
                 ).build()
         assertThrows(SystemException::class.java) {
             validIntegrationException(
                 springFeignDecoder.decode(
                     Constants.TEST,
-                    response,
-                ),
+                    response
+                )
             )
         }
     }
@@ -192,14 +192,14 @@ class TestFeignExceptions {
                         TEST_UR,
                         java.util.HashMap(),
                         empty(),
-                        requestTemplate,
-                    ),
+                        requestTemplate
+                    )
                 ).build()
         assertThrows(ForbiddenException::class.java) {
             val e =
                 springFeignDecoder.decode(
                     Constants.TEST,
-                    response,
+                    response
                 )
             assertThat(e.message).contains(reason)
             throw e
@@ -217,7 +217,7 @@ class TestFeignExceptions {
         assertThat(e)
             .hasFieldOrPropertyWithValue(
                 MESSAGE,
-                INT_ERROR,
+                INT_ERROR
             )
         throw e
     }
@@ -226,12 +226,12 @@ class TestFeignExceptions {
         val springExceptionMessage: SpringExceptionMessage =
             objectMapper.readValue(
                 e.message,
-                SpringExceptionMessage::class.java,
+                SpringExceptionMessage::class.java
             )
         assertThat(springExceptionMessage)
             .hasFieldOrPropertyWithValue(
                 MESSAGE,
-                INT_ERROR,
+                INT_ERROR
             )
         throw e
     }
@@ -239,7 +239,7 @@ class TestFeignExceptions {
     private fun validBusinessException(e: Exception) {
         assertThat(e).hasFieldOrPropertyWithValue(
             MESSAGE,
-            "Business Logic",
+            "Business Logic"
         )
         throw e
     }

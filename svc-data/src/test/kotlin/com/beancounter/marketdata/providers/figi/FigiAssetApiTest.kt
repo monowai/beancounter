@@ -81,13 +81,13 @@ class FigiAssetApiTest {
         val asset =
             figiProxy.find(
                 marketService.getMarket(NASDAQ.code),
-                MSFT.code,
+                MSFT.code
             )
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_NAME,
-                "MICROSOFT CORP",
+                "MICROSOFT CORP"
             ).isNotNull
     }
 
@@ -96,13 +96,13 @@ class FigiAssetApiTest {
         val asset =
             figiProxy.find(
                 marketService.getMarket(NASDAQ.code),
-                "BAIDU",
+                "BAIDU"
             )
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_NAME,
-                "BAIDU INC - SPON ADR",
+                "BAIDU INC - SPON ADR"
             ).isNotNull
     }
 
@@ -111,13 +111,13 @@ class FigiAssetApiTest {
         val asset =
             figiProxy.find(
                 marketService.getMarket(NYSE.code),
-                "OHI",
+                "OHI"
             )
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_NAME,
-                "OMEGA HEALTHCARE INVESTORS",
+                "OMEGA HEALTHCARE INVESTORS"
             ).isNotNull
     }
 
@@ -126,18 +126,18 @@ class FigiAssetApiTest {
         val asset =
             figiProxy.find(
                 marketService.getMarket(NYSE.code),
-                "XLF",
+                "XLF"
             )
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_NAME,
-                "FINANCIAL SELECT SECTOR SPDR",
+                "FINANCIAL SELECT SECTOR SPDR"
             ) // Unknown to BC, but is known to FIGI
             .hasNoNullFieldsOrPropertiesExcept(
                 "id",
                 "priceSymbol",
-                "systemUser",
+                "systemUser"
             ).isNotNull
     }
 
@@ -153,12 +153,12 @@ class FigiAssetApiTest {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(
             mockMvc,
-            token,
+            token
         )
         val market = marketService.getMarket(NYSE.code)
         assertThat(market).isNotNull.hasFieldOrPropertyWithValue(
             "enricher",
-            null,
+            null
         )
         // System default enricher is found
         assertThat(enrichmentFactory.getEnricher(market)).isNotNull
@@ -170,9 +170,9 @@ class FigiAssetApiTest {
                         .get(
                             "$ASSET_ROOT/{market}/{code}",
                             NYSE.code,
-                            BRK_B,
+                            BRK_B
                         ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -180,16 +180,16 @@ class FigiAssetApiTest {
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    AssetResponse::class.java,
+                    AssetResponse::class.java
                 )
         assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_CODE,
-                BRK_B,
+                BRK_B
             ).hasFieldOrPropertyWithValue(
                 P_NAME,
-                "BERKSHIRE HATHAWAY INC-CL B",
+                "BERKSHIRE HATHAWAY INC-CL B"
             )
     }
 
@@ -201,9 +201,9 @@ class FigiAssetApiTest {
                 AssetInput(
                     NASDAQ.code,
                     "ABC",
-                    "My Default Name",
+                    "My Default Name"
                 ),
-                "ZZZ",
+                "ZZZ"
             )
         val assetResponse = assetService.handle(assetRequest)
         assertThat(assetResponse).isNotNull
@@ -213,7 +213,7 @@ class FigiAssetApiTest {
                 assetRequest.data
                     .iterator()
                     .next()
-                    .key,
+                    .key
             )
 
         val createdAsset =
@@ -224,10 +224,10 @@ class FigiAssetApiTest {
         assertThat(createdAsset)
             .hasFieldOrPropertyWithValue(
                 P_NAME,
-                createdAsset.name,
+                createdAsset.name
             ).hasFieldOrPropertyWithValue(
                 P_CODE,
-                createdAsset.code,
+                createdAsset.code
             )
     }
 
@@ -238,31 +238,31 @@ class FigiAssetApiTest {
         mock(
             ClassPathResource("$prefix/common-stock-response.json").file,
             MSFT.code,
-            "Common Stock",
+            "Common Stock"
         )
 
         mock(
             ClassPathResource("$prefix/adr-response.json").file,
             "BAIDU",
-            "Depositary Receipt",
+            "Depositary Receipt"
         )
 
         mock(
             ClassPathResource("$prefix/reit-response.json").file,
             "OHI",
-            "REIT",
+            "REIT"
         )
 
         mock(
             ClassPathResource("$prefix/mf-response.json").file,
             "XLF",
-            "REIT",
+            "REIT"
         )
 
         mock(
             ClassPathResource("$prefix/brkb-response.json").file,
             "BRK/B",
-            "Common Stock",
+            "Common Stock"
         )
         stubFor(
             WireMock
@@ -274,13 +274,13 @@ class FigiAssetApiTest {
                         .withStatus(200)
                         .withHeader(
                             HttpHeaders.CONTENT_TYPE,
-                            MediaType.APPLICATION_JSON_VALUE,
+                            MediaType.APPLICATION_JSON_VALUE
                         ).withBody(
                             "[{\"error\": \"No identifier found.\"\n" +
                                 "    }\n" +
-                                "]",
-                        ),
-                ),
+                                "]"
+                        )
+                )
         )
     }
 
@@ -289,39 +289,39 @@ class FigiAssetApiTest {
         fun mock(
             jsonFile: File,
             code: String,
-            securityType: String,
+            securityType: String
         ) {
             val search =
                 FigiSearch(
                     code,
                     "US",
                     securityType,
-                    true,
+                    true
                 )
             val searchCollection: MutableCollection<FigiSearch> = ArrayList()
             searchCollection.add(search)
             val response: Collection<FigiResponse> =
                 objectMapper.readValue(
                     jsonFile,
-                    object : TypeReference<Collection<FigiResponse>>() {},
+                    object : TypeReference<Collection<FigiResponse>>() {}
                 )
             stubFor(
                 WireMock
                     .post(WireMock.urlEqualTo("/v2/mapping"))
                     .withRequestBody(
-                        WireMock.equalToJson(objectMapper.writeValueAsString(searchCollection)),
+                        WireMock.equalToJson(objectMapper.writeValueAsString(searchCollection))
                     ).withHeader(
                         "X-OPENFIGI-APIKEY",
-                        WireMock.matching("demoxx"),
+                        WireMock.matching("demoxx")
                     ).willReturn(
                         WireMock
                             .aResponse()
                             .withHeader(
                                 HttpHeaders.CONTENT_TYPE,
-                                MediaType.APPLICATION_JSON_VALUE,
+                                MediaType.APPLICATION_JSON_VALUE
                             ).withBody(objectMapper.writeValueAsString(response))
-                            .withStatus(200),
-                    ),
+                            .withStatus(200)
+                    )
             )
         }
     }

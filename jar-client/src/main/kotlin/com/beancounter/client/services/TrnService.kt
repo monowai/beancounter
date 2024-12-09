@@ -20,29 +20,29 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 class TrnService internal constructor(
     private val trnGateway: TrnGateway,
-    private val tokenService: TokenService,
+    private val tokenService: TokenService
 ) {
     fun write(trnRequest: TrnRequest): TrnResponse =
         trnGateway.write(
             tokenService.bearerToken,
-            trnRequest,
+            trnRequest
         )
 
     @CircuitBreaker(name = "default")
     fun query(trustedTrnQuery: TrustedTrnQuery): TrnResponse =
         trnGateway.read(
             tokenService.bearerToken,
-            trustedTrnQuery,
+            trustedTrnQuery
         )
 
     fun query(
         portfolio: Portfolio,
-        asAt: String = "today",
+        asAt: String = "today"
     ): TrnResponse =
         trnGateway.read(
             tokenService.bearerToken,
             portfolio.id,
-            asAt,
+            asAt
         )
 
     /**
@@ -50,37 +50,37 @@ class TrnService internal constructor(
      */
     @FeignClient(
         name = "trns",
-        url = "\${marketdata.url:http://localhost:9510}",
+        url = "\${marketdata.url:http://localhost:9510}"
     )
     interface TrnGateway {
         @PostMapping(
             value = ["/api/trns"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun write(
             @RequestHeader("Authorization") bearerToken: String,
-            trnRequest: TrnRequest,
+            trnRequest: TrnRequest
         ): TrnResponse
 
         @GetMapping(
             value = ["/api/trns/portfolio/{portfolioId}/{asAt}"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun read(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("portfolioId") portfolioId: String,
-            @PathVariable("asAt") asAt: String,
+            @PathVariable("asAt") asAt: String
         ): TrnResponse
 
         @PostMapping(
             value = ["/api/trns/query"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun read(
             @RequestHeader("Authorization") bearerToken: String,
-            trnQuery: TrustedTrnQuery,
+            trnQuery: TrustedTrnQuery
         ): TrnResponse
     }
 }

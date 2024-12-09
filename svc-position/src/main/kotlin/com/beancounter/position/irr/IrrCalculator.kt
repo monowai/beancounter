@@ -15,7 +15,7 @@ import kotlin.math.pow
  */
 @Service
 class IrrCalculator(
-    @Value("\${beancounter.irr:90}") private val minHoldingDays: Int = 90,
+    @Value("\${beancounter.irr:90}") private val minHoldingDays: Int = 90
 ) {
     private val solver: UnivariateSolver = BrentSolver()
 
@@ -28,7 +28,7 @@ class IrrCalculator(
      */
     fun calculate(
         periodicCashFlows: PeriodicCashFlows,
-        guess: Double = 0.1,
+        guess: Double = 0.1
     ): Double {
         if (periodicCashFlows.cashFlows.isEmpty()) {
             log.warn("No cash flows to calculate IRR")
@@ -39,7 +39,7 @@ class IrrCalculator(
 
         return if (ChronoUnit.DAYS.between(
                 firstDate,
-                lastDate,
+                lastDate
             ) < minHoldingDays
         ) {
             calculateSimpleROI(periodicCashFlows)
@@ -47,7 +47,7 @@ class IrrCalculator(
             calculateXIRR(
                 periodicCashFlows,
                 guess,
-                firstDate,
+                firstDate
             )
         }
     }
@@ -61,12 +61,12 @@ class IrrCalculator(
     private fun calculateXIRR(
         periodicCashFlows: PeriodicCashFlows,
         guess: Double,
-        firstDate: LocalDate,
+        firstDate: LocalDate
     ): Double {
         val npvFunction =
             NPVFunction(
                 periodicCashFlows,
-                firstDate,
+                firstDate
             )
         val result =
             solver.solve(
@@ -74,18 +74,18 @@ class IrrCalculator(
                 npvFunction,
                 -0.999999,
                 1000000.0,
-                guess,
+                guess
             )
         return String
             .format(
                 "%.8f",
-                result,
+                result
             ).toDouble()
     }
 
     private class NPVFunction(
         private val periodicCashFlows: PeriodicCashFlows,
-        private val startDate: LocalDate,
+        private val startDate: LocalDate
     ) : UnivariateFunction {
         override fun value(rate: Double): Double =
             periodicCashFlows.cashFlows.sumOf {
@@ -93,8 +93,8 @@ class IrrCalculator(
                     (1 + rate).pow(
                         ChronoUnit.DAYS.between(
                             startDate,
-                            it.date,
-                        ) / 365.0,
+                            it.date
+                        ) / 365.0
                     )
             }
     }

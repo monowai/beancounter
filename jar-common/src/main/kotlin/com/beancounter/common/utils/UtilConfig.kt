@@ -11,6 +11,6 @@ import org.springframework.context.annotation.Import
     DateUtils::class,
     BcJson::class,
     NumberUtils::class,
-    PercentUtils::class,
+    PercentUtils::class
 )
 class UtilConfig

@@ -12,6 +12,6 @@ interface Event {
     fun calculate(
         portfolio: Portfolio,
         currentPosition: Position,
-        corporateEvent: CorporateEvent,
+        corporateEvent: CorporateEvent
     ): TrustedTrnEvent
 }

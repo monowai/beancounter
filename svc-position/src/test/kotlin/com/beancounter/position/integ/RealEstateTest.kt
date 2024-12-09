@@ -44,7 +44,7 @@ class RealEstateTest {
             name = "RE-TEST Portfolio",
             currency = Constants.USD,
             base = Constants.USD,
-            owner = owner,
+            owner = owner
         )
     val date = "2023-05-01"
 
@@ -58,7 +58,7 @@ class RealEstateTest {
         val results =
             valuationService.build(
                 portfolio,
-                date,
+                date
             )
 
         // Assert: Check overall results data integrity
@@ -76,7 +76,7 @@ class RealEstateTest {
             mapOf(
                 "MORTGAGE 1:CASH" to expectedCost,
                 "MORTGAGE 2:CASH" to expectedCost,
-                "USD.RE:PRIVATE" to expectedCost.abs(),
+                "USD.RE:PRIVATE" to expectedCost.abs()
             )
 
         results.data.positions.forEach { position ->
@@ -85,7 +85,7 @@ class RealEstateTest {
                     .describedAs("Cost basis for ${position.key} should be correct")
                     .hasFieldOrPropertyWithValue(
                         PROP_COST_BASIS,
-                        expectedCostValue,
+                        expectedCostValue
                     )
             }
         }

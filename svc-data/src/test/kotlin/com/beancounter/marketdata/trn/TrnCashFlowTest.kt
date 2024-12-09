@@ -77,7 +77,7 @@ class TrnCashFlowTest {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                mockAuthConfig.getUserToken(Constants.systemUser),
+                mockAuthConfig.getUserToken(Constants.systemUser)
             )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
@@ -85,8 +85,8 @@ class TrnCashFlowTest {
             .`when`(
                 fxClientService.getRates(
                     any(),
-                    any(),
-                ),
+                    any()
+                )
             ).thenReturn(FxResponse(FxPairResults()))
         nzCashAsset = getCashBalance(Constants.NZD)
         usCashAsset = getCashBalance(Constants.USD)
@@ -96,10 +96,10 @@ class TrnCashFlowTest {
                     AssetRequest(
                         AssetInput(
                             Constants.NASDAQ.code,
-                            Constants.AAPL.code,
+                            Constants.AAPL.code
                         ),
-                        Constants.AAPL.code,
-                    ),
+                        Constants.AAPL.code
+                    )
                 ).data[Constants.AAPL.code]!!
     }
 
@@ -110,8 +110,8 @@ class TrnCashFlowTest {
                 PortfolioInput(
                     code = "FXNZ",
                     base = "NZD",
-                    currency = "USD",
-                ),
+                    currency = "USD"
+                )
             )
         // FX Buy USD
         val fxTrn =
@@ -134,15 +134,15 @@ class TrnCashFlowTest {
                             // US/NZ
                             tradeCashRate = usNzRate,
                             tradeBaseRate = usNzRate,
-                            price = BigDecimal.ONE,
-                        ),
-                    ),
-                ),
+                            price = BigDecimal.ONE
+                        )
+                    )
+                )
             )
         assertThat(fxTrn.iterator().next())
             .hasFieldOrPropertyWithValue(
                 pQuantity,
-                BigDecimal(twoFiveK),
+                BigDecimal(twoFiveK)
             )
         validateTrnSerialization(fxTrn)
     }
@@ -154,8 +154,8 @@ class TrnCashFlowTest {
                 PortfolioInput(
                     code = "NZTRN",
                     base = "NZD",
-                    currency = "USD",
-                ),
+                    currency = "USD"
+                )
             )
         // Let's start with a base currency deposit
         val nzTrn =
@@ -174,15 +174,15 @@ class TrnCashFlowTest {
                             tradePortfolioRate = BigDecimal.ONE,
                             tradeCashRate = BigDecimal.ONE,
                             tradeBaseRate = BigDecimal.ONE,
-                            price = BigDecimal.ONE,
-                        ),
-                    ),
-                ),
+                            price = BigDecimal.ONE
+                        )
+                    )
+                )
             )
         assertThat(nzTrn.iterator().next())
             .hasFieldOrPropertyWithValue(
                 pQuantity,
-                tenK,
+                tenK
             )
         validateTrnSerialization(nzTrn)
     }
@@ -194,13 +194,13 @@ class TrnCashFlowTest {
                 PortfolioInput(
                     code = "USDP",
                     base = "NZD",
-                    currency = "USD",
-                ),
+                    currency = "USD"
+                )
             )
         val nzUsRate =
             MathUtils.divide(
                 BigDecimal.ONE,
-                usNzRate,
+                usNzRate
             )
         val buyTrn =
             trnService.save(
@@ -215,24 +215,24 @@ class TrnCashFlowTest {
                             tradeCashRate = nzUsRate,
                             tradeBaseRate = nzUsRate,
                             quantity = BigDecimal("1000.00"),
-                            price = BigDecimal.ONE,
-                        ),
-                    ),
-                ),
+                            price = BigDecimal.ONE
+                        )
+                    )
+                )
             )
         assertThat(buyTrn.iterator().next())
             .hasFieldOrPropertyWithValue(
                 propTradeAmount,
-                BigDecimal("1000.00"),
+                BigDecimal("1000.00")
             ).hasFieldOrPropertyWithValue(
                 "cashAsset.id",
-                nzCashAsset.id,
+                nzCashAsset.id
             ).hasFieldOrPropertyWithValue(
                 "cashCurrency.code",
-                Constants.NZD.code,
+                Constants.NZD.code
             ).hasFieldOrPropertyWithValue(
                 propCashAmount,
-                BigDecimal("-1492.54"),
+                BigDecimal("-1492.54")
             )
         validateTrnSerialization(buyTrn)
     }
@@ -242,10 +242,10 @@ class TrnCashFlowTest {
             objectMapper.writeValueAsString(
                 TrnResponse(
                     arrayListOf(
-                        buyTrn.iterator().next(),
-                    ),
-                ),
-            ),
+                        buyTrn.iterator().next()
+                    )
+                )
+            )
         ).isNotNull
     }
 
@@ -257,10 +257,10 @@ class TrnCashFlowTest {
                     mapOf(
                         Pair(
                             currency.code,
-                            cashInput,
-                        ),
-                    ),
-                ),
+                            cashInput
+                        )
+                    )
+                )
             ).data[currency.code]!!
     }
 }

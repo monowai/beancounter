@@ -14,24 +14,24 @@ import java.util.Optional
 interface MarketDataRepo : CrudRepository<MarketData, String> {
     fun findByAssetIdAndPriceDate(
         assetId: String,
-        date: LocalDate?,
+        date: LocalDate?
     ): Optional<MarketData>
 
     fun findTop1ByAssetAndPriceDateLessThanEqual(
         asset: Asset,
-        priceDate: LocalDate,
+        priceDate: LocalDate
     ): Optional<MarketData>
 
     fun deleteMarketDataByAssetIdAndPriceDate(
         assetId: String,
-        date: LocalDate,
+        date: LocalDate
     )
 
     @Query(
-        "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate",
+        "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate"
     )
     fun findByAssetInAndPriceDate(
         @Param("assets") assets: Collection<Asset>,
-        @Param("priceDate") priceDate: LocalDate,
+        @Param("priceDate") priceDate: LocalDate
     ): List<MarketData>
 }

@@ -21,7 +21,7 @@ class WiremockAuth {
         @JvmStatic
         fun mockOpenConnect(
             authConfig: AuthConfig,
-            token: String = "user-token-response.json",
+            token: String = "user-token-response.json"
         ) {
             // Mock expired token response
             // Todo: Not properly implemented as it expects JSON body.  Need to figure out mocking multipart params.
@@ -33,17 +33,17 @@ class WiremockAuth {
                             .aResponse()
                             .withHeader(
                                 HttpHeaders.CONTENT_TYPE,
-                                MediaType.APPLICATION_JSON_VALUE,
+                                MediaType.APPLICATION_JSON_VALUE
                             ).withBody(
                                 objectMapper.writeValueAsString(
                                     objectMapper.readValue(
                                         ClassPathResource(token)
                                             .file,
-                                        HashMap::class.java,
-                                    ),
-                                ),
-                            ).withStatus(200),
-                    ),
+                                        HashMap::class.java
+                                    )
+                                )
+                            ).withStatus(200)
+                    )
             )
 
             WireMock.stubFor(
@@ -54,13 +54,13 @@ class WiremockAuth {
                             .aResponse()
                             .withHeader(
                                 HttpHeaders.CONTENT_TYPE,
-                                MediaType.APPLICATION_JSON_VALUE,
+                                MediaType.APPLICATION_JSON_VALUE
                             ).withBody(
                                 objectMapper.writeValueAsString(
-                                    remapLocalhostForWiremock(authConfig),
-                                ),
-                            ).withStatus(200),
-                    ),
+                                    remapLocalhostForWiremock(authConfig)
+                                )
+                            ).withStatus(200)
+                    )
             )
             WireMock.stubFor(
                 WireMock
@@ -70,24 +70,24 @@ class WiremockAuth {
                             .aResponse()
                             .withHeader(
                                 HttpHeaders.CONTENT_TYPE,
-                                MediaType.APPLICATION_JSON_VALUE,
+                                MediaType.APPLICATION_JSON_VALUE
                             ).withBody(
                                 objectMapper.writeValueAsString(
                                     objectMapper.readValue(
                                         ClassPathResource("./auth0-jwks.json")
                                             .file,
-                                        HashMap::class.java,
-                                    ),
-                                ),
-                            ).withStatus(200),
-                    ),
+                                        HashMap::class.java
+                                    )
+                                )
+                            ).withStatus(200)
+                    )
             )
         }
 
         @JvmStatic
         private fun remapLocalhostForWiremock(
             authConfig: AuthConfig,
-            file: String = "./openid-config.json",
+            file: String = "./openid-config.json"
         ): Map<String, Any> {
             // This is to support mocking via WireMock.
             val localTemplate = "{localhost}"
@@ -95,7 +95,7 @@ class WiremockAuth {
                 objectMapper.readValue(
                     ClassPathResource(file)
                         .file,
-                    HashMap::class.java,
+                    HashMap::class.java
                 )
             val results: MutableMap<String, String> = mutableMapOf()
             configuration.forEach { entry ->
@@ -103,7 +103,7 @@ class WiremockAuth {
                     if (entry.value.toString().startsWith(localTemplate)) {
                         entry.value.toString().replace(
                             localTemplate,
-                            authConfig.issuer,
+                            authConfig.issuer
                         )
                     } else {
                         entry.value.toString()

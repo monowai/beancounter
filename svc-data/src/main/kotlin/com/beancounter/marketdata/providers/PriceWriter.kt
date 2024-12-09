@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 @Controller
 @ConditionalOnProperty(
     value = ["kafka.enabled"],
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 @Transactional
 @DependsOn("kafkaConfig")
@@ -32,14 +32,14 @@ class PriceWriter {
 
     @KafkaListener(
         topics = ["#{@priceTopic}"],
-        errorHandler = "bcErrorHandler",
+        errorHandler = "bcErrorHandler"
     )
     @Throws(JsonProcessingException::class)
     fun processMessage(message: String?): Iterable<MarketData?>? {
         val priceResponse =
             objectMapper.readValue(
                 message,
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         return processMessage(priceResponse)
     }
@@ -47,7 +47,7 @@ class PriceWriter {
     fun processMessage(priceResponse: PriceResponse): Iterable<MarketData?>? {
         log.trace(
             "Received Message {}",
-            priceResponse.toString(),
+            priceResponse.toString()
         )
         return priceService!!.handle(priceResponse)
     }

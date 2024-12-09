@@ -26,20 +26,20 @@ class AssetUtils {
         @JvmStatic
         fun getTestAsset(
             market: Market,
-            code: String,
+            code: String
         ) = Asset(
             code = code,
             id = code,
             name = code,
             market = market,
-            status = Status.Active,
+            status = Status.Active
         )
 
         @JvmStatic
         fun split(assets: Collection<PriceAsset>): Map<String, List<PriceAsset>> =
             assets.groupByTo(
                 mutableMapOf(),
-                PriceAsset::market,
+                PriceAsset::market
             )
 
         /**
@@ -54,27 +54,27 @@ class AssetUtils {
         @Throws(JsonProcessingException::class)
         fun getJsonAsset(
             market: String,
-            code: String,
+            code: String
         ): Asset {
             val asset =
                 getTestAsset(
                     Market(market),
-                    code,
+                    code
                 )
             return objectMapper.readValue(
                 objectMapper.writeValueAsString(asset),
-                Asset::class.java,
+                Asset::class.java
             )
         }
 
         @JvmStatic
         fun getAssetInput(
             market: String,
-            code: String,
+            code: String
         ) = AssetInput(
             market,
             code,
-            name = code,
+            name = code
         )
 
         @JvmStatic
@@ -83,7 +83,7 @@ class AssetUtils {
                 market = asset.market.code,
                 code = asset.code,
                 name = asset.code,
-                resolvedAsset = asset,
+                resolvedAsset = asset
             )
 
         /**
@@ -96,7 +96,7 @@ class AssetUtils {
                 code = currency,
                 name = "$currency Balance",
                 currency = currency,
-                category = "cash",
+                category = "cash"
             )
     }
 }

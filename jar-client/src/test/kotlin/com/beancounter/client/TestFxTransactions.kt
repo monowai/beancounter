@@ -25,17 +25,17 @@ class TestFxTransactions {
         val tradeBase =
             IsoCurrencyPair(
                 USD.code,
-                NZD.code,
+                NZD.code
             )
         val tradePf =
             IsoCurrencyPair(
                 USD.code,
-                NZD.code,
+                NZD.code
             )
         val tradeCash =
             IsoCurrencyPair(
                 USD.code,
-                NZD.code,
+                NZD.code
             )
         val mapRates: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
         val temp = Currency("TEMP")
@@ -43,7 +43,7 @@ class TestFxTransactions {
             FxRate(
                 from = temp,
                 to = temp,
-                rate = BigDecimal.ONE,
+                rate = BigDecimal.ONE
             )
         mapRates[tradeBase] = one
         mapRates[tradePf] = one
@@ -58,27 +58,27 @@ class TestFxTransactions {
             TrnInput(
                 CallerRef(),
                 "ABC",
-                price = BigDecimal.TEN,
+                price = BigDecimal.TEN
             )
         val fxTransactions =
             FxTransactions(
-                Mockito.mock(FxService::class.java),
+                Mockito.mock(FxService::class.java)
             )
         fxTransactions.setRates(
             pairResults,
             fxRequest,
-            trnInput,
+            trnInput
         )
         assertThat(trnInput)
             .hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             )
     }
 
@@ -86,37 +86,37 @@ class TestFxTransactions {
     fun is_FxPairsWorking() {
         val fxTransactions =
             FxTransactions(
-                Mockito.mock(FxService::class.java),
+                Mockito.mock(FxService::class.java)
             )
 
         assertThat(
             fxTransactions.pair(
                 Currency("NZD"),
                 Currency("USD"),
-                BigDecimal.TEN,
-            ),
+                BigDecimal.TEN
+            )
         ).isNull() // We have a rate, so don't request one
         assertThat(
             fxTransactions.pair(
                 Currency("USD"),
                 Currency("USD"),
-                null,
-            ),
+                null
+            )
         ).isNull() // Same currencies, so no pairing
         assertThat(
             fxTransactions.pair(
                 Currency("NZD"),
                 Currency("USD"),
                 // No rate, so service should obtain one.
-                null,
-            ),
+                null
+            )
         ).isNotNull
             .hasFieldOrPropertyWithValue(
                 "from",
-                "NZD",
+                "NZD"
             ).hasFieldOrPropertyWithValue(
                 "to",
-                "USD",
+                "USD"
             )
     }
 }

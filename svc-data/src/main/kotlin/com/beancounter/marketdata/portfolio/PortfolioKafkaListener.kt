@@ -9,20 +9,20 @@ import org.springframework.stereotype.Service
 @Service
 @ConditionalOnProperty(
     value = ["kafka.enabled"],
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 class PortfolioKafkaListener(
-    private val portfolioService: PortfolioService,
+    private val portfolioService: PortfolioService
 ) {
     @KafkaListener(
         topics = ["#{@posMvTopic}"],
-        errorHandler = "bcErrorHandler",
+        errorHandler = "bcErrorHandler"
     )
     fun listen(portfolioJson: String) {
         val portfolio =
             objectMapper.readValue(
                 portfolioJson,
-                Portfolio::class.java,
+                Portfolio::class.java
             )
         portfolioService.maintain(portfolio)
     }

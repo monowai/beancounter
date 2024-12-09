@@ -15,7 +15,7 @@ data class CallerRef(
     // The System that owns the transaction
     var provider: String = "",
     var batch: String = "",
-    var callerId: String = "",
+    var callerId: String = ""
 ) {
     /**
      * Helper methods to deal with CallerRef Objects
@@ -32,14 +32,14 @@ data class CallerRef(
                 callerRef.batch.ifBlank {
                     dateUtils.getFormattedDate().toString().replace(
                         "-",
-                        "",
+                        ""
                     )
                 }
             val callerId = callerRef.callerId.ifBlank { keyGenUtils.id }
             return CallerRef(
                 provider,
                 batch,
-                callerId,
+                callerId
             )
         }
     }

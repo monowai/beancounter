@@ -19,7 +19,7 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
      * @return A list of FxRate entities that match the criteria.
      */
     @Query(
-        "select f from FxRate f where ((f.date >= :date and f.date <= :date) or f.date <= :earlyDate)",
+        "select f from FxRate f where ((f.date >= :date and f.date <= :date) or f.date <= :earlyDate)"
     )
     fun findByDateRange(
         date: LocalDate,
@@ -27,8 +27,8 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
             LocalDate.of(
                 1900,
                 1,
-                1,
-            ),
+                1
+            )
     ): List<FxRate>
 
     /**
@@ -45,7 +45,7 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
             LocalDate.of(
                 1900,
                 1,
-                1,
-            ),
+                1
+            )
     ): FxRate?
 }

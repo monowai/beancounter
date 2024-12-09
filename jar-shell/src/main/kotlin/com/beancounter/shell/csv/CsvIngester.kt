@@ -25,7 +25,7 @@ class CsvIngester : AbstractIngester() {
 
     override fun prepare(
         ingestionRequest: IngestionRequest,
-        trnWriter: TrnWriter,
+        trnWriter: TrnWriter
     ) {
         val trimmedFile = ingestionRequest.file.trim { it <= ' ' }
         trnWriter.reset()
@@ -46,13 +46,13 @@ class CsvIngester : AbstractIngester() {
             throw SystemException(
                 String.format(
                     "Unable to resolve %s",
-                    trimmedFile,
-                ),
+                    trimmedFile
+                )
             )
         }
         log.info(
             "Import {}",
-            trimmedFile,
+            trimmedFile
         )
     }
 

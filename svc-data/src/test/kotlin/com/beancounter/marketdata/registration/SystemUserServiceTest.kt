@@ -53,11 +53,11 @@ class SystemUserServiceTest {
         val auth0User =
             SystemUser(
                 email = "",
-                auth0 = AUTH0ID,
+                auth0 = AUTH0ID
             )
         authUtilService.authenticate(
             auth0User,
-            AuthUtilService.AuthProvider.AUTH0,
+            AuthUtilService.AuthProvider.AUTH0
         )
         assertThrows(BusinessException::class.java) { systemUserService.register() }
     }
@@ -67,27 +67,27 @@ class SystemUserServiceTest {
         val auth0User =
             SystemUser(
                 email = "auth0",
-                auth0 = AUTH0ID,
+                auth0 = AUTH0ID
             )
         authUtilService.authenticate(
             auth0User,
-            AuthUtilService.AuthProvider.AUTH0,
+            AuthUtilService.AuthProvider.AUTH0
         )
         val result = systemUserService.register()
         assertThat(result)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 EMAIL,
-                auth0User.email,
+                auth0User.email
             ).hasFieldOrPropertyWithValue(
                 AUTH0,
-                auth0User.auth0,
+                auth0User.auth0
             ).hasFieldOrPropertyWithValue(
                 ACTIVE,
-                true,
+                true
             ).hasFieldOrPropertyWithValue(
                 GOOGLE,
-                "",
+                ""
             )
 
         assertThat(systemUserService.getActiveUser()).isNotNull
@@ -98,24 +98,24 @@ class SystemUserServiceTest {
         val googleUser =
             SystemUser(
                 email = "gmail",
-                googleId = GOOGLEID,
+                googleId = GOOGLEID
             )
         authUtilService.authenticate(
             googleUser,
-            AuthUtilService.AuthProvider.GOOGLE,
+            AuthUtilService.AuthProvider.GOOGLE
         )
         val result = systemUserService.register()
         assertThat(result)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 EMAIL,
-                googleUser.email,
+                googleUser.email
             ).hasFieldOrPropertyWithValue(
                 ACTIVE,
-                true,
+                true
             ).hasFieldOrPropertyWithValue(
                 GOOGLE,
-                googleUser.googleId,
+                googleUser.googleId
             )
 
         assertThat(systemUserService.getActiveUser()).isNotNull
@@ -135,32 +135,32 @@ class SystemUserServiceTest {
         authUtilService.authenticate(
             SystemUser(
                 email = USER_EMAIL,
-                auth0 = AUTH0ID,
+                auth0 = AUTH0ID
             ),
-            AuthUtilService.AuthProvider.AUTH0,
+            AuthUtilService.AuthProvider.AUTH0
         )
         systemUserService.register()
         authUtilService.authenticate(
             SystemUser(
                 email = USER_EMAIL,
-                googleId = GOOGLEID,
+                googleId = GOOGLEID
             ),
-            AuthUtilService.AuthProvider.GOOGLE,
+            AuthUtilService.AuthProvider.GOOGLE
         )
         assertThat(systemUserService.register())
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 EMAIL,
-                USER_EMAIL,
+                USER_EMAIL
             ).hasFieldOrPropertyWithValue(
                 ACTIVE,
-                true,
+                true
             ).hasFieldOrPropertyWithValue(
                 GOOGLE,
-                GOOGLEID,
+                GOOGLEID
             ).hasFieldOrPropertyWithValue(
                 AUTH0,
-                AUTH0ID,
+                AUTH0ID
             )
     }
 
@@ -170,32 +170,32 @@ class SystemUserServiceTest {
         authUtilService.authenticate(
             SystemUser(
                 email = GMAIL,
-                googleId = GOOGLEID,
+                googleId = GOOGLEID
             ),
-            AuthUtilService.AuthProvider.GOOGLE,
+            AuthUtilService.AuthProvider.GOOGLE
         )
         systemUserService.register()
         authUtilService.authenticate(
             SystemUser(
                 email = GMAIL,
-                auth0 = AUTH0ID,
+                auth0 = AUTH0ID
             ),
-            AuthUtilService.AuthProvider.AUTH0,
+            AuthUtilService.AuthProvider.AUTH0
         )
         assertThat(systemUserService.register())
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 EMAIL,
-                GMAIL,
+                GMAIL
             ).hasFieldOrPropertyWithValue(
                 ACTIVE,
-                true,
+                true
             ).hasFieldOrPropertyWithValue(
                 GOOGLE,
-                GOOGLEID,
+                GOOGLEID
             ).hasFieldOrPropertyWithValue(
                 AUTH0,
-                AUTH0ID,
+                AUTH0ID
             )
     }
 
@@ -204,11 +204,11 @@ class SystemUserServiceTest {
         val systemUser =
             SystemUser(
                 email = "",
-                auth0 = GOOGLEID,
+                auth0 = GOOGLEID
             )
         authUtilService.authenticateM2M(
             systemUser,
-            AuthUtilService.AuthProvider.AUTH0,
+            AuthUtilService.AuthProvider.AUTH0
         )
         assertThrows(BusinessException::class.java) {
             systemUserService.register()

@@ -13,19 +13,19 @@ import org.springframework.shell.standard.ShellOption
  */
 @ShellComponent
 class DataCommands internal constructor(
-    private val staticService: StaticService,
+    private val staticService: StaticService
 ) {
     @ShellMethod("Supported markets")
     fun markets(
         @ShellOption(
             help = "Optional market code",
-            defaultValue = "__NULL__",
-        ) marketCode: String?,
+            defaultValue = "__NULL__"
+        ) marketCode: String?
     ): String {
         return if (marketCode != null) {
             val market =
                 staticService.getMarket(
-                    marketCode,
+                    marketCode
                 )
             val markets: MutableCollection<Market> = ArrayList()
             markets.add(market)

@@ -17,7 +17,7 @@ class IngestionFactory {
     fun setCsvIngester(csvIngester: CsvIngester) {
         add(
             "CSV",
-            csvIngester,
+            csvIngester
         )
     }
 
@@ -27,7 +27,7 @@ class IngestionFactory {
 
     fun add(
         key: String,
-        ingester: Ingester,
+        ingester: Ingester
     ) {
         ingesterMap[key.uppercase(Locale.getDefault())] = ingester
     }

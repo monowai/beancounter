@@ -19,8 +19,8 @@ import org.springframework.boot.test.mock.mockito.MockBean
 @SpringBootTest(
     classes = [
         AssetHydrationService::class,
-        AssetCategoryConfig::class,
-    ],
+        AssetCategoryConfig::class
+    ]
 )
 internal class AssetHydrationServiceTest {
     @Autowired
@@ -43,18 +43,18 @@ internal class AssetHydrationServiceTest {
             AssetInput(
                 NYSE.code,
                 "EQUITY",
-                category = "Equity",
+                category = "Equity"
             )
         val hydratedAsset =
             assetHydrationService.hydrateAsset(
                 Asset.of(
                     assetInput,
-                    NYSE,
-                ),
+                    NYSE
+                )
             )
         validate(
             hydratedAsset,
-            assetCategoryConfig.get(),
+            assetCategoryConfig.get()
         )
     }
 
@@ -64,18 +64,18 @@ internal class AssetHydrationServiceTest {
             AssetInput(
                 NYSE.code,
                 "Fund",
-                category = "Mutual Fund",
+                category = "Mutual Fund"
             )
         val hydratedAsset =
             assetHydrationService.hydrateAsset(
                 Asset.of(
                     assetInput,
-                    NYSE,
-                ),
+                    NYSE
+                )
             )
         validate(
             hydratedAsset,
-            assetCategoryConfig.get("Mutual Fund"),
+            assetCategoryConfig.get("Mutual Fund")
         )
     }
 
@@ -85,32 +85,32 @@ internal class AssetHydrationServiceTest {
             AssetInput(
                 NYSE.code,
                 "USD Cash",
-                category = "Cash",
+                category = "Cash"
             )
         val hydratedAsset =
             assetHydrationService.hydrateAsset(
                 Asset.of(
                     assetInput,
-                    NYSE,
-                ),
+                    NYSE
+                )
             )
         validate(
             hydratedAsset,
-            assetCategoryConfig.get("Cash"),
+            assetCategoryConfig.get("Cash")
         )
     }
 
     private fun validate(
         hydratedAsset: Asset,
-        category: AssetCategory?,
+        category: AssetCategory?
     ) {
         assertThat(hydratedAsset)
             .hasFieldOrPropertyWithValue(
                 "market",
-                NYSE,
+                NYSE
             ).hasFieldOrPropertyWithValue(
                 "assetCategory",
-                category,
+                category
             )
     }
 }

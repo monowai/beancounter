@@ -25,7 +25,7 @@ class FxRateService(
     private val currencyService: CurrencyService,
     private val marketService: MarketService,
     val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
-    val fxRateRepository: FxRateRepository,
+    val fxRateRepository: FxRateRepository
 ) : FxService {
     private fun baseCurrencyFxRate(): FxRate {
         val existingRate = fxRateRepository.findBaseRate(currencyService.baseCurrency)
@@ -34,7 +34,7 @@ class FxRateService(
                 FxRate(
                     from = currencyService.baseCurrency,
                     rate = BigDecimal.ONE,
-                    date = dateUtils.getDate("1900-01-01"),
+                    date = dateUtils.getDate("1900-01-01")
                 )
             fxRateRepository.save(usdToUsdRate)
             return usdToUsdRate
@@ -44,7 +44,7 @@ class FxRateService(
 
     override fun getRates(
         fxRequest: FxRequest,
-        token: String,
+        token: String
     ): FxResponse {
         for ((from, to) in fxRequest.pairs) {
             currencyService.getCode(from)
@@ -70,8 +70,8 @@ class FxRateService(
             FxRateCalculator.compute(
                 fxRequest.rateDate,
                 fxRequest.pairs,
-                mappedRates,
-            ),
+                mappedRates
+            )
         )
     }
 
@@ -81,6 +81,6 @@ class FxRateService(
         marketUtils.getPriceDate(
             dateUtils.offsetNow(date).toZonedDateTime(),
             marketService.getMarket("US"),
-            dateUtils.isToday(date),
+            dateUtils.isToday(date)
         )
 }

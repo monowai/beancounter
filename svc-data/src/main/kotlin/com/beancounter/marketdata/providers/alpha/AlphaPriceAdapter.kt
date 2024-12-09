@@ -18,12 +18,12 @@ import java.math.BigDecimal
  */
 @Service
 class AlphaPriceAdapter(
-    val alphaConfig: AlphaConfig,
+    val alphaConfig: AlphaConfig
 ) : MarketDataAdapter {
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int,
-        response: String?,
+        response: String?
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         try {
@@ -34,7 +34,7 @@ class AlphaPriceAdapter(
                     asset,
                     response,
                     results,
-                    providerArguments,
+                    providerArguments
                 )
             }
         } catch (e: IOException) {
@@ -47,25 +47,25 @@ class AlphaPriceAdapter(
         asset: Asset?,
         response: String?,
         results: MutableCollection<MarketData>,
-        providerArguments: ProviderArguments,
+        providerArguments: ProviderArguments
     ) {
         if (isMdResponse(
                 asset,
-                response,
+                response
             )
         ) {
             setPriceResponse(
                 response,
                 asset,
                 results,
-                providerArguments,
+                providerArguments
             )
         } else {
             results.add(
                 getDefault(
                     asset,
-                    providerArguments,
-                ),
+                    providerArguments
+                )
             )
         }
     }
@@ -74,23 +74,23 @@ class AlphaPriceAdapter(
         response: String?,
         asset: Asset?,
         results: MutableCollection<MarketData>,
-        providerArguments: ProviderArguments,
+        providerArguments: ProviderArguments
     ) {
         val priceResponse =
             alphaConfig.getObjectMapper().readValue(
                 response,
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         if (priceResponse != null && priceResponse.data.isNotEmpty()) {
             for (marketData in priceResponse.data) {
                 marketData.asset = asset!! // Return BC view of the asset, not MarketProviders
                 normalise(
                     asset.market,
-                    marketData,
+                    marketData
                 )
                 log.trace(
                     "Valued {} ",
-                    asset.name,
+                    asset.name
                 )
                 results.add(marketData)
             }
@@ -98,59 +98,59 @@ class AlphaPriceAdapter(
             results.add(
                 getDefault(
                     asset,
-                    providerArguments,
-                ),
+                    providerArguments
+                )
             )
         }
     }
 
     private fun normalise(
         market: Market,
-        marketData: MarketData,
+        marketData: MarketData
     ) {
         if (market.multiplier.compareTo(BigDecimal.ONE) != 0) {
             marketData.close =
                 multiplyAbs(
                     marketData.close,
                     market.multiplier,
-                    4,
+                    4
                 )
             marketData.open =
                 multiplyAbs(
                     marketData.open,
                     market.multiplier,
-                    4,
+                    4
                 )
             marketData.high =
                 multiplyAbs(
                     marketData.high,
                     market.multiplier,
-                    4,
+                    4
                 )
             marketData.low =
                 multiplyAbs(
                     marketData.low,
                     market.multiplier,
-                    4,
+                    4
                 )
             marketData.previousClose =
                 multiplyAbs(
                     marketData.previousClose,
                     market.multiplier,
-                    4,
+                    4
                 )
             marketData.change =
                 multiplyAbs(
                     marketData.change,
                     market.multiplier,
-                    4,
+                    4
                 )
         }
     }
 
     private fun isMdResponse(
         asset: Asset?,
-        result: String?,
+        result: String?
     ): Boolean {
         var field: String? = null
         if (result == null) {
@@ -174,7 +174,7 @@ class AlphaPriceAdapter(
             log.debug(
                 "API returned [{}] for {}",
                 resultMessage[field],
-                asset,
+                asset
             )
             return false
         }
@@ -183,7 +183,7 @@ class AlphaPriceAdapter(
 
     private fun getDefault(
         asset: Asset?,
-        providerArguments: ProviderArguments,
+        providerArguments: ProviderArguments
     ): MarketData {
         var date = providerArguments.getBatchConfigs(0)?.date
 
@@ -194,7 +194,7 @@ class AlphaPriceAdapter(
 
         return MarketData(
             asset!!,
-            priceDate,
+            priceDate
         )
     }
 

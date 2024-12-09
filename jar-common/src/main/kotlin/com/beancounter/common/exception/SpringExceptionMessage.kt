@@ -13,5 +13,5 @@ data class SpringExceptionMessage(
     val timestamp: Date = Date(),
     val error: String?,
     val message: String?,
-    val path: String?,
+    val path: String?
 )

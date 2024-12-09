@@ -37,14 +37,14 @@ class AuthControllerTest {
         val loginRequest =
             LoginRequest(
                 "user",
-                "password",
+                "password"
             )
         val mockResponse =
             OpenIdResponse(
                 "abc",
                 "scope",
                 0L,
-                "type",
+                "type"
             )
         Mockito
             .`when`(
@@ -53,9 +53,9 @@ class AuthControllerTest {
                         loginService
                             .passwordRequest(
                                 loginRequest.user,
-                                loginRequest.password,
-                            ),
-                    ),
+                                loginRequest.password
+                            )
+                    )
             ).thenReturn(mockResponse)
         val performed =
             mockMvc
@@ -64,13 +64,13 @@ class AuthControllerTest {
                         .post("/auth")
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .content(objectMapper.writeValueAsString(loginRequest))
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
                 .andReturn()
         val response =
             objectMapper.readValue(
                 performed.response.contentAsString,
-                OpenIdResponse::class.java,
+                OpenIdResponse::class.java
             )
         assertThat(response).isNotNull().usingRecursiveComparison().isEqualTo(mockResponse)
     }

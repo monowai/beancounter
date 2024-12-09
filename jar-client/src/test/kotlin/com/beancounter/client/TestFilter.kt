@@ -16,18 +16,18 @@ internal class TestFilter {
                 filter.inFilter(
                     getTestAsset(
                         NYSE,
-                        "Code",
-                    ),
-                ),
+                        "Code"
+                    )
+                )
             ).isTrue
         Assertions
             .assertThat(
                 filter.inFilter(
                     getTestAsset(
                         NYSE,
-                        "code",
-                    ),
-                ),
+                        "code"
+                    )
+                )
             ).isTrue
     }
 

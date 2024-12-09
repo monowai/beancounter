@@ -21,7 +21,7 @@ import java.util.Locale
 class AlphaEnricher(
     private val alphaConfig: AlphaConfig,
     private val defaultEnricher: DefaultEnricher,
-    private val alphaProxy: AlphaProxy,
+    private val alphaProxy: AlphaProxy
 ) : AssetEnricher {
     private val objectMapper = alphaConfig.getObjectMapper()
 
@@ -32,7 +32,7 @@ class AlphaEnricher(
     override fun enrich(
         id: String,
         market: Market,
-        assetInput: AssetInput,
+        assetInput: AssetInput
     ): Asset {
         val marketCode = alphaConfig.translateMarketCode(market)
         var symbol = alphaConfig.translateSymbol(assetInput.code)
@@ -42,14 +42,14 @@ class AlphaEnricher(
         val result =
             alphaProxy.search(
                 symbol,
-                apiKey,
+                apiKey
             )
         // var assetResult: AssetSearchResult? = null
         val assetResult =
             try {
                 getAssetSearchResult(
                     market,
-                    result,
+                    result
                 )
             } catch (e: JsonProcessingException) {
                 throw SystemException("This shouldn't have happened")
@@ -58,7 +58,7 @@ class AlphaEnricher(
             defaultEnricher.enrich(
                 id,
                 market,
-                assetInput,
+                assetInput
             )
         } else {
             Asset(
@@ -68,7 +68,7 @@ class AlphaEnricher(
                 market = market,
                 marketCode = market.code,
                 priceSymbol = assetResult.symbol,
-                category = assetResult.type,
+                category = assetResult.type
             )
         }
     }
@@ -76,12 +76,12 @@ class AlphaEnricher(
     @Throws(JsonProcessingException::class)
     private fun getAssetSearchResult(
         market: Market,
-        result: String?,
+        result: String?
     ): AssetSearchResult? {
         val (data) =
             objectMapper.readValue(
                 result,
-                AssetSearchResponse::class.java,
+                AssetSearchResponse::class.java
             )
         if (data.isEmpty()) {
             return null
@@ -89,7 +89,7 @@ class AlphaEnricher(
         val assetResult = data.iterator().next()
         return if (currencyMatch(
                 assetResult.currency,
-                market.currencyId,
+                market.currencyId
             )
         ) {
             assetResult
@@ -101,7 +101,7 @@ class AlphaEnricher(
 
     fun currencyMatch(
         currency: String?,
-        currencyId: String,
+        currencyId: String
     ): Boolean {
         var match = currency
         if (currency == "GBX") {

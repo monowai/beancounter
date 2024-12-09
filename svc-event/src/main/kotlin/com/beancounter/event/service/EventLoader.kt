@@ -31,7 +31,7 @@ class EventLoader(
     private val priceService: PriceService,
     private val eventService: EventService,
     private val loginService: LoginService,
-    private val dateSplitter: DateSplitter,
+    private val dateSplitter: DateSplitter
 ) {
     @Async
     fun loadEvents(date: String) {
@@ -40,7 +40,7 @@ class EventLoader(
         for (portfolio in portfolios.data) {
             loadEvents(
                 portfolio.id,
-                date,
+                date
             )
             log.info("Completed event load for ${portfolio.code}")
         }
@@ -50,7 +50,7 @@ class EventLoader(
     fun loadEvents(
         portfolioId: String,
         date: String,
-        authToken: OpenIdResponse = loginService.loginM2m(),
+        authToken: OpenIdResponse = loginService.loginM2m()
     ) {
         loginService.setAuthContext(authToken)
         val portfolio = portfolioService.getPortfolioById(portfolioId)
@@ -58,7 +58,7 @@ class EventLoader(
             val dates =
                 dateSplitter.dateRange(
                     date,
-                    "today",
+                    "today"
                 )
 
             for (processDate in dates) {
@@ -67,11 +67,11 @@ class EventLoader(
                         loadEvents(
                             portfolio,
                             processDate,
-                            authContext = loginService.loginM2m(),
+                            authContext = loginService.loginM2m()
                         )
                     if (events > 0) {
                         log.trace(
-                            "Loaded $events events for portfolio: ${portfolio.code}/$portfolioId",
+                            "Loaded $events events for portfolio: ${portfolio.code}/$portfolioId"
                         )
                     }
                 }
@@ -82,16 +82,16 @@ class EventLoader(
     private fun loadEvents(
         portfolio: Portfolio,
         date: LocalDate,
-        authContext: OpenIdResponse,
+        authContext: OpenIdResponse
     ): Int {
         loginService.setAuthContext(authContext)
         val positionResponse =
             positionService.getPositions(
                 portfolio,
-                date.toString(),
+                date.toString()
             )
         if (positionResponse.data.positions.values
-            .isEmpty()
+                .isEmpty()
         ) {
             return 0
         }
@@ -108,12 +108,12 @@ class EventLoader(
                         load(
                             position,
                             date,
-                            authContext,
+                            authContext
                         )
                     if (events != 0) {
                         backfillService.backFillEvents(
                             portfolio.id,
-                            date.toString(),
+                            date.toString()
                         )
                         log.trace("Published: $events nominal events")
                     }
@@ -129,11 +129,11 @@ class EventLoader(
         if (totalEvents > 0) {
             log.debug(
                 "portfolio: ${portfolio.code}, id: ${portfolio.id}. " +
-                    "Dispatched: $totalEvents nominal events, date: $date",
+                    "Dispatched: $totalEvents nominal events, date: $date"
             )
         } else {
             log.trace(
-                "No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date",
+                "No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date"
             )
         }
 
@@ -143,7 +143,7 @@ class EventLoader(
     private fun load(
         position: Position,
         date: LocalDate,
-        authContext: OpenIdResponse,
+        authContext: OpenIdResponse
     ): Int {
         var eventCount = 0
         if (positionService.includePosition(position)) {
@@ -158,14 +158,14 @@ class EventLoader(
                             recordDate = priceResponse.priceDate,
                             assetId = position.asset.id,
                             rate = priceResponse.dividend,
-                            split = priceResponse.split,
-                        ),
+                            split = priceResponse.split
+                        )
                     )
                 }
             }
             if (eventCount != 0) {
                 log.debug(
-                    "Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}",
+                    "Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}"
                 )
             }
         }

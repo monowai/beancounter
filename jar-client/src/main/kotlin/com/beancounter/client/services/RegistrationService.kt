@@ -27,12 +27,12 @@ import org.springframework.web.bind.annotation.RequestHeader
 @ConditionalOnProperty(
     value = ["auth.enabled"],
     havingValue = "true",
-    matchIfMissing = false,
+    matchIfMissing = false
 )
 class RegistrationService(
     private val registrationGateway: RegistrationGateway,
     private val jwtDecoder: JwtDecoder,
-    private val tokenService: TokenService,
+    private val tokenService: TokenService
 ) {
     fun login(loginRequest: LoginRequest): OpenIdResponse {
         val openIdResponse = registrationGateway.auth(loginRequest)
@@ -47,7 +47,7 @@ class RegistrationService(
             registrationGateway
                 .register(
                     token,
-                    registrationRequest,
+                    registrationRequest
                 )
                 ?: throw UnauthorizedException("Your request was rejected. Have you logged in?")
         return data
@@ -63,31 +63,31 @@ class RegistrationService(
      */
     @FeignClient(
         name = "registrationGw",
-        url = "\${marketdata.url:http://localhost:9510}",
+        url = "\${marketdata.url:http://localhost:9510}"
     )
     interface RegistrationGateway {
         @PostMapping(
             value = ["/api/register"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun register(
             @RequestHeader("Authorization") bearerToken: String,
-            registrationRequest: RegistrationRequest,
+            registrationRequest: RegistrationRequest
         ): RegistrationResponse?
 
         @GetMapping(
             value = ["/api/me"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun me(
-            @RequestHeader("Authorization") bearerToken: String,
+            @RequestHeader("Authorization") bearerToken: String
         ): RegistrationResponse
 
         @PostMapping(
             value = ["/api/auth"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun auth(loginRequest: LoginRequest): OpenIdResponse
     }

@@ -26,7 +26,7 @@ class SpringFeignDecoder : ErrorDecoder {
 
     override fun decode(
         methodKey: String,
-        response: Response,
+        response: Response
     ): Exception {
         val reason =
             try {
@@ -34,7 +34,7 @@ class SpringFeignDecoder : ErrorDecoder {
             } catch (e: IOException) {
                 log.error(
                     "Error reading response body",
-                    e,
+                    e
                 )
                 return SystemException("Failed to read response body")
             }
@@ -49,7 +49,7 @@ class SpringFeignDecoder : ErrorDecoder {
             else ->
                 FeignException.errorStatus(
                     methodKey,
-                    response,
+                    response
                 )
         }
     }

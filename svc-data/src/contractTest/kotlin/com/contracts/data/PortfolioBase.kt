@@ -44,7 +44,7 @@ class PortfolioBase : ContractVerifierBase() {
             val (data) =
                 objectMapper.readValue(
                     jsonFile,
-                    PortfolioResponse::class.java,
+                    PortfolioResponse::class.java
                 )
             return data
         }
@@ -74,7 +74,7 @@ class PortfolioBase : ContractVerifierBase() {
         private fun mockPortfolio(
             portfolio: Portfolio,
             systemUser: SystemUser,
-            portfolioRepository: PortfolioRepository,
+            portfolioRepository: PortfolioRepository
         ) {
             // For the sake of convenience when testing; id and code are the same
             Mockito
@@ -84,8 +84,8 @@ class PortfolioBase : ContractVerifierBase() {
                 .`when`(
                     portfolioRepository.findByCodeAndOwner(
                         portfolio.code,
-                        systemUser,
-                    ),
+                        systemUser
+                    )
                 ).thenReturn(Optional.of(portfolio))
         }
 
@@ -93,23 +93,23 @@ class PortfolioBase : ContractVerifierBase() {
         fun portfolios(
             systemUser: SystemUser,
             keyGenUtils: KeyGenUtils,
-            portfolioRepository: PortfolioRepository,
+            portfolioRepository: PortfolioRepository
         ) {
             val dateUtils = DateUtils()
             mockPortfolio(
                 emptyPortfolio,
                 systemUser,
-                portfolioRepository,
+                portfolioRepository
             )
             mockPortfolio(
                 testPortfolio,
                 systemUser,
-                portfolioRepository,
+                portfolioRepository
             )
             mockPortfolio(
                 cashPortfolio,
                 systemUser,
-                portfolioRepository,
+                portfolioRepository
             )
             val portfolioCode = "TEST"
 
@@ -118,21 +118,21 @@ class PortfolioBase : ContractVerifierBase() {
                 .`when`(
                     portfolioRepository.findByOwner(
                         systemUser,
-                        Sort.by(Sort.Order.asc("code")),
-                    ),
+                        Sort.by(Sort.Order.asc("code"))
+                    )
                 ).thenReturn(
                     objectMapper
                         .readValue(
                             ClassPathResource("contracts/portfolio/portfolios.json").file,
-                            PortfoliosResponse::class.java,
-                        ).data,
+                            PortfoliosResponse::class.java
+                        ).data
                 )
             Mockito
                 .`when`(
                     portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
                         "KMI",
-                        dateUtils.getDate("2020-05-01"),
-                    ),
+                        dateUtils.getDate("2020-05-01")
+                    )
                 ).thenReturn(
                     arrayListOf(
                         Portfolio(
@@ -141,9 +141,9 @@ class PortfolioBase : ContractVerifierBase() {
                             name = "${Constants.NZD.code} Portfolio",
                             currency = Constants.NZD,
                             base = Constants.USD,
-                            owner = systemUser,
-                        ),
-                    ),
+                            owner = systemUser
+                        )
+                    )
                 )
             Mockito.`when`(keyGenUtils.id).thenReturn(portfolioCode)
             Mockito
@@ -156,10 +156,10 @@ class PortfolioBase : ContractVerifierBase() {
                                 name = "${Constants.SGD.code} Balanced",
                                 currency = Constants.SGD,
                                 base = Constants.USD,
-                                owner = systemUser,
-                            ),
-                        ),
-                    ),
+                                owner = systemUser
+                            )
+                        )
+                    )
                 ).thenReturn(
                     arrayListOf(
                         Portfolio(
@@ -168,9 +168,9 @@ class PortfolioBase : ContractVerifierBase() {
                             name = "${Constants.SGD.code} Balanced",
                             currency = Constants.SGD,
                             base = Constants.USD,
-                            owner = systemUser,
-                        ),
-                    ),
+                            owner = systemUser
+                        )
+                    )
                 )
         }
     }
@@ -179,13 +179,13 @@ class PortfolioBase : ContractVerifierBase() {
     fun mockPortfolio() {
         val systemUser =
             ContractHelper(authUtilService).defaultUser(
-                systemUserService = systemUserService,
+                systemUserService = systemUserService
             )
         Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
         portfolios(
             systemUser,
             keyGenUtils,
-            portfolioRepository,
+            portfolioRepository
         )
     }
 }

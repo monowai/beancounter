@@ -133,8 +133,8 @@ class KafkaTrnExportImportTest {
         `when`(
             cashServices.getCashImpact(
                 any(),
-                any(),
-            ),
+                any()
+            )
         ).thenReturn(ZERO)
         assertThat(currencyService.currencies).isNotEmpty
         assertThat(eventProducer.kafkaEnabled).isTrue
@@ -142,13 +142,13 @@ class KafkaTrnExportImportTest {
 
         stubFx(
             "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
-            rateResponse,
+            rateResponse
         )
         `when`(
             fxService.getRates(
                 any(),
-                any(),
-            ),
+                any()
+            )
         ).thenReturn(
             FxResponse(
                 FxPairResults(
@@ -156,17 +156,17 @@ class KafkaTrnExportImportTest {
                         Pair(
                             IsoCurrencyPair(
                                 USD.code,
-                                "",
+                                ""
                             ),
                             FxRate(
                                 from = USD,
                                 to = USD,
-                                date = dateUtils.getDate("2000-01-01"),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
+                                date = dateUtils.getDate("2000-01-01")
+                            )
+                        )
+                    )
+                )
+            )
         )
     }
 
@@ -177,8 +177,8 @@ class KafkaTrnExportImportTest {
                 PortfolioInput(
                     code = "CSV-FLOW",
                     name = "SomeName",
-                    base = USD.code,
-                ),
+                    base = USD.code
+                )
             )
         val (_, token) = loginMike()
 
@@ -190,12 +190,12 @@ class KafkaTrnExportImportTest {
         val qcom =
             getAsset(
                 "QCOM",
-                CUSTOM,
+                CUSTOM
             )
         val trex =
             getAsset(
                 "TREX",
-                CUSTOM,
+                CUSTOM
             )
         val trnRequest =
             TrnRequest(
@@ -206,24 +206,24 @@ class KafkaTrnExportImportTest {
                         CallerRef(
                             provider,
                             batch,
-                            "1",
-                        ),
+                            "1"
+                        )
                     ),
                     getTrnInput(
                         trex,
                         CallerRef(
                             provider,
                             batch,
-                            "2",
-                        ),
-                    ),
-                ),
+                            "2"
+                        )
+                    )
+                )
             )
 
         val trnResponse =
             trnService.save(
                 portfolio,
-                trnRequest = trnRequest,
+                trnRequest = trnRequest
             )
 
         assertThat(trnResponse)
@@ -234,16 +234,16 @@ class KafkaTrnExportImportTest {
             kafkaTestUtils.getConsumer(
                 this::class.toString(),
                 TOPIC_CSV_IO,
-                embeddedKafkaBroker,
+                embeddedKafkaBroker
             )
 
         importRows(
             exportDelimitedFile(
                 portfolio,
-                token,
+                token
             ),
             portfolio,
-            trnRequest.data.size + 1,
+            trnRequest.data.size + 1
         ) // Include a header row.
 
         assertThat(processQueue(consumer))
@@ -254,7 +254,7 @@ class KafkaTrnExportImportTest {
         val imported =
             trnService.findForPortfolio(
                 portfolio,
-                dateUtils.date,
+                dateUtils.date
             )
         assertThat(imported).hasSize(trnRequest.data.size)
     }
@@ -265,27 +265,27 @@ class KafkaTrnExportImportTest {
             authUtilService
                 .authenticate(
                     systemUser,
-                    AuthUtilService.AuthProvider.AUTH0,
+                    AuthUtilService.AuthProvider.AUTH0
                 ).token
         systemUserService.register()
         return Pair(
             systemUser,
-            token,
+            token
         )
     }
 
     private fun importRows(
         fileName: String,
         portfolio: Portfolio,
-        expectedTrns: Int,
+        expectedTrns: Int
     ) {
         trnService.purge(portfolio)
         loginMike()
         assertThat(
             trnService.findForPortfolio(
                 portfolio,
-                dateUtils.date,
-            ),
+                dateUtils.date
+            )
         ).isEmpty()
         val csvRows = File(fileName).useLines { it.toList() }
         assertThat(csvRows).hasSize(expectedTrns)
@@ -300,18 +300,18 @@ class KafkaTrnExportImportTest {
                 val bcRequest =
                     TrustedTrnImportRequest(
                         portfolio,
-                        row = splitRow,
+                        row = splitRow
                     )
                 log.info(
                     "Sending {}, {}, {}",
                     splitRow[0],
                     splitRow[1],
-                    splitRow[2],
+                    splitRow[2]
                 )
                 kafkaTemplate
                     .send(
                         TOPIC_CSV_IO,
-                        bcRequest,
+                        bcRequest
                     ).get()
             }
         }
@@ -319,7 +319,7 @@ class KafkaTrnExportImportTest {
 
     private fun getTrnInput(
         asset: Asset,
-        callerRef: CallerRef,
+        callerRef: CallerRef
     ): TrnInput =
         TrnInput(
             callerRef,
@@ -329,12 +329,12 @@ class KafkaTrnExportImportTest {
             fees = ONE,
             tradeDate = tradeDate,
             cashCurrency = asset.market.currency.code,
-            price = BigDecimal(5.99),
+            price = BigDecimal(5.99)
         )
 
     private fun exportDelimitedFile(
         forPortfolio: Portfolio,
-        token: Jwt,
+        token: Jwt
     ): String {
         val results =
             mockMvc
@@ -342,10 +342,10 @@ class KafkaTrnExportImportTest {
                     MockMvcRequestBuilders
                         .get(
                             "/trns/portfolio/{portfolioId}/export",
-                            forPortfolio.id,
+                            forPortfolio.id
                         ).with(
-                            SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
-                        ).with(SecurityMockMvcRequestPostProcessors.csrf()),
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+                        ).with(SecurityMockMvcRequestPostProcessors.csrf())
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.TEXT_PLAIN_VALUE))
                 .andReturn()
@@ -359,15 +359,15 @@ class KafkaTrnExportImportTest {
 
     private fun getAsset(
         code: String,
-        market: Market,
+        market: Market
     ): Asset {
         val asset =
             AssetRequest(
                 getAssetInput(
                     market.code,
-                    code,
+                    code
                 ),
-                code,
+                code
             )
         val response = assetService.handle(asset)!!
         assertThat(response).isNotNull
@@ -379,7 +379,7 @@ class KafkaTrnExportImportTest {
             KafkaTestUtils.getRecords(
                 consumer,
                 Duration.ofSeconds(5),
-                2,
+                2
             )
         val created = arrayListOf<Trn>()
         for (consumerRecord in consumerRecords) {
@@ -395,7 +395,7 @@ class KafkaTrnExportImportTest {
             val found = trnResponse.iterator().next()
             log.info(
                 "found {}",
-                found.callerRef,
+                found.callerRef
             )
             created.add(found)
         }
@@ -409,7 +409,7 @@ class KafkaTrnExportImportTest {
         @JvmStatic
         fun stubFx(
             url: String,
-            rateResponse: File,
+            rateResponse: File
         ) {
             WireMock.stubFor(
                 WireMock
@@ -419,16 +419,16 @@ class KafkaTrnExportImportTest {
                             .aResponse()
                             .withHeader(
                                 HttpHeaders.CONTENT_TYPE,
-                                MediaType.APPLICATION_JSON_VALUE,
+                                MediaType.APPLICATION_JSON_VALUE
                             ).withBody(
                                 objectMapper.writeValueAsString(
                                     objectMapper.readValue(
                                         rateResponse,
-                                        HashMap::class.java,
-                                    ),
-                                ),
-                            ).withStatus(200),
-                    ),
+                                        HashMap::class.java
+                                    )
+                                )
+                            ).withStatus(200)
+                    )
             )
         }
     }

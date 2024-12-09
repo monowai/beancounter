@@ -13,7 +13,7 @@ import java.nio.file.FileSystems
 @ShellComponent
 class EnvCommands(
     private val envConfig: EnvConfig,
-    private val actuatorService: ActuatorService,
+    private val actuatorService: ActuatorService
 ) {
     @ShellMethod("Current working directory")
     fun pwd(): String =
@@ -34,12 +34,12 @@ class EnvCommands(
                 mapOf(
                     Pair(
                         "MARKETDATA_URL",
-                        envConfig.marketDataUrl,
+                        envConfig.marketDataUrl
                     ),
                     Pair(
                         "ACTUATOR_URL",
-                        envConfig.mdActuator,
-                    ),
-                ),
+                        envConfig.mdActuator
+                    )
+                )
             )
 }

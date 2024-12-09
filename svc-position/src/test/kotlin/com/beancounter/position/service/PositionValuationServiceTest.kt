@@ -76,7 +76,7 @@ class PositionValuationServiceTest {
             id = "PositionValuationServiceTest",
             currency = Constants.USD,
             base = Constants.USD,
-            owner = Constants.owner,
+            owner = Constants.owner
         )
 
     @BeforeEach
@@ -85,14 +85,14 @@ class PositionValuationServiceTest {
             PositionValuationService(
                 MarketValue(
                     Gains(),
-                    DateUtils(),
+                    DateUtils()
                 ),
                 fxUtils,
                 priceService,
                 fxRateService,
                 tokenService,
                 DateUtils(),
-                irrCalculator,
+                irrCalculator
             )
     }
 
@@ -103,57 +103,57 @@ class PositionValuationServiceTest {
         val asset =
             Asset(
                 code = "Asset1",
-                market = US,
+                market = US
             )
         val assetInputs =
             setOf(
                 AssetInput(
                     US.code,
-                    asset.code,
-                ),
+                    asset.code
+                )
             )
         val positions = Positions(portfolio)
         positions.add(
             Position(
                 asset,
-                portfolio,
-            ),
+                portfolio
+            )
         )
         whenever(
             fxUtils.buildRequest(
                 any(),
-                any(),
-            ),
+                any()
+            )
         ).thenReturn(FxRequest())
         whenever(
             priceService.getPrices(
                 any(),
-                any(),
-            ),
+                any()
+            )
         ).thenReturn(
             PriceResponse(
-                listOf(MarketData(asset)),
-            ),
+                listOf(MarketData(asset))
+            )
         )
         whenever(
             fxRateService.getRates(
                 any(),
-                any(),
-            ),
+                any()
+            )
         ).thenReturn(FxResponse())
 
         // Act
         val result =
             valuationService.value(
                 positions,
-                assetInputs,
+                assetInputs
             )
 
         // Assert
         assertThat(result).isNotNull
         verify(priceService).getPrices(
             any(),
-            any(),
+            any()
         ) // Verifies that prices were indeed fetched
     }
 
@@ -165,7 +165,7 @@ class PositionValuationServiceTest {
         val result =
             valuationService.value(
                 positions,
-                emptyList(),
+                emptyList()
             )
 
         // Assert

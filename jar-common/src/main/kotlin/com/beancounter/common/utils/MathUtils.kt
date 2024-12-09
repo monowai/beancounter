@@ -21,7 +21,7 @@ class MathUtils private constructor() {
         @JvmStatic
         fun divide(
             money: BigDecimal?,
-            rate: BigDecimal?,
+            rate: BigDecimal?
         ): BigDecimal {
             if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
                 return BigDecimal.ZERO
@@ -29,7 +29,7 @@ class MathUtils private constructor() {
             return money?.divide(
                 rate,
                 MONEY_SCALE,
-                RoundingMode.HALF_UP,
+                RoundingMode.HALF_UP
             ) ?: BigDecimal.ZERO
         }
 
@@ -38,14 +38,14 @@ class MathUtils private constructor() {
         fun multiply(
             money: BigDecimal?,
             rate: BigDecimal?,
-            moneyScale: Int = this.MONEY_SCALE,
+            moneyScale: Int = this.MONEY_SCALE
         ): BigDecimal? {
             if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
                 return money
             }
             return money!!.multiply(rate).setScale(
                 moneyScale,
-                RoundingMode.HALF_UP,
+                RoundingMode.HALF_UP
             )
         }
 
@@ -54,38 +54,38 @@ class MathUtils private constructor() {
         fun multiplyAbs(
             money: BigDecimal?,
             rate: BigDecimal?,
-            moneyScale: Int = this.MONEY_SCALE,
+            moneyScale: Int = this.MONEY_SCALE
         ): BigDecimal {
             if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
                 return BigDecimal.ZERO
             }
             return money!!.multiply(rate).abs().setScale(
                 moneyScale,
-                RoundingMode.HALF_UP,
+                RoundingMode.HALF_UP
             )
         }
 
         @JvmStatic
         fun add(
             value: BigDecimal,
-            amount: BigDecimal?,
+            amount: BigDecimal?
         ): BigDecimal =
             value.add(amount).setScale(
                 MONEY_SCALE,
-                RoundingMode.HALF_UP,
+                RoundingMode.HALF_UP
             )
 
         @JvmStatic
         @Throws(ParseException::class)
         fun parse(
             value: String?,
-            numberFormat: NumberFormat,
+            numberFormat: NumberFormat
         ): BigDecimal {
             if (value.isNullOrEmpty() ||
                 value.trim().equals(
-                        "null",
-                        ignoreCase = true,
-                    )
+                    "null",
+                    ignoreCase = true
+                )
             ) {
                 return BigDecimal.ZERO
             }
@@ -95,9 +95,9 @@ class MathUtils private constructor() {
                     .parse(
                         value.trim().replace(
                             "\"",
-                            "",
-                        ),
-                    ).toString(),
+                            ""
+                        )
+                    ).toString()
             )
         }
 
@@ -105,7 +105,7 @@ class MathUtils private constructor() {
         fun parse(value: String?) =
             parse(
                 value,
-                NumberFormat.getInstance(),
+                NumberFormat.getInstance()
             )
 
         @JvmStatic
@@ -116,8 +116,8 @@ class MathUtils private constructor() {
             rate != null &&
                 rate.compareTo(BigDecimal.ZERO) != 0 &&
                 rate.compareTo(
-                BigDecimal.ONE,
-            ) != 0
+                    BigDecimal.ONE
+                ) != 0
 
         @JvmStatic
         fun nullSafe(value: BigDecimal?): BigDecimal = value ?: BigDecimal.ZERO

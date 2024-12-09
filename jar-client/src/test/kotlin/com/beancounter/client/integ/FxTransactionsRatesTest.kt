@@ -56,9 +56,9 @@ class FxTransactionsRatesTest {
                 TrnInput(
                     tradePortfolioRate = BigDecimal.ONE,
                     tradeCashRate = BigDecimal.ONE,
-                    tradeBaseRate = BigDecimal.ONE,
-                ),
-            ),
+                    tradeBaseRate = BigDecimal.ONE
+                )
+            )
         ).isFalse()
     }
 
@@ -69,7 +69,7 @@ class FxTransactionsRatesTest {
         val fxRequest =
             fxTransactions.getFxRequest(
                 portfolio,
-                trnInput,
+                trnInput
             )
         val rate = BigDecimal("1.50")
         val fxPairResults =
@@ -78,42 +78,42 @@ class FxTransactionsRatesTest {
                     Pair(
                         IsoCurrencyPair(
                             USD.code,
-                            NZD.code,
+                            NZD.code
                         ),
                         FxRate(
                             from = USD,
                             to = NZD,
-                            rate = rate,
-                        ),
-                    ),
-                ),
+                            rate = rate
+                        )
+                    )
+                )
             )
         Mockito
             .`when`(fxClientService.getRates(fxRequest))
             .thenReturn(
                 FxResponse(
-                    data = fxPairResults,
-                ),
+                    data = fxPairResults
+                )
             )
 
         Mockito.`when`(tokenService.bearerToken).thenReturn("")
         fxTransactions.setRates(
             portfolio,
-            trnInput,
+            trnInput
         )
         assertThat(trnInput)
             .hasFieldOrPropertyWithValue(
                 "tradeCurrency",
-                USD.code,
+                USD.code
             ).hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                rate,
+                rate
             )
     }
 }

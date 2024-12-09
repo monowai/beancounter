@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate
     ClientPasswordConfig::class,
     HttpMessageConvertersAutoConfiguration::class,
     FeignAutoConfiguration::class,
-    OAuthConfig::class,
+    OAuthConfig::class
 )
 @ActiveProfiles("auth")
 @AutoConfigureWireMock(port = 0)

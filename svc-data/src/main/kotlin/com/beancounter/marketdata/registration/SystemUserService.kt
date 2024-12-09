@@ -18,7 +18,7 @@ class SystemUserService(
     private val systemUserRepository: SystemUserRepository,
     private val tokenService: TokenService,
     private val authProviders: AuthProviders,
-    private val systemUserCache: SystemUserCache,
+    private val systemUserCache: SystemUserCache
 ) : Registration {
     fun registerSystemAccount(id: String): RegistrationResponse {
         if (!isServiceAccount()) {
@@ -29,9 +29,9 @@ class SystemUserService(
             save(
                 SystemUser(
                     id = id,
-                    email = id,
-                ),
-            ),
+                    email = id
+                )
+            )
         )
     }
 
@@ -42,7 +42,7 @@ class SystemUserService(
 
         if (!tokenService.hasEmail()) {
             throw BusinessException(
-                "No email. This token cannot be registered for user activities.",
+                "No email. This token cannot be registered for user activities."
             )
         }
         val subject: String? =
@@ -56,7 +56,7 @@ class SystemUserService(
         val result =
             systemUserCache.find(
                 tokenService.getEmail(),
-                subject,
+                subject
             )
         val jwt = tokenService.jwt.token
         return if (result == null) {
@@ -65,17 +65,17 @@ class SystemUserService(
                     SystemUser(
                         email = tokenService.getEmail(),
                         auth0 = authProviders.getAuth0Id(jwt),
-                        googleId = authProviders.getGoogleId(jwt),
-                    ),
-                ),
+                        googleId = authProviders.getGoogleId(jwt)
+                    )
+                )
             )
         } else {
             //
             RegistrationResponse(
                 authProviders.capture(
                     result,
-                    jwt,
-                ),
+                    jwt
+                )
             )
         }
     }

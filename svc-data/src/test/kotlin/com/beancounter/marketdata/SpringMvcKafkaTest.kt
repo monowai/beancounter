@@ -29,11 +29,11 @@ import kotlin.annotation.AnnotationTarget.CLASS
     topics = [
         TOPIC_CSV_IO,
         TOPIC_EVENT,
-        TOPIC_MV,
+        TOPIC_MV
     ],
     brokerProperties = [
-        "log.dirs=./build/kafka-trn",
-    ],
+        "log.dirs=./build/kafka-trn"
+    ]
 )
 @SpringBootTest
 @Tag("kafka")
@@ -49,5 +49,5 @@ annotation class SpringMvcKafkaTest(
     /**
      * Defines the active profiles to be used for the annotated test class.
      */
-    val profiles: Array<String> = ["kafka"],
+    val profiles: Array<String> = ["kafka"]
 )

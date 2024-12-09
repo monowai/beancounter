@@ -11,13 +11,13 @@ class MarketCalendarTests {
         LocalDate.of(
             2023,
             12,
-            25,
+            25
         )
     private val boxingDay: LocalDate =
         LocalDate.of(
             2023,
             12,
-            26,
+            26
         )
     private val markets = listOf(market)
 
@@ -28,15 +28,15 @@ class MarketCalendarTests {
                     christmasDay.dayOfMonth,
                     christmasDay.monthValue.toString(),
                     "*",
-                    markets,
+                    markets
                 ),
                 MarketHolidayAnnual(
                     boxingDay.dayOfMonth,
                     boxingDay.monthValue.toString(),
                     "*",
-                    markets,
-                ),
-            ),
+                    markets
+                )
+            )
         )
 
     @Test
@@ -45,29 +45,29 @@ class MarketCalendarTests {
         assertThat(
             marketCalendar.isMarketHoliday(
                 market,
-                christmasDay,
-            ),
+                christmasDay
+            )
         ).isTrue()
         assertThat(
             marketCalendar.isMarketHoliday(
                 market,
-                boxingDay,
-            ),
+                boxingDay
+            )
         ).isTrue()
         assertThat(
             marketCalendar.getNextBusinessDay(
                 christmasDay,
                 marketCalendarConfig.marketHolidays(
                     2023,
-                    market,
-                ),
-            ),
+                    market
+                )
+            )
         ).isEqualTo(
             LocalDate.of(
                 2023,
                 12,
-                27,
-            ),
+                27
+            )
         )
     }
 
@@ -79,40 +79,40 @@ class MarketCalendarTests {
             LocalDate.of(
                 2021,
                 12,
-                25,
+                25
             )
         val boxingDay =
             LocalDate.of(
                 2021,
                 12,
-                26,
+                26
             )
         assertThat(
             marketCalendar.isMarketHoliday(
                 market,
-                christmasDay,
-            ),
+                christmasDay
+            )
         ).isTrue()
         assertThat(
             marketCalendar.isMarketHoliday(
                 market,
-                boxingDay,
-            ),
+                boxingDay
+            )
         ).isTrue()
         assertThat(
             marketCalendar.getNextBusinessDay(
                 christmasDay,
                 marketCalendarConfig.marketHolidays(
                     2021,
-                    market,
-                ),
-            ),
+                    market
+                )
+            )
         ).isEqualTo(
             LocalDate.of(
                 2021,
                 12,
-                29,
-            ),
+                29
+            )
         )
     }
 }

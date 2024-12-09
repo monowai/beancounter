@@ -23,7 +23,7 @@ import org.springframework.context.annotation.DependsOn
 @Suppress("UnstableApiUsage")
 @ConditionalOnProperty(
     name = ["sentry.enabled"],
-    havingValue = "true",
+    havingValue = "true"
 )
 @Configuration
 @DependsOn("propertySourcesPlaceholderConfigurer")
@@ -45,12 +45,12 @@ class SentryOtelConfig {
         @Value("\${sentry.debug:false}") debug: String,
         @Value("\${sentry.traces-sample-rate:0.3}") tracesSampleRate: Double,
         @Value("\${sentry.sample-rate:0.3}") sampleRate: Double,
-        @Value("\${management.endpoints.web.base-path:/actuator}") managementBasePath: String,
+        @Value("\${management.endpoints.web.base-path:/actuator}") managementBasePath: String
     ): Boolean {
         LoggerFactory
             .getLogger(SentryOtelConfig::class.java)
             .info(
-                "SentryConfig: $dsn, environment: $sentryEnv debug: $debug, tracesSampleRate: $tracesSampleRate",
+                "SentryConfig: $dsn, environment: $sentryEnv debug: $debug, tracesSampleRate: $tracesSampleRate"
             )
 
         val sentryFilterConditions =
@@ -63,7 +63,7 @@ class SentryOtelConfig {
                 Regex("/images"),
                 Regex("/api-docs"),
                 Regex("/swagger-ui.*"),
-                Regex("/swagger-resources"),
+                Regex("/swagger-resources")
             )
         Sentry.init { options ->
             options.dsn = dsn
@@ -77,7 +77,7 @@ class SentryOtelConfig {
                 SentryOptions.BeforeSendTransactionCallback { transaction, _ ->
                     filterTransaction(
                         transaction,
-                        sentryFilterConditions,
+                        sentryFilterConditions
                     )
                 }
         }
@@ -86,14 +86,14 @@ class SentryOtelConfig {
 
     fun filterTransaction(
         transaction: SentryTransaction,
-        sentryFilterConditions: List<Regex>,
+        sentryFilterConditions: List<Regex>
     ): SentryTransaction? =
         if (sentryFilterConditions.any {
-            val otelAttributes = getOtelAttributes(getOtelContext(transaction))
-            otelAttributes["http.target"]?.toString()?.let { target ->
-                it.containsMatchIn(target)
-            } == true
-        }
+                val otelAttributes = getOtelAttributes(getOtelContext(transaction))
+                otelAttributes["http.target"]?.toString()?.let { target ->
+                    it.containsMatchIn(target)
+                } == true
+            }
         ) {
             null
         } else {

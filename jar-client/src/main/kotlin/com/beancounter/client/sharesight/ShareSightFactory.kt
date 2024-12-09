@@ -13,13 +13,13 @@ import java.util.Locale
 @Service
 class ShareSightFactory(
     val shareSightDivi: ShareSightDividendAdapter,
-    val shareSightTrade: ShareSightTradeAdapter,
+    val shareSightTrade: ShareSightTradeAdapter
 ) {
     private val tradeTypes =
         setOf(
             "BUY",
             "SELL",
-            "SPLIT",
+            "SPLIT"
         )
 
     /**

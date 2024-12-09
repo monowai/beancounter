@@ -36,7 +36,7 @@ class EnrichmentTest {
                 code = code,
                 id = id,
                 name = null,
-                market = NYSE,
+                market = NYSE
             )
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name
@@ -51,17 +51,17 @@ class EnrichmentTest {
             AlphaEnricher(
                 AlphaConfig(
                     dateUtils = dateUtils,
-                    PreviousClosePriceDate(dateUtils),
+                    PreviousClosePriceDate(dateUtils)
                 ),
                 DefaultEnricher(),
-                alphaProxy,
+                alphaProxy
             )
         val asset =
             Asset(
                 code = code,
                 id = id,
                 name = null,
-                market = NYSE,
+                market = NYSE
             )
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name
@@ -77,19 +77,19 @@ class EnrichmentTest {
         val sysUserId = "sysUserId"
         Mockito
             .`when`(
-                systemUserService.getOrThrow,
+                systemUserService.getOrThrow
             ).thenReturn(SystemUser(sysUserId))
 
         Mockito
             .`when`(
-                keyGenUtils.id,
+                keyGenUtils.id
             ).thenReturn(keyGenId)
         val asset =
             Asset(
                 code = code,
                 id = id,
                 name = null,
-                market = offMarket,
+                market = offMarket
             )
         assertThat(enricher.canEnrich(asset)).isTrue
         val enriched =
@@ -100,16 +100,16 @@ class EnrichmentTest {
                     USD,
                     code,
                     "Anything",
-                    "test-user",
-                ),
+                    "test-user"
+                )
             )
         assertThat(enriched)
             .hasFieldOrPropertyWithValue(
                 "systemUser.id",
-                sysUserId,
+                sysUserId
             ).hasFieldOrPropertyWithValue(
                 "code",
-                "$sysUserId.${code.uppercase()}",
+                "$sysUserId.${code.uppercase()}"
             )
     }
 }

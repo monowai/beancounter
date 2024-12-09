@@ -16,14 +16,14 @@ class AdapterFactory {
 
     @Autowired
     fun setShareSightAdapter(
-        @Qualifier("shareSightRowAdapter") shareSightAdapter: RowAdapter,
+        @Qualifier("shareSightRowAdapter") shareSightAdapter: RowAdapter
     ) {
         this.shareSightAdapter = shareSightAdapter
     }
 
     @Autowired
     fun setBcAdapter(
-        @Qualifier("bcRowAdapter") bcRowAdapter: RowAdapter,
+        @Qualifier("bcRowAdapter") bcRowAdapter: RowAdapter
     ) {
         this.bcRowAdapter = bcRowAdapter
     }

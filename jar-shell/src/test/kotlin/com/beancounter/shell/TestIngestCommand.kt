@@ -63,7 +63,7 @@ class TestIngestCommand {
     fun is_IngestionCommandRunning() {
         ingestionFactory.add(
             mock.uppercase(),
-            mockIngester,
+            mockIngester
         )
         // Make sure we are not case-sensitive when finding the ingestion approach to use.
         Assertions
@@ -72,8 +72,8 @@ class TestIngestCommand {
                     mock,
                     mock,
                     pfCode,
-                    pfCode,
-                ),
+                    pfCode
+                )
             ).isEqualTo("Done")
     }
 
@@ -81,7 +81,7 @@ class TestIngestCommand {
     internal class MockIngester : AbstractIngester() {
         override fun prepare(
             ingestionRequest: IngestionRequest,
-            trnWriter: TrnWriter,
+            trnWriter: TrnWriter
         ) {
             // NoOp
         }

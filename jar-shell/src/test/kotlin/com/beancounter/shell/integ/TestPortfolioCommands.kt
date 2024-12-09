@@ -38,7 +38,7 @@ import java.util.UUID
 @SpringBootTest(classes = [ShellConfig::class, ClientPasswordConfig::class, MockAuthConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
@@ -65,8 +65,8 @@ class TestPortfolioCommands {
             PortfolioCommands(
                 PortfolioServiceClient(
                     portfolioGw,
-                    tokenService,
-                ),
+                    tokenService
+                )
             )
     }
 
@@ -85,24 +85,24 @@ class TestPortfolioCommands {
                 listOf(
                     getPortfolio(
                         pfCode,
-                        owner,
-                    ),
-                ),
+                        owner
+                    )
+                )
             )
         Mockito
             .`when`(
                 portfolioGw.getPortfolioByCode(
                     Mockito.anyString(),
-                    Mockito.anyString(),
-                ),
+                    Mockito.anyString()
+                )
             ).thenReturn(PortfolioResponse(getPortfolio(pfCode)))
 
         Mockito
             .`when`(
                 portfolioGw.addPortfolios(
                     Mockito.eq(tokenService.bearerToken),
-                    Mockito.isA(PortfoliosRequest::class.java),
-                ),
+                    Mockito.isA(PortfoliosRequest::class.java)
+                )
             ).thenReturn(response)
 
         val result =
@@ -111,13 +111,13 @@ class TestPortfolioCommands {
                     pfCode,
                     pfCode,
                     NZD.code,
-                    USD.code,
+                    USD.code
                 )
         assertThat(result).isNotNull
         val portfolio =
             objectMapper.readValue(
                 result,
-                Portfolio::class.java,
+                Portfolio::class.java
             )
         assertThat(portfolio)
             .usingRecursiveComparison()
@@ -132,15 +132,15 @@ class TestPortfolioCommands {
         val existing =
             getPortfolio(
                 code,
-                owner,
+                owner
             )
         val portfolioResponse = PortfolioResponse(existing)
         Mockito
             .`when`(
                 portfolioGw.getPortfolioByCode(
                     tokenService.bearerToken,
-                    existing.code,
-                ),
+                    existing.code
+                )
             ).thenReturn(portfolioResponse) // Portfolio exists
         val result =
             portfolioCommands
@@ -148,13 +148,13 @@ class TestPortfolioCommands {
                     code,
                     pfCode,
                     NZD.code,
-                    USD.code,
+                    USD.code
                 )
         assertThat(result).isNotNull
         val portfolio =
             objectMapper.readValue(
                 result,
-                Portfolio::class.java,
+                Portfolio::class.java
             )
         assertThat(portfolio)
             .usingRecursiveComparison()
@@ -168,7 +168,7 @@ class TestPortfolioCommands {
 
     private fun getPortfolio(
         code: String,
-        owner: SystemUser,
+        owner: SystemUser
     ): Portfolio {
         val toReturn = getPortfolio(code)
         toReturn.owner = owner

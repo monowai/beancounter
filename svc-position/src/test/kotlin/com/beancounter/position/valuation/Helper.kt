@@ -20,7 +20,7 @@ class Helper {
             balance: BigDecimal,
             portfolio: Portfolio,
             tradeBaseRate: BigDecimal = BigDecimal.ONE,
-            tradePortfolioRate: BigDecimal = BigDecimal.ONE,
+            tradePortfolioRate: BigDecimal = BigDecimal.ONE
         ): Trn =
             Trn(
                 trnType = TrnType.DEPOSIT,
@@ -31,7 +31,7 @@ class Helper {
                 cashAsset = cashAsset,
                 quantity = balance,
                 tradeBaseRate = tradeBaseRate,
-                tradePortfolioRate = tradePortfolioRate,
+                tradePortfolioRate = tradePortfolioRate
             )
 
         @JvmStatic
@@ -42,7 +42,7 @@ class Helper {
             debitAmount: BigDecimal,
             portfolio: Portfolio,
             tradeBaseRate: BigDecimal = BigDecimal.ONE,
-            tradePortfolioRate: BigDecimal = BigDecimal.ONE,
+            tradePortfolioRate: BigDecimal = BigDecimal.ONE
         ): Trn =
             Trn(
                 trnType = TrnType.FX_BUY,
@@ -55,7 +55,7 @@ class Helper {
                 // Amount to receive
                 quantity = creditAmount,
                 // Amount to debit
-                cashAmount = debitAmount.multiply(BigDecimal("-1")),
+                cashAmount = debitAmount.multiply(BigDecimal("-1"))
             )
     }
 }

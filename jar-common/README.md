@@ -7,19 +7,19 @@ This document outlines how the BeanCounter system handles exceptions.
 Exceptions are categorized into two types:
 
 - `SystemException`: These are unexpected errors
-  - Requires operational intervention, possibly due to a system bug.
-  - They are signaled over HTTP as a `5XX` HttpStatus.
+    - Requires operational intervention, possibly due to a system bug.
+    - They are signaled over HTTP as a `5XX` HttpStatus.
 - `BusinessException`: These are client errors
-  - Could be resolved by the client if they reformulate their request.
-  - They are signaled over HTTP as a `4XX` HttpStatus.
+    - Could be resolved by the client if they reformulate their request.
+    - They are signaled over HTTP as a `4XX` HttpStatus.
 
 There are also specialized `BusinessException` types:
 
 - `ForbiddenException`: The user is recognized
-  - Lacks sufficient privileges to invoke the endpoint.
-  - Signaled over HTTP as a `403` HttpStatus.
+    - Lacks sufficient privileges to invoke the endpoint.
+    - Signaled over HTTP as a `403` HttpStatus.
 - `UnauthorizedException`: The system is unable to authenticate the user.
-  - Signaled over HTTP as a `401` HttpStatus.
+    - Signaled over HTTP as a `401` HttpStatus.
 
 ## Handling 'Not Found' Errors
 

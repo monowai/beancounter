@@ -59,7 +59,7 @@ class OffMarketPriceDataTest {
     fun setAuth(mockAuthConfig: MockAuthConfig) {
         mockAuthConfig.login(
             SystemUser(id = owner),
-            this.systemUserService,
+            this.systemUserService
         )
     }
 
@@ -81,11 +81,11 @@ class OffMarketPriceDataTest {
                                 currency = NZD,
                                 code = "NO-PRICE",
                                 name = "Worthless place",
-                                owner = owner,
-                            ),
-                        ),
-                    ),
-                ),
+                                owner = owner
+                            )
+                        )
+                    )
+                )
             )
         val asset =
             assetResponse.data
@@ -97,19 +97,19 @@ class OffMarketPriceDataTest {
         val prices =
             marketDataService.getPriceResponse(
                 priceRequest =
-                PriceRequest(
-                    assets =
-                    listOf(
-                        PriceAsset(asset),
-                    ),
-                ),
+                    PriceRequest(
+                        assets =
+                            listOf(
+                                PriceAsset(asset)
+                            )
+                    )
             )
 
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())
             .hasFieldOrPropertyWithValue(
                 "close",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
     }
 
@@ -125,11 +125,11 @@ class OffMarketPriceDataTest {
                                 currency = NZD,
                                 code = "PNZ",
                                 name = "My Place In NZD",
-                                owner = owner,
-                            ),
-                        ),
-                    ),
-                ),
+                                owner = owner
+                            )
+                        )
+                    )
+                )
             )
         val asset =
             assetResponse.data
@@ -144,9 +144,9 @@ class OffMarketPriceDataTest {
                         .getMarketData(
                             asset = asset,
                             date = DateUtils().getFormattedDate("2022-01-01"),
-                            closePrice = BigDecimal.TEN,
-                        ).get(),
-                ),
+                            closePrice = BigDecimal.TEN
+                        ).get()
+                )
             )
 
         assertThat(priceResponse.data).hasSize(1)
@@ -155,21 +155,21 @@ class OffMarketPriceDataTest {
         val prices =
             marketDataService.getPriceResponse(
                 priceRequest =
-                PriceRequest(
-                    assets =
-                    listOf(
-                        PriceAsset(asset),
-                    ),
-                ),
+                    PriceRequest(
+                        assets =
+                            listOf(
+                                PriceAsset(asset)
+                            )
+                    )
             )
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())
             .hasFieldOrPropertyWithValue(
                 "close",
-                BigDecimal("10.000000"),
+                BigDecimal("10.000000")
             ).hasFieldOrPropertyWithValue(
                 "asset.market.code",
-                OffMarketDataProvider.ID,
+                OffMarketDataProvider.ID
             )
     }
 }

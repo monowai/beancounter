@@ -30,7 +30,7 @@ class TestEvent {
   }"""
         val (_, _, _, _, recordDate, _, _, payDate) =
             objectMapper.readValue<CorporateEvent>(
-                eventJson,
+                eventJson
             )
         assertThat(recordDate).isEqualTo(recordDateString)
         assertThat(payDate).isEqualTo(recordDateString)
@@ -44,7 +44,7 @@ class TestEvent {
                 trnType = TrnType.DIVI,
                 source = "TEST",
                 "assetId",
-                rate = BigDecimal.TEN,
+                rate = BigDecimal.TEN
             )
         val eventRequest = EventRequest(event)
         val json = objectMapper.writeValueAsBytes(eventRequest)
@@ -61,15 +61,15 @@ class TestEvent {
                 CorporateEvent(
                     source = "test",
                     assetId = "xxx",
-                    rate = BigDecimal.ONE,
-                ),
+                    rate = BigDecimal.ONE
+                )
             )
         val json = objectMapper.writeValueAsString(trustedEventInput)
         assertThat(
             objectMapper.readValue(
                 json,
-                TrustedEventInput::class.java,
-            ),
+                TrustedEventInput::class.java
+            )
         ).usingRecursiveComparison()
             .isEqualTo(trustedEventInput)
     }

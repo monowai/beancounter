@@ -13,7 +13,7 @@ import java.time.LocalDate
 class DateValues {
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
@@ -21,7 +21,7 @@ class DateValues {
 
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
@@ -29,7 +29,7 @@ class DateValues {
 
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
@@ -37,7 +37,7 @@ class DateValues {
 
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)

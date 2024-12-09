@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service
 @Service
 class AlphaEventService(
     val alphaGateway: AlphaGateway,
-    val alphaConfig: AlphaConfig,
+    val alphaConfig: AlphaConfig
 ) {
     @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
@@ -30,7 +30,7 @@ class AlphaEventService(
         val json =
             alphaGateway.getAdjusted(
                 asset.code,
-                apiKey,
+                apiKey
             )
         if (json.contains("Error Message")) {
             log.error("Provider API error $json")
@@ -41,7 +41,7 @@ class AlphaEventService(
                 .getObjectMapper()
                 .readValue(
                     json,
-                    PriceResponse::class.java,
+                    PriceResponse::class.java
                 )
         val events = priceResponse.data.filter(this::inFilter)
         return PriceResponse(events)

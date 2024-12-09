@@ -13,5 +13,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class MarketStackResponse(
     val data: List<MarketStackData> = listOf(),
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    val error: MarketStackError? = null,
+    val error: MarketStackError? = null
 )

@@ -35,22 +35,22 @@ class PortfolioServiceTest {
                         "TEST",
                         "Test Portfolio",
                         "USD",
-                        currency = "USD",
-                    ),
-                ),
+                        currency = "USD"
+                    )
+                )
             )
         assertThat(results).hasSize(1)
         val portfolio = results.iterator().next()
         assertThat(portfolio)
             .hasFieldOrPropertyWithValue(
                 "code",
-                "TEST",
+                "TEST"
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ).hasFieldOrPropertyWithValue(
                 "irr",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
         val result =
             portfolioService.maintain(
@@ -61,16 +61,16 @@ class PortfolioServiceTest {
                     "Test Portfolio",
                     marketValue = BigDecimal.TEN,
                     irr = BigDecimal.ONE,
-                    owner = portfolio.owner,
-                ),
+                    owner = portfolio.owner
+                )
             )
         assertThat(result)
             .hasFieldOrPropertyWithValue(
                 "marketValue",
-                BigDecimal.TEN,
+                BigDecimal.TEN
             ).hasFieldOrPropertyWithValue(
                 "irr",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             )
     }
 }

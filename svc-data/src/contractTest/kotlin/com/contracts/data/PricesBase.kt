@@ -51,7 +51,7 @@ class PricesBase : ContractVerifierBase() {
             AAPL.copy(
                 id = "EBAY",
                 code = "EBAY",
-                name = "eBay Inc.",
+                name = "eBay Inc."
             )
         `when`(assetRepository.findAllById(listOf(ebay.id)))
             .thenReturn(listOf(ebay))
@@ -68,9 +68,9 @@ class PricesBase : ContractVerifierBase() {
                 listOf(
                     "AAPL",
                     "USD",
-                    "NZD",
-                ),
-            ),
+                    "NZD"
+                )
+            )
         ).thenReturn(
             listOf(
                 Asset(
@@ -79,7 +79,7 @@ class PricesBase : ContractVerifierBase() {
                     category = CASH_MARKET.code,
                     priceSymbol = "USD",
                     name = "USD Balance",
-                    market = cashMarket,
+                    market = cashMarket
                 ),
                 Asset(
                     "NZD",
@@ -87,10 +87,10 @@ class PricesBase : ContractVerifierBase() {
                     category = CASH_MARKET.code,
                     priceSymbol = "NZD",
                     name = "NZD Balance",
-                    market = cashMarket,
+                    market = cashMarket
                 ),
-                AAPL,
-            ),
+                AAPL
+            )
         )
         mockPrices()
         `when`(dateUtils.isToday(anyString())).thenReturn(true)
@@ -111,8 +111,8 @@ class PricesBase : ContractVerifierBase() {
                 low,
                 close,
                 volume,
-                rateDate,
-            ),
+                rateDate
+            )
         )
         mockPriceResponse(
             AlphaPriceResponse(
@@ -122,8 +122,8 @@ class PricesBase : ContractVerifierBase() {
                 low,
                 close,
                 volume,
-                rateDate,
-            ),
+                rateDate
+            )
         )
         mockPriceResponse(
             AlphaPriceResponse(
@@ -133,8 +133,8 @@ class PricesBase : ContractVerifierBase() {
                 low,
                 close,
                 volume,
-                rateDate,
-            ),
+                rateDate
+            )
         )
     }
 
@@ -143,15 +143,15 @@ class PricesBase : ContractVerifierBase() {
             mapOf(
                 Pair(
                     "Global Quote",
-                    marketData,
-                ),
+                    marketData
+                )
             )
         `when`(
             alphaGateway
                 .getCurrent(
                     marketData.symbol,
-                    "demo",
-                ),
+                    "demo"
+                )
         ).thenReturn(objectMapper.writeValueAsString(response))
     }
 
@@ -176,6 +176,6 @@ class PricesBase : ContractVerifierBase() {
         @JsonProperty(F_PREVIOUS_CLOSE)
         val previousClose: BigDecimal = close,
         @JsonProperty(F_CHANGE)
-        val changePercent: BigDecimal = BigDecimal.ZERO,
+        val changePercent: BigDecimal = BigDecimal.ZERO
     )
 }

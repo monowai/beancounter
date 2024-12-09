@@ -20,6 +20,6 @@ import org.springframework.context.annotation.Import
     ShellPrompt::class,
     PortfolioCommands::class,
     DataCommands::class,
-    ClientConfig::class,
+    ClientConfig::class
 )
 class ShellConfig

@@ -10,16 +10,16 @@ import com.fasterxml.jackson.databind.KeyDeserializer
 class CurrencyKeyDeserializer : KeyDeserializer() {
     override fun deserializeKey(
         key: String,
-        ctxt: DeserializationContext,
+        ctxt: DeserializationContext
     ): IsoCurrencyPair =
         IsoCurrencyPair(
             key.substring(
                 0,
-                3,
+                3
             ),
             key.substring(
                 4,
-                7,
-            ),
+                7
+            )
         )
 }

@@ -29,7 +29,7 @@ internal class StockSplitTest {
         val apple =
             getTestAsset(
                 NASDAQ,
-                AAPL,
+                AAPL
             )
         val positions = Positions()
 
@@ -39,59 +39,59 @@ internal class StockSplitTest {
                 trnType = TrnType.BUY,
                 asset = apple,
                 quantity = hundred,
-                tradeAmount = tradeAmount,
+                tradeAmount = tradeAmount
             )
 
         val position =
             buyBehaviour.accumulate(
                 buyTrn,
-                positions,
+                positions
             )
         val totalField = "total"
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(
                 totalField,
-                hundred,
+                hundred
             )
         val stockSplit =
             Trn(
                 trnType = TrnType.SPLIT,
                 asset = apple,
-                quantity = BigDecimal("7"),
+                quantity = BigDecimal("7")
             )
         splitBehaviour.accumulate(
             stockSplit,
-            positions,
+            positions
         )
 
         // 7 for one split
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(
                 totalField,
-                BigDecimal(700),
+                BigDecimal(700)
             )
         val costBasis =
             Objects
                 .requireNonNull(
                     position.getMoneyValues(
                         Position.In.TRADE,
-                        position.asset.market.currency,
-                    ),
+                        position.asset.market.currency
+                    )
                 ).costBasis
         assertThat(
             position.getMoneyValues(
                 Position.In.TRADE,
-                position.asset.market.currency,
-            ),
+                position.asset.market.currency
+            )
         ).hasFieldOrPropertyWithValue(
             "costBasis",
-            costBasis,
+            costBasis
         )
 
         // Another buy at the adjusted price
         buyBehaviour.accumulate(
             buyTrn,
-            positions,
+            positions
         )
 
         val eightHundred = BigDecimal(800)
@@ -99,7 +99,7 @@ internal class StockSplitTest {
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(
                 totalField,
-                eightHundred,
+                eightHundred
             )
 
         // Sell the entire position
@@ -108,25 +108,25 @@ internal class StockSplitTest {
                 trnType = TrnType.SELL,
                 asset = apple,
                 quantity = eightHundred,
-                tradeAmount = tradeAmount,
+                tradeAmount = tradeAmount
             ),
-            positions,
+            positions
         )
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(
                 totalField,
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
 
         // Repurchase; total should be equal to the quantity we just purchased
         buyBehaviour.accumulate(
             buyTrn,
-            positions,
+            positions
         )
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(
                 totalField,
-                buyTrn.quantity,
+                buyTrn.quantity
             )
     }
 }

@@ -12,12 +12,12 @@ import org.springframework.context.annotation.Import
 @ConditionalOnProperty(
     value = ["auth.enabled"],
     havingValue = "true",
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 @EnableFeignClients(basePackages = ["com.beancounter.auth.client"])
 @Import(
     AuthConfig::class,
-    LoginService::class,
+    LoginService::class
 )
 @Configuration
 class ClientPasswordConfig

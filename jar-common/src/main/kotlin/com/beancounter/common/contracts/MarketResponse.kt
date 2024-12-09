@@ -6,5 +6,5 @@ import com.beancounter.common.model.Market
  * Available markets
  */
 data class MarketResponse(
-    override var data: Collection<Market>?,
+    override var data: Collection<Market>?
 ) : Payload<Collection<Market?>?>

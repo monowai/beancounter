@@ -75,12 +75,12 @@ class CashTrnTests {
     @Autowired
     fun setupObjects(
         mockAuthConfig: MockAuthConfig,
-        mockMvc: MockMvc,
+        mockMvc: MockMvc
     ) {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                mockAuthConfig.getUserToken(Constants.systemUser),
+                mockAuthConfig.getUserToken(Constants.systemUser)
             )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
@@ -89,8 +89,8 @@ class CashTrnTests {
             .`when`(
                 fxClientService.getRates(
                     any(),
-                    any(),
-                ),
+                    any()
+                )
             ).thenReturn(FxResponse(FxPairResults()))
     }
 
@@ -106,10 +106,10 @@ class CashTrnTests {
                         mapOf(
                             Pair(
                                 NZD.code,
-                                cashInput,
-                            ),
-                        ),
-                    ),
+                                cashInput
+                            )
+                        )
+                    )
                 ).data[NZD.code]
         assertThat(nzCashAsset).isNotNull
         val usPortfolio =
@@ -117,8 +117,8 @@ class CashTrnTests {
                 PortfolioInput(
                     code = "depositCash",
                     base = NZD.code,
-                    currency = USD.code,
-                ),
+                    currency = USD.code
+                )
             )
         val cashDeposit =
             TrnInput(
@@ -131,37 +131,37 @@ class CashTrnTests {
                 tradeBaseRate = ONE,
                 tradePortfolioRate = tradePortfolioRate,
                 tradeAmount = nzdBalance,
-                price = ONE,
+                price = ONE
             )
         val trns =
             trnService.save(
                 usPortfolio,
                 TrnRequest(
                     usPortfolio.id,
-                    arrayOf(cashDeposit),
-                ),
+                    arrayOf(cashDeposit)
+                )
             )
         assertThat(trns).isNotNull.hasSize(1)
         val cashTrn = trns.iterator().next()
         assertThat(cashTrn)
             .hasFieldOrPropertyWithValue(
                 propTradeAmount,
-                cashDeposit.tradeAmount,
+                cashDeposit.tradeAmount
             ).hasFieldOrPropertyWithValue(
                 propCashAmount,
-                nzdBalance,
+                nzdBalance
             ).hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                cashDeposit.tradeCashRate,
+                cashDeposit.tradeCashRate
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                tradePortfolioRate,
+                tradePortfolioRate
             ).hasFieldOrPropertyWithValue(
                 "cashAsset",
-                nzCashAsset,
+                nzCashAsset
             ).hasFieldOrPropertyWithValue(
                 "cashCurrency",
-                NZD,
+                NZD
             )
     }
 
@@ -175,10 +175,10 @@ class CashTrnTests {
                     AssetRequest(
                         AssetInput(
                             NYSE.code,
-                            MSFT.code,
+                            MSFT.code
                         ),
-                        MSFT.code,
-                    ),
+                        MSFT.code
+                    )
                 ).data[MSFT.code]
         val usPortfolio = bcMvcHelper.portfolio(PortfolioInput(code = "buyDebitsCash"))
         val buy =
@@ -188,34 +188,34 @@ class CashTrnTests {
                 cashCurrency = NZD.code,
                 tradeCashRate = BigDecimal("0.50"),
                 tradeAmount = fiveK,
-                price = ONE,
+                price = ONE
             )
         val trns =
             trnService.save(
                 usPortfolio,
                 TrnRequest(
                     usPortfolio.id,
-                    arrayOf(buy),
-                ),
+                    arrayOf(buy)
+                )
             )
         assertThat(trns).isNotNull.hasSize(1)
         val cashTrn = trns.iterator().next()
         assertThat(cashTrn)
             .hasFieldOrPropertyWithValue(
                 propTradeAmount,
-                buy.tradeAmount,
+                buy.tradeAmount
             ).hasFieldOrPropertyWithValue(
                 propCashAmount,
-                BigDecimal("-10000.00"),
+                BigDecimal("-10000.00")
             ).hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                buy.tradeCashRate,
+                buy.tradeCashRate
             ).hasFieldOrPropertyWithValue(
                 "cashAsset",
-                nzCashAsset,
+                nzCashAsset
             ).hasFieldOrPropertyWithValue(
                 "cashCurrency",
-                NZD,
+                NZD
             )
     }
 
@@ -227,10 +227,10 @@ class CashTrnTests {
                     mapOf(
                         Pair(
                             currency.code,
-                            cashInput,
-                        ),
-                    ),
-                ),
+                            cashInput
+                        )
+                    )
+                )
             ).data[currency.code]!!
     }
 }

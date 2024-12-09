@@ -16,7 +16,7 @@ import java.math.BigDecimal
 @Service
 class SplitBehaviour(
     val currencyResolver: CurrencyResolver = CurrencyResolver(),
-    val averageCost: AverageCost = AverageCost(),
+    val averageCost: AverageCost = AverageCost()
 ) : AccumulationStrategy {
     override val supportedType: TrnType
         get() = TrnType.SPLIT
@@ -24,7 +24,7 @@ class SplitBehaviour(
     override fun accumulate(
         trn: Trn,
         positions: Positions,
-        position: Position,
+        position: Position
     ): Position {
         val total = position.quantityValues.getTotal()
         position.quantityValues
@@ -36,9 +36,9 @@ class SplitBehaviour(
                 currencyResolver.resolve(
                     Position.In.TRADE,
                     trn.portfolio,
-                    trn.tradeCurrency,
-                ),
-            ),
+                    trn.tradeCurrency
+                )
+            )
         )
         value(
             position,
@@ -47,9 +47,9 @@ class SplitBehaviour(
                 currencyResolver.resolve(
                     Position.In.BASE,
                     trn.portfolio,
-                    trn.tradeCurrency,
-                ),
-            ),
+                    trn.tradeCurrency
+                )
+            )
         )
         value(
             position,
@@ -58,28 +58,28 @@ class SplitBehaviour(
                 currencyResolver.resolve(
                     Position.In.PORTFOLIO,
                     trn.portfolio,
-                    trn.tradeCurrency,
-                ),
-            ),
+                    trn.tradeCurrency
+                )
+            )
         )
         return position
     }
 
     private fun value(
         position: Position,
-        moneyValues: MoneyValues,
+        moneyValues: MoneyValues
     ) {
         if (moneyValues.costBasis != BigDecimal.ZERO) {
             moneyValues.averageCost =
                 averageCost.value(
                     moneyValues.costBasis,
-                    position.quantityValues.getTotal(),
+                    position.quantityValues.getTotal()
                 )
         }
         moneyValues.costValue =
             averageCost.getCostValue(
                 position,
-                moneyValues,
+                moneyValues
             )
     }
 }

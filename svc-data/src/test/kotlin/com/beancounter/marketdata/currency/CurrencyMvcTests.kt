@@ -33,7 +33,7 @@ internal class CurrencyMvcTests {
                     MockMvcRequestBuilders
                         .get("/currencies")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -41,7 +41,7 @@ internal class CurrencyMvcTests {
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    CurrencyResponse::class.java,
+                    CurrencyResponse::class.java
                 )
         Assertions.assertThat(currencyResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(currencyResponse.data).isNotEmpty

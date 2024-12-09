@@ -24,9 +24,9 @@ internal class CashProviderServiceTest {
                 of(
                     getTestAsset(
                         CASH_MARKET,
-                        NZD.code,
-                    ),
-                ),
+                        NZD.code
+                    )
+                )
             )
         assertThat(result)
             .isNotNull
@@ -35,7 +35,7 @@ internal class CashProviderServiceTest {
         assertThat(marketData)
             .hasFieldOrPropertyWithValue(
                 "close",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             )
     }
 }

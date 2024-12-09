@@ -46,7 +46,7 @@ class PatchTrnTest {
     @Autowired
     fun setupObjects(
         mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
+        mockAuthConfig: MockAuthConfig
     ) {
         assertThat(currencyService.currencies).isNotEmpty
 
@@ -54,18 +54,18 @@ class PatchTrnTest {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                token,
+                token
             )
 
         assertThat(fxTransactions).isNotNull
         RegistrationUtils.registerUser(
             mockMvc,
-            token,
+            token
         )
 
         aapl =
             bcMvcHelper.asset(
-                AssetRequest(Constants.aaplInput),
+                AssetRequest(Constants.aaplInput)
             )
     }
 
@@ -77,8 +77,8 @@ class PatchTrnTest {
                 PortfolioInput(
                     "PATCH",
                     "is_TrnPatched",
-                    currency = Constants.NZD.code,
-                ),
+                    currency = Constants.NZD.code
+                )
             )
         val originalTransaction = createAndPostTransaction(portfolio)
         assertThat(originalTransaction.data).hasSize(1)
@@ -89,20 +89,20 @@ class PatchTrnTest {
                 originalTransaction.data
                     .iterator()
                     .next()
-                    .id,
+                    .id
             )
 
         // Validate that the transaction was patched correctly
         validatePatchedTransaction(
             portfolio,
             originalTransaction,
-            patchedTransaction,
+            patchedTransaction
         )
     }
 
     private fun createAndPostTransaction(
         portfolio: Portfolio,
-        tradeDate: String = "2020-03-10",
+        tradeDate: String = "2020-03-10"
     ): TrnResponse {
         val trnInput =
             TrnInput(
@@ -112,24 +112,24 @@ class PatchTrnTest {
                 tradeCurrency = USD.code,
                 tradeDate = dateUtils.getFormattedDate(tradeDate),
                 tradePortfolioRate = BigDecimal.TEN,
-                comments = "The Comments Will Not Change",
+                comments = "The Comments Will Not Change"
             )
         val transactionRequest =
             TrnRequest(
                 portfolio.id,
-                arrayOf(trnInput),
+                arrayOf(trnInput)
             )
         val httpResponse = bcMvcHelper.postTrn(transactionRequest).response.contentAsString
         return objectMapper.readValue(
             httpResponse,
-            TrnResponse::class.java,
+            TrnResponse::class.java
         )
     }
 
     private fun patchTransaction(
         portfolioId: String,
         transactionId: String,
-        newTradeDate: String = "2021-03-10",
+        newTradeDate: String = "2021-03-10"
     ): TrnResponse {
         val updatedTrnInput =
             TrnInput(
@@ -139,25 +139,25 @@ class PatchTrnTest {
                 tradeCurrency = USD.code,
                 tradeDate = dateUtils.getFormattedDate(newTradeDate),
                 price = BigDecimal.TEN,
-                tradePortfolioRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal.ONE
             )
         val httpResponse =
             bcMvcHelper
                 .patchTrn(
                     portfolioId,
                     transactionId,
-                    updatedTrnInput,
+                    updatedTrnInput
                 ).response.contentAsString
         return objectMapper.readValue(
             httpResponse,
-            TrnResponse::class.java,
+            TrnResponse::class.java
         )
     }
 
     private fun validatePatchedTransaction(
         portfolio: Portfolio,
         originalTransaction: TrnResponse,
-        patchedTransaction: TrnResponse,
+        patchedTransaction: TrnResponse
     ) {
         assertThat(patchedTransaction.data.size).isEqualTo(1)
         val updatedTrn =
@@ -169,9 +169,9 @@ class PatchTrnTest {
                             originalTransaction.data
                                 .iterator()
                                 .next()
-                                .id,
+                                .id
                         ).response.contentAsString,
-                    TrnResponse::class.java,
+                    TrnResponse::class.java
                 ).data
                 .iterator()
                 .next()
@@ -183,22 +183,22 @@ class PatchTrnTest {
                 originalTransaction.data
                     .iterator()
                     .next()
-                    .id,
+                    .id
             ).hasFieldOrPropertyWithValue(
                 "comments",
                 originalTransaction.data
                     .iterator()
                     .next()
-                    .comments,
+                    .comments
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                BigDecimal("1.000000"),
+                BigDecimal("1.000000")
             ).hasFieldOrPropertyWithValue(
                 "price",
-                BigDecimal("10.000000"),
+                BigDecimal("10.000000")
             ).hasFieldOrPropertyWithValue(
                 "tradeDate",
-                dateUtils.getFormattedDate("2021-03-10"),
+                dateUtils.getFormattedDate("2021-03-10")
             )
     }
 }

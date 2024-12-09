@@ -82,8 +82,8 @@ internal class FxValuationMvcTests {
             tokenUtils.getSystemUserToken(
                 SystemUser(
                     "user",
-                    user,
-                ),
+                    user
+                )
             )
         mockAuthConfig.login(user)
     }
@@ -93,18 +93,18 @@ internal class FxValuationMvcTests {
             Trn(
                 trnType = TrnType.BUY,
                 asset = asset,
-                quantity = hundred,
+                quantity = hundred
             )
         trn.tradeAmount = twoK
         val portfolio = portfolioService.getPortfolioByCode(Constants.TEST)
         val positions =
             Positions(
                 portfolio,
-                asAt = "2019-10-18",
+                asAt = "2019-10-18"
             )
         accumulator.accumulate(
             trn,
-            positions,
+            positions
         )
         return positions
     }
@@ -131,16 +131,16 @@ internal class FxValuationMvcTests {
                         .post("/value")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(positionResponse)),
+                        .content(objectMapper.writeValueAsString(positionResponse))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(
-                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
                 ).andReturn()
                 .response.contentAsString
         val fromJson =
             objectMapper.readValue(
                 json,
-                PositionResponse::class.java,
+                PositionResponse::class.java
             )
         assertThat(fromJson).isNotNull.hasFieldOrProperty(DATA)
         val jsonPositions = fromJson.data
@@ -149,7 +149,7 @@ internal class FxValuationMvcTests {
         assertThat(jsonPositions.totals.keys)
             .contains(
                 Position.In.BASE,
-                Position.In.PORTFOLIO,
+                Position.In.PORTFOLIO
             )
         var position: Position? = null
         for (key in jsonPositions.positions.keys) {
@@ -157,7 +157,7 @@ internal class FxValuationMvcTests {
             assertThat(position!!.asset)
                 .hasFieldOrPropertyWithValue(
                     "name",
-                    asset.name,
+                    asset.name
                 )
         }
         assertThat(position).isNotNull
@@ -171,7 +171,7 @@ internal class FxValuationMvcTests {
         assertThat(moneyTotal)
             .hasFieldOrPropertyWithValue(
                 "marketValue",
-                moneyValues.marketValue,
+                moneyValues.marketValue
             )
     }
 
@@ -181,13 +181,13 @@ internal class FxValuationMvcTests {
             assetInputMap["$EBAY:${NASDAQ.code}"] =
                 AssetInput(
                     NASDAQ.code,
-                    EBAY,
+                    EBAY
                 )
             val assetRequest = AssetRequest(assetInputMap)
             val assetResponse = assetService.handle(assetRequest)
             assertThat(assetResponse!!.data).hasSize(1)
             return assetResponse.data["$EBAY:${NASDAQ.code}"] ?: error(
-                "$EBAY Not Found. This should never happen",
+                "$EBAY Not Found. This should never happen"
             )
         }
 
@@ -200,7 +200,7 @@ internal class FxValuationMvcTests {
                         .post("/value")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString("{asdf}")),
+                        .content(objectMapper.writeValueAsString("{asdf}"))
                 ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
                 .andReturn()
         val someException =
@@ -217,20 +217,20 @@ internal class FxValuationMvcTests {
         assertThat(
             positions.getOrCreate(asset).getMoneyValues(
                 Position.In.TRADE,
-                asset.market.currency,
-            ),
+                asset.market.currency
+            )
         ).hasFieldOrPropertyWithValue(
             "unrealisedGain",
-            BigDecimal("8000.00"),
+            BigDecimal("8000.00")
         ).hasFieldOrPropertyWithValue(
             "priceData.close",
-            BigDecimal("100.00"),
+            BigDecimal("100.00")
         ).hasFieldOrPropertyWithValue(
             "marketValue",
-            BigDecimal("10000.00"),
+            BigDecimal("10000.00")
         ).hasFieldOrPropertyWithValue(
             "totalGain",
-            BigDecimal("8000.00"),
+            BigDecimal("8000.00")
         )
     }
 
@@ -245,7 +245,7 @@ internal class FxValuationMvcTests {
             .hasNoNullFieldsOrPropertiesExcept(
                 "currencyId",
                 "timezoneId",
-                "enricher",
+                "enricher"
             )
         assertThat(position.moneyValues[Position.In.PORTFOLIO]!!.currency)
             .hasNoNullFieldsOrProperties()

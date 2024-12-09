@@ -46,7 +46,7 @@ internal class CashLadderMvcTests {
             name = "${NZD.code} Portfolio",
             currency = NZD,
             base = USD,
-            owner = owner,
+            owner = owner
         )
 
     @Test
@@ -55,18 +55,18 @@ internal class CashLadderMvcTests {
         val apple =
             getTestAsset(
                 code = "AAPL",
-                market = NASDAQ,
+                market = NASDAQ
             )
 
         val usdCash =
             getTestAsset(
                 code = USD.code,
-                market = CASH,
+                market = CASH
             )
         val nzdCash =
             getTestAsset(
                 code = NZD.code,
-                market = CASH,
+                market = CASH
             )
         val json =
             mockMvc
@@ -74,15 +74,15 @@ internal class CashLadderMvcTests {
                     MockMvcRequestBuilders
                         .get(
                             "/{portfolioCode}/$date",
-                            portfolio.code,
+                            portfolio.code
                         ).with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
-                        ).contentType(MediaType.APPLICATION_JSON_VALUE),
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(
-                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
                 ).andReturn()
                 .response
                 .contentAsString
@@ -90,14 +90,14 @@ internal class CashLadderMvcTests {
         val positionResponse =
             objectMapper.readValue(
                 json,
-                PositionResponse::class.java,
+                PositionResponse::class.java
             )
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "code",
-                portfolio.code,
+                portfolio.code
             )
         assertThat(positionResponse.data.asAt).isEqualTo(date)
 
@@ -106,7 +106,7 @@ internal class CashLadderMvcTests {
             .containsKeys(
                 toKey(apple),
                 toKey(usdCash),
-                toKey(nzdCash),
+                toKey(nzdCash)
             )
 
         // Working back.  The stock purchase should debit cash
@@ -115,30 +115,30 @@ internal class CashLadderMvcTests {
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue(
                 "total",
-                BigDecimal("2500.0"),
+                BigDecimal("2500.0")
             )
 
         val cashResult = "2500.00"
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "marketValue",
-                BigDecimal(cashResult),
+                BigDecimal(cashResult)
             ).hasFieldOrPropertyWithValue(
                 PROP_COST_VALUE,
-                BigDecimal(cashResult),
+                BigDecimal(cashResult)
             )
 
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue(
                 "total",
-                BigDecimal("3507.46"),
+                BigDecimal("3507.46")
             )
 
         // Cash does not track purchases and sales totals.
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_COST_VALUE,
-                BigDecimal("3507.46"),
+                BigDecimal("3507.46")
             ) // Purchases - Sales
     }
 }

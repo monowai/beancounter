@@ -16,7 +16,7 @@ import java.time.LocalDate
 @Transactional
 class TrnQueryService(
     val trnService: TrnService,
-    val trnRepository: TrnRepository,
+    val trnRepository: TrnRepository
 ) {
     /**
      * Trades in a portfolio for the specified asset.
@@ -29,24 +29,24 @@ class TrnQueryService(
     fun findAssetTrades(
         portfolio: Portfolio,
         assetId: String,
-        tradeDate: LocalDate,
+        tradeDate: LocalDate
     ): Collection<Trn> {
         val results =
             trnRepository
                 .findByPortfolioIdAndAssetIdUpTo(
                     portfolio.id,
                     assetId,
-                    tradeDate,
+                    tradeDate
                 )
         log.debug(
             "count: {}, portfolio: {}, asset: {}",
             results.size,
             portfolio.code,
-            assetId,
+            assetId
         )
         return trnService.postProcess(
             results,
-            false,
+            false
         )
     }
 
@@ -59,17 +59,17 @@ class TrnQueryService(
             TrnType.WITHDRAWAL,
             TrnType.FX_BUY,
             TrnType.BALANCE,
-            TrnType.ADD,
+            TrnType.ADD
         )
 
     fun findAssetTrades(
         portfolio: Portfolio,
-        assetId: String,
+        assetId: String
     ): Collection<Trn> =
         trnResponse(
             portfolio,
             assetId,
-            typeFilter,
+            typeFilter
         )
 
     /**
@@ -81,7 +81,7 @@ class TrnQueryService(
      */
     fun findEvents(
         portfolio: Portfolio,
-        assetId: String,
+        assetId: String
     ): Collection<Trn> {
         val typeFilter = ArrayList<TrnType>()
         typeFilter.add(TrnType.DIVI)
@@ -89,14 +89,14 @@ class TrnQueryService(
         return trnResponse(
             portfolio,
             assetId,
-            typeFilter,
+            typeFilter
         )
     }
 
     private fun trnResponse(
         portfolio: Portfolio,
         assetId: String,
-        typeFilter: ArrayList<TrnType>,
+        typeFilter: ArrayList<TrnType>
     ): Collection<Trn> {
         val results =
             trnRepository
@@ -107,17 +107,17 @@ class TrnQueryService(
                     Sort
                         .by("tradeDate")
                         .descending()
-                        .and(Sort.by("asset.code")),
+                        .and(Sort.by("asset.code"))
                 )
         log.debug(
             "Found {} for portfolio {} and asset {}",
             results.size,
             portfolio.code,
-            assetId,
+            assetId
         )
         return trnService.postProcess(
             results,
-            true,
+            true
         )
     }
 

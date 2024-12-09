@@ -20,6 +20,6 @@ interface Position {
      */
     fun build(
         portfolio: Portfolio,
-        positionRequest: PositionRequest,
+        positionRequest: PositionRequest
     ): PositionResponse
 }

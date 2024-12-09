@@ -23,7 +23,7 @@ import java.time.LocalDate
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,
     val cashServices: CashServices,
-    val dateUtils: DateUtils = DateUtils(),
+    val dateUtils: DateUtils = DateUtils()
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         val tradeDate = dateUtils.getDate(trustedTrnImportRequest.row[Columns.Date.ordinal].trim())
@@ -41,8 +41,8 @@ class BcRowAdapter(
                     market = marketCode,
                     code = assetCode,
                     name = trustedTrnImportRequest.row[Columns.Name.ordinal].trim(),
-                    owner = trustedTrnImportRequest.portfolio.owner.id,
-                ),
+                    owner = trustedTrnImportRequest.portfolio.owner.id
+                )
             )
         val cashCurrency = trustedTrnImportRequest.row[Columns.CashCurrency.ordinal].trim()
         val cashAccount = trustedTrnImportRequest.row[Columns.CashAccount.ordinal].trim()
@@ -51,11 +51,11 @@ class BcRowAdapter(
                 trnType,
                 asset,
                 cashAccount,
-                cashCurrency,
+                cashCurrency
             )
         val quantity =
             MathUtils.nullSafe(
-                MathUtils.parse(trustedTrnImportRequest.row[Columns.Quantity.ordinal]),
+                MathUtils.parse(trustedTrnImportRequest.row[Columns.Quantity.ordinal])
             )
         val price =
             MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[Columns.Price.ordinal]))
@@ -64,17 +64,17 @@ class BcRowAdapter(
         val tradeBaseRate = MathUtils.parse(trustedTrnImportRequest.row[Columns.BaseRate.ordinal])
         val tradeAmount =
             MathUtils.nullSafe(
-                MathUtils.parse(trustedTrnImportRequest.row[Columns.TradeAmount.ordinal]),
+                MathUtils.parse(trustedTrnImportRequest.row[Columns.TradeAmount.ordinal])
             )
 
         return TrnInput(
             callerRef =
-            CallerRef(
-                // SystemUserId
-                trustedTrnImportRequest.portfolio.owner.id,
-                trustedTrnImportRequest.row[Columns.Batch.ordinal].trim(),
-                trustedTrnImportRequest.row[Columns.CallerId.ordinal].trim(),
-            ),
+                CallerRef(
+                    // SystemUserId
+                    trustedTrnImportRequest.portfolio.owner.id,
+                    trustedTrnImportRequest.row[Columns.Batch.ordinal].trim(),
+                    trustedTrnImportRequest.row[Columns.CallerId.ordinal].trim()
+                ),
             assetId = asset.id,
             trnType = trnType,
             quantity = quantity,
@@ -87,7 +87,7 @@ class BcRowAdapter(
             cashAssetId = cashAssetId,
             fees = fees,
             price = price,
-            comments = trustedTrnImportRequest.row[Columns.Comments.ordinal],
+            comments = trustedTrnImportRequest.row[Columns.Comments.ordinal]
         )
     }
 
@@ -95,7 +95,7 @@ class BcRowAdapter(
         trnType: TrnType,
         asset: Asset,
         cashAccount: String,
-        cashCurrency: String,
+        cashCurrency: String
     ): String? {
         val cashAsset: Asset? =
             if (TrnType.isCash(trnType)) {
@@ -104,7 +104,7 @@ class BcRowAdapter(
                 cashServices.getCashAsset(
                     trnType,
                     cashAccount,
-                    cashCurrency,
+                    cashCurrency
                 )
             }
         return cashAsset?.id

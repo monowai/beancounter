@@ -31,18 +31,18 @@ internal class MarketMvcTests {
     @Autowired
     fun getToken(
         mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
+        mockAuthConfig: MockAuthConfig
     ): Jwt {
         token =
             mockAuthConfig.getUserToken(
                 SystemUser(
                     "MarketMvcTests",
-                    "MarketMvcTests@testing.com",
-                ),
+                    "MarketMvcTests@testing.com"
+                )
             )
         registerUser(
             mockMvc,
-            token,
+            token
         )
         return token
     }
@@ -55,7 +55,7 @@ internal class MarketMvcTests {
                     MockMvcRequestBuilders
                         .get("/markets")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -63,7 +63,7 @@ internal class MarketMvcTests {
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    MarketResponse::class.java,
+                    MarketResponse::class.java
                 )
         Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotEmpty
@@ -78,7 +78,7 @@ internal class MarketMvcTests {
                     MockMvcRequestBuilders
                         .get("/markets/nzx")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -86,7 +86,7 @@ internal class MarketMvcTests {
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    MarketResponse::class.java,
+                    MarketResponse::class.java
                 )
         Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotNull.hasSize(1)
@@ -96,7 +96,7 @@ internal class MarketMvcTests {
             .hasNoNullFieldsOrPropertiesExcept(
                 "currencyId",
                 "timezoneId",
-                "enricher",
+                "enricher"
             )
     }
 
@@ -109,7 +109,7 @@ internal class MarketMvcTests {
                     MockMvcRequestBuilders
                         .get("/markets/non-existent")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
         Assertions
             .assertThat(result.andReturn().resolvedException)

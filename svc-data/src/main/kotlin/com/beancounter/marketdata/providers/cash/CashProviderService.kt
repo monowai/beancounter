@@ -19,13 +19,13 @@ import java.time.LocalDate
  */
 @Service
 class CashProviderService(
-    val dateUtils: DateUtils = DateUtils(),
+    val dateUtils: DateUtils = DateUtils()
 ) : MarketDataPriceProvider {
     private fun getMarketData(asset: Asset): MarketData {
         val result =
             MarketData(
                 asset,
-                priceDate!!,
+                priceDate!!
             )
         result.close = BigDecimal.ONE
         return result
@@ -46,7 +46,7 @@ class CashProviderService(
     override fun isMarketSupported(market: Market): Boolean =
         ID.equals(
             market.code,
-            ignoreCase = true,
+            ignoreCase = true
         )
 
     override fun isApiSupported(): Boolean = false
@@ -56,7 +56,7 @@ class CashProviderService(
 
     override fun getDate(
         market: Market,
-        priceRequest: PriceRequest,
+        priceRequest: PriceRequest
     ): LocalDate = priceDate!!
 
     override fun backFill(asset: Asset): PriceResponse =

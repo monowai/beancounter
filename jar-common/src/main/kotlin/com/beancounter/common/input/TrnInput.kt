@@ -32,16 +32,16 @@ data class TrnInput(
     var tradePortfolioRate: BigDecimal = BigDecimal.ZERO,
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     ) @JsonSerialize(using = LocalDateSerializer::class) @JsonDeserialize(
-        using = LocalDateDeserializer::class,
+        using = LocalDateDeserializer::class
     )
     val tradeDate: LocalDate = DateUtils().date,
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     ) @JsonSerialize(using = LocalDateSerializer::class) @JsonDeserialize(
-        using = LocalDateDeserializer::class,
+        using = LocalDateDeserializer::class
     )
     var settleDate: LocalDate? = null,
     // In trade Currency
@@ -52,5 +52,5 @@ data class TrnInput(
     // End In trade Currency
     val status: TrnStatus = TrnStatus.CONFIRMED,
     var comments: String? = null,
-    val cashAmount: BigDecimal = BigDecimal.ZERO,
+    val cashAmount: BigDecimal = BigDecimal.ZERO
 )

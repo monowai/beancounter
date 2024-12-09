@@ -44,8 +44,8 @@ class RegistrationClientTest {
             .`when`(
                 registrationGateway.register(
                     tokenService.bearerToken,
-                    RegistrationRequest(),
-                ),
+                    RegistrationRequest()
+                )
             ).thenReturn(RegistrationResponse(SystemUser()))
 
         val registeredUser =

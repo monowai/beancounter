@@ -33,7 +33,7 @@ class GlobalExceptionHandlerTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 message,
-                "We are unable to process your request.",
+                "We are unable to process your request."
             )
     }
 
@@ -43,12 +43,12 @@ class GlobalExceptionHandlerTest {
         assertThat(
             geh.handleSystemException(
                 request,
-                se,
-            ),
+                se
+            )
         ).isNotNull
             .hasFieldOrPropertyWithValue(
                 message,
-                se.message,
+                se.message
             )
     }
 
@@ -58,12 +58,12 @@ class GlobalExceptionHandlerTest {
         assertThat(
             geh.handleBusinessException(
                 request,
-                be,
-            ),
+                be
+            )
         ).isNotNull
             .hasFieldOrPropertyWithValue(
                 message,
-                be.message,
+                be.message
             )
     }
 
@@ -72,12 +72,12 @@ class GlobalExceptionHandlerTest {
         assertThat(
             geh.handleIntegrity(
                 request,
-                BusinessException("DE"),
-            ),
+                BusinessException("DE")
+            )
         ).isNotNull
             .hasFieldOrPropertyWithValue(
                 message,
-                "DE",
+                "DE"
             )
     }
 }

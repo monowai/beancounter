@@ -21,7 +21,7 @@ import java.time.LocalDate
 class EventService(
     private val positionService: PositionService,
     private val eventRepository: EventRepository,
-    private val keyGenUtils: KeyGenUtils,
+    private val keyGenUtils: KeyGenUtils
 ) {
     private lateinit var eventPublisher: EventPublisher
 
@@ -34,21 +34,21 @@ class EventService(
 
     fun process(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> =
         processEvent(
-            save(eventRequest.data),
+            save(eventRequest.data)
         )
 
     fun processEvent(event: CorporateEvent): Collection<TrustedTrnEvent> {
         val response =
             positionService.findWhereHeld(
                 event.assetId,
-                event.recordDate,
+                event.recordDate
             )
 
         return response.data.mapNotNull { portfolio ->
             val trnEvent =
                 positionService.process(
                     portfolio,
-                    event,
+                    event
                 )
             // Skip forward dated transactions
             if (trnEvent.trnInput.trnType == TrnType.IGNORE) {
@@ -56,7 +56,7 @@ class EventService(
             } else {
                 log.info(
                     "Processed event: ${event.id}, asset: ${event.assetId}, " +
-                        "portfolio: ${trnEvent.portfolio.code}, tradeDate: ${trnEvent.trnInput.tradeDate}",
+                        "portfolio: ${trnEvent.portfolio.code}, tradeDate: ${trnEvent.trnInput.tradeDate}"
                 )
                 eventPublisher.send(trnEvent)
                 trnEvent
@@ -68,7 +68,7 @@ class EventService(
         val existing =
             eventRepository.findByAssetIdAndRecordDate(
                 event.assetId,
-                event.recordDate,
+                event.recordDate
             )
 
         // Check if an existing event is present and return it if so
@@ -85,7 +85,7 @@ class EventService(
                 recordDate = event.recordDate,
                 rate = event.rate,
                 split = event.split,
-                payDate = event.payDate,
+                payDate = event.payDate
             )
 
         // Save the new event and log the details
@@ -95,7 +95,7 @@ class EventService(
                 savedEvent.trnType,
                 savedEvent.id,
                 savedEvent.assetId,
-                savedEvent.payDate,
+                savedEvent.payDate
             )
         }
     }
@@ -115,11 +115,11 @@ class EventService(
 
     fun findInRange(
         start: LocalDate,
-        end: LocalDate,
+        end: LocalDate
     ): Collection<CorporateEvent> =
         eventRepository.findByDateRange(
             start,
-            end,
+            end
         )
 
     fun getScheduledEvents(start: LocalDate): CorporateEventResponses =
@@ -127,10 +127,10 @@ class EventService(
 
     fun find(
         assetIds: Collection<String>,
-        recordDate: LocalDate,
+        recordDate: LocalDate
     ): Collection<CorporateEvent> =
         eventRepository.findByAssetsAndRecordDate(
             assetIds,
-            recordDate,
+            recordDate
         )
 }

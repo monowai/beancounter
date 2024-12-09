@@ -15,7 +15,7 @@ import org.springframework.kafka.config.TopicBuilder
 @EnableKafka
 @ConditionalOnProperty(
     value = ["kafka.enabled"],
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 @Configuration
 class KafkaConfig {
@@ -72,7 +72,7 @@ class KafkaConfig {
     fun trnCsvTopic(): String {
         log.info(
             "BEANCOUNTER_TOPICS_TRN_CSV: {}",
-            topicTrnCsvName,
+            topicTrnCsvName
         )
         return topicTrnCsvName
     }
@@ -81,7 +81,7 @@ class KafkaConfig {
     fun trnEventTopic(): String {
         log.info(
             "BEANCOUNTER_TOPICS_TRN_EVENT: {}",
-            topicTrnEventName,
+            topicTrnEventName
         )
         return topicTrnEventName
     }
@@ -90,7 +90,7 @@ class KafkaConfig {
     fun priceTopic(): String {
         log.info(
             "BEANCOUNTER_TOPICS_PRICE: {}",
-            topicPriceName,
+            topicPriceName
         )
         return topicPriceName
     }
@@ -100,7 +100,7 @@ class KafkaConfig {
         topicPosMvName.also {
             log.info(
                 "BEANCOUNTER_TOPICS_POS_MV: {}",
-                topicPosMvName,
+                topicPosMvName
             )
         }
 }

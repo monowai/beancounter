@@ -24,8 +24,8 @@ class MarketCalendarConfigTests {
         assertThat(
             marketCalendarConfig.marketHolidays(
                 2014,
-                NZX.code,
-            ),
+                NZX.code
+            )
         ).isNotNull.isEmpty()
     }
 
@@ -41,18 +41,18 @@ class MarketCalendarConfigTests {
                     MarketHolidayAnnual(
                         day,
                         Month.DECEMBER.value.toString(),
-                        markets = markets,
-                    ),
-                ),
+                        markets = markets
+                    )
+                )
             )
         val result =
             marketCalendar.buildMarketHolidays(
                 year,
-                market,
+                market
             )
         assertThat(result).isNotEmpty.hasSize(1)
         assertThat(
-            result[0],
+            result[0]
         ).hasYear(year).hasMonth(month).hasDayOfMonth(day)
     }
 }

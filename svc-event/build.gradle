@@ -1,114 +1,109 @@
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
-  alias(libs.plugins.jvm)
-  alias(libs.plugins.spring.dependency.management)
-  alias(libs.plugins.spring.boot)
-  alias(libs.plugins.kotlin.spring)
-  alias(libs.plugins.java.test.fixtures)
-  alias(libs.plugins.sentry)
-  alias(libs.plugins.git.properties)
-  alias(libs.plugins.download)
-  id 'maven-publish'
+    alias(libs.plugins.jvm)
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.java.test.fixtures)
+    alias(libs.plugins.sentry)
+    alias(libs.plugins.git.properties)
+    alias(libs.plugins.download)
+    id 'maven-publish'
 }
 
 version = "0.1.1"
 
 dependencies {
-  implementation(
-    platform(libs.spring.boot.dependencies),
-    platform(libs.spring.cloud.dependencies),
-    project(":jar-common"),
-    project(":jar-auth"),
-    project(":jar-client"),
-    "org.springframework.boot:spring-boot-starter-web",
-    "org.springframework.boot:spring-boot-starter-data-jpa",
-    "org.springframework.boot:spring-boot-starter-logging",
-    "org.springframework.cloud:spring-cloud-starter-openfeign",
-    "org.springframework.boot:spring-boot-starter-security",
-    "org.springframework.security:spring-security-oauth2-resource-server",
-    "org.springframework.security:spring-security-oauth2-jose",
-    "org.springframework.boot:spring-boot-starter-actuator",
-    "org.springframework.boot:spring-boot-starter-integration",
-    libs.sentry.openfeign,
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-    "org.jetbrains.kotlinx:kotlinx-coroutines-reactor",
-    "com.fasterxml.jackson.module:jackson-module-kotlin",
-    libs.resilience4j,
-    libs.resilience4j.annotations,
-    "com.github.ben-manes.caffeine:caffeine",
-    "com.h2database:h2",
-    libs.postgresql,
-    "org.springframework.kafka:spring-kafka"
-  )
+    implementation(platform(libs.spring.boot.dependencies),
+            platform(libs.spring.cloud.dependencies),
+            project(":jar-common"),
+            project(":jar-auth"),
+            project(":jar-client"),
+            "org.springframework.boot:spring-boot-starter-web",
+            "org.springframework.boot:spring-boot-starter-data-jpa",
+            "org.springframework.boot:spring-boot-starter-logging",
+            "org.springframework.cloud:spring-cloud-starter-openfeign",
+            "org.springframework.boot:spring-boot-starter-security",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-jose",
+            "org.springframework.boot:spring-boot-starter-actuator",
+            "org.springframework.boot:spring-boot-starter-integration",
+            libs.sentry.openfeign,
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-reactor",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            libs.resilience4j,
+            libs.resilience4j.annotations,
+            "com.github.ben-manes.caffeine:caffeine",
+            "com.h2database:h2",
+            libs.postgresql,
+            "org.springframework.kafka:spring-kafka")
 
-  compileOnly(
-    "org.springframework.boot:spring-boot-configuration-processor"
-  )
+    compileOnly("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation(
-    "org.junit.jupiter:junit-jupiter",
-    "org.assertj:assertj-core",
-    "com.h2database:h2",
-    "com.fasterxml.jackson.module:jackson-module-kotlin",
-    "org.springframework.boot:spring-boot-starter-test",
-    "org.springframework.cloud:spring-cloud-contract-stub-runner",
-    "org.springframework.security:spring-security-test",
-    "io.sentry:sentry-jdbc",
-    "org.springframework.cloud:spring-cloud-contract-wiremock",
-    "org.springframework.kafka:spring-kafka-test",
-    libs.mockito.kotlin,
-    libs.kotest.runner.junit5,
-    libs.kotest.assertions.core,
-    libs.kotest.framework.engine,
-    testFixtures(project(":jar-auth")),
+    testImplementation("org.junit.jupiter:junit-jupiter",
+            "org.assertj:assertj-core",
+            "com.h2database:h2",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
+            "org.springframework.security:spring-security-test",
+            "io.sentry:sentry-jdbc",
+            "org.springframework.cloud:spring-cloud-contract-wiremock",
+            "org.springframework.kafka:spring-kafka-test",
+            libs.mockito.kotlin,
+            libs.kotest.runner.junit5,
+            libs.kotest.assertions.core,
+            libs.kotest.framework.engine,
+            testFixtures(project(":jar-auth")),
 
-  )
-  testImplementation("org.beancounter:svc-position:0.1.1:stubs") {
-    transitive = false
-  }
-  implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    )
+    testImplementation("org.beancounter:svc-position:0.1.1:stubs") {
+        transitive = false
+    }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
 }
 
 springBoot {
-  buildInfo()
+    buildInfo()
 }
 
 gitProperties {
-  failOnNoGitDirectory = false
+    failOnNoGitDirectory = false
 }
 
 bootBuildImage {
-  imageName = "monowai/bc-event"
+    imageName = "monowai/bc-event"
 }
 
 
 def isCI = System.getenv('CI')?.toBoolean() ?: false
 
 sentry {
-  // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
-  // This enables source context, allowing you to see your source
-  // code as part of your stack traces in Sentry.
-  if (isCI) {
-    includeSourceContext = true
+    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+    // This enables source context, allowing you to see your source
+    // code as part of your stack traces in Sentry.
+    if (isCI) {
+        includeSourceContext = true
 
-    org = "monowai-developments-ltd"
-    projectName = "event"
-    authToken = System.getenv("SENTRY_AUTH_TOKEN")
-  } else {
-    //enabled = false
-  }
+        org = "monowai-developments-ltd"
+        projectName = "event"
+        authToken = System.getenv("SENTRY_AUTH_TOKEN")
+    } else {
+        //enabled = false
+    }
 }
 
 tasks.register('downloadSentryAgent', Download) {
-  src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry-opentelemetry-agent-${sentry}.jar"
-  dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().asFile
-  onlyIfNewer true
+    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry-opentelemetry-agent-${sentry}.jar"
+    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().asFile
+    onlyIfNewer true
 }
 
 tasks.register('copySentryAgent', Copy) {
-  from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar")
-  into 'lib'
-  dependsOn downloadSentryAgent
+    from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar")
+    into 'lib'
+    dependsOn downloadSentryAgent
 }

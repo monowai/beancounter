@@ -28,23 +28,23 @@ class AssetsBase : ContractVerifierBase() {
                 objectMapper
                     .readValue(
                         ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
-                        AssetResponse::class.java,
-                    ).data,
+                        AssetResponse::class.java
+                    ).data
             )
         Mockito
             .`when`(
                 assetService.findOrCreate(
                     AssetInput(
                         "NASDAQ",
-                        "NDAQ",
-                    ),
-                ),
+                        "NDAQ"
+                    )
+                )
             ).thenReturn(
                 objectMapper
                     .readValue(
                         ClassPathResource("contracts/assets/ndaq-asset.json").file,
-                        AssetResponse::class.java,
-                    ).data,
+                        AssetResponse::class.java
+                    ).data
             )
         mockAssets(assetService)
     }
@@ -53,64 +53,64 @@ class AssetsBase : ContractVerifierBase() {
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/nzd-cash-request.json").file,
             ClassPathResource("contracts/assets/nzd-cash-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/usd-cash-request.json").file,
             ClassPathResource("contracts/assets/usd-cash-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/create-request.json").file,
             ClassPathResource("contracts/assets/create-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/ebay-request.json").file,
             ClassPathResource("contracts/assets/ebay-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/msft-request.json").file,
             ClassPathResource("contracts/assets/msft-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/bhp-asx-request.json").file,
             ClassPathResource("contracts/assets/bhp-asx-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/bhp-lse-request.json").file,
             ClassPathResource("contracts/assets/bhp-lse-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/abbv-request.json").file,
             ClassPathResource("contracts/assets/abbv-response.json").file,
-            assetService,
+            assetService
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/amp-request.json").file,
             ClassPathResource("contracts/assets/amp-response.json").file,
-            assetService,
+            assetService
         )
     }
 
     private fun mockAssetCreateResponses(
         jsonRequest: File,
         jsonResponse: File,
-        assetService: AssetService,
+        assetService: AssetService
     ) {
         val assetRequest =
             objectMapper.readValue(
                 jsonRequest,
-                AssetRequest::class.java,
+                AssetRequest::class.java
             )
         val assetUpdateResponse =
             objectMapper.readValue(
                 jsonResponse,
-                AssetUpdateResponse::class.java,
+                AssetUpdateResponse::class.java
             )
         Mockito
             .`when`(assetService.handle(assetRequest))
@@ -126,9 +126,9 @@ class AssetsBase : ContractVerifierBase() {
                     assetService.findLocally(
                         AssetInput(
                             theAsset.market.code.uppercase(Locale.getDefault()),
-                            theAsset.code.uppercase(Locale.getDefault()),
-                        ),
-                    ),
+                            theAsset.code.uppercase(Locale.getDefault())
+                        )
+                    )
                 ).thenReturn(theAsset)
         }
     }

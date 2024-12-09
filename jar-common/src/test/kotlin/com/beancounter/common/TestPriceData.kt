@@ -22,7 +22,7 @@ class TestPriceData {
     private val asset =
         Asset(
             code = "ABC",
-            market = NYSE,
+            market = NYSE
         )
 
     @Test
@@ -37,46 +37,46 @@ class TestPriceData {
         val noFx =
             PriceData.of(
                 marketData,
-                BigDecimal("1.0"),
+                BigDecimal("1.0")
             )
         assertThat(noFx)
             .hasFieldOrPropertyWithValue(
                 P_OPEN,
-                marketData.open,
+                marketData.open
             ).hasFieldOrPropertyWithValue(
                 P_PREVIOUS_CLOSE,
-                marketData.previousClose,
+                marketData.previousClose
             ).hasFieldOrPropertyWithValue(
                 P_CLOSE,
-                marketData.close,
+                marketData.close
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE,
-                marketData.change,
+                marketData.change
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE_PERCENT,
-                marketData.changePercent,
+                marketData.changePercent
             )
         val withFx =
             PriceData.of(
                 marketData,
-                two,
+                two
             )
         assertThat(withFx)
             .hasFieldOrPropertyWithValue(
                 P_OPEN,
-                BigDecimal("4.00"),
+                BigDecimal("4.00")
             ).hasFieldOrPropertyWithValue(
                 P_CLOSE,
-                BigDecimal("4.00"),
+                BigDecimal("4.00")
             ).hasFieldOrPropertyWithValue(
                 P_PREVIOUS_CLOSE,
-                BigDecimal("2.00"),
+                BigDecimal("2.00")
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE,
-                BigDecimal("2.00"),
+                BigDecimal("2.00")
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE_PERCENT,
-                BigDecimal("0.5000"),
+                BigDecimal("0.5000")
             )
     }
 
@@ -92,40 +92,40 @@ class TestPriceData {
         val noFx =
             PriceData.of(
                 marketData,
-                BigDecimal("1.0"),
+                BigDecimal("1.0")
             )
         assertThat(noFx)
             .hasFieldOrPropertyWithValue(
                 P_PREVIOUS_CLOSE,
-                marketData.previousClose,
+                marketData.previousClose
             ).hasFieldOrPropertyWithValue(
                 P_CLOSE,
-                marketData.close,
+                marketData.close
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE,
-                marketData.change,
+                marketData.change
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE_PERCENT,
-                marketData.changePercent,
+                marketData.changePercent
             )
         val withFx =
             PriceData.of(
                 marketData,
-                two,
+                two
             )
         assertThat(withFx)
             .hasFieldOrPropertyWithValue(
                 P_PREVIOUS_CLOSE,
-                BigDecimal("81.84"),
+                BigDecimal("81.84")
             ).hasFieldOrPropertyWithValue(
                 P_CLOSE,
-                BigDecimal("82.70"),
+                BigDecimal("82.70")
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE,
-                BigDecimal("0.86"),
+                BigDecimal("0.86")
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE_PERCENT,
-                BigDecimal("0.0104"),
+                BigDecimal("0.0104")
             )
     }
 
@@ -141,7 +141,7 @@ class TestPriceData {
         var withFx =
             PriceData.of(
                 marketData,
-                BigDecimal("1.1"),
+                BigDecimal("1.1")
             )
         assertThat(withFx).isNotNull
 
@@ -157,7 +157,7 @@ class TestPriceData {
         withFx =
             PriceData.of(
                 mdWithFx,
-                BigDecimal("1.1"),
+                BigDecimal("1.1")
             )
         assertThat(withFx).isNotNull
     }

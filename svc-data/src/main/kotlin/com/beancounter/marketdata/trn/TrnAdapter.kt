@@ -26,27 +26,27 @@ class TrnAdapter(
     var tradeCalculator: TradeCalculator,
     val cashServices: CashServices,
     val fxTransactions: FxTransactions,
-    val keyGenUtils: KeyGenUtils,
+    val keyGenUtils: KeyGenUtils
 ) {
     fun convert(
         portfolio: Portfolio,
-        trnRequest: TrnRequest,
+        trnRequest: TrnRequest
     ): List<Trn> =
         trnRequest.data.map { trnInput ->
             map(
                 portfolio = portfolio,
-                trnInput = trnInput,
+                trnInput = trnInput
             )
         }
 
     fun map(
         portfolio: Portfolio,
         trnInput: TrnInput,
-        existing: Trn? = null,
+        existing: Trn? = null
     ): Trn {
         fxTransactions.setRates(
             portfolio,
-            trnInput,
+            trnInput
         )
 
         val cashAsset = cashServices.getCashAsset(trnInput)
@@ -77,17 +77,17 @@ class TrnAdapter(
             tradeBaseRate = trnInput.tradeBaseRate,
             tradePortfolioRate = trnInput.tradePortfolioRate,
             cashAmount =
-            cashServices.getCashImpact(
-                trnInput,
-                tradeAmount,
-            ),
+                cashServices.getCashImpact(
+                    trnInput,
+                    tradeAmount
+                ),
             portfolio = portfolio,
             // Sign this value
             settleDate = trnInput.settleDate,
             fees = trnInput.fees,
             tax = trnInput.tax,
             comments = existing?.comments ?: trnInput.comments,
-            status = trnInput.status,
+            status = trnInput.status
         )
     }
 

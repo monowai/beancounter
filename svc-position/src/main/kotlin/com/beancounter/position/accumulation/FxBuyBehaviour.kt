@@ -14,7 +14,7 @@ import java.math.BigDecimal
  */
 @Service
 class FxBuyBehaviour(
-    val currencyResolver: CurrencyResolver,
+    val currencyResolver: CurrencyResolver
 ) : AccumulationStrategy {
     private val cashCost = CashCost()
 
@@ -24,7 +24,7 @@ class FxBuyBehaviour(
     override fun accumulate(
         trn: Trn,
         positions: Positions,
-        position: Position,
+        position: Position
     ): Position {
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
         cashCost.value(
@@ -32,42 +32,42 @@ class FxBuyBehaviour(
                 Position.In.TRADE,
                 trn.tradeCurrency,
                 trn.portfolio,
-                position,
+                position
             ),
             position,
             trn.quantity,
-            BigDecimal.ONE,
+            BigDecimal.ONE
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.BASE,
                 trn.tradeCurrency,
                 trn.portfolio,
-                position,
+                position
             ),
             position,
             trn.quantity,
-            trn.tradeBaseRate,
+            trn.tradeBaseRate
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.PORTFOLIO,
                 trn.tradeCurrency,
                 trn.portfolio,
-                position,
+                position
             ),
             position,
             trn.quantity,
-            trn.tradePortfolioRate,
+            trn.tradePortfolioRate
         )
 
         if (trn.cashAsset != null) {
             handleCash(
                 positions.getOrCreate(
                     trn.cashAsset!!,
-                    trn.tradeDate,
+                    trn.tradeDate
                 ),
-                trn,
+                trn
             )
         }
 
@@ -76,7 +76,7 @@ class FxBuyBehaviour(
 
     private fun handleCash(
         counterPosition: Position,
-        trn: Trn,
+        trn: Trn
     ) {
         counterPosition.quantityValues.sold =
             counterPosition.quantityValues.sold.add(trn.cashAmount)
@@ -85,11 +85,11 @@ class FxBuyBehaviour(
                 Position.In.TRADE,
                 trn.cashCurrency!!,
                 trn.portfolio,
-                counterPosition,
+                counterPosition
             ),
             counterPosition,
             trn.cashAmount,
-            BigDecimal.ONE,
+            BigDecimal.ONE
         )
         // ToDo: Fix rates
 
@@ -98,22 +98,22 @@ class FxBuyBehaviour(
                 Position.In.BASE,
                 trn.cashCurrency!!,
                 trn.portfolio,
-                counterPosition,
+                counterPosition
             ),
             counterPosition,
             trn.cashAmount,
-            trn.tradeBaseRate,
+            trn.tradeBaseRate
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.PORTFOLIO,
                 trn.cashCurrency!!,
                 trn.portfolio,
-                counterPosition,
+                counterPosition
             ),
             counterPosition,
             trn.cashAmount,
-            trn.tradePortfolioRate,
+            trn.tradePortfolioRate
         )
     }
 }

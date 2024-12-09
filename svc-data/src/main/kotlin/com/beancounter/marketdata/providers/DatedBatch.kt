@@ -5,5 +5,5 @@ package com.beancounter.marketdata.providers
  */
 data class DatedBatch(
     val batchId: Int = 0,
-    val date: String,
+    val date: String
 )

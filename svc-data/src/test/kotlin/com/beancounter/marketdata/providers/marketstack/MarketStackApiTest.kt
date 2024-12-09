@@ -61,7 +61,7 @@ internal class MarketStackApiTest {
         val inputs =
             mutableListOf(
                 PriceAsset(AAPL),
-                PriceAsset(MSFT),
+                PriceAsset(MSFT)
             )
 
         // While the request date is relative to "Today", we are testing that we get back
@@ -70,14 +70,14 @@ internal class MarketStackApiTest {
             inputs,
             priceDate,
             false,
-            ClassPathResource("$CONTRACTS/${AAPL.code}-${MSFT.code}.json").file,
+            ClassPathResource("$CONTRACTS/${AAPL.code}-${MSFT.code}.json").file
         )
         val mdResult =
             marketStackService.getMarketData(
                 PriceRequest(
                     priceDate,
-                    inputs,
-                ),
+                    inputs
+                )
             )
         assertThat(mdResult)
             .isNotNull
@@ -87,31 +87,31 @@ internal class MarketStackApiTest {
                 assertThat(marketData)
                     .hasFieldOrPropertyWithValue(
                         priceDateField,
-                        dateUtils.getFormattedDate(testDate),
+                        dateUtils.getFormattedDate(testDate)
                     ).hasFieldOrPropertyWithValue(
                         assetField,
-                        MSFT,
+                        MSFT
                     ).hasFieldOrPropertyWithValue(
                         openField,
-                        BigDecimal("420.09"),
+                        BigDecimal("420.09")
                     ).hasFieldOrPropertyWithValue(
                         closeField,
-                        BigDecimal("423.46"),
+                        BigDecimal("423.46")
                     )
             } else if (marketData.asset == AAPL) {
                 assertThat(marketData)
                     .hasFieldOrPropertyWithValue(
                         priceDateField,
-                        dateUtils.getFormattedDate(testDate),
+                        dateUtils.getFormattedDate(testDate)
                     ).hasFieldOrPropertyWithValue(
                         assetField,
-                        AAPL,
+                        AAPL
                     ).hasFieldOrPropertyWithValue(
                         openField,
-                        BigDecimal("234.81"),
+                        BigDecimal("234.81")
                     ).hasFieldOrPropertyWithValue(
                         closeField,
-                        BigDecimal("237.33"),
+                        BigDecimal("237.33")
                     )
             }
         }
@@ -122,7 +122,7 @@ internal class MarketStackApiTest {
         val assets =
             listOf(
                 PriceAsset(AAPL),
-                PriceAsset(MSFT),
+                PriceAsset(MSFT)
             )
 
         val utcToday = dateUtils.offsetDateString()
@@ -131,7 +131,7 @@ internal class MarketStackApiTest {
             assets,
             utcToday,
             false,
-            ClassPathResource("$CONTRACTS/${AAPL.code}.json").file,
+            ClassPathResource("$CONTRACTS/${AAPL.code}.json").file
         )
         val mdResult =
             marketStackService.getMarketData(PriceRequest(assets = assets))
@@ -147,10 +147,10 @@ internal class MarketStackApiTest {
                         .hasFieldOrProperty(priceDateField)
                         .hasFieldOrPropertyWithValue(
                             closeField,
-                            BigDecimal.ZERO,
+                            BigDecimal.ZERO
                         ).hasFieldOrPropertyWithValue(
                             sourceField,
-                            ID,
+                            ID
                         )
 
                 AAPL ->
@@ -158,13 +158,13 @@ internal class MarketStackApiTest {
                         .hasFieldOrProperty(priceDateField)
                         .hasFieldOrPropertyWithValue(
                             openField,
-                            BigDecimal("234.81"),
+                            BigDecimal("234.81")
                         ).hasFieldOrPropertyWithValue(
                             closeField,
-                            BigDecimal("237.33"),
+                            BigDecimal("237.33")
                         ).hasFieldOrPropertyWithValue(
                             sourceField,
-                            ID,
+                            ID
                         )
             }
         }
@@ -177,21 +177,21 @@ internal class MarketStackApiTest {
             inputs,
             priceDate,
             true,
-            ClassPathResource("$CONTRACTS/no-data.json").file,
+            ClassPathResource("$CONTRACTS/no-data.json").file
         )
         val prices =
             marketStackService.getMarketData(
                 PriceRequest(
                     priceDate,
-                    inputs,
-                ),
+                    inputs
+                )
             )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
-            prices.first(),
+            prices.first()
         ).hasFieldOrPropertyWithValue(
             closeField,
-            BigDecimal.ZERO,
+            BigDecimal.ZERO
         )
     }
 
@@ -202,21 +202,21 @@ internal class MarketStackApiTest {
             inputs,
             priceDate,
             true,
-            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file,
+            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file
         )
         val prices =
             marketStackService.getMarketData(
                 PriceRequest(
                     priceDate,
-                    inputs,
-                ),
+                    inputs
+                )
             )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
-            prices.first(),
+            prices.first()
         ).hasFieldOrPropertyWithValue(
             closeField,
-            BigDecimal("1.335"),
+            BigDecimal("1.335")
         )
     }
 
@@ -241,7 +241,7 @@ internal class MarketStackApiTest {
             assets: Collection<PriceAsset>,
             asAt: String,
             overrideAsAt: Boolean,
-            jsonFile: File,
+            jsonFile: File
         ) {
             var assetArg: StringBuilder? = null
             for ((_, _, resolvedAsset) in assets) {
@@ -251,14 +251,14 @@ internal class MarketStackApiTest {
                 var suffix = ""
                 if (!market.code.equals(
                         NASDAQ.code,
-                        ignoreCase = true,
+                        ignoreCase = true
                     )
                 ) {
                     // Horrible hack to support MarketStack contract mocking ASX/AX
                     suffix = "." +
                         if (market.code.equals(
                                 ASX.code,
-                                ignoreCase = true,
+                                ignoreCase = true
                             )
                         ) {
                             "XASX"
@@ -280,17 +280,17 @@ internal class MarketStackApiTest {
                 WireMock
                     .get(
                         WireMock.urlEqualTo(
-                            "/v1/eod/$asAt?symbols=$assetArg&access_key=demo",
-                        ),
+                            "/v1/eod/$asAt?symbols=$assetArg&access_key=demo"
+                        )
                     ).willReturn(
                         WireMock
                             .aResponse()
                             .withHeader(
                                 HttpHeaders.CONTENT_TYPE,
-                                MediaType.APPLICATION_JSON_VALUE,
+                                MediaType.APPLICATION_JSON_VALUE
                             ).withBody(objectMapper.writeValueAsString(response))
-                            .withStatus(200),
-                    ),
+                            .withStatus(200)
+                    )
             )
         }
 
@@ -308,11 +308,11 @@ internal class MarketStackApiTest {
                     .constructMapType(
                         LinkedHashMap::class.java,
                         String::class.java,
-                        Any::class.java,
+                        Any::class.java
                     )
             return objectMapper.readValue(
                 jsonFile,
-                mapType,
+                mapType
             )
         }
     }

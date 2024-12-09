@@ -51,7 +51,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
 
     override fun deserialize(
         p: JsonParser,
-        ctx: DeserializationContext,
+        ctx: DeserializationContext
     ): PriceResponse {
         val source = p.codec.readTree<JsonNode>(p)
 
@@ -59,7 +59,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             source.has(TIME_SERIES_DAILY) -> handleTimeSeries(source)
             source.has(GLOBAL_QUOTE) -> handleGlobal(source)
             else -> throw BusinessException(
-                "Unable to handle ${source.asText()}",
+                "Unable to handle ${source.asText()}"
             )
         }
     }
@@ -69,29 +69,29 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         val asset =
             getAsset(
                 metaData,
-                "01. symbol",
+                "01. symbol"
             )
         val mapType =
             mapper.typeFactory.constructMapType(
                 LinkedHashMap::class.java,
                 String::class.java,
-                String::class.java,
+                String::class.java
             )
         val data =
             mapper.readValue<Map<String, Map<String, String>>>(
                 metaData.toString(),
-                mapType,
+                mapType
             )
 
         return getMdFromGlobal(
             asset,
-            data,
+            data
         )
     }
 
     private fun getMdFromGlobal(
         asset: Asset?,
-        data: Map<String, Any>,
+        data: Map<String, Any>
     ): PriceResponse {
         val results = mutableListOf<MarketData>()
         if (asset != null) {
@@ -99,7 +99,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             val price =
                 MarketData(
                     asset,
-                    dateUtils.getFormattedDate(priceDate),
+                    dateUtils.getFormattedDate(priceDate)
                 ).apply {
                     open = BigDecimal(data[F_OPEN].toString())
                     high = BigDecimal(data[F_HIGH].toString())
@@ -111,7 +111,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
                     changePercent =
                         percentUtils.percent(
                             change,
-                            previousClose,
+                            previousClose
                         )
                 }
             results.add(price)
@@ -125,32 +125,32 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         val asset =
             getAsset(
                 metaData,
-                "2. Symbol",
+                "2. Symbol"
             )
         val mapType =
             mapper.typeFactory
                 .constructMapType(
                     LinkedHashMap::class.java,
                     String::class.java,
-                    HashMap::class.java,
+                    HashMap::class.java
                 )
         val allValues =
             mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
                 source["Time Series (Daily)"].toString(),
-                mapType,
+                mapType
             )
         for (key in allValues.keys) {
             val rawData: Map<String, Any>? = allValues[key.toString()]
             val localDateTime =
                 dateUtils.getFormattedDate(
-                    key.toString(),
+                    key.toString()
                 )
             if (asset != null) {
                 val priceData =
                     getPrice(
                         asset,
                         localDateTime,
-                        rawData!!,
+                        rawData!!
                     )
                 results.add(priceData)
             }
@@ -161,14 +161,14 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
     private fun getPrice(
         asset: Asset,
         priceDate: LocalDate = LocalDate.now(),
-        data: Map<String, Any> = mapOf(),
+        data: Map<String, Any> = mapOf()
     ): MarketData {
         val price: MarketData?
         try {
             price =
                 MarketData(
                     asset,
-                    Objects.requireNonNull(priceDate)!!,
+                    Objects.requireNonNull(priceDate)!!
                 )
             price.low = BigDecimal(data["3. low"].toString())
             price.high = BigDecimal(data["2. high"].toString())
@@ -187,7 +187,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             // oops
             return MarketData(
                 asset,
-                priceDate,
+                priceDate
             )
         }
         return price
@@ -195,7 +195,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
 
     private fun getAsset(
         nodeValue: JsonNode,
-        assetField: String,
+        assetField: String
     ): Asset? {
         if (!isNull(nodeValue)) {
             val symbols =
@@ -209,7 +209,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             }
             return Asset(
                 code = values[0],
-                market = market,
+                market = market
             )
         }
         throw BusinessException("Unable to resolve asset ${nodeValue.asText()}")

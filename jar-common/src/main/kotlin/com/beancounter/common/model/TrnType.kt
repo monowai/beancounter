@@ -16,7 +16,7 @@ enum class TrnType {
     FX_BUY, // FX between Trade and Cash
     IGNORE,
     BALANCE, // absolute impact on MV. No cash impact.
-    ADD, // Same as buy but does not impact cash.
+    ADD // Same as buy but does not impact cash.
     ;
 
     companion object {
@@ -24,13 +24,13 @@ enum class TrnType {
             arrayOf(
                 DEPOSIT,
                 SELL,
-                DIVI,
+                DIVI
             )
         val debitsCash =
             arrayOf(
                 BUY,
                 WITHDRAWAL,
-                FX_BUY,
+                FX_BUY
             )
 
         @JvmStatic

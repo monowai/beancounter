@@ -18,14 +18,14 @@ internal class TestCurrency {
             Currency(
                 "SomeCode",
                 "Some Name",
-                "$",
+                "$"
             )
         assertThat(currency).isNotNull
         val json = objectMapper.writeValueAsString(currency)
         val fromJson =
             objectMapper.readValue(
                 json,
-                Currency::class.java,
+                Currency::class.java
             )
         assertThat(fromJson).isEqualTo(currency)
     }
@@ -37,7 +37,7 @@ internal class TestCurrency {
             Currency(
                 "SomeId",
                 "Some Name",
-                "$",
+                "$"
             )
         currencies.add(currency)
         val currencyResponse = CurrencyResponse(currencies)
@@ -45,7 +45,7 @@ internal class TestCurrency {
         val fromJson =
             objectMapper.readValue(
                 json,
-                CurrencyResponse::class.java,
+                CurrencyResponse::class.java
             )
         assertThat(fromJson).isEqualTo(currencyResponse)
     }
@@ -55,7 +55,7 @@ internal class TestCurrency {
         val currency = Currency("NZD")
         assertThat(currency).hasFieldOrPropertyWithValue(
             "code",
-            "NZD",
+            "NZD"
         )
     }
 
@@ -66,19 +66,19 @@ internal class TestCurrency {
         val byCode =
             IsoCurrencyPair(
                 report,
-                trade,
+                trade
             )
         val byCurrency =
             toPair(
                 Currency(report),
-                Currency(trade),
+                Currency(trade)
             )
         assertThat(byCode).usingRecursiveComparison().isEqualTo(byCurrency)
         assertThat(
             toPair(
                 Currency(report),
-                Currency(report),
-            ),
+                Currency(report)
+            )
         ).isNull()
     }
 
@@ -94,10 +94,10 @@ internal class TestCurrency {
         assertThat(nzd)
             .hasFieldOrPropertyWithValue(
                 "name",
-                "Aotearoa",
+                "Aotearoa"
             ).hasFieldOrPropertyWithValue(
                 "symbol",
-                "%",
+                "%"
             )
     }
 
@@ -113,7 +113,7 @@ internal class TestCurrency {
             .hasSize(2)
             .containsKeys(
                 nzd,
-                sgd,
+                sgd
             )
     }
 
@@ -122,19 +122,19 @@ internal class TestCurrency {
         val pairA =
             IsoCurrencyPair(
                 "USD",
-                "NZD",
+                "NZD"
             )
         val pairB =
             IsoCurrencyPair(
                 "USD",
-                "NZD",
+                "NZD"
             )
         val pairs = HashMap<IsoCurrencyPair, IsoCurrencyPair>()
         pairs[pairA] = pairA
         pairs[pairB] = pairB
         assertThat(pairs).hasSize(1).containsKeys(
             pairA,
-            pairB,
+            pairB
         )
     }
 }

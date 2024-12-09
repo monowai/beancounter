@@ -13,5 +13,5 @@ data class Totals(
     var cash: BigDecimal = BigDecimal.ZERO,
     var income: BigDecimal = BigDecimal.ZERO,
     var gain: BigDecimal = BigDecimal.ZERO,
-    var irr: BigDecimal = BigDecimal.ZERO,
+    var irr: BigDecimal = BigDecimal.ZERO
 )

@@ -32,7 +32,7 @@ data class Trn(
     val trnType: TrnType,
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
@@ -41,7 +41,7 @@ data class Trn(
     var asset: Asset,
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     )
     val quantity: BigDecimal = BigDecimal.ZERO,
     // In trade Currency - scale is to support Mutual Fund pricing.
@@ -50,7 +50,7 @@ data class Trn(
     // In trade Currency
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     )
     var price: BigDecimal? = null,
     var tradeAmount: BigDecimal = quantity,
@@ -64,19 +64,19 @@ data class Trn(
     // Trade Currency to system Base Currency
     @Column(
         precision = 10,
-        scale = 6,
+        scale = 6
     )
     var tradeCashRate: BigDecimal = BigDecimal.ZERO,
     // Trade CCY to portfolio reference  currency
     @Column(
         precision = 10,
-        scale = 6,
+        scale = 6
     )
     var tradeBaseRate: BigDecimal = BigDecimal.ONE,
     // Signed Cash in settlement currency.
     @Column(
         precision = 10,
-        scale = 6,
+        scale = 6
     )
     var tradePortfolioRate: BigDecimal = BigDecimal.ONE,
     var cashAmount: BigDecimal = BigDecimal.ZERO,
@@ -84,7 +84,7 @@ data class Trn(
     var portfolio: Portfolio = PortfolioUtils.getPortfolio(),
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
@@ -95,7 +95,7 @@ data class Trn(
     var tax: BigDecimal = BigDecimal.ZERO,
     var comments: String? = null,
     var version: String = LATEST_VERSION,
-    var status: TrnStatus = TrnStatus.CONFIRMED,
+    var status: TrnStatus = TrnStatus.CONFIRMED
 ) {
     companion object {
         const val LATEST_VERSION: String = "3"

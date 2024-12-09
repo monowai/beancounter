@@ -28,8 +28,8 @@ class ShareSightRowAdapter : RowAdapter {
             String.format(
                 "Unable to transform %s using ",
                 trustedTrnImportRequest.toString(),
-                trnAdapter.javaClass.name,
-            ),
+                trnAdapter.javaClass.name
+            )
         )
     }
 }

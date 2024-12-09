@@ -17,14 +17,14 @@ import org.springframework.shell.standard.ShellOption
  */
 @ShellComponent
 class PortfolioCommands(
-    private val portfolioService: PortfolioServiceClient,
+    private val portfolioService: PortfolioServiceClient
 ) {
     private val log = LoggerFactory.getLogger(PortfolioCommands::class.java)
 
     @ShellMethod("Find portfolio by code")
     @Throws(JsonProcessingException::class)
     fun portfolioCode(
-        @ShellOption(help = "Code - case insensitive") portfolioCode: String,
+        @ShellOption(help = "Code - case insensitive") portfolioCode: String
     ): String {
         val portfolio = portfolioService.getPortfolioByCode(portfolioCode)
         return writer.writeValueAsString(portfolio)
@@ -44,7 +44,7 @@ class PortfolioCommands(
     @ShellMethod("Find by id")
     @Throws(JsonProcessingException::class)
     fun portfolio(
-        @ShellOption(help = "Primary key - case sensitive") portfolioId: String,
+        @ShellOption(help = "Primary key - case sensitive") portfolioId: String
     ): String {
         val portfolio = portfolioService.getPortfolioById(portfolioId)
         return writer.writeValueAsString(portfolio)
@@ -52,14 +52,14 @@ class PortfolioCommands(
 
     @ShellMethod(
         key = ["add"],
-        value = "Add portfolio",
+        value = "Add portfolio"
     )
     @Throws(JsonProcessingException::class)
     fun add(
         @ShellOption(help = "Unique Code") code: String,
         @ShellOption(help = "Name") name: String,
         @ShellOption(help = "Reference currency") currencyCode: String,
-        @ShellOption(help = "Base currency - defaults to USD") baseCurrency: String = "USD",
+        @ShellOption(help = "Base currency - defaults to USD") baseCurrency: String = "USD"
     ): String {
         val portfolio: Portfolio
         try {
@@ -68,7 +68,7 @@ class PortfolioCommands(
         } catch (e: BusinessException) {
             log.info(
                 "Creating portfolio {}",
-                code,
+                code
             )
         }
         val portfoliosRequest =
@@ -78,9 +78,9 @@ class PortfolioCommands(
                         code,
                         name,
                         baseCurrency,
-                        currencyCode,
-                    ),
-                ),
+                        currencyCode
+                    )
+                )
             )
         val (data) = portfolioService.add(portfoliosRequest)
         return writer.writeValueAsString(data.iterator().next())

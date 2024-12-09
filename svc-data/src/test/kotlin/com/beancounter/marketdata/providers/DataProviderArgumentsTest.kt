@@ -28,17 +28,17 @@ internal class DataProviderArgumentsTest {
     private val aapl =
         getTestAsset(
             NASDAQ,
-            AAPL.code,
+            AAPL.code
         )
     private val msft =
         getTestAsset(
             NASDAQ,
-            MSFT.code,
+            MSFT.code
         )
     private val intc =
         getTestAsset(
             NASDAQ,
-            "INTC",
+            "INTC"
         )
     private val twee = "TWEE"
 
@@ -47,26 +47,26 @@ internal class DataProviderArgumentsTest {
         val providerArguments = ProviderArguments(TestConfig(1))
         providerArguments.batchAsset(
             aapl,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         providerArguments.batchAsset(
             msft,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         providerArguments.batchAsset(
             intc,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         val batch: Map<Int, String?> = providerArguments.batch
         assertThat(batch)
             .containsOnlyKeys(
                 0,
                 1,
-                2,
+                2
             ).containsValues(
                 aapl.code,
                 msft.code,
-                intc.code,
+                intc.code
             )
     }
 
@@ -75,21 +75,21 @@ internal class DataProviderArgumentsTest {
         val providerArguments = ProviderArguments(TestConfig(2))
         providerArguments.batchAsset(
             aapl,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         providerArguments.batchAsset(
             msft,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         providerArguments.batchAsset(
             intc,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         val batch: Map<Int, String?> = providerArguments.batch
         assertThat(batch)
             .containsOnlyKeys(
                 0,
-                1,
+                1
             ).containsValue("${aapl.code},${msft.code}")
             .containsValue(intc.code)
     }
@@ -99,15 +99,15 @@ internal class DataProviderArgumentsTest {
         val providerArguments = ProviderArguments(TestConfig(3))
         providerArguments.batchAsset(
             aapl,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         providerArguments.batchAsset(
             msft,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         providerArguments.batchAsset(
             intc,
-            DateUtils.TODAY,
+            DateUtils.TODAY
         )
         val batch: Map<Int, String?> = providerArguments.batch
         assertThat(batch)
@@ -126,8 +126,8 @@ internal class DataProviderArgumentsTest {
                         "ABC",
                         "ABC1",
                         "ABC",
-                        Market("AAA"),
-                    ),
+                        Market("AAA")
+                    )
                 ),
                 PriceAsset(
                     "BBB",
@@ -136,8 +136,8 @@ internal class DataProviderArgumentsTest {
                         "ABC",
                         "ABC2",
                         "ABC",
-                        Market("BBB"),
-                    ),
+                        Market("BBB")
+                    )
                 ),
                 PriceAsset(
                     "CCC",
@@ -146,22 +146,22 @@ internal class DataProviderArgumentsTest {
                         "ABC",
                         "ABC3",
                         "ABC",
-                        Market("CCC"),
-                    ),
-                ),
+                        Market("CCC")
+                    )
+                )
             )
         val priceRequest = PriceRequest(assets = assets)
         val providerArguments =
             getInstance(
                 priceRequest,
-                TestConfig(10),
+                TestConfig(10)
             )
 
         val batch = providerArguments.batch
         assertThat(batch).containsOnlyKeys(
             0,
             1,
-            2,
+            2
         )
     }
 
@@ -173,15 +173,15 @@ internal class DataProviderArgumentsTest {
                 id = "123",
                 code = twee,
                 market = NYSE,
-                status = Status.Active,
+                status = Status.Active
             )
         val assetInputs: MutableCollection<PriceAsset> =
             arrayListOf(
                 PriceAsset(
                     NYSE.code,
                     twee,
-                    resolvedAsset,
-                ),
+                    resolvedAsset
+                )
             )
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
             providerUtils.splitProviders(assetInputs)
@@ -199,12 +199,12 @@ internal class DataProviderArgumentsTest {
                 Asset.of(
                     AssetInput(
                         NYSE.code,
-                        notActive,
+                        notActive
                     ),
                     NYSE,
-                    Status.Inactive,
+                    Status.Inactive
                 ),
-                notActive,
+                notActive
             )
         val assetInputs: MutableCollection<PriceAsset> = arrayListOf(priceAsset)
         val splitResults: Map<MarketDataPriceProvider, Collection<Asset>> =
@@ -222,12 +222,12 @@ internal class DataProviderArgumentsTest {
         Mockito.`when`(mdFactory.getMarketDataProvider(market)).thenReturn(CashProviderService())
         return ProviderUtils(
             mdFactory,
-            marketService,
+            marketService
         )
     }
 
     private class TestConfig(
-        private val batchSize: Int,
+        private val batchSize: Int
     ) : DataProviderConfig {
         private val dateUtils = DateUtils()
 
@@ -236,7 +236,7 @@ internal class DataProviderArgumentsTest {
         override fun getMarketDate(
             market: Market,
             date: String,
-            currentMode: Boolean,
+            currentMode: Boolean
         ): LocalDate =
             if (dateUtils.isToday(date)) {
                 dateUtils.date

@@ -18,6 +18,6 @@ data class TrustedTrnImportRequest(
         CallerRef(
             portfolio.owner.id,
             row[1],
-            row[2],
-        ),
+            row[2]
+        )
 ) : TrnImport

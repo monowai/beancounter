@@ -34,7 +34,7 @@ internal class AlphaBehaviourTest {
         assertThrows(BusinessException::class.java) {
             priceMapper.readValue(
                 ClassPathResource("$ALPHA_MOCK/alphavantage-empty-response.json").file,
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         }
     }
@@ -44,20 +44,20 @@ internal class AlphaBehaviourTest {
         val marketData =
             priceMapper.readValue(
                 ClassPathResource("$ALPHA_MOCK/global-response.json").file,
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         assertThat(marketData)
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept(
                 "id",
-                "requestDate",
+                "requestDate"
             )
         assertThat(marketData.data).isNotNull.isNotEmpty
         assertThat(
             marketData.data
                 .iterator()
                 .next()
-                .changePercent,
+                .changePercent
         ).isEqualTo("0.008812")
     }
 
@@ -66,7 +66,7 @@ internal class AlphaBehaviourTest {
         val result =
             priceMapper.readValue(
                 ClassPathResource("$ALPHA_MOCK/kmi-backfill-response.json").file,
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         assertThat(result.data).isNotNull.hasSize(4)
         for (marketData in result.data) {
@@ -89,13 +89,13 @@ internal class AlphaBehaviourTest {
         val marketData =
             priceMapper.readValue(
                 ClassPathResource("$ALPHA_MOCK/pence-price-response.json").file,
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         assertThat(marketData)
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept(
                 "id",
-                "requestDate",
+                "requestDate"
             )
     }
 
@@ -103,15 +103,15 @@ internal class AlphaBehaviourTest {
     fun is_ResponseWithoutMarketCodeSetToUs() {
         val (asset) =
             validateResponse(
-                ClassPathResource("$ALPHA_MOCK/alphavantage-nasdaq.json").file,
+                ClassPathResource("$ALPHA_MOCK/alphavantage-nasdaq.json").file
             )
         assertThat(asset)
             .hasFieldOrPropertyWithValue(
                 "code",
-                "NDAQ",
+                "NDAQ"
             ).hasFieldOrPropertyWithValue(
                 "market.code",
-                "US",
+                "US"
             )
     }
 
@@ -119,7 +119,7 @@ internal class AlphaBehaviourTest {
         val priceResponse =
             priceMapper.readValue(
                 jsonFile,
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         assertThat(priceResponse.data).isNotNull.isNotEmpty
         val marketData = priceResponse.data.iterator().next()
@@ -129,19 +129,19 @@ internal class AlphaBehaviourTest {
             .hasFieldOrProperty("priceDate")
             .hasFieldOrPropertyWithValue(
                 "open",
-                BigDecimal("119.3700"),
+                BigDecimal("119.3700")
             ).hasFieldOrPropertyWithValue(
                 "high",
-                BigDecimal("121.6100"),
+                BigDecimal("121.6100")
             ).hasFieldOrPropertyWithValue(
                 "low",
-                BigDecimal("119.2700"),
+                BigDecimal("119.2700")
             ).hasFieldOrPropertyWithValue(
                 "close",
-                BigDecimal("121.3000"),
+                BigDecimal("121.3000")
             ).hasFieldOrPropertyWithValue(
                 "volume",
-                BigDecimal("958346").intValueExact(),
+                BigDecimal("958346").intValueExact()
             )
         return marketData
     }
@@ -156,19 +156,19 @@ internal class AlphaBehaviourTest {
         val ohi =
             getTestAsset(
                 NYSE,
-                "OHI",
+                "OHI"
             )
         assertThat(alphaConfig.getPriceCode(ohi)).isEqualTo("OHI")
         val abc =
             getTestAsset(
                 Market("AMEX"),
-                "ABC",
+                "ABC"
             )
         assertThat(alphaConfig.getPriceCode(abc)).isEqualTo("ABC")
         val nzx =
             getTestAsset(
                 NZX,
-                "AIRNZ",
+                "AIRNZ"
             )
         assertThat(alphaConfig.getPriceCode(nzx)).isEqualTo("AIRNZ.NZX")
     }
@@ -179,7 +179,7 @@ internal class AlphaBehaviourTest {
         val computedDate =
             alphaConfig.getMarketDate(
                 NASDAQ,
-                "2020-04-26",
+                "2020-04-26"
             )
         // Resolves to Friday
         assertThat(computedDate).isEqualTo(dateUtils.getFormattedDate("2020-04-24"))
@@ -191,7 +191,7 @@ internal class AlphaBehaviourTest {
             alphaConfig.getMarketDate(
                 NASDAQ,
                 "2020-04-28",
-                false,
+                false
             )
         assertThat(computedDate).isEqualTo(dateUtils.getFormattedDate("2020-04-28"))
     }

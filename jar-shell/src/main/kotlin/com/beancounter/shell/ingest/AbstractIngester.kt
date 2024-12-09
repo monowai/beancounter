@@ -43,12 +43,12 @@ abstract class AbstractIngester : Ingester {
                 ?: throw BusinessException(
                     String.format(
                         "Unable to resolve the Writer %s",
-                        ingestionRequest.writer,
-                    ),
+                        ingestionRequest.writer
+                    )
                 )
         prepare(
             ingestionRequest,
-            writer,
+            writer
         )
         val rows = values
         for ((i, row) in rows.withIndex()) {
@@ -56,14 +56,14 @@ abstract class AbstractIngester : Ingester {
                 CallerRef(
                     ingestionRequest.provider ?: portfolio.id,
                     i.toString(),
-                    i.toString(),
+                    i.toString()
                 )
             val trnRequest =
                 TrustedTrnImportRequest(
                     portfolio,
                     ImportFormat.SHARESIGHT,
                     row = row,
-                    callerRef = callerRef,
+                    callerRef = callerRef
                 )
             writer.write(trnRequest)
         }
@@ -72,7 +72,7 @@ abstract class AbstractIngester : Ingester {
 
     abstract fun prepare(
         ingestionRequest: IngestionRequest,
-        trnWriter: TrnWriter,
+        trnWriter: TrnWriter
     )
 
     abstract val values: List<List<String>>

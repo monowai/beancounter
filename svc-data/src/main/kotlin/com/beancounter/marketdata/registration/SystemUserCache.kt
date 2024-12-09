@@ -9,15 +9,15 @@ import java.util.Optional
 @Service
 class SystemUserCache(
     val tokenService: TokenService,
-    val systemUserRepository: SystemUserRepository,
+    val systemUserRepository: SystemUserRepository
 ) {
     @Cacheable(
         value = ["system.user"],
-        unless = "#result == null",
+        unless = "#result == null"
     )
     fun find(
         email: String?,
-        subject: String?,
+        subject: String?
     ): SystemUser? {
         val result =
             when {

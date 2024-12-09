@@ -60,28 +60,28 @@ internal class PriceRefreshTest {
                         listOf(
                             PriceAsset(
                                 NASDAQ.code,
-                                code = code,
-                            ),
-                        ),
-                    ),
-                ),
+                                code = code
+                            )
+                        )
+                    )
+                )
             ).thenReturn(
                 listOf(
                     MarketData(
                         Asset(
                             code = "",
-                            market = NASDAQ,
-                        ),
-                    ),
-                ),
+                            market = NASDAQ
+                        )
+                    )
+                )
             )
         val asset =
             assetRepository.save(
                 Asset(
                     code = code,
                     market = NASDAQ,
-                    marketCode = NASDAQ.code,
-                ),
+                    marketCode = NASDAQ.code
+                )
             )
         val hydratedAsset = assetHydrationService.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")

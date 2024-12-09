@@ -23,10 +23,10 @@ internal class TestMarketData {
         val marketData =
             MarketData(
                 asset =
-                getJsonAsset(
-                    "Market",
-                    "Asset",
-                ),
+                    getJsonAsset(
+                        "Market",
+                        "Asset"
+                    ),
                 source = "TEST",
                 priceDate = dateUtils.getFormattedDate("2012-10-01"),
                 open = BigDecimal.ONE,
@@ -37,14 +37,14 @@ internal class TestMarketData {
                 // Change $
                 change = BigDecimal("1.56"),
                 changePercent = BigDecimal("0.04"),
-                10,
+                10
             )
         marketDataCollection.add(marketData)
         val priceResponse = PriceResponse(marketDataCollection)
         val (data) =
             objectMapper.readValue(
                 objectMapper.writeValueAsString(priceResponse),
-                PriceResponse::class.java,
+                PriceResponse::class.java
             )
         assertThat(data).isNotNull
         val mdResponse = data.iterator().next()
@@ -59,13 +59,13 @@ internal class TestMarketData {
             .assertThat(quantityValues)
             .hasFieldOrPropertyWithValue(
                 "sold",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ).hasFieldOrPropertyWithValue(
                 "purchased",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ).hasFieldOrPropertyWithValue(
                 "adjustment",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
         AssertionsForClassTypes.assertThat(quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
         val json = objectMapper.writeValueAsString(quantityValues)
@@ -83,16 +83,16 @@ internal class TestMarketData {
                     PriceAsset(
                         "XYZ",
                         "ABC",
-                        assetId = "ABC",
-                    ),
-                ),
+                        assetId = "ABC"
+                    )
+                )
             )
         val json = objectMapper.writeValueAsString(priceRequest)
         val (_, assets) = objectMapper.readValue<PriceRequest>(json)
         assertThat(assets.iterator().next())
             .usingRecursiveComparison()
             .isEqualTo(
-                priceRequest.assets.iterator().next(),
+                priceRequest.assets.iterator().next()
             )
     }
 
@@ -102,7 +102,7 @@ internal class TestMarketData {
                 .usingRecursiveComparison()
                 .ignoringFields(
                     "marketData",
-                    "asset",
+                    "asset"
                 )
             assertThat(mdResponse.asset.market)
                 .usingRecursiveComparison()
@@ -111,7 +111,7 @@ internal class TestMarketData {
                 .usingRecursiveComparison()
                 .ignoringFields(
                     "marketData.asset",
-                    "market",
+                    "market"
                 )
         }
     }

@@ -16,7 +16,7 @@ import com.beancounter.common.utils.DateUtils
 interface Valuation {
     fun build(
         portfolio: Portfolio,
-        valuationDate: String,
+        valuationDate: String
     ): PositionResponse
 
     fun build(trnQuery: TrustedTrnQuery): PositionResponse
@@ -24,7 +24,7 @@ interface Valuation {
     fun getPositions(
         portfolio: Portfolio,
         valuationDate: String = DateUtils.TODAY,
-        value: Boolean,
+        value: Boolean
     ): PositionResponse
 
     /**

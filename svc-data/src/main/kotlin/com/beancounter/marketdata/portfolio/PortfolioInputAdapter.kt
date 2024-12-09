@@ -15,19 +15,19 @@ import java.util.Locale
 @Service
 class PortfolioInputAdapter internal constructor(
     private val currencyService: CurrencyService,
-    private val keyGenUtils: KeyGenUtils,
+    private val keyGenUtils: KeyGenUtils
 ) {
     fun prepare(
         owner: SystemUser,
-        portfolios: Collection<PortfolioInput>,
+        portfolios: Collection<PortfolioInput>
     ): Collection<Portfolio> {
         val results: MutableCollection<Portfolio> = mutableListOf()
         for (portfolio in portfolios) {
             results.add(
                 prepare(
                     owner,
-                    portfolio,
-                ),
+                    portfolio
+                )
             )
         }
         return results
@@ -35,11 +35,11 @@ class PortfolioInputAdapter internal constructor(
 
     private fun prepare(
         owner: SystemUser,
-        portfolioInput: PortfolioInput,
+        portfolioInput: PortfolioInput
     ): Portfolio {
         log.debug(
             "Creating for {}",
-            owner.id,
+            owner.id
         )
         return Portfolio(
             keyGenUtils.id,
@@ -47,13 +47,13 @@ class PortfolioInputAdapter internal constructor(
             portfolioInput.name,
             currency = currencyService.getCode(portfolioInput.currency),
             base = currencyService.getCode(portfolioInput.base),
-            owner = owner,
+            owner = owner
         )
     }
 
     fun fromInput(
         data: PortfolioInput,
-        existing: Portfolio,
+        existing: Portfolio
     ): Portfolio =
         Portfolio(
             existing.id,
@@ -61,7 +61,7 @@ class PortfolioInputAdapter internal constructor(
             data.name,
             currency = currencyService.getCode(data.currency),
             base = currencyService.getCode(data.base),
-            owner = existing.owner,
+            owner = existing.owner
         )
 
     companion object {

@@ -24,22 +24,22 @@ class PeriodicCashFlows {
             cashFlows.add(
                 CashFlow(
                     amount.toDouble(),
-                    it.tradeDate,
-                ),
+                    it.tradeDate
+                )
             )
         }
     }
 
     fun add(
         position: Position,
-        date: LocalDate,
+        date: LocalDate
     ) {
         if (position.quantityValues.hasPosition()) {
             cashFlows.add(
                 CashFlow(
                     position.moneyValues[Position.In.TRADE]!!.marketValue.toDouble(),
-                    date,
-                ),
+                    date
+                )
             )
         }
     }
@@ -54,9 +54,9 @@ class PeriodicCashFlows {
             dateToAmountMap.map { (date, amount) ->
                 CashFlow(
                     amount,
-                    date,
+                    date
                 )
-            },
+            }
         )
     }
 }

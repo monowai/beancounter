@@ -18,7 +18,7 @@ class ShellPrompt : PromptProvider {
         val builder = AttributedStringBuilder()
         builder.append(
             "bc-shell$ ",
-            AttributedStyle.DEFAULT,
+            AttributedStyle.DEFAULT
         )
         return builder.toAttributedString()
     }

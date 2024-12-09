@@ -21,38 +21,38 @@ import java.time.LocalDate
 @Service
 class PortfolioServiceClient(
     private val portfolioGw: PortfolioGw,
-    private val tokenService: TokenService,
+    private val tokenService: TokenService
 ) {
     fun getPortfolioByCode(portfolioCode: String): Portfolio {
         val response: PortfolioResponse =
             portfolioGw.getPortfolioByCode(
                 tokenService.bearerToken,
-                portfolioCode,
+                portfolioCode
             )
         return getOrThrow(
             portfolioCode,
-            response,
+            response
         )
     }
 
     fun getPortfolioById(portfolioId: String): Portfolio =
         getPortfolioById(
             portfolioId,
-            tokenService.bearerToken,
+            tokenService.bearerToken
         )
 
     fun getPortfolioById(
         portfolioId: String,
-        bearerToken: String,
+        bearerToken: String
     ): Portfolio {
         val response: PortfolioResponse =
             portfolioGw.getPortfolioById(
                 bearerToken,
-                portfolioId,
+                portfolioId
             )
         return getOrThrow(
             portfolioId,
-            response,
+            response
         )
     }
 
@@ -62,29 +62,29 @@ class PortfolioServiceClient(
     fun add(portfoliosRequest: PortfoliosRequest): PortfoliosResponse =
         portfolioGw.addPortfolios(
             tokenService.bearerToken,
-            portfoliosRequest,
+            portfoliosRequest
         )
 
     fun getWhereHeld(
         assetId: String,
-        tradeDate: LocalDate,
+        tradeDate: LocalDate
     ): PortfoliosResponse =
         portfolioGw.getWhereHeld(
             tokenService.bearerToken,
             assetId,
-            tradeDate.toString(),
+            tradeDate.toString()
         )
 
     private fun getOrThrow(
         portfolioCode: String?,
-        response: PortfolioResponse?,
+        response: PortfolioResponse?
     ): Portfolio {
         if (response?.data == null) {
             throw BusinessException(
                 String.format(
                     "Unable to find portfolio %s",
-                    portfolioCode,
-                ),
+                    portfolioCode
+                )
             )
         }
         return response.data
@@ -95,52 +95,52 @@ class PortfolioServiceClient(
      */
     @FeignClient(
         name = "portfolios",
-        url = "\${marketdata.url:http://localhost:9510}",
+        url = "\${marketdata.url:http://localhost:9510}"
     )
     interface PortfolioGw {
         @GetMapping(
             value = ["/api/portfolios"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun getPortfolios(
-            @RequestHeader("Authorization") bearerToken: String,
+            @RequestHeader("Authorization") bearerToken: String
         ): PortfoliosResponse
 
         @GetMapping(
             value = ["/api/portfolios/{id}"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun getPortfolioById(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("id") id: String,
+            @PathVariable("id") id: String
         ): PortfolioResponse
 
         @GetMapping(
             value = ["/api/portfolios/code/{code}"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun getPortfolioByCode(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("code") code: String,
+            @PathVariable("code") code: String
         ): PortfolioResponse
 
         @GetMapping(
             value = ["/api/portfolios/asset/{assetId}/{tradeDate}"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun getWhereHeld(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("assetId") assetId: String,
-            @PathVariable("tradeDate") tradeDate: String?,
+            @PathVariable("tradeDate") tradeDate: String?
         ): PortfoliosResponse
 
         @PostMapping(
             value = ["/api/portfolios"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun addPortfolios(
             @RequestHeader("Authorization") bearerToken: String?,
-            portfoliosRequest: PortfoliosRequest?,
+            portfoliosRequest: PortfoliosRequest?
         ): PortfoliosResponse
     }
 }

@@ -19,8 +19,8 @@ class TestRegistration {
         assertThat(
             objectMapper.readValue(
                 json,
-                RegistrationRequest::class.java,
-            ),
+                RegistrationRequest::class.java
+            )
         ).usingRecursiveComparison()
             .isEqualTo(registrationRequest)
     }
@@ -30,14 +30,14 @@ class TestRegistration {
         val systemUser =
             SystemUser(
                 UUID.randomUUID().toString(),
-                "no-one@nowhere.com",
+                "no-one@nowhere.com"
             )
         var json = objectMapper.writeValueAsString(systemUser)
         assertThat(
             objectMapper.readValue(
                 json,
-                SystemUser::class.java,
-            ),
+                SystemUser::class.java
+            )
         ).usingRecursiveComparison()
             .isEqualTo(systemUser)
 
@@ -47,8 +47,8 @@ class TestRegistration {
             objectMapper
                 .readValue(
                     json,
-                    RegistrationResponse::class.java,
-                ).data,
+                    RegistrationResponse::class.java
+                ).data
         ).usingRecursiveComparison()
             .isEqualTo(response.data)
     }

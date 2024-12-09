@@ -32,7 +32,7 @@ class EventsBase : ContractVerifierBase() {
     private val asset =
         getTestAsset(
             code = "NDAQ",
-            market = NASDAQ,
+            market = NASDAQ
         )
 
     @BeforeEach
@@ -44,14 +44,14 @@ class EventsBase : ContractVerifierBase() {
             .`when`(
                 alphaGateway.getAdjusted(
                     asset.id,
-                    "demo",
-                ),
+                    "demo"
+                )
             ).thenReturn(
                 objectMapper.writeValueAsString(
                     objectMapper.readTree(
-                        ClassPathResource("alpha/ndaq-events-full.json").file,
-                    ),
-                ),
+                        ClassPathResource("alpha/ndaq-events-full.json").file
+                    )
+                )
             )
     }
 

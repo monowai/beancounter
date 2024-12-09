@@ -16,7 +16,7 @@ interface DataProviderConfig {
     fun getMarketDate(
         market: Market,
         date: String,
-        currentMode: Boolean = true,
+        currentMode: Boolean = true
     ): LocalDate
 
     fun getPriceCode(asset: Asset): String

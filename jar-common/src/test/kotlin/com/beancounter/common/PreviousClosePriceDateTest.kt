@@ -31,7 +31,7 @@ internal class PreviousClosePriceDateTest {
                 7,
                 11,
                 13,
-                56,
+                56
             )
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
@@ -39,8 +39,8 @@ internal class PreviousClosePriceDateTest {
             previousClose.getPriceDate(
                 morningOf,
                 nasdaq,
-                true,
-            ),
+                true
+            )
         ).isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
@@ -53,7 +53,7 @@ internal class PreviousClosePriceDateTest {
                 7,
                 11,
                 2,
-                15,
+                15
             )
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
@@ -61,8 +61,8 @@ internal class PreviousClosePriceDateTest {
             previousClose.getPriceDate(
                 morningOf,
                 nasdaq,
-                true,
-            ),
+                true
+            )
         ).isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
@@ -75,7 +75,7 @@ internal class PreviousClosePriceDateTest {
                 7,
                 10,
                 2,
-                15,
+                15
             )
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to same date as requested when it's in the past
@@ -85,15 +85,15 @@ internal class PreviousClosePriceDateTest {
             previousClose.getPriceDate(
                 morningOf,
                 nasdaq,
-                false,
-            ),
+                false
+            )
         ).isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
 
         assertThat(
             previousClose.getPriceDate(
                 morningOf,
-                nasdaq,
-            ),
+                nasdaq
+            )
         ).isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
@@ -106,7 +106,7 @@ internal class PreviousClosePriceDateTest {
                 7,
                 11,
                 7,
-                15,
+                15
             )
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
@@ -114,8 +114,8 @@ internal class PreviousClosePriceDateTest {
             previousClose.getPriceDate(
                 morningOf,
                 nasdaq,
-                true,
-            ),
+                true
+            )
         ).isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
@@ -131,9 +131,9 @@ internal class PreviousClosePriceDateTest {
                             7,
                             10,
                             23,
-                            0,
+                            0
                         ).toInstant(ZoneOffset.UTC),
-                    ZoneOffset.UTC,
+                    ZoneOffset.UTC
                 ).toZonedDateTime()
 
         // Prices Now available.
@@ -141,8 +141,8 @@ internal class PreviousClosePriceDateTest {
             previousClose.getPriceDate(
                 asAtDate,
                 nasdaq,
-                true,
-            ),
+                true
+            )
         ).isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
@@ -158,17 +158,17 @@ internal class PreviousClosePriceDateTest {
                             7,
                             9,
                             15,
-                            0,
+                            0
                         ).toInstant(ZoneOffset.UTC),
-                    ZoneOffset.UTC,
+                    ZoneOffset.UTC
                 ).toZonedDateTime()
         // Resolve to Friday
         assertThat(
             previousClose.getPriceDate(
                 asAtDate,
                 nasdaq,
-                false,
-            ),
+                false
+            )
         ).isEqualTo(dateUtils.getFormattedDate("2023-07-07")) // Nasdaq last close
     }
 
@@ -188,9 +188,9 @@ internal class PreviousClosePriceDateTest {
                             today.month,
                             today.dayOfMonth,
                             18,
-                            0,
+                            0
                         ).toInstant(ZoneOffset.UTC),
-                    ZoneOffset.UTC,
+                    ZoneOffset.UTC
                 ).toZonedDateTime()
 
         // Requesting today, but prices are not yet available.
@@ -198,7 +198,7 @@ internal class PreviousClosePriceDateTest {
             previousClose.getPriceDate(
                 anyUnavailableUTCDateTime,
                 nasdaq,
-                true,
+                true
             )
         val deduct =
             when (today.dayOfWeek) {
@@ -234,9 +234,9 @@ internal class PreviousClosePriceDateTest {
                     10,
                     18,
                     0,
-                    0,
+                    0
                 ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC"),
+            ZoneId.of("UTC")
         )
 
     private val sunday: ZonedDateTime =
@@ -247,9 +247,9 @@ internal class PreviousClosePriceDateTest {
                     10,
                     20,
                     0,
-                    0,
+                    0
                 ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC"),
+            ZoneId.of("UTC")
         )
 
     private val saturday: ZonedDateTime =
@@ -260,9 +260,9 @@ internal class PreviousClosePriceDateTest {
                     10,
                     19,
                     0,
-                    0,
+                    0
                 ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC"),
+            ZoneId.of("UTC")
         )
 
     private val monday: ZonedDateTime =
@@ -273,9 +273,9 @@ internal class PreviousClosePriceDateTest {
                     10,
                     21,
                     0,
-                    0,
+                    0
                 ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC"),
+            ZoneId.of("UTC")
         )
 
     //    private val sunday: LocalDateTime get() = LocalDateTime.of(dateUtils.getDate("2019-10-20"), LocalTime.MIDNIGHT)

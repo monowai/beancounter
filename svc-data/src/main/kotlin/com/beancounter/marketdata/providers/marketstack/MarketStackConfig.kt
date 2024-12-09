@@ -18,10 +18,10 @@ import java.time.LocalDate
 @Import(
     MarketStackService::class,
     MarketStackProxy::class,
-    MarketStackAdapter::class,
+    MarketStackAdapter::class
 )
 class MarketStackConfig(
-    val marketService: MarketService,
+    val marketService: MarketService
 ) : DataProviderConfig {
     @Value("\${beancounter.market.providers.mstack.batchSize:2}")
     var assetsPerRequest = 2
@@ -49,12 +49,12 @@ class MarketStackConfig(
     override fun getMarketDate(
         market: Market,
         date: String,
-        currentMode: Boolean,
+        currentMode: Boolean
     ): LocalDate =
         marketUtils.getPriceDate(
             dateUtils.offsetNow(date).toZonedDateTime(),
             market,
-            currentMode,
+            currentMode
         )
 
     override fun getPriceCode(asset: Asset): String {

@@ -19,7 +19,7 @@ import java.time.LocalDate
 data class PriceData(
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = DateUtils.FORMAT,
+        pattern = DateUtils.FORMAT
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
@@ -31,48 +31,48 @@ data class PriceData(
     var previousClose: BigDecimal = BigDecimal.ZERO,
     var change: BigDecimal = BigDecimal.ZERO,
     var changePercent: BigDecimal = BigDecimal.ZERO,
-    var volume: Int = 0,
+    var volume: Int = 0
 ) {
     companion object {
         fun of(marketData: MarketData): PriceData =
             of(
                 marketData,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             )
 
         fun of(
             mktData: MarketData,
-            rate: BigDecimal,
+            rate: BigDecimal
         ): PriceData {
             val result =
                 PriceData(
                     mktData.priceDate,
                     multiplyAbs(
                         mktData.open,
-                        rate,
+                        rate
                     ),
                     multiplyAbs(
                         mktData.close,
-                        rate,
+                        rate
                     ),
                     multiplyAbs(
                         mktData.low,
-                        rate,
+                        rate
                     ),
                     multiplyAbs(
                         mktData.high,
-                        rate,
+                        rate
                     ),
                     multiplyAbs(
                         mktData.previousClose,
-                        rate,
+                        rate
                     ),
                     multiplyAbs(
                         mktData.change,
-                        rate,
+                        rate
                     ),
                     mktData.changePercent,
-                    mktData.volume,
+                    mktData.volume
                 )
 
             if (MathUtils.hasValidRate(rate) &&
@@ -86,8 +86,8 @@ data class PriceData(
                             percentUtils.percent(
                                 result.previousClose,
                                 result.close,
-                                4,
-                            ),
+                                4
+                            )
                         )
                 result.changePercent = change
                 result.change = result.close.subtract(result.previousClose)

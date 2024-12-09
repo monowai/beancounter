@@ -16,16 +16,16 @@ class SystemUserTest {
             mapOf(
                 Pair(
                     sua,
-                    sua,
+                    sua
                 ),
                 Pair(
                     sub,
-                    sub,
-                ),
+                    sub
+                )
             )
         assertThat(suMap).hasSize(1).containsKeys(
             sua,
-            sub,
+            sub
         )
         assertThat(sua).isEqualTo(sub)
     }

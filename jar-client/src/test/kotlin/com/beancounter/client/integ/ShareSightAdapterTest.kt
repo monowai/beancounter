@@ -29,7 +29,7 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 internal class ShareSightAdapterTest {
@@ -50,20 +50,20 @@ internal class ShareSightAdapterTest {
         var expectedAsset =
             getTestAsset(
                 NYSE,
-                "ABBV",
+                "ABBV"
             )
         verifyMarketCode(
             "ABBV.NYSE",
-            expectedAsset,
+            expectedAsset
         )
         expectedAsset =
             getTestAsset(
                 ASX,
-                "AMP",
+                "AMP"
             )
         verifyMarketCode(
             "AMP.AX",
-            expectedAsset,
+            expectedAsset
         )
     }
 
@@ -74,7 +74,7 @@ internal class ShareSightAdapterTest {
 
     private fun verifyMarketCode(
         code: String,
-        expectedAsset: Asset,
+        expectedAsset: Asset
     ) {
         val row: MutableList<String> = ArrayList()
         row.add("1")
@@ -89,102 +89,102 @@ internal class ShareSightAdapterTest {
         var row: MutableList<String> = mutableListOf()
         row.add(
             ShareSightTradeAdapter.ID,
-            "1",
+            "1"
         )
         row.add(
             ShareSightTradeAdapter.MARKET,
-            ASX.code,
+            ASX.code
         )
         row.add(
             ShareSightTradeAdapter.CODE,
-            "BHP",
+            "BHP"
         )
         row.add(
             ShareSightTradeAdapter.NAME,
-            "Test Asset",
+            "Test Asset"
         )
         row.add(
             ShareSightTradeAdapter.TYPE,
-            "buy",
+            "buy"
         )
         row.add(
             ShareSightTradeAdapter.DATE,
-            "21/01/2019",
+            "21/01/2019"
         )
         row.add(
             ShareSightTradeAdapter.QUANTITY,
-            "10",
+            "10"
         )
         row.add(
             ShareSightTradeAdapter.PRICE,
-            "12.23",
+            "12.23"
         )
         row.add(
             ShareSightTradeAdapter.BROKERAGE,
-            "12.99",
+            "12.99"
         )
         row.add(
             ShareSightTradeAdapter.CURRENCY,
-            "AUD",
+            "AUD"
         )
         row.add(
             ShareSightTradeAdapter.FX_RATE,
-            "99.99",
+            "99.99"
         )
         row.add(
             ShareSightTradeAdapter.VALUE,
-            "2097.85",
+            "2097.85"
         )
         val rows: MutableList<List<String>> = ArrayList()
         rows.add(row)
         row = ArrayList()
         row.add(
             ShareSightTradeAdapter.ID,
-            "2",
+            "2"
         )
         row.add(
             ShareSightTradeAdapter.MARKET,
-            "NASDAQ",
+            "NASDAQ"
         )
         row.add(
             ShareSightTradeAdapter.CODE,
-            "MSFT",
+            "MSFT"
         )
         row.add(
             ShareSightTradeAdapter.NAME,
-            "Microsoft",
+            "Microsoft"
         )
         row.add(
             ShareSightTradeAdapter.TYPE,
-            "buy",
+            "buy"
         )
         row.add(
             ShareSightTradeAdapter.DATE,
-            "21/01/2019",
+            "21/01/2019"
         )
         row.add(
             ShareSightTradeAdapter.QUANTITY,
-            "10",
+            "10"
         )
         row.add(
             ShareSightTradeAdapter.PRICE,
-            "12.23",
+            "12.23"
         )
         row.add(
             ShareSightTradeAdapter.BROKERAGE,
-            "12.99",
+            "12.99"
         )
         row.add(
             ShareSightTradeAdapter.CURRENCY,
-            "USD",
+            "USD"
         )
         row.add(
             ShareSightTradeAdapter.FX_RATE,
-            "99.99",
+            "99.99"
         )
         row.add(
             ShareSightTradeAdapter.VALUE,
-            "2097.85",
+            "2097.85"
         )
         rows.add(row)
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
@@ -194,11 +194,11 @@ internal class ShareSightAdapterTest {
                 TrustedTrnImportRequest(
                     portfolio,
                     ImportFormat.SHARESIGHT,
-                    row = columnValues,
+                    row = columnValues
                 )
             trnInputs.add(
                 shareSightRowProcessor
-                    .transform(trustedTrnImportRequest),
+                    .transform(trustedTrnImportRequest)
             )
         }
         assertThat(trnInputs).hasSize(2)

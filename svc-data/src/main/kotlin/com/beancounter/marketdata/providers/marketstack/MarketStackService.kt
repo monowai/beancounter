@@ -26,7 +26,7 @@ class MarketStackService(
     private val marketStackProxy: MarketStackProxy,
     private val marketStackConfig: MarketStackConfig,
     private val marketStackAdapter: MarketStackAdapter,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) : MarketDataPriceProvider {
     private val log = LoggerFactory.getLogger(MarketStackService::class.java)
 
@@ -36,13 +36,13 @@ class MarketStackService(
             "BEANCOUNTER_MARKET_PROVIDERS_MSTACK_KEY: {}",
             if (marketStackConfig.apiKey.equals(
                     "DEMO",
-                    ignoreCase = true,
+                    ignoreCase = true
                 )
             ) {
                 "DEMO"
             } else {
                 "** Redacted **"
-            },
+            }
         )
     }
 
@@ -52,26 +52,26 @@ class MarketStackService(
             getInstance(
                 priceRequest,
                 marketStackConfig,
-                dateUtils,
+                dateUtils
             )
         for (batch in providerArguments.batch.keys) {
             apiRequests[batch] =
                 marketStackProxy.getPrices(
                     providerArguments,
                     batch,
-                    marketStackConfig.apiKey,
+                    marketStackConfig.apiKey
                 )
         }
         log.trace("Assets price processing complete.")
         return getMarketData(
             providerArguments,
-            apiRequests,
+            apiRequests
         )
     }
 
     private fun getMarketData(
         providerArguments: ProviderArguments,
-        marketStackResponses: MutableMap<Int, MarketStackResponse>,
+        marketStackResponses: MutableMap<Int, MarketStackResponse>
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = mutableListOf()
         for (key in marketStackResponses.keys) {
@@ -80,7 +80,7 @@ class MarketStackService(
                     marketStackAdapter.toMarketData(
                         providerArguments,
                         key,
-                        it,
+                        it
                     )
                 results.addAll(x)
             }
@@ -99,11 +99,11 @@ class MarketStackService(
 
     override fun getDate(
         market: Market,
-        priceRequest: PriceRequest,
+        priceRequest: PriceRequest
     ): LocalDate =
         marketStackConfig.getMarketDate(
             market,
-            priceRequest.date,
+            priceRequest.date
         )
 
     override fun backFill(asset: Asset): PriceResponse = PriceResponse()

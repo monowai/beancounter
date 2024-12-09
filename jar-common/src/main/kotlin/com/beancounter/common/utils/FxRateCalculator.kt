@@ -30,14 +30,14 @@ class FxRateCalculator private constructor() {
         fun compute(
             asAt: String = DateUtils.TODAY,
             currencyPairs: Collection<IsoCurrencyPair>,
-            rateMap: Map<String, FxRate>,
+            rateMap: Map<String, FxRate>
         ): FxPairResults {
             val rates =
                 currencyPairs.associateWith { pair ->
                     calculateRate(
                         pair,
                         rateMap,
-                        asAt,
+                        asAt
                     )
                 }
             return FxPairResults(rates)
@@ -46,22 +46,22 @@ class FxRateCalculator private constructor() {
         private fun calculateRate(
             pair: IsoCurrencyPair,
             rateMap: Map<String, FxRate>,
-            asAt: String,
+            asAt: String
         ): FxRate {
             if (!pair.from.equals(
                     pair.to,
-                    ignoreCase = true,
+                    ignoreCase = true
                 )
             ) {
                 val fromRate =
                     getRate(
                         pair.from,
-                        rateMap,
+                        rateMap
                     )
                 val toRate =
                     getRate(
                         pair.to,
-                        rateMap,
+                        rateMap
                     )
                 val rate =
                     if (pair.from == "USD") {
@@ -70,32 +70,32 @@ class FxRateCalculator private constructor() {
                         toRate.rate.divide(
                             fromRate.rate,
                             8,
-                            RoundingMode.HALF_UP,
+                            RoundingMode.HALF_UP
                         )
                     }
                 return FxRate(
                     fromRate.to,
                     toRate.to,
                     rate,
-                    dateUtils.getDate(asAt),
+                    dateUtils.getDate(asAt)
                 )
             } else {
                 return FxRate(
                     rateMap[pair.from]?.from ?: throw IllegalArgumentException(
-                        "Rate for ${pair.from} not found",
+                        "Rate for ${pair.from} not found"
                     ),
                     rateMap[pair.to]?.to ?: throw IllegalArgumentException(
-                        "Rate for ${pair.to} not found",
+                        "Rate for ${pair.to} not found"
                     ),
                     BigDecimal.ONE,
-                    dateUtils.getDate(asAt),
+                    dateUtils.getDate(asAt)
                 )
             }
         }
 
         private fun getRate(
             currency: String,
-            rateMap: Map<String, FxRate>,
+            rateMap: Map<String, FxRate>
         ): FxRate =
             rateMap[currency.uppercase(Locale.getDefault())]
                 ?: throw IllegalArgumentException("Rate for $currency not found")

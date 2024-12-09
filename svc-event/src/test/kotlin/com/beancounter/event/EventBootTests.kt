@@ -17,12 +17,12 @@ import org.springframework.web.context.WebApplicationContext
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
 internal class EventBootTests
-@Autowired
-private constructor(
-    private val context: WebApplicationContext,
-) {
-    @Test
-    fun contextLoads() {
-        Assertions.assertThat(context).isNotNull
+    @Autowired
+    private constructor(
+        private val context: WebApplicationContext
+    ) {
+        @Test
+        fun contextLoads() {
+            Assertions.assertThat(context).isNotNull
+        }
     }
-}

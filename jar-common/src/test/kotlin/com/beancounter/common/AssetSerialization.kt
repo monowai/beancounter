@@ -27,14 +27,14 @@ class AssetSerialization {
         val asset =
             getJsonAsset(
                 "BBB",
-                "AAA",
+                "AAA"
             )
         val assetMap = HashMap<String, Asset>()
         assetMap[toKey(asset)] = asset
         assetMap["second"] =
             getJsonAsset(
                 "Whee",
-                "Twee",
+                "Twee"
             )
         val assetUpdateResponse = AssetUpdateResponse(assetMap)
         assertThat(assetUpdateResponse.data).containsKeys(toKey(asset))
@@ -42,7 +42,7 @@ class AssetSerialization {
         val fromJson =
             objectMapper.readValue(
                 json,
-                AssetUpdateResponse::class.java,
+                AssetUpdateResponse::class.java
             )
         assertThat(fromJson.data).containsKeys(toKey(asset))
     }
@@ -54,13 +54,13 @@ class AssetSerialization {
             AssetResponse(
                 Asset(
                     code = "YYY",
-                    market = Market("XXX"),
-                ),
+                    market = Market("XXX")
+                )
             )
         val fromJson =
             objectMapper.readValue(
                 objectMapper.writeValueAsString(assetResponse),
-                AssetResponse::class.java,
+                AssetResponse::class.java
             )
         assertThat(fromJson.data)
             .isEqualTo(assetResponse.data)
@@ -75,7 +75,7 @@ class AssetSerialization {
                 "Some Name",
                 "Non Default",
                 "Some Region",
-                USD.code,
+                USD.code
             )
         val withDefaults =
             AssetSearchResult(
@@ -83,7 +83,7 @@ class AssetSerialization {
                 "Name",
                 "Equity",
                 "Some Region",
-                USD.code,
+                USD.code
             )
 
         val results: MutableCollection<AssetSearchResult> = ArrayList()
@@ -94,7 +94,7 @@ class AssetSerialization {
         val fromJson =
             objectMapper.readValue(
                 json,
-                AssetSearchResponse::class.java,
+                AssetSearchResponse::class.java
             )
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()
@@ -105,7 +105,7 @@ class AssetSerialization {
             fromJson.data
                 .iterator()
                 .next()
-                .type,
+                .type
         ).isNotNull
     }
 
@@ -115,18 +115,18 @@ class AssetSerialization {
         val asset =
             getJsonAsset(
                 "BBB",
-                "AAA",
+                "AAA"
             )
         val values = HashMap<String, AssetInput>()
         values[toKey(asset)] =
             AssetUtils.getAssetInput(
                 "BBB",
-                "AAA",
+                "AAA"
             )
         values["second"] =
             AssetUtils.getAssetInput(
                 "Whee",
-                "Twee",
+                "Twee"
             )
         val assetRequest = AssetRequest(values)
         assertThat(assetRequest.data)
@@ -135,7 +135,7 @@ class AssetSerialization {
         val (data) =
             objectMapper.readValue(
                 json,
-                AssetRequest::class.java,
+                AssetRequest::class.java
             )
         assertThat(data).hasSize(assetRequest.data.size)
         for (key in data.keys) {
@@ -150,40 +150,40 @@ class AssetSerialization {
         val asset =
             AssetUtils.getTestAsset(
                 Market("1"),
-                "2",
+                "2"
             )
         val assetInput =
             AssetInput(
                 market = "amarket",
                 code = "acode",
-                resolvedAsset = asset,
+                resolvedAsset = asset
             )
         assertThat(assetInput)
             .hasFieldOrPropertyWithValue(
                 "market",
-                "amarket",
+                "amarket"
             ).hasFieldOrPropertyWithValue(
                 "code",
-                "acode",
+                "acode"
             ).hasFieldOrPropertyWithValue(
                 "resolvedAsset",
-                asset,
+                asset
             ).hasFieldOrPropertyWithValue(
                 "name",
-                null,
+                null
             )
 
         val json = objectMapper.writeValueAsString(assetInput)
         assertThat(
             objectMapper.readValue(
                 json,
-                AssetInput::class.java,
-            ),
+                AssetInput::class.java
+            )
         ).hasNoNullFieldsOrPropertiesExcept(
             "resolvedAsset",
             "name",
             "currency",
-            "owner",
+            "owner"
         )
     }
 }

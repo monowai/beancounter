@@ -80,17 +80,17 @@ class PriceScheduleTest {
         val asxMarket =
             marketService.getMarket(
                 ASX.code,
-                false,
+                false
             )
         Mockito
             .`when`(
-                enrichmentFactory.getEnricher(asxMarket),
+                enrichmentFactory.getEnricher(asxMarket)
             ).thenReturn(DefaultEnricher())
 
         val assetInput =
             AssetInput(
                 ASX.code,
-                code = code,
+                code = code
             )
         val assetResult = assetService.findOrCreate(assetInput)
         Mockito
@@ -98,9 +98,9 @@ class PriceScheduleTest {
                 alphaPriceService.getMarketData(
                     PriceRequest(
                         anyString(),
-                        listOf(PriceAsset(assetResult)),
-                    ),
-                ),
+                        listOf(PriceAsset(assetResult))
+                    )
+                )
             ).thenReturn(setOf(MarketData(assetResult)))
         priceSchedule.updatePrices()
         Thread.sleep(2000) // Async reads/writes
@@ -109,9 +109,9 @@ class PriceScheduleTest {
                 PriceRequest.of(
                     AssetInput(
                         assetResult.market.code,
-                        assetResult.code,
-                    ),
-                ),
+                        assetResult.code
+                    )
+                )
             )
         assertThat(price).hasNoNullFieldsOrProperties()
     }

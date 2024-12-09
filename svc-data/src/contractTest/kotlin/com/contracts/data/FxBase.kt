@@ -85,7 +85,7 @@ class FxBase : ContractVerifierBase() {
                         "0.8218941856",
                         "1.5536294691",
                         "1.4734561213",
-                        myr,
+                        myr
                     ),
                 "2019-11-12" to
                     EcbMockUtils.getRateMap(
@@ -94,7 +94,7 @@ class FxBase : ContractVerifierBase() {
                         "0.7791193827",
                         "1.5780299591",
                         "1.460463005",
-                        myr,
+                        myr
                     ),
                 "1999-01-04" to
                     EcbMockUtils.getRateMap(
@@ -103,14 +103,14 @@ class FxBase : ContractVerifierBase() {
                         usdGpbRate,
                         "1.8855712953",
                         usdAudRate,
-                        myr,
+                        myr
                     ),
                 "2019-10-18" to
                     mapOf(
                         Pair(
                             Constants.NZD.code,
-                            BigDecimal("1.41030000"),
-                        ),
+                            BigDecimal("1.41030000")
+                        )
                     ),
                 "2021-10-18" to
                     EcbMockUtils.getRateMap(
@@ -119,7 +119,7 @@ class FxBase : ContractVerifierBase() {
                         usdGpbRate,
                         "1.41030000",
                         usdAudRate,
-                        myr,
+                        myr
                     ),
                 "2019-10-20" to
                     EcbMockUtils.getRateMap(
@@ -128,7 +128,7 @@ class FxBase : ContractVerifierBase() {
                         gbp,
                         nzd,
                         aud,
-                        myr,
+                        myr
                     ),
                 rateDate to
                     EcbMockUtils.getRateMap(
@@ -137,7 +137,7 @@ class FxBase : ContractVerifierBase() {
                         gbp,
                         nzd,
                         aud,
-                        myr,
+                        myr
                     ),
                 dateUtils.today() to
                     EcbMockUtils.getRateMap(
@@ -146,7 +146,7 @@ class FxBase : ContractVerifierBase() {
                         gbp,
                         nzd,
                         aud,
-                        myr,
+                        myr
                     ),
                 friday to
                     EcbMockUtils.getRateMap(
@@ -155,7 +155,7 @@ class FxBase : ContractVerifierBase() {
                         usdGbp,
                         usdNzdRate,
                         usdAudOtherRate,
-                        myr,
+                        myr
                     ),
                 "2019-01-01" to
                     EcbMockUtils.getRateMap(
@@ -164,8 +164,8 @@ class FxBase : ContractVerifierBase() {
                         gbp,
                         "10.0",
                         aud,
-                        myr,
-                    ),
+                        myr
+                    )
             )
         historicalRates.forEach { (date, rates) ->
             mockEcbRates(EcbMockUtils[date, rates])
@@ -180,24 +180,24 @@ class FxBase : ContractVerifierBase() {
                     usdGbp,
                     usdNzdRate,
                     usdAudOtherRate,
-                    myr,
-                ),
+                    myr
+                )
             ],
-            "1999-01-04",
+            "1999-01-04"
         )
     }
 
     private fun mockEcbRates(
         exRatesResponse: ExRatesResponse,
-        rateDate: String = exRatesResponse.date.toString(),
+        rateDate: String = exRatesResponse.date.toString()
     ) {
         Mockito
             .`when`(
                 fxGateway.getRatesForSymbols(
                     exRatesResponse.date.toString(),
                     Constants.USD.code,
-                    exRatesResponse.rates.keys.joinToString(","),
-                ),
+                    exRatesResponse.rates.keys.joinToString(",")
+                )
             ).thenReturn(exRatesResponse)
     }
 }

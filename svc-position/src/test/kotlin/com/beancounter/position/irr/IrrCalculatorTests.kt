@@ -23,7 +23,7 @@ class IrrCalculatorTests {
     private val asset =
         AssetUtils.getTestAsset(
             US,
-            "AnyAsset",
+            "AnyAsset"
         )
     private val dateUtils = DateUtils()
 
@@ -31,7 +31,7 @@ class IrrCalculatorTests {
     fun `noCash-flows_don't fail`() {
         testCalculateIRR(
             listOf(),
-            0.0,
+            0.0
         )
     }
 
@@ -43,9 +43,9 @@ class IrrCalculatorTests {
                 "2020-01-01" to 300.0,
                 "2021-01-01" to 420.0,
                 "2022-01-01" to 680.0,
-                "2023-01-01" to marketValue,
+                "2023-01-01" to marketValue
             ),
-            0.379,
+            0.379
         )
     }
 
@@ -57,9 +57,9 @@ class IrrCalculatorTests {
                 "2017-08-21" to 2431.5,
                 "2020-02-27" to 1612.98,
                 "2023-06-08" to -2714.09,
-                "2024-05-22" to 3822.34,
+                "2024-05-22" to 3822.34
             ),
-            0.221,
+            0.221
         )
     }
 
@@ -71,9 +71,9 @@ class IrrCalculatorTests {
                 "2023-04-10" to 50.0,
                 "2023-07-01" to 50.0,
                 "2023-10-01" to 50.0,
-                START_DATE to marketValue,
+                START_DATE to marketValue
             ),
-            .269,
+            .269
         )
     }
 
@@ -83,9 +83,9 @@ class IrrCalculatorTests {
             listOf(
                 START_DATE to initialCost,
                 "2024-03-01" to 50.0,
-                "2024-07-01" to marketValue,
+                "2024-07-01" to marketValue
             ),
-            0.335,
+            0.335
         )
     }
 
@@ -94,9 +94,9 @@ class IrrCalculatorTests {
         testCalculateIRR(
             listOf(
                 START_DATE to initialCost,
-                "2024-01-05" to marketValue,
+                "2024-01-05" to marketValue
             ),
-            .1,
+            .1
         )
     }
 
@@ -106,9 +106,9 @@ class IrrCalculatorTests {
             listOf(
                 "2023-01-01" to initialCost,
                 "2023-12-31" to 100.0,
-                START_DATE to 900.00,
+                START_DATE to 900.00
             ),
-            0.0,
+            0.0
         )
     }
 
@@ -117,22 +117,22 @@ class IrrCalculatorTests {
         testCalculateIRR(
             listOf(
                 START_DATE to initialCost,
-                "2024-01-10" to marketValue - 400,
+                "2024-01-10" to marketValue - 400
             ),
-            -0.3,
+            -0.3
         )
     }
 
     private fun testCalculateIRR(
         cashFlows: List<Pair<String, Double>>,
-        expectedIrr: Double,
+        expectedIrr: Double
     ) {
         val periodicCashFlows = getPeriodicCashFlows(cashFlows)
         val irr = irrService.calculate(periodicCashFlows)
         assertEquals(
             expectedIrr,
             irr,
-            0.001,
+            0.001
         )
     }
 
@@ -144,8 +144,8 @@ class IrrCalculatorTests {
                     asset = asset,
                     tradeDate = dateUtils.getDate(date),
                     trnType = TrnType.BUY,
-                    cashAmount = BigDecimal(value),
-                ),
+                    cashAmount = BigDecimal(value)
+                )
             )
         }
         return periodicCashFlows

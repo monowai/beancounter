@@ -28,13 +28,13 @@ internal class ExceptionMessagesTest {
             SpringExceptionMessage(
                 error = "I'm a teapot",
                 message = "Message",
-                path = TEST_UR,
+                path = TEST_UR
             )
         val json = objectMapper.writeValueAsString(springExceptionMessage)
         val fromJson =
             objectMapper.readValue(
                 json,
-                SpringExceptionMessage::class.java,
+                SpringExceptionMessage::class.java
             )
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()
@@ -47,7 +47,7 @@ internal class ExceptionMessagesTest {
         assertThat(businessException)
             .hasFieldOrPropertyWithValue(
                 MESSAGE,
-                testMessage,
+                testMessage
             )
         throw businessException
     }
@@ -57,7 +57,7 @@ internal class ExceptionMessagesTest {
         assertThat(systemException)
             .hasFieldOrPropertyWithValue(
                 MESSAGE,
-                testMessage,
+                testMessage
             )
         throw systemException
     }

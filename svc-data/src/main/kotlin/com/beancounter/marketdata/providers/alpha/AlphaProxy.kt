@@ -19,40 +19,40 @@ class AlphaProxy {
     @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
     fun getCurrent(
         code: String,
-        apiKey: String,
+        apiKey: String
     ): String =
         alphaGateway.getCurrent(
             code,
-            apiKey,
+            apiKey
         )
 
     @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
     fun getHistoric(
         code: String,
-        apiKey: String,
+        apiKey: String
     ): String =
         alphaGateway.getHistoric(
             code,
-            apiKey,
+            apiKey
         )
 
     @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
     fun search(
         symbol: String,
-        apiKey: String,
+        apiKey: String
     ): String =
         alphaGateway.search(
             symbol,
-            apiKey,
+            apiKey
         )
 
     @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
     fun getAdjusted(
         code: String,
-        apiKey: String,
+        apiKey: String
     ): String =
         alphaGateway.getAdjusted(
             code,
-            apiKey,
+            apiKey
         )
 }

@@ -18,7 +18,7 @@ class ShortSellFlowTest {
     private val asset =
         Asset(
             "TEST",
-            market = Constants.US,
+            market = Constants.US
         )
     private val fifty = BigDecimal("50.0")
 
@@ -32,12 +32,12 @@ class ShortSellFlowTest {
                 trnType = TrnType.BUY,
                 quantity = fifty,
                 tradeAmount = hundred,
-                cashAmount = hundred.negate(),
+                cashAmount = hundred.negate()
             )
         val initialPosition =
             buyBehaviour.accumulate(
                 buyTrn,
-                positions,
+                positions
             )
         val twoHundreds = BigDecimal("200")
         // When I sell 50
@@ -47,22 +47,22 @@ class ShortSellFlowTest {
                 trnType = TrnType.SELL,
                 quantity = fifty,
                 tradeAmount = twoHundreds,
-                cashAmount = twoHundreds,
+                cashAmount = twoHundreds
             )
         sellBehaviour.accumulate(
             sellTrn1,
             positions,
-            initialPosition,
+            initialPosition
         )
         assertEquals(
             BigDecimal.ZERO,
-            initialPosition.quantityValues.getTotal(),
+            initialPosition.quantityValues.getTotal()
         )
         assertEquals(
             0,
             initialPosition.moneyValues[Position.In.TRADE]!!
                 .realisedGain
-                .compareTo(BigDecimal("100")),
+                .compareTo(BigDecimal("100"))
         )
 
         // And I sell 50 again
@@ -72,16 +72,16 @@ class ShortSellFlowTest {
                 trnType = TrnType.SELL,
                 quantity = fifty,
                 tradeAmount = twoK,
-                cashAmount = twoK,
+                cashAmount = twoK
             )
         sellBehaviour.accumulate(
             sellTrn2,
             positions,
-            initialPosition,
+            initialPosition
         )
         assertEquals(
             fifty.negate(),
-            initialPosition.quantityValues.getTotal(),
+            initialPosition.quantityValues.getTotal()
         )
         // And then I buy 50
         val buyTrn2 =
@@ -89,22 +89,22 @@ class ShortSellFlowTest {
                 asset = asset,
                 trnType = TrnType.BUY,
                 quantity = fifty,
-                tradeAmount = hundred,
+                tradeAmount = hundred
             )
         buyBehaviour.accumulate(
             buyTrn2,
             positions,
-            initialPosition,
+            initialPosition
         )
 
         // Then I have a position of 0 and a profit or loss
         assertEquals(
             0,
-            initialPosition.quantityValues.getTotal().compareTo(BigDecimal.ZERO),
+            initialPosition.quantityValues.getTotal().compareTo(BigDecimal.ZERO)
         )
         assertEquals(
             BigDecimal("2100.00"),
-            initialPosition.moneyValues[Position.In.TRADE]!!.realisedGain,
+            initialPosition.moneyValues[Position.In.TRADE]!!.realisedGain
         )
         // Add assertions for profit or loss as needed
     }

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class AuthConfig(
     @Value("\${auth.email:\${auth.audience}/claims/email}")
-    var claimEmail: String,
+    var claimEmail: String
 ) {
     @Value("\${auth.audience:https://holdsworth.app}")
     val audience: String = "beancounter"

@@ -9,7 +9,7 @@ import java.math.BigDecimal
  * @since 2019-01-28
  */
 data class MoneyValues(
-    val currency: Currency,
+    val currency: Currency
 ) {
     var dividends: BigDecimal = BigDecimal.ZERO
 

@@ -11,7 +11,7 @@ import org.springframework.test.context.TestPropertySource
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 @Import(
-    NoWebAuth::class,
+    NoWebAuth::class
 )
 @TestPropertySource(
     properties = [
@@ -19,8 +19,8 @@ import org.springframework.test.context.TestPropertySource
         "auth.web=false",
         "auth.audience=test-audience",
         "auth.email=some-email@somewhere",
-        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost",
-    ],
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost"
+    ]
 )
 @EnableWebSecurity // Hmm, assumption is that all AUTH classes expect web-security. Is this correct?
 annotation class AutoConfigureNoAuth

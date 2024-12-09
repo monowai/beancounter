@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.RequestMethod
  */
 @FeignClient(
     name = "figi",
-    url = "\${beancounter.market.providers.figi.url:https://api.openfigi.com}",
+    url = "\${beancounter.market.providers.figi.url:https://api.openfigi.com}"
 )
 interface FigiGateway {
     // https://bsym.bloomberg.com/api#post-v2-search
     @RequestMapping(
         method = [RequestMethod.POST],
         value = ["/v2/mapping"],
-        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun search(
         searchBody: Collection<FigiSearch>,
-        @RequestHeader("X-OPENFIGI-APIKEY") apiKey: String,
+        @RequestHeader("X-OPENFIGI-APIKEY") apiKey: String
     ): Collection<FigiResponse>
 }

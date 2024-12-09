@@ -7,5 +7,5 @@ import com.beancounter.common.model.Asset
  * The supplied identifier can be used by the caller find the asset result in the generated response.
  */
 data class AssetUpdateResponse(
-    override var data: Map<String, Asset>,
+    override var data: Map<String, Asset>
 ) : Payload<Map<String, Asset>>

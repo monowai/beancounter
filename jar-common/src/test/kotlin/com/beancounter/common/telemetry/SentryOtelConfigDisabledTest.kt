@@ -14,8 +14,8 @@ import org.springframework.test.context.TestPropertySource
 @SpringBootTest(classes = [SentryOtelConfig::class])
 @TestPropertySource(
     properties = [
-        "sentry.enabled=false",
-    ],
+        "sentry.enabled=false"
+    ]
 )
 class SentryOtelConfigDisabledTest {
     @Autowired

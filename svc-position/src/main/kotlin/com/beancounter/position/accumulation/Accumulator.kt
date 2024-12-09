@@ -27,17 +27,17 @@ import org.springframework.stereotype.Service
     DateUtils::class,
     TrnBehaviourFactory::class,
     CurrencyResolver::class,
-    IrrCalculator::class,
+    IrrCalculator::class
 )
 class Accumulator(
-    private val trnBehaviourFactory: TrnBehaviourFactory,
+    private val trnBehaviourFactory: TrnBehaviourFactory
 ) {
     private val cashSet =
         setOf(
             BALANCE,
             FX_BUY,
             DEPOSIT,
-            WITHDRAWAL,
+            WITHDRAWAL
         )
 
     /**
@@ -50,29 +50,29 @@ class Accumulator(
      */
     fun accumulate(
         trn: Trn,
-        positions: Positions,
+        positions: Positions
     ): Position {
         val position = positions.getOrCreate(trn)
         position.getMoneyValues(
             Position.In.TRADE,
-            trn.tradeCurrency,
+            trn.tradeCurrency
         )
         if (trn.trnType !== DIVI) {
             ensureDateSequential(
                 trn,
-                position,
+                position
             )
         }
         trnBehaviourFactory[trn.trnType].accumulate(
             trn,
-            positions,
+            positions
         )
         position.dateValues.last = trn.tradeDate
 
         if (isCash(trn)) {
             accumulateCash(
                 trn,
-                positions,
+                positions
             )
         }
         position.periodicCashFlows.add(trn)
@@ -97,12 +97,12 @@ class Accumulator(
      */
     private fun accumulateCash(
         trn: Trn,
-        positions: Positions,
+        positions: Positions
     ) {
         val cashPosition =
             positions.getOrCreate(
                 trn.cashAsset!!,
-                trn.tradeDate,
+                trn.tradeDate
             )
 
         when {
@@ -110,14 +110,14 @@ class Accumulator(
                 trnBehaviourFactory[DEPOSIT].accumulate(
                     trn,
                     positions,
-                    cashPosition,
+                    cashPosition
                 )
 
             TrnType.isCashDebited(trn.trnType) ->
                 trnBehaviourFactory[WITHDRAWAL].accumulate(
                     trn,
                     positions,
-                    cashPosition,
+                    cashPosition
                 )
         }
 
@@ -133,14 +133,14 @@ class Accumulator(
      */
     private fun ensureDateSequential(
         trn: Trn,
-        position: Position,
+        position: Position
     ) {
         val tradeDate = trn.tradeDate
         val positionDate = position.dateValues.last
 
         if (positionDate != null && tradeDate < positionDate) {
             throw BusinessException(
-                "Date sequence problem for transaction on ${trn.tradeDate} with last position date on $positionDate",
+                "Date sequence problem for transaction on ${trn.tradeDate} with last position date on $positionDate"
             )
         }
     }

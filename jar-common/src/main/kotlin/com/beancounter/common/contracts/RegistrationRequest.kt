@@ -5,5 +5,5 @@ package com.beancounter.common.contracts
  * Email is unique in the system, and we extract that from a JWT
  */
 data class RegistrationRequest(
-    val active: Boolean = true,
+    val active: Boolean = true
 )

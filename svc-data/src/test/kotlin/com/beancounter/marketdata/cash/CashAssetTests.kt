@@ -40,10 +40,10 @@ class CashAssetTests {
                     mapOf(
                         Pair(
                             NZD.code,
-                            cashInput,
-                        ),
-                    ),
-                ),
+                            cashInput
+                        )
+                    )
+                )
             )
         assertThat(assetResponse.data).hasSize(1)
         val cashAsset = assetResponse.data[NZD.code]
@@ -51,13 +51,13 @@ class CashAssetTests {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "assetCategory",
-                category,
+                category
             ).hasFieldOrPropertyWithValue(
                 "name",
-                cashInput.name,
+                cashInput.name
             ).hasFieldOrPropertyWithValue(
                 "priceSymbol",
-                NZD.code,
+                NZD.code
             )
     }
 
@@ -67,17 +67,17 @@ class CashAssetTests {
             assetService.findOrCreate(
                 AssetInput(
                     CASH,
-                    USD.code,
-                ),
+                    USD.code
+                )
             )
         assertThat(found)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "assetCategory.id",
-                CASH,
+                CASH
             ).hasFieldOrPropertyWithValue(
                 "name",
-                "${USD.code} Balance",
+                "${USD.code} Balance"
             )
     }
 

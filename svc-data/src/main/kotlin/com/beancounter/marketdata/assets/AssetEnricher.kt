@@ -16,7 +16,7 @@ interface AssetEnricher {
     fun enrich(
         id: String,
         market: Market,
-        assetInput: AssetInput,
+        assetInput: AssetInput
     ): Asset
 
     /**

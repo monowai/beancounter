@@ -18,7 +18,7 @@ internal class DateSplitterTest {
             dateSplitter.split(
                 1,
                 "2022-01-01",
-                "2022-01-20",
+                "2022-01-20"
             )
         assertThat(results)
             .size()
@@ -32,7 +32,7 @@ internal class DateSplitterTest {
             dateSplitter.split(
                 2,
                 "2022-01-01",
-                "2022-01-21",
+                "2022-01-21"
             )
         assertThat(results)
             .size()
@@ -46,7 +46,7 @@ internal class DateSplitterTest {
             dateSplitter.split(
                 20,
                 dateUtils.today(),
-                dateUtils.today(),
+                dateUtils.today()
             )
         assertThat(results)
             .size()

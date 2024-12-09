@@ -23,32 +23,32 @@ internal class MathUtilsTest {
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                BigDecimal.ZERO,
-            ),
+                BigDecimal.ZERO
+            )
         ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                BigDecimal("0.00"),
-            ),
+                BigDecimal("0.00")
+            )
         ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                null,
-            ),
+                null
+            )
         ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                BigDecimal(ten),
-            ),
+                BigDecimal(ten)
+            )
         ).isEqualTo(tenThousand)
         assertThat(
             multiplyAbs(
                 null,
-                BigDecimal(ten),
-            ),
+                BigDecimal(ten)
+            )
         ).isEqualTo(BigDecimal.ZERO)
     }
 
@@ -57,32 +57,32 @@ internal class MathUtilsTest {
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
-                BigDecimal(zeroDec),
-            ),
+                BigDecimal(zeroDec)
+            )
         ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
-                BigDecimal(zeroDec),
-            ),
+                BigDecimal(zeroDec)
+            )
         ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
+                null
+            )
+        ).isEqualTo(BigDecimal.ZERO)
+        assertThat(
+            divide(
                 null,
-            ),
-        ).isEqualTo(BigDecimal.ZERO)
-        assertThat(
-            divide(
-                null,
-                BigDecimal(ten),
-            ),
+                BigDecimal(ten)
+            )
         ).isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
-                BigDecimal(ten),
-            ),
+                BigDecimal(ten)
+            )
         ).isEqualTo("100.00")
     }
 
@@ -93,15 +93,15 @@ internal class MathUtilsTest {
         assertThat(
             add(
                 scaleMe,
-                scaleMe,
-            ),
+                scaleMe
+            )
         ).isEqualTo(BigDecimal("201.98"))
         scaleMe = BigDecimal("100.994")
         assertThat(
             add(
                 scaleMe,
-                scaleMe,
-            ),
+                scaleMe
+            )
         ).isEqualTo(BigDecimal("201.99"))
     }
 
@@ -112,15 +112,15 @@ internal class MathUtilsTest {
         assertThat(
             costBasis.divide(
                 total,
-                getMathContext(),
-            ),
+                getMathContext()
+            )
         ).isEqualTo(BigDecimal("2"))
         total = BigDecimal("555.00")
         assertThat(
             costBasis.divide(
                 total,
-                getMathContext(),
-            ),
+                getMathContext()
+            )
         ).isEqualTo(BigDecimal("1.801801802"))
     }
 
@@ -131,7 +131,7 @@ internal class MathUtilsTest {
         val result =
             parse(
                 "1,000.99",
-                numberFormat,
+                numberFormat
             )
         assertThat(result).isEqualTo("1000.99")
     }
@@ -144,8 +144,8 @@ internal class MathUtilsTest {
         assertThat(
             parse(
                 value,
-                numberFormat,
-            ),
+                numberFormat
+            )
         ).isEqualTo("1180.74")
     }
 

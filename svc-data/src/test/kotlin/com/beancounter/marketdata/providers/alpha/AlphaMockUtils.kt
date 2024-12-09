@@ -24,35 +24,35 @@ object AlphaMockUtils {
     fun mockAlphaAssets() {
         mockSearchResponse(
             MSFT.code,
-            ClassPathResource("$ALPHA_MOCK/msft-response.json").file,
+            ClassPathResource("$ALPHA_MOCK/msft-response.json").file
         )
         mockSearchResponse(
             "BRK-B",
-            ClassPathResource("$ALPHA_MOCK/brkb-response.json").file,
+            ClassPathResource("$ALPHA_MOCK/brkb-response.json").file
         )
         mockSearchResponse(
             "AAPL",
-            ClassPathResource("$ALPHA_MOCK/aapl-response.json").file,
+            ClassPathResource("$ALPHA_MOCK/aapl-response.json").file
         )
         mockSearchResponse(
             "AMP.AX",
-            ClassPathResource("$ALPHA_MOCK/amp-search.json").file,
+            ClassPathResource("$ALPHA_MOCK/amp-search.json").file
         )
         mockSearchResponse(
             "DTV",
-            ClassPathResource("$ALPHA_MOCK/dtv-search.json").file,
+            ClassPathResource("$ALPHA_MOCK/dtv-search.json").file
         )
         mockGlobalResponse(
             "AMP.AX",
-            ClassPathResource("$ALPHA_MOCK/amp-global.json").file,
+            ClassPathResource("$ALPHA_MOCK/amp-global.json").file
         )
         mockGlobalResponse(
             "AMP.AUS",
-            ClassPathResource("$ALPHA_MOCK/amp-global.json").file,
+            ClassPathResource("$ALPHA_MOCK/amp-global.json").file
         )
         mockGlobalResponse(
             MSFT.code,
-            ClassPathResource("$ALPHA_MOCK/msft-global.json").file,
+            ClassPathResource("$ALPHA_MOCK/msft-global.json").file
         )
     }
 
@@ -64,21 +64,21 @@ object AlphaMockUtils {
      */
     fun mockAdjustedResponse(
         symbol: String,
-        jsonFile: File,
+        jsonFile: File
     ) {
         mockGetResponse(
             "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo&outputsize=full",
-            jsonFile,
+            jsonFile
         )
     }
 
     fun mockGlobalResponse(
         symbol: String,
-        jsonFile: File,
+        jsonFile: File
     ) {
         mockGetResponse(
             "/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=demo",
-            jsonFile,
+            jsonFile
         )
     }
 
@@ -91,7 +91,7 @@ object AlphaMockUtils {
      */
     private fun mockGetResponse(
         url: String,
-        jsonFile: File,
+        jsonFile: File
     ) {
         stubFor(
             WireMock
@@ -101,42 +101,42 @@ object AlphaMockUtils {
                         .aResponse()
                         .withHeader(
                             HttpHeaders.CONTENT_TYPE,
-                            MediaType.APPLICATION_JSON_VALUE,
+                            MediaType.APPLICATION_JSON_VALUE
                         ).withBody(
                             objectMapper.writeValueAsString(
                                 objectMapper.readValue(
                                     jsonFile,
-                                    HashMap::class.java,
-                                ),
-                            ),
-                        ).withStatus(200),
-                ),
+                                    HashMap::class.java
+                                )
+                            )
+                        ).withStatus(200)
+                )
         )
     }
 
     fun mockSearchResponse(
         code: String,
-        file: File,
+        file: File
     ) {
         stubFor(
             WireMock
                 .get(
-                    WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"),
+                    WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo")
                 ).willReturn(
                     WireMock
                         .aResponse()
                         .withHeader(
                             HttpHeaders.CONTENT_TYPE,
-                            MediaType.APPLICATION_JSON_VALUE,
+                            MediaType.APPLICATION_JSON_VALUE
                         ).withBody(
                             objectMapper.writeValueAsString(
                                 objectMapper.readValue(
                                     file,
-                                    HashMap::class.java,
-                                ),
-                            ),
-                        ).withStatus(200),
-                ),
+                                    HashMap::class.java
+                                )
+                            )
+                        ).withStatus(200)
+                )
         )
     }
 }

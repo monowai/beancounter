@@ -27,5 +27,5 @@ annotation class SpringMvcDbTest(
      * Defines the active profiles to be used for the annotated test class.
      * Default is "h2db".
      */
-    val profiles: Array<String> = ["h2db"],
+    val profiles: Array<String> = ["h2db"]
 )

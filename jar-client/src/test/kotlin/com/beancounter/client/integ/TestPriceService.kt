@@ -23,10 +23,10 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @ImportAutoConfiguration(
-    ClientConfig::class,
+    ClientConfig::class
 )
 @SpringBootTest(classes = [ClientConfig::class])
 class TestPriceService {
@@ -46,13 +46,13 @@ class TestPriceService {
                 "2019-10-18",
                 currentMode = true, // Hack to make contract testing easier
                 assets =
-                listOf(
-                    PriceAsset(
-                        "NASDAQ",
-                        "EBAY",
-                        assetId = "EBAY",
-                    ),
-                ),
+                    listOf(
+                        PriceAsset(
+                            "NASDAQ",
+                            "EBAY",
+                            assetId = "EBAY"
+                        )
+                    )
             )
         `when`(tokenService.bearerToken).thenReturn("")
         val response = priceService.getPrices(priceRequest)

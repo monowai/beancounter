@@ -24,23 +24,23 @@ import org.springframework.web.bind.annotation.RequestBody
 @ConditionalOnProperty(
     value = ["auth.enabled"],
     havingValue = "true",
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 class LoginService(
     private val authGateway: AuthGateway,
     val jwtDecoder: JwtDecoder,
-    val authConfig: AuthConfig,
+    val authConfig: AuthConfig
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun login(
         user: String,
-        password: String,
+        password: String
     ): OpenIdResponse {
         val passwordRequest =
             passwordRequest(
                 user,
-                password,
+                password
             )
         val response = authGateway.login(passwordRequest)
         log.info("Logged in $user")
@@ -49,13 +49,13 @@ class LoginService(
 
     fun passwordRequest(
         user: String,
-        password: String,
+        password: String
     ) = PasswordRequest(
         client_id = authConfig.clientId,
         username = user,
         password = password,
         audience = authConfig.audience,
-        client_secret = authConfig.clientSecret,
+        client_secret = authConfig.clientSecret
     )
 
     /**
@@ -73,7 +73,7 @@ class LoginService(
             ClientCredentialsRequest(
                 client_secret = secretIn,
                 client_id = authConfig.clientId,
-                audience = authConfig.audience,
+                audience = authConfig.audience
             )
         log.info("m2mLogin: ${authConfig.clientId}")
         return setAuthContext(authGateway.login(login))
@@ -87,8 +87,8 @@ class LoginService(
     private fun authenticationToken(response: OpenIdResponse) =
         JwtAuthenticationToken(
             jwtDecoder.decode(
-                response.token,
-            ),
+                response.token
+            )
         )
 
     /**
@@ -107,7 +107,7 @@ class LoginService(
         var grant_type: String = AuthorizationGrantType.PASSWORD.value,
         var audience: String,
         var client_secret: String,
-        var scope: String = "openid profile email beancounter beancounter:user beancounter:admin",
+        var scope: String = "openid profile email beancounter beancounter:user beancounter:admin"
     ) : AuthRequest
 
     /**
@@ -118,7 +118,7 @@ class LoginService(
         var client_secret: String = "not-set",
         var audience: String,
         var scope: String = "beancounter beancounter:system",
-        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
+        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value
     ) : AuthRequest
 
     /**
@@ -126,21 +126,21 @@ class LoginService(
      */
     @FeignClient(
         name = "auth0",
-        url = "\${auth.uri:https://beancounter.eu.auth0.com/}",
+        url = "\${auth.uri:https://beancounter.eu.auth0.com/}"
     )
     @ConditionalOnProperty(
         value = ["auth.enabled"],
         havingValue = "true",
-        matchIfMissing = true,
+        matchIfMissing = true
     )
     interface AuthGateway {
         @PostMapping(
             value = ["oauth/token"],
             consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun login(
-            @RequestBody authRequest: AuthRequest,
+            @RequestBody authRequest: AuthRequest
         ): OpenIdResponse
     }
 }

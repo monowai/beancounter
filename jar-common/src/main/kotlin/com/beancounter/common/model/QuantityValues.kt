@@ -12,7 +12,7 @@ import java.math.BigDecimal
  */
 class QuantityValues(
     var sold: BigDecimal = BigDecimal.ZERO,
-    var purchased: BigDecimal = BigDecimal.ZERO,
+    var purchased: BigDecimal = BigDecimal.ZERO
 ) {
     var adjustment: BigDecimal = BigDecimal.ZERO
     private var precision: Int? = null

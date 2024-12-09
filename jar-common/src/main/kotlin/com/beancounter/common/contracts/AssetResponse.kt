@@ -6,5 +6,5 @@ import com.beancounter.common.model.Asset
  * Response to an asset request.
  */
 data class AssetResponse(
-    override val data: Asset,
+    override val data: Asset
 ) : Payload<Asset?>

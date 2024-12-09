@@ -78,11 +78,11 @@ internal class EventControllerTest {
                     MockMvcRequestBuilders
                         .get(
                             "/{eventId}",
-                            "event.getId()",
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                            "event.getId()"
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isBadRequest)
                 .andExpect(
-                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON),
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 ).andReturn()
                 .response
                 .contentAsString
@@ -104,7 +104,7 @@ internal class EventControllerTest {
                 recordDate = dateUtils.getFormattedDate("2020-10-10"),
                 source = "SOURCE",
                 assetId = "ABC123",
-                rate = BigDecimal("0.1234"),
+                rate = BigDecimal("0.1234")
             )
         event = eventService.save(event)
         assertThat(event).hasFieldOrProperty("id")
@@ -128,14 +128,14 @@ internal class EventControllerTest {
                     MockMvcRequestBuilders
                         .get(
                             "/{eventId}",
-                            event.id,
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                            event.id
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         return objectMapper.readValue(
             mvcResult.response.contentAsString,
-            CorporateEventResponse::class.java,
+            CorporateEventResponse::class.java
         )
     }
 
@@ -146,15 +146,15 @@ internal class EventControllerTest {
                     MockMvcRequestBuilders
                         .get(
                             "/asset/{assetId}",
-                            event.assetId,
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                            event.assetId
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         val events =
             objectMapper.readValue(
                 mvcResult.response.contentAsString,
-                CorporateEventResponses::class.java,
+                CorporateEventResponses::class.java
             )
         return events
     }
@@ -167,7 +167,7 @@ internal class EventControllerTest {
                 payDate = Objects.requireNonNull(DateUtils().getFormattedDate("2019-12-20"))!!,
                 source = ALPHA,
                 assetId = "assetId",
-                rate = BigDecimal("2.3400"),
+                rate = BigDecimal("2.3400")
             )
         val saved = eventService.save(event)
         assertThat(saved.id).isNotNull
@@ -185,7 +185,7 @@ internal class EventControllerTest {
             eventService
                 .findInRange(
                     event.recordDate.minusDays(2),
-                    event.recordDate,
+                    event.recordDate
                 )
         // Validate the collection has exactly one element and check that element
         assertThat(events).hasSize(1)

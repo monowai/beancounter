@@ -13,7 +13,7 @@ import java.math.BigDecimal
  */
 @Service
 class CashAccumulator(
-    val currencyResolver: CurrencyResolver,
+    val currencyResolver: CurrencyResolver
 ) {
     private val cashCost = CashCost()
 
@@ -21,7 +21,7 @@ class CashAccumulator(
         cashPosition: Position,
         position: Position,
         quantity: BigDecimal,
-        trn: Trn,
+        trn: Trn
     ): Position {
         if (TrnType.isCashCredited(trn.trnType)) {
             cashPosition.quantityValues.purchased = position.quantityValues.purchased.add(quantity)
@@ -34,33 +34,33 @@ class CashAccumulator(
                 Position.In.TRADE,
                 trn.cashCurrency!!,
                 trn.portfolio,
-                position,
+                position
             ),
             cashPosition,
             quantity,
-            BigDecimal.ONE,
+            BigDecimal.ONE
         ) // Cash trade currency
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.BASE,
                 trn.cashCurrency!!,
                 trn.portfolio,
-                position,
+                position
             ),
             cashPosition,
             quantity,
-            trn.tradeBaseRate,
+            trn.tradeBaseRate
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.PORTFOLIO,
                 trn.cashCurrency!!,
                 trn.portfolio,
-                position,
+                position
             ),
             cashPosition,
             quantity,
-            trn.tradePortfolioRate,
+            trn.tradePortfolioRate
         )
         return position
     }

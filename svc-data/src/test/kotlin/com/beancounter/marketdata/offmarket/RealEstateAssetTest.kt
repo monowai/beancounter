@@ -52,7 +52,7 @@ class RealEstateAssetTest {
             currency = NZD,
             code = "HAKL",
             name = "My House In Auckland",
-            owner = "test-user",
+            owner = "test-user"
         )
 
     private val dateUtils = DateUtils()
@@ -63,13 +63,13 @@ class RealEstateAssetTest {
         val token =
             mockAuthConfig.login(
                 sysUser,
-                this.systemUserService,
+                this.systemUserService
             )
         assertThat(token)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "subject",
-                sysUser.id,
+                sysUser.id
             )
 
         val category = assetCategoryConfig.get(reInput.category.uppercase())
@@ -79,10 +79,10 @@ class RealEstateAssetTest {
                     mapOf(
                         Pair(
                             NZD.code,
-                            reInput,
-                        ),
-                    ),
-                ),
+                            reInput
+                        )
+                    )
+                )
             )
         assertThat(assetResponse.data).hasSize(1)
         val reAsset = assetResponse.data[NZD.code]
@@ -90,16 +90,16 @@ class RealEstateAssetTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "assetCategory",
-                category,
+                category
             ).hasFieldOrPropertyWithValue(
                 "name",
-                reInput.name,
+                reInput.name
             ).hasFieldOrPropertyWithValue(
                 "priceSymbol",
-                NZD.code,
+                NZD.code
             ).hasFieldOrPropertyWithValue(
                 "systemUser",
-                sysUser,
+                sysUser
             )
 
         // Make sure we don't create the same asset for the same user twice
@@ -114,7 +114,7 @@ class RealEstateAssetTest {
         val marketData =
             priceService.getMarketData(
                 reAsset!!,
-                dateUtils.date,
+                dateUtils.date
             )
         assertThat(marketData.isPresent).isFalse() // no price exists
         val housePrice = BigDecimal("10000.99")
@@ -123,15 +123,15 @@ class RealEstateAssetTest {
                 PriceRequest(
                     dateUtils.today(),
                     listOf(PriceAsset(reAsset)),
-                    closePrice = housePrice,
-                ),
+                    closePrice = housePrice
+                )
             )
 
         assertThat(priceResponse.data).isNotNull()
         assertThat(priceResponse.data.iterator().next())
             .hasFieldOrPropertyWithValue(
                 "close",
-                housePrice,
+                housePrice
             )
     }
 }

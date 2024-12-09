@@ -24,9 +24,9 @@ data class SystemUser(
     val googleId: String = "",
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    val since: LocalDate = LocalDate.now(),
+    val since: LocalDate = LocalDate.now()
 )

@@ -10,12 +10,12 @@ import jakarta.persistence.Id
 data class Currency(
     @Id var code: String,
     var name: String? = "Dollar",
-    var symbol: String? = "$",
+    var symbol: String? = "$"
 ) {
     constructor(code: String) : this(
         code,
         "Dollar",
-        "$",
+        "$"
     )
 
     override fun equals(other: Any?): Boolean {

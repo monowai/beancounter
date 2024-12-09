@@ -38,7 +38,7 @@ internal class PortfolioControllerOwnershipTests {
     @Autowired
     fun setTokens(
         mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
+        mockAuthConfig: MockAuthConfig
     ) {
         tokenA =
             RegistrationUtils.registerUser(
@@ -46,9 +46,9 @@ internal class PortfolioControllerOwnershipTests {
                 mockAuthConfig.getUserToken(
                     SystemUser(
                         userA,
-                        userA,
-                    ),
-                ),
+                        userA
+                    )
+                )
             )
         tokenB =
             RegistrationUtils.registerUser(
@@ -56,9 +56,9 @@ internal class PortfolioControllerOwnershipTests {
                 mockAuthConfig.getUserToken(
                     SystemUser(
                         userB,
-                        userB,
-                    ),
-                ),
+                        userB
+                    )
+                )
             )
     }
 
@@ -69,7 +69,7 @@ internal class PortfolioControllerOwnershipTests {
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),
                 "is_OwnerHonoured",
                 Constants.USD.code,
-                Constants.NZD.code,
+                Constants.NZD.code
             )
         // User A creates a Portfolio
         val portfolio =
@@ -77,18 +77,18 @@ internal class PortfolioControllerOwnershipTests {
                 .portfolioCreate(
                     portfolioInput,
                     mockMvc,
-                    tokenA,
+                    tokenA
                 ).data
                 .iterator()
                 .next()
         assertThat(portfolio.owner).hasFieldOrPropertyWithValue(
             "email",
-            tokenA.subject,
+            tokenA.subject
         )
         // User B, while a valid system user, cannot see UserA portfolios even if they know the ID
         verifyPortfolioCantBeFound(
             portfolio,
-            tokenB,
+            tokenB
         )
 
         // User A can see the portfolio they created
@@ -96,38 +96,38 @@ internal class PortfolioControllerOwnershipTests {
             BcMvcHelper.portfolioById(
                 portfolio.id,
                 mockMvc,
-                tokenA,
-            ),
+                tokenA
+            )
         ).hasNoNullFieldsOrProperties()
 
         // All users portfolios
         assertThat(
             BcMvcHelper.portfolios(
                 mockMvc,
-                tokenA,
-            ),
+                tokenA
+            )
         ).hasSize(1)
 
         // All portfolios
         assertThat(
             BcMvcHelper.portfolios(
                 mockMvc,
-                tokenB,
-            ),
+                tokenB
+            )
         ).hasSize(0)
     }
 
     private fun verifyPortfolioCantBeFound(
         portfolio: Portfolio,
-        token: Jwt,
+        token: Jwt
     ) {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .get(
                         BcMvcHelper.PORTFOLIO_BY_ID,
-                        portfolio.id,
-                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                        portfolio.id
+                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andReturn()
         mockMvc
@@ -135,8 +135,8 @@ internal class PortfolioControllerOwnershipTests {
                 MockMvcRequestBuilders
                     .get(
                         BcMvcHelper.PORTFOLIO_BY_CODE,
-                        portfolio.code,
-                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                        portfolio.code
+                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andReturn()
     }

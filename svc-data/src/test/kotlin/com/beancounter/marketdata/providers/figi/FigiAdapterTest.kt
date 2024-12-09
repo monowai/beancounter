@@ -18,29 +18,29 @@ class FigiAdapterTest {
             FigiAsset(
                 "BRK",
                 "BRK/B",
-                "Mutual Fund",
+                "Mutual Fund"
             )
         val asset =
             figiAdapter.transform(
                 Market(
                     "TEST",
-                    USD.code,
+                    USD.code
                 ),
                 "BRK.B",
                 figiAsset,
-                "ABC",
+                "ABC"
             )
         Assertions
             .assertThat(asset)
             .hasFieldOrPropertyWithValue(
                 "name",
-                "BRK",
+                "BRK"
             ).hasFieldOrPropertyWithValue(
                 "code",
-                "BRK.B",
+                "BRK.B"
             ).hasFieldOrPropertyWithValue(
                 "category",
-                "Mutual Fund",
+                "Mutual Fund"
             )
     }
 }

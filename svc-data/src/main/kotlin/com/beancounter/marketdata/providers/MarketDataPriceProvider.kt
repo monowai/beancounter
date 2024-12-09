@@ -27,7 +27,7 @@ interface MarketDataPriceProvider {
 
     fun getDate(
         market: Market,
-        priceRequest: PriceRequest,
+        priceRequest: PriceRequest
     ): LocalDate
 
     fun backFill(asset: Asset): PriceResponse

@@ -18,15 +18,15 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/value")
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 class ValuationController
-@Autowired
-internal constructor(
-    private val valuationService: Valuation,
-) {
-    @PostMapping
-    fun value(
-        @RequestBody positions: PositionResponse,
-    ): PositionResponse = valuationService.value(positions.data)
-}
+    @Autowired
+    internal constructor(
+        private val valuationService: Valuation
+    ) {
+        @PostMapping
+        fun value(
+            @RequestBody positions: PositionResponse
+        ): PositionResponse = valuationService.value(positions.data)
+    }

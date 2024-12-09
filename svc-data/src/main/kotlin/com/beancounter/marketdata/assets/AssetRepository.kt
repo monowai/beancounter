@@ -13,7 +13,7 @@ import java.util.stream.Stream
 interface AssetRepository : CrudRepository<Asset, String> {
     fun findByMarketCodeAndCode(
         marketCode: String,
-        code: String,
+        code: String
     ): Optional<Asset>
 
     @Query("select a from Asset a")

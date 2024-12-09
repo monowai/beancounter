@@ -7,5 +7,5 @@ import java.time.LocalDate
  */
 data class CashFlow(
     val amount: Double,
-    val date: LocalDate,
+    val date: LocalDate
 )

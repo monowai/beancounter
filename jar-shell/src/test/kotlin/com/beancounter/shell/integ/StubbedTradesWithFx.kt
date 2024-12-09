@@ -38,7 +38,7 @@ private const val LON = "LON"
 @Tag("slow")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @ActiveProfiles("test")
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
@@ -77,7 +77,7 @@ internal class StubbedTradesWithFx {
                 "12.99",
                 "GBP",
                 BigDecimal.ZERO.toString(),
-                "2097.85",
+                "2097.85"
             )
 
         val trades = shareSightFactory.adapter(row)
@@ -86,23 +86,23 @@ internal class StubbedTradesWithFx {
         val portfolio =
             getPortfolio(
                 "NZDTest",
-                Currency("NZD"),
+                Currency("NZD")
             )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setRates(
             portfolio,
-            trn,
+            trn
         )
         assertTransaction(
             portfolio,
-            trn,
+            trn
         )
     }
 
@@ -125,7 +125,7 @@ internal class StubbedTradesWithFx {
                 "12.99",
                 GBP.code,
                 "99.99",
-                "2097.85",
+                "2097.85"
             )
         // With switch true, ignore the supplied rate and pull from service
         val trades = shareSightFactory.adapter(row)
@@ -134,23 +134,23 @@ internal class StubbedTradesWithFx {
         val portfolio =
             getPortfolio(
                 "Test",
-                NZD,
+                NZD
             )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setRates(
             portfolio,
-            trn,
+            trn
         )
         assertTransaction(
             portfolio,
-            trn,
+            trn
         )
     }
 
@@ -178,7 +178,7 @@ internal class StubbedTradesWithFx {
                 BigDecimal.ZERO.toString(),
                 USD.code,
                 BigDecimal.ZERO.toString(),
-                "1001.00",
+                "1001.00"
             )
         val trades = shareSightFactory.adapter(row)
 
@@ -188,39 +188,39 @@ internal class StubbedTradesWithFx {
                 id = "Test",
                 code = "Test",
                 currency = NZD,
-                base = USD,
+                base = USD
             )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         assertThat(fxTransactions).isNotNull
         fxTransactions.setRates(
             portfolio,
-            trn,
+            trn
         )
         val fxRate = "1.5692749462"
         assertThat(trn)
             .hasFieldOrPropertyWithValue(
                 tradeCurrencyProp,
-                USD.code,
+                USD.code
             ) // Was tradeAmount calculated?
             .hasFieldOrPropertyWithValue(
                 tradeAmountProp,
-                BigDecimal("1000.00"),
+                BigDecimal("1000.00")
             ).hasFieldOrPropertyWithValue(
                 tradeBaseRateProp,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 tradeCashRateProp,
-                BigDecimal(fxRate),
+                BigDecimal(fxRate)
             ).hasFieldOrPropertyWithValue(
                 tradePortfolioRateProp,
-                BigDecimal(fxRate),
+                BigDecimal(fxRate)
             )
     }
 
@@ -240,7 +240,7 @@ internal class StubbedTradesWithFx {
                 BigDecimal.ZERO.toString(),
                 "USD",
                 BigDecimal.ONE.toString(),
-                "1000.00",
+                "1000.00"
             )
         val trades = shareSightFactory.adapter(row)
 
@@ -248,61 +248,61 @@ internal class StubbedTradesWithFx {
         val portfolio =
             getPortfolio(
                 "TEST",
-                USD,
+                USD
             )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio,
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setRates(
             portfolio,
-            trn,
+            trn
         )
 
         // No currencies are defined so rate defaults to 1
         assertThat(trn)
             .hasFieldOrPropertyWithValue(
                 tradeCurrencyProp,
-                USD.code,
+                USD.code
             ).hasFieldOrPropertyWithValue(
                 tradeBaseRateProp,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 tradeCashRateProp,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 tradePortfolioRateProp,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             )
     }
 
     private fun assertTransaction(
         portfolio: Portfolio,
-        trn: TrnInput?,
+        trn: TrnInput?
     ) {
         assertThat(trn)
             .hasFieldOrPropertyWithValue(
                 "trnType",
-                TrnType.BUY,
+                TrnType.BUY
             ).hasFieldOrPropertyWithValue(
                 tradeCurrencyProp,
-                GBP.code,
+                GBP.code
             ).hasFieldOrPropertyWithValue(
                 "cashCurrency",
-                portfolio.currency.code,
+                portfolio.currency.code
             ).hasFieldOrPropertyWithValue(
                 tradeBaseRateProp,
-                BigDecimal("1.24262269"),
+                BigDecimal("1.24262269")
             ).hasFieldOrPropertyWithValue(
                 tradeCashRateProp,
-                BigDecimal("1.87062801"),
+                BigDecimal("1.87062801")
             ).hasFieldOrPropertyWithValue(
                 tradeCashRateProp,
-                BigDecimal("1.87062801"),
+                BigDecimal("1.87062801")
             ).hasFieldOrProperty("tradeDate")
     }
 }

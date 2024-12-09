@@ -43,7 +43,7 @@ import java.math.BigDecimal
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
@@ -74,7 +74,7 @@ class FxTransactionsTest {
                 AssetUtils.Companion
                     .getTestAsset(
                         Market("RE"),
-                        "xxx",
+                        "xxx"
                     ).id,
                 cashCurrency = NZD.code,
                 cashAmount = BigDecimal("1000.00"),
@@ -82,29 +82,29 @@ class FxTransactionsTest {
                 trnType = TrnType.BALANCE,
                 quantity = BigDecimal("-1000.00"),
                 tradeDate = DateUtils().getFormattedDate("2019-10-18"),
-                price = BigDecimal.ONE,
+                price = BigDecimal.ONE
             )
         val portfolio =
             Portfolio(
                 "tst",
                 currency = NZD,
-                base = NZD,
+                base = NZD
             )
         fxTransactions.setRates(
             portfolio,
-            trnInput,
+            trnInput
         )
         assertThat(trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_TRADE_CASH_RATE,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 P_TRADE_BASE_RATE,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 P_TRADE_PORTFOLIO_RATE,
-                BigDecimal.ONE,
+                BigDecimal.ONE
             )
     }
 
@@ -114,24 +114,24 @@ class FxTransactionsTest {
             mutableSetOf(
                 IsoCurrencyPair(
                     USD.code,
-                    EUR.code,
+                    EUR.code
                 ),
                 IsoCurrencyPair(
                     USD.code,
-                    GBP.code,
+                    GBP.code
                 ),
                 IsoCurrencyPair(
                     USD.code,
-                    NZD.code,
-                ),
+                    NZD.code
+                )
             )
         val testDate = "2019-11-12"
         val fxResponse =
             fxRateService.getRates(
                 FxRequest(
                     testDate,
-                    pairs = isoCurrencyPairs,
-                ),
+                    pairs = isoCurrencyPairs
+                )
             )
         assertThat(fxResponse).isNotNull.hasNoNullFieldsOrProperties()
         val fxPairResults: FxPairResults = fxResponse.data
@@ -144,7 +144,7 @@ class FxTransactionsTest {
             assertThat(fxPairResults.rates[isoCurrencyPair])
                 .hasFieldOrPropertyWithValue(
                     "date",
-                    dateUtils.getDate(testDate),
+                    dateUtils.getDate(testDate)
                 )
         }
     }
@@ -155,12 +155,12 @@ class FxTransactionsTest {
             mutableSetOf(
                 IsoCurrencyPair(
                     USD.code,
-                    SGD.code,
+                    SGD.code
                 ),
                 IsoCurrencyPair(
                     GBP.code,
-                    NZD.code,
-                ),
+                    NZD.code
+                )
             )
 
         val testDate = "1996-07-27" // Earlier than when ECB started recording rates
@@ -168,8 +168,8 @@ class FxTransactionsTest {
             fxRateService.getRates(
                 FxRequest(
                     testDate,
-                    isoCurrencyPairs,
-                ),
+                    isoCurrencyPairs
+                )
             )
         assertThat(fxResponse)
             .isNotNull
@@ -181,7 +181,7 @@ class FxTransactionsTest {
             assertThat(fxPairResults.rates[isoCurrencyPair])
                 .hasFieldOrPropertyWithValue(
                     "date",
-                    dateUtils.getDate("1996-07-27"),
+                    dateUtils.getDate("1996-07-27")
                 )
         }
     }
@@ -201,36 +201,36 @@ class FxTransactionsTest {
                 AssetUtils.Companion
                     .getTestAsset(
                         NASDAQ,
-                        "MSFT",
+                        "MSFT"
                     ).id,
                 cashCurrency = USD.code,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
                 tradeDate = DateUtils().getFormattedDate("2019-07-26"),
-                price = BigDecimal.TEN,
+                price = BigDecimal.TEN
             )
         val portfolio = getPortfolio()
         val request =
             fxTransactions.getFxRequest(
                 portfolio,
-                trnInput,
+                trnInput
             )
         assertThat(request).hasFieldOrProperty("tradePf")
         fxTransactions.setRates(
             portfolio,
-            trnInput,
+            trnInput
         )
         assertThat(trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                BigDecimal("1.5053869635"),
+                BigDecimal("1.5053869635")
             )
     }
 
@@ -242,37 +242,37 @@ class FxTransactionsTest {
                 AssetUtils.Companion
                     .getTestAsset(
                         NASDAQ,
-                        "MSFT",
+                        "MSFT"
                     ).id,
                 cashCurrency = USD.code,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
                 tradeDate = DateUtils().getFormattedDate("2019-07-26"),
                 price = BigDecimal.TEN,
-                tradePortfolioRate = BigDecimal.ZERO,
+                tradePortfolioRate = BigDecimal.ZERO
             )
         val portfolio = getPortfolio()
         val request =
             fxTransactions.getFxRequest(
                 portfolio,
-                trnInput,
+                trnInput
             )
         assertThat(request).hasFieldOrProperty("tradePf")
         fxTransactions.setRates(
             portfolio,
-            trnInput,
+            trnInput
         )
         assertThat(trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                BigDecimal("1.5053869635"),
+                BigDecimal("1.5053869635")
             )
     }
 

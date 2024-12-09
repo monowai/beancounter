@@ -41,7 +41,7 @@ internal class TradeCalculatorTest {
         val amount =
             tradeCalculator.amount(
                 quantity,
-                price,
+                price
             )
         assertThat(amount).isEqualTo(amount)
     }
@@ -52,7 +52,7 @@ internal class TradeCalculatorTest {
             tradeCalculator.amount(
                 quantity,
                 price,
-                BigDecimal("10.01"),
+                BigDecimal("10.01")
             )
         assertThat(amount).isEqualTo(BigDecimal("129.91"))
     }
@@ -64,7 +64,7 @@ internal class TradeCalculatorTest {
                 tradeAmount = amount,
                 assetId = ANY,
                 quantity = BigDecimal("99"),
-                price = price,
+                price = price
             )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }
@@ -75,7 +75,7 @@ internal class TradeCalculatorTest {
             TrnInput(
                 assetId = ANY,
                 price = price,
-                quantity = quantity,
+                quantity = quantity
             )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }
@@ -88,7 +88,7 @@ internal class TradeCalculatorTest {
                 tradeAmount = amount,
                 quantity = quantity,
                 assetId = ANY,
-                price = price,
+                price = price
             )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }

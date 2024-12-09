@@ -40,33 +40,33 @@ internal class CashBehaviourTest {
                 quantity = BigDecimal("10000.00"),
                 // Buy
                 cashCurrency = USD,
-                portfolio = PortfolioUtils.getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio()
             )
         val positions = Positions()
         val position =
             accumulator.accumulate(
                 trn,
-                positions,
+                positions
             )
         assertThat(
             position.getMoneyValues(
                 Position.In.TRADE,
-                Currency(usdCashBalance.priceSymbol!!),
-            ),
+                Currency(usdCashBalance.priceSymbol!!)
+            )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity,
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.quantity,
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
-            trn.quantity,
+            trn.quantity
         )
 
         assertThat(position.quantityValues).hasFieldOrPropertyWithValue(
             "precision",
-            2,
+            2
         )
     }
 
@@ -75,7 +75,7 @@ internal class CashBehaviourTest {
         val asset =
             getTestAsset(
                 NASDAQ,
-                AAPL,
+                AAPL
             )
         val trn =
             Trn(
@@ -87,40 +87,40 @@ internal class CashBehaviourTest {
                 cashCurrency = USD,
                 // Cash is signed
                 cashAmount = cashAmount.abs(),
-                portfolio = PortfolioUtils.getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio()
             )
 
         val positions = Positions()
         val position =
             accumulator.accumulate(
                 trn,
-                positions,
+                positions
             )
         assertThat(position).hasFieldOrPropertyWithValue(
             "asset",
-            asset,
+            asset
         )
         assertThat(positions.positions).hasSize(2)
         val cashPosition = positions.getOrCreate(usdCashBalance)
         assertThat(cashPosition.quantityValues)
             .hasFieldOrPropertyWithValue(
                 "purchased",
-                cashAmount.abs(),
+                cashAmount.abs()
             )
         assertThat(
             cashPosition.getMoneyValues(
                 Position.In.TRADE,
-                Currency(usdCashBalance.priceSymbol!!),
-            ),
+                Currency(usdCashBalance.priceSymbol!!)
+            )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.cashAmount,
+            trn.cashAmount
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.cashAmount,
+            trn.cashAmount
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
-            trn.cashAmount,
+            trn.cashAmount
         )
     }
 
@@ -133,36 +133,36 @@ internal class CashBehaviourTest {
                 quantity = cashAmount,
                 // Cash is signed
                 cashCurrency = USD,
-                portfolio = PortfolioUtils.getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio()
             )
         val positions = Positions()
         val position =
             accumulator.accumulate(
                 trn,
-                positions,
+                positions
             )
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(
                 PROP_SOLD,
-                cashAmount,
+                cashAmount
             ).hasFieldOrPropertyWithValue(
                 PROP_TOTAL,
-                cashAmount,
+                cashAmount
             )
         assertThat(
             position.getMoneyValues(
                 Position.In.TRADE,
-                Currency(usdCashBalance.priceSymbol!!),
-            ),
+                Currency(usdCashBalance.priceSymbol!!)
+            )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.quantity,
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity,
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             "sales",
-            trn.quantity,
+            trn.quantity
         )
     }
 
@@ -171,7 +171,7 @@ internal class CashBehaviourTest {
         val asset =
             getTestAsset(
                 NASDAQ,
-                AAPL,
+                AAPL
             )
         val trn =
             Trn(
@@ -182,39 +182,39 @@ internal class CashBehaviourTest {
                 cashAsset = usdCashBalance,
                 cashCurrency = USD,
                 cashAmount = cashAmount,
-                portfolio = PortfolioUtils.getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio()
             )
         val positions = Positions()
         val position =
             accumulator.accumulate(
                 trn,
-                positions,
+                positions
             )
         assertThat(position).hasFieldOrPropertyWithValue(
             "asset",
-            asset,
+            asset
         )
         assertThat(positions.positions).hasSize(2)
         val cashPosition = positions.getOrCreate(usdCashBalance)
         assertThat(cashPosition.quantityValues)
             .hasFieldOrPropertyWithValue(
                 PROP_SOLD,
-                cashAmount,
+                cashAmount
             )
         assertThat(
             cashPosition.getMoneyValues(
                 Position.In.TRADE,
-                Currency(usdCashBalance.priceSymbol!!),
-            ),
+                Currency(usdCashBalance.priceSymbol!!)
+            )
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
-            BigDecimal.ZERO,
+            BigDecimal.ZERO
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            cashAmount,
+            cashAmount
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            cashAmount,
+            cashAmount
         )
     }
 }

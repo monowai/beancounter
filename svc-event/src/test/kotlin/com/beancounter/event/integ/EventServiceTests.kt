@@ -16,8 +16,8 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = [
         "org.beancounter:svc-data:+:stubs:11999",
-        "org.beancounter:svc-position:+:stubs:12999",
-    ],
+        "org.beancounter:svc-position:+:stubs:12999"
+    ]
 )
 @Tag("slow")
 @SpringBootTest

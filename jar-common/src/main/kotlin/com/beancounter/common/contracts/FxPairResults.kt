@@ -10,5 +10,5 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
  */
 data class FxPairResults(
     @JsonDeserialize(keyUsing = CurrencyKeyDeserializer::class)
-    var rates: Map<IsoCurrencyPair, FxRate> = mapOf(),
+    var rates: Map<IsoCurrencyPair, FxRate> = mapOf()
 )

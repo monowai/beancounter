@@ -26,18 +26,18 @@ class MarketStackAdapterTest {
         val apple =
             Asset(
                 "AAPL",
-                market = NASDAQ,
+                market = NASDAQ
             )
         val microsoft =
             Asset(
                 "MSFT",
-                market = NASDAQ,
+                market = NASDAQ
             )
 
         val datedBatch =
             DatedBatch(
                 batchId,
-                "today",
+                "today"
             )
         val appleData = createMarketStackData(apple.code)
         val msData = createMarketStackData(microsoft.code)
@@ -45,17 +45,17 @@ class MarketStackAdapterTest {
         val response =
             MarketStackResponse(
                 data =
-                listOf(
-                    appleData,
-                    msData,
-                ),
+                    listOf(
+                        appleData,
+                        msData
+                    )
             )
 
         `when`(providerArguments.getAssets(batchId)).thenReturn(
             listOf(
                 apple.code,
-                microsoft.code,
-            ),
+                microsoft.code
+            )
         )
         `when`(providerArguments.getAsset(apple.code)).thenReturn(apple)
         `when`(providerArguments.getAsset(microsoft.code)).thenReturn(microsoft)
@@ -65,38 +65,38 @@ class MarketStackAdapterTest {
             marketStackAdapter.toMarketData(
                 providerArguments,
                 batchId,
-                response,
+                response
             )
 
         assertEquals(
             2,
-            result.size,
+            result.size
         )
         result.forEach { marketData ->
             val expectedData = if (marketData.asset == apple) appleData else msData
             assertEquals(
                 expectedData.date.toLocalDate(),
-                marketData.priceDate,
+                marketData.priceDate
             )
             assertEquals(
                 expectedData.close,
-                marketData.close,
+                marketData.close
             )
             assertEquals(
                 expectedData.open,
-                marketData.open,
+                marketData.open
             )
             assertEquals(
                 expectedData.high,
-                marketData.high,
+                marketData.high
             )
             assertEquals(
                 expectedData.low,
-                marketData.low,
+                marketData.low
             )
             assertEquals(
                 expectedData.volume,
-                marketData.volume,
+                marketData.volume
             )
         }
     }
@@ -110,6 +110,6 @@ class MarketStackAdapterTest {
             low = BigDecimal("140.00"),
             volume = 1,
             symbol = symbol,
-            exchange = NASDAQ.code,
+            exchange = NASDAQ.code
         )
 }

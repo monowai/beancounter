@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthProviders(
     private val tokenService: TokenService,
-    private val systemUserRepository: SystemUserRepository,
+    private val systemUserRepository: SystemUserRepository
 ) {
     fun getAuth0Id(jwt: Jwt): String = if (tokenService.isAuth0()) jwt.subject else ""
 
@@ -20,7 +20,7 @@ class AuthProviders(
 
     fun capture(
         result: SystemUser,
-        jwt: Jwt,
+        jwt: Jwt
     ): SystemUser {
         if (tokenService.isGoogle() && result.googleId.isBlank()) {
             // Capture google Id.
@@ -31,8 +31,8 @@ class AuthProviders(
                     result.active,
                     result.auth0,
                     jwt.subject,
-                    result.since,
-                ),
+                    result.since
+                )
             )
         } else if (tokenService.isAuth0() && result.auth0.isBlank()) {
             return systemUserRepository.save(
@@ -42,8 +42,8 @@ class AuthProviders(
                     result.active,
                     jwt.subject,
                     result.googleId,
-                    result.since,
-                ),
+                    result.since
+                )
             )
         }
         return result

@@ -16,24 +16,24 @@ class DefaultEnricher : AssetEnricher {
     override fun enrich(
         id: String,
         market: Market,
-        assetInput: AssetInput,
+        assetInput: AssetInput
     ): Asset =
         Asset(
             code = assetInput.code.uppercase(Locale.getDefault()),
             id = id,
             name =
-            if (assetInput.name != null) {
-                assetInput.name!!.replace(
-                    "\"",
-                    "",
-                )
-            } else {
-                null
-            },
+                if (assetInput.name != null) {
+                    assetInput.name!!.replace(
+                        "\"",
+                        ""
+                    )
+                } else {
+                    null
+                },
             market = market,
             marketCode = market.code,
             priceSymbol = assetInput.currency,
-            category = assetInput.category,
+            category = assetInput.category
         )
 
     override fun canEnrich(asset: Asset): Boolean = true

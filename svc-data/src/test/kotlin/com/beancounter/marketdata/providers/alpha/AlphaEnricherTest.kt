@@ -34,7 +34,7 @@ class AlphaEnricherTest {
         val key = "ABC"
         AlphaMockUtils.mockSearchResponse(
             key,
-            ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/global-empty.json").file,
+            ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/global-empty.json").file
         )
 
         val assetRequest =
@@ -42,8 +42,8 @@ class AlphaEnricherTest {
                 AssetInput(
                     Constants.NASDAQ.code,
                     key,
-                    "My Default Name",
-                ),
+                    "My Default Name"
+                )
             )
         val assetResponse = assetService.handle(assetRequest)
         assertThat(assetResponse).isNotNull
@@ -53,7 +53,7 @@ class AlphaEnricherTest {
                 assetRequest.data
                     .iterator()
                     .next()
-                    .key,
+                    .key
             )
 
         val createdAsset =
@@ -64,10 +64,10 @@ class AlphaEnricherTest {
         assertThat(createdAsset)
             .hasFieldOrPropertyWithValue(
                 "name",
-                createdAsset.name,
+                createdAsset.name
             ).hasFieldOrPropertyWithValue(
                 "code",
-                createdAsset.code,
+                createdAsset.code
             )
     }
 
@@ -76,20 +76,20 @@ class AlphaEnricherTest {
         assertThat(
             alphaEnricher.currencyMatch(
                 "GBX",
-                "GBP",
-            ),
+                "GBP"
+            )
         ).isTrue
         assertThat(
             alphaEnricher.currencyMatch(
                 "GBP",
-                "GBP",
-            ),
+                "GBP"
+            )
         ).isTrue
         assertThat(
             alphaEnricher.currencyMatch(
                 "AUD",
-                "GBP",
-            ),
+                "GBP"
+            )
         ).isFalse
     }
 }

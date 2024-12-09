@@ -27,18 +27,18 @@ class Constants {
         val AAPL =
             getTestAsset(
                 NASDAQ,
-                "AAPL",
+                "AAPL"
             )
         val MSFT =
             getTestAsset(
                 NASDAQ,
-                "MSFT",
+                "MSFT"
             )
 
         val AMP =
             getTestAsset(
                 ASX,
-                "AMP",
+                "AMP"
             )
         val SGD = Currency("SGD")
         val MYR = Currency("MYR")
@@ -46,36 +46,36 @@ class Constants {
         val GBP =
             Currency(
                 code = "GBP",
-                symbol = "￡",
+                symbol = "￡"
             )
         val EUR =
             Currency(
                 "EUR",
-                symbol = "€",
+                symbol = "€"
             )
         val NZD = Currency("NZD")
 
         val NZX =
             Market(
                 "NZX",
-                NZD.code,
+                NZD.code
             )
         val systemUser =
             SystemUser(
                 "auth0|user",
                 "user@testing.com",
-                auth0 = "auth0",
+                auth0 = "auth0"
             )
 
         val msftInput =
             AssetUtils.getAssetInput(
                 NASDAQ.code,
-                MSFT.code,
+                MSFT.code
             )
         val aaplInput =
             AssetUtils.getAssetInput(
                 NASDAQ.code,
-                AAPL.code,
+                AAPL.code
             )
 
         val nzdCashBalance =
@@ -84,17 +84,17 @@ class Constants {
                 id = NZD.code,
                 name = "${NZD.code} Balance",
                 market =
-                Market(
-                    "CASH",
-                    NZD.code,
-                ),
+                    Market(
+                        "CASH",
+                        NZD.code
+                    ),
                 priceSymbol = NZD.code,
                 category = "CASH",
                 assetCategory =
-                AssetCategory(
-                    "CASH",
-                    "Cash",
-                ),
+                    AssetCategory(
+                        "CASH",
+                        "Cash"
+                    )
             )
         val usdCashBalance =
             Asset(
@@ -102,17 +102,17 @@ class Constants {
                 id = USD.code,
                 name = "${USD.code} Balance",
                 market =
-                Market(
-                    "CASH",
-                    USD.code,
-                ),
+                    Market(
+                        "CASH",
+                        USD.code
+                    ),
                 priceSymbol = USD.code,
                 category = "CASH",
                 assetCategory =
-                AssetCategory(
-                    "CASH",
-                    "Cash",
-                ),
+                    AssetCategory(
+                        "CASH",
+                        "Cash"
+                    )
             )
     }
 }

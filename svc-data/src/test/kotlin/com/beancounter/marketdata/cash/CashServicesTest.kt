@@ -28,7 +28,7 @@ internal class CashServicesTest {
     private val cashServices =
         CashServices(
             assetService,
-            Mockito.mock(CurrencyService::class.java),
+            Mockito.mock(CurrencyService::class.java)
         )
 
     @Test
@@ -41,7 +41,7 @@ internal class CashServicesTest {
                 trnType = TrnType.BUY,
                 cashCurrency = NZD.code,
                 tradeAmount = BigDecimal(5000),
-                price = BigDecimal.ONE,
+                price = BigDecimal.ONE
             )
 
         Mockito
@@ -49,9 +49,9 @@ internal class CashServicesTest {
                 assetService.findOrCreate(
                     AssetInput(
                         CASH_MARKET.code,
-                        NZD.code,
-                    ),
-                ),
+                        NZD.code
+                    )
+                )
             ).thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)
@@ -68,7 +68,7 @@ internal class CashServicesTest {
                 trnType = TrnType.BUY,
                 cashCurrency = NZD.code,
                 tradeAmount = BigDecimal(5000),
-                price = BigDecimal.ONE,
+                price = BigDecimal.ONE
             )
 
         Mockito
@@ -76,9 +76,9 @@ internal class CashServicesTest {
                 assetService.findOrCreate(
                     AssetInput(
                         "CASH",
-                        NZD.code,
-                    ),
-                ),
+                        NZD.code
+                    )
+                )
             ).thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)
@@ -96,11 +96,11 @@ internal class CashServicesTest {
                 // Caller knows best
                 cashAmount = BigDecimal("-2222.333"),
                 price = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
 
         assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(
-            BigDecimal("-2222.333"),
+            BigDecimal("-2222.333")
         ) // Fx of 1.00
     }
 
@@ -114,10 +114,10 @@ internal class CashServicesTest {
                 trnType = TrnType.BUY,
                 tradeAmount = BigDecimal(5000),
                 price = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
         assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(
-            BigDecimal("-5000.00"),
+            BigDecimal("-5000.00")
         ) // Fx of 1.00
     }
 
@@ -131,10 +131,10 @@ internal class CashServicesTest {
                 trnType = TrnType.SELL,
                 tradeAmount = BigDecimal(5000),
                 price = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
         assertThat(cashServices.getCashImpact(creditInput)).isEqualTo(
-            BigDecimal("5000.00"),
+            BigDecimal("5000.00")
         ) // Fx of 1.00
     }
 
@@ -148,7 +148,7 @@ internal class CashServicesTest {
                 trnType = TrnType.SPLIT,
                 tradeAmount = BigDecimal(5000),
                 price = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
         assertThat(cashServices.getCashImpact(splitInput)).isEqualTo(BigDecimal.ZERO) // Fx of 1.00
     }
@@ -163,10 +163,10 @@ internal class CashServicesTest {
                 trnType = TrnType.FX_BUY,
                 tradeAmount = BigDecimal(5000),
                 price = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
         assertThat(cashServices.getCashImpact(fxBuy)).isEqualTo(
-            BigDecimal("-5000.00"),
+            BigDecimal("-5000.00")
         ) // Fx of 1.00
     }
 }

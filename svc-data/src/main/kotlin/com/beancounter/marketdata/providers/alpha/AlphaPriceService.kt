@@ -29,7 +29,7 @@ import kotlin.collections.set
  */
 @Service
 class AlphaPriceService(
-    private val alphaConfig: AlphaConfig,
+    private val alphaConfig: AlphaConfig
 ) : MarketDataPriceProvider {
     @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
@@ -39,7 +39,7 @@ class AlphaPriceService(
     @Autowired
     fun setAlphaHelpers(
         alphaProxyCache: AlphaProxy,
-        alphaPriceAdapter: AlphaPriceAdapter,
+        alphaPriceAdapter: AlphaPriceAdapter
     ) {
         this.alphaProxy = alphaProxyCache
         this.alphaPriceAdapter = alphaPriceAdapter
@@ -50,25 +50,25 @@ class AlphaPriceService(
         log.info(
             "BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: {}",
             if (apiKey
-                .substring(
+                    .substring(
                         0,
-                        4,
+                        4
                     ).equals(
                         "demo",
-                        ignoreCase = true,
+                        ignoreCase = true
                     )
             ) {
                 "demo"
             } else {
                 "** Redacted **"
-            },
+            }
         )
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val providerArguments =
             getInstance(
                 priceRequest,
-                alphaConfig,
+                alphaConfig
             )
         val requests = mutableMapOf<Int, Deferred<String>>()
 
@@ -78,12 +78,12 @@ class AlphaPriceService(
                     if (priceRequest.currentMode) {
                         alphaProxy.getCurrent(
                             providerArguments.batch[batchId]!!,
-                            apiKey,
+                            apiKey
                         )
                     } else {
                         alphaProxy.getHistoric(
                             providerArguments.batch[batchId]!!,
-                            apiKey,
+                            apiKey
                         )
                     }
                 }
@@ -92,7 +92,7 @@ class AlphaPriceService(
         return runBlocking {
             getMarketData(
                 providerArguments,
-                requests,
+                requests
             )
         }
     }
@@ -100,7 +100,7 @@ class AlphaPriceService(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun getMarketData(
         providerArguments: ProviderArguments,
-        requests: MutableMap<Int, Deferred<String>>,
+        requests: MutableMap<Int, Deferred<String>>
     ): Collection<MarketData> {
         val results = mutableListOf<MarketData>()
 
@@ -112,7 +112,7 @@ class AlphaPriceService(
 
             completedBatches.forEach { (batchId, requestDeferred) ->
                 results.addAll(
-                    alphaPriceAdapter[providerArguments, batchId, requestDeferred.getCompleted()],
+                    alphaPriceAdapter[providerArguments, batchId, requestDeferred.getCompleted()]
                 )
 
                 log.trace("Processed batch ${requests.remove(batchId)}")
@@ -133,25 +133,25 @@ class AlphaPriceService(
 
     override fun getDate(
         market: Market,
-        priceRequest: PriceRequest,
+        priceRequest: PriceRequest
     ) = alphaConfig.getMarketDate(
         market,
         priceRequest.date,
-        priceRequest.currentMode,
+        priceRequest.currentMode
     )
 
     override fun backFill(asset: Asset): PriceResponse {
         val json =
             alphaProxy.getAdjusted(
                 asset.code,
-                apiKey,
+                apiKey
             )
         val priceResponse: PriceResponse =
             alphaConfig
                 .getObjectMapper()
                 .readValue(
                     json,
-                    PriceResponse::class.java,
+                    PriceResponse::class.java
                 )
         for (marketData in priceResponse.data) {
             marketData.source = ID

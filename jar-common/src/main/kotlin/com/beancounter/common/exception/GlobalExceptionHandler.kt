@@ -21,42 +21,42 @@ import java.net.ConnectException
  */
 @ControllerAdvice
 class GlobalExceptionHandler(
-    @Value("\${sentry.enabled:false}") val sentryEnabled: Boolean = false,
+    @Value("\${sentry.enabled:false}") val sentryEnabled: Boolean = false
 ) {
     @ExceptionHandler(
         AccessDeniedException::class,
-        ForbiddenException::class,
+        ForbiddenException::class
     )
     @ResponseBody
     @ResponseStatus(HttpStatus.FORBIDDEN)
     fun handleAccessDenied(
         request: HttpServletRequest,
-        e: Throwable,
+        e: Throwable
     ): ProblemDetail =
         ProblemDetail.forStatusAndDetail(
             HttpStatus.FORBIDDEN,
-            e.message ?: "Access Denied",
+            e.message ?: "Access Denied"
         )
 
     @ExceptionHandler(
         ConnectException::class,
         ResourceAccessException::class,
-        FeignException::class,
+        FeignException::class
     )
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     fun handleSystemException(
         request: HttpServletRequest,
-        e: Throwable,
+        e: Throwable
     ): ProblemDetail =
         ProblemDetail
             .forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                e.message ?: "Unexpected issue",
+                e.message ?: "Unexpected issue"
             ).also {
                 log.error(
                     e.message,
-                    e,
+                    e
                 )
                 if (sentryEnabled) {
                     Sentry.captureException(e)
@@ -67,17 +67,17 @@ class GlobalExceptionHandler(
 
     @ExceptionHandler(
         BusinessException::class,
-        IllegalArgumentException::class,
+        IllegalArgumentException::class
     )
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     fun handleBusinessException(
         request: HttpServletRequest,
-        e: BusinessException,
+        e: BusinessException
     ): ProblemDetail =
         ProblemDetail.forStatusAndDetail(
             HttpStatus.BAD_REQUEST,
-            e.message ?: errorMessage,
+            e.message ?: errorMessage
         )
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
@@ -86,7 +86,7 @@ class GlobalExceptionHandler(
     fun handleBadRequest(request: HttpServletRequest): ProblemDetail =
         ProblemDetail.forStatusAndDetail(
             HttpStatus.BAD_REQUEST,
-            errorMessage,
+            errorMessage
         )
 
     @ExceptionHandler(DataIntegrityViolationException::class)
@@ -94,11 +94,11 @@ class GlobalExceptionHandler(
     @ResponseBody
     fun handleIntegrity(
         request: HttpServletRequest,
-        e: Throwable,
+        e: Throwable
     ): ProblemDetail =
         ProblemDetail.forStatusAndDetail(
             HttpStatus.CONFLICT,
-            e.message ?: "Data integrity violation",
+            e.message ?: "Data integrity violation"
         )
 
     companion object {

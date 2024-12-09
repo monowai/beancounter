@@ -23,16 +23,16 @@ import org.springframework.web.cors.CorsConfiguration
 @ConditionalOnProperty(
     value = ["auth.web"],
     havingValue = "true",
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 @EnableMethodSecurity(
     prePostEnabled = true,
-    securedEnabled = true,
+    securedEnabled = true
 )
 @Import(
     AuthConfig::class,
     OAuthConfig::class,
-    TokenService::class,
+    TokenService::class
 )
 @EnableCaching
 @Service
@@ -67,7 +67,7 @@ class WebAuthFilterConfig {
                 "PUT",
                 "OPTIONS",
                 "PATCH",
-                "DELETE",
+                "DELETE"
             )
         corsConfiguration.allowCredentials = true
 

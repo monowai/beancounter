@@ -88,7 +88,7 @@ class TrnControllerTest {
     @Autowired
     fun setupObjects(
         mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
+        mockAuthConfig: MockAuthConfig
     ) {
         enrichmentFactory.register(DefaultEnricher())
         assertThat(currencyService.currencies).isNotEmpty
@@ -97,21 +97,21 @@ class TrnControllerTest {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                token,
+                token
             )
 
         RegistrationUtils.registerUser(
             mockMvc,
-            token,
+            token
         )
         assertThat(figiProxy).isNotNull
         msft =
             bcMvcHelper.asset(
-                AssetRequest(msftInput),
+                AssetRequest(msftInput)
             )
         aapl =
             bcMvcHelper.asset(
-                AssetRequest(aaplInput),
+                AssetRequest(aaplInput)
             )
     }
 
@@ -122,8 +122,8 @@ class TrnControllerTest {
                 PortfolioInput(
                     "ANY-CODE",
                     "is_EmptyResponseValid",
-                    currency = NZD.code,
-                ),
+                    currency = NZD.code
+                )
             )
         val mvcResult =
             mockMvc
@@ -131,12 +131,12 @@ class TrnControllerTest {
                     get(
                         URI_TRN_FOR_PORTFOLIO,
                         portfolio.id,
-                        dateUtils.today(),
+                        dateUtils.today()
                     ).with(
                         SecurityMockMvcRequestPostProcessors
                             .jwt()
-                            .jwt(token),
-                    ),
+                            .jwt(token)
+                    )
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
                 .andReturn()
@@ -146,8 +146,8 @@ class TrnControllerTest {
             objectMapper
                 .readValue(
                     body,
-                    TrnResponse::class.java,
-                ).data,
+                    TrnResponse::class.java
+                ).data
         ).isNotNull
             .hasSize(0)
     }
@@ -159,39 +159,39 @@ class TrnControllerTest {
                 PortfolioInput(
                     "DIV-TEST",
                     "is_ExistingDividendFound",
-                    currency = NZD.code,
-                ),
+                    currency = NZD.code
+                )
             )
         // Creating in random order and assert retrieved in Sort Order.
         val trnInput =
             TrnInput(
                 CallerRef(
                     batch = "DIV-TEST",
-                    callerId = "1",
+                    callerId = "1"
                 ),
                 msft.id,
                 trnType = TrnType.DIVI,
                 quantity = BigDecimal.TEN,
                 tradeCurrency = USD.code,
                 tradeDate = dateUtils.getFormattedDate("2020-03-10"),
-                price = BigDecimal.TEN,
+                price = BigDecimal.TEN
             )
         val existingTrns = arrayOf(trnInput)
         val trnRequest =
             TrnRequest(
                 portfolioA.id,
-                existingTrns,
+                existingTrns
             )
         trnService.save(
             portfolioA,
-            trnRequest,
+            trnRequest
         )
         val divi = existingTrns.iterator().next()
 
         val trustedTrnEvent =
             TrustedTrnEvent(
                 portfolioA,
-                trnInput = divi,
+                trnInput = divi
             )
         assertThat(trnService.existing(trustedTrnEvent)).isNotNull.isNotEmpty
 
@@ -207,24 +207,24 @@ class TrnControllerTest {
                     get(
                         "$TRNS_ROOT/{portfolioId}/asset/{assetId}/events",
                         portfolioA.id,
-                        msft.id,
+                        msft.id
                     ).contentType(APPLICATION_JSON)
                         .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(token),
-                        ),
+                                .jwt(token)
+                        )
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(
                     MockMvcResultMatchers
                         .content()
-                        .contentType(APPLICATION_JSON),
+                        .contentType(APPLICATION_JSON)
                 ).andReturn()
         val trnResponse =
             objectMapper
                 .readValue(
                     findByAsset.response.contentAsString,
-                    TrnResponse::class.java,
+                    TrnResponse::class.java
                 )
         assertThat(trnResponse.data).isNotEmpty.hasSize(1) // 1 MSFT dividend
     }
@@ -236,8 +236,8 @@ class TrnControllerTest {
                 PortfolioInput(
                     "ILLEGAL",
                     "is_findThrowingForIllegalTrnId",
-                    currency = NZD.code,
-                ),
+                    currency = NZD.code
+                )
             )
 
         mockMvc
@@ -245,12 +245,12 @@ class TrnControllerTest {
                 get(
                     "$TRNS_ROOT/{portfolioId}/{trnId}",
                     portfolio.id,
-                    "x123x",
+                    "x123x"
                 ).with(
                     SecurityMockMvcRequestPostProcessors
                         .jwt()
-                        .jwt(token),
-                ),
+                        .jwt(token)
+                )
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()
@@ -262,12 +262,12 @@ class TrnControllerTest {
             .perform(
                 delete(
                     "$TRNS_ROOT/{trnId}",
-                    "illegalTrnId",
+                    "illegalTrnId"
                 ).with(
                     SecurityMockMvcRequestPostProcessors
                         .jwt()
-                        .jwt(token),
-                ),
+                        .jwt(token)
+                )
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()

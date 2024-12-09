@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/prices")
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 class PriceController(
     private val marketDataService: MarketDataService,
@@ -37,7 +37,7 @@ class PriceController(
     private val eventService: AlphaEventService,
     private val systemUserService: SystemUserService,
     private val priceService: PriceService,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) {
     /**
      * Market:Asset i.e. NYSE:MSFT.
@@ -49,36 +49,36 @@ class PriceController(
     @GetMapping(value = ["/{marketCode}/{assetCode}"])
     fun getPrice(
         @PathVariable("marketCode") marketCode: String,
-        @PathVariable("assetCode") assetCode: String,
+        @PathVariable("assetCode") assetCode: String
     ): PriceResponse {
         val asset =
             assetService.findLocally(
                 AssetInput(
                     marketCode,
-                    assetCode,
-                ),
+                    assetCode
+                )
             )
                 ?: throw BusinessException(
                     String.format(
                         "Asset not found %s/%s",
                         marketCode,
-                        assetCode,
-                    ),
+                        assetCode
+                    )
                 )
         return marketDataService.getPriceResponse(
             PriceRequest.of(
-                asset = asset,
-            ),
+                asset = asset
+            )
         )
     }
 
     @GetMapping(value = ["/{assetId}"])
     fun getPrice(
-        @PathVariable("assetId") id: String,
+        @PathVariable("assetId") id: String
     ): PriceResponse {
         val asset = assetService.find(id)
         return marketDataService.getPriceResponse(
-            PriceRequest.of(asset),
+            PriceRequest.of(asset)
         )
     }
 
@@ -90,12 +90,12 @@ class PriceController(
      */
     @GetMapping(value = ["/{assetId}/events"])
     fun getEvents(
-        @PathVariable("assetId") assetId: String,
+        @PathVariable("assetId") assetId: String
     ): PriceResponse = eventService.getEvents(assetService.find(assetId))
 
     @PostMapping("/write")
     fun writeOffMarketPrice(
-        @RequestBody offMarketPriceRequest: OffMarketPriceRequest,
+        @RequestBody offMarketPriceRequest: OffMarketPriceRequest
     ): PriceResponse {
         val asset = assetService.find(offMarketPriceRequest.assetId)
         return PriceResponse(
@@ -104,15 +104,15 @@ class PriceController(
                     .getMarketData(
                         asset = asset,
                         date = dateUtils.getFormattedDate(offMarketPriceRequest.date),
-                        closePrice = offMarketPriceRequest.closePrice,
-                    ).get(),
-            ),
+                        closePrice = offMarketPriceRequest.closePrice
+                    ).get()
+            )
         )
     }
 
     @PostMapping
     fun getPrices(
-        @RequestBody priceRequest: PriceRequest,
+        @RequestBody priceRequest: PriceRequest
     ): PriceResponse {
         val withResolvedAssets = assetService.resolveAssets(priceRequest)
         return marketDataService.getPriceResponse(withResolvedAssets)
@@ -121,10 +121,10 @@ class PriceController(
     @GetMapping("/refresh/{assetId}/{date}")
     fun refreshPrices(
         @PathVariable assetId: String,
-        @PathVariable(required = false) date: String = TODAY,
+        @PathVariable(required = false) date: String = TODAY
     ): PriceResponse =
         priceRefresh.refreshPrice(
             assetId,
-            date,
+            date
         )
 }

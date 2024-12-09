@@ -45,7 +45,7 @@ internal object JwtUtil {
             issuer,
             oidc(uri),
             oidcRfc8414(uri),
-            oauth(uri),
+            oauth(uri)
         )
     }
 
@@ -56,10 +56,10 @@ internal object JwtUtil {
                 .publicOnly(true)
                 .keyUses(
                     KeyUse.SIGNATURE,
-                    null,
+                    null
                 ).keyTypes(
                     KeyType.RSA,
-                    KeyType.EC,
+                    KeyType.EC
                 ).build()
         val jwsAlgorithms: MutableSet<JWSAlgorithm> = HashSet()
         try {
@@ -88,14 +88,14 @@ internal object JwtUtil {
         }
         Assert.notEmpty(
             signatureAlgorithms,
-            "Failed to find any algorithms from the JWK set",
+            "Failed to find any algorithms from the JWK set"
         )
         return signatureAlgorithms
     }
 
     private fun getConfiguration(
         issuer: String,
-        vararg uris: URI,
+        vararg uris: URI
     ): Map<String, Any> {
         val errorMessage =
             "Unable to resolve the Configuration with the provided Issuer of \"$issuer\""
@@ -105,20 +105,20 @@ internal object JwtUtil {
                 val response =
                     rest.exchange(
                         request,
-                        STRING_OBJECT_MAP,
+                        STRING_OBJECT_MAP
                     )
                 val configuration =
                     response.body ?: throw SystemException("Unable to obtain JWT Config")
                 Assert.isTrue(
                     configuration["jwks_uri"] != null,
-                    "The public JWK set URI must not be null",
+                    "The public JWK set URI must not be null"
                 )
                 return configuration
             } catch (ex: RuntimeException) {
                 if (!(ex is HttpClientErrorException && ex.statusCode.is4xxClientError)) {
                     throw IllegalArgumentException(
                         errorMessage,
-                        ex,
+                        ex
                     )
                 }
                 // else try another endpoint

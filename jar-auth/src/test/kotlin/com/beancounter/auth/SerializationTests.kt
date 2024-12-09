@@ -21,7 +21,7 @@ class SerializationTests {
             LoginService.ClientCredentialsRequest(
                 client_id = "abc",
                 client_secret = secret,
-                audience = "my-audience",
+                audience = "my-audience"
             )
         assertThat(clientCredentialsRequest.grant_type).isNotNull
         val json = objectMapper.writeValueAsString(clientCredentialsRequest)
@@ -31,14 +31,14 @@ class SerializationTests {
             oidGrantType,
             "abc",
             secret,
-            "client_credentials",
+            "client_credentials"
         )
         val fromJson: Map<String, String> = objectMapper.readValue(json)
         assertThat(fromJson)
             .containsKeys(
                 oidClientId,
                 oidSecret,
-                oidGrantType,
+                oidGrantType
             )
     }
 
@@ -50,7 +50,7 @@ class SerializationTests {
                 username = "mike",
                 password = secret,
                 audience = "the-audience",
-                client_secret = "the-secret",
+                client_secret = "the-secret"
             )
         assertThat(passwordRequest.grant_type).isNotNull
         val json = objectMapper.writeValueAsString(passwordRequest)
@@ -62,14 +62,14 @@ class SerializationTests {
             "password",
             "the-secret",
             "scope",
-            secret,
+            secret
         )
         val fromJson: Map<String, String> = objectMapper.readValue(json)
         assertThat(fromJson)
             .isNotEmpty
             .containsKeys(
                 oidClientId,
-                oidGrantType,
+                oidGrantType
             )
     }
 }

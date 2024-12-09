@@ -21,26 +21,26 @@ class MdFactory internal constructor(
     cashProviderService: CashProviderService,
     alphaPriceService: AlphaPriceService,
     offMarketDataProvider: OffMarketDataProvider,
-    marketStackService: MarketStackService,
+    marketStackService: MarketStackService
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
             Pair(
                 CashProviderService.ID,
-                cashProviderService,
+                cashProviderService
             ),
             Pair(
                 MarketStackService.ID,
-                marketStackService,
+                marketStackService
             ),
             Pair(
                 AlphaPriceService.ID,
-                alphaPriceService,
+                alphaPriceService
             ),
             Pair(
                 OffMarketDataProvider.ID,
-                offMarketDataProvider,
-            ),
+                offMarketDataProvider
+            )
         )
 
     /**
@@ -64,7 +64,7 @@ class MdFactory internal constructor(
         }
         log.error(
             "Unable to identify a provider for {}",
-            market,
+            market
         )
         return providers[CashProviderService.ID]!!
     }

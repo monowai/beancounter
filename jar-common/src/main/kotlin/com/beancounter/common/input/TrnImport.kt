@@ -16,5 +16,5 @@ interface TrnImport {
  */
 enum class ImportFormat {
     BC,
-    SHARESIGHT,
+    SHARESIGHT
 }

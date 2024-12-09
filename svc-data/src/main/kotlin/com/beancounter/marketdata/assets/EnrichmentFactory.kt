@@ -14,7 +14,7 @@ import java.util.Locale
 @Service
 @Transactional
 class EnrichmentFactory(
-    val defaultEnricher: DefaultEnricher,
+    val defaultEnricher: DefaultEnricher
 ) {
     private var enrichers: MutableMap<String, AssetEnricher> = HashMap()
 
@@ -25,7 +25,7 @@ class EnrichmentFactory(
     fun setEnrichers(
         figiEnricher: AssetEnricher,
         alphaEnricher: AssetEnricher,
-        offMarketEnricher: OffMarketEnricher,
+        offMarketEnricher: OffMarketEnricher
     ) {
         register(defaultEnricher)
         register(alphaEnricher)

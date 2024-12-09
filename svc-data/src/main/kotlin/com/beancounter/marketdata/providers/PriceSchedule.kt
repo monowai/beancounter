@@ -14,11 +14,11 @@ import java.time.LocalDateTime
 @ConditionalOnProperty(
     value = ["schedule.enabled"],
     havingValue = "true",
-    matchIfMissing = false,
+    matchIfMissing = false
 )
 class PriceSchedule(
     private val priceRefresh: PriceRefresh,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(PriceSchedule::class.java)
@@ -26,13 +26,13 @@ class PriceSchedule(
 
     @Scheduled(
         cron = "#{@assetsSchedule}",
-        zone = "#{@scheduleZone}",
+        zone = "#{@scheduleZone}"
     )
     fun updatePrices() {
         log.info(
             "Scheduled price update starting {} - {}",
             LocalDateTime.now(dateUtils.zoneId),
-            dateUtils.zoneId.id,
+            dateUtils.zoneId.id
         )
         priceRefresh.updatePrices()
     }

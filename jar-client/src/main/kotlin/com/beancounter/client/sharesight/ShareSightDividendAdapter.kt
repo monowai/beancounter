@@ -37,7 +37,7 @@ import java.util.Locale
 class ShareSightDividendAdapter(
     private val shareSightConfig: ShareSightConfig,
     private val assetIngestService: AssetIngestService,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) : TrnAdapter {
     private var filter = Filter(null)
     private val numberUtils = NumberUtils()
@@ -56,13 +56,13 @@ class ShareSightDividendAdapter(
             val tradeRate =
                 parse(
                     row[FX_RATE],
-                    shareSightConfig.numberFormat,
+                    shareSightConfig.numberFormat
                 )
             val trnInput =
                 TrnInput(
                     CallerRef(
                         trustedTrnImportRequest.portfolio.id,
-                        callerId = row[ID],
+                        callerId = row[ID]
                     ),
                     asset.id,
                     trnType = TrnType.DIVI,
@@ -72,27 +72,27 @@ class ShareSightDividendAdapter(
                     fees = BigDecimal.ZERO,
                     price = BigDecimal.ZERO,
                     tradeAmount =
-                    multiplyAbs(
-                        parse(
-                            row[NET],
-                            shareSightConfig.numberFormat,
+                        multiplyAbs(
+                            parse(
+                                row[NET],
+                                shareSightConfig.numberFormat
+                            ),
+                            tradeRate
                         ),
-                        tradeRate,
-                    ),
                     tax =
-                    multiplyAbs(
-                        BigDecimal(row[TAX]),
-                        tradeRate,
-                    ),
-                    cashAmount =
-                    multiplyAbs(
-                        parse(
-                            row[NET],
-                            shareSightConfig.numberFormat,
+                        multiplyAbs(
+                            BigDecimal(row[TAX]),
+                            tradeRate
                         ),
-                        tradeRate,
-                    ),
-                    comments = row[COMMENTS],
+                    cashAmount =
+                        multiplyAbs(
+                            parse(
+                                row[NET],
+                                shareSightConfig.numberFormat
+                            ),
+                            tradeRate
+                        ),
+                    comments = row[COMMENTS]
                 )
             trnInput.tradeCashRate =
                 if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
@@ -106,14 +106,14 @@ class ShareSightDividendAdapter(
             throw logFirst(
                 "DIVI",
                 message,
-                row,
+                row
             )
         } catch (e: ParseException) {
             val message = e.message
             throw logFirst(
                 "DIVI",
                 message,
-                row,
+                row
             )
         }
     }
@@ -128,8 +128,8 @@ class ShareSightDividendAdapter(
         return assetIngestService.resolveAsset(
             AssetInput(
                 values[1].uppercase(Locale.getDefault()),
-                values[0],
-            ),
+                values[0]
+            )
         )
     }
 
@@ -142,8 +142,8 @@ class ShareSightDividendAdapter(
             throw BusinessException(
                 String.format(
                     "Unable to parse %s",
-                    input,
-                ),
+                    input
+                )
             )
         }
         return values

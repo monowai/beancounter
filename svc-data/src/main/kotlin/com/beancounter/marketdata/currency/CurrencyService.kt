@@ -31,14 +31,14 @@ class CurrencyService {
     private fun persist() {
         log.info(
             "Persisting {} default currencies",
-            values.size,
+            values.size
         )
         if (!values.isEmpty()) {
             val result = currencyRepository.saveAll(this.values)
             for (currency in result) {
                 log.trace(
                     "Persisted {}",
-                    currency,
+                    currency
                 )
             }
         }

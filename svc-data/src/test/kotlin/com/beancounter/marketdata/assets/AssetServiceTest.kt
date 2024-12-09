@@ -35,29 +35,29 @@ class AssetServiceTest {
                             AssetInput(
                                 NASDAQ.code,
                                 aapl,
-                                name = "Apple Inc.",
+                                name = "Apple Inc."
                             ),
                         googl to
                             AssetInput(
                                 NASDAQ.code,
                                 googl,
-                                name = "Alphabet Inc.",
-                            ),
-                    ),
-                ),
+                                name = "Alphabet Inc."
+                            )
+                    )
+                )
             )
         val priceAssets =
             listOf(
                 PriceAsset(
                     NASDAQ.code,
                     "AAPL",
-                    assetId = assets.data[aapl]!!.id,
+                    assetId = assets.data[aapl]!!.id
                 ),
                 PriceAsset(
                     NASDAQ.code,
                     "GOOGL",
-                    assetId = assets.data[googl]!!.id,
-                ),
+                    assetId = assets.data[googl]!!.id
+                )
             )
         val priceRequest = PriceRequest(assets = priceAssets)
 
@@ -68,13 +68,13 @@ class AssetServiceTest {
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept(
                 "systemUser",
-                "priceSymbol",
+                "priceSymbol"
             )
         assertThat(result.assets[1].resolvedAsset)
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept(
                 "systemUser",
-                "priceSymbol",
+                "priceSymbol"
             )
 
         // val byProviders = ProviderUtils().splitProviders(priceRequest.assets)

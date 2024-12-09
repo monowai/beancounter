@@ -21,7 +21,7 @@ class KafkaUtilsTest {
         val errorResult =
             handler.handleError(
                 message,
-                failedException,
+                failedException
             )
         assertThat(errorResult).isNotNull
     }

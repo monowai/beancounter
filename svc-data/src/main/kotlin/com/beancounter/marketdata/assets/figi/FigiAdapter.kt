@@ -13,7 +13,7 @@ class FigiAdapter {
         market: Market,
         assetCode: String,
         defaultName: String? = null,
-        id: String,
+        id: String
     ): Asset =
         Asset(
             code = assetCode,
@@ -22,21 +22,21 @@ class FigiAdapter {
             market = market,
             marketCode = market.code,
             priceSymbol = assetCode,
-            category = "Equity",
+            category = "Equity"
         )
 
     fun transform(
         market: Market,
         assetCode: String,
         figiAsset: FigiAsset,
-        id: String,
+        id: String
     ): Asset {
         val asset =
             transform(
                 market,
                 assetCode,
                 defaultName = figiAsset.name,
-                id = id,
+                id = id
             )
         asset.name = figiAsset.name
         asset.category = figiAsset.securityType2

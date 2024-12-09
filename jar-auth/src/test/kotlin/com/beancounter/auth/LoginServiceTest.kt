@@ -31,15 +31,15 @@ import java.time.Duration
     ClientPasswordConfig::class,
     HttpMessageConvertersAutoConfiguration::class,
     FeignAutoConfiguration::class,
-    OAuthConfig::class,
+    OAuthConfig::class
 )
 @ActiveProfiles("mockauth")
 @AutoConfigureMockAuth
 @SpringBootTest(
     classes = [
         ClientPasswordConfig::class, MockAuthConfig::class,
-        TokenService::class, AuthUtilService::class, TokenUtils::class,
-    ],
+        TokenService::class, AuthUtilService::class, TokenUtils::class
+    ]
 )
 class LoginServiceTest {
     private lateinit var loginService: LoginService
@@ -62,7 +62,7 @@ class LoginServiceTest {
             LoginService(
                 authGateway,
                 jwtDecoder = mockAuthConfig.jwtDecoder,
-                mockAuthConfig.authConfig,
+                mockAuthConfig.authConfig
             )
     }
 
@@ -75,16 +75,16 @@ class LoginServiceTest {
                     LoginService.ClientCredentialsRequest(
                         mockAuthConfig.authConfig.clientId,
                         mockAuthConfig.authConfig.clientSecret,
-                        mockAuthConfig.authConfig.audience,
-                    ),
-                ),
+                        mockAuthConfig.authConfig.audience
+                    )
+                )
             ).thenReturn(
                 OpenIdResponse(
                     token.token.tokenValue,
                     "beancounter beancounter:system",
                     Duration.ofSeconds(20_000).seconds,
-                    BEARER,
-                ),
+                    BEARER
+                )
             )
 
         loginService.loginM2m().token.isNotEmpty()
@@ -100,16 +100,16 @@ class LoginServiceTest {
                     LoginService.ClientCredentialsRequest(
                         mockAuthConfig.authConfig.clientId,
                         mockAuthConfig.authConfig.clientSecret,
-                        mockAuthConfig.authConfig.audience,
-                    ),
-                ),
+                        mockAuthConfig.authConfig.audience
+                    )
+                )
             ).thenReturn(
                 OpenIdResponse(
                     token.token.tokenValue,
                     "beancounter beancounter:system",
                     Duration.ofSeconds(20_000).seconds,
-                    BEARER,
-                ),
+                    BEARER
+                )
             )
 
         loginService.loginM2m().token.isNotEmpty()
@@ -122,7 +122,7 @@ class LoginServiceTest {
         val token = authUtilService.authenticate(systemUser)
         val response =
             objectMapper.readValue<OpenIdResponse>(
-                ClassPathResource("user-token-response.json").file,
+                ClassPathResource("user-token-response.json").file
             )
 
         Mockito
@@ -133,14 +133,14 @@ class LoginServiceTest {
                 authGateway.login(
                     loginService.passwordRequest(
                         "user",
-                        "password",
-                    ),
-                ),
+                        "password"
+                    )
+                )
             ).thenReturn(response)
         loginService
             .login(
                 "user",
-                "password",
+                "password"
             ).token
             .isNotEmpty()
         assertFalse(tokenService.isServiceToken)
@@ -157,7 +157,7 @@ class LoginServiceTest {
     fun is_serviceTokenWorking() {
         authUtilService.authenticateM2M(
             SystemUser(email = ""),
-            AuthUtilService.AuthProvider.AUTH0,
+            AuthUtilService.AuthProvider.AUTH0
         )
         assertTrue(tokenService.isServiceToken)
     }

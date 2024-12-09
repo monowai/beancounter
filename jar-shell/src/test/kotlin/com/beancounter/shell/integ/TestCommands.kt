@@ -30,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class, ShareSightConfig::class])
 @AutoConfigureMockAuth
@@ -61,14 +61,14 @@ class TestCommands {
         var marketResponse =
             objectMapper.readValue(
                 json,
-                MarketResponse::class.java,
+                MarketResponse::class.java
             )
         assertThat(marketResponse.data).isNotNull.hasSize(1)
         json = dataCommands.markets(null)
         marketResponse =
             objectMapper.readValue(
                 json,
-                MarketResponse::class.java,
+                MarketResponse::class.java
             )
         assertThat(marketResponse.data).isNotNull.hasSizeGreaterThan(3)
     }
@@ -81,7 +81,7 @@ class TestCommands {
         val portfolio =
             objectMapper.readValue(
                 json,
-                Portfolio::class.java,
+                Portfolio::class.java
             )
         assertThat(portfolio).isNotNull
         assertThrows(BusinessException::class.java) {
@@ -95,7 +95,7 @@ class TestCommands {
         val portfolio =
             objectMapper.readValue(
                 json,
-                Portfolio::class.java,
+                Portfolio::class.java
             )
         assertThat(portfolio).isNotNull
         assertThrows(BusinessException::class.java) {
@@ -117,7 +117,7 @@ class TestCommands {
         val configMap: HashMap<String, String> =
             ObjectMapper().readValue(
                 config,
-                typeRef,
+                typeRef
             )
         assertThat(configMap).isNotEmpty
     }

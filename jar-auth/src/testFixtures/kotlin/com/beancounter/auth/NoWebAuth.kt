@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 @ConditionalOnProperty(
     "auth.enabled",
-    havingValue = "false",
+    havingValue = "false"
 )
 @ConditionalOnBean(HttpSecurity::class)
 class NoWebAuth {

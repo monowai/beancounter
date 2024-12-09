@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 class MarketDataClient internal constructor(
     private val assetGateway: AssetGateway,
-    private val tokenService: TokenService,
+    private val tokenService: TokenService
 ) : AssetService {
     @Value("\${marketdata.url:http://localhost:9510}")
     private lateinit var marketDataUrl: String
@@ -33,14 +33,14 @@ class MarketDataClient internal constructor(
     fun logConfig() {
         log.info(
             "marketdata.url: {}",
-            marketDataUrl,
+            marketDataUrl
         )
     }
 
     override fun handle(assetRequest: AssetRequest): AssetUpdateResponse? =
         assetGateway.process(
             tokenService.bearerToken,
-            assetRequest,
+            assetRequest
         )
 
     @Async("taskScheduler")
@@ -48,7 +48,7 @@ class MarketDataClient internal constructor(
         // log.debug("Back fill for {}", assetId)
         assetGateway.backFill(
             tokenService.bearerToken,
-            assetId,
+            assetId
         )
     }
 
@@ -56,7 +56,7 @@ class MarketDataClient internal constructor(
         val (data) =
             assetGateway.find(
                 tokenService.bearerToken,
-                assetId,
+                assetId
             )
         return data
     }
@@ -66,39 +66,39 @@ class MarketDataClient internal constructor(
      */
     @FeignClient(
         name = "assets",
-        url = "\${marketdata.url:http://localhost:9510}",
+        url = "\${marketdata.url:http://localhost:9510}"
     )
     interface AssetGateway {
         @PostMapping(
             value = ["/api/assets"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun process(
             @RequestHeader("Authorization") bearerToken: String?,
-            assetRequest: AssetRequest?,
+            assetRequest: AssetRequest?
         ): AssetUpdateResponse?
 
         @PostMapping(
             value = ["/api/assets/{id}/events"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun backFill(
             @RequestHeader("Authorization") bearerToken: String?,
-            @PathVariable("id") assetId: String?,
+            @PathVariable("id") assetId: String?
         )
 
         @GetMapping(value = ["/api/assets/{id}"])
         fun find(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("id") assetId: String,
+            @PathVariable("id") assetId: String
         ): AssetResponse
 
         @GetMapping(value = ["/api/assets/{id}/events"])
         fun getEvents(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("id") assetId: String,
+            @PathVariable("id") assetId: String
         ): AssetResponse
     }
 

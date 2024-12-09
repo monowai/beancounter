@@ -40,7 +40,7 @@ class KafkaUtils {
             val payload = message.payload
 
             log.error(
-                "Error handling Kafka message. Cause: $cause, BC Class: $bcCause, Payload: $payload",
+                "Error handling Kafka message. Cause: $cause, BC Class: $bcCause, Payload: $payload"
             )
 
             // Consider adding error metrics or alerts here if needed

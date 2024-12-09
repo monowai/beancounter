@@ -12,12 +12,12 @@ data class PriceAsset(
     val market: String = "",
     val code: String = "",
     @JsonIgnore var resolvedAsset: Asset? = null,
-    val assetId: String = resolvedAsset?.id ?: "",
+    val assetId: String = resolvedAsset?.id ?: ""
 ) {
     constructor(asset: Asset) : this(
         asset.market.code,
         asset.code,
         asset,
-        asset.id,
+        asset.id
     )
 }

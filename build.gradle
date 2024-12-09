@@ -1,70 +1,71 @@
 plugins {
-  alias(libs.plugins.jvm)
-  alias(libs.plugins.jacoco)
-  alias(libs.plugins.idea)
-  alias(libs.plugins.kotlinter)
-  alias(libs.plugins.kotlin.jpa)
-  alias(libs.plugins.kotlin.spring)
-  id "com.osacky.doctor" version "0.10.0"
+    alias(libs.plugins.jvm)
+    alias(libs.plugins.jacoco)
+    alias(libs.plugins.idea)
+    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.kotlin.jpa)
+    alias(libs.plugins.kotlin.spring)
+    id "com.osacky.doctor" version "0.10.0"
 }
 
 
 repositories {
-  mavenLocal()
-  mavenCentral()
-  gradlePluginPortal()
-}
-
-subprojects {
-  apply plugin: libs.plugins.jvm.get().pluginId
-  apply plugin: libs.plugins.jacoco.get().pluginId
-  apply plugin: libs.plugins.idea.get().pluginId
-  apply plugin: libs.plugins.kotlinter.get().pluginId
-  apply plugin: libs.plugins.kotlin.jpa.get().pluginId
-  apply plugin: libs.plugins.kotlin.spring.get().pluginId
-
-  repositories {
     mavenLocal()
     mavenCentral()
     gradlePluginPortal()
-  }
-  kotlin {
-    jvmToolchain(21)
-  }
+}
 
-  test {
-    useJUnitPlatform()
-  }
+subprojects {
+    apply plugin: libs.plugins.jvm.get().pluginId
+    apply plugin: libs.plugins.jacoco.get().pluginId
+    apply plugin: libs.plugins.idea.get().pluginId
+    apply plugin: libs.plugins.kotlinter.get().pluginId
+    apply plugin: libs.plugins.kotlin.jpa.get().pluginId
+    apply plugin: libs.plugins.kotlin.spring.get().pluginId
 
-  check.dependsOn jacocoTestReport
-
-  idea {
-    module {
-      inheritOutputDirs = true
-      downloadSources = true
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
     }
-  }
-  jacoco {
-    toolVersion = "0.8.12"
-  }
-  tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs.addAll('-Xlint:unchecked', '-parameters')
-    options.deprecation = true
-  }
-  tasks.withType(Test).configureEach {
-    finalizedBy 'jacocoTestReport'
-  }
 
-  tasks.named('build') {
-    dependsOn 'formatKotlin'
-  }
-
-  jacocoTestReport {
-    reports {
-      xml.required.set(true)
-      html.required.set(true)
+    kotlin {
+        jvmToolchain(21)
     }
-  }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    check.dependsOn jacocoTestReport
+
+    idea {
+        module {
+            inheritOutputDirs = true
+            downloadSources = true
+        }
+    }
+    jacoco {
+        toolVersion = "0.8.12"
+    }
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.addAll('-Xlint:unchecked', '-parameters')
+        options.deprecation = true
+    }
+    tasks.withType(Test).configureEach {
+        finalizedBy 'jacocoTestReport'
+    }
+
+    tasks.named('build') {
+        dependsOn 'formatKotlin'
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
+    }
 }
 
 group = 'com.beancounter'

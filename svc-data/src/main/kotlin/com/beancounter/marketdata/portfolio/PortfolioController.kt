@@ -24,11 +24,11 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/portfolios")
 @CrossOrigin
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 class PortfolioController internal constructor(
     private val portfolioService: PortfolioService,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) {
     @get:GetMapping
     val portfolios: PortfoliosResponse
@@ -36,12 +36,12 @@ class PortfolioController internal constructor(
 
     @GetMapping("/{id}")
     fun getPortfolio(
-        @PathVariable id: String,
+        @PathVariable id: String
     ): PortfolioResponse = PortfolioResponse(portfolioService.find(id))
 
     @DeleteMapping("/{id}")
     fun deletePortfolio(
-        @PathVariable id: String,
+        @PathVariable id: String
     ): String {
         portfolioService.delete(id)
         return "deleted $id"
@@ -49,33 +49,33 @@ class PortfolioController internal constructor(
 
     @GetMapping("/code/{code}")
     fun getPortfolioByCode(
-        @PathVariable code: String,
+        @PathVariable code: String
     ): PortfolioResponse = PortfolioResponse(portfolioService.findByCode(code))
 
     @PatchMapping(value = ["/{id}"])
     fun savePortfolio(
         @PathVariable id: String,
-        @RequestBody portfolio: PortfolioInput,
+        @RequestBody portfolio: PortfolioInput
     ): PortfolioResponse =
         PortfolioResponse(
             portfolioService.update(
                 id,
-                portfolio,
-            ),
+                portfolio
+            )
         )
 
     @PostMapping
     fun savePortfolios(
-        @RequestBody portfolio: PortfoliosRequest,
+        @RequestBody portfolio: PortfoliosRequest
     ): PortfoliosResponse = PortfoliosResponse(portfolioService.save(portfolio.data))
 
     @GetMapping(value = ["/asset/{assetId}/{tradeDate}"])
     fun getWhereHeld(
         @PathVariable("assetId") assetId: String,
-        @PathVariable("tradeDate") tradeDate: String,
+        @PathVariable("tradeDate") tradeDate: String
     ): PortfoliosResponse =
         portfolioService.findWhereHeld(
             assetId,
-            dateUtils.getFormattedDate(tradeDate),
+            dateUtils.getFormattedDate(tradeDate)
         )
 }

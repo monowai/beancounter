@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
  */
 @ConditionalOnProperty(
     value = ["kafka.enabled"],
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 @Service
 class EventPublisher {
@@ -26,7 +26,7 @@ class EventPublisher {
     fun logConfig() {
         log.info(
             "TRN-EVENT: {} ",
-            topicTrnEvent,
+            topicTrnEvent
         )
     }
 
@@ -38,7 +38,7 @@ class EventPublisher {
     fun send(trnEvent: TrustedTrnEvent) {
         kafkaTemplate.send(
             topicTrnEvent,
-            trnEvent,
+            trnEvent
         )
     }
 

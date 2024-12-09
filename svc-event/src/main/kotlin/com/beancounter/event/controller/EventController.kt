@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping
 @CrossOrigin
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 class EventController(
     private val eventService: EventService,
@@ -35,82 +35,82 @@ class EventController(
     private val eventLoader: EventLoader,
     private val portfolioService: PortfolioServiceClient,
     private val dateUtils: DateUtils,
-    private val loginService: LoginService,
+    private val loginService: LoginService
 ) {
     @PostMapping(
         value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseStatus(HttpStatus.ACCEPTED)
     operator fun get(
         @PathVariable portfolioId: String,
         @PathVariable(required = false) fromDate: String = DateUtils.TODAY,
-        @PathVariable(required = false) toDate: String = DateUtils.TODAY,
+        @PathVariable(required = false) toDate: String = DateUtils.TODAY
     ) = backfillService.backFillEvents(
         portfolioId,
         fromDate,
-        toDate,
+        toDate
     )
 
     @PostMapping(
         value = ["/backfill/{fromDate}/{toDate}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun backfillPortfolios(
         @PathVariable(required = false) fromDate: String = DateUtils.TODAY,
-        @PathVariable(required = false) toDate: String = DateUtils.TODAY,
+        @PathVariable(required = false) toDate: String = DateUtils.TODAY
     ) {
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
             backfillService.backFillEvents(
                 portfolio.id,
                 fromDate,
-                toDate,
+                toDate
             )
         }
     }
 
     @PostMapping(
         value = ["/load/{startDate}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseStatus(HttpStatus.ACCEPTED)
     suspend fun loadEvents(
-        @PathVariable(required = false) startDate: String = DateUtils.TODAY,
+        @PathVariable(required = false) startDate: String = DateUtils.TODAY
     ) = eventLoader.loadEvents(startDate)
 
     @PostMapping(
         value = ["/load/{portfolioId}/{asAtDate}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun loadPortfolioEvents(
         @PathVariable(required = false) asAtDate: String = DateUtils.TODAY,
-        @PathVariable portfolioId: String,
+        @PathVariable portfolioId: String
     ) {
         eventLoader.loadEvents(
             portfolioId,
             asAtDate,
-            loginService.loginM2m(),
+            loginService.loginM2m()
         )
     }
 
     @GetMapping(
         value = ["/{id}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun getEvent(
-        @PathVariable id: String,
+        @PathVariable id: String
     ): CorporateEventResponse = eventService[id]
 
     @PostMapping(
         value = ["/{id}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun reprocess(
-        @PathVariable id: String,
+        @PathVariable id: String
     ): CorporateEventResponse {
         val corporateEventResponse = eventService[id]
         eventService.processEvent(corporateEventResponse.data)
@@ -119,17 +119,17 @@ class EventController(
 
     @GetMapping(
         value = ["/asset/{id}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun getAssetEvents(
-        @PathVariable id: String,
+        @PathVariable id: String
     ): CorporateEventResponses = eventService.getAssetEvents(id)
 
     @GetMapping(
         value = ["/scheduled/{date}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun getScheduledEvents(
-        @PathVariable date: String,
+        @PathVariable date: String
     ): CorporateEventResponses = eventService.getScheduledEvents(dateUtils.getFormattedDate(date))
 }

@@ -8,5 +8,5 @@ import com.beancounter.common.contracts.PriceResponse
  */
 data class ValuationData(
     val priceResponse: PriceResponse = PriceResponse(),
-    val fxResponse: FxResponse = FxResponse(),
+    val fxResponse: FxResponse = FxResponse()
 )

@@ -39,23 +39,23 @@ internal class TrnInputTest {
         val trnInput =
             TrnInput(
                 callerRef =
-                CallerRef(
-                    ONE,
-                    ONE,
-                    abc,
-                ),
+                    CallerRef(
+                        ONE,
+                        ONE,
+                        abc
+                    ),
                 tradeDate = DateUtils().getFormattedDate("2019-10-10"),
                 settleDate = DateUtils().getFormattedDate("2019-10-10"),
                 assetId =
-                getTestAsset(
-                    NYSE,
-                    "MSFT",
-                ).id,
+                    getTestAsset(
+                        NYSE,
+                        "MSFT"
+                    ).id,
                 cashAssetId =
-                toKey(
-                    "USD-X",
-                    "USER",
-                ),
+                    toKey(
+                        "USD-X",
+                        "USER"
+                    ),
                 cashCurrency = USD.code,
                 fees = BigDecimal.ONE,
                 price = price,
@@ -63,19 +63,19 @@ internal class TrnInputTest {
                 cashAmount = BigDecimal("100.99"),
                 tradeBaseRate = BigDecimal.ONE,
                 tradePortfolioRate = price,
-                comments = "Comment",
+                comments = "Comment"
             )
 
         val trnRequest =
             TrnRequest(
                 abc.lowercase(Locale.getDefault()),
-                arrayOf(trnInput),
+                arrayOf(trnInput)
             )
         val json = objectMapper.writeValueAsString(trnRequest)
         val fromJson =
             objectMapper.readValue(
                 json,
-                TrnRequest::class.java,
+                TrnRequest::class.java
             )
         assertThat(fromJson)
             .isNotNull
@@ -97,14 +97,14 @@ internal class TrnInputTest {
         val asset =
             getTestAsset(
                 NYSE,
-                "TEST",
+                "TEST"
             )
         val portfolio = getPortfolio("TWEE")
         portfolio.owner =
             SystemUser(
                 "123",
                 "whee",
-                true,
+                true
             )
         val trn =
             Trn(
@@ -113,13 +113,13 @@ internal class TrnInputTest {
                 tradeDate = LocalDate.now(),
                 asset = asset,
                 callerRef =
-                CallerRef(
-                    ONE,
-                    ONE,
-                    "TEST",
-                ),
+                    CallerRef(
+                        ONE,
+                        ONE,
+                        "TEST"
+                    ),
                 price = BigDecimal("100.01"),
-                portfolio = portfolio,
+                portfolio = portfolio
             )
         trn.settleDate = LocalDate.now()
         trn.price = BigDecimal("22.11")
@@ -132,7 +132,7 @@ internal class TrnInputTest {
         val fromJson =
             objectMapper.readValue(
                 objectMapper.writeValueAsString(trnResponse),
-                TrnResponse::class.java,
+                TrnResponse::class.java
             )
         val fromAsset: Asset =
             fromJson.data
@@ -144,7 +144,7 @@ internal class TrnInputTest {
             .usingRecursiveComparison()
             .ignoringFields(
                 "market",
-                "aliases",
+                "aliases"
             )
         assertThat(fromAsset)
             .usingRecursiveComparison()
@@ -165,20 +165,20 @@ internal class TrnInputTest {
             listOf(
                 abc,
                 abc,
-                abc,
+                abc
             )
         val ttr =
             TrustedTrnImportRequest(
                 getPortfolio("TWEE"),
-                row = row,
+                row = row
             )
         assertThat(ttr)
             .hasFieldOrPropertyWithValue(
                 importFormatProp,
-                ImportFormat.BC,
+                ImportFormat.BC
             ).hasFieldOrPropertyWithValue(
                 messageProp,
-                "",
+                ""
             ).hasFieldOrProperty(portfolioProp)
             .hasFieldOrProperty("callerRef")
             .hasFieldOrProperty("row")
@@ -187,7 +187,7 @@ internal class TrnInputTest {
         val fromJson =
             objectMapper.readValue(
                 json,
-                TrustedTrnImportRequest::class.java,
+                TrustedTrnImportRequest::class.java
             )
         assertThat(fromJson)
             .usingRecursiveComparison()
@@ -198,7 +198,7 @@ internal class TrnInputTest {
     private val simpleTrnInput =
         TrnInput(
             assetId = "aid",
-            price = BigDecimal.TEN,
+            price = BigDecimal.TEN
         )
 
     @Test
@@ -208,24 +208,24 @@ internal class TrnInputTest {
             TrustedTrnEvent(
                 portfolio = getPortfolio(),
                 message = "the message",
-                trnInput = simpleTrnInput,
+                trnInput = simpleTrnInput
             )
 
         assertThat(ttr)
             .hasFieldOrPropertyWithValue(
                 importFormatProp,
-                ImportFormat.BC,
+                ImportFormat.BC
             ).hasFieldOrProperty(portfolioProp)
             .hasFieldOrPropertyWithValue(
                 messageProp,
-                "the message",
+                "the message"
             ).hasFieldOrProperty("trnInput")
 
         val json = objectMapper.writeValueAsString(ttr)
         val fromJson =
             objectMapper.readValue(
                 json,
-                TrustedTrnEvent::class.java,
+                TrustedTrnEvent::class.java
             )
         assertThat(fromJson)
             .usingRecursiveComparison()
@@ -238,13 +238,13 @@ internal class TrnInputTest {
         val ttr =
             TrustedTrnEvent(
                 portfolio = getPortfolio(),
-                trnInput = simpleTrnInput,
+                trnInput = simpleTrnInput
             )
 
         assertThat(ttr)
             .hasFieldOrPropertyWithValue(
                 importFormatProp,
-                ImportFormat.BC,
+                ImportFormat.BC
             ).hasFieldOrProperty(portfolioProp)
             .hasFieldOrProperty("trnInput")
 
@@ -256,7 +256,7 @@ internal class TrnInputTest {
         val fromJson =
             objectMapper.readValue(
                 json,
-                TrustedTrnEvent::class.java,
+                TrustedTrnEvent::class.java
             )
         assertThat(fromJson)
             .usingRecursiveComparison()
@@ -268,13 +268,13 @@ internal class TrnInputTest {
         val trustedTrnQuery =
             TrustedTrnQuery(
                 portfolio = getPortfolio(),
-                assetId = "123",
+                assetId = "123"
             )
         val json = objectMapper.writeValueAsString(trustedTrnQuery)
         val fromJson =
             objectMapper.readValue(
                 json,
-                TrustedTrnQuery::class.java,
+                TrustedTrnQuery::class.java
             )
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()

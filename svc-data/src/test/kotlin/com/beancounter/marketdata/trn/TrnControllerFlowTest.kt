@@ -49,7 +49,7 @@ import java.math.BigDecimal
 @SpringMvcDbTest
 class TrnControllerFlowTest(
     @Autowired var mockMvc: MockMvc,
-    @Autowired var mockAuthConfig: MockAuthConfig,
+    @Autowired var mockAuthConfig: MockAuthConfig
 ) {
     @Autowired
     private lateinit var dateUtils: DateUtils
@@ -77,30 +77,30 @@ class TrnControllerFlowTest(
     @Autowired
     fun setupObjects(
         mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
+        mockAuthConfig: MockAuthConfig
     ) {
         enrichmentFactory.register(DefaultEnricher())
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                token,
+                token
             )
         bcMvcHelper.registerUser()
         msft =
             asset(
                 AssetRequest(
                     msftInput,
-                    MSFT.code,
-                ),
+                    MSFT.code
+                )
             )
         assertThat(msft.id).isNotNull
         aapl =
             asset(
                 AssetRequest(
                     aaplInput,
-                    AAPL.code,
-                ),
+                    AAPL.code
+                )
             )
         assertThat(aapl.id).isNotNull
     }
@@ -118,7 +118,7 @@ class TrnControllerFlowTest(
                 tradeCurrency = USD.code,
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal.ONE
             )
 
         trnInputB =
@@ -132,7 +132,7 @@ class TrnControllerFlowTest(
                 tradeCashRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal.ONE,
                 tradeDate = dateUtils.getFormattedDate(TRADE_DATE),
-                price = BigDecimal.TEN,
+                price = BigDecimal.TEN
             )
 
         val earlyTradeDate = "2017-01-01"
@@ -147,7 +147,7 @@ class TrnControllerFlowTest(
                 tradeCashRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal.ONE,
                 tradeDate = dateUtils.getFormattedDate(earlyTradeDate),
-                price = BigDecimal.TEN,
+                price = BigDecimal.TEN
             )
 
         trnInputD =
@@ -161,7 +161,7 @@ class TrnControllerFlowTest(
                 tradeCashRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal.ONE,
                 tradeDate = dateUtils.getFormattedDate(earlyTradeDate),
-                price = BigDecimal.TEN,
+                price = BigDecimal.TEN
             )
     }
 
@@ -173,11 +173,11 @@ class TrnControllerFlowTest(
                 MockMvcRequestBuilders
                     .delete(
                         trnById,
-                        "illegalId",
-                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                        "illegalId"
+                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON),
+                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
             )
     }
 
@@ -189,8 +189,8 @@ class TrnControllerFlowTest(
                 PortfolioInput(
                     "Twix",
                     "Name",
-                    currency = NZD.code,
-                ),
+                    currency = NZD.code
+                )
             )
         val trnRequest =
             TrnRequest(
@@ -199,13 +199,13 @@ class TrnControllerFlowTest(
                     trnInputA,
                     trnInputB,
                     trnInputC,
-                    trnInputD,
-                ),
+                    trnInputD
+                )
             )
         val trnResponse: TrnResponse =
             objectMapper.readValue(
                 bcMvcHelper.postTrn(trnRequest).response.contentAsString,
-                TrnResponse::class.java,
+                TrnResponse::class.java
             )
         assertThat(trnResponse.data).hasSize(trnRequest.data.size)
 
@@ -222,18 +222,18 @@ class TrnControllerFlowTest(
                                     objectMapper.writeValueAsString(
                                         TrustedTrnQuery(
                                             portfolio,
-                                            assetId = msft.id,
-                                        ),
-                                    ),
+                                            assetId = msft.id
+                                        )
+                                    )
                                 ).with(
-                                    SecurityMockMvcRequestPostProcessors.jwt().jwt(bcMvcHelper.token),
-                                ),
+                                    SecurityMockMvcRequestPostProcessors.jwt().jwt(bcMvcHelper.token)
+                                )
                         ).andExpect(MockMvcResultMatchers.status().isOk)
                         .andExpect(
-                            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON),
+                            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)
                         ).andReturn()
                         .response.contentAsString,
-                    TrnResponse::class.java,
+                    TrnResponse::class.java
                 )
 
         assertThat(queryResponse.data).isNotEmpty.hasSize(2) // 2 MSFT transactions
@@ -241,19 +241,19 @@ class TrnControllerFlowTest(
         val firstId =
             checkResponseSortOrder(
                 mvcResult,
-                trnRequest.data.size,
+                trnRequest.data.size
             ).data.iterator().next().id
 
         // Find by PrimaryKey
         verifyFoundByPk(
             portfolio,
-            firstId,
+            firstId
         )
         val allTrades =
             findTrades(
                 portfolio,
                 msft,
-                token,
+                token
             )
 
         // Find by portfolio and asset
@@ -267,8 +267,8 @@ class TrnControllerFlowTest(
         assertThat(
             deleteTransaction(
                 id,
-                token,
-            ).data.iterator().next().id,
+                token
+            ).data.iterator().next().id
         ).isEqualTo(id)
 
         // Delete all remaining transactions for the Portfolio
@@ -278,18 +278,18 @@ class TrnControllerFlowTest(
                     MockMvcRequestBuilders
                         .delete(
                             "$TRNS_ROOT/portfolio/{portfolioId}",
-                            portfolio.id,
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                            portfolio.id
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
-                .response.contentAsString,
+                .response.contentAsString
         ).isNotNull.isEqualTo("3")
     }
 
     private fun deleteTransaction(
         id: String,
-        token: Jwt,
+        token: Jwt
     ): TrnResponse =
         objectMapper.readValue(
             mockMvc
@@ -297,13 +297,13 @@ class TrnControllerFlowTest(
                     MockMvcRequestBuilders
                         .delete(
                             trnById,
-                            id,
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                            id
+                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
                 .response.contentAsByteArray,
-            TrnResponse::class.java,
+            TrnResponse::class.java
         )
 
     private fun findSortedByAssetAndTradeDate(portfolio: Portfolio): MvcResult =
@@ -313,16 +313,16 @@ class TrnControllerFlowTest(
                     .get(
                         URI_TRN_FOR_PORTFOLIO,
                         portfolio.id,
-                        dateUtils.today(),
+                        dateUtils.today()
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .contentType(MediaType.APPLICATION_JSON),
+                    .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
 
     private fun verifyFoundByPk(
         portfolio: Portfolio,
-        id: String,
+        id: String
     ) {
         val pkResult =
             mockMvc
@@ -331,9 +331,9 @@ class TrnControllerFlowTest(
                         .get(
                             trnByPortfolioAndPk,
                             portfolio.id,
-                            id,
+                            id
                         ).contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -341,15 +341,15 @@ class TrnControllerFlowTest(
             objectMapper
                 .readValue(
                     pkResult.response.contentAsString,
-                    TrnResponse::class.java,
-                ).data,
+                    TrnResponse::class.java
+                ).data
         ).isNotEmpty.hasSize(1)
     }
 
     private fun findTrades(
         portfolio: Portfolio,
         asset: Asset,
-        token: Jwt,
+        token: Jwt
     ): TrnResponse {
         val findByAsset =
             mockMvc
@@ -358,29 +358,29 @@ class TrnControllerFlowTest(
                         .get(
                             "$TRNS_ROOT/{portfolioId}/asset/{assetId}/trades",
                             portfolio.id,
-                            asset.id,
+                            asset.id
                         ).contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         return objectMapper
             .readValue(
                 findByAsset.response.contentAsString,
-                TrnResponse::class.java,
+                TrnResponse::class.java
             )
     }
 
     private fun checkResponseSortOrder(
         mvcResult: MvcResult,
-        i: Int,
+        i: Int
     ): TrnResponse {
         var i1 = i
         val sortedResponse =
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    TrnResponse::class.java,
+                    TrnResponse::class.java
                 )
         assertThat(sortedResponse.data).isNotEmpty.hasSize(i1)
         // Verify the sort order - asset.code, tradeDate
@@ -402,7 +402,7 @@ class TrnControllerFlowTest(
                         .post("/assets")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .content(objectMapper.writeValueAsBytes(assetRequest))
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -410,7 +410,7 @@ class TrnControllerFlowTest(
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    AssetUpdateResponse::class.java,
+                    AssetUpdateResponse::class.java
                 )
         assertThat(data.values).isNotNull
         return data.values.iterator().next()

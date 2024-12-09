@@ -19,7 +19,7 @@ class NumberUtilsTest {
             listOf(
                 null,
                 BigDecimal("0"),
-                BigDecimal("0.00"),
+                BigDecimal("0.00")
             )
         zeroValues.forEach { value ->
             assertThat(numberUtils.isUnset(value)).isTrue()
@@ -29,14 +29,14 @@ class NumberUtilsTest {
         assertThat(
             MathUtils.parse(
                 null,
-                NumberFormat.getInstance(),
-            ),
+                NumberFormat.getInstance()
+            )
         ).isZero()
         assertThat(
             MathUtils.parse(
                 "",
-                NumberFormat.getInstance(),
-            ),
+                NumberFormat.getInstance()
+            )
         ).isEqualTo(BigDecimal.ZERO)
 
         // Check null-safe handling

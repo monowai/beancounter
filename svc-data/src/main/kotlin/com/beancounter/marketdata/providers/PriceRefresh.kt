@@ -22,14 +22,14 @@ class PriceRefresh internal constructor(
     private val assetService: AssetService,
     private val assetHydrationService: AssetHydrationService,
     private val marketDataService: MarketDataService,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) {
     @Transactional(readOnly = true)
     @Async("priceExecutor")
     fun updatePrices(): CompletableFuture<Int> {
         log.info(
             "Updating Prices {}",
-            dateUtils.getFormattedDate().toString(),
+            dateUtils.getFormattedDate().toString()
         )
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
@@ -37,7 +37,7 @@ class PriceRefresh internal constructor(
             val priceRequest =
                 PriceRequest.of(
                     assetHydrationService.hydrateAsset(asset),
-                    TODAY,
+                    TODAY
                 )
             marketDataService.getPriceResponse(priceRequest)
             assetCount.getAndIncrement()
@@ -46,32 +46,32 @@ class PriceRefresh internal constructor(
             "Price update completed for {} assets @ {} - {}",
             assetCount.get(),
             LocalDateTime.now(dateUtils.zoneId),
-            dateUtils.zoneId.id,
+            dateUtils.zoneId.id
         )
         return CompletableFuture.completedFuture(assetCount.get())
     }
 
     fun refreshPrice(
         assetId: String,
-        date: String = dateUtils.getFormattedDate().toString(),
+        date: String = dateUtils.getFormattedDate().toString()
     ): PriceResponse {
         log.info(
             "Updating Prices {}",
-            LocalDateTime.now(dateUtils.zoneId),
+            LocalDateTime.now(dateUtils.zoneId)
         )
         val asset = assetService.find(assetId)
         val priceRequest =
             PriceRequest.of(
                 assetHydrationService.hydrateAsset(asset),
-                date,
+                date
             )
         marketDataService.refresh(
             asset,
-            date,
+            date
         )
         val response = marketDataService.getPriceResponse(priceRequest)
         log.info(
-            "Refreshed asset price for ${asset.name} ",
+            "Refreshed asset price for ${asset.name} "
         )
         return response
     }

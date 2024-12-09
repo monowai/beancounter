@@ -48,12 +48,12 @@ class PortfolioExceptionTests {
     @Autowired
     fun getToken(
         mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
+        mockAuthConfig: MockAuthConfig
     ): Jwt {
         token =
             RegistrationUtils.registerUser(
                 mockMvc,
-                mockAuthConfig.getUserToken(SystemUser()),
+                mockAuthConfig.getUserToken(SystemUser())
             )
         return token
     }
@@ -66,9 +66,9 @@ class PortfolioExceptionTests {
                 MockMvcRequestBuilders
                     .get(
                         PORTFOLIO_BY_CODE,
-                        "does not exist",
+                        "does not exist"
                     ).with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .contentType(MediaType.APPLICATION_JSON),
+                    .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
     }
@@ -80,10 +80,10 @@ class PortfolioExceptionTests {
                 MockMvcRequestBuilders
                     .get(
                         PORTFOLIO_BY_ID,
-                        "invalidId",
+                        "invalidId"
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .contentType(MediaType.APPLICATION_JSON),
+                    .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
     }
@@ -96,7 +96,7 @@ class PortfolioExceptionTests {
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),
                 "is_UniqueConstraintInPlace",
                 Constants.USD.code,
-                Constants.NZD.code,
+                Constants.NZD.code
             )
         // Code and Owner are the same so, reject
         // Can't create two portfolios with the same code
@@ -107,18 +107,18 @@ class PortfolioExceptionTests {
                         .post(BcMvcHelper.PORTFOLIO_ROOT)
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .with(
-                            SecurityMockMvcRequestPostProcessors.csrf(),
+                            SecurityMockMvcRequestPostProcessors.csrf()
                         ).content(
                             objectMapper
                                 .writeValueAsBytes(
                                     PortfoliosRequest(
                                         arrayListOf(
                                             portfolioInput,
-                                            portfolioInput,
-                                        ),
-                                    ),
-                                ),
-                        ).contentType(MediaType.APPLICATION_JSON),
+                                            portfolioInput
+                                        )
+                                    )
+                                )
+                        ).contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isConflict)
                 .andReturn()
         assertThat(result.resolvedException!!)
@@ -131,7 +131,7 @@ class PortfolioExceptionTests {
     @Test
     @WithMockUser(
         username = "unregisteredUser",
-        authorities = [AuthConstants.SCOPE_BC],
+        authorities = [AuthConstants.SCOPE_BC]
     )
     fun unregisteredUserRejected() {
         val portfolioInput =
@@ -139,7 +139,7 @@ class PortfolioExceptionTests {
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),
                 "is_UnregisteredUserRejected",
                 Constants.USD.code,
-                Constants.NZD.code,
+                Constants.NZD.code
             )
         // Authenticated, but unregistered user can't create portfolios
         mockMvc
@@ -149,8 +149,8 @@ class PortfolioExceptionTests {
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
                     .content(
                         objectMapper
-                            .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput))),
-                    ).contentType(MediaType.APPLICATION_JSON),
+                            .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput)))
+                    ).contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
     }

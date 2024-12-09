@@ -33,14 +33,14 @@ internal class TestPositions {
         val asset =
             getJsonAsset(
                 "MARKET",
-                "TEST",
+                "TEST"
             )
         val positions =
             Positions(
                 PortfolioUtils.getPortfolio(
                     "T",
-                    SGD,
-                ),
+                    SGD
+                )
             )
         val position = positions.add(Position(asset))
 
@@ -48,13 +48,13 @@ internal class TestPositions {
             position
                 .getMoneyValues(
                     Position.In.TRADE,
-                    asset.market.currency,
-                ).currency,
+                    asset.market.currency
+                ).currency
         ).isEqualTo(USD)
         position
             .getMoneyValues(
                 Position.In.TRADE,
-                asset.market.currency,
+                asset.market.currency
             ).dividends =
             BigDecimal("100")
         position.quantityValues.purchased = BigDecimal(200)
@@ -83,16 +83,16 @@ internal class TestPositions {
         val usdAsset =
             Asset(
                 code = "USDAsset",
-                market = Market("USMarket"),
+                market = Market("USMarket")
             )
         val nzdAsset =
             Asset(
                 code = "NZDAsset",
                 market =
-                Market(
-                    "NZMarket",
-                    NZD.code,
-                ),
+                    Market(
+                        "NZMarket",
+                        NZD.code
+                    )
             )
         val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))
         assertThat(positions.isMixedCurrencies).isFalse
@@ -107,7 +107,7 @@ internal class TestPositions {
         val asset =
             getTestAsset(
                 Market("Code"),
-                "Dates",
+                "Dates"
             )
         val expectedDate = "2018-12-01"
         val firstTradeDate = dateUtils.getFormattedDate(expectedDate)
@@ -116,19 +116,19 @@ internal class TestPositions {
         var position =
             positions.getOrCreate(
                 asset,
-                firstTradeDate,
+                firstTradeDate
             )
         positions.add(position)
         // Calling this should not set the "first" trade date.
         position =
             positions.getOrCreate(
                 asset,
-                secondTradeDate,
+                secondTradeDate
             )
         assertThat(position.dateValues)
             .hasFieldOrPropertyWithValue(
                 "opened",
-                dateUtils.getFormattedDate(expectedDate),
+                dateUtils.getFormattedDate(expectedDate)
             )
     }
 
@@ -138,12 +138,12 @@ internal class TestPositions {
         val asset =
             getTestAsset(
                 NYSE,
-                "AnyCode",
+                "AnyCode"
             )
         val position = positions.getOrCreate(asset)
         assertThat(position).isNotNull.hasFieldOrPropertyWithValue(
             "asset",
-            asset,
+            asset
         )
     }
 
@@ -156,24 +156,24 @@ internal class TestPositions {
                 id = "any",
                 trnType = TrnType.BUY,
                 asset =
-                getJsonAsset(
-                    "RandomMarket",
-                    "Blah",
-                ),
-                portfolio = PortfolioUtils.getPortfolio(),
+                    getJsonAsset(
+                        "RandomMarket",
+                        "Blah"
+                    ),
+                portfolio = PortfolioUtils.getPortfolio()
             )
         trns.add(trn)
         val positionRequest =
             PositionRequest(
                 "TWEE",
-                trns,
+                trns
             )
 
         val json = objectMapper.writeValueAsString(positionRequest)
         val fromJson =
             objectMapper.readValue(
                 json,
-                PositionRequest::class.java,
+                PositionRequest::class.java
             )
         assertThat(fromJson.portfolioId).isEqualTo(positionRequest.portfolioId)
         assertThat(fromJson.trns).hasSize(positionRequest.trns.size)
@@ -188,7 +188,7 @@ internal class TestPositions {
         val totals =
             Totals(
                 USD,
-                BigDecimal("200.99"),
+                BigDecimal("200.99")
             )
         val json = objectMapper.writeValueAsString(totals)
         val fromJson = objectMapper.readValue<Totals>(json)

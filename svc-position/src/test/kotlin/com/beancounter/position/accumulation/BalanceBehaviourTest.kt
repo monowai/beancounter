@@ -33,7 +33,7 @@ class BalanceBehaviourTest {
             Portfolio(
                 Constants.TEST,
                 currency = USD,
-                base = NZD,
+                base = NZD
             )
         val trn =
             Trn(
@@ -44,48 +44,48 @@ class BalanceBehaviourTest {
                 tradeCashRate = BigDecimal.ONE,
                 tradeBaseRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal("0.56"),
-                portfolio = portfolio,
+                portfolio = portfolio
             )
         val positions = Positions(portfolio)
         val position =
             accumulator.accumulate(
                 trn,
-                positions,
+                positions
             )
         val usCost = BigDecimal("-5600.00")
         assertThat(
-            position.getMoneyValues(Position.In.PORTFOLIO),
+            position.getMoneyValues(Position.In.PORTFOLIO)
         ).hasFieldOrPropertyWithValue(
             PROP_CURRENCY,
-            USD,
+            USD
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            usCost,
+            usCost
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            usCost,
+            usCost
         ).hasFieldOrPropertyWithValue(
             PROP_AVERAGE_COST,
-            trn.tradePortfolioRate,
+            trn.tradePortfolioRate
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
-            usCost,
+            usCost
         )
 
         assertThat(
-            position.getMoneyValues(Position.In.BASE),
+            position.getMoneyValues(Position.In.BASE)
         ).hasFieldOrPropertyWithValue(
             PROP_CURRENCY,
-            NZD,
+            NZD
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity,
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.quantity,
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
-            trn.quantity,
+            trn.quantity
         )
     }
 }

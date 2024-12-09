@@ -26,25 +26,25 @@ class PeriodicCashFlowsTests {
                     LocalDate.of(
                         2022,
                         1,
-                        1,
-                    ),
+                        1
+                    )
                 ),
                 CashFlow(
                     200.0,
                     LocalDate.of(
                         2022,
                         1,
-                        2,
-                    ),
+                        2
+                    )
                 ),
                 CashFlow(
                     300.0,
                     LocalDate.of(
                         2022,
                         1,
-                        3,
-                    ),
-                ),
+                        3
+                    )
+                )
             )
 
         val cashFlows2 =
@@ -54,25 +54,25 @@ class PeriodicCashFlowsTests {
                     LocalDate.of(
                         2022,
                         1,
-                        1,
-                    ),
+                        1
+                    )
                 ),
                 CashFlow(
                     500.0,
                     LocalDate.of(
                         2022,
                         1,
-                        2,
-                    ),
+                        2
+                    )
                 ),
                 CashFlow(
                     600.0,
                     LocalDate.of(
                         2022,
                         1,
-                        3,
-                    ),
-                ),
+                        3
+                    )
+                )
             )
 
         periodicCashFlows.addAll(cashFlows1)
@@ -85,30 +85,30 @@ class PeriodicCashFlowsTests {
                     LocalDate.of(
                         2022,
                         1,
-                        1,
-                    ),
+                        1
+                    )
                 ),
                 CashFlow(
                     700.0,
                     LocalDate.of(
                         2022,
                         1,
-                        2,
-                    ),
+                        2
+                    )
                 ),
                 CashFlow(
                     900.0,
                     LocalDate.of(
                         2022,
                         1,
-                        3,
-                    ),
-                ),
+                        3
+                    )
+                )
             )
 
         assertEquals(
             expectedCashFlows,
-            periodicCashFlows.cashFlows,
+            periodicCashFlows.cashFlows
         )
     }
 
@@ -118,16 +118,16 @@ class PeriodicCashFlowsTests {
         periodicCashFlows.add(
             Trn(
                 asset =
-                AssetUtils.getTestAsset(
-                    Constants.US,
-                    "CODE",
-                ),
+                    AssetUtils.getTestAsset(
+                        Constants.US,
+                        "CODE"
+                    ),
                 trnType = TrnType.BUY,
-                tradeAmount = Constants.twoK,
-            ),
+                tradeAmount = Constants.twoK
+            )
         )
         assertThat(periodicCashFlows.cashFlows[0].amount).isEqualTo(
-            Constants.twoK.negate().toDouble(),
+            Constants.twoK.negate().toDouble()
         )
     }
 }

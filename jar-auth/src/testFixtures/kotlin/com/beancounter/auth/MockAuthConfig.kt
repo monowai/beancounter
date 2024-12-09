@@ -25,14 +25,14 @@ import org.springframework.stereotype.Service
 @ConditionalOnProperty(
     value = ["auth.enabled"],
     havingValue = "true",
-    matchIfMissing = false,
+    matchIfMissing = false
 )
 @Import(
     AuthConfig::class,
     LoginService::class,
     TokenService::class,
     TokenUtils::class,
-    AuthUtilService::class,
+    AuthUtilService::class
 )
 class MockAuthConfig {
     @MockBean
@@ -62,9 +62,9 @@ class MockAuthConfig {
             SystemUser(
                 email,
                 email,
-                auth0 = "auth0",
+                auth0 = "auth0"
             ),
-            null,
+            null
         )
 
     /**
@@ -72,7 +72,7 @@ class MockAuthConfig {
      */
     fun login(
         systemUser: SystemUser,
-        registrationService: Registration?,
+        registrationService: Registration?
     ): Jwt {
         val jwt = getUserToken(systemUser)
         Mockito.`when`(jwtDecoder.decode(systemUser.email)).thenReturn(jwt)
@@ -84,7 +84,7 @@ class MockAuthConfig {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "subject",
-                systemUser.id,
+                systemUser.id
             )
         registrationService?.register(systemUser)
         return token

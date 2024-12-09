@@ -8,13 +8,13 @@ package com.beancounter.common.exception
  */
 class SystemException(
     reason: String?,
-    throwable: Throwable? = null,
+    throwable: Throwable? = null
 ) : RuntimeException(
-    reason,
-    throwable,
-) {
+        reason,
+        throwable
+    ) {
     constructor(reason: String?) : this(
         reason,
-        null,
+        null
     )
 }

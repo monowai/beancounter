@@ -18,20 +18,20 @@ class AssetKeyUtils {
         fun toKey(asset: Asset): String =
             toKey(
                 asset.code,
-                asset.market.code,
+                asset.market.code
             )
 
         @JvmStatic
         fun toKey(asset: AssetInput): String =
             toKey(
                 asset.code,
-                asset.market,
+                asset.market
             )
 
         @JvmStatic
         fun toKey(
             asset: String,
-            market: String,
+            market: String
         ): String = "$asset:$market"
     }
 }

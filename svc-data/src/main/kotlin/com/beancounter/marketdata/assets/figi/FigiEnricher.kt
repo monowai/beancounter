@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class FigiEnricher(
-    val defaultEnricher: DefaultEnricher,
+    val defaultEnricher: DefaultEnricher
 ) : AssetEnricher {
     private lateinit var figiProxy: FigiProxy
 
@@ -26,16 +26,16 @@ class FigiEnricher(
     override fun enrich(
         id: String,
         market: Market,
-        assetInput: AssetInput,
+        assetInput: AssetInput
     ): Asset =
         figiProxy.find(
             market,
             assetInput.code,
-            id = id,
+            id = id
         ) ?: defaultEnricher.enrich(
             id,
             market,
-            assetInput,
+            assetInput
         )
 
     override fun canEnrich(asset: Asset): Boolean = asset.name == null

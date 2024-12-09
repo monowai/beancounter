@@ -40,8 +40,8 @@ import java.util.Locale
         TradeCalculator::class,
         CashServices::class,
         MarketConfig::class,
-        KeyGenUtils::class,
-    ],
+        KeyGenUtils::class
+    ]
 )
 internal class TrnAdapterTest {
     @MockBean
@@ -105,7 +105,7 @@ internal class TrnAdapterTest {
                 CallerRef(
                     portfolioId.uppercase(Locale.getDefault()),
                     one,
-                    one,
+                    one
                 ),
                 assetId = asset.id,
                 trnType = TrnType.BUY,
@@ -113,17 +113,17 @@ internal class TrnAdapterTest {
                 price = price,
                 tradeCurrency = USD.code,
                 cashAssetId =
-                toKey(
-                    "USD-X",
-                    "USER",
-                ),
+                    toKey(
+                        "USD-X",
+                        "USER"
+                    ),
                 tradeDate = theDate,
                 cashAmount = BigDecimal("100.99"),
                 cashCurrency = USD.code,
                 tradeCashRate = BigDecimal("1.99"),
                 tradePortfolioRate = price,
                 tradeBaseRate = BigDecimal.ONE,
-                comments = "Comment",
+                comments = "Comment"
             )
         // TradeAmount should be computed for a buy
         trnInput.settleDate = theDate
@@ -131,70 +131,70 @@ internal class TrnAdapterTest {
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput),
+                arrayOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(
                 portfolioService.find(portfolioId),
-                trnRequest,
+                trnRequest
             )
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 tradeDateProp,
-                trnInput.tradeDate,
+                trnInput.tradeDate
             ).hasFieldOrPropertyWithValue(
                 "settleDate",
-                trnInput.settleDate,
+                trnInput.settleDate
             ).hasFieldOrPropertyWithValue(
                 "fees",
-                trnInput.fees,
+                trnInput.fees
             ).hasFieldOrPropertyWithValue(
                 "cashAmount",
-                trnInput.cashAmount,
+                trnInput.cashAmount
             ).hasFieldOrPropertyWithValue(
                 priceProp,
-                trnInput.price,
+                trnInput.price
             ).hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION,
+                Trn.LATEST_VERSION
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
-                trnInput.tradeBaseRate,
+                trnInput.tradeBaseRate
             ).hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                trnInput.tradeCashRate,
+                trnInput.tradeCashRate
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                trnInput.tradePortfolioRate,
+                trnInput.tradePortfolioRate
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
-                trnInput.tradeBaseRate,
+                trnInput.tradeBaseRate
             ).hasFieldOrPropertyWithValue(
                 "tradeCurrency.code",
-                trnInput.tradeCurrency,
+                trnInput.tradeCurrency
             ).hasFieldOrPropertyWithValue(
                 "cashAsset.priceSymbol",
-                trnInput.tradeCurrency,
+                trnInput.tradeCurrency
             ).hasFieldOrPropertyWithValue(
                 "cashCurrency.code",
-                trnInput.tradeCurrency,
+                trnInput.tradeCurrency
             ).hasFieldOrPropertyWithValue(
                 tradeAmountProp,
-                BigDecimal("109.90"),
+                BigDecimal("109.90")
             ).hasFieldOrPropertyWithValue(
                 trnTypeProp,
-                trnInput.trnType,
+                trnInput.trnType
             ).hasFieldOrPropertyWithValue(
                 commentsProp,
-                trnInput.comments,
+                trnInput.comments
             )
     }
 
@@ -206,7 +206,7 @@ internal class TrnAdapterTest {
                 CallerRef(
                     portfolioId.uppercase(Locale.getDefault()),
                     one,
-                    one,
+                    one
                 ),
                 asset.id,
                 trnType = TrnType.DIVI,
@@ -215,46 +215,46 @@ internal class TrnAdapterTest {
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ZERO,
                 tradePortfolioRate = BigDecimal.ONE,
-                tradeAmount = tradeAmount,
+                tradeAmount = tradeAmount
             )
 
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput),
+                arrayOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(
                 portfolioService.find(portfolioId),
-                trnRequest,
+                trnRequest
             )
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 tradeDateProp,
-                trnInput.tradeDate,
+                trnInput.tradeDate
             ).hasFieldOrPropertyWithValue(
                 priceProp,
-                trnInput.price,
+                trnInput.price
             ).hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION,
+                Trn.LATEST_VERSION
             ).hasFieldOrPropertyWithValue(
                 tradeAmountProp,
-                tradeAmount,
+                tradeAmount
             ).hasFieldOrPropertyWithValue(
                 trnTypeProp,
-                trnInput.trnType,
+                trnInput.trnType
             ).hasFieldOrPropertyWithValue(
                 commentsProp,
-                trnInput.comments,
+                trnInput.comments
             )
     }
 
@@ -266,7 +266,7 @@ internal class TrnAdapterTest {
                 CallerRef(
                     portfolioId.uppercase(Locale.getDefault()),
                     one,
-                    one,
+                    one
                 ),
                 asset.id,
                 trnType = TrnType.BUY,
@@ -275,46 +275,46 @@ internal class TrnAdapterTest {
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ZERO,
                 tradePortfolioRate = BigDecimal.ONE,
-                tradeAmount = tradeAmount,
+                tradeAmount = tradeAmount
             )
 
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput),
+                arrayOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(
                 portfolioService.find(portfolioId),
-                trnRequest,
+                trnRequest
             )
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 tradeDateProp,
-                trnInput.tradeDate,
+                trnInput.tradeDate
             ).hasFieldOrPropertyWithValue(
                 priceProp,
-                trnInput.price,
+                trnInput.price
             ).hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION,
+                Trn.LATEST_VERSION
             ).hasFieldOrPropertyWithValue(
                 tradeAmountProp,
-                tradeAmount,
+                tradeAmount
             ).hasFieldOrPropertyWithValue(
                 trnTypeProp,
-                trnInput.trnType,
+                trnInput.trnType
             ).hasFieldOrPropertyWithValue(
                 commentsProp,
-                trnInput.comments,
+                trnInput.comments
             )
     }
 
@@ -325,48 +325,48 @@ internal class TrnAdapterTest {
                 CallerRef(
                     portfolioId.uppercase(Locale.getDefault()),
                     one,
-                    one,
+                    one
                 ),
                 asset.id,
                 trnType = TrnType.SPLIT,
                 quantity = BigDecimal.TEN,
-                price = price,
+                price = price
             )
 
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput),
+                arrayOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(
                 portfolioService.find(portfolioId),
-                trnRequest,
+                trnRequest
             )
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 tradeDateProp,
-                trnInput.tradeDate,
+                trnInput.tradeDate
             ).hasFieldOrPropertyWithValue(
                 priceProp,
-                trnInput.price,
+                trnInput.price
             ).hasFieldOrPropertyWithValue(
                 quantityProp,
-                trnInput.quantity,
+                trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION,
+                Trn.LATEST_VERSION
             ).hasFieldOrPropertyWithValue(
                 trnTypeProp,
-                trnInput.trnType,
+                trnInput.trnType
             ).hasFieldOrPropertyWithValue(
                 commentsProp,
-                trnInput.comments,
+                trnInput.comments
             )
     }
 }

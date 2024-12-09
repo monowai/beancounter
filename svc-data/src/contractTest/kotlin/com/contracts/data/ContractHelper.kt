@@ -12,7 +12,7 @@ import org.springframework.core.io.ClassPathResource
  * Authentication helper to resolve 401s with MVC mocking.
  */
 class ContractHelper(
-    private val authUtilService: AuthUtilService,
+    private val authUtilService: AuthUtilService
 ) {
     companion object {
         @JvmStatic
@@ -21,7 +21,7 @@ class ContractHelper(
             val response =
                 objectMapper.readValue(
                     jsonFile,
-                    RegistrationResponse::class.java,
+                    RegistrationResponse::class.java
                 )
             return response.data
         }
@@ -29,19 +29,19 @@ class ContractHelper(
 
     fun defaultUser(
         systemUser: SystemUser = getSystemUser(),
-        systemUserService: SystemUserService,
+        systemUserService: SystemUserService
     ): SystemUser {
         authUtilService.authenticate(systemUser)
 
         Mockito
             .`when`(
                 systemUserService
-                    .find(systemUser.email),
+                    .find(systemUser.email)
             ).thenReturn(systemUser)
         Mockito
             .`when`(
                 systemUserService
-                    .getActiveUser(),
+                    .getActiveUser()
             ).thenReturn(systemUser)
 
         return systemUser

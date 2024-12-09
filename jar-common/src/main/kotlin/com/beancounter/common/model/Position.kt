@@ -13,11 +13,11 @@ import java.util.EnumMap
 class Position(
     val asset: Asset,
     portfolio: Portfolio?,
-    tradeCurrency: Currency = asset.market.currency,
+    tradeCurrency: Currency = asset.market.currency
 ) {
     constructor(asset: Asset) : this(
         asset,
-        null,
+        null
     )
 
     @JsonIgnore
@@ -32,22 +32,22 @@ class Position(
     enum class In {
         TRADE,
         PORTFOLIO,
-        BASE,
+        BASE
     }
 
     init {
         getMoneyValues(
             In.TRADE,
-            tradeCurrency,
+            tradeCurrency
         )
         if (portfolio != null) {
             getMoneyValues(
                 In.PORTFOLIO,
-                portfolio.currency,
+                portfolio.currency
             )
             getMoneyValues(
                 In.BASE,
-                portfolio.base,
+                portfolio.base
             )
         }
     }
@@ -62,7 +62,7 @@ class Position(
     @JsonIgnore
     fun getMoneyValues(
         reportCurrency: In,
-        currency: Currency,
+        currency: Currency
     ): MoneyValues = moneyValues.getOrPut(reportCurrency) { MoneyValues(currency) }
 
     @JsonIgnore

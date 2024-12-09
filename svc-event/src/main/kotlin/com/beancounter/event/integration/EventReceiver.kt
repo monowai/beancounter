@@ -12,15 +12,15 @@ import org.springframework.stereotype.Controller
  */
 @ConditionalOnProperty(
     value = ["kafka.enabled"],
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 @Controller
 class EventReceiver(
-    private val eventService: EventService,
+    private val eventService: EventService
 ) {
     @KafkaListener(
         topics = ["#{@caTopic}"],
-        errorHandler = "bcErrorHandler",
+        errorHandler = "bcErrorHandler"
     )
     fun processMessage(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> =
         eventService.process(eventRequest)

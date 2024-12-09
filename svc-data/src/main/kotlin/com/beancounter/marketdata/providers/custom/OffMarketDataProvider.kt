@@ -22,39 +22,39 @@ import java.time.LocalDate
 @Service
 class OffMarketDataProvider(
     val marketDataRepo: MarketDataRepo,
-    val dateUtils: DateUtils,
+    val dateUtils: DateUtils
 ) : MarketDataPriceProvider {
     private fun getMarketData(
         asset: Asset,
-        defaultPrice: BigDecimal,
+        defaultPrice: BigDecimal
     ): MarketData {
         val closest =
             marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(
                 asset,
-                priceDate,
+                priceDate
             )
         return if (closest.isPresent) {
             getMarketData(
                 asset,
-                closest.get(),
+                closest.get()
             )
         } else {
             MarketData(
                 asset,
                 priceDate,
-                close = defaultPrice,
+                close = defaultPrice
             )
         }
     }
 
     fun getMarketData(
         asset: Asset,
-        from: MarketData,
+        from: MarketData
     ): MarketData =
         MarketData(
             asset,
             close = from.close,
-            priceDate = priceDate,
+            priceDate = priceDate
         )
 
     override fun getMarketData(priceRequest: PriceRequest): List<MarketData> =
@@ -62,7 +62,7 @@ class OffMarketDataProvider(
             resolvedAsset?.let {
                 getMarketData(
                     it,
-                    priceRequest.closePrice,
+                    priceRequest.closePrice
                 )
             }
         }
@@ -72,7 +72,7 @@ class OffMarketDataProvider(
     override fun isMarketSupported(market: Market): Boolean =
         getId().equals(
             market.code,
-            ignoreCase = true,
+            ignoreCase = true
         )
 
     val priceDate: LocalDate
@@ -80,7 +80,7 @@ class OffMarketDataProvider(
 
     override fun getDate(
         market: Market,
-        priceRequest: PriceRequest,
+        priceRequest: PriceRequest
     ): LocalDate = dateUtils.getFormattedDate(priceRequest.date)
 
     override fun backFill(asset: Asset): PriceResponse =

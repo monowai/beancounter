@@ -19,48 +19,48 @@ private const val NONE = "none"
  */
 @Service
 class TokenUtils(
-    val authConfig: AuthConfig,
+    val authConfig: AuthConfig
 ) {
     fun getSystemUserToken(systemUser: SystemUser): Jwt =
         getUserToken(
             systemUser,
-            systemUser.id,
+            systemUser.id
         )
 
     fun getAuth0Token(systemUser: SystemUser): Jwt =
         getUserToken(
             systemUser,
-            systemUser.auth0,
+            systemUser.auth0
         )
 
     fun getGoogleToken(systemUser: SystemUser): Jwt =
         getUserToken(
             systemUser,
-            systemUser.googleId,
+            systemUser.googleId
         )
 
     fun getUserToken(
         systemUser: SystemUser,
-        subject: String,
+        subject: String
     ): Jwt =
         Jwt
             .withTokenValue(systemUser.id)
             .header(
                 ALG,
-                NONE,
+                NONE
             ).subject(subject)
             .claim(
                 authConfig.claimEmail,
-                systemUser.email,
+                systemUser.email
             ).claim(
                 PERMISSIONS,
                 mutableListOf(
                     AuthConstants.APP_NAME,
-                    AuthConstants.USER,
-                ),
+                    AuthConstants.USER
+                )
             ).claim(
                 SCOPE,
-                AuthConstants.SCOPE,
+                AuthConstants.SCOPE
             ).expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
 
@@ -69,18 +69,18 @@ class TokenUtils(
             .withTokenValue(systemUser.id)
             .header(
                 ALG,
-                NONE,
+                NONE
             ).subject(systemUser.id)
             // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
             .claim(
                 PERMISSIONS,
                 mutableListOf(
                     AuthConstants.APP_NAME,
-                    AuthConstants.SYSTEM,
-                ),
+                    AuthConstants.SYSTEM
+                )
             ).claim(
                 SCOPE,
-                AuthConstants.SCOPE,
+                AuthConstants.SCOPE
             ).expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
 
@@ -89,15 +89,15 @@ class TokenUtils(
             .withTokenValue(systemUser.id)
             .header(
                 ALG,
-                NONE,
+                NONE
             ).subject(systemUser.id)
             // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
             .claim(
                 PERMISSIONS,
-                mutableListOf(AuthConstants.APP_NAME),
+                mutableListOf(AuthConstants.APP_NAME)
             ).claim(
                 SCOPE,
-                AuthConstants.SCOPE,
+                AuthConstants.SCOPE
             ).expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
 }

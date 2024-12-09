@@ -33,7 +33,7 @@ class RegistrationControllerTest {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(
             mockMvc,
-            token,
+            token
         )
         mockMvc
             .perform(
@@ -42,7 +42,7 @@ class RegistrationControllerTest {
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
                     .content(objectMapper.writeValueAsString(RegistrationRequest()))
-                    .contentType(MediaType.APPLICATION_JSON),
+                    .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn()
 
@@ -53,7 +53,7 @@ class RegistrationControllerTest {
                         .get("/me")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
                 .andReturn()
 
@@ -65,7 +65,7 @@ class RegistrationControllerTest {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(
             mockMvc,
-            token,
+            token
         )
         val performed =
             mockMvc
@@ -73,7 +73,7 @@ class RegistrationControllerTest {
                     MockMvcRequestBuilders
                         .get("/me")
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
                 .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
@@ -84,7 +84,7 @@ class RegistrationControllerTest {
         val user =
             SystemUser(
                 "is_MeUnregistered",
-                "is_MeUnregistered@testing.com",
+                "is_MeUnregistered@testing.com"
             )
         val token = mockAuthConfig.getUserToken(user)
         val performed =
@@ -94,7 +94,7 @@ class RegistrationControllerTest {
                         .get("/me")
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .contentType(MediaType.APPLICATION_JSON),
+                        .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isForbidden)
                 .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())

@@ -29,7 +29,7 @@ class RoiCalculationTests {
                 .calculateROI(moneyValues)
                 .setScale(
                     2,
-                    RoundingMode.HALF_UP,
+                    RoundingMode.HALF_UP
                 )
         assertThat(result).isEqualTo(expectedROI)
     }
@@ -38,7 +38,7 @@ class RoiCalculationTests {
     val asset =
         AssetUtils.getTestAsset(
             Constants.NASDAQ,
-            "ABC",
+            "ABC"
         )
 
     private fun getCurrentlyHeldValues(): MoneyValues {
@@ -62,7 +62,7 @@ class RoiCalculationTests {
                 .calculateROI(moneyValues)
                 .setScale(
                     2,
-                    RoundingMode.HALF_UP,
+                    RoundingMode.HALF_UP
                 )
         assertThat(result).isEqualTo(expectedROI)
     }

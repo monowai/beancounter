@@ -20,6 +20,6 @@ import org.springframework.context.annotation.Import
     HttpWriter::class,
     ClientConfig::class,
     ShareSightConfig::class,
-    CsvIngester::class,
+    CsvIngester::class
 )
 class IngestionConfig

@@ -5,7 +5,7 @@ package com.beancounter.common.model
  */
 data class IsoCurrencyPair(
     val from: String,
-    val to: String,
+    val to: String
 ) {
     override fun toString(): String = "$from:$to"
 
@@ -29,14 +29,14 @@ data class IsoCurrencyPair(
         @JvmStatic
         fun toPair(
             from: Currency,
-            to: Currency,
+            to: Currency
         ): IsoCurrencyPair? {
             if (from.code == to.code) {
                 return null
             }
             return IsoCurrencyPair(
                 from.code,
-                to.code,
+                to.code
             )
         }
     }

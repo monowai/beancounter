@@ -33,7 +33,7 @@ class TestAlphaEventAdapter {
         val asset =
             getTestAsset(
                 market,
-                KMI,
+                KMI
             )
         assertThat(asset.id).isNotNull
         val quantityValues = QuantityValues()
@@ -50,14 +50,14 @@ class TestAlphaEventAdapter {
                 trnType = TrnType.DIVI,
                 recordDate = onDate,
                 assetId = asset.id,
-                rate = BigDecimal("0.2625"),
+                rate = BigDecimal("0.2625")
             )
         val portfolio = getPortfolio()
         val trnEvent =
             alphaEventAdapter.calculate(
                 portfolio,
                 position,
-                event,
+                event
             )
         assertThat(trnEvent).isNotNull
         assertThat(trnEvent.portfolio).isNotNull
@@ -65,26 +65,26 @@ class TestAlphaEventAdapter {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "assetId",
-                asset.id,
+                asset.id
             ).hasFieldOrPropertyWithValue(
                 "trnType",
-                TrnType.DIVI,
+                TrnType.DIVI
             ).hasFieldOrPropertyWithValue(
                 "status",
-                TrnStatus.PROPOSED,
+                TrnStatus.PROPOSED
             ).hasFieldOrPropertyWithValue(
                 "tradeDate",
-                dateUtils.getFormattedDate("2020-05-19"),
+                dateUtils.getFormattedDate("2020-05-19")
             ).hasFieldOrPropertyWithValue(
                 "price",
-                event.rate,
+                event.rate
             ).hasFieldOrPropertyWithValue(
                 "tax",
-                BigDecimal("6.30"),
+                BigDecimal("6.30")
             ) // @ 30%
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                BigDecimal("14.70"),
+                BigDecimal("14.70")
             )
     }
 
@@ -93,7 +93,7 @@ class TestAlphaEventAdapter {
         val asset =
             getTestAsset(
                 market,
-                KMI,
+                KMI
             )
         assertThat(asset.id).isNotNull
         val dateUtils = DateUtils()
@@ -104,7 +104,7 @@ class TestAlphaEventAdapter {
                 trnType = TrnType.DIVI,
                 recordDate = today,
                 assetId = asset.id,
-                rate = BigDecimal("0.2625"),
+                rate = BigDecimal("0.2625")
             )
         val behaviourFactory = EventBehaviourFactory()
         val portfolio = getPortfolio()
@@ -114,8 +114,8 @@ class TestAlphaEventAdapter {
                 .calculate(
                     portfolio,
                     Position(asset),
-                    event,
-                ).trnInput.trnType,
+                    event
+                ).trnInput.trnType
         ).isEqualTo(TrnType.IGNORE)
     }
 
@@ -125,7 +125,7 @@ class TestAlphaEventAdapter {
         val asset =
             getTestAsset(
                 market,
-                KMI,
+                KMI
             )
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")
@@ -141,14 +141,14 @@ class TestAlphaEventAdapter {
                 trnType = TrnType.SPLIT,
                 recordDate = onDate,
                 assetId = asset.id,
-                split = BigDecimal("10"),
+                split = BigDecimal("10")
             )
         val portfolio = getPortfolio()
         val trnEvent =
             alphaEventAdapter.calculate(
                 portfolio,
                 position,
-                event,
+                event
             )
         assertThat(trnEvent).isNotNull
         assertThat(trnEvent.portfolio).isNotNull
@@ -156,25 +156,25 @@ class TestAlphaEventAdapter {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "assetId",
-                asset.id,
+                asset.id
             ).hasFieldOrPropertyWithValue(
                 "trnType",
-                TrnType.SPLIT,
+                TrnType.SPLIT
             ).hasFieldOrPropertyWithValue(
                 "status",
-                TrnStatus.CONFIRMED,
+                TrnStatus.CONFIRMED
             ).hasFieldOrPropertyWithValue(
                 "tradeDate",
-                onDate,
+                onDate
             ).hasFieldOrPropertyWithValue(
                 "price",
-                BigDecimal("10"),
+                BigDecimal("10")
             ).hasFieldOrPropertyWithValue(
                 "quantity",
-                BigDecimal("10"),
+                BigDecimal("10")
             ).hasFieldOrPropertyWithValue(
                 "tax",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ) // @ 30%
     }
 }

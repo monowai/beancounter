@@ -14,21 +14,21 @@ import java.util.Optional
 interface PortfolioRepository : CrudRepository<Portfolio, String> {
     fun findByCodeAndOwner(
         code: String,
-        systemUser: SystemUser,
+        systemUser: SystemUser
     ): Optional<Portfolio>
 
     fun findByOwner(
         systemUser: SystemUser,
-        sort: Sort = Sort.by(Sort.Order.asc("code")),
+        sort: Sort = Sort.by(Sort.Order.asc("code"))
     ): Iterable<Portfolio>
 
     @Query(
         "select distinct t.portfolio from Trn t " +
             "where (t.asset.id = ?1 and (t.cashAsset.id is null or t.cashAsset.id <> ?1)) " +
-            "and t.tradeDate <= ?2  ",
+            "and t.tradeDate <= ?2  "
     )
     fun findDistinctPortfolioByAssetIdAndTradeDate(
         assetId: String,
-        tradeDate: LocalDate,
+        tradeDate: LocalDate
     ): Collection<Portfolio>
 }

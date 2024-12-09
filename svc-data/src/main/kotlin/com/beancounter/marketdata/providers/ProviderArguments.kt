@@ -14,7 +14,7 @@ import com.beancounter.common.utils.DateUtils
  */
 class ProviderArguments(
     private val dataProviderConfig: DataProviderConfig,
-    private val dateUtils: DateUtils = DateUtils(),
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private var count = 0
     private var currentBatch = 0
@@ -38,7 +38,7 @@ class ProviderArguments(
      */
     fun batchAsset(
         asset: Asset,
-        requestedDate: String,
+        requestedDate: String
     ) {
         val dpKey = dataProviderConfig.getPriceCode(asset)
         dpToBc[dpKey] = asset
@@ -53,7 +53,7 @@ class ProviderArguments(
             datedBatches.getOrPut(currentBatch) {
                 DatedBatch(
                     currentBatch,
-                    valuationDate,
+                    valuationDate
                 )
             }
 
@@ -83,12 +83,12 @@ class ProviderArguments(
         fun getInstance(
             priceRequest: PriceRequest,
             dataProviderConfig: DataProviderConfig,
-            dateUtils: DateUtils = DateUtils(),
+            dateUtils: DateUtils = DateUtils()
         ): ProviderArguments {
             val providerArguments =
                 ProviderArguments(
                     dataProviderConfig,
-                    dateUtils,
+                    dateUtils
                 )
             providerArguments.date = priceRequest.date
 
@@ -100,7 +100,7 @@ class ProviderArguments(
                         // the number of assets per request
                         providerArguments.batchAsset(
                             asset.resolvedAsset!!,
-                            priceRequest.date,
+                            priceRequest.date
                         )
                     }
                 // This looks unnecessary.

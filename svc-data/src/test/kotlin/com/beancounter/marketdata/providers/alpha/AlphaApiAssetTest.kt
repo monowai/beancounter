@@ -21,12 +21,12 @@ internal class AlphaApiAssetTest {
         val jsonFile =
             ClassPathResource(
                 AlphaMockUtils.ALPHA_MOCK +
-                    "/mf-search.json",
+                    "/mf-search.json"
             ).file
         val searchResponse =
             assetMapper.readValue(
                 jsonFile,
-                AssetSearchResponse::class.java,
+                AssetSearchResponse::class.java
             )
         Assertions
             .assertThat(searchResponse)
@@ -39,13 +39,13 @@ internal class AlphaApiAssetTest {
             .assertThat(searchResponse.data.iterator().next())
             .hasFieldOrPropertyWithValue(
                 "name",
-                "AXA Framlington Health Fund Z GBP Acc",
+                "AXA Framlington Health Fund Z GBP Acc"
             ).hasFieldOrPropertyWithValue(
                 "type",
-                "Mutual Fund",
+                "Mutual Fund"
             ).hasFieldOrPropertyWithValue(
                 "symbol",
-                "0P0000XMSV.LON",
+                "0P0000XMSV.LON"
             )
     }
 }

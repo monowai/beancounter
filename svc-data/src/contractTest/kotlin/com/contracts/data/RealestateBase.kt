@@ -49,7 +49,7 @@ import java.math.BigDecimal
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
@@ -122,7 +122,7 @@ class RealestateBase {
         RestAssured.port = Integer.valueOf(port)
         jwt =
             authUtilService.authenticate(
-                systemUser,
+                systemUser
             )
         // Hardcode the id of the system user so we can find it in the off-market asset code
         Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
@@ -145,13 +145,13 @@ class RealestateBase {
             .isNotNull
             .extracting(
                 "id",
-                "code",
+                "code"
             ).containsExactly(
                 assetCode,
                 OffMarketEnricher.parseCode(
                     systemUser = systemUser,
-                    assetCode,
-                ),
+                    assetCode
+                )
             )
 
         assertThat(m1Balance).isNotNull.hasSize(1)
@@ -160,11 +160,11 @@ class RealestateBase {
             .extracting(
                 "id",
                 pTradeAmount,
-                pCashAmount,
+                pCashAmount
             ).containsExactly(
                 m1,
                 tenK.negate(),
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
     }
 
@@ -172,7 +172,7 @@ class RealestateBase {
         val assetInput =
             AssetInput.toCash(
                 NZD,
-                trnId,
+                trnId
             )
         Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
         val asset =
@@ -182,28 +182,28 @@ class RealestateBase {
                         mapOf(
                             Pair(
                                 assetInput.code,
-                                assetInput,
-                            ),
-                        ),
-                    ),
+                                assetInput
+                            )
+                        )
+                    )
                 ).data[assetInput.code]
         Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
         return save(
             portfolio,
             TrnInput(
                 callerRef =
-                CallerRef(
-                    batch = batch,
-                    callerId = keyGenUtils.id,
-                ),
+                    CallerRef(
+                        batch = batch,
+                        callerId = keyGenUtils.id
+                    ),
                 tradeDate = DateUtils().getDate(tradeDate),
                 assetId = asset!!.id,
                 trnType = TrnType.BALANCE,
                 tradeAmount = tenK.negate(),
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal.ONE,
-            ),
+                tradePortfolioRate = BigDecimal.ONE
+            )
         )
     }
 
@@ -214,18 +214,18 @@ class RealestateBase {
                 portfolio,
                 TrnInput(
                     callerRef =
-                    CallerRef(
-                        batch = batch,
-                        callerId = keyGenUtils.id,
-                    ),
+                        CallerRef(
+                            batch = batch,
+                            callerId = keyGenUtils.id
+                        ),
                     tradeDate = DateUtils().getDate(tradeDate),
                     assetId = houseAsset.id,
                     trnType = TrnType.BALANCE,
                     tradeAmount = tenK,
                     tradeBaseRate = BigDecimal.ONE,
                     tradeCashRate = BigDecimal.ONE,
-                    tradePortfolioRate = BigDecimal.ONE,
-                ),
+                    tradePortfolioRate = BigDecimal.ONE
+                )
             )
         assertThat(buy).isNotNull.hasSize(1)
         // Source output for `re-response` contract tests. Need to replace the ID with RE-TEST
@@ -233,11 +233,11 @@ class RealestateBase {
             .extracting(
                 "id",
                 pTradeAmount,
-                pCashAmount,
+                pCashAmount
             ).containsExactly(
                 "1",
                 tenK,
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
 
         Mockito.`when`(keyGenUtils.id).thenReturn("2")
@@ -246,24 +246,24 @@ class RealestateBase {
                 portfolio,
                 TrnInput(
                     callerRef =
-                    CallerRef(
-                        batch = batch,
-                        callerId = keyGenUtils.id,
-                    ),
+                        CallerRef(
+                            batch = batch,
+                            callerId = keyGenUtils.id
+                        ),
                     tradeDate = DateUtils().getDate(tradeDate),
                     assetId = houseAsset.id,
                     trnType = TrnType.BALANCE,
                     tradeAmount = nOneK,
                     tradeBaseRate = BigDecimal.ONE,
                     tradeCashRate = BigDecimal.ONE,
-                    tradePortfolioRate = BigDecimal.ONE,
-                ),
+                    tradePortfolioRate = BigDecimal.ONE
+                )
             )
         assertThat(r).isNotNull.hasSize(1)
         verifyTrn(
             r,
             nOneK,
-            nOneK,
+            nOneK
         )
 
         Mockito.`when`(keyGenUtils.id).thenReturn("3")
@@ -272,41 +272,41 @@ class RealestateBase {
                 portfolio,
                 TrnInput(
                     callerRef =
-                    CallerRef(
-                        batch = batch,
-                        callerId = keyGenUtils.id,
-                    ),
+                        CallerRef(
+                            batch = batch,
+                            callerId = keyGenUtils.id
+                        ),
                     assetId = houseAsset.id,
                     tradeDate = DateUtils().getDate(tradeDate),
                     trnType = TrnType.BALANCE,
                     tradeAmount = oneK,
                     tradeBaseRate = BigDecimal.ONE,
                     tradeCashRate = BigDecimal.ONE,
-                    tradePortfolioRate = BigDecimal.ONE,
-                ),
+                    tradePortfolioRate = BigDecimal.ONE
+                )
             )
         assertThat(i).isNotNull.hasSize(1)
         verifyTrn(
             i,
             oneK,
-            oneK,
+            oneK
         )
     }
 
     private fun verifyTrn(
         r: Collection<Trn>,
         tradeAmount: BigDecimal,
-        quantity: BigDecimal,
+        quantity: BigDecimal
     ) {
         assertThat(r.iterator().next())
             .extracting(
                 pTradeAmount,
                 pQuantity,
-                pCashAmount,
+                pCashAmount
             ).containsExactly(
                 tradeAmount,
                 quantity,
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
     }
 
@@ -316,7 +316,7 @@ class RealestateBase {
                 Constants.USD,
                 assetCode,
                 "NY Apartment",
-                "test-user",
+                "test-user"
             )
         Mockito.`when`(keyGenUtils.id).thenReturn(assetCode)
         return assetService
@@ -325,10 +325,10 @@ class RealestateBase {
                     mapOf(
                         Pair(
                             assetInput.code,
-                            assetInput,
-                        ),
-                    ),
-                ),
+                            assetInput
+                        )
+                    )
+                )
             ).data[assetInput.code]!!
     }
 
@@ -339,13 +339,13 @@ class RealestateBase {
 
     private fun save(
         portfolio: Portfolio,
-        trnInput: TrnInput,
+        trnInput: TrnInput
     ): Collection<Trn> =
         trnService.save(
             portfolio,
             TrnRequest(
                 portfolio.id,
-                arrayOf(trnInput),
-            ),
+                arrayOf(trnInput)
+            )
         )
 }

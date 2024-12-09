@@ -39,12 +39,12 @@ internal class FxRateTests {
                 AUD_NZD,
                 NZD_AUD,
                 AUD_USD,
-                USD_AUD,
+                USD_AUD
             )
         val (rates) =
             FxRateCalculator.compute(
                 currencyPairs = pairs,
-                rateMap = rateTable,
+                rateMap = rateTable
             )
         val audUsd = rates[AUD_USD] // < 1
         val usdAud = rates[USD_AUD] // > 1
@@ -52,13 +52,13 @@ internal class FxRateTests {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "rate",
-                BigDecimal("0.74148222"),
+                BigDecimal("0.74148222")
             )
         assertThat(usdAud)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "rate",
-                usdAud!!.rate,
+                usdAud!!.rate
             )
     }
 
@@ -68,56 +68,56 @@ internal class FxRateTests {
             rates[NZD.code] =
                 getRate(
                     NZD.code,
-                    "1.5536294691",
+                    "1.5536294691"
                 )
             rates[AUD.code] =
                 getRate(
                     AUD.code,
-                    "1.34865",
+                    "1.34865"
                 )
             rates[USD.code] =
                 getRate(
                     USD.code,
-                    "1",
+                    "1"
                 )
             return rates
         }
 
     private fun getRate(
         to: String,
-        rate: String,
+        rate: String
     ): FxRate =
         FxRate(
             from = USD,
             to = Currency(to),
-            rate = BigDecimal(rate),
+            rate = BigDecimal(rate)
         )
 
     companion object {
         private val USD_USD =
             IsoCurrencyPair(
                 USD.code,
-                USD.code,
+                USD.code
             )
         private val AUD_NZD =
             IsoCurrencyPair(
                 AUD.code,
-                NZD.code,
+                NZD.code
             )
         private val NZD_AUD =
             IsoCurrencyPair(
                 NZD.code,
-                AUD.code,
+                AUD.code
             )
         private val AUD_USD =
             IsoCurrencyPair(
                 AUD.code,
-                USD.code,
+                USD.code
             )
         private val USD_AUD =
             IsoCurrencyPair(
                 USD.code,
-                AUD.code,
+                AUD.code
             )
     }
 }

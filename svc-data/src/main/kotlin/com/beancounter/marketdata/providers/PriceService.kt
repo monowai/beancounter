@@ -22,7 +22,7 @@ import java.util.Optional
 @Transactional
 class PriceService internal constructor(
     private val marketDataRepo: MarketDataRepo,
-    private val cashUtils: CashUtils,
+    private val cashUtils: CashUtils
 ) {
     private var eventProducer: EventProducer? = null
 
@@ -34,19 +34,19 @@ class PriceService internal constructor(
     fun getMarketData(
         asset: Asset,
         date: LocalDate,
-        closePrice: BigDecimal = BigDecimal.ZERO,
+        closePrice: BigDecimal = BigDecimal.ZERO
     ): Optional<MarketData> {
         val response =
             marketDataRepo.findByAssetIdAndPriceDate(
                 asset.id,
-                date,
+                date
             )
         if (response.isPresent) return response
         return handleOffMarketPrice(
             asset,
             closePrice,
             date,
-            response,
+            response
         )
     }
 
@@ -54,7 +54,7 @@ class PriceService internal constructor(
         asset: Asset,
         closePrice: BigDecimal,
         date: LocalDate,
-        response: Optional<MarketData>,
+        response: Optional<MarketData>
     ): Optional<MarketData> {
         if (asset.market.code == OffMarketDataProvider.ID && closePrice != BigDecimal.ZERO) {
             val price =
@@ -62,8 +62,8 @@ class PriceService internal constructor(
                     MarketData(
                         asset = asset,
                         close = closePrice,
-                        priceDate = date,
-                    ),
+                        priceDate = date
+                    )
                 )
             return Optional.of(price)
         }
@@ -80,7 +80,7 @@ class PriceService internal constructor(
                 .filter {
                     getMarketData(
                         it.asset,
-                        it.priceDate,
+                        it.priceDate
                     ).isEmpty
                 }
 
@@ -111,10 +111,10 @@ class PriceService internal constructor(
     // In PriceService.kt
     fun getMarketData(
         assets: Collection<Asset>,
-        date: LocalDate,
+        date: LocalDate
     ): List<MarketData> =
         marketDataRepo.findByAssetInAndPriceDate(
             assets,
-            date,
+            date
         )
 }

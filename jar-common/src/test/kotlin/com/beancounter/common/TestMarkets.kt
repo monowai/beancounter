@@ -22,7 +22,7 @@ internal class TestMarkets {
         val nzx =
             Market(
                 "NZX",
-                NZD.code,
+                NZD.code
             )
         val markets: MutableCollection<Market> = ArrayList()
         markets.add(nasdaq)
@@ -33,11 +33,11 @@ internal class TestMarkets {
         val (data) =
             objectMapper.readValue(
                 json,
-                MarketResponse::class.java,
+                MarketResponse::class.java
             )
         assertThat(data).containsExactly(
             nasdaq,
-            nzx,
+            nzx
         )
     }
 
@@ -48,7 +48,7 @@ internal class TestMarkets {
         val marketResponse =
             yamlMapper.readValue(
                 file,
-                MarketResponse::class.java,
+                MarketResponse::class.java
             )
         assertThat(marketResponse).isNotNull
         assertThat(marketResponse.data).hasSize(2)

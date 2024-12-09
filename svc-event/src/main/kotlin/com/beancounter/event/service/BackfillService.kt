@@ -15,7 +15,7 @@ class BackfillService(
     private val portfolioService: PortfolioServiceClient,
     private val positionService: PositionService,
     private val eventService: EventService,
-    private val tokenService: TokenService,
+    private val tokenService: TokenService
 ) {
     private val dateUtils = DateUtils()
     private val dateSplitter = DateSplitter(dateUtils)
@@ -24,17 +24,17 @@ class BackfillService(
     fun backFillEvents(
         portfolioId: String,
         date: String = "today",
-        toDate: String = date,
+        toDate: String = date
     ) {
         val dates =
             dateSplitter.dateRange(
                 date,
-                toDate,
+                toDate
             )
         val portfolio =
             portfolioService.getPortfolioById(
                 portfolioId,
-                tokenService.bearerToken,
+                tokenService.bearerToken
             )
         log.debug("Started backfill code: ${portfolio.code}, id: ${portfolio.id}")
         var eventCount = 0
@@ -42,7 +42,7 @@ class BackfillService(
             val positionResponse =
                 positionService.getPositions(
                     portfolio,
-                    asAtDate.toString(),
+                    asAtDate.toString()
                 )
             val assets: MutableCollection<String> = mutableListOf()
             for (position in positionResponse.data.positions.values) {
@@ -53,7 +53,7 @@ class BackfillService(
             val events =
                 eventService.find(
                     assets,
-                    asAtDate,
+                    asAtDate
                 )
             for (event in events) {
                 log.trace("Publish events: ${events.size}, asAt: $asAtDate")

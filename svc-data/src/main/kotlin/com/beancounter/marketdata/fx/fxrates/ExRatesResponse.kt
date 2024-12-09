@@ -15,10 +15,10 @@ data class ExRatesResponse(
     val base: String,
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = "yyyy-MM-dd",
+        pattern = "yyyy-MM-dd"
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val date: LocalDate,
-    val rates: Map<String, BigDecimal>,
+    val rates: Map<String, BigDecimal>
 )

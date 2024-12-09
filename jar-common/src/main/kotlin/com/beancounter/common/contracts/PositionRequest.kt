@@ -7,5 +7,5 @@ import com.beancounter.common.model.Trn
  */
 data class PositionRequest(
     val portfolioId: String,
-    var trns: Collection<Trn>,
+    var trns: Collection<Trn>
 )

@@ -18,27 +18,27 @@ class ProviderUtilsTest {
         val providerUtils =
             ProviderUtils(
                 Mockito.mock(MdFactory::class.java),
-                Mockito.mock(MarketService::class.java),
+                Mockito.mock(MarketService::class.java)
             )
         val activeAsset =
             Asset(
                 code = "FindMe",
                 market = NASDAQ,
-                status = Status.Active,
+                status = Status.Active
             )
         val inactiveAsset =
             Asset(
                 code = "IgnoreMe",
                 market = NASDAQ,
-                status = Status.Inactive,
+                status = Status.Inactive
             )
         assertThat(
             providerUtils.getInputs(
                 listOf(
                     activeAsset,
-                    inactiveAsset,
-                ),
-            ),
+                    inactiveAsset
+                )
+            )
         ).containsExactly(PriceAsset(activeAsset))
     }
 }

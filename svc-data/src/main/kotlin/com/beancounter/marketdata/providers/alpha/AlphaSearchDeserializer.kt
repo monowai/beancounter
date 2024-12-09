@@ -16,7 +16,7 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
     @Throws(IOException::class)
     override fun deserialize(
         p: JsonParser,
-        context: DeserializationContext,
+        context: DeserializationContext
     ): AssetSearchResponse {
         val results: MutableCollection<AssetSearchResult> = ArrayList()
         val source = p.codec.readTree<JsonNode>(p)
@@ -26,12 +26,12 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
                 mapper.typeFactory
                     .constructCollectionType(
                         ArrayList::class.java,
-                        HashMap::class.java,
+                        HashMap::class.java
                     )
             val rows =
                 mapper.readValue<Collection<Map<String, String>>>(
                     source[BEST_MATCHES].toString(),
-                    collectionType,
+                    collectionType
                 )
             for (row in rows) {
                 val searchResult =
@@ -40,7 +40,7 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
                         row["2. name"]!!,
                         row["3. type"]!!,
                         null,
-                        row["8. currency"],
+                        row["8. currency"]
                     )
                 results.add(searchResult)
             }

@@ -18,11 +18,11 @@ import org.springframework.stereotype.Service
 @Service
 @ConditionalOnProperty(
     value = ["kafka.enabled"],
-    matchIfMissing = false,
+    matchIfMissing = false
 )
 class KafkaTrnProducer(
     private val shareSightFactory: ShareSightFactory,
-    private val kafkaCsvTrnProducer: KafkaTemplate<String, TrustedTrnImportRequest>,
+    private val kafkaCsvTrnProducer: KafkaTemplate<String, TrustedTrnImportRequest>
 ) : TrnWriter {
     private val log = LoggerFactory.getLogger(KafkaTrnProducer::class.java)
 
@@ -34,7 +34,7 @@ class KafkaTrnProducer(
         NewTopic(
             topicTrnCsv,
             1,
-            1.toShort(),
+            1.toShort()
         )
 
     override fun reset() {
@@ -48,12 +48,12 @@ class KafkaTrnProducer(
         val result =
             kafkaCsvTrnProducer.send(
                 topicTrnCsv,
-                trnRequest,
+                trnRequest
             )
         val sendResult = result.get()
         log.trace(
             "recordMetaData: {}",
-            sendResult.recordMetadata.toString(),
+            sendResult.recordMetadata.toString()
         )
     }
 

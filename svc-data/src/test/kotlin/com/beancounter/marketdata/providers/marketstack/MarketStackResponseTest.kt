@@ -34,9 +34,9 @@ class MarketStackResponseTest {
             ZonedDateTime.of(
                 LocalDateTime.parse(
                     "2024-11-29T00:00:00+0000",
-                    DateTimeFormatter.ofPattern(DATE_TIME_FORMAT),
+                    DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)
                 ),
-                ZoneId.of("UTC"),
+                ZoneId.of("UTC")
             )
 
         val jsonFile = ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
@@ -47,7 +47,7 @@ class MarketStackResponseTest {
         response.data.forEach {
             assertThat(it).hasFieldOrPropertyWithValue(
                 "date",
-                compareTo.toLocalDateTime(),
+                compareTo.toLocalDateTime()
             )
         }
     }

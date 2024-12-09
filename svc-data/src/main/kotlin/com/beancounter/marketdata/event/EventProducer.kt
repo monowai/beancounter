@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service
 @Service
 @ConditionalOnProperty(
     value = ["kafka.enabled"],
-    matchIfMissing = true,
+    matchIfMissing = true
 )
 class EventProducer {
     @Value("\${kafka.enabled:true}")
@@ -34,7 +34,7 @@ class EventProducer {
     fun logConfig() {
         log.info(
             "BEANCOUNTER_TOPICS_CA_EVENT: {}",
-            topicEvent,
+            topicEvent
         )
     }
 
@@ -55,16 +55,16 @@ class EventProducer {
                 recordDate = marketData.priceDate,
                 assetId = marketData.asset.id,
                 rate = marketData.dividend,
-                split = marketData.split,
+                split = marketData.split
             )
         log.trace(
             "Dispatch {} ... {}",
             topicEvent,
-            marketData,
+            marketData
         )
         kafkaCaProducer.send(
             topicEvent,
-            TrustedEventInput(corporateEvent),
+            TrustedEventInput(corporateEvent)
         )
     }
 

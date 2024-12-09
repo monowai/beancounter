@@ -47,35 +47,35 @@ class TestAdapters {
 
         row.add(
             ShareSightDividendAdapter.ID,
-            "1",
+            "1"
         )
         row.add(
             ShareSightDividendAdapter.CODE,
-            "market",
+            "market"
         )
         row.add(
             ShareSightDividendAdapter.NAME,
-            "name",
+            "name"
         )
         row.add(
             ShareSightDividendAdapter.DATE,
-            "date",
+            "date"
         )
         row.add(
             ShareSightDividendAdapter.FX_RATE,
-            "A.B",
+            "A.B"
         )
         val request =
             TrustedTrnImportRequest(
                 getPortfolio(),
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val dividendAdapter: TrnAdapter =
             ShareSightDividendAdapter(
                 shareSightConfig,
                 assetIngestService,
-                dateUtils,
+                dateUtils
             )
         Assertions.assertThrows(BusinessException::class.java) { dividendAdapter.from(request) }
     }
@@ -88,14 +88,14 @@ class TestAdapters {
                 "",
                 "",
                 "null",
-                "",
+                ""
             )
 
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 portfolio = getPortfolio(),
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
 
         val tradeAdapter =
@@ -103,11 +103,11 @@ class TestAdapters {
                 shareSightConfig,
                 assetIngestService,
                 dateUtils,
-                tradeCalculator,
+                tradeCalculator
             )
         Assertions.assertThrows(BusinessException::class.java) {
             tradeAdapter.from(
-                trustedTrnImportRequest,
+                trustedTrnImportRequest
             )
         }
     }
@@ -120,24 +120,24 @@ class TestAdapters {
                 "",
                 "",
                 "",
-                "",
+                ""
             )
         val trustedTrnImportRequest =
             TrustedTrnImportRequest(
                 getPortfolio(),
                 importFormat = ImportFormat.SHARESIGHT,
-                row = row,
+                row = row
             )
         val tradeAdapter =
             ShareSightTradeAdapter(
                 shareSightConfig,
                 assetIngestService,
                 dateUtils,
-                tradeCalculator,
+                tradeCalculator
             )
         Assertions.assertThrows(BusinessException::class.java) {
             tradeAdapter.from(
-                trustedTrnImportRequest,
+                trustedTrnImportRequest
             )
         }
     }
@@ -147,42 +147,42 @@ class TestAdapters {
         val row: MutableList<String> = arrayListOf()
         row.add(
             ShareSightTradeAdapter.ID,
-            "1",
+            "1"
         )
         row.add(
             ShareSightTradeAdapter.MARKET,
-            "market",
+            "market"
         ) // Header Row
         row.add(
             ShareSightTradeAdapter.CODE,
-            "code",
+            "code"
         )
         row.add(
             ShareSightTradeAdapter.NAME,
-            "name",
+            "name"
         )
         row.add(
             ShareSightTradeAdapter.TYPE,
-            "BUY",
+            "BUY"
         )
         row.add(
             ShareSightTradeAdapter.DATE,
-            "date",
+            "date"
         )
         row.add(
             ShareSightTradeAdapter.QUANTITY,
-            "quantity",
+            "quantity"
         )
         row.add(
             ShareSightTradeAdapter.PRICE,
-            "price",
+            "price"
         )
         val shareSightTradeAdapter =
             ShareSightTradeAdapter(
                 shareSightConfig,
                 assetIngestService,
                 dateUtils,
-                tradeCalculator,
+                tradeCalculator
             )
         assertThat(shareSightTradeAdapter.isValid(row)).isTrue
     }
@@ -192,85 +192,85 @@ class TestAdapters {
         val row: MutableList<String> = arrayListOf()
         row.add(
             ShareSightTradeAdapter.ID,
-            "1",
+            "1"
         )
         row.add(
             ShareSightTradeAdapter.MARKET,
-            "NYSE",
+            "NYSE"
         ) // Header Row
         row.add(
             ShareSightTradeAdapter.CODE,
-            "ABC",
+            "ABC"
         )
         row.add(
             ShareSightTradeAdapter.NAME,
-            "name",
+            "name"
         )
         row.add(
             ShareSightTradeAdapter.TYPE,
-            "BUY",
+            "BUY"
         )
         row.add(
             ShareSightTradeAdapter.DATE,
-            "23/11/2018",
+            "23/11/2018"
         )
         row.add(
             ShareSightTradeAdapter.QUANTITY,
-            "10",
+            "10"
         )
         row.add(
             ShareSightTradeAdapter.PRICE,
-            "10.0",
+            "10.0"
         )
         row.add(
             ShareSightTradeAdapter.BROKERAGE,
-            "5.0",
+            "5.0"
         )
         row.add(
             ShareSightTradeAdapter.CURRENCY,
-            USD.code,
+            USD.code
         )
         row.add(
             ShareSightTradeAdapter.FX_RATE,
-            "null",
+            "null"
         )
         row.add(
             ShareSightTradeAdapter.VALUE,
-            "null",
+            "null"
         )
         val shareSightTradeAdapter =
             ShareSightTradeAdapter(
                 shareSightConfig,
                 assetIngestService,
                 dateUtils,
-                tradeCalculator,
+                tradeCalculator
             )
         Mockito
             .`when`(
                 assetIngestService.resolveAsset(
                     AssetInput(
                         NYSE.code,
-                        "ABC",
-                    ),
-                ),
+                        "ABC"
+                    )
+                )
             ).thenReturn(
                 getTestAsset(
                     NYSE,
-                    "ABC",
-                ),
+                    "ABC"
+                )
             )
         val result =
             shareSightTradeAdapter.from(
                 TrustedTrnImportRequest(
                     getPortfolio(),
                     importFormat = ImportFormat.SHARESIGHT,
-                    row = row,
-                ),
+                    row = row
+                )
             )
         assertThat(result)
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                BigDecimal("105.00"),
+                BigDecimal("105.00")
             )
     }
 
@@ -279,49 +279,49 @@ class TestAdapters {
         val row: MutableList<String> = arrayListOf()
         row.add(
             ShareSightTradeAdapter.ID,
-            "1",
+            "1"
         )
         row.add(
             ShareSightDividendAdapter.CODE,
-            "code",
+            "code"
         ) // Header Row
         row.add(
             ShareSightDividendAdapter.NAME,
-            "code",
+            "code"
         )
         row.add(
             ShareSightDividendAdapter.DATE,
-            "name",
+            "name"
         )
         row.add(
             ShareSightDividendAdapter.FX_RATE,
-            "1.0",
+            "1.0"
         )
         row.add(
             ShareSightDividendAdapter.CURRENCY,
-            "date",
+            "date"
         )
         row.add(
             ShareSightDividendAdapter.NET,
-            "quantity",
+            "quantity"
         )
         row.add(
             ShareSightDividendAdapter.TAX,
-            "tax",
+            "tax"
         )
         row.add(
             ShareSightDividendAdapter.GROSS,
-            "gross",
+            "gross"
         )
         row.add(
             ShareSightDividendAdapter.COMMENTS,
-            "comments",
+            "comments"
         )
         val dividendAdapter =
             ShareSightDividendAdapter(
                 shareSightConfig,
                 assetIngestService,
-                dateUtils,
+                dateUtils
             )
         assertThat(dividendAdapter.isValid(row)).isTrue
     }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class TrnMigrator(
-    private val fxRateService: FxRateService,
+    private val fxRateService: FxRateService
 ) {
     fun upgrade(trn: Trn): Trn {
         if (trn.version == "2") {
@@ -27,40 +27,40 @@ class TrnMigrator(
             tradeCash =
                 IsoCurrencyPair(
                     trn.tradeCurrency.code,
-                    trn.cashCurrency!!.code,
+                    trn.cashCurrency!!.code
                 )
         }
         val tradePortfolio =
             IsoCurrencyPair(
                 trn.tradeCurrency.code,
-                trn.portfolio.currency.code,
+                trn.portfolio.currency.code
             )
         val tradeBase =
             IsoCurrencyPair(
                 trn.tradeCurrency.code,
-                trn.portfolio.base.code,
+                trn.portfolio.base.code
             )
 
         val rateList =
             if (tradeCash == null) {
                 mutableSetOf(
                     tradePortfolio,
-                    tradeBase,
+                    tradeBase
                 )
             } else {
                 mutableSetOf(
                     tradePortfolio,
                     tradeBase,
-                    tradeCash,
+                    tradeCash
                 )
             }
         val rates =
             fxRateService.getRates(
                 FxRequest(
                     trn.tradeDate.toString(),
-                    rateList,
+                    rateList
                 ),
-                "token",
+                "token"
             )
         trn.tradeBaseRate = rates.data.rates[tradeBase]!!.rate
         trn.tradePortfolioRate = rates.data.rates[tradePortfolio]!!.rate

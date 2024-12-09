@@ -28,16 +28,16 @@ class TrnService(
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
     private val assetService: AssetService,
-    private val systemUserService: SystemUserService,
+    private val systemUserService: SystemUserService
 ) {
     fun getPortfolioTrn(
         portfolio: Portfolio,
-        trnId: String,
+        trnId: String
     ): Collection<Trn> {
         val trn =
             trnRepository.findByPortfolioIdAndId(
                 portfolio.id,
-                trnId,
+                trnId
             )
         val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         if (result.isEmpty) {
@@ -48,25 +48,25 @@ class TrnService(
 
     fun save(
         portfolio: Portfolio,
-        trnRequest: TrnRequest,
+        trnRequest: TrnRequest
     ): Collection<Trn> {
         // Figure out
         val saved =
             trnRepository.saveAll(
                 trnAdapter.convert(
                     portfolio,
-                    trnRequest,
-                ),
+                    trnRequest
+                )
             )
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
         if (trnRequest.data.size == 1) {
             log.debug(
-                "Wrote 1 transaction asset: ${trnRequest.data[0].assetId}, portfolio: ${portfolio.code}",
+                "Wrote 1 transaction asset: ${trnRequest.data[0].assetId}, portfolio: ${portfolio.code}"
             )
         } else {
             log.debug(
-                "Wrote ${results.size}/${trnRequest.data.size} transactions for ${portfolio.code}",
+                "Wrote ${results.size}/${trnRequest.data.size} transactions for ${portfolio.code}"
             )
         }
         return results
@@ -74,13 +74,13 @@ class TrnService(
 
     fun findForPortfolio(
         portfolio: Portfolio,
-        tradeDate: LocalDate,
+        tradeDate: LocalDate
     ): Collection<Trn> {
         val results =
             trnRepository.findByPortfolioId(
                 portfolio.id,
                 tradeDate,
-                Sort.by("tradeDate").and(Sort.by("asset.code")),
+                Sort.by("tradeDate").and(Sort.by("asset.code"))
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
@@ -95,7 +95,7 @@ class TrnService(
     fun purge(portfolio: Portfolio): Long {
         log.debug(
             "Purging transactions for {}",
-            portfolio.code,
+            portfolio.code
         )
         return trnRepository.deleteByPortfolioId(portfolio.id)
     }
@@ -106,7 +106,7 @@ class TrnService(
                 .flatMap {
                     listOfNotNull(
                         assetService.hydrate(it.asset),
-                        assetService.hydrate(it.cashAsset),
+                        assetService.hydrate(it.cashAsset)
                     )
                 }.associateBy { it.id }
 
@@ -123,7 +123,7 @@ class TrnService(
 
     internal fun postProcess(
         trns: Iterable<Trn>,
-        secure: Boolean = true,
+        secure: Boolean = true
     ): Collection<Trn> {
         if (secure) {
             val systemUser = systemUserService.getOrThrow
@@ -131,7 +131,7 @@ class TrnService(
                 trns.filter {
                     portfolioService.isViewable(
                         systemUser,
-                        it.portfolio,
+                        it.portfolio
                     )
                 }
             return postProcess(filteredTrns)
@@ -148,7 +148,7 @@ class TrnService(
             trustedTrnEvent.trnInput.assetId!!,
             trustedTrnEvent.trnInput.trnType,
             start,
-            endDate,
+            endDate
         )
     }
 
@@ -158,8 +158,8 @@ class TrnService(
             throw BusinessException(
                 String.format(
                     "Transaction not found %s",
-                    trnId,
-                ),
+                    trnId
+                )
             )
         }
         val trn = result.get()
@@ -174,18 +174,18 @@ class TrnService(
     fun patch(
         portfolio: Portfolio,
         trnId: String,
-        trnInput: TrnInput,
+        trnInput: TrnInput
     ): TrnResponse {
         val existing =
             getPortfolioTrn(
                 portfolio,
-                trnId,
+                trnId
             )
         val trn =
             trnAdapter.map(
                 portfolio,
                 trnInput,
-                existing.iterator().next(),
+                existing.iterator().next()
             )
         trnRepository.save(trn)
         return TrnResponse(arrayListOf(trn))

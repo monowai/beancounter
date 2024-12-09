@@ -20,7 +20,7 @@ import java.math.BigDecimal
 @Service
 class BuyBehaviour(
     val currencyResolver: CurrencyResolver = CurrencyResolver(),
-    val averageCost: AverageCost = AverageCost(),
+    val averageCost: AverageCost = AverageCost()
 ) : AccumulationStrategy {
     override val supportedType: TrnType
         get() = TrnType.BUY
@@ -28,7 +28,7 @@ class BuyBehaviour(
     override fun accumulate(
         trn: Trn,
         positions: Positions,
-        position: Position,
+        position: Position
     ): Position {
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
         value(
@@ -38,8 +38,8 @@ class BuyBehaviour(
             costRate(
                 TRADE,
                 trn.cashAsset,
-                positions,
-            ),
+                positions
+            )
         )
         // Use cost of cash for Base and Portfolio(?) rate if cash is impacted
         value(
@@ -50,8 +50,8 @@ class BuyBehaviour(
                 PORTFOLIO,
                 trn.cashAsset,
                 positions,
-                trn.tradePortfolioRate,
-            ),
+                trn.tradePortfolioRate
+            )
         )
         value(
             trn,
@@ -61,8 +61,8 @@ class BuyBehaviour(
                 BASE,
                 trn.cashAsset,
                 positions,
-                trn.tradeBaseRate,
-            ),
+                trn.tradeBaseRate
+            )
         )
         return position
     }
@@ -71,7 +71,7 @@ class BuyBehaviour(
         valueIn: Position.In,
         cashAsset: Asset?,
         positions: Positions,
-        defaultRate: BigDecimal = BigDecimal.ONE,
+        defaultRate: BigDecimal = BigDecimal.ONE
     ): BigDecimal {
         if (cashAsset == null) {
             return defaultRate
@@ -86,7 +86,7 @@ class BuyBehaviour(
         trn: Trn,
         position: Position,
         `in`: Position.In,
-        rate: BigDecimal,
+        rate: BigDecimal
     ) {
         val moneyValues =
             position.getMoneyValues(
@@ -94,22 +94,22 @@ class BuyBehaviour(
                 currencyResolver.resolve(
                     `in`,
                     trn.portfolio,
-                    trn.tradeCurrency,
-                ),
+                    trn.tradeCurrency
+                )
             )
         moneyValues.purchases =
             moneyValues.purchases.add(
                 multiply(
                     trn.tradeAmount,
-                    rate,
-                ),
+                    rate
+                )
             )
         moneyValues.costBasis =
             moneyValues.costBasis.add(
                 multiply(
                     trn.tradeAmount,
-                    rate,
-                ),
+                    rate
+                )
             )
         if (moneyValues.costBasis != BigDecimal.ZERO &&
             position.quantityValues
@@ -119,13 +119,13 @@ class BuyBehaviour(
             moneyValues.averageCost =
                 averageCost.value(
                     moneyValues.costBasis,
-                    position.quantityValues.getTotal(),
+                    position.quantityValues.getTotal()
                 )
         }
         moneyValues.costValue =
             averageCost.getCostValue(
                 position,
-                moneyValues,
+                moneyValues
             )
     }
 }

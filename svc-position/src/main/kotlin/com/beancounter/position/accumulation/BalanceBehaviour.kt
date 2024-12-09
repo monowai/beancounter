@@ -15,7 +15,7 @@ import java.math.BigDecimal
  */
 @Service
 class BalanceBehaviour(
-    val currencyResolver: CurrencyResolver,
+    val currencyResolver: CurrencyResolver
 ) : AccumulationStrategy {
     private val cashCost = CashCost()
     override val supportedType: TrnType
@@ -24,7 +24,7 @@ class BalanceBehaviour(
     override fun accumulate(
         trn: Trn,
         positions: Positions,
-        position: Position,
+        position: Position
     ): Position {
         position.quantityValues.purchased = trn.tradeAmount
         cashCost.value(
@@ -32,33 +32,33 @@ class BalanceBehaviour(
                 Position.In.BASE,
                 trn.tradeCurrency,
                 trn.portfolio,
-                position,
+                position
             ),
             position,
             trn.tradeAmount,
-            trn.tradeBaseRate,
+            trn.tradeBaseRate
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.PORTFOLIO,
                 trn.tradeCurrency,
                 trn.portfolio,
-                position,
+                position
             ),
             position,
             trn.tradeAmount,
-            trn.tradePortfolioRate,
+            trn.tradePortfolioRate
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.TRADE,
                 trn.tradeCurrency,
                 trn.portfolio,
-                position,
+                position
             ),
             position,
             trn.tradeAmount,
-            BigDecimal.ONE,
+            BigDecimal.ONE
         ) // Trade to Cash Settlement ?
         return position
     }

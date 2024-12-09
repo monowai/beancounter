@@ -40,7 +40,7 @@ internal class TrnMigratorTest {
             ecbService,
             currencyService,
             marketService,
-            fxRateRepository = fxRateRepository,
+            fxRateRepository = fxRateRepository
         )
     private var trnMigrator = TrnMigrator(fxRateService)
     private val tradeDateStr = "2021-11-11"
@@ -54,9 +54,9 @@ internal class TrnMigratorTest {
                 assetService.findOrCreate(
                     AssetInput(
                         "CASH",
-                        NZD.code,
-                    ),
-                ),
+                        NZD.code
+                    )
+                )
             ).thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
@@ -67,15 +67,15 @@ internal class TrnMigratorTest {
                     from = USD,
                     to = NZD,
                     rate = BigDecimal("2.00"),
-                    date = tradeDate,
+                    date = tradeDate
                 ),
                 FxRate(
                     from = USD,
                     to = USD,
                     rate = BigDecimal("1.00"),
-                    date = tradeDate,
-                ),
-            ),
+                    date = tradeDate
+                )
+            )
         )
     }
 
@@ -94,39 +94,39 @@ internal class TrnMigratorTest {
                 cashAsset = Constants.nzdCashBalance,
                 cashCurrency = NZD,
                 portfolio =
-                Portfolio(
-                    "test",
-                    currency = NZD,
-                    base = USD,
-                ),
-                version = "2",
+                    Portfolio(
+                        "test",
+                        currency = NZD,
+                        base = USD
+                    ),
+                version = "2"
             )
         trnV1.callerRef =
             CallerRef(
                 "ABC",
                 "DEF",
-                "GHI",
+                "GHI"
             )
         val trnV2 = trnMigrator.upgrade(trnV1)
         assertThat(trnV2)
             .hasFieldOrPropertyWithValue(
                 "version",
-                "3",
+                "3"
             ).hasFieldOrPropertyWithValue(
                 "tradeCashRate",
-                BigDecimal("2.00"),
+                BigDecimal("2.00")
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
-                BigDecimal.ONE,
+                BigDecimal.ONE
             ).hasFieldOrPropertyWithValue(
                 "tradePortfolioRate",
-                BigDecimal("2.00"),
+                BigDecimal("2.00")
             ).hasFieldOrPropertyWithValue(
                 "cashAsset",
-                Constants.nzdCashBalance,
+                Constants.nzdCashBalance
             ).hasFieldOrPropertyWithValue(
                 "cashCurrency",
-                NZD,
+                NZD
             )
     }
 }

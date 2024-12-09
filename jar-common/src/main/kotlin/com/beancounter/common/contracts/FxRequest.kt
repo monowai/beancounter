@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
  */
 data class FxRequest(
     val rateDate: String = DateUtils.TODAY,
-    val pairs: MutableSet<IsoCurrencyPair> = mutableSetOf(),
+    val pairs: MutableSet<IsoCurrencyPair> = mutableSetOf()
 ) {
     @JsonIgnore
     var tradePf: IsoCurrencyPair? = null

@@ -34,15 +34,15 @@ internal class FxUtilsTest {
             Position(
                 getTestAsset(
                     NASDAQ,
-                    "Test",
-                ),
+                    "Test"
+                )
             ).asset
         val validCurrency = asset.market.currency
         assertThat(
             toPair(
                 NZD,
-                validCurrency,
-            ),
+                validCurrency
+            )
         ).isNotNull // From != To
     }
 
@@ -51,13 +51,13 @@ internal class FxUtilsTest {
         val portfolio =
             Portfolio(
                 "ABC",
-                currency = SGD,
+                currency = SGD
             )
         val positions = Positions(portfolio)
         val gbpMarket =
             Market(
                 GBP.code,
-                GBP.code,
+                GBP.code
             )
         val usdMarket = Market(USD.code)
 
@@ -65,59 +65,59 @@ internal class FxUtilsTest {
             getPosition(
                 getTestAsset(
                     gbpMarket,
-                    "$GBP.code Asset",
+                    "$GBP.code Asset"
                 ),
-                positions,
-            ),
+                positions
+            )
         )
         positions.add(
             getPosition(
                 getTestAsset(
                     usdMarket,
-                    "$USD.code Asset",
+                    "$USD.code Asset"
                 ),
-                positions,
-            ),
+                positions
+            )
         )
         positions.add(
             getPosition(
                 getTestAsset(
                     usdMarket,
-                    "$USD.code Asset Other",
+                    "$USD.code Asset Other"
                 ),
-                positions,
-            ),
+                positions
+            )
         )
         with(
             fxUtils.buildRequest(
                 USD,
-                positions,
-            ),
+                positions
+            )
         ) {
             assertThat(pairs).hasSize(3)
             assertThat(pairs).containsExactlyInAnyOrder(
                 // TRADE:PF
                 IsoCurrencyPair(
                     USD.code,
-                    SGD.code,
+                    SGD.code
                 ),
                 // PF:TRADE
                 IsoCurrencyPair(
                     GBP.code,
-                    SGD.code,
+                    SGD.code
                 ),
                 // BASE:TRADE
                 IsoCurrencyPair(
                     GBP.code,
-                    USD.code,
-                ),
+                    USD.code
+                )
             )
         }
     }
 
     private fun getPosition(
         asset: Asset,
-        positions: Positions,
+        positions: Positions
     ): Position {
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
         return buyBehaviour.accumulate(
@@ -125,9 +125,9 @@ internal class FxUtilsTest {
                 trnType = TrnType.BUY,
                 asset = asset,
                 quantity = Constants.hundred,
-                tradeAmount = BigDecimal("2000.00"),
+                tradeAmount = BigDecimal("2000.00")
             ),
-            positions,
+            positions
         )
     }
 }

@@ -20,80 +20,80 @@ import java.math.BigDecimal
  * Generate a BC corporate event from an AlphaVantage data row.
  */
 class AlphaEventAdapter(
-    private val taxService: TaxService,
+    private val taxService: TaxService
 ) : Event {
     private val dateUtils = DateUtils()
 
     private fun calculateGross(
         currentPosition: Position?,
-        rate: BigDecimal?,
+        rate: BigDecimal?
     ): BigDecimal =
         nullSafe(
             multiplyAbs(
                 currentPosition!!.quantityValues.getTotal(),
-                rate,
-            ),
+                rate
+            )
         )
 
     private fun calculateTax(
         currentPosition: Position?,
-        gross: BigDecimal?,
+        gross: BigDecimal?
     ): BigDecimal =
         nullSafe(
             multiplyAbs(
                 gross,
                 taxService.getRate(
                     currentPosition!!
-                        .asset.market.currency.code,
-                ),
-            ),
+                        .asset.market.currency.code
+                )
+            )
         )
 
     override fun calculate(
         portfolio: Portfolio,
         currentPosition: Position,
-        corporateEvent: CorporateEvent,
+        corporateEvent: CorporateEvent
     ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
             val trnInput =
                 toDividend(
                     currentPosition,
-                    corporateEvent,
+                    corporateEvent
                 )
                     ?: return TrustedTrnEvent(
                         portfolio,
-                        trnInput = TrnInput(trnType = TrnType.IGNORE),
+                        trnInput = TrnInput(trnType = TrnType.IGNORE)
                     ) // We didn't create anything
             return TrustedTrnEvent(
                 portfolio,
-                trnInput = trnInput,
+                trnInput = trnInput
             )
         } else if (corporateEvent.trnType == TrnType.SPLIT) {
             return TrustedTrnEvent(
                 portfolio,
                 trnInput =
-                toSplit(
-                    currentPosition,
-                    corporateEvent,
-                ),
+                    toSplit(
+                        currentPosition,
+                        corporateEvent
+                    )
             )
         }
         throw SystemException(
             String.format(
                 "Unsupported event type %s",
-                corporateEvent.trnType,
-            ),
+                corporateEvent.trnType
+            )
         )
     }
 
     private fun toSplit(
         currentPosition: Position,
-        corporateEvent: CorporateEvent,
+        corporateEvent: CorporateEvent
     ): TrnInput {
         val callerRef =
             CallerRef(
                 corporateEvent.source,
-                corporateEvent.id!!,
+                corporateEvent.id!!
             )
         return TrnInput(
             callerRef,
@@ -103,13 +103,13 @@ class AlphaEventAdapter(
             tradeDate = corporateEvent.recordDate,
             price = corporateEvent.split,
             status = TrnStatus.CONFIRMED,
-            cashCurrency = currentPosition.asset.market.currency.code,
+            cashCurrency = currentPosition.asset.market.currency.code
         )
     }
 
     private fun toDividend(
         currentPosition: Position,
-        corporateEvent: CorporateEvent,
+        corporateEvent: CorporateEvent
     ): TrnInput? {
         val payDate = corporateEvent.recordDate.plusDays(18)
         if (payDate != null) {
@@ -120,17 +120,17 @@ class AlphaEventAdapter(
         val gross =
             calculateGross(
                 currentPosition,
-                corporateEvent.rate,
+                corporateEvent.rate
             )
         val tax =
             calculateTax(
                 currentPosition,
-                gross,
+                gross
             )
         val callerRef =
             CallerRef(
                 corporateEvent.source,
-                corporateEvent.id!!,
+                corporateEvent.id!!
             )
         return TrnInput(
             callerRef,
@@ -142,7 +142,7 @@ class AlphaEventAdapter(
             price = corporateEvent.rate,
             status = TrnStatus.PROPOSED,
             cashCurrency = currentPosition.asset.market.currency.code,
-            tax = tax,
+            tax = tax
         )
     }
 }

@@ -79,7 +79,7 @@ import org.springframework.web.context.WebApplicationContext
 @SpringBootTest(classes = [MarketDataBoot::class, MockAuthConfig::class])
 @ActiveProfiles(
     "h2db",
-    "alpha",
+    "alpha"
 )
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
@@ -136,7 +136,7 @@ internal class AlphaPriceApiTest {
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(
             mockMvc,
-            token,
+            token
         )
     }
 
@@ -152,12 +152,12 @@ internal class AlphaPriceApiTest {
                         .get(
                             URL_ASSETS_MARKET_CODE,
                             NYSE.code,
-                            code,
+                            code
                         ).with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(token),
-                        ).contentType(MediaType.APPLICATION_JSON),
+                                .jwt(token)
+                        ).contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -165,21 +165,21 @@ internal class AlphaPriceApiTest {
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    AssetResponse::class.java,
+                    AssetResponse::class.java
                 )
         val brkB = "BRK-B"
         assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_CODE,
-                code,
+                code
             ).hasFieldOrProperty(P_MARKET)
             .hasFieldOrPropertyWithValue(
                 P_SYMBOL,
-                brkB,
+                brkB
             ).hasFieldOrPropertyWithValue(
                 P_NAME,
-                "Berkshire Hathaway Inc.",
+                "Berkshire Hathaway Inc."
             )
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(brkB)
     }
@@ -189,16 +189,16 @@ internal class AlphaPriceApiTest {
         val jsonFile = ClassPathResource("${AlphaMockUtils.ALPHA_MOCK}/global-empty.json").file
         AlphaMockUtils.mockGlobalResponse(
             "$API.EMPTY",
-            jsonFile,
+            jsonFile
         )
         val asset =
             Asset(
                 code = API,
                 market =
-                Market(
-                    "EMPTY",
-                    USD.code,
-                ),
+                    Market(
+                        "EMPTY",
+                        USD.code
+                    )
             )
 
         assertNotNull {
@@ -215,17 +215,17 @@ internal class AlphaPriceApiTest {
         val jsonFile = ClassPathResource("${AlphaMockUtils.ALPHA_MOCK}/global-response.json").file
         AlphaMockUtils.mockGlobalResponse(
             MSFT.code,
-            jsonFile,
+            jsonFile
         )
         val nasdaq =
             Market(
                 NASDAQ.code,
-                USD.code,
+                USD.code
             )
         val asset =
             getTestAsset(
                 market = nasdaq,
-                code = MSFT.code,
+                code = MSFT.code
             )
         val priceRequest = of(asset = asset)
         val mdResult =
@@ -235,14 +235,14 @@ internal class AlphaPriceApiTest {
 
         // Coverage - AV does not support this market, but we expect a price
         assertThat(
-            mdFactory.getMarketDataProvider(MarketStackService.ID).isMarketSupported(nasdaq),
+            mdFactory.getMarketDataProvider(MarketStackService.ID).isMarketSupported(nasdaq)
         ).isFalse
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_ASSET,
-                asset,
+                asset
             ).hasFieldOrProperty(P_CLOSE)
             .hasFieldOrProperty(P_OPEN)
             .hasFieldOrProperty(P_LOW)
@@ -256,7 +256,7 @@ internal class AlphaPriceApiTest {
         val asset =
             getTestAsset(
                 code = amp,
-                market = ASX,
+                market = ASX
             )
         val priceRequest = of(asset)
         val mdResult =
@@ -268,7 +268,7 @@ internal class AlphaPriceApiTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 P_ASSET,
-                asset,
+                asset
             ).hasFieldOrProperty(P_CLOSE)
             .hasFieldOrProperty(P_OPEN)
             .hasFieldOrProperty(P_LOW)
@@ -284,11 +284,11 @@ internal class AlphaPriceApiTest {
         val code = "BWLD"
         mockSearchResponse(
             code,
-            ClassPathResource("$mockAlpha/bwld-search.json").file,
+            ClassPathResource("$mockAlpha/bwld-search.json").file
         )
         AlphaMockUtils.mockGlobalResponse(
             code,
-            ClassPathResource("$mockAlpha/price-not-found.json").file,
+            ClassPathResource("$mockAlpha/price-not-found.json").file
         )
         val (data) =
             assetService
@@ -299,18 +299,18 @@ internal class AlphaPriceApiTest {
                                 P_KEY,
                                 AssetInput(
                                     NYSE.code,
-                                    code,
-                                ),
-                            ),
-                        ),
-                    ),
+                                    code
+                                )
+                            )
+                        )
+                    )
                 )
         val asset = data[P_KEY]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult =
             priceService.getMarketData(
                 asset,
-                DateUtils().date,
+                DateUtils().date
             )
         if (priceResult.isPresent) {
             val priceResponse = marketDataService.getPriceResponse(of(asset))
@@ -326,12 +326,12 @@ internal class AlphaPriceApiTest {
         val assetCode = "KMI"
         mockSearchResponse(
             assetCode,
-            ClassPathResource("$mockAlpha/kmi-search.json").file,
+            ClassPathResource("$mockAlpha/kmi-search.json").file
         )
         val file = ClassPathResource("$mockAlpha/kmi-backfill-response.json").file
         mockAdjustedResponse(
             assetCode,
-            file,
+            file
         )
         val asset =
             assetService
@@ -342,11 +342,11 @@ internal class AlphaPriceApiTest {
                                 P_KEY,
                                 AssetInput(
                                     NASDAQ.code,
-                                    assetCode,
-                                ),
-                            ),
-                        ),
-                    ),
+                                    assetCode
+                                )
+                            )
+                        )
+                    )
                 ).data[P_KEY]
         assertThat(asset).isNotNull.hasFieldOrProperty("id")
         marketDataService.backFill(asset!!)
@@ -355,7 +355,7 @@ internal class AlphaPriceApiTest {
             .verify(
                 mockEventProducer,
                 // Found the Dividend request; ignored the prices
-                Mockito.times(1),
+                Mockito.times(1)
             ).write(any())
     }
 }

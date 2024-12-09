@@ -58,16 +58,16 @@ private const val EMAIL = "blah@blah.com"
     partitions = 1,
     topics = [
         StubbedEvents.TRN_EVENT,
-        StubbedEvents.CA_EVENT,
+        StubbedEvents.CA_EVENT
     ],
-    brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"],
+    brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"]
 )
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = [
         "org.beancounter:svc-data:+:stubs:11999",
-        "org.beancounter:svc-position:+:stubs:12999",
-    ],
+        "org.beancounter:svc-position:+:stubs:12999"
+    ]
 )
 @Tag("kafka")
 @SpringBootTest
@@ -101,7 +101,7 @@ class StubbedEvents {
             id = EMAIL,
             email = EMAIL,
             true,
-            since = DateUtils().getFormattedDate("2020-03-08"),
+            since = DateUtils().getFormattedDate("2020-03-08")
         )
 
     @BeforeEach
@@ -116,7 +116,7 @@ class StubbedEvents {
             name = "NZD Portfolio",
             currency = NZD,
             base = USD,
-            owner = systemUser,
+            owner = systemUser
         )
     val caDate = "2020-05-01"
 
@@ -129,12 +129,12 @@ class StubbedEvents {
                 recordDate = DateUtils().getFormattedDate(caDate),
                 source = ALPHA,
                 assetId = "MSFT",
-                rate = BigDecimal("0.2625"),
+                rate = BigDecimal("0.2625")
             )
         val trnEvent =
             positionService.process(
                 portfolio,
-                corporateEvent,
+                corporateEvent
             )
         assertThat(trnEvent.trnInput.trnType).isEqualTo(TrnType.IGNORE)
     }
@@ -145,7 +145,7 @@ class StubbedEvents {
             KafkaTestUtils.consumerProps(
                 "event-test",
                 "false",
-                embeddedKafkaBroker,
+                embeddedKafkaBroker
             )
         consumerProps["session.timeout.ms"] = 6000
         consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
@@ -153,7 +153,7 @@ class StubbedEvents {
         val consumer = cf.createConsumer()
         embeddedKafkaBroker.consumeFromEmbeddedTopics(
             consumer,
-            TRN_EVENT,
+            TRN_EVENT
         )
         val corporateEvent =
             CorporateEvent(
@@ -161,7 +161,7 @@ class StubbedEvents {
                 recordDate = DateUtils().getFormattedDate(caDate),
                 source = ALPHA,
                 assetId = KMI,
-                rate = BigDecimal("0.2625"),
+                rate = BigDecimal("0.2625")
             )
         val eventInput = TrustedEventInput(corporateEvent)
         val trnEvents = eventService.process(eventInput)
@@ -173,8 +173,8 @@ class StubbedEvents {
             trnEvents,
             KafkaTestUtils.getSingleRecord(
                 consumer,
-                TRN_EVENT,
-            ),
+                TRN_EVENT
+            )
         )
         val events = eventService.forAsset(KMI)
         assertThat(events).hasSize(1)
@@ -185,15 +185,15 @@ class StubbedEvents {
             mockMvc
                 .perform(
                     post("/$id")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(
-                    status().isAccepted,
+                    status().isAccepted
                 ).andReturn()
 
         val eventsResponse =
             objectMapper.readValue(
                 mvcResult.response.contentAsString,
-                CorporateEventResponse::class.java,
+                CorporateEventResponse::class.java
             )
         assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
         verify(
@@ -201,17 +201,17 @@ class StubbedEvents {
             trnEvents,
             KafkaTestUtils.getSingleRecord(
                 consumer,
-                TRN_EVENT,
-            ),
+                TRN_EVENT
+            )
         )
         consumer.close()
 
         mockMvc
             .perform(
                 post("/backfill/${portfolio.id}/$caDate/$caDate")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(
-                status().isAccepted,
+                status().isAccepted
             ).andReturn()
 
         Thread.sleep(400)
@@ -219,18 +219,18 @@ class StubbedEvents {
         Mockito
             .verify(
                 backfillService,
-                Mockito.times(1),
+                Mockito.times(1)
             ).backFillEvents(
                 portfolio.id,
                 caDate,
-                caDate,
+                caDate
             )
 
         // Verify that the backfill request is dispatched, but not for cash
         Mockito
             .verify(
                 eventService,
-                Mockito.times(1),
+                Mockito.times(1)
             ).process(any())
     }
 
@@ -238,13 +238,13 @@ class StubbedEvents {
     private fun verify(
         portfolio: Portfolio,
         trnEvents: Collection<TrustedTrnEvent>,
-        consumerRecord: ConsumerRecord<String, String>,
+        consumerRecord: ConsumerRecord<String, String>
     ) {
         assertThat(consumerRecord.value()).isNotNull
         val received =
             objectMapper.readValue(
                 consumerRecord.value(),
-                TrustedTrnEvent::class.java,
+                TrustedTrnEvent::class.java
             )
         val (portfolio1, importFormat, message, trnInput) = trnEvents.iterator().next()
         assertThat(portfolio1)
@@ -257,25 +257,25 @@ class StubbedEvents {
             .hasFieldOrProperty("trnInput")
             .hasFieldOrPropertyWithValue(
                 "portfolio.id",
-                portfolio1.id,
+                portfolio1.id
             )
         assertThat(trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "trnType",
-                TrnType.DIVI,
+                TrnType.DIVI
             ).hasFieldOrPropertyWithValue(
                 "status",
-                TrnStatus.PROPOSED,
+                TrnStatus.PROPOSED
             ).hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                BigDecimal("14.70"),
+                BigDecimal("14.70")
             ).hasFieldOrPropertyWithValue(
                 "tax",
-                BigDecimal("6.30"),
+                BigDecimal("6.30")
             ).hasFieldOrPropertyWithValue(
                 "quantity",
-                BigDecimal("80.0"),
+                BigDecimal("80.0")
             )
     }
 

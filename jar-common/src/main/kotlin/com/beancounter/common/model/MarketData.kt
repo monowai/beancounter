@@ -29,26 +29,26 @@ data class MarketData(
     @ManyToOne var asset: Asset,
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = DateUtils.FORMAT,
+        pattern = DateUtils.FORMAT
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate = LocalDate.now(),
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     )
     var close: BigDecimal = BigDecimal.ZERO,
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     )
     var open: BigDecimal = BigDecimal.ZERO,
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     )
-    var previousClose: BigDecimal = BigDecimal.ZERO,
+    var previousClose: BigDecimal = BigDecimal.ZERO
 ) {
     constructor(
         asset: Asset,
@@ -63,12 +63,12 @@ data class MarketData(
         changePercent: BigDecimal = BigDecimal.ZERO,
         volume: Int = 0,
         dividend: BigDecimal = BigDecimal.ZERO,
-        split: BigDecimal = BigDecimal.ONE,
+        split: BigDecimal = BigDecimal.ONE
     ) : this(
         asset,
         priceDate,
         close,
-        open,
+        open
     ) {
         this.source = source
         this.priceDate = priceDate
@@ -94,38 +94,38 @@ data class MarketData(
 
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     )
     var low: BigDecimal = BigDecimal.ZERO
 
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     )
     var high: BigDecimal = BigDecimal.ZERO
 
     @Column(
         precision = 7,
-        scale = 4,
+        scale = 4
     )
     var change: BigDecimal = BigDecimal.ZERO
 
     @Column(
         precision = 7,
-        scale = 4,
+        scale = 4
     )
     var changePercent: BigDecimal = BigDecimal.ZERO
     var volume: Int = 0
 
     @Column(
         precision = 7,
-        scale = 4,
+        scale = 4
     )
     var dividend: BigDecimal = BigDecimal.ZERO
 
     @Column(
         precision = 7,
-        scale = 4,
+        scale = 4
     )
     var split: BigDecimal = BigDecimal.ONE
 

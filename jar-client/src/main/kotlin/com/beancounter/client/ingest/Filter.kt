@@ -10,7 +10,7 @@ import java.util.Locale
  */
 @Service
 class Filter(
-    @Value("\${filter:#{null}}") filter: String?,
+    @Value("\${filter:#{null}}") filter: String?
 ) {
     private val filteredAssets: MutableCollection<String> = ArrayList()
 

@@ -15,14 +15,14 @@ internal class TestPositionBuckets {
         val positionRequest =
             PositionRequest(
                 "ABC",
-                ArrayList(),
+                ArrayList()
             )
         var json: String = objectMapper.writeValueAsString(positionRequest)
         assertThat(
             objectMapper.readValue(
                 json,
-                PositionRequest::class.java,
-            ),
+                PositionRequest::class.java
+            )
         ).usingRecursiveComparison()
             .isEqualTo(positionRequest)
         val positionResponse = PositionResponse(Positions(getPortfolio()))
@@ -30,8 +30,8 @@ internal class TestPositionBuckets {
         assertThat(
             objectMapper.readValue(
                 json,
-                PositionResponse::class.java,
-            ),
+                PositionResponse::class.java
+            )
         ).isNotNull
             .hasFieldOrProperty(Payload.DATA)
     }

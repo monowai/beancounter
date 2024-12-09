@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 class FxUtils {
     fun buildRequest(
         base: Currency,
-        positions: Positions,
+        positions: Positions
     ): FxRequest {
         val fxRequest = FxRequest(positions.asAt)
         val portfolio = positions.portfolio.currency
@@ -22,14 +22,14 @@ class FxUtils {
             fxRequest.add(
                 toPair(
                     position.getMoneyValues(Position.In.TRADE).currency,
-                    base,
-                ),
+                    base
+                )
             )
             fxRequest.add(
                 toPair(
                     position.getMoneyValues(Position.In.TRADE).currency,
-                    portfolio,
-                ),
+                    portfolio
+                )
             )
         }
         return fxRequest

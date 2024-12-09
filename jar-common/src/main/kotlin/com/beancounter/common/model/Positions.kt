@@ -29,7 +29,7 @@ class Positions(
     val portfolio: Portfolio = PortfolioUtils.getPortfolio(),
     var asAt: String = "today",
     val positions: MutableMap<String, Position> = TreeMap(),
-    val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java),
+    val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java)
 ) {
     @JsonIgnore
     val periodicCashFlows = PeriodicCashFlows()
@@ -66,7 +66,7 @@ class Positions(
     fun getOrCreate(asset: Asset): Position =
         getOrCreate(
             asset,
-            LocalDate.now(),
+            LocalDate.now()
         )
 
     @JsonIgnore
@@ -76,7 +76,7 @@ class Positions(
     fun getOrCreate(
         asset: Asset,
         tradeDate: LocalDate,
-        tradeCurrency: Currency = asset.market.currency,
+        tradeCurrency: Currency = asset.market.currency
     ): Position {
         val firstTrade = !positions.containsKey(toKey(asset))
         val position =
@@ -84,8 +84,8 @@ class Positions(
                 Position(
                     asset,
                     portfolio,
-                    tradeCurrency,
-                ),
+                    tradeCurrency
+                )
             )
         if (firstTrade) {
             position.dateValues.opened = tradeDate
@@ -97,7 +97,7 @@ class Positions(
 
     fun setTotal(
         valueIn: Position.In,
-        totals: Totals,
+        totals: Totals
     ) {
         this.totals[valueIn] = totals
     }
@@ -110,6 +110,6 @@ class Positions(
         getOrCreate(
             trn.asset,
             trn.tradeDate,
-            trn.tradeCurrency,
+            trn.tradeCurrency
         )
 }

@@ -15,12 +15,12 @@ interface AccumulationStrategy {
         trn: Trn,
         positions: Positions,
         // Some strategies mutate multiple positions (FX)
-        position: Position = positions.getOrCreate(trn),
+        position: Position = positions.getOrCreate(trn)
     ): Position
 
     fun getCashPosition(
         trn: Trn,
         position: Position,
-        positions: Positions,
+        positions: Positions
     ) = if (TrnType.isCash(trn.trnType)) position else positions.getOrCreate(trn.cashAsset!!)
 }

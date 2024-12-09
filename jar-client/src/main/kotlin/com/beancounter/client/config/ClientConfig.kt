@@ -35,12 +35,12 @@ import org.springframework.context.annotation.Import
     RegistrationService::class,
     MarketDataClient::class,
     TrnService::class,
-    TokenService::class,
+    TokenService::class
 )
 @EnableFeignClients(basePackages = ["com.beancounter.client"])
 @ImportAutoConfiguration(
     HttpMessageConvertersAutoConfiguration::class,
-    FeignAutoConfiguration::class,
+    FeignAutoConfiguration::class
 )
 @Configuration
 class ClientConfig

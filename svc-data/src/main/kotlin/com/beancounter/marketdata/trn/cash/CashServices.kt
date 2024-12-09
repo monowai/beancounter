@@ -18,11 +18,11 @@ import java.math.BigDecimal
 @Service
 class CashServices(
     val assetService: AssetService,
-    val currencyService: CurrencyService,
+    val currencyService: CurrencyService
 ) {
     fun getCashImpact(
         trnInput: TrnInput,
-        tradeAmount: BigDecimal = trnInput.tradeAmount,
+        tradeAmount: BigDecimal = trnInput.tradeAmount
     ): BigDecimal {
         if (TrnType.isCashImpacted(trnInput.trnType)) {
             if (trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
@@ -32,12 +32,12 @@ class CashServices(
             if (creditsCash.contains(trnInput.trnType)) {
                 return MathUtils.divide(
                     tradeAmount.abs(),
-                    rate,
+                    rate
                 )
             } else if (debitsCash.contains(trnInput.trnType)) {
                 return MathUtils.divide(
                     BigDecimal.ZERO.minus(tradeAmount.abs()),
-                    rate,
+                    rate
                 )
             }
         }
@@ -47,7 +47,7 @@ class CashServices(
     fun getCashAsset(
         trnType: TrnType,
         cashAssetId: String?,
-        cashCurrency: String?,
+        cashCurrency: String?
     ): Asset? {
         if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
@@ -60,8 +60,8 @@ class CashServices(
             return assetService.findOrCreate(
                 AssetInput(
                     CASH,
-                    cashCurrency,
-                ),
+                    cashCurrency
+                )
             )
         }
         return assetService.find(cashAssetId)
@@ -71,7 +71,7 @@ class CashServices(
         getCashAsset(
             trnInput.trnType,
             trnInput.cashAssetId,
-            trnInput.cashCurrency,
+            trnInput.cashCurrency
         )
 
     companion object {

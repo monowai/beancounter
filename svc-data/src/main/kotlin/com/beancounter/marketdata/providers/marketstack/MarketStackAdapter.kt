@@ -29,7 +29,7 @@ class MarketStackAdapter : MarketDataAdapter {
     fun toMarketData(
         providerArguments: ProviderArguments,
         batchId: Int,
-        response: MarketStackResponse,
+        response: MarketStackResponse
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = mutableListOf()
         response.data.forEach { data ->
@@ -37,21 +37,21 @@ class MarketStackAdapter : MarketDataAdapter {
                 log.trace(
                     "{} - {}",
                     response.error.message,
-                    providerArguments.getAssets(batchId),
+                    providerArguments.getAssets(batchId)
                 )
                 results.add(
                     getDefault(
                         providerArguments.getAsset(data.symbol),
                         data.symbol,
-                        providerArguments.date,
-                    ),
+                        providerArguments.date
+                    )
                 )
             } else {
                 results.add(
                     getMarketData(
                         data,
-                        providerArguments,
-                    ),
+                        providerArguments
+                    )
                 )
             }
         }
@@ -60,14 +60,14 @@ class MarketStackAdapter : MarketDataAdapter {
 
     private fun getMarketData(
         marketStackData: MarketStackData,
-        providerArguments: ProviderArguments,
+        providerArguments: ProviderArguments
     ): MarketData {
         val bcAsset = providerArguments.getAsset(marketStackData.symbol)
         if (marketStackData.close == BigDecimal.ZERO) {
             return getDefault(
                 bcAsset,
                 marketStackData.symbol,
-                providerArguments.date,
+                providerArguments.date
             )
         } else {
             val marketData =
@@ -76,7 +76,7 @@ class MarketStackAdapter : MarketDataAdapter {
                     priceDate = marketStackData.date.toLocalDate(),
                     close = marketStackData.close,
                     open = marketStackData.open,
-                    source = MarketStackService.ID,
+                    source = MarketStackService.ID
                 )
             marketData.high = marketStackData.high
             marketData.low = marketStackData.low
@@ -88,35 +88,35 @@ class MarketStackAdapter : MarketDataAdapter {
     fun getMsDefault(
         asset: String,
         exchange: String,
-        date: LocalDateTime,
+        date: LocalDateTime
     ): MarketStackData {
         log.trace(
             "{} - unable to locate a price",
-            asset,
+            asset
         )
         return MarketStackData(
             symbol = asset,
             exchange = exchange,
             date = date,
-            close = BigDecimal.ZERO,
+            close = BigDecimal.ZERO
         )
     }
 
     fun getDefault(
         asset: Asset,
         dpAsset: String,
-        priceDate: String,
+        priceDate: String
     ): MarketData {
         log.trace(
             "{}/{} - unable to locate a price on {}",
             dpAsset,
             asset.name,
-            priceDate,
+            priceDate
         )
         val result =
             MarketData(
                 asset,
-                source = MarketStackService.ID,
+                source = MarketStackService.ID
             )
         result.close = BigDecimal.ZERO
         return result

@@ -64,12 +64,12 @@ class KeyGenUtils {
         bb.put(
             bytes,
             0,
-            16,
+            16
         )
         bb.clear()
         return UUID(
             bb.long,
-            bb.long,
+            bb.long
         )
     }
 
@@ -122,9 +122,9 @@ class KeyGenUtils {
                 val d =
                     i256[s[j++].code] shl 18 or (
                         i256[s[j++].code] shl 12
-                        ) or (
+                    ) or (
                         i256[s[j++].code] shl 6
-                        ) or i256[s[j++].code]
+                    ) or i256[s[j++].code]
 
                 // Put them in these three bytes.
                 bytes[i++] = (d shr 16).toByte()

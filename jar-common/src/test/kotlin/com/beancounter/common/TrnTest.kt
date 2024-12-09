@@ -24,7 +24,7 @@ class TrnTest {
     private val batch =
         DateUtils().getFormattedDate().toString().replace(
             "-",
-            "",
+            ""
         )
 
     @Test
@@ -35,23 +35,23 @@ class TrnTest {
                 id = id,
                 trnType = TrnType.BUY,
                 asset =
-                AssetUtils.getTestAsset(
-                    Constants.NYSE,
-                    simpleRef,
-                ),
-                portfolio = PortfolioUtils.getPortfolio(),
+                    AssetUtils.getTestAsset(
+                        Constants.NYSE,
+                        simpleRef
+                    ),
+                portfolio = PortfolioUtils.getPortfolio()
             )
         val trn =
             Trn(
                 id = id,
                 trnType = TrnType.BUY,
                 asset =
-                AssetUtils.getTestAsset(
-                    Constants.NYSE,
-                    simpleRef,
-                ),
+                    AssetUtils.getTestAsset(
+                        Constants.NYSE,
+                        simpleRef
+                    ),
                 portfolio = PortfolioUtils.getPortfolio(),
-                version = "0",
+                version = "0"
             )
         assertThat(trnDefault)
             .hasFieldOrProperty("version")
@@ -67,7 +67,7 @@ class TrnTest {
             CallerRef(
                 V_PROVIDER,
                 V_BATCH,
-                "456",
+                "456"
             )
         assertThat(CallerRef.from(id)).usingRecursiveComparison().isEqualTo(id)
     }
@@ -79,10 +79,10 @@ class TrnTest {
             .hasNoNullFieldsOrProperties()
             .hasFieldOrPropertyWithValue(
                 V_PROVIDER,
-                "BC",
+                "BC"
             ).hasFieldOrPropertyWithValue(
                 V_BATCH,
-                batch,
+                batch
             ) // Defaults to today
     }
 
@@ -98,39 +98,39 @@ class TrnTest {
             .hasNoNullFieldsOrProperties()
             .hasFieldOrPropertyWithValue(
                 batchProp,
-                batch,
+                batch
             )
         callerRef =
             CallerRef(
                 simpleRef,
                 simpleRef,
-                simpleRef,
+                simpleRef
             )
         assertThat(CallerRef.from(callerRef))
             .hasFieldOrPropertyWithValue(
                 batchProp,
-                simpleRef,
+                simpleRef
             ).hasFieldOrPropertyWithValue(
                 providerProp,
-                simpleRef,
+                simpleRef
             ).hasFieldOrPropertyWithValue(
                 callerIdProp,
-                simpleRef,
+                simpleRef
             )
 
         // Called ID not specified
         callerRef =
             CallerRef(
                 simpleRef,
-                simpleRef,
+                simpleRef
             )
         assertThat(CallerRef.from(callerRef))
             .hasFieldOrPropertyWithValue(
                 batchProp,
-                simpleRef,
+                simpleRef
             ).hasFieldOrPropertyWithValue(
                 providerProp,
-                simpleRef,
+                simpleRef
             ).hasFieldOrProperty(callerIdProp)
     }
 
@@ -141,11 +141,11 @@ class TrnTest {
                 id = "any",
                 trnType = TrnType.BUY,
                 asset =
-                AssetUtils.getTestAsset(
-                    Constants.NYSE,
-                    simpleRef,
-                ),
-                portfolio = PortfolioUtils.getPortfolio(),
+                    AssetUtils.getTestAsset(
+                        Constants.NYSE,
+                        simpleRef
+                    ),
+                portfolio = PortfolioUtils.getPortfolio()
             )
         assertThat(trn.asset.market.currency).isNotNull
         assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)

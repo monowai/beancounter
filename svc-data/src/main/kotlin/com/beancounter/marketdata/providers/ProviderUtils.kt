@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 @Service
 class ProviderUtils(
     private val mdFactory: MdFactory,
-    private val marketService: MarketService,
+    private val marketService: MarketService
 ) {
     fun splitProviders(priceAssets: Collection<PriceAsset>): Map<MarketDataPriceProvider, MutableCollection<Asset>> {
         val mdpAssetResults: MutableMap<MarketDataPriceProvider, MutableCollection<Asset>> =
@@ -25,7 +25,7 @@ class ProviderUtils(
                         priceAsset.resolvedAsset =
                             Asset(
                                 code = priceAsset.code,
-                                market = market,
+                                market = market
                             )
                     }
             val marketDataProvider = mdFactory.getMarketDataProvider(market)

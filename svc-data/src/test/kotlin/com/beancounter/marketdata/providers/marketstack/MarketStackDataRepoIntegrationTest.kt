@@ -40,7 +40,7 @@ class MarketStackDataRepoIntegrationTest {
             AssetInput(
                 market = NASDAQ.code,
                 code = "TEST",
-                name = "Test Asset",
+                name = "Test Asset"
             )
         val assetRequest = AssetRequest(mapOf("TEST" to assetInput))
         val assetResponse = assetService.handle(assetRequest)
@@ -49,7 +49,7 @@ class MarketStackDataRepoIntegrationTest {
             LocalDate.of(
                 2024,
                 11,
-                15,
+                15
             )
 
         // Create MarketData
@@ -57,14 +57,14 @@ class MarketStackDataRepoIntegrationTest {
             MarketData(
                 asset = asset,
                 priceDate = priceDate,
-                close = BigDecimal.TEN,
+                close = BigDecimal.TEN
             )
         marketDataRepo.save(marketData)
 
         val result =
             marketDataRepo.findByAssetInAndPriceDate(
                 listOf(asset),
-                priceDate,
+                priceDate
             )
 
         // Verify the Asset is returned in the MarketData object
@@ -74,8 +74,8 @@ class MarketStackDataRepoIntegrationTest {
             marketDataService.getPriceResponse(
                 PriceRequest(
                     date = priceDate.toString(),
-                    assets = listOf(PriceAsset(asset)),
-                ),
+                    assets = listOf(PriceAsset(asset))
+                )
             )
         mdPrice.data.forEach {
             assertThat(it.asset).isEqualTo(asset)

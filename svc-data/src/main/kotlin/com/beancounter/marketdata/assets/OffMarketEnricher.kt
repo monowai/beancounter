@@ -15,35 +15,35 @@ import org.springframework.stereotype.Service
  */
 @Service
 class OffMarketEnricher(
-    private val systemUserService: SystemUserService,
+    private val systemUserService: SystemUserService
 ) : AssetEnricher {
     override fun enrich(
         id: String,
         market: Market,
-        assetInput: AssetInput,
+        assetInput: AssetInput
     ): Asset {
         val systemUser = systemUserService.getOrThrow
         return Asset(
             code =
-            parseCode(
-                systemUser,
-                assetInput.code,
-            ),
+                parseCode(
+                    systemUser,
+                    assetInput.code
+                ),
             id = id,
             name =
-            if (assetInput.name != null) {
-                assetInput.name!!.replace(
-                    "\"",
-                    "",
-                )
-            } else {
-                null
-            },
+                if (assetInput.name != null) {
+                    assetInput.name!!.replace(
+                        "\"",
+                        ""
+                    )
+                } else {
+                    null
+                },
             market = market,
             marketCode = market.code,
             priceSymbol = assetInput.currency,
             category = assetInput.category,
-            systemUser = systemUser,
+            systemUser = systemUser
         )
     }
 
@@ -57,7 +57,7 @@ class OffMarketEnricher(
         @JvmStatic
         fun parseCode(
             systemUser: SystemUser,
-            code: String,
+            code: String
         ) = if (code.startsWith(systemUser.id)) {
             code
         } else {

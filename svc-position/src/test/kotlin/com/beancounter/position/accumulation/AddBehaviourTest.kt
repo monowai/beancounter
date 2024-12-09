@@ -34,21 +34,21 @@ class AddBehaviourTest {
             Portfolio(
                 TEST,
                 currency = USD,
-                base = NZD,
+                base = NZD
             )
         val trn =
             Trn(
                 trnType = TrnType.ADD,
                 asset =
-                Asset.of(
-                    AssetInput.toRealEstate(
-                        NZD,
-                        "HZH",
-                        "My House",
-                        "test-user",
+                    Asset.of(
+                        AssetInput.toRealEstate(
+                            NZD,
+                            "HZH",
+                            "My House",
+                            "test-user"
+                        ),
+                        market = Market("RE")
                     ),
-                    market = Market("RE"),
-                ),
                 quantity = BigDecimal.ONE,
                 price = oneMillion,
                 tradeAmount = oneMillion,
@@ -57,73 +57,73 @@ class AddBehaviourTest {
                 tradeCashRate = BigDecimal.ONE,
                 tradeBaseRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal("0.665051"),
-                portfolio = portfolio,
+                portfolio = portfolio
             )
         val positions = Positions(portfolio = portfolio)
         val position =
             accumulator.accumulate(
                 trn,
-                positions,
+                positions
             )
 
         val usCost = BigDecimal("665051.00")
         assertThat(
-            position.getMoneyValues(Position.In.PORTFOLIO),
+            position.getMoneyValues(Position.In.PORTFOLIO)
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_CURRENCY,
-            USD,
+            USD
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_COST_VALUE,
-            usCost,
+            usCost
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_COST_BASIS,
-            usCost,
+            usCost
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_AVERAGE_COST,
-            usCost,
+            usCost
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_PURCHASES,
-            usCost,
+            usCost
         )
 
         assertThat(
-            position.getMoneyValues(Position.In.BASE),
+            position.getMoneyValues(Position.In.BASE)
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_CURRENCY,
-            NZD,
+            NZD
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_COST_VALUE,
-            trn.tradeAmount,
+            trn.tradeAmount
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_COST_BASIS,
-            trn.tradeAmount,
+            trn.tradeAmount
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_PURCHASES,
-            trn.tradeAmount,
+            trn.tradeAmount
         )
 
         val tradePosition = position.getMoneyValues(Position.In.TRADE)
         assertThat(
-            tradePosition,
+            tradePosition
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_CURRENCY,
-            NZD,
+            NZD
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_COST_VALUE,
-            trn.tradeAmount,
+            trn.tradeAmount
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_COST_BASIS,
-            trn.tradeAmount,
+            trn.tradeAmount
         ).hasFieldOrPropertyWithValue(
             Constants.PROP_PURCHASES,
-            trn.tradeAmount,
+            trn.tradeAmount
         )
 
         assertThat(position.periodicCashFlows.cashFlows).hasSize(1)
         assertEquals(
             oneMillion.negate().toDouble(),
             position.periodicCashFlows.cashFlows[0].amount,
-            0.001,
+            0.001
         )
     }
 }

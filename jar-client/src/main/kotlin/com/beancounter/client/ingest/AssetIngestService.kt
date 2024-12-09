@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 class AssetIngestService internal constructor(
     private val assetService: AssetService,
-    private val marketService: MarketService,
+    private val marketService: MarketService
 ) {
     /**
      * Create assets, if necessary, and return the hydrated assets.
@@ -39,17 +39,17 @@ class AssetIngestService internal constructor(
                     Pair(
                         toKey(
                             assetInput.code,
-                            market.code,
+                            market.code
                         ),
                         AssetInput(
                             market.code,
                             code = assetInput.code,
                             name = assetInput.name,
                             category = assetCategory,
-                            owner = assetInput.owner,
-                        ),
-                    ),
-                ),
+                            owner = assetInput.owner
+                        )
+                    )
+                )
             )
         val response =
             assetService.handle(assetRequest)
@@ -57,8 +57,8 @@ class AssetIngestService internal constructor(
                     String.format(
                         "No response returned for %s:%s",
                         assetInput.code,
-                        assetInput.market,
-                    ),
+                        assetInput.market
+                    )
                 )
         return response.data.values
             .iterator()

@@ -36,12 +36,12 @@ class BcRowAdapterTest {
     private val cashServices =
         CashServices(
             assetService,
-            currencyService,
+            currencyService
         )
     private val rowAdapter =
         BcRowAdapter(
             ais,
-            cashServices = cashServices,
+            cashServices = cashServices
         )
     private val csv = "CSV"
     private val portfolio: Portfolio = Portfolio(csv)
@@ -49,7 +49,7 @@ class BcRowAdapterTest {
     private val asset =
         Asset(
             code = assetCode,
-            market = NASDAQ,
+            market = NASDAQ
         )
 
     @BeforeEach
@@ -61,11 +61,11 @@ class BcRowAdapterTest {
                         NASDAQ.code,
                         assetCode,
                         "Caredx",
-                        owner = portfolio.owner.id,
-                    ),
-                ),
+                        owner = portfolio.owner.id
+                    )
+                )
             ).thenReturn(
-                asset,
+                asset
             )
         Mockito
             .`when`(
@@ -74,9 +74,9 @@ class BcRowAdapterTest {
                         CASH_MARKET.code,
                         NZD.code,
                         name = "",
-                        owner = portfolio.owner.id,
-                    ),
-                ),
+                        owner = portfolio.owner.id
+                    )
+                )
             ).thenReturn(nzdCashBalance)
         Mockito
             .`when`(
@@ -85,27 +85,27 @@ class BcRowAdapterTest {
                         CASH_MARKET.code,
                         USD.code,
                         "",
-                        owner = portfolio.owner.id,
-                    ),
-                ),
+                        owner = portfolio.owner.id
+                    )
+                )
             ).thenReturn(usdCashBalance)
         Mockito
             .`when`(
                 assetService.findOrCreate(
                     AssetInput(
                         CASH_MARKET.code,
-                        NZD.code,
-                    ),
-                ),
+                        NZD.code
+                    )
+                )
             ).thenReturn(nzdCashBalance)
         Mockito
             .`when`(
                 assetService.findOrCreate(
                     AssetInput(
                         CASH_MARKET.code,
-                        USD.code,
-                    ),
-                ),
+                        USD.code
+                    )
+                )
             ).thenReturn(usdCashBalance)
         Mockito
             .`when`(assetService.find(USD.code))
@@ -135,35 +135,35 @@ class BcRowAdapterTest {
         assertThat(result)
             .hasFieldOrPropertyWithValue(
                 "trnType",
-                TrnType.BUY,
+                TrnType.BUY
             ).hasFieldOrPropertyWithValue(
                 "tradeCurrency",
-                "USD",
+                "USD"
             ).hasFieldOrPropertyWithValue(
                 "comments",
-                "",
+                ""
             ).hasFieldOrPropertyWithValue(
                 "tradeDate",
-                DateUtils().getDate("2021-08-11"),
+                DateUtils().getDate("2021-08-11")
             ).hasFieldOrPropertyWithValue(
                 propQuantity,
-                BigDecimal(200),
+                BigDecimal(200)
             ).hasFieldOrPropertyWithValue(
                 propAssetId,
-                asset.id,
+                asset.id
             ).hasFieldOrPropertyWithValue(
                 cashAssetId,
-                usdCashBalance.code,
+                usdCashBalance.code
             ).hasFieldOrPropertyWithValue(
                 propCashAmount,
-                BigDecimal("-2000"),
+                BigDecimal("-2000")
             ) // Nothing sent, so nothing computed
             .hasFieldOrPropertyWithValue(
                 tradeAmount,
-                BigDecimal("2000"),
+                BigDecimal("2000")
             ).hasFieldOrPropertyWithValue(
                 pBatch,
-                "USX",
+                "USX"
             )
     }
 
@@ -192,19 +192,19 @@ class BcRowAdapterTest {
         assertThat(trn)
             .hasFieldOrPropertyWithValue(
                 propAssetId,
-                nzdCashBalance.id,
+                nzdCashBalance.id
             ).hasFieldOrPropertyWithValue(
                 cashAssetId,
-                nzdCashBalance.id,
+                nzdCashBalance.id
             ).hasFieldOrPropertyWithValue(
                 pBatch,
-                "abc",
+                "abc"
             ).hasFieldOrPropertyWithValue(
                 "callerRef.provider",
-                portfolio.owner.id,
+                portfolio.owner.id
             ).hasFieldOrPropertyWithValue(
                 tradeAmount,
-                BigDecimal("10000"),
+                BigDecimal("10000")
             )
     }
 
@@ -218,10 +218,10 @@ class BcRowAdapterTest {
         assertThat(trn.callerRef)
             .hasFieldOrPropertyWithValue(
                 "provider",
-                portfolio.owner.id,
+                portfolio.owner.id
             ).hasFieldOrPropertyWithValue(
                 "batch",
-                "CALLER_REF",
+                "CALLER_REF"
             ).hasFieldOrProperty("callerId")
     }
 
@@ -237,19 +237,19 @@ class BcRowAdapterTest {
         assertThat(trn)
             .hasFieldOrPropertyWithValue(
                 propAssetId,
-                usdCashBalance.id,
+                usdCashBalance.id
             ).hasFieldOrPropertyWithValue(
                 cashAssetId,
-                nzdCashBalance.id,
+                nzdCashBalance.id
             ).hasFieldOrPropertyWithValue(
                 propQuantity,
-                amount,
+                amount
             ).hasFieldOrPropertyWithValue(
                 tradeAmount,
-                amount,
+                amount
             ).hasFieldOrPropertyWithValue(
                 propCashAmount,
-                BigDecimal("-10000"),
+                BigDecimal("-10000")
             )
     }
 
@@ -266,9 +266,9 @@ class BcRowAdapterTest {
                         CASH_MARKET.code,
                         "KB31",
                         "",
-                        owner = portfolio.owner.id,
-                    ),
-                ),
+                        owner = portfolio.owner.id
+                    )
+                )
             ).thenReturn(nzdCashBalance)
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
@@ -277,31 +277,31 @@ class BcRowAdapterTest {
         assertThat(trn)
             .hasFieldOrPropertyWithValue(
                 propAssetId,
-                nzdCashBalance.id,
+                nzdCashBalance.id
             ).hasFieldOrPropertyWithValue(
                 cashAssetId,
-                null,
+                null
             ).hasFieldOrPropertyWithValue(
                 propQuantity,
-                amount,
+                amount
             ).hasFieldOrPropertyWithValue(
                 tradeAmount,
-                amount,
+                amount
             ).hasFieldOrPropertyWithValue(
                 propCashAmount,
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ).hasFieldOrPropertyWithValue(
                 "callerRef.provider",
-                portfolio.owner.id,
+                portfolio.owner.id
             ).hasFieldOrPropertyWithValue(
                 pBatch,
-                "20230501",
+                "20230501"
             )
     }
 
     private fun trustedTrnImportRequest(values: String): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
             portfolio,
-            row = values.split(","),
+            row = values.split(",")
         )
 }

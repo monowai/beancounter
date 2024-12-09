@@ -25,14 +25,14 @@ data class FxRate(
     @ManyToOne val to: Currency = from,
     @Column(
         precision = 15,
-        scale = 6,
+        scale = 6
     ) val rate: BigDecimal = BigDecimal.ONE,
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
-        pattern = DateUtils.FORMAT,
+        pattern = DateUtils.FORMAT
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val date: LocalDate = LocalDate.now(),
-    @Id val id: String = "${from.code}-${to.code}-$date",
+    @Id val id: String = "${from.code}-${to.code}-$date"
 )

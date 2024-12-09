@@ -12,5 +12,5 @@ data class IngestionRequest(
     val provider: String? = null,
     val ratesIgnored: Boolean = true,
     val portfolioCode: String? = null,
-    val portfolio: Portfolio? = null,
+    val portfolio: Portfolio? = null
 )

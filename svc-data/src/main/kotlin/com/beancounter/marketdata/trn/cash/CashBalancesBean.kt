@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class CashBalancesBean(
     val currencyService: CurrencyService,
-    val assetService: AssetService,
+    val assetService: AssetService
 ) {
     @Autowired
     fun createCashBalanceAssets(marketConfig: MarketConfig): AssetUpdateResponse {

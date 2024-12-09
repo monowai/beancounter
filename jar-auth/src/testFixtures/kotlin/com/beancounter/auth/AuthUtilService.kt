@@ -15,7 +15,7 @@ class AuthUtilService(
     val authConfig: AuthConfig,
     val jwtDecoder: JwtDecoder,
     val tokenService: TokenService,
-    val tokenUtils: TokenUtils,
+    val tokenUtils: TokenUtils
 ) {
     /**
      * Known providers id's that we will track.
@@ -23,25 +23,25 @@ class AuthUtilService(
     enum class AuthProvider {
         ID,
         GOOGLE,
-        AUTH0,
+        AUTH0
     }
 
     fun authenticate(
         systemUser: SystemUser,
-        authProvider: AuthProvider = AuthProvider.ID,
+        authProvider: AuthProvider = AuthProvider.ID
     ): JwtAuthenticationToken {
         `when`(jwtDecoder.decode(systemUser.email)).thenReturn(
             when (authProvider) {
                 AuthProvider.GOOGLE -> tokenUtils.getGoogleToken(systemUser)
                 AuthProvider.AUTH0 -> tokenUtils.getAuth0Token(systemUser)
                 else -> tokenUtils.getSystemUserToken(systemUser)
-            },
+            }
         )
         val jwt =
             JwtAuthenticationToken(
                 jwtDecoder.decode(
-                    systemUser.email,
-                ),
+                    systemUser.email
+                )
             )
         SecurityContextHolder.getContext().authentication = jwt
         return jwt
@@ -49,39 +49,39 @@ class AuthUtilService(
 
     fun authenticateM2M(
         systemUser: SystemUser,
-        authProvider: AuthProvider = AuthProvider.ID,
+        authProvider: AuthProvider = AuthProvider.ID
     ): JwtAuthenticationToken {
         val jwt =
             JwtAuthenticationToken(
-                tokenUtils.getSystemToken(systemUser),
+                tokenUtils.getSystemToken(systemUser)
             )
         return jwtAuthenticationToken(
             jwt,
-            systemUser,
+            systemUser
         )
     }
 
     fun authenticateNoRoles(
         systemUser: SystemUser,
-        authProvider: AuthProvider = AuthProvider.ID,
+        authProvider: AuthProvider = AuthProvider.ID
     ): JwtAuthenticationToken {
         val jwt =
             JwtAuthenticationToken(
-                tokenUtils.getNoRolesToken(systemUser),
+                tokenUtils.getNoRolesToken(systemUser)
             )
         return jwtAuthenticationToken(
             jwt,
-            systemUser,
+            systemUser
         )
     }
 
     private fun jwtAuthenticationToken(
         jwt: JwtAuthenticationToken,
-        systemUser: SystemUser,
+        systemUser: SystemUser
     ): JwtAuthenticationToken {
         SecurityContextHolder.getContext().authentication = jwt
         `when`(jwtDecoder.decode(systemUser.id)).thenReturn(
-            jwt.token,
+            jwt.token
         )
         return jwt
     }

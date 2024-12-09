@@ -18,17 +18,17 @@ import org.springframework.web.bind.annotation.RestController
 @ConditionalOnProperty(
     value = ["auth.enabled"],
     havingValue = "true",
-    matchIfMissing = false,
+    matchIfMissing = false
 )
 class AuthController(
-    val loginService: LoginService,
+    val loginService: LoginService
 ) {
     @PostMapping
     fun token(
-        @RequestBody loginParams: LoginRequest,
+        @RequestBody loginParams: LoginRequest
     ): OpenIdResponse =
         loginService.login(
             loginParams.user,
-            loginParams.password,
+            loginParams.password
         )
 }

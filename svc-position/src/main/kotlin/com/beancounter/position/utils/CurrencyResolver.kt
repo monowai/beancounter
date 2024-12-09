@@ -14,7 +14,7 @@ class CurrencyResolver {
     fun resolve(
         `in`: Position.In,
         portfolio: Portfolio,
-        tradeCurrency: Currency,
+        tradeCurrency: Currency
     ): Currency =
         when (`in`) {
             Position.In.TRADE -> {
@@ -34,14 +34,14 @@ class CurrencyResolver {
         `in`: Position.In,
         currency: Currency,
         portfolio: Portfolio,
-        position: Position,
+        position: Position
     ): MoneyValues =
         position.getMoneyValues(
             `in`,
             resolve(
                 `in`,
                 portfolio,
-                currency,
-            ),
+                currency
+            )
         )
 }

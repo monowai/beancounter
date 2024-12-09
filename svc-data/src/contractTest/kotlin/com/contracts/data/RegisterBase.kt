@@ -22,7 +22,7 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
@@ -57,7 +57,7 @@ class RegisterBase {
         Mockito.`when`(tokenService.subject).thenReturn(jwt.token.subject)
         ContractHelper(authUtilService).defaultUser(
             systemUser,
-            systemUserService = systemUserService,
+            systemUserService = systemUserService
         )
     }
 }

@@ -55,10 +55,10 @@ class MarketServiceTest {
         assertThat(marketService.getMarket("XASX")).isEqualTo(asx)
         assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq)
         assertThat(
-            marketService.getMarket(OffMarketDataProvider.ID),
+            marketService.getMarket(OffMarketDataProvider.ID)
         ).isNotNull.hasFieldOrPropertyWithValue(
             "currencyId",
-            USD.code,
+            USD.code
         )
     }
 
@@ -69,11 +69,11 @@ class MarketServiceTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "timezone",
-                TimeZone.getTimeZone(ZoneOffset.UTC),
+                TimeZone.getTimeZone(ZoneOffset.UTC)
             ).hasFieldOrProperty("currency")
             .hasFieldOrPropertyWithValue(
                 "currency.code",
-                USD.code,
+                USD.code
             )
     }
 
@@ -83,7 +83,7 @@ class MarketServiceTest {
         assertThrows(BusinessException::class.java) {
             marketService.getMarket(
                 "NZ",
-                false,
+                false
             )
         }
     }
@@ -96,7 +96,7 @@ class MarketServiceTest {
             .hasFieldOrProperty("aliases")
             .hasFieldOrPropertyWithValue(
                 "currency.code",
-                NZD.code,
+                NZD.code
             )
         assertThat(market.getAlias(ID)).isEqualTo("NZ").isNotNull
     }
@@ -113,7 +113,7 @@ class MarketServiceTest {
         assertThrows(BusinessException::class.java) {
             marketService.getMarket(
                 null,
-                true,
+                true
             )
         }
     }

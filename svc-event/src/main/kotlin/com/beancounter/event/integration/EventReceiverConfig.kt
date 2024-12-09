@@ -26,7 +26,7 @@ class EventReceiverConfig {
             .also {
                 log.info(
                     "topics.ca.event: {}",
-                    topicCaEvent,
+                    topicCaEvent
                 )
             }
 
@@ -34,7 +34,7 @@ class EventReceiverConfig {
     fun caTopic(): String? {
         log.info(
             "CA-EVENT: {} ",
-            topicCaEvent,
+            topicCaEvent
         )
         return topicCaEvent
     }

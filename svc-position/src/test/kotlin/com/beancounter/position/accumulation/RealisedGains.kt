@@ -38,17 +38,17 @@ class RealisedGains {
         microsoft =
             AssetUtils.getTestAsset(
                 Constants.NASDAQ,
-                "MSFT",
+                "MSFT"
             )
         intel =
             AssetUtils.getTestAsset(
                 Constants.NASDAQ,
-                "INTC",
+                "INTC"
             )
         bidu =
             AssetUtils.getTestAsset(
                 Constants.NASDAQ,
-                "BIDU",
+                "BIDU"
             )
         positions = Positions(PortfolioUtils.getPortfolio())
     }
@@ -65,14 +65,14 @@ class RealisedGains {
         val tradeMoney = position.getMoneyValues(Position.In.TRADE)
         assertCostBasisCorrectness(
             position,
-            tradeMoney,
+            tradeMoney
         )
 
         // Process and verify the SELL transactions
         processAndVerifySellTransactions(
             positions,
             position,
-            tradeMoney,
+            tradeMoney
         )
     }
 
@@ -83,26 +83,26 @@ class RealisedGains {
                     trnType = TrnType.BUY,
                     asset = bidu,
                     quantity = BigDecimal(8),
-                    tradeAmount = BigDecimal("1695.02"),
+                    tradeAmount = BigDecimal("1695.02")
                 ),
                 Trn(
                     trnType = TrnType.BUY,
                     asset = bidu,
                     quantity = BigDecimal(2),
-                    tradeAmount = BigDecimal("405.21"),
-                ),
+                    tradeAmount = BigDecimal("405.21")
+                )
             )
         buys.forEach { buy ->
             accumulator.accumulate(
                 buy,
-                positions,
+                positions
             )
         }
     }
 
     private fun assertCostBasisCorrectness(
         position: Position,
-        tradeMoney: MoneyValues,
+        tradeMoney: MoneyValues
     ) {
         val calculatedCostBasis =
             position.quantityValues
@@ -110,7 +110,7 @@ class RealisedGains {
                 .multiply(tradeMoney.averageCost)
                 .setScale(
                     2,
-                    RoundingMode.HALF_UP,
+                    RoundingMode.HALF_UP
                 )
         assertThat(calculatedCostBasis).isEqualTo(tradeMoney.costBasis)
     }
@@ -118,7 +118,7 @@ class RealisedGains {
     private fun processAndVerifySellTransactions(
         positions: Positions,
         position: Position,
-        tradeMoney: MoneyValues,
+        tradeMoney: MoneyValues
     ) {
         val sells =
             listOf(
@@ -126,19 +126,19 @@ class RealisedGains {
                     trnType = TrnType.SELL,
                     asset = bidu,
                     quantity = BigDecimal(-3),
-                    tradeAmount = BigDecimal("841.63"),
+                    tradeAmount = BigDecimal("841.63")
                 ),
                 Trn(
                     trnType = TrnType.SELL,
                     asset = bidu,
                     quantity = BigDecimal(-7),
-                    tradeAmount = BigDecimal("1871.01"),
-                ),
+                    tradeAmount = BigDecimal("1871.01")
+                )
             )
         sells.forEach { sell ->
             accumulator.accumulate(
                 sell,
-                positions,
+                positions
             )
             // Specific assertions can be added here if needed for each sell
         }
@@ -146,13 +146,13 @@ class RealisedGains {
         assertThat(tradeMoney)
             .hasFieldOrPropertyWithValue(
                 PROP_COST_BASIS,
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ).hasFieldOrPropertyWithValue(
                 PROP_SALES,
-                BigDecimal("2712.64"),
+                BigDecimal("2712.64")
             ).hasFieldOrPropertyWithValue(
                 PROP_REALIZED_GAIN,
-                BigDecimal("612.41"),
+                BigDecimal("612.41")
             )
 
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)

@@ -29,7 +29,7 @@ internal class MoneyValueTrnTest {
     private val microsoft =
         getTestAsset(
             NASDAQ,
-            "MSFT",
+            "MSFT"
         )
 
     @Autowired
@@ -58,68 +58,68 @@ internal class MoneyValueTrnTest {
         val position = positions.getOrCreate(microsoft)
         buyBehaviour.accumulate(
             buyTrn(),
-            positions,
+            positions
         )
         assertThat(position.quantityValues.getTotal())
             .isEqualTo(hundred)
         assertThat(position.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(
                 pPurchases,
-                twoK,
+                twoK
             ).hasFieldOrPropertyWithValue(
                 pCostBasis,
-                twoK,
+                twoK
             )
         assertThat(position.getMoneyValues(Position.In.BASE))
             .hasFieldOrPropertyWithValue(
                 pPurchases,
-                twoK,
+                twoK
             ).hasFieldOrPropertyWithValue(
                 pCostBasis,
-                twoK,
+                twoK
             )
 
         val amount = BigDecimal("3448.00")
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
             .hasFieldOrPropertyWithValue(
                 pPurchases,
-                amount,
+                amount
             ).hasFieldOrPropertyWithValue(
                 pCostBasis,
-                amount,
+                amount
             )
         dividendBehaviour.accumulate(
             dividendTrn(),
-            positions,
+            positions
         )
         assertThat(position.quantityValues.getTotal())
             .isEqualTo(hundred)
         assertThat(position.getMoneyValues(Position.In.TRADE)).hasFieldOrPropertyWithValue(
             pDividends,
-            ten,
+            ten
         )
         assertThat(position.getMoneyValues(Position.In.BASE)).hasFieldOrPropertyWithValue(
             pDividends,
-            ten,
+            ten
         )
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
             .hasFieldOrPropertyWithValue(
                 pDividends,
-                BigDecimal("17.24"),
+                BigDecimal("17.24")
             )
         assertThat(position.dateValues.lastDividend).isNotNull
         assertThat(
-            dateUtils.isToday(position.dateValues.lastDividend!!.toString()),
+            dateUtils.isToday(position.dateValues.lastDividend!!.toString())
         )
         splitBehaviour.accumulate(
             splitTrn(),
-            positions,
+            positions
         )
 
         val deepCopy =
             objectMapper.readValue(
                 objectMapper.writeValueAsBytes(position),
-                Position::class.java,
+                Position::class.java
             )
         assertThat(position.getMoneyValues(Position.In.TRADE).costBasis)
             .isEqualTo(deepCopy.getMoneyValues(Position.In.TRADE).costBasis)
@@ -129,11 +129,11 @@ internal class MoneyValueTrnTest {
             .isEqualTo(deepCopy.getMoneyValues(Position.In.PORTFOLIO).costBasis)
         sellBehaviour.accumulate(
             sellTrn(position),
-            positions,
+            positions
         )
         validatePosition(
             position,
-            amount,
+            amount
         )
     }
 
@@ -144,7 +144,7 @@ internal class MoneyValueTrnTest {
             quantity = hundred,
             tradeAmount = twoK,
             tradeCashRate = BigDecimal("0.56"),
-            tradePortfolioRate = tradePortfolioRate,
+            tradePortfolioRate = tradePortfolioRate
         )
 
     private fun dividendTrn() =
@@ -155,7 +155,7 @@ internal class MoneyValueTrnTest {
             tradeAmount = BigDecimal.TEN,
             tradeCashRate = BigDecimal.TEN,
             tradePortfolioRate = tradePortfolioRate,
-            cashAmount = BigDecimal.TEN,
+            cashAmount = BigDecimal.TEN
         )
 
     private fun sellTrn(position: Position) =
@@ -165,7 +165,7 @@ internal class MoneyValueTrnTest {
             quantity = position.quantityValues.getTotal(),
             tradeAmount = fourK,
             tradeCashRate = BigDecimal.TEN,
-            tradePortfolioRate = tradePortfolioRate,
+            tradePortfolioRate = tradePortfolioRate
         )
 
     private fun splitTrn() =
@@ -175,12 +175,12 @@ internal class MoneyValueTrnTest {
             quantity = BigDecimal.TEN,
             tradeCashRate = BigDecimal.TEN,
             tradePortfolioRate = tradePortfolioRate,
-            cashAmount = BigDecimal.TEN,
+            cashAmount = BigDecimal.TEN
         )
 
     private fun validatePosition(
         position: Position,
-        amount: BigDecimal,
+        amount: BigDecimal
     ) {
         assertThat(position.getMoneyValues(Position.In.TRADE).sales)
             .isEqualTo(fourK)

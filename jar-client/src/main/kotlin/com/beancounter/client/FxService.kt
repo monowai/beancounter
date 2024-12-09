@@ -9,6 +9,6 @@ import com.beancounter.common.contracts.FxResponse
 interface FxService {
     fun getRates(
         fxRequest: FxRequest,
-        token: String = "",
+        token: String = ""
     ): FxResponse
 }

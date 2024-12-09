@@ -18,7 +18,7 @@ class MoneyValuesTest {
         val moneyValues = MoneyValues(TestMarkets.USD)
         Assertions.assertThat(moneyValues).hasNoNullFieldsOrPropertiesExcept(
             "priceData",
-            "weight",
+            "weight"
         )
     }
 
@@ -40,17 +40,17 @@ class MoneyValuesTest {
         assertEquals(
             BigDecimal.ZERO,
             moneyValues.averageCost,
-            "Average cost should be reset to zero",
+            "Average cost should be reset to zero"
         )
         assertEquals(
             BigDecimal.ZERO,
             moneyValues.costValue,
-            "Cost value should be reset to zero",
+            "Cost value should be reset to zero"
         )
         assertEquals(
             BigDecimal.ZERO,
             moneyValues.costBasis,
-            "Cost basis should be reset to zero",
+            "Cost basis should be reset to zero"
         )
     }
 }

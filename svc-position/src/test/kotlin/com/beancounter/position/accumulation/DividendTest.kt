@@ -23,33 +23,33 @@ internal class DividendTest {
         val asx =
             Market(
                 "ASX",
-                AUD.code,
+                AUD.code
             )
         val asset =
             getTestAsset(
                 asx,
-                "MO",
+                "MO"
             )
         val trn =
             Trn(
                 trnType = TrnType.DIVI,
-                asset = asset,
+                asset = asset
             )
         trn.tradeCashRate = BigDecimal("0.8988")
         trn.tradeAmount = BigDecimal("12.99")
         val position =
             accumulator.accumulate(
                 trn,
-                Positions(),
+                Positions()
             )
         assertThat(
             position.getMoneyValues(
                 Position.In.TRADE,
-                asset.market.currency,
-            ),
+                asset.market.currency
+            )
         ).hasFieldOrPropertyWithValue(
             "dividends",
-            trn.tradeAmount,
+            trn.tradeAmount
         )
     }
 }

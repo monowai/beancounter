@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.RequestMethod
  */
 @FeignClient(
     name = "marketstack",
-    url = "\${beancounter.market.providers.mstack.url:https://api.marketstack.com}",
+    url = "\${beancounter.market.providers.mstack.url:https://api.marketstack.com}"
 )
 interface MarketStackGateway {
     @RequestMapping(
         method = [RequestMethod.GET],
-        value = ["/v1/eod/{date}?symbols={assets}&access_key={apiKey}"],
+        value = ["/v1/eod/{date}?symbols={assets}&access_key={apiKey}"]
     )
     fun getPrices(
         @PathVariable("assets") assetId: String,
         @PathVariable("date") date: String,
-        @PathVariable("apiKey") apiKey: String = "demo",
+        @PathVariable("apiKey") apiKey: String = "demo"
     ): MarketStackResponse
 }

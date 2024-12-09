@@ -9,7 +9,7 @@ import java.time.LocalDate
  * Today is treated as T-1
  */
 class EcbDate(
-    val dateUtils: DateUtils,
+    val dateUtils: DateUtils
 ) {
     private fun earliestDate(): LocalDate = dateUtils.getDate(EARLIEST)
 

@@ -4,7 +4,7 @@ import java.math.BigDecimal
 
 fun Portfolio.setMarketValue(
     marketValue: BigDecimal,
-    irr: BigDecimal,
+    irr: BigDecimal
 ): Portfolio =
     Portfolio(
         id = this.id,
@@ -14,5 +14,5 @@ fun Portfolio.setMarketValue(
         currency = this.currency,
         owner = this.owner,
         marketValue = marketValue,
-        irr = irr,
+        irr = irr
     )

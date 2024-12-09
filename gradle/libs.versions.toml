@@ -3,6 +3,7 @@
 
 [versions]
 kotlin = "1.9.24"
+kotlinter = "4.4.1"
 spring-boot = "3.3.5"
 spring-cloud = '2023.0.3'
 mockitoKotlin = '5.4.0'
@@ -25,7 +26,7 @@ postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 idea = { id = "idea" }
 jacoco = { id = "jacoco" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "3.8.0" }
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 java-test-fixtures = { id = "java-test-fixtures" }
 spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.5" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }

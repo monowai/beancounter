@@ -23,11 +23,11 @@ import java.time.LocalDate
 @Import(
     AlphaPriceService::class,
     AlphaProxy::class,
-    AlphaPriceAdapter::class,
+    AlphaPriceAdapter::class
 )
 class AlphaConfig(
     val dateUtils: DateUtils = DateUtils(),
-    val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
+    val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils())
 ) : DataProviderConfig {
     @Value("\${beancounter.market.providers.alpha.markets}")
     var markets: String? = null
@@ -46,16 +46,16 @@ class AlphaConfig(
                     0,
                     null,
                     null,
-                    null,
-                ),
+                    null
+                )
             )
         module.addDeserializer(
             PriceResponse::class.java,
-            AlphaPriceDeserializer(),
+            AlphaPriceDeserializer()
         )
         module.addDeserializer(
             AssetSearchResponse::class.java,
-            AlphaSearchDeserializer(),
+            AlphaSearchDeserializer()
         )
         alphaMapper.registerModule(module)
     }
@@ -68,7 +68,7 @@ class AlphaConfig(
         }
         return if (market.code.equals(
                 "ASX",
-                ignoreCase = true,
+                ignoreCase = true
             )
         ) {
             "AX"
@@ -82,7 +82,7 @@ class AlphaConfig(
     fun isNullMarket(marketCode: String) =
         nullMarket.contains(
             marketCode,
-            true,
+            true
         )
 
     /**
@@ -92,12 +92,12 @@ class AlphaConfig(
     override fun getMarketDate(
         market: Market,
         date: String,
-        currentMode: Boolean,
+        currentMode: Boolean
     ): LocalDate =
         marketUtils.getPriceDate(
             dateUtils.offsetNow(date).toZonedDateTime(),
             market,
-            currentMode,
+            currentMode
         )
 
     override fun getPriceCode(asset: Asset): String {
@@ -115,7 +115,7 @@ class AlphaConfig(
     fun translateSymbol(code: String): String =
         code.replace(
             ".",
-            "-",
+            "-"
         )
 
     fun getObjectMapper(): ObjectMapper = alphaMapper

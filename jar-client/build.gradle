@@ -1,10 +1,10 @@
 plugins {
-  alias(libs.plugins.spring.dependency.management)
-  alias(libs.plugins.jvm)
-  alias(libs.plugins.kotlin.spring)
-  alias(libs.plugins.jacoco)
-  alias(libs.plugins.kotlinter)
-  //alias(libs.plugins.spring.contract)
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.jvm)
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.jacoco)
+    alias(libs.plugins.kotlinter)
+    //alias(libs.plugins.spring.contract)
 }
 
 group = 'com.beancounter'
@@ -12,46 +12,33 @@ version = '0.0.1-SNAPSHOT'
 
 
 dependencies {
-  implementation(
-    platform(libs.spring.boot.dependencies),
-    platform(libs.spring.cloud.dependencies),
-    //platform("org.springframework.cloud:spring-cloud-dependencies"),
-    project(":jar-common"),
-    project(":jar-auth"),
-    'com.google.guava:guava:33.0.0-jre',
-    "com.fasterxml.jackson.core:jackson-databind",
-    "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-    "org.springframework.security:spring-security-oauth2-resource-server",
-    "org.springframework.security:spring-security-oauth2-jose",
-    "com.fasterxml.jackson.module:jackson-module-kotlin",
-    "org.jetbrains.kotlin:kotlin-reflect",
-    libs.resilience4j,
-    libs.resilience4j.annotations,
-    "org.springframework.cloud:spring-cloud-starter-openfeign"
-  )
-  testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module: 'junit-vintage-engine' }
-  testImplementation(
-    "org.assertj:assertj-core",
-    "org.springframework.boot:spring-boot-starter-test",
-    "org.springframework.security:spring-security-test",
-    "org.springframework.cloud:spring-cloud-contract-wiremock",
-    "org.springframework.cloud:spring-cloud-contract-stub-runner",
-    // Needed for spring-cloud-contract-wiremock :\
-    "org.springframework.boot:spring-boot-starter-webflux",
-    testFixtures(project(":jar-auth")),
-  )
-  testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
-    transitive = false
-  }
-  implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation(platform(libs.spring.boot.dependencies),
+            platform(libs.spring.cloud.dependencies),
+            //platform("org.springframework.cloud:spring-cloud-dependencies"),
+            project(":jar-common"),
+            project(":jar-auth"),
+            'com.google.guava:guava:33.0.0-jre',
+            "com.fasterxml.jackson.core:jackson-databind",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-jose",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.jetbrains.kotlin:kotlin-reflect",
+            libs.resilience4j,
+            libs.resilience4j.annotations,
+            "org.springframework.cloud:spring-cloud-starter-openfeign")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module: 'junit-vintage-engine' }
+    testImplementation("org.assertj:assertj-core",
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.security:spring-security-test",
+            "org.springframework.cloud:spring-cloud-contract-wiremock",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
+            // Needed for spring-cloud-contract-wiremock :\
+            "org.springframework.boot:spring-boot-starter-webflux",
+            testFixtures(project(":jar-auth")),)
+    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
+        transitive = false
+    }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
 }
-
-//idea {
-//  module {
-//    inheritOutputDirs = false
-//    downloadSources = true
-//    outputDir = file("$buildDir/classes/main/")
-//    testOutputDir = file("$buildDir/classes/main/")
-//  }
-//}

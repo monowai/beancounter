@@ -65,9 +65,9 @@ class KafkaMarketStackDataTest {
                     "a",
                     AssetInput(
                         NASDAQ.code,
-                        "TWEE",
-                    ),
-                ),
+                        "TWEE"
+                    )
+                )
             )
         val assetRequest = AssetRequest(data)
         `when`(assetService.handle(assetRequest))
@@ -78,11 +78,11 @@ class KafkaMarketStackDataTest {
                             "a",
                             getTestAsset(
                                 code = "id",
-                                market = NASDAQ,
-                            ),
-                        ),
-                    ),
-                ),
+                                market = NASDAQ
+                            )
+                        )
+                    )
+                )
             )
         val assetResult = assetService.handle(assetRequest)
         assertThat(assetResult.data).hasSize(1).containsKeys("a")
@@ -92,7 +92,7 @@ class KafkaMarketStackDataTest {
         val marketData =
             MarketData(
                 asset,
-                dateUtils.getDate("2019-12-10"),
+                dateUtils.getDate("2019-12-10")
             )
         marketData.source = "ALPHA"
         marketData.dividend = BigDecimal("2.34")
@@ -104,28 +104,28 @@ class KafkaMarketStackDataTest {
             KafkaConsumerUtils().getConsumer(
                 this::class.toString(),
                 TOPIC_EVENT,
-                embeddedKafkaBroker,
+                embeddedKafkaBroker
             )
 
         val consumerRecord =
             KafkaTestUtils.getSingleRecord(
                 consumer,
-                TOPIC_EVENT,
+                TOPIC_EVENT
             )
         consumer.close()
         assertThat(consumerRecord.value()).isNotNull
         val (eventInput) =
             objectMapper.readValue(
                 consumerRecord.value(),
-                TrustedEventInput::class.java,
+                TrustedEventInput::class.java
             )
         assertThat(eventInput)
             .hasFieldOrPropertyWithValue(
                 "rate",
-                marketData.dividend,
+                marketData.dividend
             ).hasFieldOrPropertyWithValue(
                 "assetId",
-                asset.id,
+                asset.id
             ).hasFieldOrProperty("recordDate")
     }
 }

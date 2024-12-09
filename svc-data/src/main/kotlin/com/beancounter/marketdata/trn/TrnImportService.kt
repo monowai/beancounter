@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 class TrnImportService(
     private val adapterFactory: AdapterFactory,
     private val portfolioService: PortfolioService,
-    private val trnService: TrnService,
+    private val trnService: TrnService
 ) {
     /**
      * Imports transaction data from a CSV file from a trusted source.
@@ -30,7 +30,7 @@ class TrnImportService(
             logger.info(
                 "Portfolio {} {}",
                 trustedRequest.portfolio.code,
-                trustedRequest.message,
+                trustedRequest.message
             )
         }
         if (trustedRequest.row.isEmpty()) {
@@ -38,7 +38,7 @@ class TrnImportService(
         }
         logger.trace(
             "Received Message {}",
-            trustedRequest.toString(),
+            trustedRequest.toString()
         )
         if (!verifyPortfolio(trustedRequest.portfolio.id)) {
             return emptySet()
@@ -46,7 +46,7 @@ class TrnImportService(
         val trnInput = adapterFactory.get(trustedRequest.importFormat).transform(trustedRequest)
         return writeTrn(
             trustedRequest.portfolio,
-            trnInput,
+            trnInput
         )
     }
 
@@ -59,7 +59,7 @@ class TrnImportService(
     fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
         logger.trace(
             "Message {}",
-            trustedTrnEvent.toString(),
+            trustedTrnEvent.toString()
         )
         if (!verifyPortfolio(trustedTrnEvent.portfolio.id)) {
             return emptySet()
@@ -70,28 +70,28 @@ class TrnImportService(
                 "Ignoring " +
                     "tradeDate: ${trustedTrnEvent.trnInput.tradeDate}, " +
                     "assetId: ${trustedTrnEvent.trnInput.assetId}, " +
-                    "portfolioId: ${trustedTrnEvent.portfolio.id}",
+                    "portfolioId: ${trustedTrnEvent.portfolio.id}"
             )
             return emptySet()
         }
         return writeTrn(
             trustedTrnEvent.portfolio,
-            trustedTrnEvent.trnInput,
+            trustedTrnEvent.trnInput
         )
     }
 
     private fun writeTrn(
         portfolio: Portfolio,
-        trnInput: TrnInput,
+        trnInput: TrnInput
     ): Collection<Trn> {
         val trnRequest =
             TrnRequest(
                 portfolio.id,
-                arrayOf(trnInput),
+                arrayOf(trnInput)
             )
         return trnService.save(
             portfolio,
-            trnRequest,
+            trnRequest
         )
     }
 
@@ -99,7 +99,7 @@ class TrnImportService(
         if (!portfolioService.verify(portfolioId)) {
             logger.debug(
                 "Portfolio {} no longer exists. Ignoring",
-                portfolioId,
+                portfolioId
             )
             return false
         }

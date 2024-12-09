@@ -51,25 +51,25 @@ internal class AssetControllerTest {
         val firstAsset =
             getTestAsset(
                 market = NASDAQ,
-                code = "MyCode",
+                code = "MyCode"
             )
         val secondAsset =
             getTestAsset(
                 market = NASDAQ,
-                code = "Second",
+                code = "Second"
             )
         val assetInputMap =
             mapOf(
                 toKey(firstAsset) to
                     getAssetInput(
                         NASDAQ.code,
-                        firstAsset.code,
+                        firstAsset.code
                     ),
                 toKey(secondAsset) to
                     getAssetInput(
                         NASDAQ.code,
-                        secondAsset.code,
-                    ),
+                        secondAsset.code
+                    )
             )
         var mvcResult =
             mockMvc
@@ -79,10 +79,10 @@ internal class AssetControllerTest {
                         .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
+                                .jwt(mockAuthConfig.getUserToken())
                         ).content(objectMapper.writeValueAsString(AssetRequest(assetInputMap)))
                         .with(csrf())
-                        .contentType(APPLICATION_JSON),
+                        .contentType(APPLICATION_JSON)
                 ).andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
@@ -92,11 +92,11 @@ internal class AssetControllerTest {
         assertThat(data).hasSize(assetInputMap.size)
         isAssetValid(
             data[toKey(firstAsset)]!!,
-            firstAsset,
+            firstAsset
         )
         isAssetValid(
             data[toKey(secondAsset)]!!,
-            secondAsset,
+            secondAsset
         )
 
         val asset = data[toKey(secondAsset)]
@@ -106,12 +106,12 @@ internal class AssetControllerTest {
                     MockMvcRequestBuilders
                         .get(
                             "$ASSET_ROOT/{assetId}",
-                            asset!!.id,
+                            asset!!.id
                         ).with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
-                        ),
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
@@ -119,7 +119,7 @@ internal class AssetControllerTest {
         val (data1) =
             objectMapper.readValue(
                 mvcResult.response.contentAsString,
-                AssetResponse::class.java,
+                AssetResponse::class.java
             )
         assertThat(data1).isEqualTo(asset)
 
@@ -130,12 +130,12 @@ internal class AssetControllerTest {
                         .get(
                             "$ASSET_ROOT/{marketCode}/{assetCode}",
                             asset.market.code,
-                            asset.code,
+                            asset.code
                         ).with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
-                        ),
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
@@ -144,14 +144,14 @@ internal class AssetControllerTest {
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    AssetResponse::class.java,
-                ).data,
+                    AssetResponse::class.java
+                ).data
         ).isEqualTo(asset)
     }
 
     private fun isAssetValid(
         dataAsset: Asset,
-        asset: Asset,
+        asset: Asset
     ) {
         assertThat(dataAsset)
             .isNotNull
@@ -159,19 +159,19 @@ internal class AssetControllerTest {
             .hasFieldOrProperty("market")
             .hasFieldOrPropertyWithValue(
                 NAME,
-                asset.name,
+                asset.name
             ).hasFieldOrPropertyWithValue(
                 "code",
-                asset.code.uppercase(Locale.getDefault()),
+                asset.code.uppercase(Locale.getDefault())
             ).hasFieldOrPropertyWithValue(
                 "marketCode",
-                NASDAQ.code,
+                NASDAQ.code
             ).hasFieldOrPropertyWithValue(
                 "version",
-                "1",
+                "1"
             ).hasFieldOrPropertyWithValue(
                 "status",
-                Status.Active,
+                Status.Active
             )
     }
 
@@ -182,7 +182,7 @@ internal class AssetControllerTest {
                 NASDAQ.code,
                 "MyCodeX",
                 "\"quotes should be removed\"",
-                null,
+                null
             )
         var assetRequest = AssetRequest(mapOf(toKey(asset) to asset))
         var mvcResult =
@@ -193,10 +193,10 @@ internal class AssetControllerTest {
                         .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
+                                .jwt(mockAuthConfig.getUserToken())
                         ).content(objectMapper.writeValueAsBytes(assetRequest))
                         .with(csrf())
-                        .contentType(APPLICATION_JSON),
+                        .contentType(APPLICATION_JSON)
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
@@ -209,7 +209,7 @@ internal class AssetControllerTest {
             .hasFieldOrProperty(ID)
             .hasFieldOrPropertyWithValue(
                 NAME,
-                "quotes should be removed",
+                "quotes should be removed"
             ).hasFieldOrProperty("market")
 
         asset =
@@ -217,7 +217,7 @@ internal class AssetControllerTest {
                 NASDAQ.code,
                 "MyCodeX",
                 "Random Change",
-                null,
+                null
             )
         assetRequest = AssetRequest(mapOf(toKey(asset) to asset))
         mvcResult =
@@ -228,10 +228,10 @@ internal class AssetControllerTest {
                         .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
+                                .jwt(mockAuthConfig.getUserToken())
                         ).with(csrf())
                         .content(objectMapper.writeValueAsBytes(assetRequest))
-                        .contentType(APPLICATION_JSON),
+                        .contentType(APPLICATION_JSON)
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
@@ -252,9 +252,9 @@ internal class AssetControllerTest {
                         .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
+                                .jwt(mockAuthConfig.getUserToken())
                         ).with(csrf())
-                        .contentType(APPLICATION_JSON),
+                        .contentType(APPLICATION_JSON)
                 ).andExpect(status().is4xxClientError)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
@@ -268,8 +268,8 @@ internal class AssetControllerTest {
                         .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
-                        ).contentType(APPLICATION_JSON),
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).contentType(APPLICATION_JSON)
                 ).andExpect(status().is4xxClientError)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
@@ -281,12 +281,12 @@ internal class AssetControllerTest {
                     MockMvcRequestBuilders
                         .get(
                             "$ASSET_ROOT/{assetId}",
-                            "doesn't exist",
+                            "doesn't exist"
                         ).with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
-                                .jwt(mockAuthConfig.getUserToken()),
-                        ).contentType(APPLICATION_JSON),
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).contentType(APPLICATION_JSON)
                 ).andExpect(status().is4xxClientError)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull

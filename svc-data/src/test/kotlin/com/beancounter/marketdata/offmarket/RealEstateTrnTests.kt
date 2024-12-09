@@ -72,12 +72,12 @@ class RealEstateTrnTests {
     @Autowired
     fun setupObjects(
         mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
+        mockAuthConfig: MockAuthConfig
     ) {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                mockAuthConfig.getUserToken(SystemUser()),
+                mockAuthConfig.getUserToken(SystemUser())
             )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
@@ -86,8 +86,8 @@ class RealEstateTrnTests {
             .`when`(
                 fxClientService.getRates(
                     any(),
-                    any(),
-                ),
+                    any()
+                )
             ).thenReturn(FxResponse(FxPairResults()))
     }
 
@@ -95,14 +95,14 @@ class RealEstateTrnTests {
     fun is_BuyHouse() {
         mockAuthConfig.login(
             SystemUser(),
-            systemUserService,
+            systemUserService
         )
         val house =
             AssetInput.toRealEstate(
                 USD,
                 "USAPT",
                 "NY Apartment",
-                "test-user",
+                "test-user"
             )
         val houseAsset =
             assetService
@@ -111,10 +111,10 @@ class RealEstateTrnTests {
                         mapOf(
                             Pair(
                                 house.code,
-                                house,
-                            ),
-                        ),
-                    ),
+                                house
+                            )
+                        )
+                    )
                 ).data[house.code]
         assertThat(houseAsset).isNotNull
         val portfolio = bcMvcHelper.portfolio(PortfolioInput("RE-TEST"))
@@ -124,7 +124,7 @@ class RealEstateTrnTests {
                 assetId = houseAsset!!.id,
                 trnType = TrnType.BUY,
                 tradeAmount = tenK,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
 
         val oneK = BigDecimal("1000")
@@ -134,7 +134,7 @@ class RealEstateTrnTests {
                 assetId = houseAsset.id,
                 trnType = TrnType.BALANCE,
                 tradeAmount = oneK,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
 
         val increase =
@@ -143,7 +143,7 @@ class RealEstateTrnTests {
                 assetId = houseAsset.id,
                 trnType = TrnType.BALANCE,
                 tradeAmount = oneK,
-                tradeCashRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
             )
 
         val trns =
@@ -154,9 +154,9 @@ class RealEstateTrnTests {
                     arrayOf(
                         purchase,
                         reduce,
-                        increase,
-                    ),
-                ),
+                        increase
+                    )
+                )
             )
         assertThat(trns).isNotNull.hasSize(3)
         // Source output for `re-response` contract tests. Need to replace the ID with RE-TEST
@@ -165,10 +165,10 @@ class RealEstateTrnTests {
         assertThat(b)
             .extracting(
                 pTradeAmount,
-                pCashAmount,
+                pCashAmount
             ).containsExactly(
                 tenK,
-                BigDecimal.ZERO.minus(tenK),
+                BigDecimal.ZERO.minus(tenK)
             )
 
         val r = iterator.next()
@@ -176,11 +176,11 @@ class RealEstateTrnTests {
             .extracting(
                 pTradeAmount,
                 pQuantity,
-                pCashAmount,
+                pCashAmount
             ).containsExactly(
                 oneK,
                 oneK,
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
 
         val i = iterator.next()
@@ -188,11 +188,11 @@ class RealEstateTrnTests {
             .extracting(
                 pTradeAmount,
                 pQuantity,
-                pCashAmount,
+                pCashAmount
             ).containsExactly(
                 oneK,
                 oneK,
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             )
     }
 }

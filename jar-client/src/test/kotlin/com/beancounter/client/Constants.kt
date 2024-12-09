@@ -22,7 +22,7 @@ class Constants {
         val ASX =
             Market(
                 "ASX",
-                AUD.code,
+                AUD.code
             )
         private val owner =
             SystemUser(
@@ -31,7 +31,7 @@ class Constants {
                 auth0 = "",
                 googleId = "",
                 since = DateUtils().getFormattedDate("2020-03-08"),
-                active = true,
+                active = true
             )
         var portfolio: Portfolio =
             Portfolio(
@@ -40,7 +40,7 @@ class Constants {
                 name = "NZD Portfolio",
                 currency = NZD,
                 base = USD,
-                owner = owner,
+                owner = owner
             )
         const val P_TRADE_CASH_RATE = "tradeCashRate"
         const val P_TRADE_PORTFOLIO_RATE = "tradePortfolioRate"

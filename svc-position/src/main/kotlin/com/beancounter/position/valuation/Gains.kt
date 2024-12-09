@@ -14,7 +14,7 @@ class Gains {
      */
     fun value(
         total: BigDecimal,
-        moneyValues: MoneyValues,
+        moneyValues: MoneyValues
     ) {
         if (total.signum() != 0) {
             moneyValues.unrealisedGain = moneyValues.marketValue.subtract(moneyValues.costValue)

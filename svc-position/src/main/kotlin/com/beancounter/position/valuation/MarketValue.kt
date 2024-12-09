@@ -22,12 +22,12 @@ private const val CASH = "CASH"
 @Service
 class MarketValue(
     private val gains: Gains,
-    private val dateUtils: DateUtils = DateUtils(),
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     fun value(
         positions: Positions,
         marketData: MarketData,
-        rates: Map<IsoCurrencyPair, FxRate>,
+        rates: Map<IsoCurrencyPair, FxRate>
     ): Position {
         val asset = marketData.asset
         val position = positions.getOrCreate(asset)
@@ -41,7 +41,7 @@ class MarketValue(
             listOf(
                 Position.In.TRADE to tradeCurrency,
                 Position.In.BASE to portfolio.base,
-                Position.In.PORTFOLIO to portfolio.currency,
+                Position.In.PORTFOLIO to portfolio.currency
             )
         valuationContexts.forEach { (context, currency) ->
             val rate =
@@ -50,14 +50,14 @@ class MarketValue(
                         tradeCurrency,
                         tradeCurrency,
                         BigDecimal.ONE,
-                        dateUtils.getDate(positions.asAt),
+                        dateUtils.getDate(positions.asAt)
                     )
                 } else {
                     rate(
                         tradeCurrency,
                         currency,
                         positions.asAt,
-                        rates,
+                        rates
                     )
                 }
 
@@ -66,7 +66,7 @@ class MarketValue(
                 context,
                 marketData,
                 rate,
-                isCash,
+                isCash
             )
         }
 
@@ -78,7 +78,7 @@ class MarketValue(
         positionIn: Position.In,
         mktData: MarketData,
         rate: FxRate,
-        isCash: Boolean,
+        isCash: Boolean
     ) {
         val total = position.quantityValues.getTotal()
         val moneyValues = position.getMoneyValues(positionIn)
@@ -86,7 +86,7 @@ class MarketValue(
         moneyValues.priceData =
             of(
                 mktData,
-                rate.rate,
+                rate.rate
             )
         if (total.signum() == 0) {
             moneyValues.marketValue = BigDecimal.ZERO
@@ -96,8 +96,8 @@ class MarketValue(
                 Objects.requireNonNull(
                     multiply(
                         close,
-                        total,
-                    ),
+                        total
+                    )
                 )!!
 
             if (!isCash) {
@@ -113,7 +113,7 @@ class MarketValue(
         } else {
             gains.value(
                 total,
-                moneyValues,
+                moneyValues
             )
         }
     }
@@ -122,21 +122,21 @@ class MarketValue(
         from: Currency,
         to: Currency,
         asAt: String,
-        rates: Map<IsoCurrencyPair, FxRate>,
+        rates: Map<IsoCurrencyPair, FxRate>
     ): FxRate =
         if (from.code == to.code) {
             FxRate(
                 from,
                 to,
                 BigDecimal.ONE,
-                dateUtils.getDate(asAt),
+                dateUtils.getDate(asAt)
             )
         } else {
             rates[
                 IsoCurrencyPair(
                     from.code,
-                    to.code,
-                ),
+                    to.code
+                )
             ]
                 ?: throw BusinessException("No rate available for ${from.code} to ${to.code}")
         }

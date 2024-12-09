@@ -16,19 +16,19 @@ import org.springframework.web.bind.annotation.RequestHeader
  */
 @Service
 class FxClientService internal constructor(
-    private val fxGateway: FxGateway,
+    private val fxGateway: FxGateway
 ) : FxService {
     @Cacheable("fx-request")
     override fun getRates(
         fxRequest: FxRequest,
-        token: String,
+        token: String
     ): FxResponse =
         if (fxRequest.pairs.isEmpty()) {
             FxResponse(FxPairResults())
         } else {
             fxGateway.getRates(
                 token,
-                fxRequest,
+                fxRequest
             )
         }
 
@@ -37,17 +37,17 @@ class FxClientService internal constructor(
      */
     @FeignClient(
         name = "fxrates",
-        url = "\${marketdata.url:http://localhost:9510}",
+        url = "\${marketdata.url:http://localhost:9510}"
     )
     interface FxGateway {
         @PostMapping(
             value = ["/api/fx"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
         )
         fun getRates(
             @RequestHeader("Authorization") bearerToken: String?,
-            fxRequest: FxRequest,
+            fxRequest: FxRequest
         ): FxResponse
     }
 }

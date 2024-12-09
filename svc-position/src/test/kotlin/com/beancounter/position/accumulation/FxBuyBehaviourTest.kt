@@ -34,54 +34,54 @@ class FxBuyBehaviourTest {
                 cashCurrency = NZD,
                 // Sell
                 tradeCashRate = BigDecimal("1.5"),
-                cashAmount = BigDecimal("-5000.00"),
+                cashAmount = BigDecimal("-5000.00")
             )
         val positions = Positions()
         val usdPosition =
             accumulator.accumulate(
                 trn,
-                positions,
+                positions
             )
         // Fx affects two positions
         assertThat(positions.positions).containsKeys(
             toKey(usdCashBalance),
-            toKey(nzdCashBalance),
+            toKey(nzdCashBalance)
         )
         // Primary Position
         assertThat(usdPosition.asset).isEqualTo(usdCashBalance)
         assertThat(usdPosition.quantityValues)
             .hasFieldOrPropertyWithValue(
                 "total",
-                trn.tradeAmount,
+                trn.tradeAmount
             )
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                trn.quantity,
+                trn.quantity
             ).hasFieldOrPropertyWithValue(
                 "costValue",
-                trn.quantity,
+                trn.quantity
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ) // Not yet valued
 
         val nzdPosition = positions.positions[toKey(nzdCashBalance)]
         assertThat(nzdPosition!!.quantityValues)
             .hasFieldOrPropertyWithValue(
                 "total",
-                trn.cashAmount,
+                trn.cashAmount
             )
         assertThat(nzdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                trn.cashAmount,
+                trn.cashAmount
             ).hasFieldOrPropertyWithValue(
                 "costValue",
-                trn.cashAmount,
+                trn.cashAmount
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
-                BigDecimal.ZERO,
+                BigDecimal.ZERO
             ) // Not yet valued
     }
 }

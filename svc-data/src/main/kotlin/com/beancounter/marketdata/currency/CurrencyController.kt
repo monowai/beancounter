@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/currencies")
 @CrossOrigin
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 class CurrencyController(
-    val currencyService: CurrencyService,
+    val currencyService: CurrencyService
 ) {
     @get:GetMapping
     val currencies: CurrencyResponse

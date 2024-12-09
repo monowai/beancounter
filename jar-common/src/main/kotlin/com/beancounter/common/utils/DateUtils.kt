@@ -36,7 +36,7 @@ import java.util.TimeZone
 @Service
 class DateUtils(
     @Value("\${beancounter.zone:#{null}}")
-    private val defaultZone: String = TimeZone.getDefault().id,
+    private val defaultZone: String = TimeZone.getDefault().id
 ) {
     val zoneId: ZoneId = ZoneId.of(defaultZone)
 
@@ -60,7 +60,7 @@ class DateUtils(
         get() =
             getFormattedDate(
                 TODAY,
-                listOf(FORMAT),
+                listOf(FORMAT)
             )
 
     /**
@@ -72,12 +72,12 @@ class DateUtils(
      */
     fun offset(
         date: String = TODAY,
-        time: LocalTime = LocalTime.now(zoneId),
+        time: LocalTime = LocalTime.now(zoneId)
     ): OffsetDateTime =
         OffsetDateTime.of(
             getFormattedDate(date),
             time,
-            UTC,
+            UTC
         )
 
     /**
@@ -99,8 +99,8 @@ class DateUtils(
             listOf(
                 "yyyy-MM-dd",
                 "yyyy-MM-d",
-                "yyyy-M-d",
-            ),
+                "yyyy-M-d"
+            )
     ): LocalDate {
         if (inDate.lowercase(Locale.getDefault()) == TODAY) {
             return LocalDate.now(zoneId)
@@ -110,7 +110,7 @@ class DateUtils(
             try {
                 return LocalDate.parse(
                     inDate,
-                    DateTimeFormatter.ofPattern(format),
+                    DateTimeFormatter.ofPattern(format)
                 )
             } catch (e: DateTimeParseException) {
                 // Continue to the next format
@@ -157,7 +157,7 @@ class DateUtils(
         } else {
             OffsetDateTime.of(
                 getFormattedDate(date).atTime(LocalTime.now()),
-                UTC,
+                UTC
             )
         }
 }

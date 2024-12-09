@@ -39,7 +39,7 @@ class RoiCalculator {
             .divide(
                 costBasis,
                 6,
-                RoundingMode.HALF_UP,
+                RoundingMode.HALF_UP
             )
     }
 

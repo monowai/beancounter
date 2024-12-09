@@ -20,43 +20,43 @@ class RealEstateInputTest {
                 NZD,
                 "APT",
                 "Apartment",
-                "test-user",
+                "test-user"
             )
         val house =
             AssetInput.toRealEstate(
                 USD,
                 "HOUSE",
                 "House",
-                "test-user",
+                "test-user"
             )
         assertThat(apartment)
             .hasFieldOrPropertyWithValue(
                 "market",
-                OFF_MARKET,
+                OFF_MARKET
             ).hasFieldOrPropertyWithValue(
                 "category",
-                AssetCategory.RE,
+                AssetCategory.RE
             ).hasFieldOrPropertyWithValue(
                 "name",
-                "Apartment",
+                "Apartment"
             ).hasFieldOrPropertyWithValue(
                 "code",
-                apartment.code,
+                apartment.code
             )
 
         assertThat(house)
             .hasFieldOrPropertyWithValue(
                 "market",
-                OFF_MARKET,
+                OFF_MARKET
             ).hasFieldOrPropertyWithValue(
                 "category",
-                AssetCategory.RE,
+                AssetCategory.RE
             ).hasFieldOrPropertyWithValue(
                 "name",
-                "House",
+                "House"
             ).hasFieldOrPropertyWithValue(
                 "code",
-                house.code,
+                house.code
             )
     }
 }

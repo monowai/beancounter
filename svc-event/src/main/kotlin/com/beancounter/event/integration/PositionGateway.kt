@@ -14,29 +14,29 @@ import org.springframework.web.bind.annotation.RequestMethod
  */
 @FeignClient(
     name = "bcPosition",
-    url = "\${position.url:http://localhost:9500}",
+    url = "\${position.url:http://localhost:9500}"
 )
 interface PositionGateway {
     @RequestMapping(
         method = [RequestMethod.POST],
         value = ["/api/query"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun query(
         @RequestHeader("Authorization") bearerToken: String,
-        trnQuery: TrustedTrnQuery,
+        trnQuery: TrustedTrnQuery
     ): PositionResponse?
 
     @RequestMapping(
         method = [RequestMethod.GET],
         value = ["/api/id/{id}/{asAt}?value={value}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     operator fun get(
         @RequestHeader("Authorization") bearerToken: String,
         @PathVariable("id") code: String,
         @PathVariable("asAt") asAt: String,
-        @PathVariable("value") value: Boolean = false,
+        @PathVariable("value") value: Boolean = false
     ): PositionResponse
 }

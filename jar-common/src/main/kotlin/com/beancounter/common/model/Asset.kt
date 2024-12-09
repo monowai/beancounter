@@ -29,18 +29,18 @@ data class Asset(
     @Transient var assetCategory: AssetCategory =
         AssetCategory(
             category,
-            category,
+            category
         ),
     @ManyToOne val systemUser: SystemUser? = null,
     val status: Status = Status.Active,
-    var version: String = "1",
+    var version: String = "1"
 ) {
     companion object {
         @JvmStatic
         fun of(
             input: AssetInput,
             market: Market,
-            status: Status = Status.Active,
+            status: Status = Status.Active
         ): Asset =
             Asset(
                 code = input.code,
@@ -50,7 +50,7 @@ data class Asset(
                 marketCode = market.code,
                 priceSymbol = input.code,
                 category = input.category,
-                status = status,
+                status = status
             )
     }
 
@@ -61,7 +61,7 @@ data class Asset(
         get() =
             !code.equals(
                 id,
-                ignoreCase = true,
+                ignoreCase = true
             )
 
     override fun toString(): String = "Asset(code=$code, name=$name)"

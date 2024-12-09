@@ -29,11 +29,11 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping
 @CrossOrigin
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')",
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 class PositionController(
     private val portfolioServiceClient: PortfolioServiceClient,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) {
     private lateinit var valuationService: Valuation
 
@@ -44,52 +44,52 @@ class PositionController(
 
     @GetMapping(
         value = ["/id/{id}/{valuationDate}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun byId(
         @PathVariable id: String,
         @PathVariable(required = false) valuationDate: String = dateUtils.offsetDateString(),
         @RequestParam(
             value = "value",
-            defaultValue = "true",
-        ) value: Boolean,
+            defaultValue = "true"
+        ) value: Boolean
     ): PositionResponse {
         val portfolio = portfolioServiceClient.getPortfolioById(id)
         return valuationService.getPositions(
             portfolio,
             valuationDate,
-            value,
+            value
         )
     }
 
     @GetMapping(
         value = ["/{code}/{valuationDate}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun get(
         @PathVariable code: String,
         @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
         @RequestParam(
             value = "value",
-            defaultValue = "true",
-        ) value: Boolean,
+            defaultValue = "true"
+        ) value: Boolean
     ): PositionResponse {
         log.debug("valuationDate: $valuationDate")
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
         return valuationService.getPositions(
             portfolio,
             valuationDate,
-            value,
+            value
         )
     }
 
     @PostMapping(
         value = ["/query"],
         consumes = [MediaType.APPLICATION_JSON_VALUE],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun query(
-        @RequestBody trnQuery: TrustedTrnQuery,
+        @RequestBody trnQuery: TrustedTrnQuery
     ): PositionResponse = valuationService.build(trnQuery)
 
     companion object {

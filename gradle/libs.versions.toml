@@ -4,10 +4,13 @@
 [versions]
 kotlin = "1.9.24"
 kotlinter = "4.4.1"
-spring-boot = "3.3.5"
-spring-cloud = '2023.0.3'
+spring-boot = "3.3.6"
+spring-cloud = "2023.0.4"
+spring-cloud-contract = "4.1.5"
+spring-dm = "1.1.6"
 mockitoKotlin = '5.4.0'
 sentry = "7.18.1"
+postgres = "42.7.3"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -20,7 +23,7 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "mockitoKotlin" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "mockitoKotlin" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "mockitoKotlin" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 
 [plugins]
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -28,12 +31,12 @@ idea = { id = "idea" }
 jacoco = { id = "jacoco" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 java-test-fixtures = { id = "java-test-fixtures" }
-spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.5" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dm" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 sentry = { id = "io.sentry.jvm.gradle", version = "4.14.1" }
-spring-contract = { id = "org.springframework.cloud.contract", version = "4.1.3" }
+spring-contract = { id = "org.springframework.cloud.contract", version.ref = "spring-cloud-contract" }
 git-properties = { id = "com.gorylenko.gradle-git-properties", version = "2.4.1" }
 download = { id = "de.undercouch.download", version = "5.6.0" }
 

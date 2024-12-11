@@ -15,13 +15,11 @@ plugins {
 
 version = '0.1.1'
 publishing {
-    publications {
-        // https://youtrack.jetbrains.com/issue/IDEA-162281
-        stubs(MavenPublication) {
-            groupId "org.beancounter"
-            artifactId "${project.name}"
-            artifact verifierStubsJar
-        }
+    publications.create("position-stubs", MavenPublication) {
+        artifact verifierStubsJar
+        artifactId "${project.name}"
+        groupId "org.beancounter"
+        version "${project.version}"
     }
 }
 dependencyManagement {
@@ -103,22 +101,27 @@ bootBuildImage {
     imageName = "monowai/bc-position"
 }
 
-//def isCI = System.getenv('CI')?.toBoolean() ?: false
+tasks.named("sentryCollectSourcesJava") {
+    // Make the task run after the tasks that generate code during build
+    mustRunAfter("formatKotlin")
+}
 
-//sentry {
-//    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
-//    // This enables source context, allowing you to see your source
-//    // code as part of your stack traces in Sentry.
-//    if (isCI) {
-//        includeSourceContext = true
-//
-//        org = "monowai-developments-ltd"
-//        projectName = "position"
-//        authToken = System.getenv("SENTRY_AUTH_TOKEN")
-//    } else {
-//        //enabled = false
-//    }
-//}
+def isCI = System.getenv('CI')?.toBoolean() ?: false
+
+sentry {
+    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+    // This enables source context, allowing you to see your source
+    // code as part of your stack traces in Sentry.
+    if (isCI) {
+        includeSourceContext = true
+
+        org = "monowai-developments-ltd"
+        projectName = "position"
+        authToken = System.getenv("SENTRY_AUTH_TOKEN")
+    } else {
+        //enabled = false
+    }
+}
 
 tasks.register('downloadSentryAgent', Download) {
     src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry-opentelemetry-agent-${sentry}.jar"

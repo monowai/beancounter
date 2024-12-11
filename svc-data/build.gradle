@@ -14,13 +14,13 @@ plugins {
 }
 
 version = "0.1.1"
+
 publishing {
-    publications {
-        stubs(MavenPublication) {
-            groupId "org.beancounter"
-            artifactId "${project.name}"
-            artifact verifierStubsJar
-        }
+    publications.create("data-stubs", MavenPublication) {
+        artifact verifierStubsJar
+        artifactId "${project.name}"
+        groupId "org.beancounter"
+        version "${project.version}"
     }
 }
 

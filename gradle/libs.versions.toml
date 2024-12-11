@@ -11,12 +11,14 @@ spring-dm = "1.1.6"
 mockitoKotlin = '5.4.0'
 sentry = "7.18.1"
 postgres = "42.7.3"
+guava = "33.0.0-jre"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
 resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.1.0" }
 resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.1.0" }
+spring-cloud-feign = { module = "org.springframework.cloud:spring-cloud-starter-openfeign", version = "4.2.0" }
 sentry-openfeign = { module = "io.sentry:sentry-openfeign", version.ref = "sentry" }
 sentry-opentelemetry = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentry" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
@@ -24,6 +26,7 @@ kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref 
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "mockitoKotlin" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "mockitoKotlin" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
 [plugins]
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

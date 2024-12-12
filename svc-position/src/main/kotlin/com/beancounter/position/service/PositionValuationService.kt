@@ -57,7 +57,7 @@ class PositionValuationService(
         if (assets.isEmpty()) {
             return positions // Nothing to value
         }
-        log.debug(
+        logger.debug(
             "Requesting valuation positions: {}, code: {}, asAt: {}...",
             positions.positions.size,
             positions.portfolio.code,
@@ -69,7 +69,7 @@ class PositionValuationService(
                 getValuationData(positions)
             }
         if (priceResponse.data.isEmpty()) {
-            log.info(
+            logger.info(
                 "No prices found on date {}",
                 positions.asAt
             )
@@ -110,7 +110,7 @@ class PositionValuationService(
         pfTotals.irr = irr
         tradeTotals.irr = irr
 
-        log.debug(
+        logger.debug(
             "Completed valuation of {} positions.",
             positions.positions.size
         )
@@ -313,7 +313,7 @@ class PositionValuationService(
             BigDecimal(irrCalculator.calculate(periodicCashFlows))
         } catch (e: NoBracketingException) {
             logger.error(
-                "Failed to calculate IRR",
+                "Failed to calculate IRR [$message]",
                 e
             )
             val breadcrumb =
@@ -325,8 +325,4 @@ class PositionValuationService(
 
             BigDecimal.ZERO
         }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(PositionValuationService::class.java)
-    }
 }

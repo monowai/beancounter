@@ -2,7 +2,6 @@ import de.undercouch.gradle.tasks.download.Download
 
 plugins {
     alias(libs.plugins.jvm)
-    alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.contract)
     alias(libs.plugins.kotlin.spring)
@@ -22,15 +21,11 @@ publishing {
         version "${project.version}"
     }
 }
-dependencyManagement {
-    imports {
-        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.6.0")
-    }
-}
 
 dependencies {
     implementation(platform(libs.spring.boot.dependencies),
             platform(libs.spring.cloud.dependencies),
+            platform(libs.otel.bom),
             project(":jar-common"),
             project(":jar-client"),
             project(":jar-auth"),

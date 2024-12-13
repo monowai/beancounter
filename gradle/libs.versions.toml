@@ -7,7 +7,9 @@ kotlinter = "4.4.1"
 spring-boot = "3.3.6"
 spring-cloud = "2023.0.4"
 spring-cloud-contract = "4.1.5"
-spring-dm = "1.1.6"
+spring-kafka = "3.3.0"
+spring-security = "6.4.1"
+jackson = "2.18.2"
 mockitoKotlin = '5.4.0'
 sentry = "7.18.1"
 postgres = "42.7.3"
@@ -16,12 +18,18 @@ guava = "33.0.0-jre"
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
+otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.6.0" }
 resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.1.0" }
 resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.1.0" }
 spring-cloud-feign = { module = "org.springframework.cloud:spring-cloud-starter-openfeign", version = "4.2.0" }
+spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
+spring-security-oauth2 = { module = "org.springframework.security:spring-security-oauth2-resource-server", version.ref = "spring-security" }
+spring-security-jose = { module = "org.springframework.security:spring-security-oauth2-jose", version.ref = "spring-security" }
 sentry-openfeign = { module = "io.sentry:sentry-openfeign", version.ref = "sentry" }
 sentry-opentelemetry = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentry" }
+jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+assertj = { module = "org.assertj:assertj-core", version = "3.26.3" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "mockitoKotlin" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "mockitoKotlin" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "mockitoKotlin" }
@@ -34,7 +42,6 @@ idea = { id = "idea" }
 jacoco = { id = "jacoco" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 java-test-fixtures = { id = "java-test-fixtures" }
-spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dm" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

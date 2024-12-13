@@ -2,7 +2,6 @@ import de.undercouch.gradle.tasks.download.Download
 
 plugins {
     alias(libs.plugins.jvm)
-    alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.java.test.fixtures)

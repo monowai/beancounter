@@ -1,8 +1,6 @@
 plugins {
-    alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.kotlin.spring)
-    alias(libs.plugins.jvm)
 }
 
 version = "0.1.1"
@@ -10,37 +8,30 @@ ext {
     set('springShellVersion', "3.3.3")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.shell:spring-shell-dependencies:3.3.3"
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.3"
-    }
-}
 dependencies {
-    implementation("org.springframework.shell:spring-shell-starter-jansi:3.3.3",
-            "org.springframework.cloud:spring-cloud-starter-openfeign",
+    implementation(
+            "org.springframework.boot:spring-boot-starter",
+            "org.springframework.shell:spring-shell-starter:${springShellVersion}",
+            platform("org.springframework.shell:spring-shell-dependencies:${springShellVersion}"),
+            libs.spring.cloud.feign,
+            "org.springframework.shell:spring-shell-starter-jansi",
+            "org.springframework.boot:spring-boot-starter-security:${libs.spring.boot.dependencies.get().version}",
+            libs.spring.security.oauth2,
+            libs.spring.security.jose,
             project(":jar-common"),
             project(":jar-client"),
             project(":jar-auth"),
-            "com.fasterxml.jackson.core:jackson-databind",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-            "org.springframework.security:spring-security-config",
-            "org.springframework.boot:spring-boot-starter-security",
-            "org.springframework.security:spring-security-oauth2-resource-server",
-            "org.springframework.security:spring-security-oauth2-jose",
-            "org.jetbrains.kotlin:kotlin-reflect",
-            "com.fasterxml.jackson.module:jackson-module-kotlin",
+
             'com.github.ben-manes.caffeine:caffeine:3.1.2',
-            "org.springframework.kafka:spring-kafka",
+            libs.spring.kafka,
             'com.opencsv:opencsv:5.9')
 
-    compileOnly("org.springframework.boot:spring-boot-configuration-processor",)
-
-    testImplementation("org.assertj:assertj-core",
-            "io.rest-assured:json-schema-validator",
-            "org.springframework.boot:spring-boot-starter-test",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.springframework.kafka:spring-kafka-test",
+    testImplementation(libs.assertj,
+            "io.rest-assured:json-schema-validator:5.5.0",
+            libs.spring.security.oauth2,
+            "org.springframework.boot:spring-boot-starter-test:${libs.spring.boot.dependencies.get().version}",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner:${libs.plugins.spring.contract.get().version}",
+            "org.springframework.kafka:spring-kafka-test:${libs.spring.kafka.get().version}",
             "org.junit.jupiter:junit-jupiter",
             testFixtures(project(":jar-auth")),
 
@@ -48,5 +39,4 @@ dependencies {
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }

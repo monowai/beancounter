@@ -2,7 +2,6 @@ import de.undercouch.gradle.tasks.download.Download
 
 plugins {
     alias(libs.plugins.jvm)
-    alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.contract)
     alias(libs.plugins.kotlin.spring)
@@ -24,15 +23,13 @@ publishing {
     }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.6.0")
-    }
-}
 
 dependencies {
-    implementation(platform(libs.spring.boot.dependencies),
+    implementation(
+            platform(libs.spring.boot.dependencies),
             platform(libs.spring.cloud.dependencies),
+            platform(libs.otel.bom),
+            //platform(libs.otel),
             project(":jar-common"),
             project(":jar-auth"),
             project(":jar-client"),
@@ -148,13 +145,13 @@ tasks.named('sentryCollectSourcesJava') {
 }
 
 tasks.register('downloadSentryAgent', Download) {
-    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentryVersion}/sentry-opentelemetry-agent-${sentryVersion}.jar"
-    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar").get().asFile
+    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry-opentelemetry-agent-${sentry}.jar"
+    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().asFile
     onlyIfNewer true
 }
 
 tasks.register('copySentryAgent', Copy) {
-    from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentryVersion}.jar")
+    from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar")
     into 'lib'
     dependsOn downloadSentryAgent
 }

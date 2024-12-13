@@ -182,15 +182,11 @@ class FxBase : ContractVerifierBase() {
                     usdAudOtherRate,
                     myr
                 )
-            ],
-            "1999-01-04"
+            ]
         )
     }
 
-    private fun mockEcbRates(
-        exRatesResponse: ExRatesResponse,
-        rateDate: String = exRatesResponse.date.toString()
-    ) {
+    private fun mockEcbRates(exRatesResponse: ExRatesResponse) {
         Mockito
             .`when`(
                 fxGateway.getRatesForSymbols(

@@ -19,10 +19,8 @@ import java.time.LocalDate
 import java.util.Optional
 
 /**
- * Service container for MarketData information.
+ * Service container for obtaining MarketData information from a provider.
  *
- * @author mikeh
- * @since 2019-01-28
  */
 @Import(ProviderUtils::class)
 @Service
@@ -57,6 +55,7 @@ class MarketDataService
             val cachedDates: MutableMap<String, LocalDate> = mutableMapOf()
             for (marketDataProvider in byProviders.keys) {
                 val assets = (byProviders[marketDataProvider] ?: error(""))
+                log.debug("marketDataProvider: ${marketDataProvider.getId()}, assets: ${assets.size}")
                 buildDateCache(
                     cachedDates,
                     marketDataProvider,

@@ -73,10 +73,10 @@ class PriceService internal constructor(
     /**
      * Persistence and distribution of MarketData objects.
      */
-    fun handle(priceResponse: PriceResponse): Iterable<MarketData>? {
+    fun handle(priceResponse: PriceResponse): Iterable<MarketData> {
         val createSet =
             priceResponse.data
-                .filter { !cashUtils.isCash(it.asset) }
+                .filter { !cashUtils.isCash(it.asset) && it.close != BigDecimal.ZERO }
                 .filter {
                     getMarketData(
                         it.asset,

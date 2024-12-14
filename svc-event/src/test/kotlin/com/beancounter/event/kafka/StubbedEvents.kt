@@ -33,7 +33,6 @@ import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -42,6 +41,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -81,7 +81,7 @@ class StubbedEvents {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @SpyBean
+    @MockitoSpyBean
     private lateinit var eventService: EventService
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -91,7 +91,7 @@ class StubbedEvents {
     @Autowired
     private lateinit var positionService: PositionService
 
-    @SpyBean
+    @MockitoSpyBean
     private lateinit var backfillService: BackfillService
 
     @Autowired

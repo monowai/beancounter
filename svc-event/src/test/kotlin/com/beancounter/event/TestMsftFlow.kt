@@ -18,33 +18,34 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Simple flow of various corporate events for Microsoft.
  */
 @SpringBootTest
 @ActiveProfiles("test")
-// Ignore Kafka
-@MockBean(PositionGateway::class)
 @AutoConfigureMockAuth
 class TestMsftFlow {
     @Autowired
     private lateinit var eventService: EventService
 
-    @Autowired
-    private lateinit var positionService: PositionService
+    @MockitoBean
+    private lateinit var positionGateway: PositionGateway
 
     @Autowired
-    private lateinit var positionGateway: PositionGateway
+    private lateinit var positionService: PositionService
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Test
     fun is_DividendRequestIgnoreDueToZeroHolding() {
+        assertThat(mockAuthConfig).isNotNull
+        assertThat(positionGateway).isNotNull
+
         val trustedEvent =
             objectMapper.readValue(
                 ClassPathResource("/msft-flow/1-event.json").file,

@@ -25,11 +25,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cache.CacheManager
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.UUID
 
 /**
@@ -43,7 +43,7 @@ import java.util.UUID
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
 class TestPortfolioCommands {
-    @MockBean
+    @MockitoBean
     private lateinit var registrationService: RegistrationService
 
     @Autowired
@@ -52,10 +52,10 @@ class TestPortfolioCommands {
     @Autowired
     private lateinit var tokenService: TokenService
 
-    @MockBean
+    @MockitoBean
     private lateinit var portfolioGw: PortfolioGw
 
-    @MockBean
+    @MockitoBean
     private lateinit var cacheManager: CacheManager
     private lateinit var portfolioCommands: PortfolioCommands
 

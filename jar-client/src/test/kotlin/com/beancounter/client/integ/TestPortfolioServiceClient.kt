@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Client side Portfolio tests using mock data from bc-data.
@@ -33,7 +33,7 @@ class TestPortfolioServiceClient {
     @Autowired
     private lateinit var portfolioService: PortfolioServiceClient
 
-    @MockBean
+    @MockitoBean
     private lateinit var tokenService: TokenService
 
     @Test

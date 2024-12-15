@@ -16,10 +16,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -36,10 +36,10 @@ internal class PriceControllerRefreshTests
         private val mockMvc: MockMvc,
         private val mockAuthConfig: MockAuthConfig
     ) {
-        @MockBean
+        @MockitoBean
         private lateinit var alphaPriceService: AlphaPriceService
 
-        @MockBean
+        @MockitoBean
         private lateinit var assetService: AssetService
 
         @Autowired

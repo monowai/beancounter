@@ -2,7 +2,6 @@ package com.contracts.data
 
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
-import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -14,7 +13,6 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
@@ -26,11 +24,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.core.io.ClassPathResource
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.Optional
 
 const val AS_AT_DATE = "2021-10-18"
@@ -48,39 +46,33 @@ class TrnBase {
     @LocalServerPort
     lateinit var port: String
 
-    @MockBean
+    @MockitoBean
     internal lateinit var jwtDecoder: JwtDecoder
 
-    @MockBean
+    @MockitoBean
     internal lateinit var tokenService: TokenService
 
-    @MockBean
+    @MockitoBean
     internal lateinit var systemUserRepository: SystemUserRepository
 
-    @MockBean
+    @MockitoBean
     private lateinit var systemUserService: SystemUserService
 
-    @Autowired
-    lateinit var noWebAuth: NoWebAuth
-
-    @Autowired
-    private lateinit var currencyService: CurrencyService
-
-    @MockBean
+    @MockitoBean
     private lateinit var trnService: TrnService
 
-    @MockBean
+    @MockitoBean
     private lateinit var assetService: AssetService
 
-    @MockBean
+    @MockitoBean
     private lateinit var portfolioRepository: PortfolioRepository
 
     private var systemUser: SystemUser = ContractHelper.getSystemUser()
 
-    @MockBean
+    @MockitoBean
     internal lateinit var trnQueryService: TrnQueryService
 
-    @MockBean
+    @MockitoBean
     internal lateinit var keyGenUtils: KeyGenUtils
 
     @Autowired

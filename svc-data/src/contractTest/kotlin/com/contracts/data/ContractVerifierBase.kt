@@ -10,13 +10,12 @@ import com.beancounter.marketdata.trn.cash.CashServices
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Base for contract testing. Mocks commonly used services.
@@ -37,22 +36,19 @@ class ContractVerifierBase {
 
     internal val rateDate = "2019-10-18"
 
-    @MockBean
+    @MockitoBean
     internal lateinit var keyGenUtils: KeyGenUtils
 
-    @MockBean
+    @MockitoBean
     internal lateinit var jwtDecoder: JwtDecoder
 
-    @MockBean
+    @MockitoBean
     internal lateinit var tokenService: TokenService
 
-    @MockBean
+    @MockitoBean
     internal lateinit var systemUserService: SystemUserService
 
-    @Autowired
-    lateinit var noWebAuth: NoWebAuth
-
-    @MockBean
+    @MockitoBean
     internal lateinit var mockCashServices: CashServices
 
     @BeforeEach

@@ -16,7 +16,7 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Test all user registration behaviour.
@@ -34,7 +34,7 @@ class RegistrationClientTest {
     @Autowired
     private lateinit var tokenService: TokenService
 
-    @MockBean
+    @MockitoBean
     private lateinit var registrationGateway: RegistrationService.RegistrationGateway
 
     @Test

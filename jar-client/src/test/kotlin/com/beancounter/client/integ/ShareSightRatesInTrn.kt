@@ -21,10 +21,10 @@ import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -46,7 +46,7 @@ class ShareSightRatesInTrn {
     @Autowired
     private lateinit var shareSightRowProcessor: ShareSightRowAdapter
 
-    @MockBean
+    @MockitoBean
     private lateinit var tokenService: TokenService
 
     @BeforeEach

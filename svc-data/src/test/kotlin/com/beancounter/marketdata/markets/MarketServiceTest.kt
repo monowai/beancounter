@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.ZoneOffset
 import java.util.TimeZone
 
@@ -31,7 +31,7 @@ class MarketServiceTest {
     @Autowired
     private lateinit var marketService: MarketService
 
-    @MockBean
+    @MockitoBean
     private lateinit var currencyService: CurrencyService
 
     @BeforeEach

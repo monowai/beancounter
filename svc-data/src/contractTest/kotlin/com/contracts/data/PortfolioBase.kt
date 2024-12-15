@@ -15,9 +15,9 @@ import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.domain.Sort
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.io.File
 import java.io.IOException
 import java.util.Optional
@@ -29,10 +29,10 @@ class PortfolioBase : ContractVerifierBase() {
     @Autowired
     private lateinit var currencyService: CurrencyService
 
-    @MockBean
+    @MockitoBean
     private lateinit var portfolioRepository: PortfolioRepository
 
-    @MockBean
+    @MockitoBean
     internal lateinit var cashBalancesBean: CashBalancesBean
 
     @Autowired

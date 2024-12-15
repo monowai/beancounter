@@ -11,7 +11,7 @@ import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -42,13 +42,13 @@ import java.math.BigDecimal
  * conditions, making it an essential component of the financial data processing and verification suite.</p>
  */
 class FxBase : ContractVerifierBase() {
-    @MockBean
+    @MockitoBean
     private lateinit var fxGateway: FxGateway
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxRateRepository: FxRateRepository
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired
@@ -71,7 +71,7 @@ class FxBase : ContractVerifierBase() {
     private val usdAudOtherRate = "1.4438857964"
     private val usdNzdRate = "1.5053869635"
 
-    @MockBean
+    @MockitoBean
     internal lateinit var cashBalancesBean: CashBalancesBean
 
     @BeforeEach

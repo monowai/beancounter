@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
@@ -51,20 +51,14 @@ class CashTrnTests {
 
     private lateinit var bcMvcHelper: BcMvcHelper
 
-    @MockBean
+    @MockitoBean
     private lateinit var figiProxy: FigiProxy
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxClientService: FxRateService
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
-
-    @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
-
-    @Autowired
-    private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
@@ -77,6 +71,7 @@ class CashTrnTests {
         mockAuthConfig: MockAuthConfig,
         mockMvc: MockMvc
     ) {
+        assertThat(fxTransactions).isNotNull
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,

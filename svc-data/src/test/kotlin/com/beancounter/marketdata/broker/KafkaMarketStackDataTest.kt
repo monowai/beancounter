@@ -18,9 +18,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -48,7 +48,7 @@ class KafkaMarketStackDataTest {
     @Autowired
     lateinit var marketDataService: MarketDataService
 
-    @MockBean
+    @MockitoBean
     lateinit var assetService: AssetService
 
     @Autowired

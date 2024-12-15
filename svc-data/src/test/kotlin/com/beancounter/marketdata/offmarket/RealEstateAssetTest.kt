@@ -18,7 +18,7 @@ import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -41,7 +41,7 @@ class RealEstateAssetTest {
     @Autowired
     private lateinit var priceService: PriceService
 
-    @MockBean
+    @MockitoBean
     private lateinit var cashBalancesBean: CashBalancesBean
 
     @Autowired

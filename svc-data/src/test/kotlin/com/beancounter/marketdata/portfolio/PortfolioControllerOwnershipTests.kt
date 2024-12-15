@@ -7,7 +7,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.BcMvcHelper
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_ROOT
+import com.beancounter.marketdata.utils.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

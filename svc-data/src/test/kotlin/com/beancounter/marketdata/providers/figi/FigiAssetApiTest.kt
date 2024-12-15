@@ -18,7 +18,7 @@ import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.ASSET_ROOT
+import com.beancounter.marketdata.utils.ASSET_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.tomakehurst.wiremock.client.WireMock

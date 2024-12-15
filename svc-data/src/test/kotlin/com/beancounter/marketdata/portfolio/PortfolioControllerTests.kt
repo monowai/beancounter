@@ -12,10 +12,10 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioByCode
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioById
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioCreate
+import com.beancounter.marketdata.utils.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

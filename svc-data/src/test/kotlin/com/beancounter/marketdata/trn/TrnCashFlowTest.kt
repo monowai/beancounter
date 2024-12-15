@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 
@@ -44,13 +44,13 @@ class TrnCashFlowTest {
     @Autowired
     lateinit var trnService: TrnService
 
-    @MockBean
+    @MockitoBean
     private lateinit var figiProxy: FigiProxy
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxClientService: FxRateService
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired

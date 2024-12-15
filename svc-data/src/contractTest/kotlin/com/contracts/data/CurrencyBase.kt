@@ -1,13 +1,13 @@
 package com.contracts.data
 
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Currency Contract Tests.
  */
 
 class CurrencyBase : ContractVerifierBase() {
-    @MockBean
+    @MockitoBean
     internal lateinit var cashBalancesBean: CashBalancesBean
 }

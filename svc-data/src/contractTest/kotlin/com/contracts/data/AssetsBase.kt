@@ -8,8 +8,8 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.assets.AssetService
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.io.File
 import java.util.Locale
 
@@ -17,7 +17,7 @@ import java.util.Locale
  * Asset Contract Tests. Called by Spring Cloud Contract Verifier
  */
 class AssetsBase : ContractVerifierBase() {
-    @MockBean
+    @MockitoBean
     private lateinit var assetService: AssetService
 
     @BeforeEach

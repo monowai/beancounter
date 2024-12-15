@@ -10,15 +10,13 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Verify price refresh removes and re-imports the price for a single asset.
@@ -32,15 +30,9 @@ internal class PriceRefreshTest {
     private lateinit var assetRepository: AssetRepository
 
     @Autowired
-    private lateinit var assetService: AssetService
-
-    @Autowired
     private lateinit var assetHydrationService: AssetHydrationService
 
-    @Autowired
-    private lateinit var marketService: MarketService
-
-    @MockBean
+    @MockitoBean
     private lateinit var alphaPriceService: AlphaPriceService
 
     @BeforeEach

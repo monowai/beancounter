@@ -2,8 +2,6 @@ package com.contracts.data
 
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
-import com.beancounter.auth.NoWebAuth
-import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.AssetInput
@@ -37,11 +35,11 @@ import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -59,25 +57,19 @@ class RealestateBase {
     @LocalServerPort
     lateinit var port: String
 
-    @MockBean
+    @MockitoBean
     internal lateinit var keyGenUtils: KeyGenUtils
 
-    @MockBean
+    @MockitoBean
     internal lateinit var jwtDecoder: JwtDecoder
 
-    @Autowired
-    internal lateinit var tokenService: TokenService
-
-    @Autowired
-    lateinit var noWebAuth: NoWebAuth
-
-    @MockBean
+    @MockitoBean
     internal lateinit var cashBalancesBean: CashBalancesBean
 
-    @MockBean
+    @MockitoBean
     internal lateinit var bcRowAdapter: BcRowAdapter
 
-    @MockBean
+    @MockitoBean
     internal lateinit var ecbService: EcbService
 
     @Autowired
@@ -89,7 +81,7 @@ class RealestateBase {
     @Autowired
     private lateinit var assetService: AssetService
 
-    @MockBean
+    @MockitoBean
     private lateinit var systemUserService: SystemUserService
 
     @Autowired

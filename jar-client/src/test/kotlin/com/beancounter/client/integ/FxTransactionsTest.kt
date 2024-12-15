@@ -33,9 +33,9 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -55,7 +55,7 @@ class FxTransactionsTest {
     @Autowired
     lateinit var fxTransactions: FxTransactions
 
-    @MockBean
+    @MockitoBean
     lateinit var tokenService: TokenService
 
     @Autowired

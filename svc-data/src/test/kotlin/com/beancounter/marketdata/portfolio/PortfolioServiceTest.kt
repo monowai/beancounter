@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 @SpringBootTest
@@ -20,7 +20,7 @@ class PortfolioServiceTest {
     @Autowired
     private lateinit var systemUserService: SystemUserService
 
-    @MockBean
+    @MockitoBean
     private lateinit var tokenService: TokenService
 
     @Test

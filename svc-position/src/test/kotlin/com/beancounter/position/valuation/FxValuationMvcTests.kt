@@ -6,7 +6,6 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenUtils
 import com.beancounter.client.AssetService
 import com.beancounter.client.services.PortfolioServiceClient
-import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PositionResponse
@@ -27,11 +26,11 @@ import com.beancounter.position.accumulation.Accumulator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -45,7 +44,7 @@ private const val EBAY = "EBAY"
  */
 @StubbedTest
 internal class FxValuationMvcTests {
-    @MockBean
+    @MockitoBean
     private lateinit var irrCalculator: IrrCalculator
 
     @Autowired
@@ -61,16 +60,11 @@ internal class FxValuationMvcTests {
     private lateinit var valuation: Valuation
 
     @Autowired
-    private lateinit var staticService: StaticService
-
-    @Autowired
     private lateinit var assetService: AssetService
 
     @Autowired
     private lateinit var portfolioService: PortfolioServiceClient
 
-    @Autowired
-    private lateinit var authConfig: AuthConfig
     lateinit var token: Jwt
     lateinit var tokenUtils: TokenUtils
 

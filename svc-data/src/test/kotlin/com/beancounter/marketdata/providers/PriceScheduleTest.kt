@@ -20,9 +20,9 @@ import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -34,13 +34,13 @@ import org.springframework.web.context.WebApplicationContext
 @SpringBootTest(properties = ["schedule.enabled=true"])
 @SpringMvcDbTest
 class PriceScheduleTest {
-    @MockBean
+    @MockitoBean
     private lateinit var enrichmentFactory: EnrichmentFactory
 
-    @MockBean
+    @MockitoBean
     private lateinit var alphaPriceService: AlphaPriceService
 
-    @MockBean
+    @MockitoBean
     private lateinit var cashBalancesBean: CashBalancesBean
 
     @Autowired

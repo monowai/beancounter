@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 /**
@@ -69,13 +69,13 @@ class TrnCsvKafka {
     @Autowired
     private lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
 
-    @MockBean
+    @MockitoBean
     private lateinit var authConfig: AuthConfig
 
     @Autowired
     private val kafkaTrnProducer: KafkaTrnProducer? = null
 
-    @MockBean
+    @MockitoBean
     private lateinit var shareSightFactory: ShareSightFactory
     private lateinit var consumer: Consumer<String, String>
 

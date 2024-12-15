@@ -8,9 +8,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.utils.BcMvcHelper
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_CODE
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_ID
+import com.beancounter.marketdata.utils.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -65,7 +63,7 @@ class PortfolioExceptionTests {
             .perform(
                 MockMvcRequestBuilders
                     .get(
-                        PORTFOLIO_BY_CODE,
+                        "${PORTFOLIO_ROOT}/code/{code}",
                         "does not exist"
                     ).with(SecurityMockMvcRequestPostProcessors.csrf())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -79,7 +77,7 @@ class PortfolioExceptionTests {
             .perform(
                 MockMvcRequestBuilders
                     .get(
-                        PORTFOLIO_BY_ID,
+                        "${PORTFOLIO_ROOT}/{id}",
                         "invalidId"
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -104,7 +102,7 @@ class PortfolioExceptionTests {
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .post(BcMvcHelper.PORTFOLIO_ROOT)
+                        .post(PORTFOLIO_ROOT)
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .with(
                             SecurityMockMvcRequestPostProcessors.csrf()
@@ -145,7 +143,7 @@ class PortfolioExceptionTests {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post(BcMvcHelper.PORTFOLIO_ROOT)
+                    .post(PORTFOLIO_ROOT)
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
                     .content(
                         objectMapper

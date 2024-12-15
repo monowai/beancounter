@@ -27,8 +27,8 @@ import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.utils.BcMvcHelper
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRADE_DATE
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRNS_ROOT
+import com.beancounter.marketdata.utils.TRADE_DATE
+import com.beancounter.marketdata.utils.TRNS_ROOT
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,6 +41,8 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.math.BigDecimal
+
+const val TRNS_BY_ID = "$TRNS_ROOT/{trnId}"
 
 /**
  * Splits out the general flow of transactions to verify they work as expected through the trn lifecycle.
@@ -171,7 +173,7 @@ class TrnControllerFlowTest(
             .perform(
                 MockMvcRequestBuilders
                     .delete(
-                        "$TRNS_ROOT/{trnId}",
+                        TRNS_BY_ID,
                         "illegalId"
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -294,7 +296,7 @@ class TrnControllerFlowTest(
                 .perform(
                     MockMvcRequestBuilders
                         .delete(
-                            "$TRNS_ROOT/{trnId}",
+                            TRNS_BY_ID,
                             id
                         ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -324,7 +326,7 @@ class TrnControllerFlowTest(
                 .perform(
                     MockMvcRequestBuilders
                         .get(
-                            "$TRNS_ROOT/{trnId}",
+                            TRNS_BY_ID,
                             id
                         ).contentType(MediaType.APPLICATION_JSON)
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))

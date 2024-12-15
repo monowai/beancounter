@@ -24,16 +24,16 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 /**
  * Helper for MVC tests.
  */
+const val TRNS_ROOT = "/trns"
+const val ASSET_ROOT = "/assets"
+const val PORTFOLIO_ROOT = "/portfolios"
+const val TRADE_DATE = "2018-01-01"
+
 class BcMvcHelper(
     private val mockMvc: MockMvc,
     val token: Jwt
 ) {
     companion object {
-        const val TRADE_DATE = "2018-01-01"
-        const val TRNS_ROOT = "/trns"
-        const val ASSET_ROOT = "/assets"
-        const val PORTFOLIO_ROOT = "/portfolios"
-
         @JvmStatic
         fun portfolios(
             mockMvc: MockMvc,

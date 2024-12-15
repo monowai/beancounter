@@ -23,20 +23,17 @@ import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.utils.BcMvcHelper
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRNS_ROOT
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.URI_TRN_FOR_PORTFOLIO
 import com.beancounter.marketdata.utils.RegistrationUtils
+import com.beancounter.marketdata.utils.TRNS_ROOT
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -54,31 +51,20 @@ class TrnControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
-
-    @Autowired
-    private lateinit var marketService: MarketService
-
-    @Autowired
-    private lateinit var portfolioService: PortfolioService
-
-    @Autowired
     private lateinit var currencyService: CurrencyService
 
     @Autowired
     private lateinit var trnService: TrnService
 
     @Autowired
-    private lateinit var trnQueryService: TrnQueryService
-
-    @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
-    @MockBean
+    @MockitoBean
     private lateinit var figiProxy: FigiProxy
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
+
     private lateinit var token: Jwt
 
     private lateinit var bcMvcHelper: BcMvcHelper
@@ -129,7 +115,7 @@ class TrnControllerTest {
             mockMvc
                 .perform(
                     get(
-                        URI_TRN_FOR_PORTFOLIO,
+                        "$TRNS_ROOT/portfolio/{portfolioId}/{asAt}",
                         portfolio.id,
                         dateUtils.today()
                     ).with(
@@ -231,14 +217,13 @@ class TrnControllerTest {
 
     @Test
     fun is_findThrowingForIllegalTrnId() {
-        val portfolio =
-            bcMvcHelper.portfolio(
-                PortfolioInput(
-                    "ILLEGAL",
-                    "is_findThrowingForIllegalTrnId",
-                    currency = NZD.code
-                )
+        bcMvcHelper.portfolio(
+            PortfolioInput(
+                "ILLEGAL",
+                "is_findThrowingForIllegalTrnId",
+                currency = NZD.code
             )
+        )
 
         mockMvc
             .perform(

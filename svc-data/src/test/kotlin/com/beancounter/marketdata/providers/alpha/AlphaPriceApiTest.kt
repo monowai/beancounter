@@ -20,7 +20,6 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.event.EventProducer
-import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
@@ -55,7 +54,6 @@ import org.mockito.Spy
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -63,6 +61,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -84,7 +83,7 @@ import org.springframework.web.context.WebApplicationContext
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 internal class AlphaPriceApiTest {
-    @MockBean
+    @MockitoBean
     private lateinit var dateUtils: DateUtils
 
     @Autowired
@@ -94,21 +93,15 @@ internal class AlphaPriceApiTest {
     private lateinit var mdFactory: MdFactory
 
     @Autowired
-    private lateinit var marketService: MarketService
-
-    @Autowired
     private lateinit var marketDataService: MarketDataService
 
     @Autowired
     private lateinit var alphaConfig: AlphaConfig
 
     @Autowired
-    private lateinit var alphaEventService: AlphaEventService
-
-    @Autowired
     private lateinit var priceService: PriceService
 
-    @MockBean
+    @MockitoBean
     private lateinit var cashServices: CashServices
 
     @Autowired

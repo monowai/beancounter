@@ -9,24 +9,26 @@ import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
-// @EmbeddedKafka(partitions = 1, topics = ["\${beancounter.topics.pos.mv}"])
+/**
+ * Test the Kafka listener for Portfolio updates.
+ */
 @SpringMvcKafkaTest
 class PortfolioKafkaListenerIntegrationTest {
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
 
-    @MockBean
+    @MockitoBean
     private lateinit var portfolioService: PortfolioService
 
     @Autowired
     private lateinit var kafkaConfig: KafkaConfig
 
-    @MockBean
+    @MockitoBean
     private lateinit var eventProducer: EventProducer
 
     @Test

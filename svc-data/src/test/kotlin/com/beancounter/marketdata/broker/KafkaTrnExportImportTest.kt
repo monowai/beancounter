@@ -46,7 +46,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -55,6 +54,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -103,19 +103,19 @@ class KafkaTrnExportImportTest {
     @Autowired
     lateinit var currencyService: CurrencyService
 
-    @MockBean
+    @MockitoBean
     private lateinit var mdFactory: MdFactory
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxService: FxRateService
 
-    @MockBean
+    @MockitoBean
     private lateinit var cashServices: CashServices
 
     @Autowired
     private lateinit var authUtilService: AuthUtilService
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired

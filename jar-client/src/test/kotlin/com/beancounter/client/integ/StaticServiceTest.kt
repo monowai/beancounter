@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Client side access to static data - Markets & Currencies.
@@ -27,7 +27,7 @@ class StaticServiceTest {
     @Autowired
     private lateinit var staticService: StaticService
 
-    @MockBean
+    @MockitoBean
     private lateinit var tokenService: TokenService
 
     @Test

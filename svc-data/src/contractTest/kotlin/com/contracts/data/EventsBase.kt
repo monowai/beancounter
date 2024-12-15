@@ -13,17 +13,17 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Event Contract Tests. Called by Spring Cloud Contract Verifier
  */
 class EventsBase : ContractVerifierBase() {
-    @MockBean
+    @MockitoBean
     private lateinit var assetService: AssetService
 
-    @MockBean
+    @MockitoBean
     private lateinit var alphaGateway: AlphaGateway
 
     @Autowired

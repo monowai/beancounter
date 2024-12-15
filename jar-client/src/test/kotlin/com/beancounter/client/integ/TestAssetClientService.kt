@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Contract based asset tests.
@@ -25,7 +25,7 @@ class TestAssetClientService {
     @Autowired
     private lateinit var assetService: AssetService
 
-    @MockBean
+    @MockitoBean
     private lateinit var tokenService: TokenService
 
     @Test

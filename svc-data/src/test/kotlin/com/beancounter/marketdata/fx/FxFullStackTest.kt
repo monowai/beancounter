@@ -24,9 +24,9 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultMatcher
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -51,7 +51,7 @@ internal class FxFullStackTest {
     @Autowired
     private lateinit var currencyService: CurrencyService
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxGateway: FxGateway
 
     private val date = "2019-08-27"

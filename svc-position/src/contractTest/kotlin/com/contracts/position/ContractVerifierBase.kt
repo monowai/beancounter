@@ -1,7 +1,6 @@
 package com.contracts.position
 
 import com.beancounter.auth.AutoConfigureNoAuth
-import com.beancounter.auth.TokenService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
@@ -15,12 +14,10 @@ import com.beancounter.position.valuation.Valuation
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.core.io.ClassPathResource
-import org.springframework.web.context.WebApplicationContext
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 private const val BEARER_TOKEN = "no-token"
 
@@ -35,17 +32,11 @@ private const val BEARER_TOKEN = "no-token"
 class ContractVerifierBase {
     private val dateUtils = DateUtils()
 
-    @MockBean
+    @MockitoBean
     private lateinit var valuationService: Valuation
 
-    @Autowired
-    private lateinit var tokenService: TokenService
-
-    @MockBean
+    @MockitoBean
     private lateinit var portfolioServiceClient: PortfolioServiceClient
-
-    @Autowired
-    private lateinit var context: WebApplicationContext
 
     @LocalServerPort
     lateinit var port: String

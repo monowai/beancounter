@@ -18,14 +18,16 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.utils.BcMvcHelper
+import com.beancounter.marketdata.utils.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
+import com.beancounter.marketdata.utils.TRADE_DATE
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -47,7 +49,7 @@ class TrnPortfolioControllerTest {
     @Autowired
     private lateinit var portfolioService: PortfolioService
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
 
     private lateinit var bcMvcHelper: BcMvcHelper
@@ -100,7 +102,7 @@ class TrnPortfolioControllerTest {
                 ),
                 createTransactionInput(
                     "2",
-                    BcMvcHelper.TRADE_DATE
+                    TRADE_DATE
                 )
             )
         val transactionsB =
@@ -177,9 +179,9 @@ class TrnPortfolioControllerTest {
                         .perform(
                             MockMvcRequestBuilders
                                 .get(
-                                    "${BcMvcHelper.PORTFOLIO_ROOT}/asset/{assetId}/{tradeDate}",
+                                    "${PORTFOLIO_ROOT}/asset/{assetId}/{tradeDate}",
                                     msft.id,
-                                    BcMvcHelper.TRADE_DATE
+                                    TRADE_DATE
                                 ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                                 .contentType(MediaType.APPLICATION_JSON)
                         ).andExpect(MockMvcResultMatchers.status().isOk)

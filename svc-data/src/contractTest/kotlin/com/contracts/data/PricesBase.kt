@@ -23,26 +23,26 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
  * Base class for Price Contract tests. This is called by the spring cloud contract verifier
  */
 class PricesBase : ContractVerifierBase() {
-    @MockBean
+    @MockitoBean
     internal lateinit var alphaGateway: AlphaGateway
 
-    @MockBean
+    @MockitoBean
     private lateinit var assetRepository: AssetRepository
 
-    @MockBean
+    @MockitoBean
     private lateinit var marketDataRepo: MarketDataRepo
 
-    @MockBean
+    @MockitoBean
     private lateinit var cashBalancesBean: CashBalancesBean
 
-    @MockBean
+    @MockitoBean
     private lateinit var dateUtils: DateUtils
 
     @BeforeEach

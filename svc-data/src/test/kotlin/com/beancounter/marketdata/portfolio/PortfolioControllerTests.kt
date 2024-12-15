@@ -12,7 +12,6 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_ID
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioByCode
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioById
@@ -47,9 +46,6 @@ private const val P_CCY_CODE = "currency.code"
 internal class PortfolioControllerTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
 
     private lateinit var token: Jwt
 
@@ -198,7 +194,7 @@ internal class PortfolioControllerTests {
                 .perform(
                     MockMvcRequestBuilders
                         .delete(
-                            PORTFOLIO_BY_ID,
+                            "$PORTFOLIO_ROOT/{id}",
                             id
                         ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .with(csrf())
@@ -235,7 +231,7 @@ internal class PortfolioControllerTests {
                 .perform(
                     MockMvcRequestBuilders
                         .patch(
-                            PORTFOLIO_BY_ID,
+                            "$PORTFOLIO_ROOT/{id}",
                             id
                         ).with(csrf())
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))

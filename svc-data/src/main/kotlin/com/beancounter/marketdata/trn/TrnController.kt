@@ -53,14 +53,14 @@ class TrnController(
             )
         )
 
-    @GetMapping(value = ["/{portfolioId}/{trnId}"])
+    @GetMapping(value = ["/{trnId}"])
     fun find(
-        @PathVariable("portfolioId") portfolioId: String,
+        // @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("trnId") trnId: String
     ): TrnResponse =
         TrnResponse(
             trnService.getPortfolioTrn(
-                portfolioService.find(portfolioId),
+                // portfolioService.find(portfolioId),
                 trnId
             )
         )

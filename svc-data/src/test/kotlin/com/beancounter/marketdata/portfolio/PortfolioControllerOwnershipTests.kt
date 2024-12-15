@@ -7,6 +7,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.BcMvcHelper
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -125,7 +126,7 @@ internal class PortfolioControllerOwnershipTests {
             .perform(
                 MockMvcRequestBuilders
                     .get(
-                        BcMvcHelper.PORTFOLIO_BY_ID,
+                        "$PORTFOLIO_ROOT/{id}",
                         portfolio.id
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -134,7 +135,7 @@ internal class PortfolioControllerOwnershipTests {
             .perform(
                 MockMvcRequestBuilders
                     .get(
-                        BcMvcHelper.PORTFOLIO_BY_CODE,
+                        "$PORTFOLIO_ROOT/code/{code}",
                         portfolio.code
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)

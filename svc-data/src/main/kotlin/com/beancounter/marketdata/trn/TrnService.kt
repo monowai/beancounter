@@ -31,12 +31,11 @@ class TrnService(
     private val systemUserService: SystemUserService
 ) {
     fun getPortfolioTrn(
-        portfolio: Portfolio,
+        // portfolio: Portfolio,
         trnId: String
     ): Collection<Trn> {
         val trn =
-            trnRepository.findByPortfolioIdAndId(
-                portfolio.id,
+            trnRepository.findById(
                 trnId
             )
         val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
@@ -178,7 +177,7 @@ class TrnService(
     ): TrnResponse {
         val existing =
             getPortfolioTrn(
-                portfolio,
+                // portfolio,
                 trnId
             )
         val trn =

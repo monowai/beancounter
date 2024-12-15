@@ -243,8 +243,7 @@ class TrnControllerTest {
         mockMvc
             .perform(
                 get(
-                    "$TRNS_ROOT/{portfolioId}/{trnId}",
-                    portfolio.id,
+                    "$TRNS_ROOT/{trnId}",
                     "x123x"
                 ).with(
                     SecurityMockMvcRequestPostProcessors

@@ -28,7 +28,7 @@ management:
 sentry:
   enabled: false
   environment: local
-  traces-sample-rate: 1
+  traces-sample-rate: .2
   debug: false
 
 otel:

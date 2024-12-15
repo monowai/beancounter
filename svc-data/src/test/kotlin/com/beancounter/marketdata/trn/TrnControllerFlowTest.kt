@@ -29,14 +29,13 @@ import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRADE_DATE
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRNS_ROOT
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.URI_TRN_FOR_PORTFOLIO
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -57,18 +56,16 @@ class TrnControllerFlowTest(
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
-    @MockBean
+    @MockitoBean
     private lateinit var figiProxy: FigiProxy
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
 
     private lateinit var token: Jwt
     private lateinit var bcMvcHelper: BcMvcHelper
     private lateinit var msft: Asset
     private lateinit var aapl: Asset
-    private val trnById = "$TRNS_ROOT/{trnId}"
-    val trnByPortfolioAndPk = "$TRNS_ROOT/{portfolioId}/{trnId}"
     private lateinit var trnInputA: TrnInput
     private lateinit var trnInputB: TrnInput
     private lateinit var trnInputC: TrnInput
@@ -79,6 +76,8 @@ class TrnControllerFlowTest(
         mockMvc: MockMvc,
         mockAuthConfig: MockAuthConfig
     ) {
+        assertThat(figiProxy).isNotNull
+        assertThat(fxTransactions).isNotNull
         enrichmentFactory.register(DefaultEnricher())
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper =
@@ -172,7 +171,7 @@ class TrnControllerFlowTest(
             .perform(
                 MockMvcRequestBuilders
                     .delete(
-                        trnById,
+                        "$TRNS_ROOT/{trnId}",
                         "illegalId"
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -246,7 +245,6 @@ class TrnControllerFlowTest(
 
         // Find by PrimaryKey
         verifyFoundByPk(
-            portfolio,
             firstId
         )
         val allTrades =
@@ -296,7 +294,7 @@ class TrnControllerFlowTest(
                 .perform(
                     MockMvcRequestBuilders
                         .delete(
-                            trnById,
+                            "$TRNS_ROOT/{trnId}",
                             id
                         ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -311,7 +309,7 @@ class TrnControllerFlowTest(
             .perform(
                 MockMvcRequestBuilders
                     .get(
-                        URI_TRN_FOR_PORTFOLIO,
+                        "$TRNS_ROOT/portfolio/{portfolioId}/{asAt}",
                         portfolio.id,
                         dateUtils.today()
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
@@ -320,17 +318,13 @@ class TrnControllerFlowTest(
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
 
-    private fun verifyFoundByPk(
-        portfolio: Portfolio,
-        id: String
-    ) {
+    private fun verifyFoundByPk(id: String) {
         val pkResult =
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
                         .get(
-                            trnByPortfolioAndPk,
-                            portfolio.id,
+                            "$TRNS_ROOT/{trnId}",
                             id
                         ).contentType(MediaType.APPLICATION_JSON)
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))

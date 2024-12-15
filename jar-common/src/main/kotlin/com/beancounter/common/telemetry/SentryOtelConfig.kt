@@ -68,7 +68,6 @@ class SentryOtelConfig {
         Sentry.init { options ->
             options.dsn = dsn
             options.environment = sentryEnv
-            options.enableTracing = true
             options.tracesSampleRate = tracesSampleRate
             options.isDebug = debug.toBoolean()
             options.instrumenter = Instrumenter.OTEL

@@ -21,8 +21,8 @@ import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 
@@ -35,7 +35,7 @@ class PatchTrnTest {
     private lateinit var aapl: Asset
     private val dateUtils = DateUtils()
 
-    @MockBean
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired
@@ -94,7 +94,6 @@ class PatchTrnTest {
 
         // Validate that the transaction was patched correctly
         validatePatchedTransaction(
-            portfolio,
             originalTransaction,
             patchedTransaction
         )
@@ -155,7 +154,6 @@ class PatchTrnTest {
     }
 
     private fun validatePatchedTransaction(
-        portfolio: Portfolio,
         originalTransaction: TrnResponse,
         patchedTransaction: TrnResponse
     ) {
@@ -165,7 +163,6 @@ class PatchTrnTest {
                 .readValue(
                     bcMvcHelper
                         .getTrnById(
-                            portfolio.id,
                             originalTransaction.data
                                 .iterator()
                                 .next()

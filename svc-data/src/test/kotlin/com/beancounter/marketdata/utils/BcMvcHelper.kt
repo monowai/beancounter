@@ -12,7 +12,6 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
@@ -23,24 +22,17 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 /**
- * MVC helper to post secured transactions to Web endpoints.
- *
+ * Helper for MVC tests.
  */
 class BcMvcHelper(
-    val mockMvc: MockMvc,
+    private val mockMvc: MockMvc,
     val token: Jwt
 ) {
-    // Test Constants
     companion object {
         const val TRADE_DATE = "2018-01-01"
-
-        // Test Constants
         const val TRNS_ROOT = "/trns"
-        const val URI_TRN_FOR_PORTFOLIO = "$TRNS_ROOT/portfolio/{portfolioId}/{asAt}"
         const val ASSET_ROOT = "/assets"
         const val PORTFOLIO_ROOT = "/portfolios"
-        const val PORTFOLIO_BY_CODE = "$PORTFOLIO_ROOT/code/{code}"
-        const val PORTFOLIO_BY_ID = "$PORTFOLIO_ROOT/{id}"
 
         @JvmStatic
         fun portfolios(
@@ -54,9 +46,8 @@ class BcMvcHelper(
                             .get(PORTFOLIO_ROOT)
                             .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     ).andExpect(MockMvcResultMatchers.status().isOk)
-                    .andExpect(
-                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)
-                    ).andReturn()
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                    .andReturn()
                     .response.contentAsString,
                 PortfoliosResponse::class.java
             ).data
@@ -71,14 +62,11 @@ class BcMvcHelper(
                 mockMvc
                     .perform(
                         MockMvcRequestBuilders
-                            .get(
-                                PORTFOLIO_BY_ID,
-                                portfolioId
-                            ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                            .get("$PORTFOLIO_ROOT/$portfolioId")
+                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     ).andExpect(MockMvcResultMatchers.status().isOk)
-                    .andExpect(
-                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)
-                    ).andReturn()
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                    .andReturn()
                     .response.contentAsString,
                 PortfolioResponse::class.java
             ).data
@@ -89,66 +77,47 @@ class BcMvcHelper(
             mockMvc: MockMvc,
             token: Jwt
         ): PortfoliosResponse =
-            objectMapper
-                .readValue(
-                    mockMvc
-                        .perform(
-                            MockMvcRequestBuilders
-                                .post(PORTFOLIO_ROOT)
-                                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                                .content(
-                                    objectMapper
-                                        .writeValueAsBytes(PortfoliosRequest(portfolioInput))
-                                ).contentType(MediaType.APPLICATION_JSON)
-                        ).andExpect(MockMvcResultMatchers.status().isOk)
-                        .andExpect(
-                            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)
-                        ).andReturn()
-                        .response.contentAsString,
-                    PortfoliosResponse::class.java
-                )
+            objectMapper.readValue(
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .post(PORTFOLIO_ROOT)
+                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                            .content(objectMapper.writeValueAsBytes(PortfoliosRequest(portfolioInput)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                    .andReturn()
+                    .response.contentAsString,
+                PortfoliosResponse::class.java
+            )
 
         @JvmStatic
         fun portfolioCreate(
             portfolioInput: PortfolioInput,
             mockMvc: MockMvc,
             token: Jwt
-        ): PortfoliosResponse =
-            portfolioCreate(
-                setOf(portfolioInput),
-                mockMvc,
-                token
-            )
+        ) = portfolioCreate(setOf(portfolioInput), mockMvc, token)
 
         @JvmStatic
         fun portfolioByCode(
             code: String,
             mockMvc: MockMvc,
             token: Jwt
-        ): PortfolioResponse =
-            objectMapper
-                .readValue(
-                    mockMvc
-                        .perform(
-                            MockMvcRequestBuilders
-                                .get(
-                                    PORTFOLIO_BY_CODE,
-                                    code
-                                ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                                .contentType(MediaType.APPLICATION_JSON)
-                        ).andExpect(
-                            MockMvcResultMatchers
-                                .status()
-                                .isOk
-                        ).andExpect(
-                            MockMvcResultMatchers
-                                .content()
-                                .contentType(MediaType.APPLICATION_JSON)
-                        ).andReturn()
-                        .response.contentAsString,
-                    PortfolioResponse::class.java
-                )
+        ) = objectMapper.readValue(
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$PORTFOLIO_ROOT/code/$code")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+                .response.contentAsString,
+            PortfolioResponse::class.java
+        )
     }
 
     fun asset(assetRequest: AssetRequest): Asset {
@@ -163,24 +132,16 @@ class BcMvcHelper(
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
-        val (data) =
-            objectMapper
-                .readValue(
-                    mvcResult.response.contentAsString,
-                    AssetUpdateResponse::class.java
-                )
+        val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
         Assertions.assertThat(data.values).isNotNull
         return data.values.iterator().next()
     }
 
-    fun getTrnById(
-        portfolioId: String,
-        trnId: String
-    ): MvcResult =
+    fun getTrnById(trnId: String): MvcResult =
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("$TRNS_ROOT/$portfolioId/$trnId")
+                    .get("$TRNS_ROOT/$trnId")
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -220,21 +181,14 @@ class BcMvcHelper(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .post(
-                            PORTFOLIO_ROOT,
-                            portfolio.code
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                        .content(ObjectMapper().writeValueAsBytes(PortfoliosRequest(setOf(portfolio))))
+                        .post(PORTFOLIO_ROOT)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .content(objectMapper.writeValueAsBytes(PortfoliosRequest(setOf(portfolio))))
                         .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
-        val (data) =
-            objectMapper
-                .readValue(
-                    portfolioResult.response.contentAsString,
-                    PortfoliosResponse::class.java
-                )
+        val (data) = objectMapper.readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
         return data.iterator().next()
     }
 
@@ -243,13 +197,10 @@ class BcMvcHelper(
             .perform(
                 MockMvcRequestBuilders
                     .post("/register")
-                    .with(
-                        SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
-                    ).with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .content(
-                        objectMapper
-                            .writeValueAsBytes(RegistrationRequest())
-                    ).contentType(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsBytes(RegistrationRequest()))
+                    .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()

@@ -11,6 +11,7 @@
 .gitsecret/keys/random_seed
 .gitsecret/keys/pubring.kbx~
 **/application-local.yaml
+**/application-sentry.yaml
 .run/
 build/
 

@@ -1,6 +1,7 @@
 package com.beancounter.position.valuation
 
 import com.beancounter.common.model.MoneyValues
+import com.beancounter.common.model.Totals
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -35,6 +36,16 @@ class RoiCalculator {
             return BigDecimal.ZERO
         }
         val returns = moneyValues.totalGain
+        return calculate(returns, costBasis)
+    }
+
+    private fun calculate(
+        returns: BigDecimal,
+        costBasis: BigDecimal
+    ): BigDecimal {
+        if (costBasis.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO
+        }
         return returns
             .divide(
                 costBasis,
@@ -49,4 +60,6 @@ class RoiCalculator {
         } else {
             moneyValues.costValue
         }
+
+    fun calculateROI(totals: Totals): BigDecimal = calculate(totals.gain, totals.purchases - totals.sales)
 }

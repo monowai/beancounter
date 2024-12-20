@@ -5,6 +5,7 @@ import org.apache.commons.math3.analysis.solvers.UnivariateSolver
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.absoluteValue
@@ -28,6 +29,7 @@ class IrrCalculator(
      */
     fun calculate(
         periodicCashFlows: PeriodicCashFlows,
+        roi: BigDecimal = BigDecimal.ZERO, // Default to ROI if not enough time to compute IRR
         guess: Double = 0.1
     ): Double {
         if (periodicCashFlows.cashFlows.isEmpty()) {
@@ -42,7 +44,11 @@ class IrrCalculator(
                 lastDate
             ) < minHoldingDays
         ) {
-            calculateSimpleROI(periodicCashFlows)
+            if (BigDecimal.ZERO.compareTo(roi) == 0) {
+                calculateSimpleROI(periodicCashFlows)
+            } else {
+                roi.toDouble()
+            }
         } else {
             calculateXIRR(
                 periodicCashFlows,

@@ -104,6 +104,7 @@ class PositionValuationService(
         val irr =
             calculateIrrSafely(
                 positions.periodicCashFlows,
+                roiCalculator.calculateROI(pfTotals),
                 "Failed to calculate IRR for ${positions.portfolio.code}"
             )
         baseTotals.irr = irr
@@ -206,9 +207,8 @@ class PositionValuationService(
                     tradeTotals.marketValue
                 )
 
-            val roi = roiCalculator.calculateROI(tradeMoneyValues)
-
             if (position.asset.market.code != "CASH") {
+                val roi = roiCalculator.calculateROI(tradeMoneyValues)
                 position.periodicCashFlows.add(
                     position,
                     theDate
@@ -217,6 +217,7 @@ class PositionValuationService(
                 val irr =
                     calculateIrrSafely(
                         position.periodicCashFlows,
+                        roi,
                         "Failed to calculate IRR for ${position.asset.code}"
                     )
                 setTotals(
@@ -307,10 +308,11 @@ class PositionValuationService(
 
     private fun calculateIrrSafely(
         periodicCashFlows: PeriodicCashFlows,
+        roi: BigDecimal,
         message: String
     ): BigDecimal =
         try {
-            BigDecimal(irrCalculator.calculate(periodicCashFlows))
+            BigDecimal(irrCalculator.calculate(periodicCashFlows, roi = roi))
         } catch (e: NoBracketingException) {
             logger.error(
                 "Failed to calculate IRR [$message]",

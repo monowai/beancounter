@@ -68,7 +68,6 @@ dependencies {
             "org.junit.platform:junit-platform-suite-engine",
             libs.mockito.kotlin,
             testFixtures(project(":jar-auth")),)
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 contracts {
@@ -145,8 +144,10 @@ tasks.named('sentryCollectSourcesJava') {
 }
 
 tasks.register('downloadSentryAgent', Download) {
-    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry-opentelemetry-agent-${sentry}.jar"
-    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().asFile
+    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry" +
+            "-opentelemetry-agent-${sentry}.jar"
+    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().
+            asFile
     onlyIfNewer true
 }
 

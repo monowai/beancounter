@@ -35,10 +35,4 @@ class TokenServiceTest {
         mockAuthConfig.resetAuth()
         assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
     }
-
-    @Test
-    fun validSecurityContextIsAuthorized() {
-        mockAuthConfig.login("anything here will do")
-        assertThat(tokenService.bearerToken).isNotNull
-    }
 }

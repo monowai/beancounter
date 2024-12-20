@@ -1,37 +1,32 @@
-plugins {
-    alias(libs.plugins.spring.boot)
-    alias(libs.plugins.kotlin.spring)
-}
-
 version = "0.1.1"
 ext {
-    set('springShellVersion', "3.3.3")
+    set('springShellVersion', "3.4.0")
 }
 
 dependencies {
     implementation(
-            "org.springframework.boot:spring-boot-starter",
-            "org.springframework.shell:spring-shell-starter:${springShellVersion}",
+            project(":jar-common"),
+            project(":jar-auth"),
+            project(":jar-client"),
             platform("org.springframework.shell:spring-shell-dependencies:${springShellVersion}"),
-            libs.spring.cloud.feign,
+            "org.springframework.shell:spring-shell-starter:${springShellVersion}",
+            "org.springframework.boot:spring-boot-starter",
+            "org.springframework.boot:spring-boot-starter-security:${libs.spring.boot.
+                    dependencies.get().version}",
             "org.springframework.shell:spring-shell-starter-jansi",
-            "org.springframework.boot:spring-boot-starter-security:${libs.spring.boot.dependencies.get().version}",
+            libs.spring.cloud.feign,
             libs.spring.security.oauth2,
             libs.spring.security.jose,
-            project(":jar-common"),
-            project(":jar-client"),
-            project(":jar-auth"),
-
-            'com.github.ben-manes.caffeine:caffeine:3.1.2',
             libs.spring.kafka,
-            'com.opencsv:opencsv:5.9')
+            "com.github.ben-manes.caffeine:caffeine:3.1.2",
+            //"org.codehaus.groovy:groovy-xml:4.0.24",  // Post spring 3.4 issue.
+            "com.opencsv:opencsv:5.9")
 
     testImplementation(libs.assertj,
-            "io.rest-assured:json-schema-validator:5.5.0",
             libs.spring.security.oauth2,
-            "org.springframework.boot:spring-boot-starter-test:${libs.spring.boot.dependencies.get().version}",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner:${libs.plugins.spring.contract.get().version}",
-            "org.springframework.kafka:spring-kafka-test:${libs.spring.kafka.get().version}",
+            "org.springframework.boot:spring-boot-starter-test",
+            libs.spring.stub.runner,
+            libs.spring.kafka.test,
             "org.junit.jupiter:junit-jupiter",
             testFixtures(project(":jar-auth")),
 

@@ -62,7 +62,6 @@ dependencies {
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 contracts {
@@ -119,8 +118,10 @@ sentry {
 }
 
 tasks.register('downloadSentryAgent', Download) {
-    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry-opentelemetry-agent-${sentry}.jar"
-    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().asFile
+    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry" +
+            "-opentelemetry-agent-${sentry}.jar"
+    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().
+            asFile
     onlyIfNewer true
 }
 

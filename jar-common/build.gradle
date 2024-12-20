@@ -41,6 +41,7 @@ dependencies() {
             "org.springframework:spring-web",
             "org.junit.jupiter:junit-jupiter",)
 
-    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin") { exclude module: 'kotlin-reflect' }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin") {
+        exclude module: 'kotlin-reflect'
+    }
 }

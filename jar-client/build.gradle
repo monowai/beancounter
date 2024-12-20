@@ -25,7 +25,8 @@ dependencies {
             libs.resilience4j,
             libs.resilience4j.annotations,
             "org.springframework.cloud:spring-cloud-starter-openfeign")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module: 'junit-vintage-engine' }
+    testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module:
+            'junit-vintage-engine' }
     testImplementation("org.assertj:assertj-core",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
@@ -37,6 +38,4 @@ dependencies {
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
-
 }

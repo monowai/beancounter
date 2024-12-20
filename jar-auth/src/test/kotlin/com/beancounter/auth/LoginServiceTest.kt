@@ -21,7 +21,9 @@ import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConf
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.openfeign.FeignAutoConfiguration
 import org.springframework.core.io.ClassPathResource
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.Duration
 
 /**
@@ -50,6 +52,9 @@ class LoginServiceTest {
     @Mock
     private lateinit var authGateway: LoginService.AuthGateway
 
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     private lateinit var tokenService: TokenService
 
@@ -61,7 +66,7 @@ class LoginServiceTest {
         loginService =
             LoginService(
                 authGateway,
-                jwtDecoder = mockAuthConfig.jwtDecoder,
+                jwtDecoder,
                 mockAuthConfig.authConfig
             )
     }
@@ -126,7 +131,7 @@ class LoginServiceTest {
             )
 
         Mockito
-            .`when`(mockAuthConfig.jwtDecoder.decode(systemUser.email))
+            .`when`(jwtDecoder.decode(systemUser.email))
             .thenReturn(token.token)
         Mockito
             .`when`(

@@ -3,7 +3,6 @@ package com.beancounter.shell.commands
 import com.beancounter.auth.model.LoginRequest
 import com.beancounter.client.services.RegistrationService
 import com.beancounter.common.contracts.RegistrationRequest
-import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.BcJson.Companion.writer
 import org.jline.reader.LineReader
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,8 +21,6 @@ class UserCommands(
     @Lazy
     @Autowired(required = false)
     lateinit var lineReader: LineReader
-
-    private val bcJson = BcJson()
 
     @ShellMethod("Identify yourself")
     fun login(

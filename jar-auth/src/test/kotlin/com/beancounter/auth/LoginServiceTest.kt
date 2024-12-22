@@ -47,7 +47,7 @@ class LoginServiceTest {
     private lateinit var loginService: LoginService
 
     @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
+    private lateinit var authConfig: AuthConfig
 
     @Mock
     private lateinit var authGateway: LoginService.AuthGateway
@@ -67,7 +67,7 @@ class LoginServiceTest {
             LoginService(
                 authGateway,
                 jwtDecoder,
-                mockAuthConfig.authConfig
+                authConfig
             )
     }
 
@@ -78,9 +78,9 @@ class LoginServiceTest {
             .`when`(
                 authGateway.login(
                     LoginService.ClientCredentialsRequest(
-                        mockAuthConfig.authConfig.clientId,
-                        mockAuthConfig.authConfig.clientSecret,
-                        mockAuthConfig.authConfig.audience
+                        authConfig.clientId,
+                        authConfig.clientSecret,
+                        authConfig.audience
                     )
                 )
             ).thenReturn(
@@ -103,9 +103,9 @@ class LoginServiceTest {
             .`when`(
                 authGateway.login(
                     LoginService.ClientCredentialsRequest(
-                        mockAuthConfig.authConfig.clientId,
-                        mockAuthConfig.authConfig.clientSecret,
-                        mockAuthConfig.authConfig.audience
+                        authConfig.clientId,
+                        authConfig.clientSecret,
+                        authConfig.audience
                     )
                 )
             ).thenReturn(

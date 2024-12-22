@@ -4,7 +4,6 @@ import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions.assertThat
-import org.mockito.Mock
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -36,22 +35,13 @@ import org.springframework.stereotype.Service
     AuthUtilService::class
 )
 class MockAuthConfig {
-    @Mock
-    lateinit var oAuthConfig: OAuthConfig
-
     @MockBean
     lateinit var jwtDecoder: JwtDecoder
-
-    @Autowired
-    lateinit var authConfig: AuthConfig
-
-    @MockBean
-    lateinit var authGateway: LoginService.AuthGateway
 
     lateinit var tokenUtils: TokenUtils
 
     @Autowired
-    fun getTokenUtils(authConfig: AuthConfig): TokenUtils {
+    fun tokenUtils(authConfig: AuthConfig): TokenUtils {
         this.tokenUtils = TokenUtils(authConfig)
         return this.tokenUtils
     }

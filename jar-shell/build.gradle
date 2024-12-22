@@ -4,8 +4,7 @@ ext {
 }
 
 dependencies {
-    implementation(
-            project(":jar-common"),
+    implementation(project(":jar-common"),
             project(":jar-auth"),
             project(":jar-client"),
             platform("org.springframework.shell:spring-shell-dependencies:${springShellVersion}"),
@@ -23,14 +22,13 @@ dependencies {
             "com.opencsv:opencsv:5.9")
 
     testImplementation(libs.assertj,
+            testFixtures(project(":jar-auth")),
             libs.spring.security.oauth2,
             "org.springframework.boot:spring-boot-starter-test",
             libs.spring.stub.runner,
+            libs.apache.groovy,
             libs.spring.kafka.test,
-            "org.junit.jupiter:junit-jupiter",
-            testFixtures(project(":jar-auth")),
-
-    )
+            "org.junit.jupiter:junit-jupiter")
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }

@@ -1,9 +1,9 @@
 package com.beancounter.shell.integ
 
-import com.beancounter.auth.AuthConfig
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.TokenUtils
+import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.LoginRequest
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.client.services.RegistrationService
@@ -33,9 +33,6 @@ private const val EMAIL = "blah@blah.com"
 @SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class])
 class TestUserCommands {
     @Autowired
-    private lateinit var authConfig: AuthConfig
-
-    @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
@@ -43,8 +40,11 @@ class TestUserCommands {
 
     @MockitoBean
     private lateinit var lineReader: LineReader
-    private var registrationGateway: RegistrationGateway =
-        Mockito.mock(RegistrationGateway::class.java)
+
+    @MockitoBean
+    lateinit var authGateway: LoginService.AuthGateway
+
+    private var registrationGateway: RegistrationGateway = Mockito.mock(RegistrationGateway::class.java)
 
     @Autowired
     private lateinit var tokenUtils: TokenUtils

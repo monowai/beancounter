@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.AutoConfigureMockAuth
-import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.LoginRequest
 import com.beancounter.auth.model.OpenIdResponse
@@ -13,6 +12,7 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -26,8 +26,8 @@ class AuthControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
+    @MockitoBean
+    lateinit var authGateway: LoginService.AuthGateway
 
     @Autowired
     private lateinit var loginService: LoginService
@@ -48,7 +48,7 @@ class AuthControllerTest {
             )
         Mockito
             .`when`(
-                mockAuthConfig.authGateway
+                authGateway
                     .login(
                         loginService
                             .passwordRequest(

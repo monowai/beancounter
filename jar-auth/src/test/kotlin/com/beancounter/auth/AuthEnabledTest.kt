@@ -11,6 +11,7 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Verifies correctly configured auth wires the correct beans.
@@ -31,6 +32,9 @@ import org.springframework.test.context.ContextConfiguration
 class AuthEnabledTest {
     @Autowired
     lateinit var springContext: ApplicationContext
+
+    @MockitoBean
+    lateinit var authGateway: LoginService.AuthGateway
 
     @Autowired
     lateinit var authConfig: AuthConfig

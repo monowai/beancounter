@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Verifies that auth can be disabled correctly.
@@ -20,7 +20,7 @@ class AuthDisabledTest {
     @Autowired
     lateinit var springContext: ApplicationContext
 
-    @MockBean
+    @MockitoBean
     lateinit var tokenService: TokenService
 
     @Test

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.ZoneOffset
 import java.util.TimeZone
@@ -28,11 +29,14 @@ import java.util.TimeZone
  */
 @SpringMvcDbTest
 class MarketServiceTest {
-    @Autowired
-    private lateinit var marketService: MarketService
-
     @MockitoBean
     private lateinit var currencyService: CurrencyService
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @Autowired
+    private lateinit var marketService: MarketService
 
     @BeforeEach
     fun mockCurrencyService() {

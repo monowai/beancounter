@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
@@ -19,6 +20,12 @@ import java.util.concurrent.TimeUnit
  */
 @SpringMvcKafkaTest
 class PortfolioKafkaListenerIntegrationTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var eventProducer: EventProducer
+
     @Autowired
     private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
 
@@ -27,9 +34,6 @@ class PortfolioKafkaListenerIntegrationTest {
 
     @Autowired
     private lateinit var kafkaConfig: KafkaConfig
-
-    @MockitoBean
-    private lateinit var eventProducer: EventProducer
 
     @Test
     fun testKafkaListener() {

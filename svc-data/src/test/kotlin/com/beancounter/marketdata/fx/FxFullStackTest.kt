@@ -25,6 +25,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -42,6 +43,12 @@ import java.time.LocalDate
 internal class FxFullStackTest {
     private var dateUtils = DateUtils()
 
+    @MockitoBean
+    private lateinit var fxGateway: FxGateway
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -50,9 +57,6 @@ internal class FxFullStackTest {
 
     @Autowired
     private lateinit var currencyService: CurrencyService
-
-    @MockitoBean
-    private lateinit var fxGateway: FxGateway
 
     private val date = "2019-08-27"
 

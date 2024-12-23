@@ -25,9 +25,9 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cache.CacheManager
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.UUID
@@ -35,7 +35,7 @@ import java.util.UUID
 /**
  * Verify portfolio commands.
  */
-@SpringBootTest(classes = [ShellConfig::class, ClientPasswordConfig::class, MockAuthConfig::class])
+@SpringBootTest(classes = [ShellConfig::class, ClientPasswordConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
@@ -46,21 +46,22 @@ class TestPortfolioCommands {
     @MockitoBean
     private lateinit var registrationService: RegistrationService
 
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var portfolioGw: PortfolioGw
+
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     private lateinit var tokenService: TokenService
 
-    @MockitoBean
-    private lateinit var portfolioGw: PortfolioGw
-
-    @MockitoBean
-    private lateinit var cacheManager: CacheManager
     private lateinit var portfolioCommands: PortfolioCommands
 
-    @Autowired
-    fun initAuth(tokenService: TokenService) {
+    @BeforeEach
+    fun configure() {
         portfolioCommands =
             PortfolioCommands(
                 PortfolioServiceClient(
@@ -106,13 +107,12 @@ class TestPortfolioCommands {
             ).thenReturn(response)
 
         val result =
-            portfolioCommands
-                .add(
-                    pfCode,
-                    pfCode,
-                    NZD.code,
-                    USD.code
-                )
+            portfolioCommands.add(
+                pfCode,
+                pfCode,
+                NZD.code,
+                USD.code
+            )
         assertThat(result).isNotNull
         val portfolio =
             objectMapper.readValue(
@@ -143,22 +143,19 @@ class TestPortfolioCommands {
                 )
             ).thenReturn(portfolioResponse) // Portfolio exists
         val result =
-            portfolioCommands
-                .add(
-                    code,
-                    pfCode,
-                    NZD.code,
-                    USD.code
-                )
+            portfolioCommands.add(
+                code,
+                pfCode,
+                NZD.code,
+                USD.code
+            )
         assertThat(result).isNotNull
         val portfolio =
             objectMapper.readValue(
                 result,
                 Portfolio::class.java
             )
-        assertThat(portfolio)
-            .usingRecursiveComparison()
-            .isEqualTo(portfolioResponse.data)
+        assertThat(portfolio).usingRecursiveComparison().isEqualTo(portfolioResponse.data)
     }
 
     private val systemUser: SystemUser

@@ -4,22 +4,35 @@ import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions.assertThat
-import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 
 /**
- * Mock out JWT auth classes, to allow for token based testing that can
+ * Support config, to allow for token based testing that can
  * assert endpoints are secured appropriately.
  *
- * .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuth.getUserToken()))
+ *
+ *  @MockitoBean
+ *  late init var authGateway: LoginService.AuthGateway
+ *
+ *  @MockitoBean
+ *  late init var jwtDecoder: JwtDecoder
+ *
+ *  @AutoConfigureMockAuth
+ *  class MarketMvcTests {
+ *
+ *  @Test
+ *  fun `all markets found for logged in user`() {
+ *      token = mockAuthConfig.login("MarketMvcTests@testing.com")
+ *      mockMvc.perform(MockMvcRequestBuilders
+ *           .get("/markets")
+ *           .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+ * }
  */
 @Service
 @ConditionalOnProperty(
@@ -35,10 +48,10 @@ import org.springframework.stereotype.Service
     AuthUtilService::class
 )
 class MockAuthConfig {
-    @MockBean
-    lateinit var jwtDecoder: JwtDecoder
-
     lateinit var tokenUtils: TokenUtils
+
+    @Autowired
+    private lateinit var authConfig: AuthConfig
 
     @Autowired
     fun tokenUtils(authConfig: AuthConfig): TokenUtils {
@@ -66,10 +79,8 @@ class MockAuthConfig {
         systemUser: SystemUser,
         registrationService: Registration?
     ): Jwt {
-        val jwt = getUserToken(systemUser)
-        Mockito.`when`(jwtDecoder.decode(systemUser.email)).thenReturn(jwt)
         SecurityContextHolder.getContext().authentication =
-            JwtAuthenticationToken(jwtDecoder.decode(systemUser.email))
+            JwtAuthenticationToken(decode(systemUser.email))
 
         val token = getUserToken(systemUser)
         assertThat(token)
@@ -82,7 +93,16 @@ class MockAuthConfig {
         return token
     }
 
-    fun resetAuth() {
+    fun logout() {
         SecurityContextHolder.getContext().authentication = null
     }
+
+    fun decode(token: String): Jwt =
+        Jwt
+            .withTokenValue(token)
+            .header("alg", "none")
+            .claim(authConfig.claimEmail, token)
+            .claim("sub", "mockUser")
+            .claim("permissions", listOf("USER"))
+            .build()
 }

@@ -16,6 +16,7 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
@@ -31,6 +32,9 @@ class RegistrationClientTest {
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     private lateinit var tokenService: TokenService
 
@@ -38,7 +42,7 @@ class RegistrationClientTest {
     private lateinit var registrationGateway: RegistrationService.RegistrationGateway
 
     @Test
-    fun registeringAuthenticatedUser() {
+    fun `authenticated user can register for a BC account`() {
         mockAuthConfig.login()
         Mockito
             .`when`(
@@ -64,8 +68,8 @@ class RegistrationClientTest {
     }
 
     @Test
-    fun unauthenticatedUserRejectedFromRegistration() {
-        mockAuthConfig.resetAuth()
+    fun `cannot register without being authenticated`() {
+        mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) {
             registrationService.register(RegistrationRequest())
         }

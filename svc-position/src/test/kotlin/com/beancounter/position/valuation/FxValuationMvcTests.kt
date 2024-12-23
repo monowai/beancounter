@@ -1,9 +1,8 @@
 package com.beancounter.position.valuation
 
 import IrrCalculator
-import com.beancounter.auth.AuthConfig
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.auth.TokenUtils
 import com.beancounter.client.AssetService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.AssetRequest
@@ -13,7 +12,6 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
@@ -24,11 +22,13 @@ import com.beancounter.position.Constants.Companion.twoK
 import com.beancounter.position.StubbedTest
 import com.beancounter.position.accumulation.Accumulator
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -43,9 +43,13 @@ private const val EBAY = "EBAY"
  * Integration tests using mocked data from bc-data.
  */
 @StubbedTest
+@AutoConfigureMockAuth
 internal class FxValuationMvcTests {
     @MockitoBean
     private lateinit var irrCalculator: IrrCalculator
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     private lateinit var accumulator: Accumulator
@@ -66,20 +70,10 @@ internal class FxValuationMvcTests {
     private lateinit var portfolioService: PortfolioServiceClient
 
     lateinit var token: Jwt
-    lateinit var tokenUtils: TokenUtils
 
-    @Autowired
-    fun setDefaultUser(authConfig: AuthConfig) {
-        tokenUtils = TokenUtils(authConfig)
-        val user = "user@testing.com"
-        token =
-            tokenUtils.getSystemUserToken(
-                SystemUser(
-                    "user",
-                    user
-                )
-            )
-        mockAuthConfig.login(user)
+    @BeforeEach
+    fun configure() {
+        token = mockAuthConfig.login("user@testing.com")
     }
 
     private fun getPositions(asset: Asset): Positions {

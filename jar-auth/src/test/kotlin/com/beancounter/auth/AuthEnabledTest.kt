@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.context.ApplicationContext
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -35,6 +36,9 @@ class AuthEnabledTest {
 
     @MockitoBean
     lateinit var authGateway: LoginService.AuthGateway
+
+    @MockitoBean
+    lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     lateinit var authConfig: AuthConfig

@@ -27,11 +27,13 @@ import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.TRNS_ROOT
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -47,6 +49,15 @@ import java.math.BigDecimal
 class TrnControllerTest {
     private val dateUtils = DateUtils()
 
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var fxTransactions: FxTransactions
+
+    @MockitoBean
+    private lateinit var figiProxy: FigiProxy
+
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -59,11 +70,8 @@ class TrnControllerTest {
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
-    @MockitoBean
-    private lateinit var figiProxy: FigiProxy
-
-    @MockitoBean
-    private lateinit var fxTransactions: FxTransactions
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     private lateinit var token: Jwt
 
@@ -71,11 +79,8 @@ class TrnControllerTest {
     private lateinit var msft: Asset
     private lateinit var aapl: Asset
 
-    @Autowired
-    fun setupObjects(
-        mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig
-    ) {
+    @BeforeEach
+    fun configure() {
         enrichmentFactory.register(DefaultEnricher())
         assertThat(currencyService.currencies).isNotEmpty
 

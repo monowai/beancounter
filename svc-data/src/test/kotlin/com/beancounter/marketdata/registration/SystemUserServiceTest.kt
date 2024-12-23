@@ -2,7 +2,6 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.auth.TokenService
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
@@ -11,6 +10,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 private const val EMAIL = "data.email"
 
@@ -33,17 +34,14 @@ private const val GMAIL = "email@gmail.com"
  */
 @SpringMvcDbTest
 class SystemUserServiceTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
-    lateinit var tokenService: TokenService
-
-    @Autowired
     lateinit var systemUserService: SystemUserService
-
-    @Autowired
-    lateinit var systemUserRepository: SystemUserRepository
 
     @Autowired
     lateinit var authUtilService: AuthUtilService
@@ -124,7 +122,7 @@ class SystemUserServiceTest {
 
     @Test
     fun unauthenticatedUserCanNotRegister() {
-        mockAuthConfig.resetAuth()
+        mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) {
             systemUserService.register()
         }

@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Tests enricher behaviour.
@@ -23,6 +25,9 @@ import org.springframework.test.context.ActiveProfiles
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class AlphaEnricherTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     lateinit var assetService: AssetService
 

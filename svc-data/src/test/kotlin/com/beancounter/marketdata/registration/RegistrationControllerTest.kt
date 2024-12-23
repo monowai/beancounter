@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -22,6 +24,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
  */
 @SpringMvcDbTest
 class RegistrationControllerTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     private lateinit var mockMvc: MockMvc
 

@@ -9,19 +9,23 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 @SpringBootTest
 class PortfolioServiceTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var tokenService: TokenService
+
     @Autowired
     private lateinit var portfolioService: PortfolioService
 
     @Autowired
     private lateinit var systemUserService: SystemUserService
-
-    @MockitoBean
-    private lateinit var tokenService: TokenService
 
     @Test
     fun maintainPortfolioForServiceAccount() {

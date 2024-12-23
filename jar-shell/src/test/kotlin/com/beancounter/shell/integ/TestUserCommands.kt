@@ -44,12 +44,13 @@ class TestUserCommands {
     @MockitoBean
     lateinit var authGateway: LoginService.AuthGateway
 
+    @MockitoBean
+    lateinit var jwtDecoder: JwtDecoder
+
     private var registrationGateway: RegistrationGateway = Mockito.mock(RegistrationGateway::class.java)
 
     @Autowired
     private lateinit var tokenUtils: TokenUtils
-
-    private val jwtDecoder: JwtDecoder = Mockito.mock(JwtDecoder::class.java)
 
     @Test
     fun is_UnauthorizedThrowing() {

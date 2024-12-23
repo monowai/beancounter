@@ -65,7 +65,7 @@ class TokenService(
 
     val isServiceToken: Boolean
         get() {
-            val permissions = jwt.token.getClaim<ArrayList<String>>("permissions")
+            val permissions = jwt.token.getClaim<List<String>>("permissions")
             val isUser = permissions.contains(AuthConstants.USER)
             val isSystem = permissions.contains(AuthConstants.SYSTEM)
             return isSystem && !isUser

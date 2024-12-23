@@ -16,11 +16,14 @@ import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.StubbedTest
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -32,6 +35,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 @StubbedTest
 internal class TrnValuationTest {
     private lateinit var token: Jwt
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -51,8 +57,8 @@ internal class TrnValuationTest {
             owner = owner
         )
 
-    @Autowired
-    fun setToken(mockAuthConfig: MockAuthConfig) {
+    @BeforeEach
+    fun configure() {
         token =
             mockAuthConfig.getUserToken(
                 SystemUser(

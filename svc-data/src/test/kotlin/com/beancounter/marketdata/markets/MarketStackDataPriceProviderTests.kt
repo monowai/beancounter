@@ -12,6 +12,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Market related tests.
@@ -24,7 +26,8 @@ class MarketStackDataPriceProviderTests
     @Autowired
     constructor(
         private val mdFactory: MdFactory,
-        private val marketService: MarketService
+        private val marketService: MarketService,
+        @MockitoBean private val jwtDecoder: JwtDecoder
     ) {
         @Test
         fun is_DefaultMarketProvidersSet() {

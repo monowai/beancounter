@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
@@ -43,6 +44,9 @@ import java.math.BigDecimal.ONE
 
 @SpringMvcDbTest
 class CashTrnTests {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     lateinit var assetService: AssetService
 

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
@@ -39,6 +40,9 @@ import java.math.BigDecimal
 @AutoConfigureMockAuth
 class AlphaApiErrorTest {
     private val api = "API"
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     private lateinit var mdFactory: MdFactory

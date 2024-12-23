@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
@@ -21,6 +22,9 @@ class TokenServiceTest {
     @MockitoBean
     lateinit var authGateway: LoginService.AuthGateway
 
+    @MockitoBean
+    lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
@@ -31,13 +35,13 @@ class TokenServiceTest {
 
     @Test
     fun is_BearerTokenBearing() {
-        mockAuthConfig.resetAuth()
+        mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
     }
 
     @Test
     fun noSecurityContextIsUnauthorized() {
-        mockAuthConfig.resetAuth()
+        mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
     }
 }

@@ -14,7 +14,6 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
@@ -22,6 +21,8 @@ import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -29,6 +30,9 @@ import java.math.BigDecimal
  */
 @SpringMvcDbTest
 class OffMarketPriceDataTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     lateinit var marketService: MarketService
 
@@ -39,13 +43,7 @@ class OffMarketPriceDataTest {
     private lateinit var assetService: AssetService
 
     @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
-
-    @Autowired
     private lateinit var systemUserService: Registration
-
-    @Autowired
-    lateinit var marketDataRepo: MarketDataRepo
 
     @Autowired
     lateinit var marketDataService: MarketDataService

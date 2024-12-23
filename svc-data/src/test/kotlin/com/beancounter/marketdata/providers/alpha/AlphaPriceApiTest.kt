@@ -58,6 +58,7 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
@@ -85,6 +86,9 @@ import org.springframework.web.context.WebApplicationContext
 internal class AlphaPriceApiTest {
     @MockitoBean
     private lateinit var dateUtils: DateUtils
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig

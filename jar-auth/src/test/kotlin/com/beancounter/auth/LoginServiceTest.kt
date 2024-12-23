@@ -39,8 +39,11 @@ import java.time.Duration
 @AutoConfigureMockAuth
 @SpringBootTest(
     classes = [
-        ClientPasswordConfig::class, MockAuthConfig::class,
-        TokenService::class, AuthUtilService::class, TokenUtils::class
+        ClientPasswordConfig::class,
+        MockAuthConfig::class,
+        TokenService::class,
+        AuthUtilService::class,
+        TokenUtils::class
     ]
 )
 class LoginServiceTest {

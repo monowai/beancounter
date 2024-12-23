@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -36,6 +37,9 @@ internal class PriceControllerRefreshTests
         private val mockMvc: MockMvc,
         private val mockAuthConfig: MockAuthConfig
     ) {
+        @MockitoBean
+        private lateinit var jwtDecoder: JwtDecoder
+
         @MockitoBean
         private lateinit var alphaPriceService: AlphaPriceService
 

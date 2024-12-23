@@ -22,10 +22,12 @@ import com.beancounter.marketdata.utils.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.beancounter.marketdata.utils.TRADE_DATE
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -40,6 +42,12 @@ import java.math.BigDecimal
 class TrnPortfolioControllerTest {
     private lateinit var token: Jwt
 
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var fxTransactions: FxTransactions
+
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -49,15 +57,15 @@ class TrnPortfolioControllerTest {
     @Autowired
     private lateinit var portfolioService: PortfolioService
 
-    @MockitoBean
-    private lateinit var fxTransactions: FxTransactions
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     private lateinit var bcMvcHelper: BcMvcHelper
 
     private lateinit var msft: Asset
 
-    @Autowired
-    fun setupTestEnvironment(mockAuthConfig: MockAuthConfig) {
+    @BeforeEach
+    fun configure() {
         initializeAuthentication(mockAuthConfig)
         registerUser(
             mockMvc,

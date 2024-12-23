@@ -19,9 +19,11 @@ import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
@@ -36,18 +38,24 @@ class PatchTrnTest {
     private val dateUtils = DateUtils()
 
     @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
     private lateinit var fxTransactions: FxTransactions
+
+    @Autowired
+    private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var currencyService: CurrencyService
 
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
     private lateinit var token: Jwt
 
-    @Autowired
-    fun setupObjects(
-        mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig
-    ) {
+    @BeforeEach
+    fun configure() {
         assertThat(currencyService.currencies).isNotEmpty
 
         token = mockAuthConfig.getUserToken(Constants.systemUser)

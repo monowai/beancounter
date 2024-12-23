@@ -24,7 +24,9 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
@@ -43,6 +45,9 @@ import kotlin.collections.set
 internal class MarketStackApiTest {
     private val dateUtils = DateUtils()
     private val priceDate = "2019-11-15"
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     private lateinit var marketStackService: MarketStackService

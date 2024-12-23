@@ -18,6 +18,7 @@ import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
@@ -26,6 +27,12 @@ import java.math.BigDecimal
  */
 @SpringMvcDbTest
 class RealEstateAssetTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var cashBalancesBean: CashBalancesBean
+
     @Autowired
     private lateinit var assetService: AssetService
 
@@ -40,9 +47,6 @@ class RealEstateAssetTest {
 
     @Autowired
     private lateinit var priceService: PriceService
-
-    @MockitoBean
-    private lateinit var cashBalancesBean: CashBalancesBean
 
     @Autowired
     private lateinit var systemUserService: Registration

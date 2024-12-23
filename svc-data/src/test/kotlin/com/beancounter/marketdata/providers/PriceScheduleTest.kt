@@ -21,6 +21,7 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -34,6 +35,9 @@ import org.springframework.web.context.WebApplicationContext
 @SpringBootTest(properties = ["schedule.enabled=true"])
 @SpringMvcDbTest
 class PriceScheduleTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @MockitoBean
     private lateinit var enrichmentFactory: EnrichmentFactory
 

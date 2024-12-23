@@ -23,10 +23,12 @@ import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
@@ -36,13 +38,8 @@ import java.math.BigDecimal
  */
 @SpringMvcDbTest
 class RealEstateTrnTests {
-    @Autowired
-    lateinit var assetService: AssetService
-
-    @Autowired
-    lateinit var trnService: TrnService
-
-    private lateinit var bcMvcHelper: BcMvcHelper
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
     private lateinit var figiProxy: FigiProxy
@@ -52,6 +49,17 @@ class RealEstateTrnTests {
 
     @MockitoBean
     private lateinit var fxTransactions: FxTransactions
+
+    @Autowired
+    private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    lateinit var assetService: AssetService
+
+    @Autowired
+    lateinit var trnService: TrnService
+
+    private lateinit var bcMvcHelper: BcMvcHelper
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -66,18 +74,14 @@ class RealEstateTrnTests {
     private val pCashAmount = "cashAmount"
     private val pQuantity = "quantity"
 
-    @Autowired
-    fun setupObjects(
-        mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig
-    ) {
-        assertThat(fxTransactions).isNotNull
+    @BeforeEach
+    fun configure() {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                mockAuthConfig.getUserToken(SystemUser())
+                mockAuthConfig.login(SystemUser(), systemUserService)
             )
-        bcMvcHelper.registerUser()
+
         assertThat(figiProxy).isNotNull
         enrichmentFactory.register(DefaultEnricher())
         Mockito
@@ -91,10 +95,6 @@ class RealEstateTrnTests {
 
     @Test
     fun is_BuyHouse() {
-        mockAuthConfig.login(
-            SystemUser(),
-            systemUserService
-        )
         val house =
             AssetInput.toRealEstate(
                 USD,

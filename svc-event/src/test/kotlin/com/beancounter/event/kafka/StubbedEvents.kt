@@ -39,13 +39,14 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
 private const val EMAIL = "blah@blah.com"
@@ -75,14 +76,20 @@ private const val EMAIL = "blah@blah.com"
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 class StubbedEvents {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoSpyBean
+    private lateinit var eventService: EventService
+
+    @MockitoSpyBean
+    private lateinit var backfillService: BackfillService
+
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     private lateinit var mockMvc: MockMvc
-
-    @MockitoSpyBean
-    private lateinit var eventService: EventService
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -91,11 +98,6 @@ class StubbedEvents {
     @Autowired
     private lateinit var positionService: PositionService
 
-    @MockitoSpyBean
-    private lateinit var backfillService: BackfillService
-
-    @Autowired
-    private lateinit var wac: WebApplicationContext
     private val systemUser =
         SystemUser(
             id = EMAIL,

@@ -7,14 +7,13 @@ import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.PROP_COST_BASIS
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.StubbedTest
-import com.beancounter.position.service.PositionService
 import com.beancounter.position.valuation.ValuationService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.web.context.WebApplicationContext
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
@@ -22,17 +21,11 @@ import java.math.BigDecimal
  */
 @StubbedTest
 class RealEstateTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
-
-    @Autowired
-    private lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var wac: WebApplicationContext
-
-    @Autowired
-    private lateinit var positionService: PositionService
 
     @Autowired
     private lateinit var valuationService: ValuationService

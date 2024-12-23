@@ -21,8 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.shell.jline.PromptProvider
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Shell command unit tests.
@@ -46,6 +48,9 @@ class TestCommands {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     private lateinit var promptProvider: PromptProvider

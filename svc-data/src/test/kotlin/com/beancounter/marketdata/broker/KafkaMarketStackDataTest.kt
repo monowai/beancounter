@@ -20,6 +20,7 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
@@ -37,6 +38,12 @@ class KafkaMarketStackDataTest {
         const val TOPIC_MV = "topicMv"
     }
 
+    @MockitoBean
+    lateinit var assetService: AssetService
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     // Setup so that the wiring is tested
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -47,9 +54,6 @@ class KafkaMarketStackDataTest {
 
     @Autowired
     lateinit var marketDataService: MarketDataService
-
-    @MockitoBean
-    lateinit var assetService: AssetService
 
     @Autowired
     lateinit var eventProducer: EventProducer

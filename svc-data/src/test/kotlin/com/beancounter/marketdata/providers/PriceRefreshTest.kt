@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
@@ -23,6 +24,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
  */
 @SpringMvcDbTest
 internal class PriceRefreshTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var alphaPriceService: AlphaPriceService
+
     @Autowired
     private lateinit var priceRefresh: PriceRefresh
 
@@ -31,9 +38,6 @@ internal class PriceRefreshTest {
 
     @Autowired
     private lateinit var assetHydrationService: AssetHydrationService
-
-    @MockitoBean
-    private lateinit var alphaPriceService: AlphaPriceService
 
     @BeforeEach
     fun mockAlpha() {

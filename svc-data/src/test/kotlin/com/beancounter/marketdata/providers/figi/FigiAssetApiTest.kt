@@ -30,13 +30,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
-import org.springframework.core.env.Environment
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
@@ -55,6 +56,9 @@ private const val BRK_B = "BRK.B"
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class FigiAssetApiTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
@@ -72,9 +76,6 @@ class FigiAssetApiTest {
 
     @Autowired
     private lateinit var context: WebApplicationContext
-
-    @Autowired
-    private lateinit var environment: Environment
 
     @Test
     fun is_CommonStockFound() {

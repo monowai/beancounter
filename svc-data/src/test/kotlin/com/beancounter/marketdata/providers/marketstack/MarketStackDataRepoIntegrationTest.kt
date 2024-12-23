@@ -14,6 +14,8 @@ import com.beancounter.marketdata.providers.MarketDataService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -21,6 +23,9 @@ import java.time.LocalDate
 @SpringMvcDbTest
 @Transactional
 class MarketStackDataRepoIntegrationTest {
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     @Autowired
     lateinit var marketDataRepo: MarketDataRepo
 

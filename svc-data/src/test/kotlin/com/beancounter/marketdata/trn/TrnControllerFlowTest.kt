@@ -30,10 +30,12 @@ import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.TRADE_DATE
 import com.beancounter.marketdata.utils.TRNS_ROOT
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -52,17 +54,20 @@ class TrnControllerFlowTest(
     @Autowired var mockMvc: MockMvc,
     @Autowired var mockAuthConfig: MockAuthConfig
 ) {
-    @Autowired
-    private lateinit var dateUtils: DateUtils
-
-    @Autowired
-    private lateinit var enrichmentFactory: EnrichmentFactory
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
     private lateinit var figiProxy: FigiProxy
 
     @MockitoBean
     private lateinit var fxTransactions: FxTransactions
+
+    @Autowired
+    private lateinit var dateUtils: DateUtils
+
+    @Autowired
+    private lateinit var enrichmentFactory: EnrichmentFactory
 
     private lateinit var token: Jwt
     private lateinit var bcMvcHelper: BcMvcHelper
@@ -73,11 +78,8 @@ class TrnControllerFlowTest(
     private lateinit var trnInputC: TrnInput
     private lateinit var trnInputD: TrnInput
 
-    @Autowired
-    fun setupObjects(
-        mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig
-    ) {
+    @BeforeEach
+    fun configure() {
         assertThat(figiProxy).isNotNull
         assertThat(fxTransactions).isNotNull
         enrichmentFactory.register(DefaultEnricher())

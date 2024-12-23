@@ -22,8 +22,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -47,8 +49,15 @@ internal class PortfolioControllerTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
     private lateinit var token: Jwt
 
+    // @BeforeEach
+    // fun configure() {
+    //     token = mockAuthConfig.login("xx@xx.com")
+    // }
     @Autowired
     fun getToken(
         mockMvc: MockMvc,

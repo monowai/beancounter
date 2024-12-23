@@ -53,6 +53,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -70,6 +71,9 @@ import java.time.Duration
 @SpringMvcKafkaTest
 class KafkaTrnExportImportTest {
     final var dateUtils: DateUtils = DateUtils()
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     // Setup so that the wiring is tested
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")

@@ -25,10 +25,12 @@ import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
@@ -38,11 +40,8 @@ import java.math.BigDecimal
  */
 @SpringMvcDbTest
 class TrnCashFlowTest {
-    @Autowired
-    lateinit var assetService: AssetService
-
-    @Autowired
-    lateinit var trnService: TrnService
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
     private lateinit var figiProxy: FigiProxy
@@ -52,6 +51,12 @@ class TrnCashFlowTest {
 
     @MockitoBean
     private lateinit var fxTransactions: FxTransactions
+
+    @Autowired
+    lateinit var assetService: AssetService
+
+    @Autowired
+    lateinit var trnService: TrnService
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -72,8 +77,8 @@ class TrnCashFlowTest {
     private lateinit var nzCashAsset: Asset
     private lateinit var usCashAsset: Asset
 
-    @Autowired
-    fun setupObjects(assetService: AssetService) {
+    @BeforeEach
+    fun configure() {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,

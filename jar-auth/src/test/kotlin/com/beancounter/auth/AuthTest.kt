@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.cache.CacheManager
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -17,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -24,7 +23,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.RestOperations
 
 /**
  * MVC Auth controller tests for OAuth.
@@ -43,17 +41,8 @@ import org.springframework.web.client.RestOperations
     ]
 )
 class AuthTest {
-    @MockBean
+    @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
-
-    @MockBean
-    private lateinit var cacheManager: CacheManager
-
-    @MockBean
-    private lateinit var jwtRestOperations: RestOperations
-
-    @MockBean
-    private lateinit var authConfig: AuthConfig
 
     @Autowired
     private lateinit var mockMvc: MockMvc

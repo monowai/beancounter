@@ -19,6 +19,7 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
@@ -29,11 +30,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
 class TestMsftFlow {
-    @Autowired
-    private lateinit var eventService: EventService
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
     private lateinit var positionGateway: PositionGateway
+
+    @Autowired
+    private lateinit var eventService: EventService
 
     @Autowired
     private lateinit var positionService: PositionService

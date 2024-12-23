@@ -13,7 +13,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -25,11 +27,11 @@ import java.util.UUID
  */
 @SpringMvcDbTest
 internal class PortfolioControllerOwnershipTests {
-    @Autowired
-    private lateinit var mockMvc: MockMvc
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
+    private lateinit var mockMvc: MockMvc
 
     val userA = "UserA"
     val userB = "userB"

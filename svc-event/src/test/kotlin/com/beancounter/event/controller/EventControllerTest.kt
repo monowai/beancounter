@@ -10,7 +10,6 @@ import com.beancounter.event.Constants.Companion.ALPHA
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.EventService
-import com.beancounter.event.service.PositionService
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -25,13 +24,14 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.util.Objects
 
@@ -47,14 +47,11 @@ import java.util.Objects
 internal class EventControllerTest {
     private val dateUtils = DateUtils()
 
-    @Autowired
-    private lateinit var wac: WebApplicationContext
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
     private lateinit var eventService: EventService
-
-    @Autowired
-    private lateinit var positionService: PositionService
 
     @Autowired
     private lateinit var mockMvc: MockMvc

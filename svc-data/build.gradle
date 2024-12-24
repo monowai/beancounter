@@ -1,5 +1,3 @@
-import de.undercouch.gradle.tasks.download.Download
-
 plugins {
     alias(libs.plugins.jvm)
     alias(libs.plugins.spring.boot)
@@ -15,21 +13,21 @@ plugins {
 version = "0.1.1"
 
 publishing {
-    publications.create("data-stubs", MavenPublication) {
-        artifact verifierStubsJar
-        artifactId "${project.name}"
-        groupId "org.beancounter"
-        version "${project.version}"
+    publications {
+        create("data-stubs", MavenPublication) {
+            artifactId = project.name
+            groupId = "org.beancounter"
+            version = project.version
+            artifact verifierStubsJar
+        }
     }
 }
-
 
 dependencies {
     implementation(
             platform(libs.spring.boot.dependencies),
             platform(libs.spring.cloud.dependencies),
             platform(libs.otel.bom),
-            //platform(libs.otel),
             project(":jar-common"),
             project(":jar-auth"),
             project(":jar-client"),
@@ -53,11 +51,12 @@ dependencies {
             "com.h2database:h2", // Dev
             libs.postgresql,
             "org.springframework.kafka:spring-kafka",
-            'com.opencsv:opencsv:5.7.1',)
-
+            "com.opencsv:opencsv:5.7.1"
+    )
     compileOnly("org.springframework.boot:spring-boot-configuration-processor")
-    contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier",)
-    testImplementation("org.assertj:assertj-core",
+    contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")
+    testImplementation(
+            "org.assertj:assertj-core",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
@@ -67,7 +66,8 @@ dependencies {
             "org.junit.platform:junit-platform-suite-api",
             "org.junit.platform:junit-platform-suite-engine",
             libs.mockito.kotlin,
-            testFixtures(project(":jar-auth")),)
+            testFixtures(project(":jar-auth"))
+    )
 }
 
 contracts {
@@ -89,9 +89,11 @@ tasks.register('testSuites', Test) {
     include '**/suites/**'
     useJUnitPlatform()
 }
+
 test {
     exclude '**/suites/**'
 }
+
 tasks.register('pubStubs') {
     dependsOn build
     dependsOn publishToMavenLocal
@@ -124,17 +126,11 @@ bootBuildImage {
 def isCI = System.getenv('CI')?.toBoolean() ?: false
 
 sentry {
-    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
-    // This enables source context, allowing you to see your source
-    // code as part of your stack traces in Sentry.
     if (isCI) {
         includeSourceContext = true
-
         org = "monowai-developments-ltd"
         projectName = "position"
         authToken = System.getenv("SENTRY_AUTH_TOKEN")
-    } else {
-        // Not on CI
     }
 }
 
@@ -142,21 +138,3 @@ tasks.named('sentryCollectSourcesJava') {
     dependsOn tasks.named('generateContractTests')
     mustRunAfter tasks.named('generateContractTests')
 }
-
-tasks.register('downloadSentryAgent', Download) {
-    src "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${sentry}/sentry" +
-            "-opentelemetry-agent-${sentry}.jar"
-    dest layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar").get().
-            asFile
-    onlyIfNewer true
-}
-
-tasks.register('copySentryAgent', Copy) {
-    from layout.buildDirectory.file("downloads/sentry-opentelemetry-agent-${sentry}.jar")
-    into 'lib'
-    dependsOn downloadSentryAgent
-}
-//
-//tasks.build {
-//  dependsOn copySentryAgent
-//}

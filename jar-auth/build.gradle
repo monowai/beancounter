@@ -5,7 +5,8 @@ plugins {
 version = '0.0.1'
 
 dependencies {
-    implementation(platform(libs.spring.boot.dependencies),
+    implementation(
+            platform(libs.spring.boot.dependencies),
             platform(libs.spring.cloud.dependencies),
             project(":jar-common"),
             "jakarta.servlet:jakarta.servlet-api:6.0.0",
@@ -15,13 +16,15 @@ dependencies {
             "org.springframework.cloud:spring-cloud-starter-openfeign",
             "org.springframework.security:spring-security-config",
             "org.springframework.security:spring-security-oauth2-resource-server",
-            "org.springframework.security:spring-security-oauth2-jose")
+            "org.springframework.security:spring-security-oauth2-jose"
+    )
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude module: 'junit-vintage-engine'
     }
-    testImplementation("org.junit.jupiter:junit-jupiter",
-            'org.assertj:assertj-core',
+    testImplementation(
+            "org.junit.jupiter:junit-jupiter",
+            "org.assertj:assertj-core",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
@@ -32,7 +35,6 @@ dependencies {
     testFixturesImplementation(
             project(":jar-common"),
             "org.springframework.boot:spring-boot-starter-test",
-//            "org.mockito:mockito-core:5.14.2",
             "org.springframework.security:spring-security-config",
             "org.springframework.security:spring-security-test",
             "org.springframework.security:spring-security-oauth2-client",
@@ -40,4 +42,3 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-jose"
     )
 }
-

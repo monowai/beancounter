@@ -1,34 +1,37 @@
 version = "0.1.1"
+
 ext {
-    set('springShellVersion', "3.4.0")
+    springShellVersion = "3.4.0"
+    springBootVersion = libs.spring.boot.dependencies.get().version
 }
 
 dependencies {
-    implementation(project(":jar-common"),
+    implementation(
+            project(":jar-common"),
             project(":jar-auth"),
             project(":jar-client"),
             platform("org.springframework.shell:spring-shell-dependencies:${springShellVersion}"),
             "org.springframework.shell:spring-shell-starter:${springShellVersion}",
             "org.springframework.boot:spring-boot-starter",
-            "org.springframework.boot:spring-boot-starter-security:${libs.spring.boot.
-                    dependencies.get().version}",
+            "org.springframework.boot:spring-boot-starter-security:${springBootVersion}",
             "org.springframework.shell:spring-shell-starter-jansi",
             libs.spring.cloud.feign,
             libs.spring.security.oauth2,
             libs.spring.security.jose,
             libs.spring.kafka,
             "com.github.ben-manes.caffeine:caffeine:3.1.2",
-            //"org.codehaus.groovy:groovy-xml:4.0.24",  // Post spring 3.4 issue.
-            "com.opencsv:opencsv:5.9")
-
-    testImplementation(libs.assertj,
+            "com.opencsv:opencsv:5.9"
+    )
+    testImplementation(
+            libs.assertj,
             testFixtures(project(":jar-auth")),
             libs.spring.security.oauth2,
             "org.springframework.boot:spring-boot-starter-test",
             libs.spring.stub.runner,
             libs.apache.groovy,
             libs.spring.kafka.test,
-            "org.junit.jupiter:junit-jupiter")
+            "org.junit.jupiter:junit-jupiter"
+    )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }

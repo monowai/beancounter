@@ -8,7 +8,6 @@ plugins {
     id "com.osacky.doctor" version "0.10.0"
 }
 
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -33,31 +32,25 @@ subprojects {
         jvmToolchain(21)
     }
 
-    test {
-        useJUnitPlatform()
-    }
-
-    check.dependsOn jacocoTestReport
-
-    idea {
-        module {
-            inheritOutputDirs = true
-            downloadSources = true
-        }
-    }
-    jacoco {
-        toolVersion = "0.8.12"
-    }
     tasks.withType(JavaCompile).configureEach {
         options.compilerArgs.addAll('-Xlint:unchecked', '-parameters')
         options.deprecation = true
     }
+    dependencies {
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
     tasks.withType(Test).configureEach {
-        finalizedBy 'jacocoTestReport'
+        useJUnitPlatform()
+        finalizedBy(tasks.named('jacocoTestReport'))
     }
 
     tasks.named('build') {
-        dependsOn 'formatKotlin'
+        dependsOn(tasks.named('formatKotlin'))
+    }
+
+    jacoco {
+        toolVersion = "0.8.12"
     }
 
     jacocoTestReport {
@@ -66,6 +59,15 @@ subprojects {
             html.required.set(true)
         }
     }
+
+    idea {
+        module {
+            inheritOutputDirs = true
+            downloadSources = true
+        }
+    }
+
+    check.dependsOn(tasks.named('jacocoTestReport'))
 }
 
 group = 'com.beancounter'

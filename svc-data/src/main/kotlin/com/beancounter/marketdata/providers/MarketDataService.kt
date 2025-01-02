@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
-import com.beancounter.marketdata.providers.cash.CashProviderService.Companion.ID
+import com.beancounter.marketdata.providers.cash.CashProviderService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -70,7 +70,7 @@ class MarketDataService
                             .market.timezone.id
                     ]!!
                 val existingPrices =
-                    if (marketDataProvider.getId() == ID) {
+                    if (marketDataProvider.getId() == CashProviderService.ID) {
                         // Cash is constant
                         getFromProvider(
                             byProviders[marketDataProvider],

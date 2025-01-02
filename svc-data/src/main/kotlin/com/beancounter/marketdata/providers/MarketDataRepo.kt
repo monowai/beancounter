@@ -22,11 +22,6 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         priceDate: LocalDate
     ): Optional<MarketData>
 
-    fun deleteMarketDataByAssetIdAndPriceDate(
-        assetId: String,
-        date: LocalDate
-    )
-
     @Query(
         "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate"
     )

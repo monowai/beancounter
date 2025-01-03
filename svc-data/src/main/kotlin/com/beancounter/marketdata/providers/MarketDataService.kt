@@ -46,7 +46,6 @@ class MarketDataService
          * @param priceRequest to process
          * @return results
          */
-        @Transactional
         fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
             val byProviders = providerUtils.splitProviders(priceRequest.assets)
             val foundInDb: MutableList<MarketData> = mutableListOf()

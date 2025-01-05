@@ -1,7 +1,5 @@
 package com.beancounter.event.service
 
-import com.beancounter.auth.client.LoginService
-import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.event.CorporateEvent
@@ -19,9 +17,6 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-/**
- * loads and stores events from the Market Data service.
- */
 @Service
 class EventLoader(
     private val portfolioService: PortfolioServiceClient,
@@ -29,47 +24,31 @@ class EventLoader(
     private val positionService: PositionService,
     private val priceService: PriceService,
     private val eventService: EventService,
-    private val loginService: LoginService,
     private val dateSplitter: DateSplitter
 ) {
+    // private val authContext: OpenIdResponse = loginService.loginM2m()
+
     fun loadEvents(date: String) {
-        loginService.loginM2m()
         val portfolios = portfolioService.portfolios
+        log.info("Loading missing events from date: $date for ${portfolios.data.size} portfolios")
         for (portfolio in portfolios.data) {
-            loadEvents(
-                portfolio.id,
-                date
-            )
+            loadEvents(portfolio.id, date)
             log.info("Completed event load for ${portfolio.code}")
         }
     }
 
     fun loadEvents(
         portfolioId: String,
-        date: String,
-        authToken: OpenIdResponse = loginService.loginM2m()
+        date: String
     ) {
-        loginService.setAuthContext(authToken)
         val portfolio = portfolioService.getPortfolioById(portfolioId)
         runBlocking {
-            val dates =
-                dateSplitter.dateRange(
-                    date,
-                    "today"
-                )
-
+            val dates = dateSplitter.dateRange(date, "today")
             for (processDate in dates) {
                 launch {
-                    val events =
-                        loadEvents(
-                            portfolio,
-                            processDate,
-                            authContext = loginService.loginM2m()
-                        )
+                    val events = loadEvents(portfolio, processDate)
                     if (events > 0) {
-                        log.trace(
-                            "Loaded $events events for portfolio: ${portfolio.code}/$portfolioId"
-                        )
+                        log.trace("Loaded $events events for portfolio: ${portfolio.code}/$portfolioId")
                     }
                 }
             }
@@ -78,15 +57,10 @@ class EventLoader(
 
     private fun loadEvents(
         portfolio: Portfolio,
-        date: LocalDate,
-        authContext: OpenIdResponse
+        date: LocalDate
     ): Int {
-        loginService.setAuthContext(authContext)
-        val positionResponse =
-            positionService.getPositions(
-                portfolio,
-                date.toString()
-            )
+        // loginService.setAuthContext(authContext)
+        val positionResponse = positionService.getPositions(portfolio, date.toString())
         if (positionResponse.data.positions.values
                 .isEmpty()
         ) {
@@ -94,24 +68,13 @@ class EventLoader(
         }
 
         var totalEvents = 0
-
-        val executor: ExecutorService =
-            Executors.newFixedThreadPool(10)
-
+        val executor: ExecutorService = Executors.newFixedThreadPool(10)
         val tasks: List<Callable<Int>> =
             positionResponse.data.positions.values.map { position ->
                 Callable {
-                    val events =
-                        load(
-                            position,
-                            date,
-                            authContext
-                        )
+                    val events = load(position, date)
                     if (events != 0) {
-                        backFillService.backFillEvents(
-                            portfolio.id,
-                            date.toString()
-                        )
+                        backFillService.backFillEvents(portfolio.id, date.toString())
                         log.trace("Published: $events nominal events")
                     }
                     totalEvents += events
@@ -120,18 +83,14 @@ class EventLoader(
             }
 
         executor.invokeAll(tasks)
-
         executor.shutdown()
 
         if (totalEvents > 0) {
             log.debug(
-                "portfolio: ${portfolio.code}, id: ${portfolio.id}. " +
-                    "Dispatched: $totalEvents nominal events, date: $date"
+                "portfolio: ${portfolio.code}, id: ${portfolio.id}. Dispatched: $totalEvents nominal events, date: $date"
             )
         } else {
-            log.trace(
-                "No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date"
-            )
+            log.trace("No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date")
         }
 
         return totalEvents
@@ -139,12 +98,11 @@ class EventLoader(
 
     private fun load(
         position: Position,
-        date: LocalDate,
-        authContext: OpenIdResponse
+        date: LocalDate
     ): Int {
         var eventCount = 0
         if (positionService.includePosition(position)) {
-            loginService.setAuthContext(authContext)
+            // loginService.setAuthContext(authContext)
             val events = priceService.getEvents(position.asset.id)
             for (priceResponse in events.data) {
                 if (date.compareTo(priceResponse.priceDate) == 0) {
@@ -161,9 +119,7 @@ class EventLoader(
                 }
             }
             if (eventCount != 0) {
-                log.debug(
-                    "Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}"
-                )
+                log.debug("Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}")
             }
         }
         return eventCount

@@ -1,6 +1,5 @@
 package com.beancounter.event.controller
 
-import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.DateUtils
@@ -32,11 +31,10 @@ import org.springframework.web.bind.annotation.RestController
 )
 class EventController(
     private val eventService: EventService,
-    private val backfillService: BackFillService,
+    private val backFillService: BackFillService,
     private val eventLoader: EventLoader,
     private val portfolioService: PortfolioServiceClient,
-    private val dateUtils: DateUtils,
-    private val loginService: LoginService
+    private val dateUtils: DateUtils
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -49,7 +47,7 @@ class EventController(
         @PathVariable portfolioId: String,
         @PathVariable(required = false) fromDate: String = DateUtils.TODAY,
         @PathVariable(required = false) toDate: String = DateUtils.TODAY
-    ) = backfillService.backFillEvents(
+    ) = backFillService.backFillEvents(
         portfolioId,
         fromDate,
         toDate
@@ -67,7 +65,7 @@ class EventController(
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
             log.info("BackFilling ${portfolio.code}, $fromDate to $toDate")
-            backfillService.backFillEvents(
+            backFillService.backFillEvents(
                 portfolio.id,
                 fromDate,
                 toDate
@@ -94,8 +92,7 @@ class EventController(
     ) {
         eventLoader.loadEvents(
             portfolioId,
-            asAtDate,
-            loginService.loginM2m()
+            asAtDate
         )
     }
 

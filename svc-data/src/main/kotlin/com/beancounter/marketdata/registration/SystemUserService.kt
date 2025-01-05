@@ -6,14 +6,12 @@ import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
-import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
 /**
  * Registration of authenticated users.
  */
 @Service
-@Transactional
 class SystemUserService(
     private val systemUserRepository: SystemUserRepository,
     private val tokenService: TokenService,

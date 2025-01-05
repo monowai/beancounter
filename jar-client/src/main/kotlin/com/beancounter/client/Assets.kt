@@ -7,7 +7,7 @@ import com.beancounter.common.model.Asset
 /**
  * Minimal asset related services needed by a client that has to be implemented by the server.
  */
-interface AssetService {
+interface Assets {
     /**
      * Create/Locate the requested assets and return a response.
      */

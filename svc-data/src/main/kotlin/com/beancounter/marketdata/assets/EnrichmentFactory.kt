@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.common.model.Market
-import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -12,7 +11,6 @@ import java.util.Locale
  * Return an enricher that can append missing Asset data properties such as name.
  */
 @Service
-@Transactional
 class EnrichmentFactory(
     val defaultEnricher: DefaultEnricher
 ) {

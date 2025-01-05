@@ -1,6 +1,6 @@
 package com.beancounter.client.ingest
 
-import com.beancounter.client.AssetService
+import com.beancounter.client.Assets
 import com.beancounter.client.MarketService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.exception.BusinessException
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AssetIngestService internal constructor(
-    private val assetService: AssetService,
+    private val marketDataClient: Assets,
     private val marketService: MarketService
 ) {
     /**
@@ -52,7 +52,7 @@ class AssetIngestService internal constructor(
                 )
             )
         val response =
-            assetService.handle(assetRequest)
+            marketDataClient.handle(assetRequest)
                 ?: throw BusinessException(
                     String.format(
                         "No response returned for %s:%s",

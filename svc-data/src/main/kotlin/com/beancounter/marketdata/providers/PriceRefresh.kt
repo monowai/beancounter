@@ -7,26 +7,23 @@ import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetService
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Update prices.
  */
 @Service
-class PriceRefresh internal constructor(
+class PriceRefresh(
     private val assetService: AssetService,
     private val assetHydrationService: AssetHydrationService,
     private val marketDataService: MarketDataService,
     private val dateUtils: DateUtils
 ) {
     @Transactional(readOnly = true)
-    @Async("priceExecutor")
-    fun updatePrices(): CompletableFuture<Int> {
+    fun updatePrices(): Int {
         log.info(
             "Updating Prices {}",
             dateUtils.getFormattedDate().toString()
@@ -48,7 +45,7 @@ class PriceRefresh internal constructor(
             LocalDateTime.now(dateUtils.zoneId),
             dateUtils.zoneId.id
         )
-        return CompletableFuture.completedFuture(assetCount.get())
+        return assetCount.get()
     }
 
     fun refreshPrice(

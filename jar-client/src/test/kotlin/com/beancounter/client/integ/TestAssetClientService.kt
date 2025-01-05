@@ -1,7 +1,7 @@
 package com.beancounter.client.integ
 
 import com.beancounter.auth.TokenService
-import com.beancounter.client.AssetService
+import com.beancounter.client.Assets
 import com.beancounter.client.config.ClientConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -23,13 +23,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @SpringBootTest(classes = [ClientConfig::class])
 class TestAssetClientService {
     @Autowired
-    private lateinit var assetService: AssetService
+    private lateinit var assets: Assets
 
     @MockitoBean
     private lateinit var tokenService: TokenService
 
     @Test
     fun is_AssetByIdOk() {
-        assertThat(assetService.find("KMI")).isNotNull
+        assertThat(assets.find("KMI")).isNotNull
     }
 }

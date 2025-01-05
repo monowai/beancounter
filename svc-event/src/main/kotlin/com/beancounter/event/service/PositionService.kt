@@ -1,7 +1,7 @@
 package com.beancounter.event.service
 
 import com.beancounter.auth.TokenService
-import com.beancounter.client.AssetService
+import com.beancounter.client.Assets
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
@@ -27,7 +27,7 @@ import java.time.LocalDate
 class PositionService(
     private val behaviourFactory: EventBehaviourFactory
 ) {
-    private lateinit var assetService: AssetService
+    private lateinit var assets: Assets
     private lateinit var positionGateway: PositionGateway
     private lateinit var portfolioService: PortfolioServiceClient
     private lateinit var tokenService: TokenService
@@ -37,8 +37,8 @@ class PositionService(
     private lateinit var positionUrl: String
 
     @Autowired
-    fun setAssetService(assetService: AssetService) {
-        this.assetService = assetService
+    fun setAssetService(assets: Assets) {
+        this.assets = assets
     }
 
     @Autowired

@@ -15,7 +15,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @SpringMvcDbTest
-class AssetServiceTest {
+class AssetsTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 

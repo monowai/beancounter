@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.DependsOn
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Controller
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * Write prices in relation to incoming messages.
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional
     value = ["kafka.enabled"],
     matchIfMissing = true
 )
-@Transactional
 @DependsOn("kafkaConfig")
 class PriceWriter {
     private var priceService: PriceService? = null

@@ -21,7 +21,6 @@ import java.util.function.Consumer
  * Interactions to created and read Trn objects.
  */
 @Service
-@Transactional
 class TrnService(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,
@@ -57,6 +56,10 @@ class TrnService(
                     trnRequest
                 )
             )
+        saved.forEach { trn ->
+            trn.asset = assetService.hydrate(trn.asset)!!
+            trn.cashAsset = trn.cashAsset?.let { assetService.hydrate(it) }
+        }
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
         if (trnRequest.data.size == 1) {
@@ -91,6 +94,7 @@ class TrnService(
      * @param portfolio portfolio owned by the caller
      * @return number of deleted transactions
      */
+    @Transactional
     fun purge(portfolio: Portfolio): Long {
         log.debug(
             "Purging transactions for {}",

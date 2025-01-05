@@ -81,7 +81,7 @@ internal class PriceRefreshTest {
             )
         val hydratedAsset = assetHydrationService.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")
-        val completable = priceRefresh.updatePrices()
-        assertThat(completable.get()).isGreaterThanOrEqualTo(1)
+        val count = priceRefresh.updatePrices()
+        assertThat(count).isGreaterThanOrEqualTo(1)
     }
 }

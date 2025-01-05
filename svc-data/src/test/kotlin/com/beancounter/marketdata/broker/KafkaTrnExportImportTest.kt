@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.broker
 
 import com.beancounter.auth.AuthUtilService
-import com.beancounter.client.AssetService
+import com.beancounter.client.Assets
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
@@ -87,7 +87,7 @@ class KafkaTrnExportImportTest {
     lateinit var marketDataService: MarketDataService
 
     @Autowired
-    lateinit var assetService: AssetService
+    lateinit var assets: Assets
 
     @Autowired
     lateinit var portfolioService: PortfolioService
@@ -373,7 +373,7 @@ class KafkaTrnExportImportTest {
                 ),
                 code
             )
-        val response = assetService.handle(asset)!!
+        val response = assets.handle(asset)!!
         assertThat(response).isNotNull
         return response.data[code]!!
     }

@@ -3,7 +3,7 @@ package com.beancounter.position.valuation
 import IrrCalculator
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.client.AssetService
+import com.beancounter.client.Assets
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.Payload.Companion.DATA
@@ -64,7 +64,7 @@ internal class FxValuationMvcTests {
     private lateinit var valuation: Valuation
 
     @Autowired
-    private lateinit var assetService: AssetService
+    private lateinit var assets: Assets
 
     @Autowired
     private lateinit var portfolioService: PortfolioServiceClient
@@ -172,7 +172,7 @@ internal class FxValuationMvcTests {
                     EBAY
                 )
             val assetRequest = AssetRequest(assetInputMap)
-            val assetResponse = assetService.handle(assetRequest)
+            val assetResponse = assets.handle(assetRequest)
             assertThat(assetResponse!!.data).hasSize(1)
             return assetResponse.data["$EBAY:${NASDAQ.code}"] ?: error(
                 "$EBAY Not Found. This should never happen"

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.client.Assets
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.PriceRequest
@@ -10,10 +11,8 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
-import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.util.Locale
 import java.util.Optional
@@ -28,15 +27,14 @@ import java.util.stream.Stream
     DefaultEnricher::class,
     MarketDataService::class
 )
-@Transactional
-class AssetService internal constructor(
+class AssetService(
     private val enrichmentFactory: EnrichmentFactory,
     private val marketDataService: MarketDataService,
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
     private val assetHydrationService: AssetHydrationService,
     private val keyGenUtils: KeyGenUtils
-) : com.beancounter.client.AssetService {
+) : Assets {
     fun enrich(asset: Asset): Asset {
         val enricher = enrichmentFactory.getEnricher(asset.market)
         if (enricher.canEnrich(asset)) {
@@ -89,7 +87,6 @@ class AssetService internal constructor(
         return AssetUpdateResponse(assets)
     }
 
-    @Async("priceExecutor")
     override fun backFillEvents(assetId: String) {
         marketDataService.backFill(find(assetId))
     }

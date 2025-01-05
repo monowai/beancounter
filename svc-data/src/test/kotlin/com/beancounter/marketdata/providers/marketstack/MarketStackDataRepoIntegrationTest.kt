@@ -16,12 +16,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 
 @SpringMvcDbTest
-@Transactional
 class MarketStackDataRepoIntegrationTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
@@ -74,7 +72,7 @@ class MarketStackDataRepoIntegrationTest {
 
         // Verify the Asset is returned in the MarketData object
         assertThat(result).isNotEmpty
-        assertThat(result.first().asset).isEqualTo(asset)
+        assertThat(result.first().asset.id).isEqualTo(asset.id)
         val mdPrice =
             marketDataService.getPriceResponse(
                 PriceRequest(

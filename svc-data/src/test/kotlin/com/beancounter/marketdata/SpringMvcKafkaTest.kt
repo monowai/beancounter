@@ -5,7 +5,6 @@ import com.beancounter.common.utils.KafkaUtils
 import com.beancounter.marketdata.broker.KafkaMarketStackDataTest.Companion.TOPIC_EVENT
 import com.beancounter.marketdata.broker.KafkaMarketStackDataTest.Companion.TOPIC_MV
 import com.beancounter.marketdata.broker.KafkaTrnExportImportTest.Companion.TOPIC_CSV_IO
-import jakarta.transaction.Transactional
 import org.junit.jupiter.api.Tag
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -41,7 +40,6 @@ import kotlin.annotation.AnnotationTarget.CLASS
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
-@Transactional
 @ActiveProfiles
 @DirtiesContext
 @Import(KafkaUtils::class)

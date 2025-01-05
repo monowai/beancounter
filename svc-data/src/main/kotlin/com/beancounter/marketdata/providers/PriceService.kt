@@ -8,7 +8,6 @@ import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
-import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -19,8 +18,7 @@ import java.util.Optional
  * Persist prices obtained from providers and detect if Corporate Events need to be dispatched.
  */
 @Service
-@Transactional
-class PriceService internal constructor(
+class PriceService(
     private val marketDataRepo: MarketDataRepo,
     private val cashUtils: CashUtils
 ) {

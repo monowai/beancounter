@@ -3,7 +3,6 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -13,7 +12,6 @@ import java.time.LocalDate
  * Queries that return collections of transactions
  */
 @Service
-@Transactional
 class TrnQueryService(
     val trnService: TrnService,
     val trnRepository: TrnRepository

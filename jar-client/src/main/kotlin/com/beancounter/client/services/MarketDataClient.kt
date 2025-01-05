@@ -1,7 +1,7 @@
 package com.beancounter.client.services
 
 import com.beancounter.auth.TokenService
-import com.beancounter.client.AssetService
+import com.beancounter.client.Assets
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 class MarketDataClient internal constructor(
     private val assetGateway: AssetGateway,
     private val tokenService: TokenService
-) : AssetService {
+) : Assets {
     @Value("\${marketdata.url:http://localhost:9510}")
     private lateinit var marketDataUrl: String
 

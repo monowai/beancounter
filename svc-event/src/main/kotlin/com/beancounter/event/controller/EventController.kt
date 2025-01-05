@@ -6,9 +6,10 @@ import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
-import com.beancounter.event.service.BackfillService
+import com.beancounter.event.service.BackFillService
 import com.beancounter.event.service.EventLoader
 import com.beancounter.event.service.EventService
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -31,12 +32,14 @@ import org.springframework.web.bind.annotation.RestController
 )
 class EventController(
     private val eventService: EventService,
-    private val backfillService: BackfillService,
+    private val backfillService: BackFillService,
     private val eventLoader: EventLoader,
     private val portfolioService: PortfolioServiceClient,
     private val dateUtils: DateUtils,
     private val loginService: LoginService
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     @PostMapping(
         value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
@@ -56,13 +59,14 @@ class EventController(
         value = ["/backfill/{fromDate}/{toDate}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    fun backfillPortfolios(
+    fun backFillPortfolios(
         @PathVariable(required = false) fromDate: String = DateUtils.TODAY,
         @PathVariable(required = false) toDate: String = DateUtils.TODAY
     ) {
+        eventLoader.loadEvents(fromDate)
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
+            log.info("BackFilling ${portfolio.code}, $fromDate to $toDate")
             backfillService.backFillEvents(
                 portfolio.id,
                 fromDate,
@@ -72,13 +76,12 @@ class EventController(
     }
 
     @PostMapping(
-        value = ["/load/{startDate}"],
+        value = ["/load/{fromDate}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    suspend fun loadEvents(
-        @PathVariable(required = false) startDate: String = DateUtils.TODAY
-    ) = eventLoader.loadEvents(startDate)
+    fun loadEvents(
+        @PathVariable(required = false) fromDate: String = DateUtils.TODAY
+    ) = eventLoader.loadEvents(fromDate)
 
     @PostMapping(
         value = ["/load/{portfolioId}/{asAtDate}"],

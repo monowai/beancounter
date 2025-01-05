@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
  * Find events that exist locally and resubmit the transactions.
  */
 @Service
-class BackfillService(
+class BackFillService(
     private val portfolioService: PortfolioServiceClient,
     private val positionService: PositionService,
     private val eventService: EventService,
@@ -19,7 +19,7 @@ class BackfillService(
 ) {
     private val dateUtils = DateUtils()
     private val dateSplitter = DateSplitter(dateUtils)
-    private val log = LoggerFactory.getLogger(BackfillService::class.java)
+    private val log = LoggerFactory.getLogger(BackFillService::class.java)
 
     fun backFillEvents(
         portfolioId: String,
@@ -36,7 +36,7 @@ class BackfillService(
                 portfolioId,
                 tokenService.bearerToken
             )
-        log.debug("Started backfill code: ${portfolio.code}, id: ${portfolio.id}")
+        log.debug("BackFill code: ${portfolio.code}, id: ${portfolio.id}")
         var eventCount = 0
         for (asAtDate in dates) {
             val positionResponse =
@@ -61,6 +61,6 @@ class BackfillService(
                 eventCount += events.size
             }
         }
-        log.trace("Backfill portfolio: ${portfolio.code}, events: $eventCount completed")
+        log.trace("BackFilled portfolio: ${portfolio.code}, events: $eventCount completed")
     }
 }

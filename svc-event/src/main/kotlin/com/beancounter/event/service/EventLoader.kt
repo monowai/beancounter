@@ -13,7 +13,6 @@ import com.beancounter.event.common.DateSplitter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.concurrent.Callable
@@ -26,14 +25,13 @@ import java.util.concurrent.Executors
 @Service
 class EventLoader(
     private val portfolioService: PortfolioServiceClient,
-    private val backfillService: BackfillService,
+    private val backFillService: BackFillService,
     private val positionService: PositionService,
     private val priceService: PriceService,
     private val eventService: EventService,
     private val loginService: LoginService,
     private val dateSplitter: DateSplitter
 ) {
-    @Async
     fun loadEvents(date: String) {
         loginService.loginM2m()
         val portfolios = portfolioService.portfolios
@@ -46,7 +44,6 @@ class EventLoader(
         }
     }
 
-    @Async
     fun loadEvents(
         portfolioId: String,
         date: String,
@@ -99,7 +96,7 @@ class EventLoader(
         var totalEvents = 0
 
         val executor: ExecutorService =
-            Executors.newFixedThreadPool(positionResponse.data.positions.values.size)
+            Executors.newFixedThreadPool(10)
 
         val tasks: List<Callable<Int>> =
             positionResponse.data.positions.values.map { position ->
@@ -111,7 +108,7 @@ class EventLoader(
                             authContext
                         )
                     if (events != 0) {
-                        backfillService.backFillEvents(
+                        backFillService.backFillEvents(
                             portfolio.id,
                             date.toString()
                         )

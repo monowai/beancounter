@@ -18,7 +18,7 @@ import com.beancounter.event.Constants.Companion.KMI
 import com.beancounter.event.Constants.Companion.NZD
 import com.beancounter.event.Constants.Companion.USD
 import com.beancounter.event.contract.CorporateEventResponse
-import com.beancounter.event.service.BackfillService
+import com.beancounter.event.service.BackFillService
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -83,7 +83,7 @@ class StubbedEvents {
     private lateinit var eventService: EventService
 
     @MockitoSpyBean
-    private lateinit var backfillService: BackfillService
+    private lateinit var backfillService: BackFillService
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig

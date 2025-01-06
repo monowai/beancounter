@@ -30,21 +30,25 @@ class PriceRefresh(
         )
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
-        for (asset in assets) {
-            val priceRequest =
-                PriceRequest.of(
-                    assetHydrationService.hydrateAsset(asset),
-                    TODAY
-                )
-            marketDataService.getPriceResponse(priceRequest)
-            assetCount.getAndIncrement()
+        try {
+            for (asset in assets) {
+                val priceRequest =
+                    PriceRequest.of(
+                        assetHydrationService.hydrateAsset(asset),
+                        TODAY
+                    )
+                marketDataService.getPriceResponse(priceRequest)
+                assetCount.getAndIncrement()
+            }
+            log.info(
+                "Price update completed for {} assets @ {} - {}",
+                assetCount.get(),
+                LocalDateTime.now(dateUtils.zoneId),
+                dateUtils.zoneId.id
+            )
+        } finally {
+            assets.close()
         }
-        log.info(
-            "Price update completed for {} assets @ {} - {}",
-            assetCount.get(),
-            LocalDateTime.now(dateUtils.zoneId),
-            dateUtils.zoneId.id
-        )
         return assetCount.get()
     }
 

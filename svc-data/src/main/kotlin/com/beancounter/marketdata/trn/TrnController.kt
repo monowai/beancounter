@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
@@ -109,7 +110,7 @@ class TrnController(
     )
     fun delete(
         @PathVariable("trnId") trnId: String
-    ): TrnResponse = TrnResponse(trnService.delete(trnId))
+    ): TrnDeleteResponse = TrnDeleteResponse(trnService.delete(trnId))
 
     @GetMapping(
         value = ["/{portfolioId}/asset/{assetId}/events"],

@@ -4,6 +4,7 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
+import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.PortfolioInput
@@ -270,7 +271,7 @@ class TrnControllerFlowTest(
             deleteTransaction(
                 id,
                 token
-            ).data.iterator().next().id
+            ).data.iterator().next()
         ).isEqualTo(id)
 
         // Delete all remaining transactions for the Portfolio
@@ -292,7 +293,7 @@ class TrnControllerFlowTest(
     private fun deleteTransaction(
         id: String,
         token: Jwt
-    ): TrnResponse =
+    ): TrnDeleteResponse =
         objectMapper.readValue(
             mockMvc
                 .perform(
@@ -305,7 +306,7 @@ class TrnControllerFlowTest(
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
                 .response.contentAsByteArray,
-            TrnResponse::class.java
+            TrnDeleteResponse::class.java
         )
 
     private fun findSortedByAssetAndTradeDate(portfolio: Portfolio): MvcResult =

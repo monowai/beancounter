@@ -154,23 +154,17 @@ class TrnService(
         )
     }
 
-    fun delete(trnId: String): Collection<Trn> {
-        val result = trnRepository.findById(trnId)
-        if (result.isEmpty) {
-            throw BusinessException(
-                String.format(
-                    "Transaction not found %s",
-                    trnId
-                )
-            )
+    fun delete(trnId: String): Collection<String> {
+        val result =
+            trnRepository.findById(trnId).orElseThrow {
+                BusinessException("Transaction not found $trnId")
+            }
+        val deleted = mutableListOf<Trn>()
+        if (portfolioService.canView(result.portfolio)) {
+            trnRepository.delete(result)
+            deleted.add(result)
         }
-        val trn = result.get()
-        val deleted: MutableCollection<Trn> = ArrayList()
-        if (portfolioService.canView(result.get().portfolio)) {
-            trnRepository.delete(trn)
-            deleted.add(trn)
-        }
-        return deleted
+        return deleted.map { it.id }
     }
 
     fun patch(

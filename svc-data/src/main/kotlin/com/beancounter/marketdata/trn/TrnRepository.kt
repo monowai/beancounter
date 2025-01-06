@@ -39,7 +39,7 @@ interface TrnRepository : CrudRepository<Trn, String> {
     fun findByPortfolioIdAndAssetIdAndTrnType(
         portfolioId: String,
         assetId: String,
-        trnType: ArrayList<TrnType>,
+        trnType: List<TrnType>,
         sort: Sort
     ): Collection<Trn>
 

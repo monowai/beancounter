@@ -94,7 +94,7 @@ class TrnQueryService(
     private fun trnResponse(
         portfolio: Portfolio,
         assetId: String,
-        typeFilter: ArrayList<TrnType>
+        typeFilter: List<TrnType>
     ): Collection<Trn> {
         val results =
             trnRepository

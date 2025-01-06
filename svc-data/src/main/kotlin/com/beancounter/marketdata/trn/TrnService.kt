@@ -29,18 +29,15 @@ class TrnService(
     private val assetService: AssetService,
     private val systemUserService: SystemUserService
 ) {
-    fun getPortfolioTrn(
-        // portfolio: Portfolio,
-        trnId: String
-    ): Collection<Trn> {
+    fun getPortfolioTrn(trnId: String): Collection<Trn> {
         val trn =
             trnRepository.findById(
                 trnId
             )
-        val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
-        if (result.isEmpty) {
+        if (trn.isEmpty) {
             throw BusinessException("Trn $trnId not found")
         }
+        val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         return result.get()
     }
 
@@ -104,6 +101,7 @@ class TrnService(
     }
 
     private fun postProcess(trns: List<Trn>): List<Trn> {
+        log.debug("PostProcess ${trns.size} transactions")
         val assets =
             trns
                 .flatMap {
@@ -112,7 +110,7 @@ class TrnService(
                         assetService.hydrate(it.cashAsset)
                     )
                 }.associateBy { it.id }
-
+        log.debug("PostProcess ${assets.size} assets")
         for (trn in trns) {
             trn.asset = assets[trn.asset.id]!!
             trn.cashAsset = trn.cashAsset?.let { assets[it.id] }
@@ -121,6 +119,7 @@ class TrnService(
                 trnRepository.save(upgraded)
             }
         }
+        log.debug("PostProcess complete")
         return trns
     }
 
@@ -171,7 +170,7 @@ class TrnService(
             trnRepository.delete(trn)
             deleted.add(trn)
         }
-        return postProcess(deleted)
+        return deleted
     }
 
     fun patch(

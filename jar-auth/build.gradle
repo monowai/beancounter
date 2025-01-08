@@ -9,7 +9,7 @@ dependencies {
             platform(libs.spring.boot.dependencies),
             platform(libs.spring.cloud.dependencies),
             project(":jar-common"),
-            "jakarta.servlet:jakarta.servlet-api:6.0.0",
+            "jakarta.servlet:jakarta.servlet-api:6.1.0",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
             "org.springframework:spring-webmvc",

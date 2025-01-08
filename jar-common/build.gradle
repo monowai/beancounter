@@ -14,7 +14,7 @@ dependencies {
     implementation(
             "org.jetbrains.kotlin:kotlin-reflect",
             platform(libs.spring.boot.dependencies),
-            platform("io.opentelemetry:opentelemetry-bom:1.43.0"),
+            platform("io.opentelemetry:opentelemetry-bom:1.45.0"),
             "io.opentelemetry:opentelemetry-sdk",
             "jakarta.servlet:jakarta.servlet-api:6.0.0",
             "com.fasterxml.jackson.core:jackson-databind",

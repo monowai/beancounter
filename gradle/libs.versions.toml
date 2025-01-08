@@ -14,11 +14,13 @@ mockitoKotlin = '5.4.0'
 sentry = "7.20.0"
 postgres = "42.7.4"
 guava = "33.4.0-jre"
+servlet-api = "6.1.0"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
 spring-stub-runner = { module = "org.springframework.cloud:spring-cloud-contract-stub-runner", version.ref = "spring-cloud-contract" }
+servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "servlet-api" }
 apache-groovy = { module = "org.apache.groovy:groovy", version = "4.0.24" } # stub runner importing older version
 otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.6.0" }
 resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.1.0" }

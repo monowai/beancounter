@@ -25,13 +25,13 @@ class PriceRefresh(
     @Transactional(readOnly = true)
     fun updatePrices(): Int {
         log.info(
-            "Updating Prices {}",
+            "Updating All Prices {}",
             dateUtils.getFormattedDate().toString()
         )
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
-        try {
-            for (asset in assets) {
+        assets.use { assetStream ->
+            for (asset in assetStream) {
                 val priceRequest =
                     PriceRequest.of(
                         assetHydrationService.hydrateAsset(asset),
@@ -46,8 +46,6 @@ class PriceRefresh(
                 LocalDateTime.now(dateUtils.zoneId),
                 dateUtils.zoneId.id
             )
-        } finally {
-            assets.close()
         }
         return assetCount.get()
     }
@@ -57,8 +55,9 @@ class PriceRefresh(
         date: String = dateUtils.getFormattedDate().toString()
     ): PriceResponse {
         log.info(
-            "Updating Prices {}",
-            LocalDateTime.now(dateUtils.zoneId)
+            "Updating Prices {} for {}",
+            LocalDateTime.now(dateUtils.zoneId),
+            assetId
         )
         val asset = assetService.find(assetId)
         val priceRequest =

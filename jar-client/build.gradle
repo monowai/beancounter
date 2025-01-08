@@ -14,7 +14,7 @@ dependencies {
             platform(libs.spring.cloud.dependencies),
             project(":jar-common"),
             project(":jar-auth"),
-            'com.google.guava:guava:33.0.0-jre',
+            'com.google.guava:guava:33.4.0-jre',
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
             "org.springframework.security:spring-security-oauth2-resource-server",

@@ -1,22 +1,22 @@
 version: 2
 updates:
-- package-ecosystem: gradle
-  directory: "/"
-  schedule:
-    interval: "daily"
-    time: "21:00"
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: com.google.apis:google-api-services-sheets
-    versions:
-    - v4-rev20201130-1.31.0
-    - v4-rev20210223-1.31.0
-    - v4-rev20210309-1.31.0
-    - v4-rev20210316-1.31.0
-  - dependency-name: com.google.api-client:google-api-client
-    versions:
-    - 1.31.2
-    - 1.31.3
-  - dependency-name: com.google.oauth-client:google-oauth-client-jetty
-    versions:
-    - 1.31.4
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "21:00"
+    open-pull-requests-limit: 15
+    ignore:
+      - dependency-name: com.google.apis:google-api-services-sheets
+        versions:
+          - v4-rev20201130-1.31.0
+          - v4-rev20210223-1.31.0
+          - v4-rev20210309-1.31.0
+          - v4-rev20210316-1.31.0
+      - dependency-name: com.google.api-client:google-api-client
+        versions:
+          - 1.31.2
+          - 1.31.3
+      - dependency-name: com.google.oauth-client:google-oauth-client-jetty
+        versions:
+          - 1.31.4

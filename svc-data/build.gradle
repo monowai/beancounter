@@ -51,7 +51,7 @@ dependencies {
             "com.h2database:h2", // Dev
             libs.postgresql,
             "org.springframework.kafka:spring-kafka",
-            "com.opencsv:opencsv:5.7.1"
+            "com.opencsv:opencsv:5.9"
     )
     compileOnly("org.springframework.boot:spring-boot-configuration-processor")
     contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")

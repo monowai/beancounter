@@ -69,7 +69,8 @@ class Accumulator(
         )
         position.dateValues.last = trn.tradeDate
 
-        if (isCash(trn)) {
+        // Is cash impacted by this transaction opposed to being a "cash" transaction
+        if (impactCash(trn)) {
             accumulateCash(
                 trn,
                 positions
@@ -86,7 +87,7 @@ class Accumulator(
      * @param trn The transaction to evaluate.
      * @return True if cash should be accumulated, false otherwise.
      */
-    private fun isCash(trn: Trn): Boolean =
+    private fun impactCash(trn: Trn): Boolean =
         trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType) && trn.trnType !in cashSet
 
     /**

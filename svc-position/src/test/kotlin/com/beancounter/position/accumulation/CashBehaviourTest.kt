@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
+import java.math.BigDecimal.ONE
 
 /**
  * Verifies the expected behaviour of a Cash position for supported transaction types.
@@ -81,8 +82,8 @@ internal class CashBehaviourTest {
             Trn(
                 trnType = TrnType.SELL,
                 asset = asset,
-                quantity = BigDecimal.ONE,
-                tradeAmount = BigDecimal.ONE,
+                quantity = ONE,
+                tradeAmount = ONE,
                 cashAsset = usdCashBalance,
                 cashCurrency = USD,
                 // Cash is signed
@@ -177,8 +178,8 @@ internal class CashBehaviourTest {
             Trn(
                 trnType = TrnType.BUY,
                 asset = asset,
-                quantity = BigDecimal.ONE,
-                tradeAmount = BigDecimal.ONE,
+                quantity = ONE,
+                tradeAmount = ONE,
                 cashAsset = usdCashBalance,
                 cashCurrency = USD,
                 cashAmount = cashAmount,

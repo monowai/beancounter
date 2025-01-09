@@ -1,11 +1,18 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Market
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
+import com.beancounter.position.Constants.Companion.CASH
 import com.beancounter.position.Constants.Companion.NZD
+import com.beancounter.position.Constants.Companion.SGD
+import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.nzdCashBalance
 import com.beancounter.position.Constants.Companion.usdCashBalance
 import org.assertj.core.api.Assertions.assertThat
@@ -13,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
+import java.math.BigDecimal.ONE
 
 /**
  * Buy the trade asset, sell the cash asset.
@@ -83,5 +91,61 @@ class FxBuyBehaviourTest {
                 "marketValue",
                 BigDecimal.ZERO
             ) // Not yet valued
+    }
+
+    @Test
+    fun `sgd Cash Balance after USD FX Buy`() {
+        val sgdCashAsset =
+            Asset(
+                code = "${SGD.code} ${TrnType.BALANCE}",
+                id = "${SGD.code} ${TrnType.BALANCE}",
+                name = "${SGD.code} Balance",
+                market = Market(CASH.code),
+                priceSymbol = SGD.code,
+                category = CASH.code
+            )
+        assertThat(sgdCashAsset).isNotNull
+        val sgPortfolio = Portfolio(id = "blah", code = "sgdThing", base = NZD, currency = USD)
+        val sgdCash = BigDecimal("8756.00")
+        val deposit =
+            Trn(
+                callerRef = CallerRef(),
+                asset = sgdCashAsset,
+                cashAsset = sgdCashAsset,
+                portfolio = sgPortfolio,
+                cashCurrency = SGD,
+                tradeCurrency = SGD,
+                tradeCashRate = BigDecimal("1.2677"),
+                tradeBaseRate = BigDecimal("1.2677"),
+                tradePortfolioRate = BigDecimal("0.7427"),
+                quantity = sgdCash,
+                cashAmount = sgdCash,
+                price = ONE,
+                trnType = TrnType.DEPOSIT
+            )
+        val fxBuy =
+            Trn(
+                callerRef = CallerRef(),
+                asset = usdCashBalance,
+                trnType = TrnType.FX_BUY,
+                cashAsset = sgdCashAsset,
+                portfolio = sgPortfolio,
+                cashCurrency = sgdCashAsset.market.currency,
+                tradeCurrency = usdCashBalance.market.currency,
+                quantity = BigDecimal("5822.00"),
+                cashAmount = BigDecimal("-8000.00")
+            )
+        val positions = Positions(sgPortfolio)
+        val sgdDeposit =
+            accumulator.accumulate(
+                deposit,
+                positions
+            )
+        accumulator.accumulate(
+            fxBuy,
+            positions
+        )
+        assertThat(sgdDeposit).isNotNull
+        // ToDo, figure out cost of cash
     }
 }

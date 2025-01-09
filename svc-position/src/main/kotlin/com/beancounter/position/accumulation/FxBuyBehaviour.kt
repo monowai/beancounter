@@ -91,29 +91,29 @@ class FxBuyBehaviour(
             trn.cashAmount,
             BigDecimal.ONE
         )
-        // ToDo: Fix rates
-
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.BASE,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            trn.tradeBaseRate
-        )
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.PORTFOLIO,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            trn.tradePortfolioRate
-        )
+        // // ToDo: Fix rates
+        //
+        // cashCost.value(
+        //     currencyResolver.getMoneyValues(
+        //         Position.In.BASE,
+        //         trn.cashCurrency!!,
+        //         trn.portfolio,
+        //         counterPosition
+        //     ),
+        //     counterPosition,
+        //     trn.cashAmount,
+        //     trn.tradeBaseRate
+        // )
+        // cashCost.value(
+        //     currencyResolver.getMoneyValues(
+        //         Position.In.PORTFOLIO,
+        //         trn.cashCurrency!!,
+        //         trn.portfolio,
+        //         counterPosition
+        //     ),
+        //     counterPosition,
+        //     trn.cashAmount,
+        //     trn.tradePortfolioRate
+        // )
     }
 }

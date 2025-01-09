@@ -28,6 +28,7 @@ import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
@@ -65,16 +66,19 @@ class CashTrnTests {
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired
+    private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
     private val fiveK = BigDecimal("5000.00")
     private val propTradeAmount = "tradeAmount"
     private val propCashAmount = "cashAmount"
 
-    @Autowired
-    fun setupObjects(
-        mockAuthConfig: MockAuthConfig,
-        mockMvc: MockMvc
-    ) {
+    @BeforeEach
+    fun setupObjects() {
         assertThat(fxTransactions).isNotNull
         bcMvcHelper =
             BcMvcHelper(

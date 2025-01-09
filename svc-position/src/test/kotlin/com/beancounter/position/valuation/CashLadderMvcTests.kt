@@ -133,17 +133,18 @@ internal class CashLadderMvcTests {
                 BigDecimal(cashResult)
             )
 
-        assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.quantityValues)
+        val nzdCashPosition = positionResponse.data.positions[toKey(nzdCash)]!!
+        assertThat(nzdCashPosition.quantityValues)
             .hasFieldOrPropertyWithValue(
                 "total",
                 BigDecimal("3507.46")
             )
 
         // Cash does not track purchases and sales totals.
-        assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
+        assertThat(nzdCashPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_COST_VALUE,
-                BigDecimal("3507.46")
+                BigDecimal("8507.46") // 5k, plus the 3507.46
             ) // Purchases - Sales
     }
 }

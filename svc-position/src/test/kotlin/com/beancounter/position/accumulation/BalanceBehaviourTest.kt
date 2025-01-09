@@ -28,7 +28,7 @@ class BalanceBehaviourTest {
     private lateinit var accumulator: Accumulator
 
     @Test
-    fun is_CashAccumulated() {
+    fun `cash Balance with no FX`() {
         val portfolio =
             Portfolio(
                 Constants.TEST,
@@ -39,11 +39,11 @@ class BalanceBehaviourTest {
             Trn(
                 trnType = TrnType.BALANCE,
                 asset = Constants.nzdCashBalance,
-                quantity = BigDecimal("-10000.00"),
+                quantity = BigDecimal("10000.00"),
                 cashCurrency = NZD,
                 tradeCashRate = BigDecimal.ONE,
                 tradeBaseRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal("0.56"),
+                tradePortfolioRate = BigDecimal.ONE,
                 portfolio = portfolio
             )
         val positions = Positions(portfolio)
@@ -52,7 +52,7 @@ class BalanceBehaviourTest {
                 trn,
                 positions
             )
-        val usCost = BigDecimal("-5600.00")
+
         assertThat(
             position.getMoneyValues(Position.In.PORTFOLIO)
         ).hasFieldOrPropertyWithValue(
@@ -63,13 +63,13 @@ class BalanceBehaviourTest {
             trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            usCost
-        ).hasFieldOrPropertyWithValue(
-            PROP_AVERAGE_COST,
             trn.quantity
         ).hasFieldOrPropertyWithValue(
+            PROP_AVERAGE_COST,
+            BigDecimal.ONE
+        ).hasFieldOrPropertyWithValue(
             PROP_SALES,
-            usCost
+            BigDecimal.ZERO
         )
 
         assertThat(
@@ -85,7 +85,7 @@ class BalanceBehaviourTest {
             trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
-            trn.quantity
+            BigDecimal.ZERO
         )
     }
 }

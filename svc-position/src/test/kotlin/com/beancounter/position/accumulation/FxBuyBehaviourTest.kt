@@ -147,6 +147,10 @@ class FxBuyBehaviourTest {
             positions
         )
         assertThat(sgdDeposit).isNotNull
-        // ToDo, figure out cost of cash
+        val moneyValues = sgdDeposit.moneyValues
+        assertThat(moneyValues).hasSize(3)
+        assertThat(moneyValues[Position.In.TRADE]?.currency).isEqualTo(SGD)
+        assertThat(moneyValues[Position.In.PORTFOLIO]?.currency).isEqualTo(USD)
+        assertThat(moneyValues[Position.In.BASE]?.currency).isEqualTo(NZD)
     }
 }

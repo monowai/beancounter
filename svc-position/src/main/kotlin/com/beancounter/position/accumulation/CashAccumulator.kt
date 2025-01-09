@@ -38,7 +38,7 @@ class CashAccumulator(
             ),
             cashPosition,
             quantity,
-            BigDecimal.ZERO
+            BigDecimal.ONE
         ) // Cash trade currency
         cashCost.value(
             currencyResolver.getMoneyValues(

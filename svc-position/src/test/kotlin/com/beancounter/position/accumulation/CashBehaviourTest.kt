@@ -57,10 +57,10 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            ZERO // trn.quantity?
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            ZERO // trn.quantity?
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
             trn.quantity
@@ -116,10 +116,10 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            ZERO // trn.cashAmount?
+            trn.cashAmount.abs()
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            ZERO // trn.cashAmount?
+            trn.cashAmount.abs()
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
             trn.cashAmount
@@ -146,10 +146,10 @@ internal class CashBehaviourTest {
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(
                 PROP_SOLD,
-                cashAmount
+                trn.quantity
             ).hasFieldOrPropertyWithValue(
                 PROP_TOTAL,
-                cashAmount
+                trn.quantity
             )
         assertThat(
             position.getMoneyValues(
@@ -158,10 +158,10 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            ZERO // trn.quantity?
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            ZERO // trn.quantity?
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             "sales",
             trn.quantity
@@ -213,10 +213,10 @@ internal class CashBehaviourTest {
             ZERO
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            ZERO // cashAmount
+            cashAmount
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            ZERO // cashAmount
+            cashAmount
         )
     }
 }

@@ -87,7 +87,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ZERO // One??
+                usdBalance
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 USD
@@ -95,7 +95,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ZERO // rate?
+                usdBalance
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.currency
@@ -103,7 +103,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ZERO // rate?
+                usdBalance
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.base
@@ -157,7 +157,7 @@ class CashValuationTests {
         assertThat(equityPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ONE
+                usdBalance.setScale(0)
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 USD
@@ -165,7 +165,7 @@ class CashValuationTests {
         assertThat(equityPosition.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ONE // expectedRate?
+                usdBalance.setScale(0)
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.currency
@@ -173,7 +173,7 @@ class CashValuationTests {
         assertThat(equityPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ONE // expectedRate
+                usdBalance.setScale(0)
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.base

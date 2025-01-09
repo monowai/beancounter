@@ -24,7 +24,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.math.BigDecimal
-import java.math.BigDecimal.ZERO
 
 private const val PROP_COST_VALUE = "costValue"
 
@@ -131,7 +130,7 @@ internal class CashLadderMvcTests {
                 BigDecimal(cashResult)
             ).hasFieldOrPropertyWithValue(
                 PROP_COST_VALUE,
-                ZERO // BigDecimal(cashResult) ?
+                BigDecimal(cashResult)
             )
 
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.quantityValues)
@@ -144,7 +143,7 @@ internal class CashLadderMvcTests {
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_COST_VALUE,
-                ZERO // BigDecimal("8507.46") // ToDo: 3507.46??
+                BigDecimal("3507.46")
             ) // Purchases - Sales
     }
 }

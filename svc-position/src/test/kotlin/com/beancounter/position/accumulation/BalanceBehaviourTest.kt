@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
-import java.math.BigDecimal.ZERO
 
 /**
  * Verify behaviour around balance behaviour assumptions.
@@ -61,13 +60,13 @@ class BalanceBehaviourTest {
             USD
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            ZERO // usCost?
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            ZERO // usCost ?
+            usCost
         ).hasFieldOrPropertyWithValue(
             PROP_AVERAGE_COST,
-            ZERO // trn.tradePortfolioRate
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
             usCost
@@ -80,10 +79,10 @@ class BalanceBehaviourTest {
             NZD
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            ZERO // trn.quantity ?
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            ZERO // trn.quantity?
+            trn.quantity
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
             trn.quantity

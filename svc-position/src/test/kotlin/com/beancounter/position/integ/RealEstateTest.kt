@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
-import java.math.BigDecimal.ZERO
 
 /**
  * Verify assumptions around how Real estate transactions behave.
@@ -79,7 +78,7 @@ class RealEstateTest {
                     .describedAs("Cost basis for ${position.key} should be correct")
                     .hasFieldOrPropertyWithValue(
                         PROP_COST_BASIS,
-                        ZERO // expectedCostValue
+                        expectedCost
                     )
             }
         }

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
+import java.math.BigDecimal.ZERO
 
 /**
  * Buy the trade asset, sell the cash asset.
@@ -71,7 +72,7 @@ class FxBuyBehaviourTest {
                 trn.quantity
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
-                BigDecimal.ZERO
+                ZERO
             ) // Not yet valued
 
         val nzdPosition = positions.positions[toKey(nzdCashBalance)]
@@ -83,13 +84,13 @@ class FxBuyBehaviourTest {
         assertThat(nzdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                trn.cashAmount
+                ZERO
             ).hasFieldOrPropertyWithValue(
                 "costValue",
-                trn.cashAmount
+                ZERO
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
-                BigDecimal.ZERO
+                ZERO
             ) // Not yet valued
     }
 

@@ -80,17 +80,17 @@ class FxBuyBehaviour(
     ) {
         counterPosition.quantityValues.sold =
             counterPosition.quantityValues.sold.add(trn.cashAmount)
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.TRADE,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            BigDecimal.ONE
-        )
+        // cashCost.value(
+        //     currencyResolver.getMoneyValues(
+        //         Position.In.TRADE,
+        //         trn.cashCurrency!!,
+        //         trn.portfolio,
+        //         counterPosition
+        //     ),
+        //     counterPosition,
+        //     trn.cashAmount,
+        //     BigDecimal.ONE
+        // )
         // // ToDo: Fix rates
         //
         // cashCost.value(

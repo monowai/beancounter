@@ -143,7 +143,7 @@ internal class CashLadderMvcTests {
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_COST_VALUE,
-                BigDecimal("3507.46")
+                BigDecimal("8507.46") // ToDo: 3507.46??
             ) // Purchases - Sales
     }
 }

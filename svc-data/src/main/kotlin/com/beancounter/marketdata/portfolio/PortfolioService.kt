@@ -9,6 +9,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -19,6 +20,7 @@ import java.util.function.Consumer
  * Server side portfolio activities.
  */
 @Service
+@Transactional
 class PortfolioService(
     private val portfolioInputAdapter: PortfolioInputAdapter,
     private val portfolioRepository: PortfolioRepository,

@@ -7,6 +7,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.providers.cash.CashProviderService
+import jakarta.transaction.Transactional
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,6 +42,7 @@ class MarketDataService(
      * @param priceRequest to process
      * @return results
      */
+    @Transactional
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
         val byProviders = providerUtils.splitProviders(priceRequest.assets)
         val foundInDb: MutableList<MarketData> = mutableListOf()

@@ -58,7 +58,7 @@ class BalanceBehaviour(
             ),
             position,
             trn.tradeAmount,
-            BigDecimal.ONE
+            BigDecimal.ZERO
         ) // Trade to Cash Settlement ?
         return position
     }

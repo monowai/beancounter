@@ -36,7 +36,7 @@ class FxBuyBehaviour(
             ),
             position,
             trn.quantity,
-            BigDecimal.ONE
+            BigDecimal.ZERO
         )
         cashCost.value(
             currencyResolver.getMoneyValues(

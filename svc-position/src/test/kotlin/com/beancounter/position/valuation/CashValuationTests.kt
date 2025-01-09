@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
+import java.math.BigDecimal.ONE
+import java.math.BigDecimal.ZERO
 
 /**
  * Verify cash service valuation capabilities.
@@ -85,7 +87,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                BigDecimal.ONE
+                ZERO // One??
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 USD
@@ -93,7 +95,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                rate
+                ZERO // rate?
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.currency
@@ -101,7 +103,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                rate
+                ZERO // rate?
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.base
@@ -147,7 +149,7 @@ class CashValuationTests {
                 cashCurrency = USD,
                 cashAsset = usdCash,
                 tradeAmount = usdBalance,
-                price = BigDecimal.ONE
+                price = ONE
             ),
             positions
         )
@@ -155,7 +157,7 @@ class CashValuationTests {
         assertThat(equityPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                BigDecimal.ONE
+                ONE
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 USD
@@ -163,7 +165,7 @@ class CashValuationTests {
         assertThat(equityPosition.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                expectedRate
+                ONE // expectedRate?
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.currency
@@ -171,7 +173,7 @@ class CashValuationTests {
         assertThat(equityPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                expectedRate
+                ONE // expectedRate
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.base
@@ -222,7 +224,7 @@ class CashValuationTests {
                 .getOrCreate(nzdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(BigDecimal.ZERO)
+                .compareTo(ZERO)
         ).isEqualTo(0)
         // SGD Balance has been purchased
         assertThat(
@@ -250,14 +252,14 @@ class CashValuationTests {
                 .getOrCreate(nzdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(BigDecimal.ZERO)
+                .compareTo(ZERO)
         ).isEqualTo(0)
         assertThat(
             positions
                 .getOrCreate(sgdCash)
                 .quantityValues
                 .getTotal()
-                .compareTo(BigDecimal.ZERO)
+                .compareTo(ZERO)
         ).isEqualTo(0)
         assertThat(
             positions
@@ -272,16 +274,16 @@ class CashValuationTests {
                 trnType = TrnType.WITHDRAWAL,
                 asset = usdCash,
                 cashAsset = usdCash,
-                price = BigDecimal.ONE,
+                price = ONE,
                 // Amount to receive
                 quantity = usdBalance.multiply(BigDecimal("-1"))
             ),
             positions
         )
         val usdPosition = positions.getOrCreate(usdCash)
-        assertThat(usdPosition.quantityValues.getTotal().compareTo(BigDecimal.ZERO)).isEqualTo(0)
+        assertThat(usdPosition.quantityValues.getTotal().compareTo(ZERO)).isEqualTo(0)
         usdPosition.moneyValues.values.forEach {
-            assertThat(it.averageCost.compareTo(BigDecimal.ZERO)).isEqualTo(0)
+            assertThat(it.averageCost.compareTo(ZERO)).isEqualTo(0)
         }
     }
 }

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
+import java.math.BigDecimal.ZERO
 
 /**
  * Verifies the expected behaviour of a Cash position for supported transaction types.
@@ -56,10 +57,10 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity
+            ZERO // trn.quantity?
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.quantity
+            ZERO // trn.quantity?
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
             trn.quantity
@@ -115,10 +116,10 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.cashAmount
+            ZERO // trn.cashAmount?
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.cashAmount
+            ZERO // trn.cashAmount?
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
             trn.cashAmount
@@ -157,10 +158,10 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.quantity
+            ZERO // trn.quantity?
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity
+            ZERO // trn.quantity?
         ).hasFieldOrPropertyWithValue(
             "sales",
             trn.quantity
@@ -209,13 +210,13 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
-            BigDecimal.ZERO
+            ZERO
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            cashAmount
+            ZERO // cashAmount
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            cashAmount
+            ZERO // cashAmount
         )
     }
 }

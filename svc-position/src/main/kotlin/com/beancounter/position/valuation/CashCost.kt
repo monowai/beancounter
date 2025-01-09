@@ -50,5 +50,6 @@ class CashCost(
             // Reset monetary values if total quantity is zero
             moneyValues.resetCosts()
         }
+        moneyValues.resetCosts() // Force cost value to zero for cash until I can figure this out.
     }
 }

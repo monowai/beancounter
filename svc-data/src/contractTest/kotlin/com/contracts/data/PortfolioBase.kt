@@ -13,7 +13,7 @@ import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.junit.jupiter.api.BeforeEach
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.domain.Sort
@@ -77,16 +77,14 @@ class PortfolioBase : ContractVerifierBase() {
             portfolioRepository: PortfolioRepository
         ) {
             // For the sake of convenience when testing; id and code are the same
-            Mockito
-                .`when`(portfolioRepository.findById(portfolio.id))
+            `when`(portfolioRepository.findById(portfolio.id))
                 .thenReturn(Optional.of(portfolio))
-            Mockito
-                .`when`(
-                    portfolioRepository.findByCodeAndOwner(
-                        portfolio.code,
-                        systemUser
-                    )
-                ).thenReturn(Optional.of(portfolio))
+            `when`(
+                portfolioRepository.findByCodeAndOwner(
+                    portfolio.code,
+                    systemUser
+                )
+            ).thenReturn(Optional.of(portfolio))
         }
 
         @JvmStatic
@@ -114,53 +112,38 @@ class PortfolioBase : ContractVerifierBase() {
             val portfolioCode = "TEST"
 
             // All Portfolio
-            Mockito
-                .`when`(
-                    portfolioRepository.findByOwner(
-                        systemUser,
-                        Sort.by(Sort.Order.asc("code"))
-                    )
-                ).thenReturn(
-                    objectMapper
-                        .readValue(
-                            ClassPathResource("contracts/portfolio/portfolios.json").file,
-                            PortfoliosResponse::class.java
-                        ).data
+            `when`(
+                portfolioRepository.findByOwner(
+                    systemUser,
+                    Sort.by(Sort.Order.asc("code"))
                 )
-            Mockito
-                .`when`(
-                    portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
-                        "KMI",
-                        dateUtils.getDate("2020-05-01")
-                    )
-                ).thenReturn(
-                    arrayListOf(
-                        Portfolio(
-                            id = portfolioCode,
-                            code = portfolioCode,
-                            name = "${Constants.NZD.code} Portfolio",
-                            currency = Constants.NZD,
-                            base = Constants.USD,
-                            owner = systemUser
-                        )
+            ).thenReturn(
+                objectMapper
+                    .readValue(
+                        ClassPathResource("contracts/portfolio/portfolios.json").file,
+                        PortfoliosResponse::class.java
+                    ).data
+            )
+            `when`(
+                portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
+                    "KMI",
+                    dateUtils.getDate("2020-05-01")
+                )
+            ).thenReturn(
+                arrayListOf(
+                    Portfolio(
+                        id = portfolioCode,
+                        code = portfolioCode,
+                        name = "${Constants.NZD.code} Portfolio",
+                        currency = Constants.NZD,
+                        base = Constants.USD,
+                        owner = systemUser
                     )
                 )
-            Mockito.`when`(keyGenUtils.id).thenReturn(portfolioCode)
-            Mockito
-                .`when`(
-                    portfolioRepository.saveAll(
-                        arrayListOf(
-                            Portfolio(
-                                id = portfolioCode,
-                                code = Constants.SGD.code,
-                                name = "${Constants.SGD.code} Balanced",
-                                currency = Constants.SGD,
-                                base = Constants.USD,
-                                owner = systemUser
-                            )
-                        )
-                    )
-                ).thenReturn(
+            )
+            `when`(keyGenUtils.id).thenReturn(portfolioCode)
+            `when`(
+                portfolioRepository.saveAll(
                     arrayListOf(
                         Portfolio(
                             id = portfolioCode,
@@ -172,6 +155,18 @@ class PortfolioBase : ContractVerifierBase() {
                         )
                     )
                 )
+            ).thenReturn(
+                arrayListOf(
+                    Portfolio(
+                        id = portfolioCode,
+                        code = Constants.SGD.code,
+                        name = "${Constants.SGD.code} Balanced",
+                        currency = Constants.SGD,
+                        base = Constants.USD,
+                        owner = systemUser
+                    )
+                )
+            )
         }
     }
 
@@ -181,7 +176,7 @@ class PortfolioBase : ContractVerifierBase() {
             ContractHelper(authUtilService).defaultUser(
                 systemUserService = systemUserService
             )
-        Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
+        `when`(systemUserService.getOrThrow()).thenReturn(systemUser)
         portfolios(
             systemUser,
             keyGenUtils,

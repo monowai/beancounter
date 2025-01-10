@@ -2,12 +2,14 @@ package com.beancounter.marketdata.assets
 
 import com.beancounter.common.model.Asset
 import com.beancounter.marketdata.markets.MarketService
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
 /**
  * Enrich the persistent asset object with objects managed via configuration properties.
  */
 @Service
+@Transactional
 class AssetHydrationService(
     val marketService: MarketService,
     val assetCategoryConfig: AssetCategoryConfig

@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.portfolio.PortfolioService
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -14,7 +15,8 @@ import java.time.LocalDate
 @Service
 class TrnQueryService(
     val trnService: TrnService,
-    val trnRepository: TrnRepository
+    val trnRepository: TrnRepository,
+    val portfolioService: PortfolioService
 ) {
     /**
      * Trades in a portfolio for the specified asset.
@@ -61,6 +63,15 @@ class TrnQueryService(
         )
 
     fun findAssetTrades(
+        portfolioId: String,
+        assetId: String
+    ): Collection<Trn> =
+        findAssetTrades(
+            portfolioService.find(portfolioId),
+            assetId
+        )
+
+    fun findAssetTrades(
         portfolio: Portfolio,
         assetId: String
     ): Collection<Trn> =
@@ -68,6 +79,15 @@ class TrnQueryService(
             portfolio,
             assetId,
             typeFilter
+        )
+
+    fun findEvents(
+        portfolioId: String,
+        assetId: String
+    ): Collection<Trn> =
+        findEvents(
+            portfolioService.find(portfolioId),
+            assetId
         )
 
     /**

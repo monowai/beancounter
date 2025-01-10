@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.event.EventProducer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -28,6 +29,7 @@ class PriceServiceTest {
     private lateinit var marketDataRepo: MarketDataRepo
     private lateinit var cashUtils: CashUtils
     private lateinit var eventProducer: EventProducer
+    private val assetService = mock(AssetService::class.java)
     private val asset = Asset(code = "1", market = NASDAQ)
 
     @BeforeEach
@@ -35,8 +37,9 @@ class PriceServiceTest {
         marketDataRepo = mock(MarketDataRepo::class.java)
         cashUtils = mock(CashUtils::class.java)
         eventProducer = mock(EventProducer::class.java)
-        priceService = PriceService(marketDataRepo, cashUtils)
+        priceService = PriceService(marketDataRepo, cashUtils, assetService)
         priceService.setEventWriter(eventProducer)
+        `when`(assetService.find(asset.id)).thenReturn(asset)
     }
 
     @Test
@@ -46,7 +49,7 @@ class PriceServiceTest {
 
         `when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)).thenReturn(Optional.of(marketData))
 
-        val result = priceService.getMarketData(asset, date)
+        val result = priceService.getMarketData(asset.id, date)
 
         assertTrue(result.isPresent)
         assertEquals(marketData, result.get())
@@ -58,7 +61,7 @@ class PriceServiceTest {
 
         `when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)).thenReturn(Optional.empty())
 
-        val result = priceService.getMarketData(asset, date)
+        val result = priceService.getMarketData(asset.id, date)
 
         assertFalse(result.isPresent)
     }

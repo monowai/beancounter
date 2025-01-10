@@ -6,6 +6,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.CashUtils
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import jakarta.transaction.Transactional
@@ -21,7 +22,8 @@ import java.util.Optional
 @Service
 class PriceService(
     private val marketDataRepo: MarketDataRepo,
-    private val cashUtils: CashUtils
+    private val cashUtils: CashUtils,
+    private val assetService: AssetService
 ) {
     private var eventProducer: EventProducer? = null
 
@@ -32,10 +34,11 @@ class PriceService(
 
     @Transactional
     fun getMarketData(
-        asset: Asset,
+        assetId: String,
         date: LocalDate,
         closePrice: BigDecimal = BigDecimal.ZERO
     ): Optional<MarketData> {
+        val asset = assetService.find(assetId)
         val response =
             marketDataRepo.findByAssetIdAndPriceDate(
                 asset.id,
@@ -80,7 +83,7 @@ class PriceService(
                 .filter { !cashUtils.isCash(it.asset) && it.close != BigDecimal.ZERO }
                 .filter {
                     getMarketData(
-                        it.asset,
+                        it.asset.id,
                         it.priceDate
                     ).isEmpty
                 }

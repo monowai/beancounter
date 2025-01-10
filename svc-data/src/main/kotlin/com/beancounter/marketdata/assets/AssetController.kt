@@ -6,7 +6,6 @@ import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.providers.PriceRefresh
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -68,13 +66,4 @@ class AssetController(
     fun update(
         @RequestBody assetRequest: AssetRequest
     ): AssetUpdateResponse = assetService.handle(assetRequest)
-
-    @PostMapping(
-        value = ["/{assetId}/events"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    fun backFill(
-        @PathVariable assetId: String
-    ) = assetService.backFill(assetId)
 }

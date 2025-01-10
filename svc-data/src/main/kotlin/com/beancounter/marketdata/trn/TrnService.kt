@@ -43,6 +43,17 @@ class TrnService(
     }
 
     fun save(
+        portfolioId: String,
+        trnRequest: TrnRequest
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        return save(
+            portfolio,
+            trnRequest
+        )
+    }
+
+    fun save(
         portfolio: Portfolio,
         trnRequest: TrnRequest
     ): Collection<Trn> {
@@ -73,6 +84,14 @@ class TrnService(
     }
 
     fun findForPortfolio(
+        portfolioId: String,
+        tradeDate: LocalDate
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        return findForPortfolio(portfolio, tradeDate)
+    }
+
+    fun findForPortfolio(
         portfolio: Portfolio,
         tradeDate: LocalDate
     ): Collection<Trn> {
@@ -84,6 +103,11 @@ class TrnService(
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
+    }
+
+    fun purge(portfolioId: String): Long {
+        val portfolio = portfolioService.find(portfolioId)
+        return purge(portfolio)
     }
 
     /**
@@ -110,7 +134,7 @@ class TrnService(
                         assetService.hydrate(it.cashAsset)
                     )
                 }.associateBy { it.id }
-        log.debug("PostProcess ${assets.size} assets")
+        log.trace("PostProcess ${assets.size} assets")
         for (trn in trns) {
             trn.asset = assets[trn.asset.id]!!
             trn.cashAsset = trn.cashAsset?.let { assets[it.id] }
@@ -119,7 +143,7 @@ class TrnService(
                 trnRepository.save(upgraded)
             }
         }
-        log.debug("PostProcess complete")
+        log.trace("Completed postProcess trns: ${trns.size}")
         return trns
     }
 
@@ -165,6 +189,19 @@ class TrnService(
             deleted.add(result)
         }
         return deleted.map { it.id }
+    }
+
+    fun patch(
+        portfolioId: String,
+        trnId: String,
+        trnInput: TrnInput
+    ): TrnResponse {
+        val portfolio = portfolioService.find(portfolioId)
+        return patch(
+            portfolio,
+            trnId,
+            trnInput
+        )
     }
 
     fun patch(

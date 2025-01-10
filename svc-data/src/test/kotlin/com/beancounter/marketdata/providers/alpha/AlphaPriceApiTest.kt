@@ -306,7 +306,7 @@ internal class AlphaPriceApiTest {
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult =
             priceService.getMarketData(
-                asset,
+                asset.id,
                 DateUtils().date
             )
         if (priceResult.isPresent) {
@@ -346,7 +346,7 @@ internal class AlphaPriceApiTest {
                     )
                 ).data[P_KEY]
         assertThat(asset).isNotNull.hasFieldOrProperty("id")
-        marketDataService.backFill(asset!!)
+        marketDataService.backFill(asset!!.id)
         Thread.sleep(300)
         Mockito
             .verify(

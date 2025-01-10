@@ -3,9 +3,12 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.CoroutineScope
@@ -25,15 +28,49 @@ import java.util.Optional
 @Service
 class MarketDataService(
     private val providerUtils: ProviderUtils,
-    private val priceService: PriceService
+    private val priceService: PriceService,
+    private val assetService: AssetService
 ) {
     private val log = LoggerFactory.getLogger(MarketDataService::class.java)
+
+    fun backFill(assetId: String) {
+        backFill(assetService.find(assetId))
+    }
 
     fun backFill(asset: Asset) {
         val byFactory = providerUtils.splitProviders(providerUtils.getInputs(mutableListOf(asset)))
         for (marketDataProvider in byFactory.keys) {
             priceService.handle(marketDataProvider.backFill(asset))
         }
+    }
+
+    @Transactional
+    fun getPriceResponse(
+        market: String,
+        assetCode: String
+    ): PriceResponse {
+        val asset =
+            assetService.findLocally(AssetInput(market, assetCode))
+                ?: throw BusinessException(
+                    String.format(
+                        "Asset not found: %s:%s",
+                        market,
+                        assetCode
+                    )
+                )
+        return getPriceResponse(PriceRequest(assets = mutableListOf(PriceAsset(asset))))
+    }
+
+    @Transactional
+    fun getPriceResponse(assetId: String): PriceResponse {
+        val asset = assetService.find(assetId)
+        return getPriceResponse(PriceRequest(assets = mutableListOf(PriceAsset(asset))))
+    }
+
+    @Transactional
+    fun getAssetPrices(priceRequest: PriceRequest): PriceResponse {
+        val withResolvedAssets = assetService.resolveAssets(priceRequest)
+        return getPriceResponse(withResolvedAssets)
     }
 
     /**
@@ -142,7 +179,7 @@ class MarketDataService(
         marketDate: LocalDate
     ): Optional<MarketData> =
         priceService.getMarketData(
-            asset,
+            asset.id,
             marketDate,
             priceRequest.closePrice
         )

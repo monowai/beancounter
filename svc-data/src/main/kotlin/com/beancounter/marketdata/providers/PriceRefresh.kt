@@ -22,6 +22,8 @@ class PriceRefresh(
     private val marketDataService: MarketDataService,
     private val dateUtils: DateUtils
 ) {
+    private val log = LoggerFactory.getLogger(PriceRefresh::class.java)
+
     @Transactional(readOnly = true)
     fun updatePrices(): Int {
         log.info(
@@ -62,7 +64,7 @@ class PriceRefresh(
         val asset = assetService.find(assetId)
         val priceRequest =
             PriceRequest.of(
-                assetHydrationService.hydrateAsset(asset),
+                asset,
                 date
             )
         marketDataService.refresh(
@@ -74,9 +76,5 @@ class PriceRefresh(
             "Refreshed asset price for ${asset.name} "
         )
         return response
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(PriceRefresh::class.java)
     }
 }

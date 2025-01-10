@@ -7,10 +7,8 @@ import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.portfolio.PortfolioService
 import com.opencsv.CSVWriterBuilder
 import jakarta.servlet.http.HttpServletResponse
-import jakarta.transaction.Transactional
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -36,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController
 class TrnController(
     var trnService: TrnService,
     var trnQueryService: TrnQueryService,
-    var portfolioService: PortfolioService,
     var dateUtils: DateUtils,
     var trnIoDefinition: TrnIoDefinition
 ) {
@@ -44,26 +41,23 @@ class TrnController(
         value = ["/portfolio/{portfolioId}/{asAt}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @Transactional
     fun findAsAt(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable asAt: String = dateUtils.today()
     ): TrnResponse =
         TrnResponse(
             trnService.findForPortfolio(
-                portfolioService.find(portfolioId),
+                portfolioId,
                 dateUtils.getFormattedDate(asAt)
             )
         )
 
     @GetMapping(value = ["/{trnId}"])
     fun find(
-        // @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("trnId") trnId: String
     ): TrnResponse =
         TrnResponse(
             trnService.getPortfolioTrn(
-                // portfolioService.find(portfolioId),
                 trnId
             )
         )
@@ -77,7 +71,7 @@ class TrnController(
     ): TrnResponse =
         TrnResponse(
             trnService.save(
-                portfolioService.find(trnRequest.portfolioId),
+                trnRequest.portfolioId,
                 trnRequest
             )
         )
@@ -91,20 +85,17 @@ class TrnController(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("trnId") trnId: String,
         @RequestBody trnInput: TrnInput
-    ): TrnResponse {
-        val portfolio = portfolioService.find(portfolioId)
-        // ToDo: Support moving a transaction between portfolios
-        return trnService.patch(
-            portfolio,
+    ): TrnResponse =
+        trnService.patch(
+            portfolioId,
             trnId,
             trnInput
         )
-    }
 
     @DeleteMapping(value = ["/portfolio/{portfolioId}"])
     fun purge(
         @PathVariable("portfolioId") portfolioId: String
-    ): Long = trnService.purge(portfolioService.find(portfolioId))
+    ): Long = trnService.purge(portfolioId)
 
     @DeleteMapping(
         value = ["/{trnId}"],
@@ -124,7 +115,7 @@ class TrnController(
     ): TrnResponse =
         TrnResponse(
             trnQueryService.findEvents(
-                portfolioService.find(portfolioId),
+                portfolioId,
                 assetId
             )
         )
@@ -139,7 +130,7 @@ class TrnController(
     ): TrnResponse =
         TrnResponse(
             trnQueryService.findAssetTrades(
-                portfolioService.find(portfolioId),
+                portfolioId,
                 assetId
             )
         )
@@ -163,17 +154,17 @@ class TrnController(
         response: HttpServletResponse,
         @PathVariable("portfolioId") portfolioId: String
     ) {
-        val portfolio = portfolioService.find(portfolioId)
         response.contentType = MediaType.TEXT_PLAIN_VALUE
         response.setHeader(
             HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"${portfolio.code}.csv\""
+            "attachment; filename=\"$portfolioId.csv\""
         )
         val trnResponse =
             trnService.findForPortfolio(
-                portfolio,
+                portfolioId,
                 dateUtils.date
             )
+
         val csvWriter =
             CSVWriterBuilder(response.writer)
                 .withSeparator(',')

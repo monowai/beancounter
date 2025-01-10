@@ -140,7 +140,7 @@ class OffMarketPriceDataTest {
                 listOf(
                     priceService
                         .getMarketData(
-                            asset = asset,
+                            assetId = asset.id,
                             date = DateUtils().getFormattedDate("2022-01-01"),
                             closePrice = BigDecimal.TEN
                         ).get()

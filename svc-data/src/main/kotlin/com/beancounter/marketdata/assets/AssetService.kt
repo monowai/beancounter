@@ -31,7 +31,7 @@ import java.util.stream.Stream
 @Transactional
 class AssetService(
     private val enrichmentFactory: EnrichmentFactory,
-    private val marketDataService: MarketDataService,
+    // private val marketDataService: MarketDataService,
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
     private val assetHydrationService: AssetHydrationService,
@@ -90,8 +90,17 @@ class AssetService(
     }
 
     override fun backFillEvents(assetId: String) {
-        marketDataService.backFill(find(assetId))
+        TODO("Not yet implemented")
     }
+
+    // override fun backFillEvents(assetId: String) {
+    //     marketDataService.backFill(find(assetId))
+    // }
+
+    // fun backFill(assetId: String) {
+    //     val asset = find(assetId)
+    //     marketDataService.backFill(asset)
+    // }
 
     fun findOrCreate(assetInput: AssetInput): Asset {
         val localAsset = findLocally(assetInput)
@@ -159,11 +168,6 @@ class AssetService(
     fun findAllAssets(): Stream<Asset> = assetRepository.findAllAssets()
 
     fun purge() = assetRepository.deleteAll()
-
-    fun backFill(assetId: String) {
-        val asset = find(assetId)
-        marketDataService.backFill(asset)
-    }
 
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
         val assets = assetRepository.findAllById(priceRequest.assets.map { it.assetId })

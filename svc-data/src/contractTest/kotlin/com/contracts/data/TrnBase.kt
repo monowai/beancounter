@@ -177,7 +177,7 @@ class TrnBase {
         Mockito
             .`when`(
                 trnService.findForPortfolio(
-                    portfolio,
+                    portfolio.id,
                     dateUtils.getFormattedDate(date)
                 )
             ).thenReturn(trnResponse.data)
@@ -187,7 +187,7 @@ class TrnBase {
         Mockito
             .`when`(
                 trnService.save(
-                    portfolio,
+                    portfolio.id,
                     objectMapper.readValue(
                         ClassPathResource("contracts/trn/client-csv-request.json").file,
                         TrnRequest::class.java

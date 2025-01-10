@@ -117,7 +117,7 @@ class RealEstateAssetTest {
         // Price Flow
         val marketData =
             priceService.getMarketData(
-                reAsset!!,
+                reAsset!!.id,
                 dateUtils.date
             )
         assertThat(marketData.isPresent).isFalse() // no price exists

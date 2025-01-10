@@ -89,7 +89,7 @@ class TrnBase {
             ContractHelper.getSystemUser()
         )
         Mockito
-            .`when`(systemUserService.getOrThrow)
+            .`when`(systemUserService.getOrThrow())
             .thenReturn(ContractHelper.getSystemUser())
 
         // This test depends on assets and portfolios being available

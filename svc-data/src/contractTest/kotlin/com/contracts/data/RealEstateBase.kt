@@ -51,7 +51,7 @@ import java.math.BigDecimal
 )
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
-class RealestateBase {
+class RealEstateBase {
     private lateinit var jwt: JwtAuthenticationToken
 
     @LocalServerPort
@@ -117,7 +117,7 @@ class RealestateBase {
                 systemUser
             )
         // Hardcode the id of the system user so we can find it in the off-market asset code
-        Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
+        Mockito.`when`(systemUserService.getOrThrow()).thenReturn(systemUser)
         Mockito.`when`(systemUserService.getActiveUser()).thenReturn(systemUser)
         Mockito.`when`(systemUserService.find(any())).thenReturn(systemUser)
         // this needs to be in the DB as we persist portfolios

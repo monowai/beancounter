@@ -77,7 +77,7 @@ class EnrichmentTest {
         val sysUserId = "sysUserId"
         Mockito
             .`when`(
-                systemUserService.getOrThrow
+                systemUserService.getOrThrow()
             ).thenReturn(SystemUser(sysUserId))
 
         Mockito

@@ -29,7 +29,7 @@ class PortfolioService(
     private val dateUtils: DateUtils
 ) {
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
-        val owner = systemUserService.getOrThrow
+        val owner = systemUserService.getOrThrow()
         val results: MutableCollection<Portfolio> = ArrayList()
         portfolioRepository
             .saveAll(
@@ -42,7 +42,7 @@ class PortfolioService(
     }
 
     fun canView(portfolio: Portfolio): Boolean {
-        val systemUser = systemUserService.getOrThrow
+        val systemUser = systemUserService.getOrThrow()
         return isViewable(
             systemUser,
             portfolio
@@ -54,20 +54,19 @@ class PortfolioService(
         portfolio: Portfolio
     ): Boolean = systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id
 
-    val portfolios: Collection<Portfolio>
-        get() {
-            val systemUser = systemUserService.getOrThrow
-            val portfolios =
-                if (systemUser.id == "beancounter:system") {
-                    portfolioRepository.findAll().toList()
-                } else {
-                    portfolioRepository
-                        .findByOwner(
-                            systemUser
-                        ).toList()
-                }
-            return portfolios
-        }
+    fun portfolios(): Collection<Portfolio> {
+        val systemUser = systemUserService.getOrThrow()
+        val portfolios =
+            if (systemUser.id == "beancounter:system") {
+                portfolioRepository.findAll().toList()
+            } else {
+                portfolioRepository
+                    .findByOwner(
+                        systemUser
+                    ).toList()
+            }
+        return portfolios
+    }
 
     /**
      * Confirms if the requested portfolio is known. Service side call.
@@ -103,7 +102,7 @@ class PortfolioService(
     }
 
     fun findByCode(code: String): Portfolio {
-        val systemUser = systemUserService.getOrThrow
+        val systemUser = systemUserService.getOrThrow()
         log.trace(
             "Searching on behalf of {}",
             systemUser.id

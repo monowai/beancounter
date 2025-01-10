@@ -117,7 +117,7 @@ class SystemUserServiceTest {
             )
 
         assertThat(systemUserService.getActiveUser()).isNotNull
-        assertThat(systemUserService.getOrThrow).isNotNull
+        assertThat(systemUserService.getOrThrow()).isNotNull
     }
 
     @Test
@@ -212,7 +212,7 @@ class SystemUserServiceTest {
             systemUserService.register()
         }
         assertThat(systemUserService.isServiceAccount()).isTrue()
-        assertThat(systemUserService.getOrThrow).isNotNull
+        assertThat(systemUserService.getOrThrow()).isNotNull
 
         // Make sure we can't register a system account.
         assertThrows(BusinessException::class.java) {

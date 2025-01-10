@@ -32,7 +32,7 @@ class PortfolioController internal constructor(
 ) {
     @get:GetMapping
     val portfolios: PortfoliosResponse
-        get() = PortfoliosResponse(portfolioService.portfolios)
+        get() = PortfoliosResponse(portfolioService.portfolios())
 
     @GetMapping("/{id}")
     fun getPortfolio(

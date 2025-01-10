@@ -8,11 +8,13 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.currency.CurrencyConfig
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateRepository
 import com.beancounter.marketdata.fx.FxRateService
@@ -30,6 +32,8 @@ internal class TrnMigratorTest {
     private var ecbService = Mockito.mock(EcbService::class.java)
 
     private var currencyService = Mockito.mock(CurrencyService::class.java)
+
+    private var currencyConfig = Mockito.mock(CurrencyConfig::class.java)
 
     private var marketService = Mockito.mock(MarketService::class.java)
 
@@ -53,14 +57,15 @@ internal class TrnMigratorTest {
             .`when`(
                 assetService.findOrCreate(
                     AssetInput(
-                        "CASH",
+                        CASH_MARKET.code,
                         NZD.code
                     )
                 )
             ).thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
-        Mockito.`when`(currencyService.baseCurrency).thenReturn(USD)
+        Mockito.`when`(currencyService.currencyConfig).thenReturn(currencyConfig)
+        Mockito.`when`(currencyConfig.baseCurrency).thenReturn(USD)
         Mockito.`when`(ecbService.getRates(tradeDateStr)).thenReturn(
             listOf(
                 FxRate(

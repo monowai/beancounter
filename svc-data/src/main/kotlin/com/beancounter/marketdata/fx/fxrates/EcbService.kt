@@ -25,15 +25,15 @@ class EcbService
             val ecbRates =
                 fxGateway.getRatesForSymbols(
                     ecbDate.getValidDate(asAt),
-                    currencyService.baseCurrency.code,
-                    currencyService.currenciesAs
+                    currencyService.currencyConfig.baseCurrency.code,
+                    currencyService.currenciesAs()
                 )
             val results: MutableList<FxRate> = ArrayList()
             if (ecbRates?.rates != null) {
                 for (code in ecbRates.rates.keys) {
                     results.add(
                         FxRate(
-                            currencyService.baseCurrency,
+                            currencyService.currencyConfig.baseCurrency,
                             currencyService.getCode(code),
                             ecbRates.rates[code] ?: error("No rate"),
                             ecbDate.dateUtils.getDate(ecbRates.date.toString())

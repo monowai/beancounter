@@ -124,7 +124,7 @@ internal class FxFullStackTest {
             fxGateway.getRatesForSymbols(
                 eq(date),
                 eq(USD.code),
-                eq(currencyService.currenciesAs)
+                eq(currencyService.currenciesAs())
             )
         ).thenReturn(
             ExRatesResponse(
@@ -142,7 +142,7 @@ internal class FxFullStackTest {
             fxGateway.getRatesForSymbols(
                 any(),
                 eq(usd),
-                eq(currencyService.currenciesAs)
+                eq(currencyService.currenciesAs())
             )
         ).thenReturn(
             ExRatesResponse(
@@ -171,7 +171,7 @@ internal class FxFullStackTest {
 
     private fun getFxRates(): Map<String, BigDecimal> {
         val ecbResponse = mutableMapOf<String, BigDecimal>()
-        currencyService.currencies.forEach { currency ->
+        currencyService.currencies().forEach { currency ->
             ecbResponse[currency.code] = BigDecimal.ONE
         }
         return ecbResponse
@@ -205,7 +205,7 @@ internal class FxFullStackTest {
             fxGateway.getRatesForSymbols(
                 eq(testDate),
                 eq(USD.code),
-                eq(currencyService.currenciesAs)
+                eq(currencyService.currenciesAs())
             )
         ).thenReturn(
             ExRatesResponse(

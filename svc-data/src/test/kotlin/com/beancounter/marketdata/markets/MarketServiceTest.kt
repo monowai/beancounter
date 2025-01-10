@@ -9,6 +9,7 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.currency.CurrencyConfig
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
@@ -33,6 +34,9 @@ class MarketServiceTest {
     private lateinit var currencyService: CurrencyService
 
     @MockitoBean
+    private lateinit var currencyConfig: CurrencyConfig
+
+    @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
@@ -40,7 +44,8 @@ class MarketServiceTest {
 
     @BeforeEach
     fun mockCurrencyService() {
-        `when`(currencyService.baseCurrency).thenReturn(USD)
+        `when`(currencyService.currencyConfig).thenReturn(currencyConfig)
+        `when`(currencyConfig.baseCurrency).thenReturn(USD)
         `when`(currencyService.getCode(USD.code)).thenReturn(USD)
         `when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         `when`(currencyService.getCode(AUD.code)).thenReturn(AUD)

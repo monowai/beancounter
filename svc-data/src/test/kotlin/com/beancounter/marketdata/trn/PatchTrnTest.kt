@@ -56,7 +56,7 @@ class PatchTrnTest {
 
     @BeforeEach
     fun configure() {
-        assertThat(currencyService.currencies).isNotEmpty
+        assertThat(currencyService.currencies()).isNotEmpty
 
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper =

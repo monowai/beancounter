@@ -91,13 +91,12 @@ class SystemUserService(
 
     fun getActiveUser(): SystemUser? = find(tokenService.subject)
 
-    val getOrThrow: SystemUser
-        get() {
-            if (isServiceAccount()) {
-                return AuthConstants.authSystem
-            }
-            return getActiveUser()!!
+    fun getOrThrow(): SystemUser {
+        if (isServiceAccount()) {
+            return AuthConstants.authSystem
         }
+        return getActiveUser()!!
+    }
 
     override fun register(systemUser: SystemUser): RegistrationResponse = RegistrationResponse(save(systemUser))
 }

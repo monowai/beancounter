@@ -2,11 +2,11 @@ package com.beancounter.marketdata.currency
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
-import jakarta.annotation.PostConstruct
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import java.util.Locale
 import java.util.Optional
@@ -18,24 +18,24 @@ import java.util.Optional
  * @since 2019-03-19
  */
 @Service
-@ConfigurationProperties(prefix = "beancounter.currency")
-class CurrencyService {
-    final var base: String = "USD"
-    var values: Collection<Currency> = arrayListOf()
-    var baseCurrency: Currency = Currency(base)
-
+@Transactional
+@Import(CurrencyConfig::class)
+class CurrencyService(
+    val currencyConfig: CurrencyConfig
+) {
     @Autowired
     private lateinit var currencyRepository: CurrencyRepository
 
-    @PostConstruct
-    private fun persist() {
-        log.info(
-            "Persisting {} default currencies",
-            values.size
-        )
-        if (!values.isEmpty()) {
-            val result = currencyRepository.saveAll(this.values)
-            for (currency in result) {
+    var currencies: Iterable<Currency> = listOf()
+
+    fun persist() {
+        if (currencies.toList().isEmpty() && !currencyConfig.values.isEmpty()) {
+            log.info(
+                "Persisting {} default currencies",
+                currencyConfig.values.size
+            )
+            currencies = currencyRepository.saveAll(currencyConfig.values)
+            for (currency in currencies) {
                 log.trace(
                     "Persisted {}",
                     currency
@@ -59,27 +59,25 @@ class CurrencyService {
         throw BusinessException("$code is an unknown currency")
     }
 
-    @get:Cacheable("currency.all")
-    val currencies: Iterable<Currency>
-        get() = currencyRepository.findAllByOrderByCodeAsc()
+    fun currencies(): Iterable<Currency> = currencyRepository.findAllByOrderByCodeAsc()
 
-    val currenciesAs: String
-        get() {
-            val values = currencies
-            var result: java.lang.StringBuilder? = null
-            for ((code) in values) {
-                if (result == null) {
-                    result =
-                        Optional
-                            .ofNullable(code)
-                            .map { str: String? -> StringBuilder(str) }
-                            .orElse(null)
-                } else if (code != base) {
-                    result.append(",").append(code)
-                }
+    @Cacheable("currency.all")
+    fun currenciesAs(): String {
+        val values = currencies()
+        var result: java.lang.StringBuilder? = null
+        for ((code) in values) {
+            if (result == null) {
+                result =
+                    Optional
+                        .ofNullable(code)
+                        .map { str: String? -> StringBuilder(str) }
+                        .orElse(null)
+            } else if (code != currencyConfig.base) {
+                result.append(",").append(code)
             }
-            return result.toString()
         }
+        return result.toString()
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(CurrencyService::class.java)

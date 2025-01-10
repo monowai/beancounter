@@ -3,6 +3,7 @@ package com.beancounter.marketdata.markets
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
@@ -16,6 +17,7 @@ import java.util.Locale
  */
 @Service
 @Import(MarketConfig::class)
+@Transactional
 class MarketService
     @Autowired
     constructor(

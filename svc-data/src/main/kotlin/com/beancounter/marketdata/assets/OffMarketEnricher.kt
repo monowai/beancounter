@@ -22,7 +22,7 @@ class OffMarketEnricher(
         market: Market,
         assetInput: AssetInput
     ): Asset {
-        val systemUser = systemUserService.getOrThrow
+        val systemUser = systemUserService.getOrThrow()
         return Asset(
             code =
                 parseCode(

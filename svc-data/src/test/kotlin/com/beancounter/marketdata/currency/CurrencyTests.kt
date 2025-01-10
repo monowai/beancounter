@@ -27,7 +27,7 @@ internal class CurrencyTests
         fun is_CurrencyDataLoading() {
             assertThat(currencyService.getCode(USD.code))
                 .isNotNull
-            assertThat(currencyService.baseCurrency)
+            assertThat(currencyService.currencyConfig.baseCurrency)
                 .isNotNull
         }
     }

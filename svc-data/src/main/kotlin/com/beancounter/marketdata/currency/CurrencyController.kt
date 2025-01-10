@@ -25,5 +25,5 @@ class CurrencyController(
 ) {
     @get:GetMapping
     val currencies: CurrencyResponse
-        get() = CurrencyResponse(currencyService.currencies)
+        get() = CurrencyResponse(currencyService.currencies())
 }

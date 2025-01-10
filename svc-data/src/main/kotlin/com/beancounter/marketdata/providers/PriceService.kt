@@ -8,6 +8,7 @@ import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -29,6 +30,7 @@ class PriceService(
         this.eventProducer = eventProducer
     }
 
+    @Transactional
     fun getMarketData(
         asset: Asset,
         date: LocalDate,
@@ -71,6 +73,7 @@ class PriceService(
     /**
      * Persistence and distribution of MarketData objects.
      */
+    @Transactional
     fun handle(priceResponse: PriceResponse): Iterable<MarketData> {
         val createSet =
             priceResponse.data
@@ -98,6 +101,7 @@ class PriceService(
     private fun isCorporateEvent(marketData: MarketData): Boolean =
         marketData.asset.isKnown && (isDividend(marketData) || isSplit(marketData))
 
+    @Transactional
     fun purge() {
         marketDataRepo.deleteAll()
     }

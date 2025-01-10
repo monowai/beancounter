@@ -11,6 +11,7 @@ import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.markets.MarketService
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -28,11 +29,11 @@ class FxRateService(
     val fxRateRepository: FxRateRepository
 ) : FxService {
     private fun baseCurrencyFxRate(): FxRate {
-        val existingRate = fxRateRepository.findBaseRate(currencyService.baseCurrency)
+        val existingRate = fxRateRepository.findBaseRate(currencyService.currencyConfig.baseCurrency)
         if (existingRate == null) {
             val usdToUsdRate =
                 FxRate(
-                    from = currencyService.baseCurrency,
+                    from = currencyService.currencyConfig.baseCurrency,
                     rate = BigDecimal.ONE,
                     date = dateUtils.getDate("1900-01-01")
                 )
@@ -42,6 +43,7 @@ class FxRateService(
         return existingRate
     }
 
+    @Transactional
     override fun getRates(
         fxRequest: FxRequest,
         token: String

@@ -10,7 +10,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
-import com.beancounter.marketdata.registration.SystemUserService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -35,7 +34,6 @@ class PriceController(
     private val assetService: AssetService,
     private val priceRefresh: PriceRefresh,
     private val eventService: AlphaEventService,
-    private val systemUserService: SystemUserService,
     private val priceService: PriceService,
     private val dateUtils: DateUtils
 ) {

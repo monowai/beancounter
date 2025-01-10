@@ -140,7 +140,7 @@ class KafkaTrnExportImportTest {
                 any()
             )
         ).thenReturn(ZERO)
-        assertThat(currencyService.currencies).isNotEmpty
+        assertThat(currencyService.currencies()).isNotEmpty
         assertThat(eventProducer.kafkaEnabled).isTrue
         val rateResponse = ClassPathResource("mock/fx/fx-current-rates.json").file
 

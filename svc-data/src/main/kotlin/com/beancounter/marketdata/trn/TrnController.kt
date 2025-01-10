@@ -10,6 +10,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.opencsv.CSVWriterBuilder
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.transaction.Transactional
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -43,6 +44,7 @@ class TrnController(
         value = ["/portfolio/{portfolioId}/{asAt}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
+    @Transactional
     fun findAsAt(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable asAt: String = dateUtils.today()

@@ -11,6 +11,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
@@ -27,6 +28,7 @@ import java.util.stream.Stream
     DefaultEnricher::class,
     MarketDataService::class
 )
+@Transactional
 class AssetService(
     private val enrichmentFactory: EnrichmentFactory,
     private val marketDataService: MarketDataService,

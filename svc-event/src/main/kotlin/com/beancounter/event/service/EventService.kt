@@ -9,6 +9,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.integration.EventPublisher
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -18,6 +19,7 @@ import java.time.LocalDate
  * Corporate Action Event Processing Service. Stores and emits events.
  */
 @Service
+@Transactional
 class EventService(
     private val positionService: PositionService,
     private val eventRepository: EventRepository,

@@ -82,7 +82,7 @@ class TrnControllerTest {
     @BeforeEach
     fun configure() {
         enrichmentFactory.register(DefaultEnricher())
-        assertThat(currencyService.currencies).isNotEmpty
+        assertThat(currencyService.currencies()).isNotEmpty
 
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper =

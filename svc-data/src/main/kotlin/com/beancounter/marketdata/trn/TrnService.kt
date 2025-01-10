@@ -21,6 +21,7 @@ import java.util.function.Consumer
  * Interactions to created and read Trn objects.
  */
 @Service
+@Transactional
 class TrnService(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,
@@ -91,7 +92,6 @@ class TrnService(
      * @param portfolio portfolio owned by the caller
      * @return number of deleted transactions
      */
-    @Transactional
     fun purge(portfolio: Portfolio): Long {
         log.debug(
             "Purging transactions for {}",
@@ -128,7 +128,7 @@ class TrnService(
         secure: Boolean = true
     ): Collection<Trn> {
         if (secure) {
-            val systemUser = systemUserService.getOrThrow
+            val systemUser = systemUserService.getOrThrow()
             val filteredTrns =
                 trns.filter {
                     portfolioService.isViewable(

@@ -20,7 +20,6 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.OffMarketEnricher
-import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserRepository
@@ -51,7 +50,7 @@ import java.math.BigDecimal
 )
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
-class RealEstateBase {
+class RealestateBase {
     private lateinit var jwt: JwtAuthenticationToken
 
     @LocalServerPort
@@ -71,9 +70,6 @@ class RealEstateBase {
 
     @MockitoBean
     internal lateinit var ecbService: EcbService
-
-    @Autowired
-    private lateinit var currencyService: CurrencyService
 
     @Autowired
     private lateinit var trnService: TrnService

@@ -9,10 +9,8 @@ import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import jakarta.annotation.PostConstruct
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -65,40 +63,28 @@ class AlphaPriceService(
         )
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-        val providerArguments =
-            getInstance(
-                priceRequest,
-                alphaConfig
-            )
+        val providerArguments = getInstance(priceRequest, alphaConfig)
         val requests = mutableMapOf<Int, Deferred<String>>()
 
-        for (batchId in providerArguments.batch.keys) {
-            requests[batchId] =
-                CoroutineScope(Dispatchers.Default).async {
-                    if (priceRequest.currentMode) {
-                        alphaProxy.getCurrent(
-                            providerArguments.batch[batchId]!!,
-                            apiKey
-                        )
-                    } else {
-                        alphaProxy.getHistoric(
-                            providerArguments.batch[batchId]!!,
-                            apiKey
-                        )
+        runBlocking {
+            for (batchId in providerArguments.batch.keys) {
+                requests[batchId] =
+                    async(Dispatchers.IO) {
+                        if (priceRequest.currentMode) {
+                            alphaProxy.getCurrent(providerArguments.batch[batchId]!!, apiKey)
+                        } else {
+                            alphaProxy.getHistoric(providerArguments.batch[batchId]!!, apiKey)
+                        }
                     }
-                }
+            }
         }
 
         return runBlocking {
-            getMarketData(
-                providerArguments,
-                requests
-            )
+            getMarketData(providerArguments, requests)
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun getMarketData(
+    private suspend fun getMarketData(
         providerArguments: ProviderArguments,
         requests: MutableMap<Int, Deferred<String>>
     ): Collection<MarketData> {
@@ -112,7 +98,7 @@ class AlphaPriceService(
 
             completedBatches.forEach { (batchId, requestDeferred) ->
                 results.addAll(
-                    alphaPriceAdapter[providerArguments, batchId, requestDeferred.getCompleted()]
+                    alphaPriceAdapter[providerArguments, batchId, requestDeferred.await()]
                 )
 
                 log.trace("Processed batch ${requests.remove(batchId)}")
@@ -124,35 +110,16 @@ class AlphaPriceService(
 
     override fun getId(): String = ID
 
-    override fun isMarketSupported(market: Market) =
-        if (alphaConfig.markets == null) {
-            false
-        } else {
-            alphaConfig.markets!!.contains(market.code)
-        }
+    override fun isMarketSupported(market: Market) = alphaConfig.markets?.contains(market.code) ?: false
 
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest
-    ) = alphaConfig.getMarketDate(
-        market,
-        priceRequest.date,
-        priceRequest.currentMode
-    )
+    ) = alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
 
     override fun backFill(asset: Asset): PriceResponse {
-        val json =
-            alphaProxy.getAdjusted(
-                asset.code,
-                apiKey
-            )
-        val priceResponse: PriceResponse =
-            alphaConfig
-                .getObjectMapper()
-                .readValue(
-                    json,
-                    PriceResponse::class.java
-                )
+        val json = alphaProxy.getAdjusted(asset.code, apiKey)
+        val priceResponse: PriceResponse = alphaConfig.getObjectMapper().readValue(json, PriceResponse::class.java)
         for (marketData in priceResponse.data) {
             marketData.source = ID
             marketData.asset = asset

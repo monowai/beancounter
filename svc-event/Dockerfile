@@ -9,10 +9,9 @@ ARG VERSION
 ENV GIT_COMMIT=${GIT_COMMIT}
 ENV VERSION=${VERSION}
 
-EXPOSE 9520 9521
 WORKDIR /app
 
-COPY ${JAR_FILE} app.jar
+COPY ${JAR_FILE} event.jar
 
 
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/event.jar"]

@@ -9,8 +9,6 @@ ENV VERSION=${VERSION}
 
 WORKDIR /app
 
-EXPOSE 9500 9501
+COPY ${JAR_FILE} position.jar
 
-COPY ${JAR_FILE} app.jar
-
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/position.jar"]

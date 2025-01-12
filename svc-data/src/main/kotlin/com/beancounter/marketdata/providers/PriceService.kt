@@ -109,11 +109,13 @@ class PriceService(
         marketDataRepo.deleteAll()
     }
 
+    @Transactional
     fun purge(marketData: MarketData) {
         marketDataRepo.deleteById(marketData.id)
     }
 
     // In PriceService.kt
+    @Transactional
     fun getMarketData(
         assets: Collection<Asset>,
         date: LocalDate

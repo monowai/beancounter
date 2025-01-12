@@ -10,13 +10,13 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.cash.CashProviderService
-import jakarta.transaction.Transactional
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.Optional
 
@@ -26,6 +26,7 @@ import java.util.Optional
  */
 @Import(ProviderUtils::class)
 @Service
+@Transactional
 class MarketDataService(
     private val providerUtils: ProviderUtils,
     private val priceService: PriceService,
@@ -44,7 +45,6 @@ class MarketDataService(
         }
     }
 
-    @Transactional
     fun getPriceResponse(
         market: String,
         assetCode: String
@@ -61,13 +61,12 @@ class MarketDataService(
         return getPriceResponse(PriceRequest(assets = mutableListOf(PriceAsset(asset))))
     }
 
-    @Transactional
     fun getPriceResponse(assetId: String): PriceResponse {
         val asset = assetService.find(assetId)
         return getPriceResponse(PriceRequest(assets = mutableListOf(PriceAsset(asset))))
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun getAssetPrices(priceRequest: PriceRequest): PriceResponse {
         val withResolvedAssets = assetService.resolveAssets(priceRequest)
         return getPriceResponse(withResolvedAssets)
@@ -79,7 +78,6 @@ class MarketDataService(
      * @param priceRequest to process
      * @return results
      */
-    @Transactional
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
         val byProviders = providerUtils.splitProviders(priceRequest.assets)
         val foundInDb: MutableList<MarketData> = mutableListOf()

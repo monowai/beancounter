@@ -84,7 +84,7 @@ class SentryOtelConfig {
         Sentry.close()
     }
 
-    private fun filterTransaction(transaction: SentryTransaction): SentryTransaction? {
+    fun filterTransaction(transaction: SentryTransaction): SentryTransaction? {
         val otelAttributes = getOtelAttributes(getOtelContext(transaction))
         return if (sentryFilterConditions.any { it.containsMatchIn(otelAttributes["http.target"].toString()) }) {
             null

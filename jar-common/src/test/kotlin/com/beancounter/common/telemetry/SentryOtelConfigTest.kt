@@ -36,7 +36,7 @@ class SentryOtelConfigTest {
     @Autowired
     private lateinit var sentryOtelConfig: SentryOtelConfig
 
-    private val filter = listOf(Regex("/actuator"))
+    val filter = listOf(Regex("/actuator"))
 
     @Test
     fun testSentryConfig() {
@@ -53,8 +53,7 @@ class SentryOtelConfigTest {
 
         val result =
             sentryOtelConfig.filterTransaction(
-                transaction,
-                filter
+                transaction
             )
 
         assertNull(result)
@@ -66,8 +65,7 @@ class SentryOtelConfigTest {
 
         val result =
             sentryOtelConfig.filterTransaction(
-                transaction,
-                filter
+                transaction
             )
 
         assertNotNull(result)

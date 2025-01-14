@@ -81,6 +81,8 @@ spring:
     username: sa
     password:
     url: jdbc:h2:mem:test-ev;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    hikari:
+      leak-detection-threshold: 20000
   jpa:
     open-in-view: false
     generate-ddl: true

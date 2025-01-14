@@ -108,6 +108,9 @@ spring:
     name: bc-data
   cache:
     cache-names: system.user, asset.prices, asset.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
+  datasource:
+    hikari:
+      leak-detection-threshold: 20000
   jpa:
     open-in-view: false
     generate-ddl: true

@@ -19,7 +19,7 @@ dependencies {
             libs.spring.security.oauth2,
             libs.spring.security.jose,
             libs.spring.kafka,
-            "com.github.ben-manes.caffeine:caffeine:3.1.8",
+            "com.github.ben-manes.caffeine:caffeine:3.2.0",
             "com.opencsv:opencsv:5.9"
     )
     testImplementation(

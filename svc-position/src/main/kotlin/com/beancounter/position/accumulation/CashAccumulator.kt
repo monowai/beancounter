@@ -10,6 +10,8 @@ import java.math.BigDecimal
 
 /**
  * Generic cash accumulation behaviour.
+ *
+ * These values are unreliable and need to be refactored.
  */
 @Service
 class CashAccumulator(

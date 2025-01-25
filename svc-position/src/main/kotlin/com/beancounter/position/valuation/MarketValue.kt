@@ -107,9 +107,9 @@ class MarketValue(
         }
         if (isCash) {
             moneyValues.realisedGain = BigDecimal.ZERO // Will figure this out later
-            moneyValues.unrealisedGain = moneyValues.marketValue.subtract(moneyValues.costBasis)
-            moneyValues.totalGain =
-                moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
+            moneyValues.unrealisedGain = BigDecimal.ZERO // moneyValues.marketValue.subtract(moneyValues.costBasis)
+            moneyValues.totalGain = BigDecimal.ONE
+            // moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
         } else {
             gains.value(
                 total,

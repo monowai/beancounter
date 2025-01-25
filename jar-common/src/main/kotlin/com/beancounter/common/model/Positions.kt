@@ -112,4 +112,7 @@ class Positions(
             trn.tradeDate,
             trn.tradeCurrency
         )
+
+    fun getOrThrow(asset: Asset): Position =
+        positions[toKey(asset)] ?: throw IllegalArgumentException("No position for $asset")
 }

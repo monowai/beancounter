@@ -60,6 +60,7 @@ class TrnAdapter(
         }
         val tradeAmount = tradeCalculator.amount(trnInput)
         val tradeCashRate = tradeCalculator.cashFxRate(tradeAmount, trnInput)
+
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
         val cashAmount =
             cashServices.getCashImpact(

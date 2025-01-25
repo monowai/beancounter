@@ -62,9 +62,6 @@ internal class TrnAdapterTest {
     @Autowired
     private lateinit var trnAdapter: TrnAdapter
 
-    @Autowired
-    private lateinit var keyGenUtils: KeyGenUtils
-
     final val asset = MSFT
     final val price: BigDecimal = BigDecimal("10.99")
     private val theDate = DateUtils().getFormattedDate("2019-10-10")

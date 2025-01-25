@@ -7,6 +7,10 @@ import java.math.BigDecimal
 /**
  * Used to reduce duplicate object code quality warnings.
  */
+internal const val V_PROVIDER = "provider"
+
+internal const val V_BATCH = "batch"
+
 class Constants {
     companion object {
         val SGD = Currency("SGD")

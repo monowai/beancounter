@@ -1,8 +1,7 @@
-package com.beancounter.common
+package com.beancounter.common.trn
 
-import com.beancounter.common.Constants.Companion.NYSE
-import com.beancounter.common.Constants.Companion.ONE
-import com.beancounter.common.TestMarkets.Companion.USD
+import com.beancounter.common.Constants
+import com.beancounter.common.TestMarkets
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.ImportFormat
@@ -15,11 +14,11 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
-import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson.Companion.objectMapper
+import com.beancounter.common.utils.AssetKeyUtils
+import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.common.utils.PortfolioUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -33,30 +32,30 @@ internal class TrnInputTest {
     private val abc = "ABC"
 
     @Test
-    @Throws(Exception::class)
     fun is_TransactionRequestSerializing() {
         val price = BigDecimal("10.99")
         val trnInput =
             TrnInput(
                 callerRef =
                     CallerRef(
-                        ONE,
-                        ONE,
+                        Constants.ONE,
+                        Constants.ONE,
                         abc
                     ),
                 tradeDate = DateUtils().getFormattedDate("2019-10-10"),
                 settleDate = DateUtils().getFormattedDate("2019-10-10"),
                 assetId =
-                    getTestAsset(
-                        NYSE,
-                        "MSFT"
-                    ).id,
+                    AssetUtils
+                        .getTestAsset(
+                            Constants.NYSE,
+                            "MSFT"
+                        ).id,
                 cashAssetId =
-                    toKey(
+                    AssetKeyUtils.toKey(
                         "USD-X",
                         "USER"
                     ),
-                cashCurrency = USD.code,
+                cashCurrency = TestMarkets.USD.code,
                 fees = BigDecimal.ONE,
                 price = price,
                 tradeAmount = BigDecimal("100.99"),
@@ -71,9 +70,9 @@ internal class TrnInputTest {
                 abc.lowercase(Locale.getDefault()),
                 arrayOf(trnInput)
             )
-        val json = objectMapper.writeValueAsString(trnRequest)
+        val json = BcJson.objectMapper.writeValueAsString(trnRequest)
         val fromJson =
-            objectMapper.readValue(
+            BcJson.objectMapper.readValue(
                 json,
                 TrnRequest::class.java
             )
@@ -91,15 +90,14 @@ internal class TrnInputTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_TransactionResponseSerializing() {
         val trnType = TrnType.BUY
         val asset =
-            getTestAsset(
-                NYSE,
+            AssetUtils.getTestAsset(
+                Constants.NYSE,
                 "TEST"
             )
-        val portfolio = getPortfolio("TWEE")
+        val portfolio = PortfolioUtils.getPortfolio("TWEE")
         portfolio.owner =
             SystemUser(
                 "123",
@@ -114,8 +112,8 @@ internal class TrnInputTest {
                 asset = asset,
                 callerRef =
                     CallerRef(
-                        ONE,
-                        ONE,
+                        Constants.ONE,
+                        Constants.ONE,
                         "TEST"
                     ),
                 price = BigDecimal("100.01"),
@@ -130,8 +128,8 @@ internal class TrnInputTest {
         val trnResponse = TrnResponse(trns)
 
         val fromJson =
-            objectMapper.readValue(
-                objectMapper.writeValueAsString(trnResponse),
+            BcJson.objectMapper.readValue(
+                BcJson.objectMapper.writeValueAsString(trnResponse),
                 TrnResponse::class.java
             )
         val fromAsset: Asset =
@@ -159,7 +157,6 @@ internal class TrnInputTest {
     private val messageProp = "message"
 
     @Test
-    @Throws(Exception::class)
     fun is_TrustedTrnRequestValid() {
         val row: List<String> =
             listOf(
@@ -169,7 +166,7 @@ internal class TrnInputTest {
             )
         val ttr =
             TrustedTrnImportRequest(
-                getPortfolio("TWEE"),
+                PortfolioUtils.getPortfolio("TWEE"),
                 row = row
             )
         assertThat(ttr)
@@ -183,9 +180,9 @@ internal class TrnInputTest {
             .hasFieldOrProperty("callerRef")
             .hasFieldOrProperty("row")
 
-        val json = objectMapper.writeValueAsString(ttr)
+        val json = BcJson.objectMapper.writeValueAsString(ttr)
         val fromJson =
-            objectMapper.readValue(
+            BcJson.objectMapper.readValue(
                 json,
                 TrustedTrnImportRequest::class.java
             )
@@ -202,11 +199,10 @@ internal class TrnInputTest {
         )
 
     @Test
-    @Throws(Exception::class)
     fun is_TrustedEventWithMessageValid() {
         val ttr =
             TrustedTrnEvent(
-                portfolio = getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio(),
                 message = "the message",
                 trnInput = simpleTrnInput
             )
@@ -221,9 +217,9 @@ internal class TrnInputTest {
                 "the message"
             ).hasFieldOrProperty("trnInput")
 
-        val json = objectMapper.writeValueAsString(ttr)
+        val json = BcJson.objectMapper.writeValueAsString(ttr)
         val fromJson =
-            objectMapper.readValue(
+            BcJson.objectMapper.readValue(
                 json,
                 TrustedTrnEvent::class.java
             )
@@ -237,7 +233,7 @@ internal class TrnInputTest {
     fun is_TrustedEventRequestValid() {
         val ttr =
             TrustedTrnEvent(
-                portfolio = getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio(),
                 trnInput = simpleTrnInput
             )
 
@@ -252,9 +248,9 @@ internal class TrnInputTest {
     }
 
     private fun compare(ttr: TrustedTrnEvent) {
-        val json = objectMapper.writeValueAsString(ttr)
+        val json = BcJson.objectMapper.writeValueAsString(ttr)
         val fromJson =
-            objectMapper.readValue(
+            BcJson.objectMapper.readValue(
                 json,
                 TrustedTrnEvent::class.java
             )
@@ -267,12 +263,12 @@ internal class TrnInputTest {
     fun is_TrnQuerySerializing() {
         val trustedTrnQuery =
             TrustedTrnQuery(
-                portfolio = getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio(),
                 assetId = "123"
             )
-        val json = objectMapper.writeValueAsString(trustedTrnQuery)
+        val json = BcJson.objectMapper.writeValueAsString(trustedTrnQuery)
         val fromJson =
-            objectMapper.readValue(
+            BcJson.objectMapper.readValue(
                 json,
                 TrustedTrnQuery::class.java
             )

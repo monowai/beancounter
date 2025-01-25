@@ -41,4 +41,33 @@ class TradeCalculator(
             trnInput.fees
         )
     }
+
+    fun cashFxRate(
+        tradeAmount: BigDecimal,
+        trnInput: TrnInput
+    ): BigDecimal {
+        if (numberUtils.isSet(trnInput.tradeCashRate)) {
+            return trnInput.tradeCashRate
+        }
+        return rate(tradeAmount, trnInput)
+    }
+
+    fun baseFxRate(
+        tradeAmount: BigDecimal,
+        trnInput: TrnInput
+    ): BigDecimal {
+        if (numberUtils.isSet(trnInput.tradeBaseRate)) {
+            return trnInput.tradeBaseRate
+        }
+        return rate(tradeAmount, trnInput)
+    }
+
+    private fun rate(
+        tradeAmount: BigDecimal,
+        trnInput: TrnInput
+    ): BigDecimal =
+        MathUtils.divide(
+            tradeAmount.abs(),
+            trnInput.cashAmount.abs()
+        )
 }

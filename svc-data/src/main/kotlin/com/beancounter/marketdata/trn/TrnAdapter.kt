@@ -3,7 +3,6 @@ package com.beancounter.marketdata.trn
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef.Companion.from
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
@@ -49,7 +48,7 @@ class TrnAdapter(
             trnInput
         )
 
-        val cashAsset = cashServices.getCashAsset(trnInput)
+        val cashAsset = cashServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
             cashCurrency =
@@ -60,7 +59,14 @@ class TrnAdapter(
                 }
         }
         val tradeAmount = tradeCalculator.amount(trnInput)
+        val tradeCashRate = tradeCalculator.cashFxRate(tradeAmount, trnInput)
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
+        val cashAmount =
+            cashServices.getCashImpact(
+                trnInput,
+                tradeAmount
+            )
+
         return Trn(
             id = existing?.id ?: keyGenUtils.id,
             trnType = trnInput.trnType,
@@ -73,14 +79,10 @@ class TrnAdapter(
             tradeCurrency = currencyService.getCode(trnInput.tradeCurrency),
             cashAsset = cashAsset,
             cashCurrency = cashCurrency,
-            tradeCashRate = trnInput.tradeCashRate,
+            tradeCashRate = tradeCashRate,
             tradeBaseRate = trnInput.tradeBaseRate,
             tradePortfolioRate = trnInput.tradePortfolioRate,
-            cashAmount =
-                cashServices.getCashImpact(
-                    trnInput,
-                    tradeAmount
-                ),
+            cashAmount = cashAmount,
             portfolio = portfolio,
             // Sign this value
             settleDate = trnInput.settleDate,
@@ -90,12 +92,4 @@ class TrnAdapter(
             status = trnInput.status
         )
     }
-
-    // Set the Market and AssetCategory ob
-    fun hydrate(asset: Asset?): Asset? =
-        if (asset == null) {
-            null
-        } else {
-            assetService.hydrate(asset)
-        }
 }

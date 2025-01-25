@@ -1,20 +1,19 @@
-package com.beancounter.common
+package com.beancounter.common.trn
 
+import com.beancounter.common.Constants
+import com.beancounter.common.V_BATCH
+import com.beancounter.common.V_PROVIDER
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.BcJson.Companion.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-
-private const val V_PROVIDER = "provider"
-
-private const val V_BATCH = "batch"
 
 /**
  * Trn related defaults
@@ -53,29 +52,31 @@ class TrnTest {
                 portfolio = PortfolioUtils.getPortfolio(),
                 version = "0"
             )
-        assertThat(trnDefault)
+        Assertions
+            .assertThat(trnDefault)
             .hasFieldOrProperty("version")
-        assertThat(trn.version).isEqualTo("0")
-        assertThat(trn.version).isNotEqualTo(trnDefault.version)
+        Assertions.assertThat(trn.version).isEqualTo("0")
+        Assertions.assertThat(trn.version).isNotEqualTo(trnDefault.version)
     }
 
     @Test
     fun is_TrnIdDefaulting() {
         val fromNull: CallerRef = CallerRef.from(callerRef = CallerRef())
-        assertThat(fromNull).hasNoNullFieldsOrProperties()
+        Assertions.assertThat(fromNull).hasNoNullFieldsOrProperties()
         val id =
             CallerRef(
                 V_PROVIDER,
                 V_BATCH,
                 "456"
             )
-        assertThat(CallerRef.from(id)).usingRecursiveComparison().isEqualTo(id)
+        Assertions.assertThat(CallerRef.from(id)).usingRecursiveComparison().isEqualTo(id)
     }
 
     @Test
     fun callerRefDefaults() {
         val fromNull: CallerRef = CallerRef.from(CallerRef())
-        assertThat(fromNull)
+        Assertions
+            .assertThat(fromNull)
             .hasNoNullFieldsOrProperties()
             .hasFieldOrPropertyWithValue(
                 V_PROVIDER,
@@ -89,12 +90,13 @@ class TrnTest {
     @Test
     fun is_TrnIdDefaults() {
         var callerRef = CallerRef()
-        assertThat(callerRef).hasNoNullFieldsOrProperties()
+        Assertions.assertThat(callerRef).hasNoNullFieldsOrProperties()
         val batchProp = V_BATCH
         val providerProp = V_PROVIDER
         val callerIdProp = "callerId"
 
-        assertThat(CallerRef.from(callerRef))
+        Assertions
+            .assertThat(CallerRef.from(callerRef))
             .hasNoNullFieldsOrProperties()
             .hasFieldOrPropertyWithValue(
                 batchProp,
@@ -106,7 +108,8 @@ class TrnTest {
                 simpleRef,
                 simpleRef
             )
-        assertThat(CallerRef.from(callerRef))
+        Assertions
+            .assertThat(CallerRef.from(callerRef))
             .hasFieldOrPropertyWithValue(
                 batchProp,
                 simpleRef
@@ -124,7 +127,8 @@ class TrnTest {
                 simpleRef,
                 simpleRef
             )
-        assertThat(CallerRef.from(callerRef))
+        Assertions
+            .assertThat(CallerRef.from(callerRef))
             .hasFieldOrPropertyWithValue(
                 batchProp,
                 simpleRef
@@ -147,8 +151,8 @@ class TrnTest {
                     ),
                 portfolio = PortfolioUtils.getPortfolio()
             )
-        assertThat(trn.asset.market.currency).isNotNull
-        assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)
+        Assertions.assertThat(trn.asset.market.currency).isNotNull
+        Assertions.assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)
     }
 
     @Test
@@ -157,6 +161,6 @@ class TrnTest {
             "{\"tradePortfolioRate\":1,\"tradeCashRate\":1,\"tradeBaseRate\":0.69662,\"price\":429.265,\"tax\":0," +
                 "\"fees\":1.08,\"cashAmount\":-859.6,\"tradeAmount\":859.6,\"quantity\":2,\"tradeCurrency\":\"USD\"," +
                 "\"trnType\":\"BUY\",\"tradeDate\":\"2021-10-06\"}"
-        assertThat(objectMapper.readValue<TrnInput>(json)).isNotNull
+        Assertions.assertThat(BcJson.objectMapper.readValue<TrnInput>(json)).isNotNull
     }
 }

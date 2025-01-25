@@ -67,6 +67,10 @@ class CashServices(
         return assetService.find(cashAssetId)
     }
 
+    @Deprecated(
+        "Pass all args",
+        ReplaceWith("getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)")
+    )
     fun getCashAsset(trnInput: TrnInput): Asset? =
         getCashAsset(
             trnInput.trnType,

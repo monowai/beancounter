@@ -75,5 +75,30 @@ class AltCashCurrencyTests {
             .hasFieldOrPropertyWithValue("averageCost", BigDecimal("16.00"))
             .hasFieldOrPropertyWithValue("costBasis", BigDecimal("1600.00"))
             .hasFieldOrPropertyWithValue("costValue", BigDecimal("1600.00"))
+
+        assertThat(positions.getOrThrow(asset).getMoneyValues(Position.In.PORTFOLIO))
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("8.00"))
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("800.00"))
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal("800.00"))
+
+        assertThat(positions.getOrThrow(asset).getMoneyValues(Position.In.TRADE))
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("8.00"))
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("800.00"))
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal("800.00"))
+
+        assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.BASE))
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO)
+
+        assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.PORTFOLIO))
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO)
+
+        assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.TRADE))
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO)
     }
 }

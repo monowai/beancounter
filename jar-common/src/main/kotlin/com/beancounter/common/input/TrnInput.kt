@@ -27,6 +27,7 @@ data class TrnInput(
     // Trade to Portfolio Base Rate. Calculated if zero
     var tradeBaseRate: BigDecimal = BigDecimal.ZERO,
     // Trade to Cash Settlement Rate. Calculated if zero
+    // cashAmount/tradeAmount
     var tradeCashRate: BigDecimal = BigDecimal.ZERO,
     // Trade CCY to portfolio Currency. Calculated if zero
     var tradePortfolioRate: BigDecimal = BigDecimal.ZERO,

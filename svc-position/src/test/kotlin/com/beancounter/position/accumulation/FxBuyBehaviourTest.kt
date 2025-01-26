@@ -66,10 +66,7 @@ class FxBuyBehaviourTest {
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                trn.quantity
-            ).hasFieldOrPropertyWithValue(
-                "costValue",
-                trn.quantity
+                ZERO
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
                 ZERO

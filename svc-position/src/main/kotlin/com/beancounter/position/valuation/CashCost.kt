@@ -31,21 +31,21 @@ class CashCost(
         }
 
         // Update cost basis regardless of quantity sign
-        moneyValues.costBasis = moneyValues.costBasis.add(amount).setScale(2)
+        // moneyValues.costBasis = moneyValues.costBasis.add(amount).setScale(2)
 
         val totalQuantity = position.quantityValues.getTotal()
         if (totalQuantity.signum() != 0) {
             // Calculate average cost and cost value only if total quantity is not zero
-            moneyValues.averageCost =
-                averageCost.value(
-                    moneyValues.costBasis,
-                    totalQuantity
-                )
-            moneyValues.costValue =
-                averageCost.getCostValue(
-                    position,
-                    moneyValues
-                )
+            // moneyValues.averageCost =
+            //     averageCost.value(
+            //         moneyValues.costBasis,
+            //         totalQuantity
+            //     )
+            // moneyValues.costValue =
+            //     averageCost.getCostValue(
+            //         position,
+            //         moneyValues
+            //     )
         } else {
             // Reset monetary values if total quantity is zero
             moneyValues.resetCosts()

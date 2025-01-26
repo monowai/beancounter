@@ -58,6 +58,7 @@ class TrnFxDefaultTests {
 
     @Autowired
     private lateinit var trnAdapter: TrnAdapter
+
     private val asset =
         getTestAsset(
             NASDAQ,
@@ -105,7 +106,6 @@ class TrnFxDefaultTests {
     fun `test something`() {
         val usdTradeAmount = BigDecimal("800.00")
         val nzdTradeCash = BigDecimal("-1600")
-        val tradeCashRate = usdTradeAmount.divide(nzdTradeCash).abs()
 
         val trnInput =
             TrnInput(
@@ -125,7 +125,7 @@ class TrnFxDefaultTests {
         assertThat(trns.size).isEqualTo(1)
         val trn = trns[0]
         assertThat(trn)
-            .hasFieldOrPropertyWithValue("tradeCashRate", tradeCashRate)
+            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("2.00"))
             .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
     }
 }

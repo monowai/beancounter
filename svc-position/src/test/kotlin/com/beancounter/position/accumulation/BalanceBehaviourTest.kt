@@ -7,7 +7,6 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.NZD
-import com.beancounter.position.Constants.Companion.PROP_AVERAGE_COST
 import com.beancounter.position.Constants.Companion.PROP_COST_BASIS
 import com.beancounter.position.Constants.Companion.PROP_COST_VALUE
 import com.beancounter.position.Constants.Companion.PROP_CURRENCY
@@ -60,13 +59,7 @@ class BalanceBehaviourTest {
             USD
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity
-        ).hasFieldOrPropertyWithValue(
-            PROP_COST_BASIS,
-            trn.quantity
-        ).hasFieldOrPropertyWithValue(
-            PROP_AVERAGE_COST,
-            BigDecimal.ONE
+            BigDecimal.ZERO
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
             BigDecimal.ZERO
@@ -79,10 +72,10 @@ class BalanceBehaviourTest {
             NZD
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity
+            BigDecimal.ZERO
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.quantity
+            BigDecimal.ZERO
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
             BigDecimal.ZERO

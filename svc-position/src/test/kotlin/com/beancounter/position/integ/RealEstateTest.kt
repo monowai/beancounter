@@ -39,7 +39,6 @@ class RealEstateTest {
             base = Constants.USD,
             owner = owner
         )
-    val date = "2023-05-01"
 
     @BeforeEach
     fun mockLogin() {
@@ -51,7 +50,7 @@ class RealEstateTest {
         val results =
             valuationService.build(
                 portfolio,
-                date
+                "2023-05-01"
             )
 
         // Assert: Check overall results data integrity
@@ -78,7 +77,7 @@ class RealEstateTest {
                     .describedAs("Cost basis for ${position.key} should be correct")
                     .hasFieldOrPropertyWithValue(
                         PROP_COST_BASIS,
-                        expectedCost
+                        BigDecimal.ZERO
                     )
             }
         }

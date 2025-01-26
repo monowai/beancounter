@@ -58,16 +58,16 @@ data class Trn(
     val tradeCurrency: Currency = asset.market.currency,
     @ManyToOne
     var cashAsset: Asset? = null,
-    // Trade CCY to cash settlement currency
+    // Currency of cash settlement asset
     @ManyToOne
     var cashCurrency: Currency? = cashAsset?.market?.currency,
-    // Trade Currency to system Base Currency
+    // Trade Currency to cash settlement Currency
     @Column(
         precision = 10,
         scale = 6
     )
     var tradeCashRate: BigDecimal = BigDecimal.ZERO,
-    // Trade CCY to portfolio reference  currency
+    // Trade CCY to portfolio reference currency
     @Column(
         precision = 10,
         scale = 6

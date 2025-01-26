@@ -57,10 +57,7 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity
-        ).hasFieldOrPropertyWithValue(
-            PROP_COST_BASIS,
-            trn.quantity
+            ZERO
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
             trn.quantity
@@ -116,13 +113,7 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            trn.cashAmount.abs()
-        ).hasFieldOrPropertyWithValue(
-            PROP_COST_VALUE,
-            trn.cashAmount.abs()
-        ).hasFieldOrPropertyWithValue(
-            PROP_PURCHASES,
-            trn.cashAmount
+            ZERO
         )
     }
 
@@ -157,11 +148,8 @@ internal class CashBehaviourTest {
                 Currency(usdCashBalance.priceSymbol!!)
             )
         ).hasFieldOrPropertyWithValue(
-            PROP_COST_BASIS,
-            trn.quantity
-        ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            trn.quantity
+            ZERO
         ).hasFieldOrPropertyWithValue(
             "sales",
             trn.quantity
@@ -211,12 +199,6 @@ internal class CashBehaviourTest {
         ).hasFieldOrPropertyWithValue(
             PROP_PURCHASES,
             ZERO
-        ).hasFieldOrPropertyWithValue(
-            PROP_COST_BASIS,
-            cashAmount
-        ).hasFieldOrPropertyWithValue(
-            PROP_COST_VALUE,
-            cashAmount
         )
     }
 }

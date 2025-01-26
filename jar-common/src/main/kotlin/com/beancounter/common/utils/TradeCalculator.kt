@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 /**
- * Service to compute a tradeAmount in various way
+ * Normalise critical values for a trade.
  */
 @Service
 @Import(NumberUtils::class)
@@ -62,12 +62,14 @@ class TradeCalculator(
         return rate(tradeAmount, trnInput)
     }
 
+    // Cash/TradeAmount
     private fun rate(
         tradeAmount: BigDecimal,
         trnInput: TrnInput
     ): BigDecimal =
-        MathUtils.divide(
-            tradeAmount.abs(),
-            trnInput.cashAmount.abs()
-        )
+        MathUtils
+            .divide(
+                trnInput.cashAmount,
+                tradeAmount
+            ).abs()
 }

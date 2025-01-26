@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 /**
- * Verify TradeCalculator assumptions based on the TrnInput supplied.
+ * BeanCounter will consistently _multiply_ a stored amount by the stored rate.
+ * This class tests the TradeCalculator's ability to calculate the tradeAmount, cashFxRate, and baseFxRate
+ * in the correct format
  */
 class TradeCalculatorTests {
     private val tradeCalculator = TradeCalculator(NumberUtils())
@@ -16,85 +18,53 @@ class TradeCalculatorTests {
 
     @Test
     fun `tradeAmount Calculated when no tradeAmount`() {
-        assertThat(
-            tradeCalculator.amount(
-                TrnInput(
-                    quantity = 100.0.toBigDecimal(),
-                    price = 1.0.toBigDecimal(),
-                    fees = 10.0.toBigDecimal() // Added in
-                )
-            )
-        ).usingComparator(bigDecimalComparator).isEqualTo(110.00.toBigDecimal())
+        val input = TrnInput(quantity = 100.0.toBigDecimal(), price = 1.0.toBigDecimal(), fees = 10.0.toBigDecimal())
+        assertThat(tradeCalculator.amount(input)).usingComparator(bigDecimalComparator).isEqualTo(110.00.toBigDecimal())
     }
 
     @Test
     fun `tradeAmount Not Calculated when tradeAmount supplied`() {
-        assertThat(
-            tradeCalculator.amount(
-                TrnInput(
-                    tradeAmount = 2000.00.toBigDecimal(),
-                    quantity = 100.0.toBigDecimal(),
-                    price = 1.0.toBigDecimal(),
-                    fees = 10.0.toBigDecimal() // Added in
-                )
+        val input =
+            TrnInput(
+                tradeAmount = 2000.00.toBigDecimal(),
+                quantity = 100.0.toBigDecimal(),
+                price = 1.0.toBigDecimal(),
+                fees = 10.0.toBigDecimal()
             )
-        ).isEqualTo(2000.0.toBigDecimal()) // tradeAmount overrides calculated amounts
+        assertThat(tradeCalculator.amount(input)).isEqualTo(2000.0.toBigDecimal())
     }
 
-    private val tradeAmount =
-        tradeCalculator.amount(
-            TrnInput(
-                tradeAmount = 800.00.toBigDecimal()
-            )
-        )
+    private val tradeAmount = tradeCalculator.amount(TrnInput(tradeAmount = 800.00.toBigDecimal()))
 
     @Test
     fun `cash fxRates computed when no FxRate supplied`() {
-        assertThat(
-            tradeCalculator.cashFxRate(
-                tradeAmount,
-                TrnInput(
-                    cashAmount = (-1600.0).toBigDecimal()
-                )
-            )
-        ).usingComparator(bigDecimalComparator).isEqualTo(0.50.toBigDecimal())
+        val input = TrnInput(cashAmount = (-1600.0).toBigDecimal())
+        assertThat(tradeCalculator.cashFxRate(tradeAmount, input))
+            .usingComparator(bigDecimalComparator)
+            .isEqualTo(2.00.toBigDecimal())
     }
 
     @Test
     fun `override calculated cash rate by supplying trnInput`() {
-        assertThat(
-            tradeCalculator.cashFxRate(
-                tradeAmount,
-                TrnInput(
-                    tradeCashRate = 0.60.toBigDecimal(),
-                    cashAmount = (-1600.0).toBigDecimal()
-                )
-            )
-        ).usingComparator(bigDecimalComparator).isEqualTo(0.60.toBigDecimal())
+        val input = TrnInput(tradeCashRate = 2.10.toBigDecimal(), cashAmount = (-1600.0).toBigDecimal())
+        assertThat(tradeCalculator.cashFxRate(tradeAmount, input))
+            .usingComparator(bigDecimalComparator)
+            .isEqualTo(2.10.toBigDecimal()) // Rate is set in TrnInput.
     }
 
     @Test
     fun `base fxRates computed when no FxRate supplied`() {
-        assertThat(
-            tradeCalculator.baseFxRate(
-                tradeAmount,
-                TrnInput(
-                    cashAmount = tradeAmount
-                )
-            )
-        ).usingComparator(bigDecimalComparator).isEqualTo(1.0.toBigDecimal())
+        val input = TrnInput(cashAmount = tradeAmount)
+        assertThat(tradeCalculator.baseFxRate(tradeAmount, input))
+            .usingComparator(bigDecimalComparator)
+            .isEqualTo(1.0.toBigDecimal())
     }
 
     @Test
     fun `override base rate by supplying trnInput baseRate`() {
-        assertThat(
-            tradeCalculator.baseFxRate(
-                tradeAmount,
-                TrnInput(
-                    tradeBaseRate = 0.60.toBigDecimal(),
-                    cashAmount = (-1600.0).toBigDecimal()
-                )
-            )
-        ).usingComparator(bigDecimalComparator).isEqualTo(0.60.toBigDecimal())
+        val input = TrnInput(tradeBaseRate = 0.60.toBigDecimal(), cashAmount = (-1600.0).toBigDecimal())
+        assertThat(tradeCalculator.baseFxRate(tradeAmount, input))
+            .usingComparator(bigDecimalComparator)
+            .isEqualTo(0.60.toBigDecimal())
     }
 }

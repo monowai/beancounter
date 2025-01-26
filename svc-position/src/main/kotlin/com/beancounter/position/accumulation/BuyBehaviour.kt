@@ -1,6 +1,5 @@
 package com.beancounter.position.accumulation
 
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Position.In.BASE
 import com.beancounter.common.model.Position.In.PORTFOLIO
@@ -35,11 +34,7 @@ class BuyBehaviour(
             trn,
             position,
             TRADE,
-            costRate(
-                TRADE,
-                trn.cashAsset,
-                positions
-            )
+            BigDecimal.ONE
         )
         // Use cost of cash for Base and Portfolio(?) rate if cash is impacted
         value(
@@ -47,9 +42,6 @@ class BuyBehaviour(
             position,
             PORTFOLIO,
             costRate(
-                PORTFOLIO,
-                trn.cashAsset,
-                positions,
                 trn.tradePortfolioRate
             )
         )
@@ -58,29 +50,16 @@ class BuyBehaviour(
             position,
             BASE,
             costRate(
-                BASE,
-                trn.cashAsset,
-                positions,
                 trn.tradeBaseRate
             )
         )
         return position
     }
 
-    private fun costRate(
-        valueIn: Position.In,
-        cashAsset: Asset?,
-        positions: Positions,
-        defaultRate: BigDecimal = BigDecimal.ONE
-    ): BigDecimal {
-        if (cashAsset == null) {
-            return defaultRate
-        }
-        if (positions.contains(cashAsset)) {
-            return positions.getOrCreate(cashAsset).moneyValues[valueIn]!!.averageCost
-        }
-        return defaultRate
-    }
+    // Routine is flawed and not thought through correctly
+    // Simply use the rate from the TRN.
+    // Check git history for the original implementation
+    private fun costRate(defaultRate: BigDecimal = BigDecimal.ONE): BigDecimal = defaultRate
 
     private fun value(
         trn: Trn,

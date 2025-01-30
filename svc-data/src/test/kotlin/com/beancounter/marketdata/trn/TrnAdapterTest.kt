@@ -5,7 +5,6 @@ import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
@@ -14,6 +13,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetService
@@ -92,11 +92,14 @@ internal class TrnAdapterTest {
             .thenReturn(usdCashBalance)
         Mockito
             .`when`(currencyService.getCode(USD.code))
-            .thenReturn(Currency(USD.code))
+            .thenReturn(USD)
+        Mockito
+            .`when`(currencyService.getCode(NZD.code))
+            .thenReturn(NZD)
     }
 
     @Test
-    fun buyInputToTrnComputingTradeAmount() {
+    fun `buy calcs amount and market currency`() {
         val trnInput =
             TrnInput(
                 CallerRef(
@@ -108,7 +111,6 @@ internal class TrnAdapterTest {
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
                 price = price,
-                tradeCurrency = USD.code,
                 cashAssetId =
                     toKey(
                         "USD-X",
@@ -138,6 +140,7 @@ internal class TrnAdapterTest {
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.iterator().next())
+            .hasFieldOrPropertyWithValue("tradeCurrency", USD)
             .hasFieldOrPropertyWithValue(
                 quantityProp,
                 trnInput.quantity
@@ -267,6 +270,7 @@ internal class TrnAdapterTest {
                 ),
                 asset.id,
                 trnType = TrnType.BUY,
+                tradeCurrency = NZD.code, // This overrides asset market
                 quantity = BigDecimal.TEN,
                 price = price,
                 tradeBaseRate = BigDecimal.ONE,
@@ -288,6 +292,7 @@ internal class TrnAdapterTest {
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.iterator().next())
+            .hasFieldOrPropertyWithValue("tradeCurrency", NZD) // overrides market
             .hasFieldOrPropertyWithValue(
                 quantityProp,
                 trnInput.quantity

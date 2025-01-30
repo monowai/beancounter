@@ -67,17 +67,25 @@ class TrnAdapter(
                 trnInput,
                 tradeAmount
             )
-
+        val asset = existing?.asset ?: assetService.find(trnInput.assetId!!)
+        val tradeCurrency =
+            if (trnInput.tradeCurrency.isNotBlank()) {
+                currencyService.getCode(
+                    trnInput.tradeCurrency
+                )
+            } else {
+                asset.market.currency
+            }
         return Trn(
             id = existing?.id ?: keyGenUtils.id,
             trnType = trnInput.trnType,
             tradeDate = trnInput.tradeDate,
-            asset = existing?.asset ?: assetService.find(trnInput.assetId!!),
+            asset = asset,
             quantity = quantity,
             callerRef = existing?.callerRef ?: from(trnInput.callerRef),
             price = trnInput.price,
             tradeAmount = tradeAmount,
-            tradeCurrency = currencyService.getCode(trnInput.tradeCurrency),
+            tradeCurrency = tradeCurrency,
             cashAsset = cashAsset,
             cashCurrency = cashCurrency,
             tradeCashRate = tradeCashRate,

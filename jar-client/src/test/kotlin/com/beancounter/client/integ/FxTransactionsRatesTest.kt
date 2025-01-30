@@ -65,7 +65,7 @@ class FxTransactionsRatesTest {
     @Test
     fun ratesAreSet() {
         val portfolio = PortfolioUtils.getPortfolio()
-        val trnInput = TrnInput()
+        val trnInput = TrnInput(tradeCurrency = USD.code)
         val fxRequest =
             fxTransactions.getFxRequest(
                 portfolio,

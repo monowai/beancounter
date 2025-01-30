@@ -22,7 +22,7 @@ data class TrnInput(
     val cashAssetId: String? = null,
     val trnType: TrnType = TrnType.BUY,
     val quantity: BigDecimal = BigDecimal.ZERO,
-    val tradeCurrency: String = "USD",
+    val tradeCurrency: String = "",
     val cashCurrency: String? = null,
     // Trade to Portfolio Base Rate. Calculated if zero
     var tradeBaseRate: BigDecimal = BigDecimal.ZERO,

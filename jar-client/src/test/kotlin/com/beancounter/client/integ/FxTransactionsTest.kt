@@ -204,6 +204,7 @@ class FxTransactionsTest {
                         "MSFT"
                     ).id,
                 cashCurrency = USD.code,
+                tradeCurrency = USD.code,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
                 tradeDate = DateUtils().getFormattedDate("2019-07-26"),
@@ -245,6 +246,7 @@ class FxTransactionsTest {
                         "MSFT"
                     ).id,
                 cashCurrency = USD.code,
+                tradeCurrency = USD.code,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
                 tradeDate = DateUtils().getFormattedDate("2019-07-26"),

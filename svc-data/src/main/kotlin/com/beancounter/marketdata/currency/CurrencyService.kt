@@ -56,7 +56,7 @@ class CurrencyService(
         if (result.isPresent) {
             return result.get()
         }
-        throw BusinessException("$code is an unknown currency")
+        throw BusinessException("[$code] is an unknown currency")
     }
 
     fun currencies(): Iterable<Currency> = currencyRepository.findAllByOrderByCodeAsc()

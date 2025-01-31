@@ -67,6 +67,13 @@ class BcRowAdapter(
                 MathUtils.parse(trustedTrnImportRequest.row[Columns.TradeAmount.ordinal])
             )
 
+        val tradeCurrency =
+            if (trustedTrnImportRequest.row[Columns.TradeCurrency.ordinal].isEmpty()) {
+                asset.market.currency.code
+            } else {
+                trustedTrnImportRequest.row[Columns.TradeCurrency.ordinal].trim()
+            }
+
         return TrnInput(
             callerRef =
                 CallerRef(
@@ -78,7 +85,7 @@ class BcRowAdapter(
             assetId = asset.id,
             trnType = trnType,
             quantity = quantity,
-            tradeCurrency = trustedTrnImportRequest.row[Columns.TradeCurrency.ordinal].trim(),
+            tradeCurrency = tradeCurrency,
             tradeBaseRate = tradeBaseRate,
             tradeDate = tradeDate,
             tradeAmount = tradeAmount,

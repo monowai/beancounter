@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.trn
+package com.beancounter.marketdata.trn.cash
 
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
@@ -23,6 +23,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.fx.FxRateService
+import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

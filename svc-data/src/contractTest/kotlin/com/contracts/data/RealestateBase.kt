@@ -20,13 +20,13 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.OffMarketEnricher
+import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.BcRowAdapter
 import com.beancounter.marketdata.trn.TrnService
-import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import io.restassured.RestAssured
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -63,7 +63,7 @@ class RealestateBase {
     internal lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
-    internal lateinit var cashBalancesBean: CashBalancesBean
+    internal lateinit var cashService: CashService
 
     @MockitoBean
     internal lateinit var bcRowAdapter: BcRowAdapter

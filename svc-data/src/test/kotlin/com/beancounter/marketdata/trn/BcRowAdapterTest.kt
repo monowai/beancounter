@@ -16,7 +16,6 @@ import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.trn.cash.CashServices
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -33,15 +32,15 @@ class BcRowAdapterTest {
     private val ais: AssetIngestService = Mockito.mock(AssetIngestService::class.java)
     val assetService: AssetService = Mockito.mock(AssetService::class.java)
     val currencyService: CurrencyService = Mockito.mock(CurrencyService::class.java)
-    private val cashServices =
-        CashServices(
+    private val cashTrnServices =
+        CashTrnServices(
             assetService,
             currencyService
         )
     private val rowAdapter =
         BcRowAdapter(
             ais,
-            cashServices = cashServices
+            cashTrnServices = cashTrnServices
         )
     private val csv = "CSV"
     private val portfolio: Portfolio = Portfolio(csv)

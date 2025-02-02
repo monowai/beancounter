@@ -11,7 +11,6 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.trn.cash.CashServices
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
@@ -23,7 +22,7 @@ class TrnAdapter(
     var assetService: AssetService,
     var currencyService: CurrencyService,
     var tradeCalculator: TradeCalculator,
-    val cashServices: CashServices,
+    val cashTrnServices: CashTrnServices,
     val fxTransactions: FxTransactions,
     val keyGenUtils: KeyGenUtils
 ) {
@@ -48,7 +47,7 @@ class TrnAdapter(
             trnInput
         )
 
-        val cashAsset = cashServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
+        val cashAsset = cashTrnServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
             cashCurrency =
@@ -63,7 +62,7 @@ class TrnAdapter(
 
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
         val cashAmount =
-            cashServices.getCashImpact(
+            cashTrnServices.getCashImpact(
                 trnInput,
                 tradeAmount
             )

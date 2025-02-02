@@ -10,6 +10,8 @@ import java.util.stream.Stream
  * CRUD interface for Asset details.
  */
 interface AssetRepository : CrudRepository<Asset, String> {
+    fun findByMarketCode(marketCode: String): List<Asset>
+
     fun findByMarketCodeAndCode(
         marketCode: String,
         code: String

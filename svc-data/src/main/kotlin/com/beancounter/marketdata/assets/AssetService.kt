@@ -189,6 +189,8 @@ class AssetService(
             assetHydrationService.hydrateAsset(asset)
         }
 
+    fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
+
     companion object {
         private val log = LoggerFactory.getLogger(AssetService::class.java)
     }

@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.cash
+package com.beancounter.marketdata.trn.cash
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
@@ -11,7 +11,7 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.trn.cash.CashServices
+import com.beancounter.marketdata.trn.CashTrnServices
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -20,13 +20,13 @@ import java.math.BigDecimal
 /**
  * Cash can be a tricky beast. Abstract out specific cash handling routines to allow for new uses cases.
  */
-internal class CashServicesTest {
+internal class CashTrnServicesTest {
     private val nzCashAssetId = "${NZD.code} Cash"
     private val usCashAssetId = "${USD.code} Cash"
 
     private val assetService = Mockito.mock(AssetService::class.java)
-    private val cashServices =
-        CashServices(
+    private val cashTrnServices =
+        CashTrnServices(
             assetService,
             Mockito.mock(CurrencyService::class.java)
         )
@@ -53,7 +53,7 @@ internal class CashServicesTest {
                     )
                 )
             ).thenReturn(nzdCashBalance)
-        assertThat(cashServices.getCashAsset(trnInput))
+        assertThat(cashTrnServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency))
             .isEqualTo(nzdCashBalance)
     }
 
@@ -80,7 +80,7 @@ internal class CashServicesTest {
                     )
                 )
             ).thenReturn(nzdCashBalance)
-        assertThat(cashServices.getCashAsset(trnInput))
+        assertThat(cashTrnServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency))
             .isEqualTo(nzdCashBalance)
     }
 
@@ -99,7 +99,7 @@ internal class CashServicesTest {
                 tradeCashRate = BigDecimal.ONE
             )
 
-        assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(
+        assertThat(cashTrnServices.getCashImpact(debitInput)).isEqualTo(
             BigDecimal("-2222.333")
         ) // Fx of 1.00
     }
@@ -116,7 +116,7 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE
             )
-        assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(
+        assertThat(cashTrnServices.getCashImpact(debitInput)).isEqualTo(
             BigDecimal("-5000.00")
         ) // Fx of 1.00
     }
@@ -133,7 +133,7 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE
             )
-        assertThat(cashServices.getCashImpact(creditInput)).isEqualTo(
+        assertThat(cashTrnServices.getCashImpact(creditInput)).isEqualTo(
             BigDecimal("5000.00")
         ) // Fx of 1.00
     }
@@ -150,7 +150,7 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE
             )
-        assertThat(cashServices.getCashImpact(splitInput)).isEqualTo(BigDecimal.ZERO) // Fx of 1.00
+        assertThat(cashTrnServices.getCashImpact(splitInput)).isEqualTo(BigDecimal.ZERO) // Fx of 1.00
     }
 
     @Test
@@ -165,7 +165,7 @@ internal class CashServicesTest {
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE
             )
-        assertThat(cashServices.getCashImpact(fxBuy)).isEqualTo(
+        assertThat(cashTrnServices.getCashImpact(fxBuy)).isEqualTo(
             BigDecimal("-5000.00")
         ) // Fx of 1.00
     }

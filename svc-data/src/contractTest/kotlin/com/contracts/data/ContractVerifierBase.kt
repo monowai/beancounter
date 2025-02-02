@@ -6,7 +6,7 @@ import com.beancounter.auth.TokenService
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserService
-import com.beancounter.marketdata.trn.cash.CashServices
+import com.beancounter.marketdata.trn.CashTrnServices
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -49,7 +49,7 @@ class ContractVerifierBase {
     internal lateinit var systemUserService: SystemUserService
 
     @MockitoBean
-    internal lateinit var mockCashServices: CashServices
+    internal lateinit var mockCashTrnServices: CashTrnServices
 
     @BeforeEach
     fun mock() {

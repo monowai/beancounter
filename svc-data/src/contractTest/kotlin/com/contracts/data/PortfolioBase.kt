@@ -9,9 +9,9 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
-import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +33,7 @@ class PortfolioBase : ContractVerifierBase() {
     private lateinit var portfolioRepository: PortfolioRepository
 
     @MockitoBean
-    internal lateinit var cashBalancesBean: CashBalancesBean
+    internal lateinit var cashService: CashService
 
     @Autowired
     internal lateinit var authUtilService: AuthUtilService

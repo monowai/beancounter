@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.cash
+package com.beancounter.marketdata.trn.cash
 
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions

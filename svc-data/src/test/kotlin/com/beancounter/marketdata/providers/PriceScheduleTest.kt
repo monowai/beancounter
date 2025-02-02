@@ -11,9 +11,9 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
+import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
-import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
@@ -45,7 +45,7 @@ class PriceScheduleTest {
     private lateinit var alphaPriceService: AlphaPriceService
 
     @MockitoBean
-    private lateinit var cashBalancesBean: CashBalancesBean
+    private lateinit var cashService: CashService
 
     @Autowired
     private lateinit var marketDataService: MarketDataService

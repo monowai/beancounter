@@ -8,6 +8,7 @@ import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.assets.AssetRepository
+import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.alpha.AlphaGateway
 import com.beancounter.marketdata.providers.alpha.F_CHANGE
@@ -18,7 +19,6 @@ import com.beancounter.marketdata.providers.alpha.F_OPEN
 import com.beancounter.marketdata.providers.alpha.F_PREVIOUS_CLOSE
 import com.beancounter.marketdata.providers.alpha.F_PRICE
 import com.beancounter.marketdata.providers.alpha.F_VOLUME
-import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.ArgumentMatchers.anyString
@@ -40,7 +40,7 @@ class PricesBase : ContractVerifierBase() {
     private lateinit var marketDataRepo: MarketDataRepo
 
     @MockitoBean
-    private lateinit var cashBalancesBean: CashBalancesBean
+    private lateinit var cashService: CashService
 
     @MockitoBean
     private lateinit var dateUtils: DateUtils

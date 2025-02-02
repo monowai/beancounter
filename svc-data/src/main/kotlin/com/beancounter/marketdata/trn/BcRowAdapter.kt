@@ -12,7 +12,6 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.trn.TrnIoDefinition.Columns
-import com.beancounter.marketdata.trn.cash.CashServices
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -22,7 +21,7 @@ import java.time.LocalDate
 @Service
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,
-    val cashServices: CashServices,
+    val cashTrnServices: CashTrnServices,
     val dateUtils: DateUtils = DateUtils()
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
@@ -108,7 +107,7 @@ class BcRowAdapter(
             if (TrnType.isCash(trnType)) {
                 asset
             } else {
-                cashServices.getCashAsset(
+                cashTrnServices.getCashAsset(
                     trnType,
                     cashAccount,
                     cashCurrency

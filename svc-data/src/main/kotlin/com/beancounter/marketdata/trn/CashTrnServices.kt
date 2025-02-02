@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.trn.cash
+package com.beancounter.marketdata.trn
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
@@ -8,6 +8,7 @@ import com.beancounter.common.model.TrnType.Companion.creditsCash
 import com.beancounter.common.model.TrnType.Companion.debitsCash
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.cash.CASH
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -16,7 +17,7 @@ import java.math.BigDecimal
  * Cash calculation services for a pre-populated TrnInput.
  */
 @Service
-class CashServices(
+class CashTrnServices(
     val assetService: AssetService,
     val currencyService: CurrencyService
 ) {
@@ -77,8 +78,4 @@ class CashServices(
             trnInput.cashAssetId,
             trnInput.cashCurrency
         )
-
-    companion object {
-        const val CASH = "CASH"
-    }
 }

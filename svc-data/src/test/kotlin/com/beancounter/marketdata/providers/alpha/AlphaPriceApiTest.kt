@@ -41,7 +41,7 @@ import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAdjustedRes
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAlphaAssets
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockSearchResponse
 import com.beancounter.marketdata.providers.marketstack.MarketStackService
-import com.beancounter.marketdata.trn.cash.CashServices
+import com.beancounter.marketdata.trn.CashTrnServices
 import com.beancounter.marketdata.utils.DateUtilsMocker
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -106,7 +106,7 @@ internal class AlphaPriceApiTest {
     private lateinit var priceService: PriceService
 
     @MockitoBean
-    private lateinit var cashServices: CashServices
+    private lateinit var cashTrnServices: CashTrnServices
 
     @Autowired
     private lateinit var assetService: AssetService

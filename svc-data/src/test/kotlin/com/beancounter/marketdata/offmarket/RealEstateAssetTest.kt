@@ -12,9 +12,9 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +31,7 @@ class RealEstateAssetTest {
     private lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
-    private lateinit var cashBalancesBean: CashBalancesBean
+    private lateinit var cashService: CashService
 
     @Autowired
     private lateinit var assetService: AssetService

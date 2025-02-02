@@ -20,7 +20,6 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketConfig
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.trn.cash.CashServices
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -41,7 +40,7 @@ import java.util.Locale
     classes = [
         TrnAdapter::class,
         TradeCalculator::class,
-        CashServices::class,
+        CashTrnServices::class,
         MarketConfig::class,
         KeyGenUtils::class
     ]

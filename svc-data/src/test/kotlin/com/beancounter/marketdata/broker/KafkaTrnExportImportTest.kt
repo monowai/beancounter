@@ -33,9 +33,9 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.CashTrnServices
 import com.beancounter.marketdata.trn.TrnImportService
 import com.beancounter.marketdata.trn.TrnService
-import com.beancounter.marketdata.trn.cash.CashServices
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.kafka.clients.consumer.Consumer
@@ -114,7 +114,7 @@ class KafkaTrnExportImportTest {
     private lateinit var fxService: FxRateService
 
     @MockitoBean
-    private lateinit var cashServices: CashServices
+    private lateinit var cashTrnServices: CashTrnServices
 
     @Autowired
     private lateinit var authUtilService: AuthUtilService
@@ -135,7 +135,7 @@ class KafkaTrnExportImportTest {
         assertThat(fxTransactions).isNotNull
         assertThat(mdFactory).isNotNull
         `when`(
-            cashServices.getCashImpact(
+            cashTrnServices.getCashImpact(
                 any(),
                 any()
             )

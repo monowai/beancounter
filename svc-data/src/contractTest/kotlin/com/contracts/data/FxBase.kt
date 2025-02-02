@@ -3,11 +3,11 @@ package com.contracts.data
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.fx.EcbMockUtils
 import com.beancounter.marketdata.fx.FxRateRepository
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
 import com.beancounter.marketdata.fx.fxrates.FxGateway
-import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -72,7 +72,7 @@ class FxBase : ContractVerifierBase() {
     private val usdNzdRate = "1.5053869635"
 
     @MockitoBean
-    internal lateinit var cashBalancesBean: CashBalancesBean
+    internal lateinit var cashService: CashService
 
     @BeforeEach
     fun setupRates() {

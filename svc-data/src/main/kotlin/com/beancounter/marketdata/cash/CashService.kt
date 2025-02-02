@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.trn.cash
+package com.beancounter.marketdata.cash
 
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
@@ -8,12 +8,14 @@ import com.beancounter.marketdata.currency.CurrencyService
 import jakarta.transaction.Transactional
 import org.springframework.context.annotation.Configuration
 
+const val CASH = "CASH"
+
 /**
- * Persists the currency objects for each supported market.
+ * Cash Management Services.
  */
 @Configuration
 @Transactional
-class CashBalancesBean(
+class CashService(
     val currencyService: CurrencyService,
     val assetService: AssetService
 ) {
@@ -29,4 +31,6 @@ class CashBalancesBean(
             assetService.handle(assetRequest)
         }
     }
+
+    fun find() = assetService.findByMarketCode(CASH)
 }

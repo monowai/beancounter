@@ -9,7 +9,6 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.trn.cash.CashServices.Companion.CASH
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

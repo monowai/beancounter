@@ -101,6 +101,39 @@ class IrrCalculatorTests {
     }
 
     @Test
+    fun testCalculateIRR_NoMarketOrCostValue() {
+        testCalculateIRR(
+            listOf(
+                START_DATE to 0.0,
+                "2024-01-05" to 0.0
+            ),
+            0.0 // Not sure if this is correct
+        )
+    }
+
+    @Test
+    fun testCalculateIRR_NoMarketValue() {
+        testCalculateIRR(
+            listOf(
+                START_DATE to initialCost,
+                "2024-01-05" to 0.0
+            ),
+            -1.0 // Not sure if this is correct
+        )
+    }
+
+    @Test
+    fun testCalculateIRR_NoCost() {
+        testCalculateIRR(
+            listOf(
+                START_DATE to 0.0,
+                "2024-01-05" to marketValue
+            ),
+            0.0
+        )
+    }
+
+    @Test
     fun testCalculateIRR_ShortHoldingPeriodSingleDividend() {
         testCalculateIRR(
             listOf(

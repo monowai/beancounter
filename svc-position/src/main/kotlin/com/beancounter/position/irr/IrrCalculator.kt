@@ -36,6 +36,16 @@ class IrrCalculator(
             log.warn("No cash flows to calculate IRR")
             return 0.0
         }
+
+        val firstCashFlow = periodicCashFlows.cashFlows.minByOrNull { it.date }?.amount ?: BigDecimal.ZERO
+        val lastCashFlow = periodicCashFlows.cashFlows.maxByOrNull { it.date }?.amount ?: BigDecimal.ZERO
+
+        if (firstCashFlow == 0.0 || (lastCashFlow == 0.0 && firstCashFlow == 0.0)) {
+            log.warn("Unable to calculate XIRR. First cash flow: $firstCashFlow, last cash flow: $lastCashFlow")
+            return 0.0
+        }
+        log.trace("First cash flow: $firstCashFlow, last cash flow: $lastCashFlow")
+
         val firstDate = periodicCashFlows.cashFlows.minByOrNull { it.date }?.date ?: LocalDate.now()
         val lastDate = periodicCashFlows.cashFlows.maxByOrNull { it.date }?.date ?: LocalDate.now()
 
@@ -74,6 +84,7 @@ class IrrCalculator(
                 periodicCashFlows,
                 firstDate
             )
+
         val result =
             solver.solve(
                 1000,

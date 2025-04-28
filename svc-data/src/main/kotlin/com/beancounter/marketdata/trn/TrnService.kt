@@ -72,11 +72,11 @@ class TrnService(
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
         if (trnRequest.data.size == 1) {
-            log.debug(
+            log.trace(
                 "Wrote 1 transaction asset: ${trnRequest.data[0].assetId}, portfolio: ${portfolio.code}"
             )
         } else {
-            log.debug(
+            log.trace(
                 "Wrote ${results.size}/${trnRequest.data.size} transactions for ${portfolio.code}"
             )
         }
@@ -125,7 +125,7 @@ class TrnService(
     }
 
     private fun postProcess(trns: List<Trn>): List<Trn> {
-        log.debug("PostProcess ${trns.size} transactions")
+        log.trace("PostProcess ${trns.size} transactions")
         val assets =
             trns
                 .flatMap {

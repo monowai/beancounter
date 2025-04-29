@@ -27,7 +27,6 @@ class EventSchedule(
         zone = "#{@scheduleZone}"
     )
     fun processEventsForRange() {
-        log.info("Checking for corporate events to process")
         if (loginService != null) {
             loginService!!.setAuthContext(loginService!!.loginM2m())
         }
@@ -41,9 +40,11 @@ class EventSchedule(
         for (event in events) {
             eventService.processEvent(event)
         }
-        if (!events.isEmpty()) {
+        if (events.isEmpty()) {
+            log.info("No corporate events to process")
+        } else {
             log.info(
-                "Processed {} events",
+                "{} corporate events processed",
                 events.size
             )
         }

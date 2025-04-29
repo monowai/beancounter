@@ -43,7 +43,7 @@ class LoginService(
                 password
             )
         val response = authGateway.login(passwordRequest)
-        log.info("Logged in $user")
+        log.debug("Logged in $user")
         return response
     }
 
@@ -75,7 +75,7 @@ class LoginService(
                 client_id = authConfig.clientId,
                 audience = authConfig.audience
             )
-        log.info("m2mLogin: ${authConfig.clientId}")
+        log.trace("m2mLogin: ${authConfig.clientId}")
         return setAuthContext(authGateway.login(login))
     }
 

@@ -110,6 +110,7 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
+                  echo "GH_GCR is ${#GH_GCR} characters long"
                   echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \

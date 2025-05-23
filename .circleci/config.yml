@@ -110,11 +110,11 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker login ghcr.io -u $DOCKER_USER --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-shell:latest" \
-                                      -t "monowai/bc-shell:${STACK_VER}" \
+                                      -t "ghcr.io/monowai/bc-shell:latest" \
+                                      -t "ghcr.io/monowai/bc-shell:${STACK_VER}" \
                                        ~/project/jar-shell/.
       - persist_to_workspace:
           root: ~/project
@@ -160,11 +160,11 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker login ghcr.io -u $DOCKER_USER --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-data:latest" \
-                                      -t "monowai/bc-data:${STACK_VER}" \
+                                      -t "ghcr.io/monowai/bc-data:latest" \
+                                      -t "ghcr.io/monowai/bc-data:${STACK_VER}" \
                                        ~/project/svc-data/.
             - persist_to_workspace:
                 root: ~/project
@@ -203,11 +203,11 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker ghcr.io login -u $DOCKER_USER --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-position:latest" \
-                                      -t "monowai/bc-position:${STACK_VER}" \
+                                      -t "ghcr.io/monowai/bc-position:latest" \
+                                      -t "ghcr.io/monowai/bc-position:${STACK_VER}" \
                                        ~/project/svc-position/.
             - persist_to_workspace:
                 root: ~/project
@@ -245,11 +245,11 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker login ghcr.io -u $DOCKER_USER --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-event:latest" \
-                                      -t "monowai/bc-event:${STACK_VER}" \
+                                      -t "ghcr.io/monowai/bc-event:latest" \
+                                      -t "ghcr.io/monowai/bc-event:${STACK_VER}" \
                                        ~/project/svc-event/.
 
             - persist_to_workspace:

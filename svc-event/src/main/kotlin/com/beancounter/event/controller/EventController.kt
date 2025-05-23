@@ -63,6 +63,7 @@ class EventController(
     ) {
         eventLoader.loadEvents(fromDate)
         val portfolios = portfolioService.portfolios
+        log.info("Backfill events for portfolioCount: ${portfolios.data.size}, from: $fromDate, to: $toDate")
         for (portfolio in portfolios.data) {
             log.info("BackFilling ${portfolio.code}, $fromDate to $toDate")
             backFillService.backFillEvents(

@@ -20,7 +20,7 @@ dependencies {
             libs.spring.security.jose,
             libs.spring.kafka,
             "com.github.ben-manes.caffeine:caffeine:3.2.0",
-            "com.opencsv:opencsv:5.9"
+            "com.opencsv:opencsv:5.11"
     )
     testImplementation(
             libs.assertj,

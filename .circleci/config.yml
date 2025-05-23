@@ -110,7 +110,7 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$GH_GCR" | docker login ghcr.io -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "ghcr.io/monowai/bc-shell:latest" \
@@ -160,7 +160,7 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$GH_GCR" | docker login ghcr.io -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "ghcr.io/monowai/bc-data:latest" \
@@ -203,7 +203,7 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$GH_GCR" | docker ghcr.io login -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker ghcr.io login -u "$DOCKER_USER" --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "ghcr.io/monowai/bc-position:latest" \
@@ -245,7 +245,7 @@ jobs:
                   docker buildx create --use
                   docker buildx inspect
                   docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$GH_GCR" | docker login ghcr.io -u $DOCKER_USER --password-stdin
+                  echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "ghcr.io/monowai/bc-event:latest" \

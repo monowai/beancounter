@@ -1,4 +1,4 @@
-FROM monowai/eclipse-temurin:21.0.6_7-jre-sentry
+FROM monowai/eclipse-temurin:21.0.7_6-jre-sentry7
 
 ARG JAR_FILE=build/libs/svc-position-0.1.1.jar
 ARG GIT_COMMIT

@@ -1,5 +1,7 @@
 package com.beancounter.event.service
 
+import com.beancounter.auth.client.LoginService
+import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.event.CorporateEvent
@@ -24,7 +26,8 @@ class EventLoader(
     private val positionService: PositionService,
     private val priceService: PriceService,
     private val eventService: EventService,
-    private val dateSplitter: DateSplitter
+    private val dateSplitter: DateSplitter,
+    private val loginService: LoginService
 ) {
     // private val authContext: OpenIdResponse = loginService.loginM2m()
 
@@ -42,12 +45,14 @@ class EventLoader(
         date: String
     ) {
         val portfolio = portfolioService.getPortfolioById(portfolioId)
+        val authContext = loginService.loginM2m()
+        loginService.setAuthContext(authContext)
         runBlocking {
             val dates = dateSplitter.dateRange(date, "today")
             log.info("Loading missing events from date: $dates, portfolio: ${portfolio.code}/$portfolioId")
             for (processDate in dates) {
                 launch {
-                    val events = loadEvents(portfolio, processDate)
+                    val events = loadEvents(portfolio, processDate, authContext)
                     if (events > 0) {
                         log.trace("Loaded $events events for portfolio: ${portfolio.code}/$portfolioId")
                     }
@@ -58,9 +63,10 @@ class EventLoader(
 
     private fun loadEvents(
         portfolio: Portfolio,
-        date: LocalDate
+        date: LocalDate,
+        authContext: OpenIdResponse
     ): Int {
-        // loginService.setAuthContext(authContext)
+        loginService.setAuthContext(authContext)
         val positionResponse = positionService.getPositions(portfolio, date.toString())
         if (positionResponse.data.positions.values
                 .isEmpty()
@@ -73,7 +79,7 @@ class EventLoader(
         val tasks: List<Callable<Int>> =
             positionResponse.data.positions.values.map { position ->
                 Callable {
-                    val events = load(position, date)
+                    val events = load(position, date, authContext)
                     if (events != 0) {
                         backFillService.backFillEvents(portfolio.id, date.toString())
                         log.trace("Published: $events nominal events")
@@ -97,11 +103,12 @@ class EventLoader(
 
     private fun load(
         position: Position,
-        date: LocalDate
+        date: LocalDate,
+        authContext: OpenIdResponse
     ): Int {
         var eventCount = 0
         if (positionService.includePosition(position)) {
-            // loginService.setAuthContext(authContext)
+            loginService.setAuthContext(authContext)
             val events = priceService.getEvents(position.asset.id)
             for (priceResponse in events.data) {
                 if (date.compareTo(priceResponse.priceDate) == 0) {

@@ -7,6 +7,7 @@ import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
@@ -65,6 +66,7 @@ class LoginService(
      *
      * @return token
      */
+    @Cacheable("auth.m2m")
     fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
         if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")

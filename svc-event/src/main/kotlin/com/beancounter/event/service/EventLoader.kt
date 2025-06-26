@@ -44,6 +44,7 @@ class EventLoader(
         val portfolio = portfolioService.getPortfolioById(portfolioId)
         runBlocking {
             val dates = dateSplitter.dateRange(date, "today")
+            log.info("Loading missing events from date: $dates, portfolio: ${portfolio.code}/$portfolioId")
             for (processDate in dates) {
                 launch {
                     val events = loadEvents(portfolio, processDate)
@@ -89,8 +90,6 @@ class EventLoader(
             log.debug(
                 "portfolio: ${portfolio.code}, id: ${portfolio.id}. Dispatched: $totalEvents nominal events, date: $date"
             )
-        } else {
-            log.trace("No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date")
         }
 
         return totalEvents

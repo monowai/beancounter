@@ -142,6 +142,7 @@ class AlphaEventAdapter(
             price = corporateEvent.rate,
             status = TrnStatus.PROPOSED,
             cashCurrency = currentPosition.asset.market.currency.code,
+            tradeCurrency = currentPosition.asset.market.currency.code,
             tax = tax
         )
     }

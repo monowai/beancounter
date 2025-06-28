@@ -3,6 +3,9 @@ server:
   servlet:
     context-path: '/api'
 
+springdoc:
+  use-management-port: true
+
 management:
   server:
     port: 9501

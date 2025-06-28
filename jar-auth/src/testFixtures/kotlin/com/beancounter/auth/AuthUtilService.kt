@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AuthUtilService(
-    val authConfig: AuthConfig,
     val jwtDecoder: JwtDecoder,
     val tokenService: TokenService,
     val tokenUtils: TokenUtils

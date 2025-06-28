@@ -1,6 +1,5 @@
 package com.beancounter.marketdata
 
-import com.beancounter.auth.server.WebAuthFilterConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.client.sharesight.ShareSightConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -12,7 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
  * Data persistence service.
  */
 @SpringBootApplication(
-    scanBasePackageClasses = [WebAuthFilterConfig::class, FxTransactions::class, ShareSightConfig::class],
+    scanBasePackageClasses = [FxTransactions::class, ShareSightConfig::class],
     scanBasePackages = [
         "com.beancounter.auth",
         "com.beancounter.common.utils",

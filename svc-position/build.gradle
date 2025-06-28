@@ -34,6 +34,8 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-logging",
             libs.sentry.openfeign,
+            libs.spring.doc,
+            libs.spring.doc.mvc,
             "org.springframework.boot:spring-boot-starter-aop",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
             "org.springframework.boot:spring-boot-starter-security",

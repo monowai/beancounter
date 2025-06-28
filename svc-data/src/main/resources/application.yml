@@ -6,6 +6,8 @@ server:
 schedule:
   enabled: false
 
+springdoc:
+  use-management-port: true
 
 management:
   server:
@@ -116,7 +118,7 @@ spring:
     generate-ddl: true
     show-sql: false
     hibernate:
-        ddl-auto: update
+      ddl-auto: update
     properties:
       hibernate:
         globally_quoted_identifiers: true

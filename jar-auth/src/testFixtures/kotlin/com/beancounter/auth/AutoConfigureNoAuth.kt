@@ -1,6 +1,5 @@
 package com.beancounter.auth
 
-import org.springframework.context.annotation.Import
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.test.context.TestPropertySource
 
@@ -10,9 +9,6 @@ import org.springframework.test.context.TestPropertySource
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-@Import(
-    NoWebAuth::class
-)
 @TestPropertySource(
     properties = [
         "auth.enabled=false",

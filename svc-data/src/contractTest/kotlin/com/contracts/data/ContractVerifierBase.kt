@@ -1,8 +1,8 @@
 package com.contracts.data
 
 import com.beancounter.auth.AutoConfigureNoAuth
-import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
+import com.beancounter.auth.server.NoAuthSecurityConfig
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserService
@@ -28,7 +28,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @AutoConfigureNoAuth
 @Import(
     ContractHelper::class,
-    NoWebAuth::class
+    NoAuthSecurityConfig::class
 )
 class ContractVerifierBase {
     @LocalServerPort

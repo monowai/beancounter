@@ -1,17 +1,15 @@
 package com.beancounter.position
 
-import com.beancounter.auth.server.WebAuthFilterConfig
 import com.beancounter.client.config.ClientConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.runApplication
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 
 /**
  * Boot all the things.
  */
 @SpringBootApplication(
-    scanBasePackageClasses = [WebAuthFilterConfig::class, ClientConfig::class],
+    scanBasePackageClasses = [ClientConfig::class],
     exclude = [DataSourceAutoConfiguration::class],
     scanBasePackages = [
         "com.beancounter.position",
@@ -21,7 +19,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
         "com.beancounter.common.exception"
     ]
 )
-@EnableWebSecurity
 class PositionBoot
 
 fun main(args: Array<String>) {

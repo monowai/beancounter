@@ -1,6 +1,6 @@
 auth:
   enabled: false
-  web: true
+  web: false
 beancounter:
   market:
     providers:

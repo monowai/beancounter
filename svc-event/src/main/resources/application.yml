@@ -10,6 +10,9 @@ sentry:
   traces-sample-rate: 1
   debug: false
 
+springdoc:
+  use-management-port: true
+
 management:
   server:
     port: 9521

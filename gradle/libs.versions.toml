@@ -4,7 +4,7 @@
 [versions]
 kotlin = "1.9.25"
 kotlinter = "5.0.2"
-spring-boot = "3.4.6"
+spring-boot = "3.5.3"
 spring-cloud = "2024.0.1"
 spring-cloud-contract = "4.3.0"
 spring-kafka = "3.3.2"

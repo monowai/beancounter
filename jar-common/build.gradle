@@ -23,7 +23,7 @@ dependencies {
             "org.springframework:spring-web",
             "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.kafka:spring-kafka",
-            "org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0",
+            "org.springframework.cloud:spring-cloud-starter-openfeign:4.3.0",
             libs.commons.io,
             libs.guava
     )

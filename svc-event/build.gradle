@@ -28,6 +28,8 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-actuator",
             "org.springframework.boot:spring-boot-starter-integration",
             libs.sentry.openfeign,
+            libs.spring.doc,
+            libs.spring.doc.mvc,
             "org.jetbrains.kotlinx:kotlinx-coroutines-core",
             "org.jetbrains.kotlinx:kotlinx-coroutines-reactor",
             "com.fasterxml.jackson.module:jackson-module-kotlin",

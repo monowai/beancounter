@@ -1,12 +1,18 @@
 package com.beancounter.auth
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Configuration
 
 /**
  * Authentication Configuration.
  */
 @Configuration
+@ConditionalOnProperty(
+    value = ["auth.enabled"],
+    havingValue = "true",
+    matchIfMissing = true
+)
 class AuthConfig(
     @Value("\${auth.email:\${auth.audience}/claims/email}")
     var claimEmail: String

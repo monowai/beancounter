@@ -16,6 +16,7 @@ class EventSchedule(
     private val dateUtils: DateUtils
 ) {
     private var loginService: LoginService? = null
+    private val log = LoggerFactory.getLogger(EventSchedule::class.java)
 
     @Autowired(required = false)
     fun setLoginService(loginService: LoginService?) {
@@ -44,13 +45,9 @@ class EventSchedule(
             log.info("No corporate events to process")
         } else {
             log.info(
-                "{} corporate events processed",
+                "{} corporate events analyzed",
                 events.size
             )
         }
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(EventSchedule::class.java)
     }
 }

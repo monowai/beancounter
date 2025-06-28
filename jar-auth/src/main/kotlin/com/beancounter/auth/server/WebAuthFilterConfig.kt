@@ -74,7 +74,11 @@ class WebAuthFilterConfig {
         http
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
-                auth.requestMatchers("$apiPath/auth").permitAll() // Get your token
+                auth.requestMatchers("$actuatorPath/openapi/**").permitAll() // API Docs
+                auth.requestMatchers("$actuatorPath/swagger-ui/**").permitAll() // API Docs
+                auth.requestMatchers("$apiPath/auth").permitAll()
+                auth.requestMatchers("$apiPath/docs/**").permitAll()
+                auth.requestMatchers("$apiPath/swagger-ui/**").permitAll()
                 auth
                     .requestMatchers("$apiPath/**")
                     .hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users

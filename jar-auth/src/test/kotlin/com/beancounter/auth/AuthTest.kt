@@ -129,6 +129,20 @@ class AuthTest {
         assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
+    @Test
+    fun swaggerUi_IsAccessibleWithoutAuthentication() {
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/swagger-ui/index.html")
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        assertThat(result.response.status).isEqualTo(HttpStatus.OK.value())
+    }
+
     @RestController
     internal class SimpleController {
         @GetMapping(HELLO)
@@ -138,5 +152,8 @@ class AuthTest {
         @GetMapping(WHAT)
         @PreAuthorize("hasAuthority('${AuthConstants.ADMIN}')")
         fun sayWhat(): String = "no one can call this"
+
+        @GetMapping("/api/swagger-ui/index.html")
+        fun swaggerUi(): String = "swagger-ui"
     }
 }

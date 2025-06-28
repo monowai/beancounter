@@ -3,7 +3,7 @@ package com.beancounter.auth
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder
 import com.nimbusds.jose.proc.SecurityContext
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,11 +27,7 @@ import java.time.Duration
  * @see com.beancounter.auth.MockAuthConfig
  */
 @Configuration
-@ConditionalOnProperty(
-    value = ["auth.enabled"],
-    havingValue = "true",
-    matchIfMissing = false
-)
+@ConditionalOnBean(AuthConfig::class)
 @Import(AuthConfig::class)
 class OAuthConfig {
     @Bean

@@ -13,7 +13,7 @@ import org.springframework.test.context.ContextConfiguration
  */
 @SpringBootTest(properties = ["auth.enabled=false"])
 @EnableWebSecurity
-@ContextConfiguration(classes = [TokenService::class, NoWebAuth::class, AuthConfig::class])
+@ContextConfiguration(classes = [NoWebAuth::class, AuthConfig::class])
 class NoAuthWebTest {
     @Autowired
     lateinit var springContext: ApplicationContext

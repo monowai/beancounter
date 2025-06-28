@@ -35,6 +35,8 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
+            libs.spring.doc,
+            libs.spring.doc.mvc,
             libs.sentry.openfeign,
             "io.sentry:sentry-jdbc",
             "org.springframework.boot:spring-boot-starter-aop",

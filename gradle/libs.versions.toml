@@ -3,7 +3,7 @@
 
 [versions]
 kotlin = "1.9.25"
-kotlinter = "5.0.2"
+kotlinter = "5.1.1"
 spring-boot = "3.4.6"
 spring-cloud = "2024.0.1"
 spring-cloud-contract = "4.3.0"

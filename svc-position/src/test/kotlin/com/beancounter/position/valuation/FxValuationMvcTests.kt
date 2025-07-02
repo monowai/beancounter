@@ -1,6 +1,5 @@
 package com.beancounter.position.valuation
 
-import IrrCalculator
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.Assets
@@ -21,6 +20,7 @@ import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
 import com.beancounter.position.StubbedTest
 import com.beancounter.position.accumulation.Accumulator
+import com.beancounter.position.irr.IrrCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

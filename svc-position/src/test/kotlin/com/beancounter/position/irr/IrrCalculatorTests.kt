@@ -1,6 +1,5 @@
 package com.beancounter.position.irr
 
-import IrrCalculator
 import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType

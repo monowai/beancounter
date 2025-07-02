@@ -1,3 +1,5 @@
+package com.beancounter.position.irr
+
 import com.beancounter.common.model.PeriodicCashFlows
 import org.apache.commons.math3.analysis.UnivariateFunction
 import org.apache.commons.math3.analysis.solvers.BrentSolver
@@ -19,6 +21,7 @@ class IrrCalculator(
     @Value("\${beancounter.irr:225}") private val minHoldingDays: Int = 225
 ) {
     private val solver: UnivariateSolver = BrentSolver()
+    private val log = LoggerFactory.getLogger(IrrCalculator::class.java)
 
     /**
      * Calculates the IRR for a set of periodic cash flows.
@@ -54,11 +57,7 @@ class IrrCalculator(
                 lastDate
             ) < minHoldingDays
         ) {
-            if (BigDecimal.ZERO.compareTo(roi) == 0) {
-                calculateSimpleROI(periodicCashFlows)
-            } else {
-                roi.toDouble()
-            }
+            calculateSimpleRoi(periodicCashFlows)
         } else {
             calculateXIRR(
                 periodicCashFlows,
@@ -68,7 +67,7 @@ class IrrCalculator(
         }
     }
 
-    private fun calculateSimpleROI(periodicCashFlows: PeriodicCashFlows): Double {
+    fun calculateSimpleRoi(periodicCashFlows: PeriodicCashFlows): Double {
         val initialInvestment = periodicCashFlows.cashFlows.first().amount
         val finalValue = periodicCashFlows.cashFlows.sumOf { it.amount }
         return finalValue / initialInvestment.absoluteValue
@@ -114,9 +113,5 @@ class IrrCalculator(
                         ) / 365.0
                     )
             }
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(IrrCalculator::class.java)
     }
 }

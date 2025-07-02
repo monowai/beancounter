@@ -1,6 +1,5 @@
 package com.beancounter.position.service
 
-import IrrCalculator
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.client.services.PriceService
@@ -16,6 +15,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PercentUtils
+import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue

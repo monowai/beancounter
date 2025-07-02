@@ -16,7 +16,7 @@ import kotlin.math.pow
  */
 @Service
 class IrrCalculator(
-    @Value("\${beancounter.irr:90}") private val minHoldingDays: Int = 90
+    @Value("\${beancounter.irr:225}") private val minHoldingDays: Int = 225
 ) {
     private val solver: UnivariateSolver = BrentSolver()
 

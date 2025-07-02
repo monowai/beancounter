@@ -83,9 +83,9 @@ class IrrCalculatorTests {
             listOf(
                 START_DATE to initialCost,
                 "2024-03-01" to 50.0,
-                "2024-07-01" to marketValue
+                "2025-07-01" to marketValue
             ),
-            0.335
+            0.102156
         )
     }
 

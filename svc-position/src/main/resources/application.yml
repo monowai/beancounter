@@ -42,7 +42,7 @@ otel:
 marketdata:
   url: "http://localhost:9510"
 beancounter:
-  irr: 90
+  irr: 225
 auth:
   uri: "http://your-auth0-endpoint/"
   audience: "auth0-audience"

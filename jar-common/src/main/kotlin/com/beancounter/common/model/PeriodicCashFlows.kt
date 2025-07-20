@@ -41,6 +41,8 @@ class PeriodicCashFlows {
                     date
                 )
             )
+        } else {
+            clear()
         }
     }
 
@@ -49,7 +51,7 @@ class PeriodicCashFlows {
             (cashFlows + toAdd)
                 .groupBy(CashFlow::date)
                 .mapValues { (_, cashFlows) -> cashFlows.sumOf(CashFlow::amount) }
-        cashFlows.clear()
+        clear()
         cashFlows.addAll(
             dateToAmountMap.map { (date, amount) ->
                 CashFlow(
@@ -58,5 +60,9 @@ class PeriodicCashFlows {
                 )
             }
         )
+    }
+
+    fun clear() {
+        cashFlows.clear()
     }
 }

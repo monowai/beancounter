@@ -172,7 +172,7 @@ class PositionValuationService(
         val baseTotals = positions.totals[Position.In.BASE]!!
         val refTotals = positions.totals[Position.In.PORTFOLIO]!!
         val tradeTotals = positions.totals[Position.In.TRADE]!!
-        val theDate = dateUtils.getDate(positions.asAt)
+        val asAtDate = dateUtils.getDate(positions.asAt)
         for (position in positions.positions.values) {
             val tradeMoneyValues =
                 position.getMoneyValues(
@@ -209,9 +209,10 @@ class PositionValuationService(
 
             if (position.asset.market.code != "CASH") {
                 val roi = roiCalculator.calculateROI(tradeMoneyValues)
+                // Mark to Market value.
                 position.periodicCashFlows.add(
                     position,
-                    theDate
+                    asAtDate
                 )
                 positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
                 val irr =

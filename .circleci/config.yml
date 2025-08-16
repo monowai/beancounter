@@ -5,16 +5,10 @@ orbs:
 # Configurable branch patterns for different actions
 # These can be overridden via CircleCI environment variables
 # Default to master if not specified
-parameters:
-  docker-branch-pattern:
-    type: string
-    default: "master,mike/**"
-  coverage-branch-pattern:
-    type: string
-    default: "master,mike/**"
-  codacy-branch-pattern:
-    type: string
-    default: "/^codacy.*/"
+# Set these in CircleCI project settings:
+# DOCKER_BRANCH_PATTERN=master,mike/**
+# COVERAGE_BRANCH_PATTERN=master,mike/**
+# CODACY_BRANCH_PATTERN=/^codacy.*/
 
 executors:
   java-build:
@@ -152,14 +146,25 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Package BC-SHELL
+          name: Setup Docker Buildx (BC-SHELL)
           command: |
-            docker buildx create --use
-            docker buildx inspect
+            echo "🐳 Setting up Docker buildx for bc-shell..."
+            docker buildx create --use --name bc-shell-builder
+            docker buildx inspect --bootstrap
             docker run --rm --privileged tonistiigi/binfmt --install arm64
+      - run:
+          name: Login to Container Registry
+          command: |
+            echo "🔐 Logging into GitHub Container Registry..."
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+      - run:
+          name: Build and Push BC-SHELL
+          command: |
+            echo "📦 Building and pushing bc-shell Docker image..."
             docker buildx build --push \
                                 --platform linux/arm64/v8,linux/amd64 \
+                                --cache-from type=registry,ref=ghcr.io/monowai/bc-shell:buildcache \
+                                --cache-to type=registry,ref=ghcr.io/monowai/bc-shell:buildcache,mode=max \
                                 -t "ghcr.io/monowai/bc-shell:latest" \
                                 -t "ghcr.io/monowai/bc-shell:${STACK_VER}" \
                                  ~/project/jar-shell/.
@@ -179,14 +184,25 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Package BC-DATA
+          name: Setup Docker Buildx (BC-DATA)
           command: |
-            docker buildx create --use
-            docker buildx inspect
+            echo "🐳 Setting up Docker buildx for bc-data..."
+            docker buildx create --use --name bc-data-builder
+            docker buildx inspect --bootstrap
             docker run --rm --privileged tonistiigi/binfmt --install arm64
+      - run:
+          name: Login to Container Registry
+          command: |
+            echo "🔐 Logging into GitHub Container Registry..."
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+      - run:
+          name: Build and Push BC-DATA
+          command: |
+            echo "📦 Building and pushing bc-data Docker image..."
             docker buildx build --push \
                                 --platform linux/arm64/v8,linux/amd64 \
+                                --cache-from type=registry,ref=ghcr.io/monowai/bc-data:buildcache \
+                                --cache-to type=registry,ref=ghcr.io/monowai/bc-data:buildcache,mode=max \
                                 -t "ghcr.io/monowai/bc-data:latest" \
                                 -t "ghcr.io/monowai/bc-data:${STACK_VER}" \
                                  ~/project/svc-data/.
@@ -206,14 +222,25 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Package BC-POSITION
+          name: Setup Docker Buildx (BC-POSITION)
           command: |
-            docker buildx create --use
-            docker buildx inspect
+            echo "🐳 Setting up Docker buildx for bc-position..."
+            docker buildx create --use --name bc-position-builder
+            docker buildx inspect --bootstrap
             docker run --rm --privileged tonistiigi/binfmt --install arm64
+      - run:
+          name: Login to Container Registry
+          command: |
+            echo "🔐 Logging into GitHub Container Registry..."
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+      - run:
+          name: Build and Push BC-POSITION
+          command: |
+            echo "📦 Building and pushing bc-position Docker image..."
             docker buildx build --push \
                                 --platform linux/arm64/v8,linux/amd64 \
+                                --cache-from type=registry,ref=ghcr.io/monowai/bc-position:buildcache \
+                                --cache-to type=registry,ref=ghcr.io/monowai/bc-position:buildcache,mode=max \
                                 -t "ghcr.io/monowai/bc-position:latest" \
                                 -t "ghcr.io/monowai/bc-position:${STACK_VER}" \
                                  ~/project/svc-position/.
@@ -233,14 +260,25 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Package BC-EVENT
+          name: Setup Docker Buildx (BC-EVENT)
           command: |
-            docker buildx create --use
-            docker buildx inspect
+            echo "🐳 Setting up Docker buildx for bc-event..."
+            docker buildx create --use --name bc-event-builder
+            docker buildx inspect --bootstrap
             docker run --rm --privileged tonistiigi/binfmt --install arm64
+      - run:
+          name: Login to Container Registry
+          command: |
+            echo "🔐 Logging into GitHub Container Registry..."
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+      - run:
+          name: Build and Push BC-EVENT
+          command: |
+            echo "📦 Building and pushing bc-event Docker image..."
             docker buildx build --push \
                                 --platform linux/arm64/v8,linux/amd64 \
+                                --cache-from type=registry,ref=ghcr.io/monowai/bc-event:buildcache \
+                                --cache-to type=registry,ref=ghcr.io/monowai/bc-event:buildcache,mode=max \
                                 -t "ghcr.io/monowai/bc-event:latest" \
                                 -t "ghcr.io/monowai/bc-event:${STACK_VER}" \
                                  ~/project/svc-event/.
@@ -267,38 +305,39 @@ workflows:
       # Complete build and test (handles stub dependencies)
       - build-and-test
 
-      # Docker packaging (configurable branch pattern, parallel after build)
+      # Docker packaging jobs (run concurrently after build completes)
+      # All jobs start in parallel once build-and-test succeeds
       - package-shell:
           filters:
             branches:
-              only: << pipeline.parameters.docker-branch-pattern >>
+              only: master
           requires:
             - build-and-test
       - package-data:
           filters:
             branches:
-              only: << pipeline.parameters.docker-branch-pattern >>
+              only: master
           requires:
             - build-and-test
       - package-position:
           filters:
             branches:
-              only: << pipeline.parameters.docker-branch-pattern >>
+              only: master
           requires:
             - build-and-test
       - package-event:
           filters:
             branches:
-              only: << pipeline.parameters.docker-branch-pattern >>
+              only: master
           requires:
             - build-and-test
 
-      # Coverage publishing (configurable branch patterns)
+      # Coverage publishing (runs concurrently with Docker jobs)
       - publish-coverage:
           filters:
             branches:
               only:
-                - << pipeline.parameters.coverage-branch-pattern >>
-                - << pipeline.parameters.codacy-branch-pattern >>
+                - master
+                - /^codacy.*/
           requires:
             - build-and-test

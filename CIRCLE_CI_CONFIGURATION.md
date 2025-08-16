@@ -32,28 +32,26 @@ Set these environment variables in your CircleCI project settings:
 3. Add the following variables:
 
 ```bash
-DOCKER_BRANCH_PATTERN=main
-COVERAGE_BRANCH_PATTERN=main
+DOCKER_BRANCH_PATTERN=master,mike/**
+COVERAGE_BRANCH_PATTERN=master,mike/**
 CODACY_BRANCH_PATTERN=/^codacy.*/
 ```
 
-#### Option 2: Pipeline Parameters
+#### Option 2: Modify the Config File
 
-You can also override these when triggering a pipeline manually:
+You can directly modify the `.circleci/config.yml` file to change the branch patterns:
 
-```bash
-# Example: Trigger pipeline with custom branch patterns
-curl -X POST https://circleci.com/api/v2/project/gh/monowai/beancounter/pipeline \
-  -H "Content-Type: application/json" \
-  -H "Circle-Token: $CIRCLE_TOKEN" \
-  -d '{
-    "parameters": {
-      "docker-branch-pattern": "main",
-      "coverage-branch-pattern": "main",
-      "codacy-branch-pattern": "/^codacy.*/"
-    }
-  }'
+```yaml
+# In the workflow section, change the branch filters:
+- package-shell:
+    filters:
+      branches:
+        only: master,mike/**
 ```
+
+#### Option 3: Pipeline API (Advanced)
+
+You can trigger pipelines with custom configurations via the API, but this requires more complex setup.
 
 ### Branch Pattern Examples
 
@@ -104,16 +102,17 @@ docker-branch-pattern: ".*"
 The current configuration uses these defaults:
 
 ```yaml
-parameters:
-  docker-branch-pattern:
-    type: string
-    default: "master"
-  coverage-branch-pattern:
-    type: string
-    default: "master"
-  codacy-branch-pattern:
-    type: string
-    default: "/^codacy.*/"
+# In .circleci/config.yml workflow section:
+- package-shell:
+    filters:
+      branches:
+        only: master
+- publish-coverage:
+    filters:
+      branches:
+        only:
+          - master
+          - /^codacy.*/
 ```
 
 This means:

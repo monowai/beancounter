@@ -111,7 +111,6 @@ jobs:
             - ./svc-position/build/reports/jacoco/test/*.xml
             - ./svc-event/build/reports/jacoco/test/*.xml
             - ./codecov.yml
-            - ~/.m2/repository/org/beancounter
 
   # Docker packaging jobs (only for master branch)
   package-shell:

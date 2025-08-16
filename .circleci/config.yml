@@ -117,16 +117,33 @@ jobs:
       - store_test_results:
           path: ~/test-results
 
-      # Persist coverage reports for downstream jobs
+      # Persist coverage reports and built artifacts for downstream jobs
       - run:
-          name: Prepare Coverage Reports for Workspace
+          name: Prepare Coverage Reports and Artifacts for Workspace
           command: |
-            echo "📊 Preparing coverage reports for workspace persistence..."
-            mkdir -p ~/coverage-reports
-            find ~/project -name "jacocoTestReport.xml" -exec cp {} ~/coverage-reports/ \;
-            cp ~/project/codecov.yml ~/coverage-reports/ 2>/dev/null || echo "No codecov.yml found"
+            echo "📊 Preparing coverage reports and artifacts for workspace persistence..."
+            mkdir -p ~/workspace-artifacts
+            mkdir -p ~/workspace-artifacts/coverage-reports
+            mkdir -p ~/workspace-artifacts/build-artifacts
+            
+            # Copy coverage reports
+            find ~/project -name "jacocoTestReport.xml" -exec cp {} ~/workspace-artifacts/coverage-reports/ \;
+            cp ~/project/codecov.yml ~/workspace-artifacts/coverage-reports/ 2>/dev/null || echo "No codecov.yml found"
+            
+            # Copy built JAR files
+            echo "📦 Copying built JAR files to workspace..."
+            cp -r ~/project/jar-common/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-common artifacts"
+            cp -r ~/project/jar-auth/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-auth artifacts"
+            cp -r ~/project/jar-client/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-client artifacts"
+            cp -r ~/project/jar-shell/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-shell artifacts"
+            cp -r ~/project/svc-data/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-data artifacts"
+            cp -r ~/project/svc-position/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-position artifacts"
+            cp -r ~/project/svc-event/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-event artifacts"
+            
+            echo "📋 Workspace artifacts prepared:"
+            ls -la ~/workspace-artifacts/build-artifacts/
       - persist_to_workspace:
-          root: ~/coverage-reports
+          root: ~/workspace-artifacts
           paths:
             - .
 
@@ -143,6 +160,8 @@ jobs:
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
+      - attach_workspace:
+          at: ~/workspace
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login
@@ -164,6 +183,15 @@ jobs:
           name: Build and Push BC-SHELL
           command: |
             echo "📦 Building and pushing bc-shell Docker image..."
+            
+            # Copy built artifacts to expected locations
+            echo "📋 Copying built artifacts from workspace..."
+            mkdir -p ~/project/jar-shell/build/libs/
+            cp ~/workspace/build-artifacts/jar-shell-*.jar ~/project/jar-shell/build/libs/ 2>/dev/null || echo "No jar-shell JAR found in workspace"
+            
+            # Verify JAR file exists
+            echo "🔍 Checking for JAR file:"
+            ls -la ~/project/jar-shell/build/libs/ || echo "No build/libs directory"
             
             # Build and push multi-platform image
             docker buildx build \
@@ -187,6 +215,8 @@ jobs:
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
+      - attach_workspace:
+          at: ~/workspace
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login
@@ -208,6 +238,15 @@ jobs:
           name: Build and Push BC-DATA
           command: |
             echo "📦 Building and pushing bc-data Docker image..."
+            
+            # Copy built artifacts to expected locations
+            echo "📋 Copying built artifacts from workspace..."
+            mkdir -p ~/project/svc-data/build/libs/
+            cp ~/workspace/build-artifacts/svc-data-*.jar ~/project/svc-data/build/libs/ 2>/dev/null || echo "No svc-data JAR found in workspace"
+            
+            # Verify JAR file exists
+            echo "🔍 Checking for JAR file:"
+            ls -la ~/project/svc-data/build/libs/ || echo "No build/libs directory"
             
             # Build and push multi-platform image
             docker buildx build \
@@ -231,6 +270,8 @@ jobs:
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
+      - attach_workspace:
+          at: ~/workspace
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login
@@ -252,6 +293,15 @@ jobs:
           name: Build and Push BC-POSITION
           command: |
             echo "📦 Building and pushing bc-position Docker image..."
+            
+            # Copy built artifacts to expected locations
+            echo "📋 Copying built artifacts from workspace..."
+            mkdir -p ~/project/svc-position/build/libs/
+            cp ~/workspace/build-artifacts/svc-position-*.jar ~/project/svc-position/build/libs/ 2>/dev/null || echo "No svc-position JAR found in workspace"
+            
+            # Verify JAR file exists
+            echo "🔍 Checking for JAR file:"
+            ls -la ~/project/svc-position/build/libs/ || echo "No build/libs directory"
             
             # Build and push multi-platform image
             docker buildx build \
@@ -275,6 +325,8 @@ jobs:
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
+      - attach_workspace:
+          at: ~/workspace
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login
@@ -296,6 +348,15 @@ jobs:
           name: Build and Push BC-EVENT
           command: |
             echo "📦 Building and pushing bc-event Docker image..."
+            
+            # Copy built artifacts to expected locations
+            echo "📋 Copying built artifacts from workspace..."
+            mkdir -p ~/project/svc-event/build/libs/
+            cp ~/workspace/build-artifacts/svc-event-*.jar ~/project/svc-event/build/libs/ 2>/dev/null || echo "No svc-event JAR found in workspace"
+            
+            # Verify JAR file exists
+            echo "🔍 Checking for JAR file:"
+            ls -la ~/project/svc-event/build/libs/ || echo "No build/libs directory"
             
             # Build and push multi-platform image
             docker buildx build \

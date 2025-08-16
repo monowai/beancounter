@@ -106,18 +106,19 @@ The current configuration uses these defaults:
 - package-shell:
     filters:
       branches:
-        only: master
+        only: master,mike/**
 - publish-coverage:
     filters:
       branches:
         only:
           - master
+          - mike/**
           - /^codacy.*/
 ```
 
 This means:
-- Docker images are only built and published from the `master` branch
-- Coverage reports are published from `master` and any branch starting with `codacy`
+- Docker images are built and published from the `master` branch and any branch matching `mike/**`
+- Coverage reports are published from `master`, `mike/**` branches, and any branch starting with `codacy`
 - All other branches will only run the build and test steps
 
 ### Migration from Master to Main

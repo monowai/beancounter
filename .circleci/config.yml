@@ -310,25 +310,25 @@ workflows:
       - package-shell:
           filters:
             branches:
-              only: master
+              only: master,mike/**
           requires:
             - build-and-test
       - package-data:
           filters:
             branches:
-              only: master
+              only: master,mike/**
           requires:
             - build-and-test
       - package-position:
           filters:
             branches:
-              only: master
+              only: master,mike/**
           requires:
             - build-and-test
       - package-event:
           filters:
             branches:
-              only: master
+              only: master,mike/**
           requires:
             - build-and-test
 
@@ -338,6 +338,7 @@ workflows:
             branches:
               only:
                 - master
+                - mike/**
                 - /^codacy.*/
           requires:
             - build-and-test

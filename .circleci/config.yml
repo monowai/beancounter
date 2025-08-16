@@ -139,11 +139,10 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
-      - attach_workspace:
-          at: ~/project
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login
@@ -184,11 +183,10 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
-      - attach_workspace:
-          at: ~/project
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login
@@ -229,11 +227,10 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
-      - attach_workspace:
-          at: ~/project
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login
@@ -274,11 +271,10 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
       - restore_cache:
           keys:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
-      - attach_workspace:
-          at: ~/project
       - setup_remote_docker
       - run:
           name: Setup Docker Buildx and Registry Login

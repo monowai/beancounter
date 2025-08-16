@@ -6,8 +6,8 @@ orbs:
 # These can be overridden via CircleCI environment variables
 # Default to master if not specified
 # Set these in CircleCI project settings:
-# DOCKER_BRANCH_PATTERN=master,mike/**
-# COVERAGE_BRANCH_PATTERN=master,mike/**
+# DOCKER_BRANCH_PATTERN=master,/^mike\/.*/
+# COVERAGE_BRANCH_PATTERN=master,/^mike\/.*/
 # CODACY_BRANCH_PATTERN=/^codacy.*/
 
 executors:
@@ -307,12 +307,13 @@ workflows:
 
       # Docker packaging jobs (run concurrently after build completes)
       # All jobs start in parallel once build-and-test succeeds
+      # Branch patterns can be configured via CircleCI environment variables
       - package-shell:
           filters:
             branches:
               only: 
                 - master
-                - mike/build-optimizations
+                - /^mike\/.*/
           requires:
             - build-and-test
       - package-data:
@@ -320,7 +321,7 @@ workflows:
             branches:
               only: 
                 - master
-                - mike/build-optimizations
+                - /^mike\/.*/
           requires:
             - build-and-test
       - package-position:
@@ -328,7 +329,7 @@ workflows:
             branches:
               only: 
                 - master
-                - mike/build-optimizations
+                - /^mike\/.*/
           requires:
             - build-and-test
       - package-event:
@@ -336,7 +337,7 @@ workflows:
             branches:
               only: 
                 - master
-                - mike/build-optimizations
+                - /^mike\/.*/
           requires:
             - build-and-test
 
@@ -346,7 +347,7 @@ workflows:
             branches:
               only:
                 - master
-                - mike/build-optimizations
+                - /^mike\/.*/
                 - /^codacy.*/
           requires:
             - build-and-test

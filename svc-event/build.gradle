@@ -1,7 +1,5 @@
 plugins {
-    alias(libs.plugins.jvm)
     alias(libs.plugins.spring.boot)
-    alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.java.test.fixtures)
     alias(libs.plugins.sentry)
     alias(libs.plugins.git.properties)
@@ -42,11 +40,8 @@ dependencies {
     )
     compileOnly("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation(
-            "org.junit.jupiter:junit-jupiter",
-            "org.assertj:assertj-core",
             "com.h2database:h2",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
-            "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.security:spring-security-test",
             "io.sentry:sentry-jdbc",

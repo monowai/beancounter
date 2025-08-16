@@ -45,4 +45,9 @@ dependencies {
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin") {
         exclude module: 'kotlin-reflect'
     }
+    
+    // Test fixtures dependencies
+    testFixturesImplementation(
+        "org.springframework.boot:spring-boot-starter-test"
+    )
 }

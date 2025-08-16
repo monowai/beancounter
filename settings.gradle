@@ -6,4 +6,12 @@ pluginManagement {
     }
 }
 rootProject.name = 'beancounter'
-include 'jar-common', 'jar-auth', 'jar-client', 'jar-shell', 'svc-data', 'svc-position', 'svc-event'
+
+// Define projects in dependency order (this helps with build order)
+include 'jar-common'
+include 'jar-auth'
+include 'jar-client'
+include 'jar-shell'
+include 'svc-data'
+include 'svc-position'
+include 'svc-event'

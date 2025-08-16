@@ -21,7 +21,17 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.web.client.RestTemplate
 
 /**
- * Verify code in OauthConfig which is generally mocked.
+ * Test suite for OAuth configuration to ensure proper OAuth provider integration.
+ *
+ * This class tests:
+ * - OAuth token endpoint configuration and responses
+ * - OpenID Connect discovery endpoint handling
+ * - JWKS (JSON Web Key Set) endpoint configuration
+ * - WireMock integration for OAuth provider simulation
+ * - Configuration validation and error handling
+ *
+ * Tests verify that the OAuth configuration can properly communicate with
+ * OAuth providers and handle various OAuth flows.
  */
 @SpringBootTest(classes = [ClientPasswordConfig::class, RestTemplate::class])
 @ImportAutoConfiguration(
@@ -128,7 +138,7 @@ class OAuthConfigTest {
     }
 
     @Test
-    fun authConfig() {
+    fun `should create JWT decoder from auth configuration`() {
         val decoder = OAuthConfig().jwtDecoder(authConfig)
         assertThat(decoder).isNotNull
     }

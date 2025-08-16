@@ -7,7 +7,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 /**
- * Are POJOs serializing via JACKSON and Spring's Pojo->multiPartForm encoding approach.
+ * Test suite for authentication POJOs to ensure proper serialization via Jackson and Spring's form encoding.
+ *
+ * This class tests:
+ * - Machine-to-machine (M2M) authentication request serialization
+ * - Interactive user authentication request serialization
+ * - JSON serialization and deserialization round trips
+ * - Form encoding compatibility for OAuth flows
+ *
+ * Tests verify that authentication objects can be properly serialized for OAuth
+ * provider communication and form-based authentication flows.
  */
 class SerializationTests {
     private val oidClientId = "client_id"
@@ -16,7 +25,7 @@ class SerializationTests {
     private val secret = "*secretx*"
 
     @Test
-    fun is_MachineToMachineJsonCorrect() {
+    fun `should serialize machine-to-machine authentication request correctly`() {
         val clientCredentialsRequest =
             LoginService.ClientCredentialsRequest(
                 client_id = "abc",
@@ -24,6 +33,8 @@ class SerializationTests {
                 audience = "my-audience"
             )
         assertThat(clientCredentialsRequest.grant_type).isNotNull
+        TestHelpers.assertSerializationRoundTrip(clientCredentialsRequest)
+
         val json = objectMapper.writeValueAsString(clientCredentialsRequest)
         assertThat(json).contains(
             oidClientId,
@@ -43,7 +54,7 @@ class SerializationTests {
     }
 
     @Test
-    fun is_InteractiveJsonCorrect() {
+    fun `should serialize interactive authentication request correctly`() {
         val passwordRequest =
             LoginService.PasswordRequest(
                 client_id = "cid",
@@ -53,6 +64,8 @@ class SerializationTests {
                 client_secret = "the-secret"
             )
         assertThat(passwordRequest.grant_type).isNotNull
+        TestHelpers.assertSerializationRoundTrip(passwordRequest)
+
         val json = objectMapper.writeValueAsString(passwordRequest)
         assertThat(json).contains(
             oidClientId,

@@ -27,7 +27,17 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.time.Duration
 
 /**
- * Can the login service authenticate the user using OAuth?
+ * Test suite for LoginService to ensure OAuth authentication works correctly.
+ *
+ * This class tests:
+ * - Machine-to-machine (M2M) authentication flows
+ * - Interactive user authentication flows
+ * - Token validation and processing
+ * - Error handling for authentication failures
+ * - Integration with OAuth providers
+ *
+ * Tests verify that the LoginService can properly authenticate users and
+ * handle various OAuth grant types and scenarios.
  */
 @ImportAutoConfiguration(
     ClientPasswordConfig::class,
@@ -75,7 +85,7 @@ class LoginServiceTest {
     }
 
     @Test
-    fun is_m2mLoginWorking() {
+    fun `should authenticate machine-to-machine login successfully`() {
         val token = authUtilService.authenticateM2M(SystemUser())
         Mockito
             .`when`(
@@ -100,7 +110,7 @@ class LoginServiceTest {
     }
 
     @Test
-    fun is_accountWithNoRulesNeitherServiceOrUser() {
+    fun `should handle account with no roles correctly`() {
         val token = authUtilService.authenticateNoRoles(SystemUser())
         Mockito
             .`when`(
@@ -125,7 +135,7 @@ class LoginServiceTest {
     }
 
     @Test
-    fun is_userLoginWorking() {
+    fun `should authenticate user login successfully`() {
         val systemUser = SystemUser()
         val token = authUtilService.authenticate(systemUser)
         val response =
@@ -155,14 +165,14 @@ class LoginServiceTest {
     }
 
     @Test
-    fun is_notSetFailing() {
+    fun `should throw UnauthorizedException when client is not set`() {
         assertThrows(UnauthorizedException::class.java) {
             loginService.loginM2m("not-set")
         }
     }
 
     @Test
-    fun is_serviceTokenWorking() {
+    fun `should identify service token correctly`() {
         authUtilService.authenticateM2M(
             SystemUser(email = ""),
             AuthUtilService.AuthProvider.AUTH0

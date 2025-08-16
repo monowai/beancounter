@@ -15,11 +15,18 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 /**
- * Unit Tests for Asset Object
+ * Test suite for Asset model to ensure proper behavior, serialization, and utility functions.
+ *
+ * This class tests:
+ * - Asset object creation and defaults
+ * - Asset key generation and parsing
+ * - Asset splitting by market
+ * - Asset input handling
+ * - Asset utility functions
  */
 internal class TestAsset {
     @Test
-    fun assetDefaults() {
+    fun `should create asset with correct defaults`() {
         val asset =
             getTestAsset(
                 Market("Any"),
@@ -36,7 +43,7 @@ internal class TestAsset {
     }
 
     @Test
-    fun assetKeyParses() {
+    fun `should parse asset keys correctly`() {
         val asset =
             getTestAsset(
                 Market("MCODE"),
@@ -65,7 +72,7 @@ internal class TestAsset {
     }
 
     @Test
-    fun assetsSplitByMarket() {
+    fun `should split assets by market correctly`() {
         val assets: MutableCollection<PriceAsset> = ArrayList()
         val marketCodeA = "AAA"
         val assetCodeB = "ABC"
@@ -115,7 +122,7 @@ internal class TestAsset {
     }
 
     @Test
-    fun assetFoundInRequest() {
+    fun `should find asset in request correctly`() {
         val market = Market("ABC")
         val assetInput =
             AssetInput(
@@ -131,7 +138,7 @@ internal class TestAsset {
     }
 
     @Test
-    fun defaultsFromAsset() {
+    fun `should create defaults from asset correctly`() {
         val assetInput =
             AssetInput(
                 market = "a",

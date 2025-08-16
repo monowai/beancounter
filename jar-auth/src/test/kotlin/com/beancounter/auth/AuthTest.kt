@@ -25,7 +25,16 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * MVC Auth controller tests for OAuth.
+ * Test suite for OAuth authentication controller to ensure proper authorization behavior.
+ *
+ * This class tests:
+ * - Unauthorized access handling (no token scenarios)
+ * - Authorized access with proper scopes
+ * - Access denial for insufficient permissions
+ * - OAuth token validation and processing
+ *
+ * Tests use Spring Security's MockMvc to simulate HTTP requests with various
+ * authentication states and verify the appropriate responses.
  */
 @ExtendWith(SpringExtension::class)
 @EnableWebSecurity
@@ -56,7 +65,7 @@ class AuthTest {
     }
 
     @Test
-    fun has_NoTokenAndIsUnauthorized() {
+    fun `should return unauthorized when no token is provided`() {
         var result =
             mockMvc
                 .perform(
@@ -82,7 +91,7 @@ class AuthTest {
         username = "testUser",
         authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER]
     )
-    fun has_AuthorityToSayHello() {
+    fun `should allow access when user has proper authority`() {
         mockMvc
             .perform(MockMvcRequestBuilders.get(HELLO))
             .andDo(MockMvcResultHandlers.print())
@@ -95,7 +104,7 @@ class AuthTest {
         username = "testUser",
         authorities = [AuthConstants.SCOPE_USER]
     )
-    fun has_NoAuthorityToSayWhat() {
+    fun `should deny access when user lacks required authority`() {
         mockMvc
             .perform(MockMvcRequestBuilders.get(WHAT))
             .andDo(MockMvcResultHandlers.print())

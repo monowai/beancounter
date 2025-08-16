@@ -12,7 +12,16 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
- * Verifies that auth can be disabled correctly.
+ * Test suite for authentication when disabled to ensure proper configuration.
+ *
+ * This class tests:
+ * - Spring context initialization with authentication disabled
+ * - Bean availability when authentication is disabled
+ * - Configuration property validation
+ * - Error handling for disabled authentication components
+ *
+ * Tests verify that when authentication is disabled, the appropriate
+ * beans are available and unavailable as expected.
  */
 @SpringBootTest(properties = ["auth.enabled=false"])
 @ContextConfiguration(classes = [TokenService::class, LoginService::class, AuthConfig::class])
@@ -24,7 +33,7 @@ class AuthDisabledTest {
     lateinit var tokenService: TokenService
 
     @Test
-    fun isDisabled() {
+    fun `should disable authentication and configure beans correctly`() {
         assertThat(springContext).isNotNull
         assertThat(springContext.environment.getProperty("auth.enabled")).isEqualTo("false")
 

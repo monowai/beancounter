@@ -8,13 +8,19 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 
 /**
- * Verify numberUtils functions.
+ * Test suite for NumberUtils to ensure number handling functions work correctly.
+ *
+ * This class tests:
+ * - Zero and null value identification
+ * - Unset value detection
+ * - Null-safe number parsing
+ * - MathUtils integration with NumberUtils
  */
 class NumberUtilsTest {
     private val numberUtils = NumberUtils()
 
     @Test
-    fun `isZeroAndNullSafe should correctly identify unset values and handle nulls`() {
+    fun `should correctly identify unset values and handle nulls`() {
         val zeroValues =
             listOf(
                 null,

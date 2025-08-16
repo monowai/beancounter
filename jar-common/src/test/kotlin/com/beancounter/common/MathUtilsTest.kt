@@ -12,6 +12,19 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Locale
 
+/**
+ * Test suite for MathUtils to ensure mathematical operations work correctly and safely.
+ *
+ * This class tests:
+ * - Safe multiplication with null and zero handling
+ * - Safe division with null and zero handling
+ * - Addition with proper scaling
+ * - Math context operations
+ * - Number parsing and formatting
+ * - Rate validation
+ *
+ * All operations are designed to handle edge cases gracefully without throwing exceptions.
+ */
 internal class MathUtilsTest {
     private val zeroDec = "0.00"
     private val ten = "10.00"
@@ -19,7 +32,7 @@ internal class MathUtilsTest {
     private val tenThousand = "10000.00"
 
     @Test
-    fun is_MultiplySafe() {
+    fun `multiplyAbs should handle null and zero values safely`() {
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
@@ -53,7 +66,7 @@ internal class MathUtilsTest {
     }
 
     @Test
-    fun is_DivideSafe() {
+    fun `divide should handle null and zero values safely`() {
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
@@ -87,7 +100,7 @@ internal class MathUtilsTest {
     }
 
     @Test
-    fun is_AdditionWorkingToScale() {
+    fun `add should work correctly with proper scaling`() {
         var scaleMe = BigDecimal("100.992")
         // HalfUp
         assertThat(
@@ -106,7 +119,7 @@ internal class MathUtilsTest {
     }
 
     @Test
-    fun is_MathContextDividesToScale() {
+    fun `mathContext should divide to correct scale`() {
         val costBasis = BigDecimal("1000")
         var total = BigDecimal("500.00")
         assertThat(
@@ -126,7 +139,7 @@ internal class MathUtilsTest {
 
     @Test
     @Throws(Exception::class)
-    fun is_NumberFormat() {
+    fun `parse should handle number format correctly`() {
         val numberFormat = NumberFormat.getInstance(Locale.US)
         val result =
             parse(
@@ -138,7 +151,7 @@ internal class MathUtilsTest {
 
     @Test
     @Throws(Exception::class)
-    fun is_CsvExportedQuotationsHandled() {
+    fun `parse should handle CSV exported quotations`() {
         val numberFormat = NumberFormat.getInstance(Locale.US)
         val value = "\"1,180.74\""
         assertThat(
@@ -150,12 +163,12 @@ internal class MathUtilsTest {
     }
 
     @Test
-    fun is_NullInValue() {
+    fun `parse should handle null values`() {
         assertThat(parse("null")).isZero()
     }
 
     @Test
-    fun is_ValidRate() {
+    fun `hasValidRate should correctly identify valid rates`() {
         assertThat(hasValidRate(null)).isFalse
         assertThat(hasValidRate(BigDecimal.ONE)).isFalse
         assertThat(hasValidRate(BigDecimal("1.000"))).isFalse

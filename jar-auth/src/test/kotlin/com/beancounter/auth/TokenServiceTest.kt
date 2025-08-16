@@ -11,7 +11,16 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
- * TokenService verification.
+ * Test suite for TokenService to ensure proper token handling and validation.
+ *
+ * This class tests:
+ * - Bearer token formatting and extraction
+ * - Token validation and security context handling
+ * - Unauthorized access scenarios
+ * - Token service integration with authentication
+ *
+ * Tests verify that the TokenService can properly handle JWT tokens
+ * and manage authentication state.
  */
 @SpringBootTest(classes = [TokenService::class, MockAuthConfig::class])
 @AutoConfigureMockAuth
@@ -29,18 +38,18 @@ class TokenServiceTest {
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Test
-    fun is_BearerToken() {
+    fun `should format bearer token correctly`() {
         assertThat(tokenService.getBearerToken("Test")).isEqualTo("Bearer Test")
     }
 
     @Test
-    fun is_BearerTokenBearing() {
+    fun `should throw UnauthorizedException when no bearer token is available`() {
         mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
     }
 
     @Test
-    fun noSecurityContextIsUnauthorized() {
+    fun `should throw UnauthorizedException when no security context is available`() {
         mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
     }

@@ -1,8 +1,8 @@
 package com.beancounter.common.utils
 
+import com.beancounter.common.TestHelpers
 import com.beancounter.common.exception.BusinessException
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -34,7 +34,7 @@ internal class DateUtilsTest {
     }
 
     @Test
-    fun `isToday should recognize today correctly`() {
+    fun `should recognize today correctly`() {
         with(dateUtils) {
             assertThat(isToday(dateUtils.today())).isTrue()
             assertThat(isToday()).isTrue()
@@ -45,27 +45,27 @@ internal class DateUtilsTest {
     }
 
     @Test
-    fun `valid date processing should not throw exceptions`() {
+    fun `should process valid dates without exceptions`() {
         assertThat(dateUtils.getDate()).isNotNull()
         assertThat(dateUtils.getDate("2020-11-11")).isNotNull()
     }
 
     @Test
-    fun `invalid date string should trigger BusinessException`() {
-        assertThrows(BusinessException::class.java) {
+    fun `should throw BusinessException for invalid date strings`() {
+        TestHelpers.assertThrowsWithMessage<BusinessException>("Unable to parse the date 2019-11-07'") {
             dateUtils.getDate("2019-11-07'")
         }
     }
 
     @Test
-    fun `offsetDateString should match formatted date for today`() {
+    fun `should match offset date string with formatted date for today`() {
         val default = dateUtils.offsetDateString()
         assertThat(dateUtils.getFormattedDate()).isEqualTo(default)
         assertThat(dateUtils.getFormattedDate("today")).isEqualTo(default)
     }
 
     @Test
-    fun `formatted date should match the local date for specific and today inputs`() {
+    fun `should match formatted date with local date for specific and today inputs`() {
         val default = dateUtils.date
         with(dateUtils) {
             assertThat(getFormattedDate()).isEqualTo(default)
@@ -75,14 +75,14 @@ internal class DateUtilsTest {
     }
 
     @Test
-    fun `getDate should handle non-date string input with BusinessException`() {
-        assertThrows(BusinessException::class.java) {
+    fun `should throw BusinessException for non-date string input`() {
+        TestHelpers.assertThrowsWithMessage<BusinessException>("Unable to parse the date ABC-MM-11") {
             dateUtils.getDate("ABC-MM-11")
         }
     }
 
     @Test
-    fun parseMiscFormats() {
+    fun `should parse miscellaneous date formats correctly`() {
         val dateUtils = DateUtils()
         assertThat(dateUtils.getDate("2021-01-01")).isNotNull()
         assertThat(dateUtils.getDate("2021-08-8")).isNotNull()

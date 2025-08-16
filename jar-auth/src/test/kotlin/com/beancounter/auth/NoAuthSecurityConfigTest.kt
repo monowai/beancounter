@@ -11,6 +11,18 @@ import org.springframework.test.web.servlet.get
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * Test suite for NoAuthSecurityConfig to ensure proper security configuration when authentication is disabled.
+ *
+ * This class tests:
+ * - Security configuration when web authentication is disabled
+ * - Endpoint accessibility without authentication
+ * - Swagger UI accessibility
+ * - General endpoint accessibility
+ *
+ * Tests verify that when web authentication is disabled, all endpoints
+ * are accessible without authentication requirements.
+ */
 @SpringBootTest(classes = [NoAuthSecurityConfig::class, SimpleController::class])
 @AutoConfigureMockMvc
 @TestPropertySource(properties = ["auth.web=false"])

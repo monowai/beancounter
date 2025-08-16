@@ -1,6 +1,5 @@
 package com.beancounter.common
 
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.MoneyValues
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -8,13 +7,18 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 /**
- * Test suite for {@link MoneyValues} class to ensure that all financial operations are handled correctly.
- * This includes initializing default values and resetting cost fields.
- * Each test ensures that the {@link MoneyValues} object behaves as expected under different scenarios.
+ * Test suite for MoneyValues class to ensure that all financial operations are handled correctly.
+ *
+ * This class tests:
+ * - Default value initialization for MoneyValues objects
+ * - Cost field reset functionality
+ * - Financial operation behavior under different scenarios
+ *
+ * Each test ensures that the MoneyValues object behaves as expected under different scenarios.
  */
 class MoneyValuesTest {
     @Test
-    fun `default values for MoneyObject are correct`() {
+    fun `should have correct default values`() {
         val moneyValues = MoneyValues(TestMarkets.USD)
         Assertions.assertThat(moneyValues).hasNoNullFieldsOrPropertiesExcept(
             "priceData",
@@ -23,9 +27,9 @@ class MoneyValuesTest {
     }
 
     @Test
-    fun `resetCosts should set monetary values to zero`() {
+    fun `should reset monetary values to zero when resetCosts is called`() {
         // Given a MoneyValues instance with non-zero monetary values
-        val currency = Currency("USD")
+        val currency = TestHelpers.createTestCurrency("USD")
         val moneyValues =
             MoneyValues(currency).apply {
                 averageCost = BigDecimal("10.00")

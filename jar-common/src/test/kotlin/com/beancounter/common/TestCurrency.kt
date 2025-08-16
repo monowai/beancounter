@@ -4,55 +4,52 @@ import com.beancounter.common.contracts.CurrencyResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
-import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 /**
- * Simple currency behaviour assertions.
+ * Test suite for Currency model to ensure proper serialization, deserialization, and behavior.
+ *
+ * This class tests:
+ * - Currency object serialization and deserialization
+ * - Currency response handling
+ * - Currency pair consistency
+ * - Default value handling
+ * - Currency contract compliance
  */
 internal class TestCurrency {
     @Test
-    fun is_CurrencySerializing() {
-        val currency =
-            Currency(
-                "SomeCode",
-                "Some Name",
-                "$"
-            )
-        assertThat(currency).isNotNull
-        val json = objectMapper.writeValueAsString(currency)
-        val fromJson =
-            objectMapper.readValue(
-                json,
-                Currency::class.java
-            )
-        assertThat(fromJson).isEqualTo(currency)
+    fun `should serialize and deserialize currency correctly`() {
+        val currency = TestHelpers.createTestCurrency("SomeCode")
+        TestHelpers.assertSerializationRoundTrip(currency)
     }
 
     @Test
-    fun is_CurrencyResponseSerializing() {
+    fun `should serialize and deserialize currency response correctly`() {
         val currencies: MutableCollection<Currency> = ArrayList()
-        val currency =
-            Currency(
-                "SomeId",
-                "Some Name",
-                "$"
-            )
+        val currency = TestHelpers.createTestCurrency("SomeId")
         currencies.add(currency)
         val currencyResponse = CurrencyResponse(currencies)
-        val json = objectMapper.writeValueAsString(currencyResponse)
-        val fromJson =
-            objectMapper.readValue(
-                json,
-                CurrencyResponse::class.java
-            )
-        assertThat(fromJson).isEqualTo(currencyResponse)
+        TestHelpers.assertSerializationRoundTrip(currencyResponse)
     }
 
     @Test
-    fun is_GetCurrencyWorking() {
-        val currency = Currency("NZD")
+    fun `should serialize and deserialize currency collection correctly`() {
+        val currencies =
+            listOf(
+                TestHelpers.createTestCurrency("USD"),
+                TestHelpers.createTestCurrency("EUR"),
+                TestHelpers.createTestCurrency("GBP")
+            )
+        TestHelpers.assertCollectionSerializationRoundTrip(
+            collection = currencies,
+            typeReference = object : com.fasterxml.jackson.core.type.TypeReference<Collection<Currency>>() {}
+        )
+    }
+
+    @Test
+    fun `should create currency with correct code`() {
+        val currency = TestHelpers.createTestCurrency("NZD")
         assertThat(currency).hasFieldOrPropertyWithValue(
             "code",
             "NZD"
@@ -60,7 +57,7 @@ internal class TestCurrency {
     }
 
     @Test
-    fun is_CurrencyPairConsistent() {
+    fun `should maintain currency pair consistency`() {
         val trade = "NZD"
         val report = "USD"
         val byCode =
@@ -70,21 +67,21 @@ internal class TestCurrency {
             )
         val byCurrency =
             toPair(
-                Currency(report),
-                Currency(trade)
+                TestHelpers.createTestCurrency(report),
+                TestHelpers.createTestCurrency(trade)
             )
         assertThat(byCode).usingRecursiveComparison().isEqualTo(byCurrency)
         assertThat(
             toPair(
-                Currency(report),
-                Currency(report)
+                TestHelpers.createTestCurrency(report),
+                TestHelpers.createTestCurrency(report)
             )
         ).isNull()
     }
 
     @Test
-    fun is_DefaultsCorrect() {
-        val nzd = Currency("NZD")
+    fun `should handle default values correctly`() {
+        val nzd = TestHelpers.createTestCurrency("NZD")
         assertThat(nzd).hasNoNullFieldsOrProperties()
 
         // Mutable
@@ -102,7 +99,7 @@ internal class TestCurrency {
     }
 
     @Test
-    fun is_CurrencyContractHonoured() {
+    fun `should honor currency contract`() {
         val nzd = Currency("NZD")
         val sgd = Currency("SGD")
         assertThat(nzd).isNotEqualTo(sgd)
@@ -118,7 +115,7 @@ internal class TestCurrency {
     }
 
     @Test
-    fun is_IsoPairContractHonoured() {
+    fun `should honor ISO pair contract`() {
         val pairA =
             IsoCurrencyPair(
                 "USD",

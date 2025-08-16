@@ -15,7 +15,16 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
- * Verifies correctly configured auth wires the correct beans.
+ * Test suite for authentication when enabled to ensure proper bean configuration.
+ *
+ * This class tests:
+ * - Spring context initialization with authentication enabled
+ * - Authentication configuration validation
+ * - Bean wiring for authentication components
+ * - Property configuration verification
+ *
+ * Tests verify that when authentication is enabled, all necessary
+ * authentication beans are properly configured and available.
  */
 @SpringBootTest(
     properties = [
@@ -47,7 +56,7 @@ class AuthEnabledTest {
     lateinit var audience: String
 
     @Test
-    fun isEnabled() {
+    fun `should enable authentication and configure beans correctly`() {
         assertThat(springContext).isNotNull
         assertThat(springContext.environment.getProperty("auth.enabled")).isEqualTo("true")
         assertThat(springContext.getBean(AuthConfig::class.java)).isNotNull
@@ -56,7 +65,7 @@ class AuthEnabledTest {
     }
 
     @Test
-    fun isConfigCorrect() {
+    fun `should configure authentication properties correctly`() {
         assertThat(authConfig)
             .hasFieldOrPropertyWithValue(
                 "audience",

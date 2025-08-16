@@ -225,58 +225,9 @@ internal class PreviousClosePriceDateTest {
         assertThat(previousClose.isTradingDay(monday)).isTrue // Monday
     }
 
-    // "2019-10-18"
-    private val friday: ZonedDateTime =
-        ZonedDateTime.ofInstant(
-            LocalDateTime
-                .of(
-                    2019,
-                    10,
-                    18,
-                    0,
-                    0
-                ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC")
-        )
-
-    private val sunday: ZonedDateTime =
-        ZonedDateTime.ofInstant(
-            LocalDateTime
-                .of(
-                    2019,
-                    10,
-                    20,
-                    0,
-                    0
-                ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC")
-        )
-
-    private val saturday: ZonedDateTime =
-        ZonedDateTime.ofInstant(
-            LocalDateTime
-                .of(
-                    2019,
-                    10,
-                    19,
-                    0,
-                    0
-                ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC")
-        )
-
-    private val monday: ZonedDateTime =
-        ZonedDateTime.ofInstant(
-            LocalDateTime
-                .of(
-                    2019,
-                    10,
-                    21,
-                    0,
-                    0
-                ).toInstant(ZoneOffset.UTC),
-            ZoneId.of("UTC")
-        )
-
-    //    private val sunday: LocalDateTime get() = LocalDateTime.of(dateUtils.getDate("2019-10-20"), LocalTime.MIDNIGHT)
+    // Test data for weekend trading day tests
+    private val friday: ZonedDateTime = ZonedDateTime.of(2019, 10, 18, 0, 0, 0, 0, ZoneId.of("UTC"))
+    private val saturday: ZonedDateTime = ZonedDateTime.of(2019, 10, 19, 0, 0, 0, 0, ZoneId.of("UTC"))
+    private val sunday: ZonedDateTime = ZonedDateTime.of(2019, 10, 20, 0, 0, 0, 0, ZoneId.of("UTC"))
+    private val monday: ZonedDateTime = ZonedDateTime.of(2019, 10, 21, 0, 0, 0, 0, ZoneId.of("UTC"))
 }

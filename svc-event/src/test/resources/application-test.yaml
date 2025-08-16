@@ -2,7 +2,7 @@ kafka:
   enabled: "false"
 
 marketdata:
-  url: "http://localhost:11999"
+  url: "http://localhost:${stubrunner.port:0}"
 
 position:
-  url: "http://localhost:12999"
+  url: "http://localhost:${stubrunner.port:0}"

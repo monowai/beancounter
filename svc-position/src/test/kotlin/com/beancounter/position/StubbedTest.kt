@@ -14,17 +14,17 @@ import org.springframework.test.context.ActiveProfiles
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:0.1.1:stubs:10993"]
 )
 @ActiveProfiles
 @Tag("stubbed")
 @SpringBootTest
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 annotation class StubbedTest(
     /**
      * Defines the active profiles to be used for the annotated test class.
      */
-    val profiles: Array<String> = ["test"]
+    val profiles: Array<String> = ["svc-position-shared", "contract-base"]
 )

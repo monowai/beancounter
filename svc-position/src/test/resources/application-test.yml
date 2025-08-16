@@ -5,4 +5,4 @@ kafka:
   enabled: "false"
 
 marketdata:
-  url: http://localhost:10999
+  url: http://localhost:${stubrunner.port:0}

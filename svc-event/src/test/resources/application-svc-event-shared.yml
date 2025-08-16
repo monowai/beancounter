@@ -1,0 +1,10 @@
+# svc-event specific configuration for shared context tests
+# Extends: application-contract-base.yml
+# 
+# This configuration is used by most svc-event tests for shared Spring context.
+# For Kafka tests that need isolation, see application-kafka.yaml instead.
+marketdata:
+  url: http://localhost:10992
+
+position:
+  url: http://localhost:10993

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
@@ -23,12 +24,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @Tag("slow")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:0.1.1:stubs:10991"]
 )
-@ActiveProfiles("test")
+@ActiveProfiles("jar-shell-shared", "contract-base")
 @SpringBootTest(
     classes = [IngestionCommand::class, ShareSightConfig::class, ClientConfig::class, IngestionConfig::class]
 )
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class CsvImportStubbedTest {
     @Autowired
     private lateinit var ingestionCommand: IngestionCommand

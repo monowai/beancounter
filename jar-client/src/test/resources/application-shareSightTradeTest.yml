@@ -1,3 +1,7 @@
+# Configuration for ShareSightTradeTest test
+marketdata:
+  url: http://localhost:10996
+
 beancounter:
   exchanges:
     aliases:
@@ -12,9 +16,6 @@ beancounter:
 
 server:
   port: 0
-
-marketdata:
-  url: http://localhost:10990
 
 rates: false
 amount: false

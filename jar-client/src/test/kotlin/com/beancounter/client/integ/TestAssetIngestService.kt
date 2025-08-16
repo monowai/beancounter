@@ -13,6 +13,8 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
@@ -20,12 +22,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:0.1.1:stubs:10990"]
 )
 @ImportAutoConfiguration(
     ClientConfig::class
 )
 @SpringBootTest(classes = [ClientConfig::class])
+@ActiveProfiles("jar-client-shared", "contract-base")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class TestAssetIngestService {
     @Autowired
     private lateinit var assetIngestService: AssetIngestService

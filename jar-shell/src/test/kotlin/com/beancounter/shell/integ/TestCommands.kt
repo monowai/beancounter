@@ -23,18 +23,20 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.shell.jline.PromptProvider
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Shell command unit tests.
  */
-@ActiveProfiles("test")
+@ActiveProfiles("jar-shell-shared", "contract-base")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:0.1.1:stubs:10991"]
 )
 @SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class, ShareSightConfig::class])
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @AutoConfigureMockAuth
 class TestCommands {
     @Autowired

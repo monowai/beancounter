@@ -41,6 +41,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
@@ -48,11 +49,26 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
+import java.time.Duration
 
 private const val EMAIL = "blah@blah.com"
 
 /**
  * Test inbound Kafka corporate action events
+ *
+ * IMPORTANT: This test uses its own isolated Spring context and stub runner configuration
+ * rather than the shared context approach used by other tests. This is necessary because:
+ *
+ * 1. Kafka tests are more complex and require isolated environments
+ * 2. Embedded Kafka broker needs its own configuration
+ * 3. Stub runner timing issues occur with shared contexts
+ * 4. Kafka consumer/producer setup is sensitive to context reuse
+ *
+ * Configuration:
+ * - Uses "kafka" profile (application-kafka.yaml)
+ * - Fixed stub runner ports: 11999 (svc-data), 12999 (svc-position)
+ * - @DirtiesContext to ensure clean state between tests
+ * - Separate from shared context ports (10990-10993)
  */
 
 @EmbeddedKafka(
@@ -63,18 +79,25 @@ private const val EMAIL = "blah@blah.com"
     ],
     brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"]
 )
+// Kafka tests use fixed ports to avoid timing issues with shared contexts
+// These ports are separate from the shared context ports (10990-10993)
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = [
-        "org.beancounter:svc-data:+:stubs:11999",
-        "org.beancounter:svc-position:+:stubs:12999"
+        "org.beancounter:svc-data:0.1.1:stubs:11999",
+        "org.beancounter:svc-position:0.1.1:stubs:12999"
     ]
 )
 @Tag("kafka")
 @SpringBootTest
+// Uses dedicated "kafka" profile instead of shared context profiles
+// This ensures Kafka tests have their own isolated configuration
 @ActiveProfiles("kafka")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
+// Use @DirtiesContext (not AFTER_CLASS) to ensure complete isolation for Kafka tests
+// This prevents any shared state issues that could affect Kafka consumer/producer behavior
+@DirtiesContext
 class StubbedEvents {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
@@ -170,13 +193,11 @@ class StubbedEvents {
         assertThat(trnEvents).isNotNull.hasSize(1)
 
         // Check the receiver gets what we send
+        val record = KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT, Duration.ofSeconds(10))
         verify(
             portfolio,
             trnEvents,
-            KafkaTestUtils.getSingleRecord(
-                consumer,
-                TRN_EVENT
-            )
+            record
         )
         val events = eventService.forAsset(KMI)
         assertThat(events).hasSize(1)
@@ -198,13 +219,11 @@ class StubbedEvents {
                 CorporateEventResponse::class.java
             )
         assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
+        val record2 = KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT, Duration.ofSeconds(10))
         verify(
             portfolio,
             trnEvents,
-            KafkaTestUtils.getSingleRecord(
-                consumer,
-                TRN_EVENT
-            )
+            record2
         )
         consumer.close()
 

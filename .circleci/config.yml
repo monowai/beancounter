@@ -146,28 +146,35 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Setup Docker Buildx (BC-SHELL)
+          name: Setup Docker Buildx and Registry Login
           command: |
-            echo "🐳 Setting up Docker buildx for bc-shell..."
-            docker buildx create --use --name bc-shell-builder
+            echo "🐳 Setting up Docker buildx and logging into registry..."
+            
+            # Install QEMU for multi-platform builds
+            docker run --rm --privileged tonistiigi/binfmt --install all
+            
+            # Create and use a new builder instance
+            docker buildx create --name multiarch-builder --use || true
             docker buildx inspect --bootstrap
-            docker run --rm --privileged tonistiigi/binfmt --install arm64
-      - run:
-          name: Login to Container Registry
-          command: |
-            echo "🔐 Logging into GitHub Container Registry..."
+            
+            # Login to GitHub Container Registry
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+            
+            echo "✅ Docker buildx setup complete"
       - run:
           name: Build and Push BC-SHELL
           command: |
             echo "📦 Building and pushing bc-shell Docker image..."
-            docker buildx build --push \
-                                --platform linux/arm64/v8,linux/amd64 \
-                                --cache-from type=registry,ref=ghcr.io/monowai/bc-shell:buildcache \
-                                --cache-to type=registry,ref=ghcr.io/monowai/bc-shell:buildcache,mode=max \
-                                -t "ghcr.io/monowai/bc-shell:latest" \
-                                -t "ghcr.io/monowai/bc-shell:${STACK_VER}" \
-                                 ~/project/jar-shell/.
+            
+            # Build and push multi-platform image
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --tag "ghcr.io/monowai/bc-shell:latest" \
+              --tag "ghcr.io/monowai/bc-shell:${STACK_VER}" \
+              ~/project/jar-shell/
+            
+            echo "✅ bc-shell image built and pushed successfully"
 
   package-data:
     executor: java-build
@@ -184,28 +191,35 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Setup Docker Buildx (BC-DATA)
+          name: Setup Docker Buildx and Registry Login
           command: |
-            echo "🐳 Setting up Docker buildx for bc-data..."
-            docker buildx create --use --name bc-data-builder
+            echo "🐳 Setting up Docker buildx and logging into registry..."
+            
+            # Install QEMU for multi-platform builds
+            docker run --rm --privileged tonistiigi/binfmt --install all
+            
+            # Create and use a new builder instance
+            docker buildx create --name multiarch-builder --use || true
             docker buildx inspect --bootstrap
-            docker run --rm --privileged tonistiigi/binfmt --install arm64
-      - run:
-          name: Login to Container Registry
-          command: |
-            echo "🔐 Logging into GitHub Container Registry..."
+            
+            # Login to GitHub Container Registry
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+            
+            echo "✅ Docker buildx setup complete"
       - run:
           name: Build and Push BC-DATA
           command: |
             echo "📦 Building and pushing bc-data Docker image..."
-            docker buildx build --push \
-                                --platform linux/arm64/v8,linux/amd64 \
-                                --cache-from type=registry,ref=ghcr.io/monowai/bc-data:buildcache \
-                                --cache-to type=registry,ref=ghcr.io/monowai/bc-data:buildcache,mode=max \
-                                -t "ghcr.io/monowai/bc-data:latest" \
-                                -t "ghcr.io/monowai/bc-data:${STACK_VER}" \
-                                 ~/project/svc-data/.
+            
+            # Build and push multi-platform image
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --tag "ghcr.io/monowai/bc-data:latest" \
+              --tag "ghcr.io/monowai/bc-data:${STACK_VER}" \
+              ~/project/svc-data/
+            
+            echo "✅ bc-data image built and pushed successfully"
 
   package-position:
     executor: java-build
@@ -222,28 +236,35 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Setup Docker Buildx (BC-POSITION)
+          name: Setup Docker Buildx and Registry Login
           command: |
-            echo "🐳 Setting up Docker buildx for bc-position..."
-            docker buildx create --use --name bc-position-builder
+            echo "🐳 Setting up Docker buildx and logging into registry..."
+            
+            # Install QEMU for multi-platform builds
+            docker run --rm --privileged tonistiigi/binfmt --install all
+            
+            # Create and use a new builder instance
+            docker buildx create --name multiarch-builder --use || true
             docker buildx inspect --bootstrap
-            docker run --rm --privileged tonistiigi/binfmt --install arm64
-      - run:
-          name: Login to Container Registry
-          command: |
-            echo "🔐 Logging into GitHub Container Registry..."
+            
+            # Login to GitHub Container Registry
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+            
+            echo "✅ Docker buildx setup complete"
       - run:
           name: Build and Push BC-POSITION
           command: |
             echo "📦 Building and pushing bc-position Docker image..."
-            docker buildx build --push \
-                                --platform linux/arm64/v8,linux/amd64 \
-                                --cache-from type=registry,ref=ghcr.io/monowai/bc-position:buildcache \
-                                --cache-to type=registry,ref=ghcr.io/monowai/bc-position:buildcache,mode=max \
-                                -t "ghcr.io/monowai/bc-position:latest" \
-                                -t "ghcr.io/monowai/bc-position:${STACK_VER}" \
-                                 ~/project/svc-position/.
+            
+            # Build and push multi-platform image
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --tag "ghcr.io/monowai/bc-position:latest" \
+              --tag "ghcr.io/monowai/bc-position:${STACK_VER}" \
+              ~/project/svc-position/
+            
+            echo "✅ bc-position image built and pushed successfully"
 
   package-event:
     executor: java-build
@@ -260,28 +281,35 @@ jobs:
           at: ~/project
       - setup_remote_docker
       - run:
-          name: Setup Docker Buildx (BC-EVENT)
+          name: Setup Docker Buildx and Registry Login
           command: |
-            echo "🐳 Setting up Docker buildx for bc-event..."
-            docker buildx create --use --name bc-event-builder
+            echo "🐳 Setting up Docker buildx and logging into registry..."
+            
+            # Install QEMU for multi-platform builds
+            docker run --rm --privileged tonistiigi/binfmt --install all
+            
+            # Create and use a new builder instance
+            docker buildx create --name multiarch-builder --use || true
             docker buildx inspect --bootstrap
-            docker run --rm --privileged tonistiigi/binfmt --install arm64
-      - run:
-          name: Login to Container Registry
-          command: |
-            echo "🔐 Logging into GitHub Container Registry..."
+            
+            # Login to GitHub Container Registry
             echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+            
+            echo "✅ Docker buildx setup complete"
       - run:
           name: Build and Push BC-EVENT
           command: |
             echo "📦 Building and pushing bc-event Docker image..."
-            docker buildx build --push \
-                                --platform linux/arm64/v8,linux/amd64 \
-                                --cache-from type=registry,ref=ghcr.io/monowai/bc-event:buildcache \
-                                --cache-to type=registry,ref=ghcr.io/monowai/bc-event:buildcache,mode=max \
-                                -t "ghcr.io/monowai/bc-event:latest" \
-                                -t "ghcr.io/monowai/bc-event:${STACK_VER}" \
-                                 ~/project/svc-event/.
+            
+            # Build and push multi-platform image
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --tag "ghcr.io/monowai/bc-event:latest" \
+              --tag "ghcr.io/monowai/bc-event:${STACK_VER}" \
+              ~/project/svc-event/
+            
+            echo "✅ bc-event image built and pushed successfully"
 
   publish-coverage:
     docker:

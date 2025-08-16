@@ -2,6 +2,20 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.5
 
+# Configurable branch patterns for different actions
+# These can be overridden via CircleCI environment variables
+# Default to master if not specified
+parameters:
+  docker-branch-pattern:
+    type: string
+    default: "master,mike/**"
+  coverage-branch-pattern:
+    type: string
+    default: "master,mike/**"
+  codacy-branch-pattern:
+    type: string
+    default: "/^codacy.*/"
+
 executors:
   java-build:
     environment:
@@ -28,7 +42,7 @@ jobs:
             - v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
             - v2-build-cache-{{ checksum "build.gradle" }}
             - v1-build-cache
-      
+
       # Use manual build order to handle circular dependencies
       - run:
           name: Build All Projects and Publish Stubs
@@ -44,7 +58,7 @@ jobs:
             ./gradlew :svc-event:build --no-daemon --parallel --max-workers=4
             echo "📦 Step 3: Building client libraries..."
             ./gradlew :jar-client:build :jar-shell:build --no-daemon --parallel --max-workers=4
-            
+
       # Upload coverage for all projects
       - codecov/upload:
           file: ./jar-common/build/reports/jacoco/test/jacocoTestReport.xml
@@ -86,7 +100,7 @@ jobs:
       - store_artifacts:
           path: ~/artifacts/core-libs
           destination: core-libraries
-      
+
       - run:
           name: Store Service Artifacts
           command: |
@@ -98,7 +112,7 @@ jobs:
       - store_artifacts:
           path: ~/artifacts/services
           destination: services
-      
+
       # Store test results
       - run:
           name: Collect Test Results
@@ -108,7 +122,7 @@ jobs:
             find ~/project -name "test-results" -type d -exec cp -r {}/test ~/test-results/ \; 2>/dev/null || echo "No test results found"
       - store_test_results:
           path: ~/test-results
-      
+
       # Persist coverage reports for downstream jobs
       - run:
           name: Prepare Coverage Reports for Workspace
@@ -252,39 +266,39 @@ workflows:
     jobs:
       # Complete build and test (handles stub dependencies)
       - build-and-test
-      
-      # Docker packaging (only on master, parallel after build)
+
+      # Docker packaging (configurable branch pattern, parallel after build)
       - package-shell:
           filters:
             branches:
-              only: master
+              only: << pipeline.parameters.docker-branch-pattern >>
           requires:
             - build-and-test
       - package-data:
           filters:
             branches:
-              only: master
+              only: << pipeline.parameters.docker-branch-pattern >>
           requires:
             - build-and-test
       - package-position:
           filters:
             branches:
-              only: master
+              only: << pipeline.parameters.docker-branch-pattern >>
           requires:
             - build-and-test
       - package-event:
           filters:
             branches:
-              only: master
+              only: << pipeline.parameters.docker-branch-pattern >>
           requires:
             - build-and-test
-      
-      # Coverage publishing (only on master and codacy branches)
+
+      # Coverage publishing (configurable branch patterns)
       - publish-coverage:
           filters:
             branches:
               only:
-                - master
-                - /^codacy.*/
+                - << pipeline.parameters.coverage-branch-pattern >>
+                - << pipeline.parameters.codacy-branch-pattern >>
           requires:
             - build-and-test

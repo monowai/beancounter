@@ -2,13 +2,13 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-kotlin = "1.9.25"
-kotlinter = "5.0.2"
-spring-boot = "3.4.6"
-spring-cloud = "2024.0.1"
+kotlin = "2.2.10"
+kotlinter = "5.1.1"
+spring-boot = "3.5.4"
+spring-cloud = "2025.0.0"
 spring-cloud-contract = "4.3.0"
-spring-kafka = "3.3.2"
-spring-security = "6.4.2"
+spring-kafka = "3.3.8"
+spring-security = "6.5.2"
 spring-doc = "2.8.8"
 jackson = "2.18.2"
 mockitoKotlin = '5.4.0'
@@ -32,6 +32,18 @@ spring-cloud-feign = { module = "org.springframework.cloud:spring-cloud-starter-
 commons-io = { module = "commons-io:commons-io", version = "2.18.0" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test", version.ref = "spring-kafka" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "spring-boot" }
+spring-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging", version.ref = "spring-boot" }
+spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aop", version.ref = "spring-boot" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "spring-boot" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "spring-boot" }
+spring-boot-starter-integration = { module = "org.springframework.boot:spring-boot-starter-integration", version.ref = "spring-boot" }
+spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "spring-boot" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
 spring-security-oauth2 = { module = "org.springframework.security:spring-security-oauth2-resource-server", version.ref = "spring-security" }
 spring-security-jose = { module = "org.springframework.security:spring-security-oauth2-jose", version.ref = "spring-security" }
 sentry-openfeign = { module = "io.sentry:sentry-openfeign", version.ref = "sentry" }

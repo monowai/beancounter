@@ -1,0 +1,21 @@
+# Configuration for ShareSightTradeTest test
+marketdata:
+  url: http://localhost:10996
+
+beancounter:
+  exchanges:
+    aliases:
+      NYS: NYSE
+      NAS: NASDAQ
+      AX: ASX
+      NZ: NZX
+  marketdata:
+    provider:
+      WTD:
+        date: 2019-11-16
+
+server:
+  port: 0
+
+rates: false
+amount: false

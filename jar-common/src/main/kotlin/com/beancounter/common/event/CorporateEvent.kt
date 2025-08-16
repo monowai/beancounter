@@ -25,12 +25,12 @@ data class CorporateEvent(
     val trnType: TrnType = TrnType.DIVI,
     val source: String = "ALPHA",
     var assetId: String,
-    @JsonFormat(
+    @param:JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @param:JsonSerialize(using = LocalDateSerializer::class)
+    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     var recordDate: LocalDate = DateUtils().date,
     @Column(
         precision = 15,
@@ -42,11 +42,11 @@ data class CorporateEvent(
         scale = 4
     )
     var split: BigDecimal = BigDecimal("1.0000"),
-    @JsonFormat(
+    @param:JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @param:JsonSerialize(using = LocalDateSerializer::class)
+    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     val payDate: LocalDate = recordDate
 )

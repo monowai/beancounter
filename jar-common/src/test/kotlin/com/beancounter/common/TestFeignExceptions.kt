@@ -6,7 +6,6 @@ import com.beancounter.common.Constants.Companion.TEST_UR
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.RecordFailurePredicate
-import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.exception.SpringFeignDecoder
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.exception.UnauthorizedException
@@ -144,11 +143,11 @@ class TestFeignExceptions {
     @Test
     fun is_ServiceIntegrationErrorDecoded() {
         val springFeignDecoder = SpringFeignDecoder()
-        val springExceptionMessage =
-            SpringExceptionMessage(
-                error = "",
-                message = INT_ERROR,
-                path = ""
+        val errorResponse =
+            mapOf(
+                "error" to "",
+                "message" to INT_ERROR,
+                "path" to ""
             )
         val response =
             Response
@@ -164,7 +163,7 @@ class TestFeignExceptions {
                         RequestTemplate()
                     )
                 ).body(
-                    objectMapper.writeValueAsString(springExceptionMessage),
+                    objectMapper.writeValueAsString(errorResponse),
                     Charset.defaultCharset()
                 ).build()
         assertThrows(SystemException::class.java) {
@@ -222,17 +221,15 @@ class TestFeignExceptions {
         throw e
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun validIntegrationException(e: Exception) {
-        val springExceptionMessage: SpringExceptionMessage =
+        val errorResponse: Map<String, String> =
             objectMapper.readValue(
                 e.message,
-                SpringExceptionMessage::class.java
-            )
-        assertThat(springExceptionMessage)
-            .hasFieldOrPropertyWithValue(
-                MESSAGE,
-                INT_ERROR
-            )
+                Map::class.java
+            ) as Map<String, String>
+        assertThat(errorResponse)
+            .containsEntry("message", INT_ERROR)
         throw e
     }
 

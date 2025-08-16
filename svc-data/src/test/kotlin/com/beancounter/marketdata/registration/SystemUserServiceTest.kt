@@ -23,7 +23,7 @@ private const val GOOGLE = "data.googleId"
 
 private const val AUTH0ID = "auth0Id"
 
-private const val GOOGLEID = "googleId"
+private const val GOOGLE_ID = "googleId"
 
 private const val USER_EMAIL = "user@email.com"
 
@@ -96,7 +96,7 @@ class SystemUserServiceTest {
         val googleUser =
             SystemUser(
                 email = "gmail",
-                googleId = GOOGLEID
+                googleId = GOOGLE_ID
             )
         authUtilService.authenticate(
             googleUser,
@@ -141,7 +141,7 @@ class SystemUserServiceTest {
         authUtilService.authenticate(
             SystemUser(
                 email = USER_EMAIL,
-                googleId = GOOGLEID
+                googleId = GOOGLE_ID
             ),
             AuthUtilService.AuthProvider.GOOGLE
         )
@@ -155,7 +155,7 @@ class SystemUserServiceTest {
                 true
             ).hasFieldOrPropertyWithValue(
                 GOOGLE,
-                GOOGLEID
+                GOOGLE_ID
             ).hasFieldOrPropertyWithValue(
                 AUTH0,
                 AUTH0ID
@@ -168,7 +168,7 @@ class SystemUserServiceTest {
         authUtilService.authenticate(
             SystemUser(
                 email = GMAIL,
-                googleId = GOOGLEID
+                googleId = GOOGLE_ID
             ),
             AuthUtilService.AuthProvider.GOOGLE
         )
@@ -190,7 +190,7 @@ class SystemUserServiceTest {
                 true
             ).hasFieldOrPropertyWithValue(
                 GOOGLE,
-                GOOGLEID
+                GOOGLE_ID
             ).hasFieldOrPropertyWithValue(
                 AUTH0,
                 AUTH0ID
@@ -202,7 +202,7 @@ class SystemUserServiceTest {
         val systemUser =
             SystemUser(
                 email = "",
-                auth0 = GOOGLEID
+                auth0 = GOOGLE_ID
             )
         authUtilService.authenticateM2M(
             systemUser,

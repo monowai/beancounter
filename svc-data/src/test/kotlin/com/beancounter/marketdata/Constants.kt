@@ -9,7 +9,20 @@ import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 
 /**
- * Centralise constant values. Reduces duplicate object code quality warnings.
+ * Centralized test constants for svc-data tests to reduce duplication and improve consistency.
+ *
+ * This class provides:
+ * - Standard test currencies and markets
+ * - Common test assets (AAPL, MSFT, AMP)
+ * - Test user configurations
+ * - Standard test data values
+ *
+ * Usage:
+ * ```
+ * val asset = Constants.AAPL
+ * val currency = Constants.USD
+ * val market = Constants.NASDAQ
+ * ```
  */
 class Constants {
     companion object {

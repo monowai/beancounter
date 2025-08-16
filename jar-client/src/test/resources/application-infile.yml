@@ -14,7 +14,7 @@ server:
   port: 0
 
 marketdata:
-  url: http://localhost:10999
+  url: http://localhost:10990
 
 rates: false
 amount: false

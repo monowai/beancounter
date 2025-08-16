@@ -106,7 +106,7 @@ class LoginService(
         var client_id: String,
         var username: String,
         var password: String,
-        var grant_type: String = AuthorizationGrantType.PASSWORD.value,
+        var grant_type: String = "password",
         var audience: String,
         var client_secret: String,
         var scope: String = "openid profile email beancounter beancounter:user beancounter:admin"

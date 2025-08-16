@@ -3,12 +3,13 @@ package com.beancounter.common
 import com.beancounter.common.Constants.Companion.MESSAGE
 import com.beancounter.common.Constants.Companion.TEST_UR
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus
+import org.springframework.http.ProblemDetail
 
 /**
  * Coverage of basic BC Exception and Message functionality.
@@ -23,23 +24,23 @@ internal class ExceptionMessagesTest {
     }
 
     @Test
-    fun is_SpringErrorSerializable() {
-        val springExceptionMessage =
-            SpringExceptionMessage(
-                error = "I'm a teapot",
-                message = "Message",
-                path = TEST_UR
-            )
-        val json = objectMapper.writeValueAsString(springExceptionMessage)
-        val fromJson =
-            objectMapper.readValue(
-                json,
-                SpringExceptionMessage::class.java
-            )
+    fun is_ProblemDetailSerializable() {
+        val problemDetail =
+            ProblemDetail
+                .forStatusAndDetail(
+                    HttpStatus.I_AM_A_TEAPOT,
+                    "Message"
+                ).apply {
+                    title = "I'm a teapot"
+                    instance = java.net.URI.create(TEST_UR)
+                }
+
+        val json = objectMapper.writeValueAsString(problemDetail)
+        val fromJson = objectMapper.readValue(json, ProblemDetail::class.java)
+
         assertThat(fromJson)
-            .hasNoNullFieldsOrProperties()
             .usingRecursiveComparison()
-            .isEqualTo(springExceptionMessage)
+            .isEqualTo(problemDetail)
     }
 
     private fun throwBusinessException() {

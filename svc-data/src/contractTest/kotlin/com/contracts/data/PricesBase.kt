@@ -159,23 +159,23 @@ class PricesBase : ContractVerifierBase() {
      * Alphavantage price response structure.
      */
     class AlphaPriceResponse(
-        @JsonProperty("01. symbol")
+        @param:JsonProperty("01. symbol")
         val symbol: String,
-        @JsonProperty(F_OPEN)
+        @param:JsonProperty(F_OPEN)
         val open: BigDecimal,
-        @JsonProperty(F_HIGH)
+        @param:JsonProperty(F_HIGH)
         val high: BigDecimal,
-        @JsonProperty(F_LOW)
+        @param:JsonProperty(F_LOW)
         val low: BigDecimal,
-        @JsonProperty(F_PRICE)
+        @param:JsonProperty(F_PRICE)
         val close: BigDecimal,
-        @JsonProperty(F_VOLUME)
+        @param:JsonProperty(F_VOLUME)
         val volume: Int,
-        @JsonProperty(F_DATE)
+        @param:JsonProperty(F_DATE)
         val priceDate: String,
-        @JsonProperty(F_PREVIOUS_CLOSE)
+        @param:JsonProperty(F_PREVIOUS_CLOSE)
         val previousClose: BigDecimal = close,
-        @JsonProperty(F_CHANGE)
+        @param:JsonProperty(F_CHANGE)
         val changePercent: BigDecimal = BigDecimal.ZERO
     )
 }

@@ -20,18 +20,20 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Test conversion from sharesight format to internal format.
  */
-@ActiveProfiles("test")
+@ActiveProfiles("jar-client-shared", "contract-base")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:0.1.1:stubs:10990"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 internal class ShareSightAdapterTest {
     @Autowired
     private lateinit var shareSightFactory: ShareSightFactory

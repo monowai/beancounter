@@ -35,6 +35,8 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
@@ -43,11 +45,13 @@ import java.math.BigDecimal
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:0.1.1:stubs:10990"]
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
 @AutoConfigureNoAuth
+@ActiveProfiles("jar-client-shared", "contract-base")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FxTransactionsTest {
     @Autowired
     lateinit var fxRateService: FxService
@@ -71,7 +75,7 @@ class FxTransactionsTest {
         val trnInput =
             TrnInput(
                 CallerRef(),
-                AssetUtils.Companion
+                AssetUtils
                     .getTestAsset(
                         Market("RE"),
                         "xxx"
@@ -198,7 +202,7 @@ class FxTransactionsTest {
         val trnInput =
             TrnInput(
                 CallerRef(),
-                AssetUtils.Companion
+                AssetUtils
                     .getTestAsset(
                         NASDAQ,
                         "MSFT"
@@ -240,7 +244,7 @@ class FxTransactionsTest {
         val trnInput =
             TrnInput(
                 CallerRef(),
-                AssetUtils.Companion
+                AssetUtils
                     .getTestAsset(
                         NASDAQ,
                         "MSFT"

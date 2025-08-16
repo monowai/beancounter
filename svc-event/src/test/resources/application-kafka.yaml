@@ -22,6 +22,9 @@ beancounter:
     ca:
       event: testCaEvent
 
+# Kafka tests use their own stub runner configuration with fixed ports
+# This is separate from the shared context approach used by other tests
+# because Kafka tests are more complex and need isolated environments
 marketdata:
   url: "http://localhost:11999"
 

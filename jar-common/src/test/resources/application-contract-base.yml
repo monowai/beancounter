@@ -1,0 +1,33 @@
+# Base configuration for all contract tests
+# 
+# This file contains common configuration shared across all contract tests.
+# Individual services extend this with their own specific configurations:
+# 
+# Shared Context Approach (for most tests):
+# - jar-client: application-jar-client-shared.yml (port 10990)
+# - jar-shell: application-jar-shell-shared.yml (port 10991) 
+# - svc-event: application-svc-event-shared.yml (port 10992)
+# - svc-position: application-svc-position-shared.yml (port 10993)
+# 
+# Isolated Context Approach (for complex tests):
+# - svc-event Kafka tests: application-kafka.yaml (ports 11999, 12999)
+# 
+# Benefits of shared context: ~4-6x faster test execution
+# Trade-off: Some tests need isolated contexts for reliability
+beancounter:
+  exchanges:
+    aliases:
+      NYS: NYSE
+      NAS: NASDAQ
+      AX: ASX
+      NZ: NZX
+  marketdata:
+    provider:
+      WTD:
+        date: 2019-11-16
+
+server:
+  port: 0
+
+rates: true
+amount: true

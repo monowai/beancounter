@@ -28,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.UUID
@@ -38,10 +39,11 @@ import java.util.UUID
 @SpringBootTest(classes = [ShellConfig::class, ClientPasswordConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:0.1.1:stubs:10991"]
 )
-@ActiveProfiles("test")
+@ActiveProfiles("jar-shell-shared", "contract-base")
 @AutoConfigureMockAuth
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class TestPortfolioCommands {
     @MockitoBean
     private lateinit var registrationService: RegistrationService

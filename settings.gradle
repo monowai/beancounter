@@ -1,9 +1,0 @@
-pluginManagement {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-rootProject.name = 'beancounter'
-include 'jar-common', 'jar-auth', 'jar-client', 'jar-shell', 'svc-data', 'svc-position', 'svc-event'

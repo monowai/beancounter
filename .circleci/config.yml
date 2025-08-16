@@ -61,56 +61,66 @@ jobs:
       - codecov/upload:
           file: ./svc-event/build/reports/jacoco/test/jacocoTestReport.xml
 
-      # Save build cache
+      # Save build cache for faster subsequent builds
+      - run:
+          name: Prepare Build Cache
+          command: |
+            echo "💾 Preparing build cache for faster subsequent builds..."
+            echo "Cache includes Gradle cache and Maven repository with stub JARs"
       - save_cache:
           paths:
             - ~/.gradle
             - ~/.m2
           key: v3-build-cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle" }}
 
-      # Store artifacts and persist workspace
+      # Store build artifacts (JAR files)
+      - run:
+          name: Store Core Library Artifacts
+          command: |
+            echo "📦 Storing core library artifacts..."
+            mkdir -p ~/artifacts/core-libs
+            cp -r ~/project/jar-common/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-common artifacts"
+            cp -r ~/project/jar-auth/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-auth artifacts"
+            cp -r ~/project/jar-client/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-client artifacts"
+            cp -r ~/project/jar-shell/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-shell artifacts"
       - store_artifacts:
-          path: ~/project/jar-common/build/libs
+          path: ~/artifacts/core-libs
+          destination: core-libraries
+      
+      - run:
+          name: Store Service Artifacts
+          command: |
+            echo "📦 Storing service artifacts..."
+            mkdir -p ~/artifacts/services
+            cp -r ~/project/svc-data/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-data artifacts"
+            cp -r ~/project/svc-position/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-position artifacts"
+            cp -r ~/project/svc-event/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-event artifacts"
       - store_artifacts:
-          path: ~/project/jar-auth/build/libs
-      - store_artifacts:
-          path: ~/project/jar-client/build/libs
-      - store_artifacts:
-          path: ~/project/jar-shell/build/libs
-      - store_artifacts:
-          path: ~/project/svc-data/build/libs
-      - store_artifacts:
-          path: ~/project/svc-position/build/libs
-      - store_artifacts:
-          path: ~/project/svc-event/build/libs
+          path: ~/artifacts/services
+          destination: services
       
       # Store test results
+      - run:
+          name: Collect Test Results
+          command: |
+            echo "🧪 Collecting test results from all modules..."
+            mkdir -p ~/test-results
+            find ~/project -name "test-results" -type d -exec cp -r {}/test ~/test-results/ \; 2>/dev/null || echo "No test results found"
       - store_test_results:
-          path: ~/project/jar-common/build/test-results/test
-      - store_test_results:
-          path: ~/project/jar-auth/build/test-results/test
-      - store_test_results:
-          path: ~/project/jar-client/build/test-results/test
-      - store_test_results:
-          path: ~/project/jar-shell/build/test-results/test
-      - store_test_results:
-          path: ~/project/svc-data/build/test-results/test
-      - store_test_results:
-          path: ~/project/svc-position/build/test-results/test
-      - store_test_results:
-          path: ~/project/svc-event/build/test-results/test
+          path: ~/test-results
       
+      # Persist coverage reports for downstream jobs
+      - run:
+          name: Prepare Coverage Reports for Workspace
+          command: |
+            echo "📊 Preparing coverage reports for workspace persistence..."
+            mkdir -p ~/coverage-reports
+            find ~/project -name "jacocoTestReport.xml" -exec cp {} ~/coverage-reports/ \;
+            cp ~/project/codecov.yml ~/coverage-reports/ 2>/dev/null || echo "No codecov.yml found"
       - persist_to_workspace:
-          root: ~/project
+          root: ~/coverage-reports
           paths:
-            - ./jar-common/build/reports/jacoco/test/*.xml
-            - ./jar-auth/build/reports/jacoco/test/*.xml
-            - ./jar-client/build/reports/jacoco/test/*.xml
-            - ./jar-shell/build/reports/jacoco/test/*.xml
-            - ./svc-data/build/reports/jacoco/test/*.xml
-            - ./svc-position/build/reports/jacoco/test/*.xml
-            - ./svc-event/build/reports/jacoco/test/*.xml
-            - ./codecov.yml
+            - .
 
   # Docker packaging jobs (only for master branch)
   package-shell:

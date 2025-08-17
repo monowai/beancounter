@@ -8,7 +8,8 @@ This project uses Spring Cloud Contract for contract testing, which requires con
 
 The project has circular dependencies that affect the build process:
 
-### Circular Dependency Chain:
+### Circular Dependency Chain
+
 ```
 jar-client → svc-data:stubs → svc-data → jar-client
 jar-shell → svc-data:stubs → svc-data → jar-shell  
@@ -16,7 +17,8 @@ svc-position → svc-data:stubs → svc-data → svc-position
 svc-event → svc-position:stubs → svc-position → svc-event
 ```
 
-### Impact:
+### Impact
+
 - **Clean builds** (Day 0) will fail with dependency resolution errors
 - **Incremental builds** work fine when stubs already exist
 - **CI/CD** requires special handling
@@ -145,21 +147,27 @@ Due to circular dependencies, **clean builds will fail** with dependency resolut
 ### Common Issues
 
 1. **Stub Not Found Errors**
+
    ```
    Could not find org.beancounter:svc-data:0.1.1:stubs
    ```
+
    **Solution**: Run the manual build order or use `./build-with-stubs.sh`
 
 2. **Circular Dependency Errors**
+
    ```
    Could not resolve all files for configuration ':jar-client:testCompileClasspath'
    ```
+
    **Solution**: This is expected for clean builds. Use the manual build order.
 
 3. **Port Already in Use**
+
    ```
    Address already in use
    ```
+
    **Solution**: Ensure no other tests are running, or use `./gradlew cleanAll`
 
 ### Verification Commands

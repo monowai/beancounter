@@ -1,3 +1,18 @@
 ---
 exclude_paths:
   - "**/test/**"
+  - "**/contractTest/**"
+  - "**/*.gradle"
+  - "**/*.gradle.kts"
+  - "**/gradle/**"
+  - "**/build/**"
+  - "**/.gradle/**"
+  - "**/gradle.properties"
+  - "**/gradle-wrapper.properties"
+  - "**/gradle-wrapper.jar"
+  - "**/settings.gradle"
+  - "**/settings.gradle.kts"
+  - "**/gradle/libs.versions.toml"
+  - "TEST_NAMING_CONVENTIONS.md"
+  - "BUILD_PROCESS.md"
+  - "CIRCLE_CI_CONFIGURATION.md"

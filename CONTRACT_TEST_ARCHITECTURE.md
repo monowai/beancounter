@@ -12,17 +12,20 @@ This project uses a **hybrid approach** for contract testing that balances perfo
 ### Shared Context Approach (Primary)
 
 **Benefits:**
+
 - ~4-6x faster test execution
 - Reduced memory usage
 - Faster CI/CD pipelines
 
 **Configuration:**
+
 - Base config: `jar-common/src/test/resources/application-contract-base.yml`
 - Service-specific configs: `application-{service}-shared.yml`
 - Profile: `@ActiveProfiles("{service}-shared", "contract-base")`
 - Context reuse: `@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)`
 
 **Port Allocation:**
+
 - jar-client: 10990
 - jar-shell: 10991
 - svc-event: 10992
@@ -31,11 +34,13 @@ This project uses a **hybrid approach** for contract testing that balances perfo
 ### Isolated Context Approach (Special Cases)
 
 **When to use:**
+
 - Kafka tests (complex consumer/producer setup)
 - Tests requiring complete isolation
 - Tests with timing-sensitive operations
 
 **Configuration:**
+
 - Dedicated config: `application-kafka.yaml`
 - Profile: `@ActiveProfiles("kafka")`
 - Context isolation: `@DirtiesContext`
@@ -46,6 +51,7 @@ This project uses a **hybrid approach** for contract testing that balances perfo
 ### Base Configuration (`application-contract-base.yml`)
 
 Contains common settings shared across all contract tests:
+
 - Exchange aliases
 - Market data provider settings
 - Server configuration
@@ -54,6 +60,7 @@ Contains common settings shared across all contract tests:
 ### Service-Specific Configurations
 
 Each service has a minimal configuration file that extends the base:
+
 ```yaml
 # Only service-specific overrides
 marketdata:
@@ -63,6 +70,7 @@ marketdata:
 ### Test Class Pattern
 
 **Shared Context Tests:**
+
 ```kotlin
 @ActiveProfiles("service-shared", "contract-base")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -72,6 +80,7 @@ marketdata:
 ```
 
 **Isolated Context Tests:**
+
 ```kotlin
 @ActiveProfiles("kafka")
 @DirtiesContext

@@ -48,7 +48,18 @@ import java.math.BigDecimal
 const val TRNS_BY_ID = "$TRNS_ROOT/{trnId}"
 
 /**
- * Splits out the general flow of transactions to verify they work as expected through the trn lifecycle.
+ * Test suite for TrnController to ensure complete transaction lifecycle management works correctly.
+ * 
+ * This class tests:
+ * - Transaction creation with valid input data
+ * - Transaction retrieval by various criteria (ID, portfolio, asset, date range)
+ * - Transaction deletion (single and bulk operations)
+ * - Error handling for invalid inputs and non-existent resources
+ * - Authorization and security validation
+ * - Data consistency and sorting behavior
+ * 
+ * Tests use Spring Boot Test with MockMvc to simulate HTTP requests
+ * and verify the complete transaction workflow from creation to deletion.
  */
 @SpringMvcDbTest
 class TrnControllerFlowTest(
@@ -170,23 +181,25 @@ class TrnControllerFlowTest(
     }
 
     @Test
-    fun nonExistentThrowsException() {
-        // Delete illegal transaction by primary key
+    fun `should return bad request when deleting non-existent transaction`() {
+        // Given a non-existent transaction ID
+        val nonExistentId = "illegalId"
+        
+        // When attempting to delete the non-existent transaction
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete(
-                        TRNS_BY_ID,
-                        "illegalId"
-                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .delete(TRNS_BY_ID, nonExistentId)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+            )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(
                 MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
             )
     }
 
     @Test
-    fun is_PersistRetrieveAndPurge() {
+    fun `should persist retrieve and delete transactions in complete lifecycle`() {
         createTestTransactions()
         val portfolio =
             bcMvcHelper.portfolio(

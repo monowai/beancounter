@@ -16,6 +16,7 @@ dependencies {
     implementation("org.springframework:spring-webmvc")
     implementation(libs.spring.cloud.feign) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
     }
     implementation("org.springframework.security:spring-security-config")
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
@@ -25,10 +26,15 @@ dependencies {
     
     testImplementation(libs.spring.boot.starter.test) {
         exclude(module = "junit-vintage-engine")
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
     }
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(libs.assertj)
-    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
+    }
     testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner")
     testImplementation(libs.jackson.kotlin)
     testImplementation(libs.spring.boot.autoconfigure)
@@ -38,7 +44,10 @@ dependencies {
     testFixturesImplementation(platform(libs.spring.boot.dependencies))
     testFixturesImplementation(platform(libs.spring.cloud.dependencies))
     testFixturesImplementation(project(":jar-common"))
-    testFixturesImplementation(libs.spring.boot.starter.test)
+    testFixturesImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
+    }
     testFixturesImplementation("org.springframework.security:spring-security-config")
     testFixturesImplementation("org.springframework.security:spring-security-test")
     testFixturesImplementation("org.springframework.security:spring-security-oauth2-client")

@@ -24,9 +24,13 @@ dependencies {
     implementation(libs.resilience4j.annotations)
     implementation(libs.spring.cloud.feign) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
     }
     
-    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
+    }
     testImplementation(libs.assertj)
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")

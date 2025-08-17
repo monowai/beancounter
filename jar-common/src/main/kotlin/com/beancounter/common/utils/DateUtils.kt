@@ -90,7 +90,6 @@ class DateUtils(
     /**
      * Parses the given date string into a LocalDate, using the provided date format or default if not specified.
      * @param inDate the date as a string, defaulting to "today"
-     * @param dateFormat the pattern to use for parsing, defaulting to "yyyy-MM-dd"
      * @return LocalDate object representing the parsed date
      */
     fun getFormattedDate(

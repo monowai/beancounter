@@ -24,11 +24,15 @@ dependencies {
     implementation(libs.spring.kafka)
     implementation(libs.spring.cloud.feign) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
     }
     implementation(libs.commons.io)
     implementation(libs.guava)
     
-    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
+    }
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.mockito:mockito-core")
     testImplementation("org.mockito:mockito-junit-jupiter")
@@ -47,5 +51,8 @@ dependencies {
     }
     
     // Test fixtures dependencies
-    testFixturesImplementation(libs.spring.boot.starter.test)
+    testFixturesImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
+    }
 }

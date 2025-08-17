@@ -14,6 +14,7 @@ dependencies {
     implementation("org.springframework.shell:spring-shell-starter-jansi")
     implementation(libs.spring.cloud.feign) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
     }
     implementation(libs.spring.security.oauth2)
     implementation(libs.spring.security.jose)
@@ -24,7 +25,10 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(testFixtures(project(":jar-auth")))
     testImplementation(libs.spring.security.oauth2)
-    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
+    }
     testImplementation(libs.spring.stub.runner)
     testImplementation(libs.apache.groovy)
     testImplementation(libs.spring.kafka.test)

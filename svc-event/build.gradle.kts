@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.spring.boot.starter.logging)
     implementation(libs.spring.cloud.feign) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
     }
     implementation(libs.spring.boot.starter.security)
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
@@ -41,7 +42,10 @@ dependencies {
     
     compileOnly(libs.spring.boot.configuration.processor)
     
-    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.test) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+        exclude(group = "org.apache.commons", module = "commons-text")
+    }
     testImplementation("com.h2database:h2")
     testImplementation(libs.jackson.kotlin)
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")

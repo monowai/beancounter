@@ -6,14 +6,24 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.US
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 private const val START_DATE = "2024-01-01"
 
 /**
- * validate various cash flow scenarios.
+ * Test suite for IrrCalculator to ensure proper IRR calculation functionality.
+ *
+ * This class tests:
+ * - IRR calculation for various cash flow scenarios
+ * - Edge cases with different cash flow patterns
+ * - Dividend and investment scenarios
+ * - Short and long-term holding periods
+ * - Loss and gain scenarios
+ *
+ * Tests verify that the IrrCalculator correctly computes
+ * internal rate of return for different financial scenarios.
  */
 class IrrCalculatorTests {
     private val irrService = IrrCalculator()
@@ -27,24 +37,37 @@ class IrrCalculatorTests {
     private val dateUtils = DateUtils()
 
     @Test
-    fun `noCash-flows_don't fail`() {
-        testCalculateIRR(
-            listOf(),
-            0.0
-        )
+    fun `should handle empty cash flows without failing`() {
+        // Given empty cash flows
+        val cashFlows = listOf<Pair<String, Double>>()
+
+        // When calculating IRR
+        val result = testCalculateIRR(cashFlows, 0.0)
+
+        // Then it should not fail and return expected result
+        assertThat(result).isEqualTo(0.0)
     }
 
     @Test
-    fun testCalculateIRR_Annual() {
-        testCalculateIRR(
+    fun `should calculate IRR correctly for annual cash flows`() {
+        // Given annual cash flows over multiple years
+        val cashFlows =
             listOf(
                 "2019-01-01" to initialCost,
                 "2020-01-01" to 300.0,
                 "2021-01-01" to 420.0,
                 "2022-01-01" to 680.0,
                 "2023-01-01" to marketValue
-            ),
-            0.379
+            )
+
+        // When calculating IRR
+        val result = testCalculateIRR(cashFlows, 0.379)
+
+        // Then it should return the expected IRR
+        assertThat(result).isCloseTo(
+            0.379,
+            org.assertj.core.data.Offset
+                .offset(0.001)
         )
     }
 
@@ -63,16 +86,25 @@ class IrrCalculatorTests {
     }
 
     @Test
-    fun testCalculateIRR_QuarterlyDividends() {
-        testCalculateIRR(
+    fun `should calculate IRR correctly for quarterly dividends`() {
+        // Given quarterly dividend cash flows
+        val cashFlows =
             listOf(
                 "2023-01-01" to initialCost,
                 "2023-04-10" to 50.0,
                 "2023-07-01" to 50.0,
                 "2023-10-01" to 50.0,
                 START_DATE to marketValue
-            ),
-            .269
+            )
+
+        // When calculating IRR
+        val result = testCalculateIRR(cashFlows, 0.269)
+
+        // Then it should return the expected IRR
+        assertThat(result).isCloseTo(
+            0.269,
+            org.assertj.core.data.Offset
+                .offset(0.001)
         )
     }
 
@@ -158,14 +190,15 @@ class IrrCalculatorTests {
     private fun testCalculateIRR(
         cashFlows: List<Pair<String, Double>>,
         expectedIrr: Double
-    ) {
+    ): Double {
         val periodicCashFlows = getPeriodicCashFlows(cashFlows)
         val irr = irrService.calculate(periodicCashFlows)
-        assertEquals(
+        assertThat(irr).isCloseTo(
             expectedIrr,
-            irr,
-            0.001
+            org.assertj.core.data.Offset
+                .offset(0.001)
         )
+        return irr
     }
 
     private fun getPeriodicCashFlows(cashFlows: List<Pair<String, Double>>): PeriodicCashFlows {

@@ -6,17 +6,12 @@ import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.common.input.AssetInput
-import com.beancounter.common.model.Asset
-import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.model.Position
-import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.utils.FxUtils
+import com.beancounter.position.utils.TestHelpers
 import com.beancounter.position.valuation.Gains
 import com.beancounter.position.valuation.MarketValue
 import org.assertj.core.api.Assertions.assertThat
@@ -30,26 +25,16 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /**
- * Unit tests for {@link PositionValuationService} class.
- * This test suite checks the functionality of the PositionValuationService,
- * ensuring that it computes financial position values correctly based on given market data
- * and foreign exchange rates.
+ * Test suite for PositionValuationService to ensure proper position valuation functionality.
  *
- * <p>Tests are designed to verify both the handling of non-empty asset sets where market data
- * and exchange rates affect the computed values, and scenarios where no assets are provided,
- * ensuring the service behaves as expected under different conditions.</p>
+ * This class tests:
+ * - Position value computation when assets are provided
+ * - Handling of empty asset lists
+ * - Integration with price and FX services
+ * - Market data processing and valuation calculations
  *
- * <p>Utilizes {@link MockitoExtension} for mocking dependencies and injecting mocked instances
- * into the service being tested. This allows for isolated testing of the service logic without
- * interference from external services like {@link PriceService} and {@link FxRateService}.</p>
- *
- * <p>Key functionalities tested:
- * <ul>
- *     <li>Correct computation of position values when assets are not empty.</li>
- *     <li>Proper return of unchanged positions when asset lists are empty.</li>
- *     <li>Interaction with dependency services to fetch necessary data.</li>
- * </ul>
- * </p>
+ * Tests verify that the PositionValuationService correctly computes
+ * financial position values based on market data and exchange rates.
  */
 
 @ExtendWith(MockitoExtension::class)
@@ -71,13 +56,7 @@ class PositionValuationServiceTest {
 
     private lateinit var valuationService: PositionValuationService
 
-    val portfolio: Portfolio =
-        Portfolio(
-            id = "PositionValuationServiceTest",
-            currency = Constants.USD,
-            base = Constants.USD,
-            owner = Constants.owner
-        )
+    val portfolio: Portfolio = TestHelpers.createTestPortfolio("PositionValuationServiceTest")
 
     @BeforeEach
     fun setup() {
@@ -97,78 +76,40 @@ class PositionValuationServiceTest {
     }
 
     @Test
-    fun `value should correctly compute values when assets are not empty`() {
-        // Arrange
+    fun `should correctly compute values when assets are not empty`() {
+        // Given
         whenever(tokenService.bearerToken).thenReturn("Token Value")
-        val asset =
-            Asset(
-                code = "Asset1",
-                market = US
-            )
-        val assetInputs =
-            setOf(
-                AssetInput(
-                    US.code,
-                    asset.code
-                )
-            )
-        val positions = Positions(portfolio)
-        positions.add(
-            Position(
-                asset,
-                portfolio
-            )
-        )
-        whenever(
-            fxUtils.buildRequest(
-                any(),
-                any()
-            )
-        ).thenReturn(FxRequest())
-        whenever(
-            priceService.getPrices(
-                any(),
-                any()
-            )
-        ).thenReturn(
-            PriceResponse(
-                listOf(MarketData(asset))
-            )
-        )
-        whenever(
-            fxRateService.getRates(
-                any(),
-                any()
-            )
-        ).thenReturn(FxResponse())
-
-        // Act
-        val result =
-            valuationService.value(
-                positions,
-                assetInputs
+        val asset = TestHelpers.createTestAsset("Asset1", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val positions =
+            TestHelpers.createTestPositions(
+                portfolio,
+                listOf(TestHelpers.createTestPosition(asset, portfolio))
             )
 
-        // Assert
-        assertThat(result).isNotNull
-        verify(priceService).getPrices(
-            any(),
-            any()
-        ) // Verifies that prices were indeed fetched
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        // When
+        val result = valuationService.value(positions, assetInputs)
+
+        // Then
+        assertThat(result).isNotNull()
+        verify(priceService).getPrices(any(), any())
     }
 
     @Test
-    fun `value should return positions unchanged when assets are empty`() {
-        val positions = Positions(portfolio)
+    fun `should return positions unchanged when assets are empty`() {
+        // Given
+        val positions = TestHelpers.createTestPositions(portfolio, emptyList())
 
-        // Act
-        val result =
-            valuationService.value(
-                positions,
-                emptyList()
-            )
+        // When
+        val result = valuationService.value(positions, emptyList())
 
-        // Assert
+        // Then
         assertThat(result).isEqualTo(positions)
     }
 }

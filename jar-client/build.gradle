@@ -23,7 +23,7 @@ dependencies {
             "org.jetbrains.kotlin:kotlin-reflect",
             libs.resilience4j,
             libs.resilience4j.annotations,
-            "org.springframework.cloud:spring-cloud-starter-openfeign"
+            libs.spring.cloud.feign
     )
     testImplementation(
             "org.springframework.boot:spring-boot-starter-test",

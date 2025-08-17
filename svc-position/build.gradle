@@ -35,7 +35,7 @@ dependencies {
             libs.spring.doc,
             libs.spring.doc.mvc,
             "org.springframework.boot:spring-boot-starter-aop",
-            "org.springframework.cloud:spring-cloud-starter-openfeign",
+            libs.spring.cloud.feign,
             "org.springframework.boot:spring-boot-starter-security",
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",
@@ -84,12 +84,21 @@ gitProperties {
     failOnNoGitDirectory = false
 }
 
-tasks.lintKotlinContractTest {
-    dependsOn generateContractTests
+// Contract test linting and formatting tasks - only configure if they exist
+tasks.matching { it.name == 'lintKotlinContractTest' }.configureEach {
+    // Only add dependency if the contract test generation task exists
+    def contractTask = tasks.findByName('generateContractTests') ?: tasks.findByName('generateContractTestSources')
+    if (contractTask) {
+        dependsOn contractTask
+    }
 }
 
-tasks.formatKotlinContractTest {
-    dependsOn generateContractTests
+tasks.matching { it.name == 'formatKotlinContractTest' }.configureEach {
+    // Only add dependency if the contract test generation task exists
+    def contractTask = tasks.findByName('generateContractTests') ?: tasks.findByName('generateContractTestSources')
+    if (contractTask) {
+        dependsOn contractTask
+    }
 }
 
 bootBuildImage {

@@ -2,7 +2,7 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-kotlin = "1.9.25"
+kotlin = "2.2.10"
 kotlinter = "5.1.1"
 spring-boot = "3.5.4"
 spring-cloud = "2025.0.0"

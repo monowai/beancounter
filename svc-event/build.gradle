@@ -19,7 +19,7 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.boot:spring-boot-starter-logging",
-            "org.springframework.cloud:spring-cloud-starter-openfeign",
+            libs.spring.cloud.feign,
             "org.springframework.boot:spring-boot-starter-security",
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",

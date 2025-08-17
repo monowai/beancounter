@@ -32,7 +32,7 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.boot:spring-boot-starter-logging",
-            "org.springframework.cloud:spring-cloud-starter-openfeign",
+            libs.spring.cloud.feign,
             libs.spring.doc,
             libs.spring.doc.mvc,
             libs.sentry.openfeign,
@@ -96,12 +96,21 @@ tasks.register('pubStubs') {
     dependsOn publishToMavenLocal
 }
 
-tasks.lintKotlinContractTest {
-    dependsOn generateContractTests
+// Contract test linting and formatting tasks - only configure if they exist
+tasks.matching { it.name == 'lintKotlinContractTest' }.configureEach {
+    // Only add dependency if the contract test generation task exists
+    def contractTask = tasks.findByName('generateContractTests') ?: tasks.findByName('generateContractTestSources')
+    if (contractTask) {
+        dependsOn contractTask
+    }
 }
 
-tasks.formatKotlinContractTest {
-    dependsOn generateContractTests
+tasks.matching { it.name == 'formatKotlinContractTest' }.configureEach {
+    // Only add dependency if the contract test generation task exists
+    def contractTask = tasks.findByName('generateContractTests') ?: tasks.findByName('generateContractTestSources')
+    if (contractTask) {
+        dependsOn contractTask
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -131,7 +140,11 @@ sentry {
     }
 }
 
-tasks.named('sentryCollectSourcesJava') {
-    dependsOn tasks.named('generateContractTests')
-    mustRunAfter tasks.named('generateContractTests')
+tasks.matching { it.name == 'sentryCollectSourcesJava' }.configureEach {
+    // Only add dependency if the contract test generation task exists
+    def contractTask = tasks.findByName('generateContractTests') ?: tasks.findByName('generateContractTestSources')
+    if (contractTask) {
+        dependsOn contractTask
+        mustRunAfter contractTask
+    }
 }

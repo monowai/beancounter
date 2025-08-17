@@ -52,8 +52,8 @@ const val TRNS_BY_ID = "$TRNS_ROOT/{trnId}"
  */
 @SpringMvcDbTest
 class TrnControllerFlowTest(
-    @Autowired var mockMvc: MockMvc,
-    @Autowired var mockAuthConfig: MockAuthConfig
+    @param:Autowired var mockMvc: MockMvc,
+    @param:Autowired var mockAuthConfig: MockAuthConfig
 ) {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder

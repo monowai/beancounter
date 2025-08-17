@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+import static org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2
+
 plugins {
     alias(libs.plugins.jvm)
     alias(libs.plugins.jacoco)
@@ -34,8 +38,10 @@ subprojects {
     // JVM configuration
     kotlin {
         jvmToolchain(21)
+        compilerOptions {
+            languageVersion.set(KOTLIN_2_2)
+        }
     }
-
 
 
     // Test configuration with optimizations
@@ -50,7 +56,7 @@ subprojects {
 
         // Test logging
         testLogging {
-            events "passed", "skipped", "failed"
+            events "skipped", "failed"
             exceptionFormat = 'full'
             showStandardStreams = false
         }
@@ -64,12 +70,12 @@ subprojects {
     }
 
     // Kotlin compilation configuration
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
             jvmTarget = '21'
             freeCompilerArgs += [
-                '-Xjsr305=strict',
-                '-Xjvm-default=all'
+                    '-Xjsr305=strict',
+                    '-Xjvm-default=all'
             ]
         }
     }
@@ -191,7 +197,7 @@ tasks.register('verifyStubsForBuild') {
         def mavenLocal = new File(System.getProperty('user.home') + '/.m2/repository/org/beancounter')
         def svcDataStubs = new File(mavenLocal, 'svc-data/0.1.1/svc-data-0.1.1-stubs.jar')
         def svcPositionStubs = new File(mavenLocal, 'svc-position/0.1.1/svc-position-0.1.1-stubs.jar')
-        
+
         if (!svcDataStubs.exists() || !svcPositionStubs.exists()) {
             println "📦 Contract stubs missing!"
             println "   Run: ./gradlew buildWithStubs"
@@ -245,7 +251,7 @@ tasks.register('verifyStubsForTest') {
         def mavenLocal = new File(System.getProperty('user.home') + '/.m2/repository/org/beancounter')
         def svcDataStubs = new File(mavenLocal, 'svc-data/0.1.1/svc-data-0.1.1-stubs.jar')
         def svcPositionStubs = new File(mavenLocal, 'svc-position/0.1.1/svc-position-0.1.1-stubs.jar')
-        
+
         if (!svcDataStubs.exists() || !svcPositionStubs.exists()) {
             println "📦 Contract stubs missing!"
             println "   Run: ./gradlew testWithStubs"
@@ -276,18 +282,18 @@ tasks.register('testWithStubs') {
 tasks.register('verifyStubs') {
     doLast {
         println "Verifying contract stubs are available..."
-        
+
         def mavenLocal = new File(System.getProperty('user.home') + '/.m2/repository/org/beancounter')
         def svcDataStubs = new File(mavenLocal, 'svc-data/0.1.1/svc-data-0.1.1-stubs.jar')
         def svcPositionStubs = new File(mavenLocal, 'svc-position/0.1.1/svc-position-0.1.1-stubs.jar')
-        
+
         if (!svcDataStubs.exists()) {
             throw new GradleException("svc-data stubs not found. Run 'publishStubs' first.")
         }
         if (!svcPositionStubs.exists()) {
             throw new GradleException("svc-position stubs not found. Run 'publishStubs' first.")
         }
-        
+
         println "✅ Contract stubs are available:"
         println "  - svc-data: ${svcDataStubs.absolutePath}"
         println "  - svc-position: ${svcPositionStubs.absolutePath}"

@@ -12,20 +12,22 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-security:3.5.4")
     implementation("org.springframework.shell:spring-shell-starter-jansi")
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.3.0")
-    implementation("org.springframework.security:spring-security-oauth2-resource-server:6.4.4")
-    implementation("org.springframework.security:spring-security-oauth2-jose:6.4.4")
-    implementation("org.springframework.kafka:spring-kafka:3.3.8")
+    implementation(libs.spring.cloud.feign) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+    }
+    implementation(libs.spring.security.oauth2)
+    implementation(libs.spring.security.jose)
+    implementation(libs.spring.kafka)
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
     implementation("com.opencsv:opencsv:5.11.1")
     
-    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation(libs.assertj)
     testImplementation(testFixtures(project(":jar-auth")))
-    testImplementation("org.springframework.security:spring-security-oauth2-resource-server:6.4.4")
+    testImplementation(libs.spring.security.oauth2)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner:4.3.0")
-    testImplementation("org.apache.groovy:groovy:4.0.26")
-    testImplementation("org.springframework.kafka:spring-kafka-test:3.3.8")
+    testImplementation(libs.spring.stub.runner)
+    testImplementation(libs.apache.groovy)
+    testImplementation(libs.spring.kafka.test)
     testImplementation("org.junit.jupiter:junit-jupiter")
     
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {

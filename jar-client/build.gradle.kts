@@ -9,23 +9,25 @@ group = "com.beancounter"
 version = "0.0.1-SNAPSHOT"
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.4"))
-    implementation(platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.0"))
+    implementation(platform(libs.spring.boot.dependencies))
+    implementation(platform(libs.spring.cloud.dependencies))
     implementation(project(":jar-common"))
     implementation(project(":jar-auth"))
-    implementation("com.google.guava:guava:33.4.0-jre")
+    implementation(libs.guava)
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation(libs.jackson.kotlin)
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("io.github.resilience4j:resilience4j-all:2.1.0")
-    implementation("io.github.resilience4j:resilience4j-annotations:2.3.0")
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.3.0")
+    implementation(libs.resilience4j)
+    implementation(libs.resilience4j.annotations)
+    implementation(libs.spring.cloud.feign) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+    }
     
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.assertj:assertj-core")
+    testImplementation(libs.assertj)
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")

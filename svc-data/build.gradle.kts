@@ -22,19 +22,21 @@ publishing {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.4"))
-    implementation(platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.0"))
-    implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.12.0"))
+    implementation(platform(libs.spring.boot.dependencies))
+    implementation(platform(libs.spring.cloud.dependencies))
+    implementation(platform(libs.otel.bom))
     implementation(project(":jar-common"))
     implementation(project(":jar-auth"))
     implementation(project(":jar-client"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-logging")
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.3.0")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.8")
-    implementation("io.sentry:sentry-openfeign:7.22.5")
+    implementation(libs.spring.cloud.feign) {
+        exclude(group = "org.apache.commons", module = "commons-lang3")
+    }
+    implementation(libs.spring.doc)
+    implementation(libs.spring.doc.mvc)
+    implementation(libs.sentry.openfeign)
     implementation("io.sentry:sentry-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -44,12 +46,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("io.github.resilience4j:resilience4j-all:2.1.0")
-    implementation("io.github.resilience4j:resilience4j-annotations:2.3.0")
+    implementation(libs.resilience4j)
+    implementation(libs.resilience4j.annotations)
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("com.h2database:h2") // Dev
-    implementation("org.postgresql:postgresql:42.7.7")
-    implementation("org.springframework.kafka:spring-kafka")
+    implementation(libs.postgresql)
+    implementation(libs.spring.kafka)
     implementation("com.opencsv:opencsv:5.11.1")
     
     compileOnly("org.springframework.boot:spring-boot-configuration-processor")
@@ -58,10 +60,10 @@ dependencies {
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
-    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation(libs.spring.kafka.test)
     testImplementation("org.junit.platform:junit-platform-suite-api")
     testImplementation("org.junit.platform:junit-platform-suite-engine")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
 }
 

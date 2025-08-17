@@ -2,7 +2,6 @@ package com.beancounter.position.service
 
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.utils.TestHelpers
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -12,24 +11,22 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.SendResult
-import org.springframework.test.util.ReflectionTestUtils
 import java.util.concurrent.CompletableFuture
 
 /**
  * Test suite for MarketValueUpdateProducer to ensure proper Kafka message publishing.
- * 
+ *
  * This class tests:
  * - Portfolio message publishing to Kafka
  * - Topic configuration and message routing
  * - Kafka template interaction
  * - Message payload handling
- * 
+ *
  * Tests verify that the MarketValueUpdateProducer correctly
  * publishes portfolio updates to the configured Kafka topic.
  */
 @ExtendWith(MockitoExtension::class)
 class MarketValueUpdateProducerTest {
-
     @Mock
     private lateinit var kafkaTemplate: KafkaTemplate<String, Portfolio>
 
@@ -67,7 +64,7 @@ class MarketValueUpdateProducerTest {
         val portfolioId = "custom-portfolio-id"
         val customPortfolio = TestHelpers.createTestPortfolio(portfolioId)
         val future = CompletableFuture.completedFuture(sendResult)
-        
+
         whenever(kafkaTemplate.send(testTopicName, portfolioId, customPortfolio))
             .thenReturn(future)
 
@@ -84,7 +81,7 @@ class MarketValueUpdateProducerTest {
         val customTopicName = "custom-topic-name"
         val customProducer = MarketValueUpdateProducer(kafkaTemplate, customTopicName)
         val future = CompletableFuture.completedFuture(sendResult)
-        
+
         whenever(kafkaTemplate.send(customTopicName, testPortfolio.id, testPortfolio))
             .thenReturn(future)
 
@@ -100,7 +97,7 @@ class MarketValueUpdateProducerTest {
         // Given
         val differentPortfolio = TestHelpers.createTestPortfolio("different-portfolio", "EUR")
         val future = CompletableFuture.completedFuture(sendResult)
-        
+
         whenever(kafkaTemplate.send(testTopicName, differentPortfolio.id, differentPortfolio))
             .thenReturn(future)
 

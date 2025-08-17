@@ -21,19 +21,18 @@ import org.mockito.Mockito
 
 /**
  * Test suite for asset enrichment functionality to ensure proper asset data enhancement.
- * 
+ *
  * This class tests:
  * - FIGI enrichment for assets without names
  * - Alpha Vantage enrichment for market data
  * - Off-market asset enrichment for custom assets
  * - Enrichment condition validation (when enrichment should/shouldn't occur)
  * - Asset code generation and system user assignment
- * 
+ *
  * Tests verify that different enrichment strategies work correctly
  * and only enrich assets when appropriate conditions are met.
  */
 class EnrichmentTest {
-    
     // Test constants
     private val testAssetCode = "code"
     private val testAssetName = "test"
@@ -45,22 +44,23 @@ class EnrichmentTest {
     fun `should enrich asset with FIGI data when asset name is null`() {
         // Given a FIGI enricher and an asset without a name
         val enricher: AssetEnricher = FigiEnricher(DefaultEnricher())
-        val asset = Asset(
-            code = testAssetCode,
-            id = testAssetId,
-            name = null,
-            market = NYSE
-        )
-        
+        val asset =
+            Asset(
+                code = testAssetCode,
+                id = testAssetId,
+                name = null,
+                market = NYSE
+            )
+
         // When checking if the asset can be enriched
         val canEnrich = enricher.canEnrich(asset)
-        
+
         // Then enrichment should be possible
         assertThat(canEnrich).isTrue()
-        
+
         // When the asset name is set
         asset.name = testAssetName
-        
+
         // Then enrichment should no longer be possible
         assertThat(enricher.canEnrich(asset)).isFalse()
     }
@@ -70,30 +70,32 @@ class EnrichmentTest {
         // Given an Alpha Vantage enricher and an asset without a name
         val dateUtils = DateUtils()
         val alphaProxy = Mockito.mock(AlphaProxy::class.java)
-        val enricher: AssetEnricher = AlphaEnricher(
-            AlphaConfig(
-                dateUtils = dateUtils,
-                PreviousClosePriceDate(dateUtils)
-            ),
-            DefaultEnricher(),
-            alphaProxy
-        )
-        val asset = Asset(
-            code = testAssetCode,
-            id = testAssetId,
-            name = null,
-            market = NYSE
-        )
-        
+        val enricher: AssetEnricher =
+            AlphaEnricher(
+                AlphaConfig(
+                    dateUtils = dateUtils,
+                    PreviousClosePriceDate(dateUtils)
+                ),
+                DefaultEnricher(),
+                alphaProxy
+            )
+        val asset =
+            Asset(
+                code = testAssetCode,
+                id = testAssetId,
+                name = null,
+                market = NYSE
+            )
+
         // When checking if the asset can be enriched
         val canEnrich = enricher.canEnrich(asset)
-        
+
         // Then enrichment should be possible
         assertThat(canEnrich).isTrue()
-        
+
         // When the asset name is set
         asset.name = testAssetName
-        
+
         // Then enrichment should no longer be possible
         assertThat(enricher.canEnrich(asset)).isFalse()
     }
@@ -105,36 +107,38 @@ class EnrichmentTest {
         val keyGenUtils = Mockito.mock(KeyGenUtils::class.java)
         val systemUserService = Mockito.mock(SystemUserService::class.java)
         val enricher: AssetEnricher = OffMarketEnricher(systemUserService)
-        
+
         // And mocked dependencies
         Mockito.`when`(systemUserService.getOrThrow()).thenReturn(SystemUser(testSystemUserId))
         Mockito.`when`(keyGenUtils.id).thenReturn(testKeyGenId)
-        
-        val asset = Asset(
-            code = testAssetCode,
-            id = testAssetId,
-            name = null,
-            market = offMarket
-        )
-        
+
+        val asset =
+            Asset(
+                code = testAssetCode,
+                id = testAssetId,
+                name = null,
+                market = offMarket
+            )
+
         // When checking if the asset can be enriched
         val canEnrich = enricher.canEnrich(asset)
-        
+
         // Then enrichment should be possible
         assertThat(canEnrich).isTrue()
-        
+
         // When the asset is enriched
-        val enriched = enricher.enrich(
-            asset.id,
-            offMarket,
-            AssetInput.toRealEstate(
-                USD,
-                testAssetCode,
-                "Anything",
-                "test-user"
+        val enriched =
+            enricher.enrich(
+                asset.id,
+                offMarket,
+                AssetInput.toRealEstate(
+                    USD,
+                    testAssetCode,
+                    "Anything",
+                    "test-user"
+                )
             )
-        )
-        
+
         // Then the enriched asset should have the correct system user and code
         assertThat(enriched)
             .hasFieldOrPropertyWithValue("systemUser.id", testSystemUserId)

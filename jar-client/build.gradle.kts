@@ -26,12 +26,12 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
     }
     
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.assertj)
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")
-    testImplementation("org.springframework.boot:spring-boot-starter-webflux")
+    testImplementation(libs.spring.boot.starter.webflux)
     testImplementation(testFixtures(project(":jar-auth")))
     
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {

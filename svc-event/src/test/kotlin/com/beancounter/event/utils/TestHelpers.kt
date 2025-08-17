@@ -2,7 +2,6 @@ package com.beancounter.event.utils
 
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.TrustedTrnEvent
-import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
@@ -10,9 +9,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnType
-import com.beancounter.event.Constants
 import com.beancounter.event.Constants.Companion.USD
-import org.assertj.core.api.Assertions.assertThat
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -33,13 +30,10 @@ import java.time.LocalDate
  * ```
  */
 object TestHelpers {
-
     // Standard test constants
-    const val TEST_EVENT_ID = "test-event-123"
     const val TEST_ASSET_CODE = "AAPL"
     const val TEST_MARKET_CODE = "NASDAQ"
     const val TEST_PORTFOLIO_ID = "test-portfolio"
-    const val TEST_EVENT_TYPE = "DIVIDEND"
     const val TEST_RATE = "0.50"
     const val TEST_PRICE = "150.00"
     const val TEST_DATE = "2024-01-15"
@@ -56,7 +50,9 @@ object TestHelpers {
             id = id,
             currency = Currency(currencyCode),
             base = Currency(baseCurrency),
-            owner = com.beancounter.common.model.SystemUser("test-user", "test@example.com")
+            owner =
+                com.beancounter.common.model
+                    .SystemUser("test-user", "test@example.com")
         )
 
     /**
@@ -87,18 +83,6 @@ object TestHelpers {
             asset = asset,
             portfolio = portfolio
         )
-
-    /**
-     * Creates test positions collection with the specified portfolio and positions.
-     */
-    fun createTestPositions(
-        portfolio: Portfolio = createTestPortfolio(),
-        positions: List<Position> = listOf(createTestPosition())
-    ): com.beancounter.common.model.Positions {
-        val positionsCollection = com.beancounter.common.model.Positions(portfolio)
-        positions.forEach { positionsCollection.add(it) }
-        return positionsCollection
-    }
 
     /**
      * Creates a test market data with the specified asset and price.
@@ -143,90 +127,10 @@ object TestHelpers {
         TrustedTrnEvent(
             portfolio = portfolio,
             message = "Test event message",
-            trnInput = com.beancounter.common.input.TrnInput(
-                trnType = trnType,
-                assetId = assetCode
-            )
+            trnInput =
+                com.beancounter.common.input.TrnInput(
+                    trnType = trnType,
+                    assetId = assetCode
+                )
         )
-
-    /**
-     * Creates a test trusted transaction query with the specified parameters.
-     */
-    fun createTestTrustedTrnQuery(
-        portfolio: Portfolio = createTestPortfolio(),
-        assetId: String = TEST_ASSET_CODE,
-        tradeDate: LocalDate = LocalDate.parse(TEST_DATE)
-    ): TrustedTrnQuery =
-        TrustedTrnQuery(
-            portfolio = portfolio,
-            tradeDate = tradeDate,
-            assetId = assetId
-        )
-
-    /**
-     * Asserts that a portfolio has the expected basic properties.
-     */
-    fun assertPortfolioProperties(
-        portfolio: Portfolio,
-        expectedId: String,
-        expectedCurrencyCode: String
-    ) {
-        assertThat(portfolio.id).isEqualTo(expectedId)
-        assertThat(portfolio.currency.code).isEqualTo(expectedCurrencyCode)
-        assertThat(portfolio.owner).isNotNull()
-    }
-
-    /**
-     * Asserts that an asset has the expected basic properties.
-     */
-    fun assertAssetProperties(
-        asset: Asset,
-        expectedCode: String,
-        expectedMarketCode: String
-    ) {
-        assertThat(asset.code).isEqualTo(expectedCode)
-        assertThat(asset.market.code).isEqualTo(expectedMarketCode)
-        assertThat(asset.id).isNotNull()
-    }
-
-    /**
-     * Asserts that a corporate event has the expected basic properties.
-     */
-    fun assertCorporateEventProperties(
-        event: CorporateEvent,
-        expectedAssetId: String,
-        expectedTrnType: TrnType,
-        expectedRate: BigDecimal
-    ) {
-        assertThat(event.assetId).isEqualTo(expectedAssetId)
-        assertThat(event.trnType).isEqualTo(expectedTrnType)
-        assertThat(event.rate).isEqualTo(expectedRate)
-        assertThat(event.source).isNotNull()
-    }
-
-    /**
-     * Asserts that a trusted transaction event has the expected basic properties.
-     */
-    fun assertTrustedTrnEventProperties(
-        event: TrustedTrnEvent,
-        expectedPortfolioId: String,
-        expectedAssetId: String
-    ) {
-        assertThat(event.portfolio.id).isEqualTo(expectedPortfolioId)
-        assertThat(event.trnInput.assetId).isEqualTo(expectedAssetId)
-        assertThat(event.message).isNotNull()
-    }
-
-    /**
-     * Asserts that a trusted transaction query has the expected basic properties.
-     */
-    fun assertTrustedTrnQueryProperties(
-        query: TrustedTrnQuery,
-        expectedPortfolioId: String,
-        expectedAssetId: String
-    ) {
-        assertThat(query.portfolio.id).isEqualTo(expectedPortfolioId)
-        assertThat(query.assetId).isEqualTo(expectedAssetId)
-        assertThat(query.tradeDate).isNotNull()
-    }
 }

@@ -35,7 +35,7 @@ import java.util.TimeZone
 
 @Service
 class DateUtils(
-    @Value("\${beancounter.zone:#{null}}")
+    @param:Value($$"${beancounter.zone:#{null}}")
     private val defaultZone: String = TimeZone.getDefault().id
 ) {
     val zoneId: ZoneId = ZoneId.of(defaultZone)
@@ -112,7 +112,7 @@ class DateUtils(
                     inDate,
                     DateTimeFormatter.ofPattern(format)
                 )
-            } catch (e: DateTimeParseException) {
+            } catch (_: DateTimeParseException) {
                 // Continue to the next format
             }
         }
@@ -129,7 +129,7 @@ class DateUtils(
     fun getDate(inDate: String = TODAY): LocalDate {
         try {
             return getFormattedDate(inDate)
-        } catch (e: DateTimeParseException) {
+        } catch (_: DateTimeParseException) {
             throw BusinessException("Unable to parse the date $inDate")
         }
     }

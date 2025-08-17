@@ -1,5 +1,6 @@
 package com.beancounter.event.service
 
+import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedEventInput
@@ -7,9 +8,6 @@ import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.KeyGenUtils
-import com.beancounter.event.contract.CorporateEventResponse
-import com.beancounter.event.contract.CorporateEventResponses
-import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.event.integration.EventPublisher
 import com.beancounter.event.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
@@ -22,26 +20,24 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
 
 /**
  * Test suite for EventService to ensure proper corporate event processing functionality.
- * 
+ *
  * This class tests:
  * - Corporate event processing and saving
  * - Event retrieval by ID and asset
  * - Event scheduling and range queries
  * - Integration with position service and event publisher
  * - Error handling for missing events
- * 
+ *
  * Tests verify that the EventService correctly processes
  * corporate events and manages event lifecycle operations.
  */
 @ExtendWith(MockitoExtension::class)
 class EventServiceTest {
-
     @Mock
     private lateinit var positionService: PositionService
 
@@ -78,7 +74,7 @@ class EventServiceTest {
         val eventId = "test-event-id"
         val savedEvent = testCorporateEvent.copy(id = eventId)
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
-        
+
         whenever(keyGenUtils.id).thenReturn(eventId)
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
         whenever(eventRepository.save(any())).thenReturn(savedEvent)
@@ -115,7 +111,7 @@ class EventServiceTest {
         // Given
         val newEventId = "new-event-id"
         val newEvent = testCorporateEvent.copy(id = newEventId)
-        
+
         whenever(keyGenUtils.id).thenReturn(newEventId)
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
         whenever(eventRepository.save(any())).thenReturn(newEvent)
@@ -247,10 +243,11 @@ class EventServiceTest {
         val eventId = "test-event-id"
         val savedEvent = testCorporateEvent.copy(id = eventId)
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
-        val ignoredTrnEvent = testTrustedTrnEvent.copy(
-            trnInput = testTrustedTrnEvent.trnInput.copy(trnType = TrnType.IGNORE)
-        )
-        
+        val ignoredTrnEvent =
+            testTrustedTrnEvent.copy(
+                trnInput = testTrustedTrnEvent.trnInput.copy(trnType = TrnType.IGNORE)
+            )
+
         whenever(keyGenUtils.id).thenReturn(eventId)
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
         whenever(eventRepository.save(any())).thenReturn(savedEvent)

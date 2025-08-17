@@ -20,7 +20,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation(libs.jackson.kotlin)
     implementation("org.springframework:spring-web")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.kafka)
     implementation(libs.spring.cloud.feign) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
@@ -28,7 +28,7 @@ dependencies {
     implementation(libs.commons.io)
     implementation(libs.guava)
     
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(libs.spring.boot.starter.test)
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.mockito:mockito-core")
     testImplementation("org.mockito:mockito-junit-jupiter")
@@ -47,5 +47,5 @@ dependencies {
     }
     
     // Test fixtures dependencies
-    testFixturesImplementation("org.springframework.boot:spring-boot-starter-test")
+    testFixturesImplementation(libs.spring.boot.starter.test)
 }

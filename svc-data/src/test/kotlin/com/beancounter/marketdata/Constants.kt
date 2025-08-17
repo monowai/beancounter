@@ -10,13 +10,13 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 
 /**
  * Centralized test constants for svc-data tests to reduce duplication and improve consistency.
- * 
+ *
  * This class provides:
  * - Standard test currencies and markets
  * - Common test assets (AAPL, MSFT, AMP)
  * - Test user configurations
  * - Standard test data values
- * 
+ *
  * Usage:
  * ```
  * val asset = Constants.AAPL

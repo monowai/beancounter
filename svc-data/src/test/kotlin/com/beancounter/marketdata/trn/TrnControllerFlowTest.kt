@@ -49,7 +49,7 @@ const val TRNS_BY_ID = "$TRNS_ROOT/{trnId}"
 
 /**
  * Test suite for TrnController to ensure complete transaction lifecycle management works correctly.
- * 
+ *
  * This class tests:
  * - Transaction creation with valid input data
  * - Transaction retrieval by various criteria (ID, portfolio, asset, date range)
@@ -57,7 +57,7 @@ const val TRNS_BY_ID = "$TRNS_ROOT/{trnId}"
  * - Error handling for invalid inputs and non-existent resources
  * - Authorization and security validation
  * - Data consistency and sorting behavior
- * 
+ *
  * Tests use Spring Boot Test with MockMvc to simulate HTTP requests
  * and verify the complete transaction workflow from creation to deletion.
  */
@@ -184,15 +184,14 @@ class TrnControllerFlowTest(
     fun `should return bad request when deleting non-existent transaction`() {
         // Given a non-existent transaction ID
         val nonExistentId = "illegalId"
-        
+
         // When attempting to delete the non-existent transaction
         mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .delete(TRNS_BY_ID, nonExistentId)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(
                 MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
             )

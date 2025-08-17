@@ -114,7 +114,6 @@ subprojects {
 
         // Common test dependencies
         testImplementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.4"))
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.assertj:assertj-core:3.27.3")
     }
 }

@@ -23,22 +23,22 @@ dependencies {
     
     compileOnly(libs.jackson.kotlin)
     
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+    testImplementation(libs.spring.boot.starter.test) {
         exclude(module = "junit-vintage-engine")
     }
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(libs.assertj)
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(libs.spring.boot.starter.test)
     testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner")
     testImplementation(libs.jackson.kotlin)
-    testImplementation("org.springframework.boot:spring-boot-autoconfigure")
+    testImplementation(libs.spring.boot.autoconfigure)
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.security:spring-security-oauth2-client")
     
     testFixturesImplementation(platform(libs.spring.boot.dependencies))
     testFixturesImplementation(platform(libs.spring.cloud.dependencies))
     testFixturesImplementation(project(":jar-common"))
-    testFixturesImplementation("org.springframework.boot:spring-boot-starter-test")
+    testFixturesImplementation(libs.spring.boot.starter.test)
     testFixturesImplementation("org.springframework.security:spring-security-config")
     testFixturesImplementation("org.springframework.security:spring-security-test")
     testFixturesImplementation("org.springframework.security:spring-security-oauth2-client")

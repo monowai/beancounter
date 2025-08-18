@@ -27,6 +27,7 @@ curl -X GET http://localhost:9510/AX/AMP
 ## Building
 
 ### Local Development
+
 ```bash
 # Build this service
 ./gradlew :svc-data:build
@@ -39,11 +40,14 @@ curl -X GET http://localhost:9510/AX/AMP
 ```
 
 ### Contract Stubs
+
 This service generates contract stubs that are used by other services for testing:
+
 - **Stub Artifact**: `org.beancounter:svc-data:0.1.1:stubs`
 - **Local Path**: `~/.m2/repository/org/beancounter/svc-data/0.1.1/`
 
 The stubs are automatically published when using the smart build tasks:
+
 ```bash
 # Smart build (publishes stubs if needed)
 ./gradlew buildSmart
@@ -53,6 +57,7 @@ The stubs are automatically published when using the smart build tasks:
 ```
 
 ### Docker
+
 ```bash
 # Build Docker image
 ./gradlew :svc-data:bootBuildImage

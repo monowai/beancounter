@@ -52,71 +52,50 @@ class ShareSightDividendAdapter(
         assert(trustedTrnImportRequest != null)
         val row = trustedTrnImportRequest!!.row
         return try {
-            val asset = resolveAsset(row)
-            val tradeRate =
-                parse(
-                    row[FX_RATE],
-                    shareSightConfig.numberFormat
-                )
-            val trnInput =
-                TrnInput(
-                    CallerRef(
-                        trustedTrnImportRequest.portfolio.id,
-                        callerId = row[ID]
-                    ),
-                    asset.id,
-                    trnType = TrnType.DIVI,
-                    quantity = BigDecimal.ZERO,
-                    tradeCurrency = row[CURRENCY],
-                    tradeDate = dateUtils.getFormattedDate(row[DATE], listOf(shareSightConfig.dateFormat)),
-                    fees = BigDecimal.ZERO,
-                    price = BigDecimal.ZERO,
-                    tradeAmount =
-                        multiplyAbs(
-                            parse(
-                                row[NET],
-                                shareSightConfig.numberFormat
-                            ),
-                            tradeRate
-                        ),
-                    tax =
-                        multiplyAbs(
-                            BigDecimal(row[TAX]),
-                            tradeRate
-                        ),
-                    cashAmount =
-                        multiplyAbs(
-                            parse(
-                                row[NET],
-                                shareSightConfig.numberFormat
-                            ),
-                            tradeRate
-                        ),
-                    comments = row[COMMENTS]
-                )
-            trnInput.tradeCashRate =
-                if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
-                    BigDecimal.ZERO
-                } else {
-                    tradeRate
-                }
-            trnInput // Result!
+            createTrnInput(trustedTrnImportRequest, row)
         } catch (e: NumberFormatException) {
             val message = e.message
-            throw logFirst(
-                "DIVI",
-                message,
-                row
-            )
+            throw logFirst("DIVI", message, row)
         } catch (e: ParseException) {
             val message = e.message
-            throw logFirst(
-                "DIVI",
-                message,
-                row
-            )
+            throw logFirst("DIVI", message, row)
         }
     }
+
+    private fun createTrnInput(
+        trustedTrnImportRequest: TrustedTrnImportRequest,
+        row: List<String>
+    ): TrnInput {
+        val asset = resolveAsset(row)
+        val tradeRate = parse(row[FX_RATE], shareSightConfig.numberFormat)
+        val netAmount = parse(row[NET], shareSightConfig.numberFormat)
+
+        val trnInput =
+            TrnInput(
+                CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[ID]),
+                asset.id,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal.ZERO,
+                tradeCurrency = row[CURRENCY],
+                tradeDate = dateUtils.getFormattedDate(row[DATE], listOf(shareSightConfig.dateFormat)),
+                fees = BigDecimal.ZERO,
+                price = BigDecimal.ZERO,
+                tradeAmount = multiplyAbs(netAmount, tradeRate),
+                tax = multiplyAbs(BigDecimal(row[TAX]), tradeRate),
+                cashAmount = multiplyAbs(netAmount, tradeRate),
+                comments = row[COMMENTS]
+            )
+
+        trnInput.tradeCashRate = calculateTradeCashRate(tradeRate)
+        return trnInput
+    }
+
+    private fun calculateTradeCashRate(tradeRate: BigDecimal): BigDecimal =
+        if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
+            BigDecimal.ZERO
+        } else {
+            tradeRate
+        }
 
     override fun isValid(row: List<String>): Boolean {
         val rate = row[FX_RATE].uppercase(Locale.getDefault())

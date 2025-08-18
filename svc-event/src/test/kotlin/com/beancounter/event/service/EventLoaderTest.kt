@@ -9,7 +9,12 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.common.DateSplitter
+import com.beancounter.event.config.AuthConfig
+import com.beancounter.event.config.EventLoaderConfig
+import com.beancounter.event.config.EventLoaderServiceConfig
+import com.beancounter.event.config.SharedConfig
 import com.beancounter.event.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -63,6 +68,8 @@ class EventLoaderTest {
 
     private lateinit var authContext: OpenIdResponse
 
+    private lateinit var eventLoader: EventLoader
+
     private lateinit var testPortfolio: Portfolio
     private lateinit var testPosition: Position
     private lateinit var testMarketData: MarketData
@@ -83,16 +90,30 @@ class EventLoaderTest {
         whenever(portfolioService.portfolios).thenReturn(portfolios)
 
         // When
-        val eventLoader =
-            EventLoader(
-                portfolioService,
-                backFillService,
-                positionService,
-                priceService,
-                eventService,
-                dateSplitter,
-                loginService
+        val sharedConfig =
+            SharedConfig(
+                dateUtils = DateUtils(),
+                portfolioService = portfolioService
             )
+        val serviceConfig =
+            EventLoaderServiceConfig(
+                eventService = eventService,
+                priceService = priceService,
+                backFillService = backFillService,
+                positionService = positionService
+            )
+        val authConfig =
+            AuthConfig(
+                dateSplitter = dateSplitter,
+                loginService = loginService
+            )
+        val eventLoaderConfig =
+            EventLoaderConfig(
+                sharedConfig = sharedConfig,
+                serviceConfig = serviceConfig,
+                authConfig = authConfig
+            )
+        val eventLoader = EventLoader(eventLoaderConfig)
 
         // Then
         assertThat(eventLoader).isNotNull()

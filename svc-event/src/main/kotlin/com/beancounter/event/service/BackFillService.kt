@@ -1,9 +1,7 @@
 package com.beancounter.event.service
 
-import com.beancounter.auth.TokenService
-import com.beancounter.client.services.PortfolioServiceClient
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.common.DateSplitter
+import com.beancounter.event.config.BackFillServiceConfig
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -12,12 +10,14 @@ import org.springframework.stereotype.Service
  */
 @Service
 class BackFillService(
-    private val portfolioService: PortfolioServiceClient,
-    private val positionService: PositionService,
-    private val eventService: EventService,
-    private val tokenService: TokenService
+    private val config: BackFillServiceConfig
 ) {
-    private val dateUtils = DateUtils()
+    private val portfolioService = config.sharedConfig.portfolioService
+    private val positionService = config.positionService
+    private val eventService = config.eventService
+    private val tokenService = config.tokenService
+    private val dateUtils = config.sharedConfig.dateUtils
+
     private val dateSplitter = DateSplitter(dateUtils)
     private val log = LoggerFactory.getLogger(BackFillService::class.java)
 

@@ -1,15 +1,12 @@
 package com.beancounter.event.service
 
-import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.OpenIdResponse
-import com.beancounter.client.services.PortfolioServiceClient
-import com.beancounter.client.services.PriceService
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnType
-import com.beancounter.event.common.DateSplitter
+import com.beancounter.event.config.EventLoaderConfig
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -19,16 +16,21 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+/**
+ * Loads corporate events for portfolios.
+ */
 @Service
 class EventLoader(
-    private val portfolioService: PortfolioServiceClient,
-    private val backFillService: BackFillService,
-    private val positionService: PositionService,
-    private val priceService: PriceService,
-    private val eventService: EventService,
-    private val dateSplitter: DateSplitter,
-    private val loginService: LoginService
+    private val config: EventLoaderConfig
 ) {
+    private val portfolioService = config.sharedConfig.portfolioService
+    private val positionService = config.serviceConfig.positionService
+    private val eventService = config.serviceConfig.eventService
+    private val priceService = config.serviceConfig.priceService
+    private val backFillService = config.serviceConfig.backFillService
+    private val dateSplitter = config.authConfig.dateSplitter
+    private val loginService = config.authConfig.loginService
+
     // private val authContext: OpenIdResponse = loginService.loginM2m()
 
     fun loadEvents(date: String) {

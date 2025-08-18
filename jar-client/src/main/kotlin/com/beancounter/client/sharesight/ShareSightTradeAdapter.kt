@@ -54,93 +54,89 @@ class ShareSightTradeAdapter(
     override fun from(trustedTrnImportRequest: TrustedTrnImportRequest?): TrnInput {
         assert(trustedTrnImportRequest != null)
         val row = trustedTrnImportRequest!!.row
-        val ttype = row[TYPE]
-        if (ttype.equals(
-                "",
-                ignoreCase = true
-            )
-        ) {
-            throw BusinessException(
-                String.format(
-                    "Unsupported type %s",
-                    row[TYPE]
-                )
-            )
-        }
-        val trnType = TrnType.valueOf(ttype.uppercase(Locale.getDefault()))
-        val comment = if (row.size == 13) nullSafe(row[COMMENTS]) else null
-        var tradeRate: BigDecimal = BigDecimal.ZERO
-        var fees = BigDecimal.ZERO
-        var tradeAmount = BigDecimal.ZERO
+
+        val trnType = validateAndParseTrnType(row)
+        val comment = extractComment(row)
+
         return try {
-            if (trnType !== TrnType.SPLIT) {
-                tradeRate =
-                    parse(
-                        row[FX_RATE],
-                        shareSightConfig.numberFormat
-                    )
-                fees =
-                    calcFees(
-                        row,
-                        tradeRate
-                    )
-                tradeAmount =
-                    calcTradeAmount(
-                        row,
-                        tradeRate
-                    )
-            }
-            val asset = resolveAsset(row)
-            if (asset == null) {
-                log.error(
-                    "Unable to resolve asset [{}]",
-                    row
-                )
-                throw BusinessException("Unable to resolve asset [%s]\", row")
-            }
-            val trnInput =
-                TrnInput(
-                    CallerRef(
-                        trustedTrnImportRequest.portfolio.id,
-                        "",
-                        row[ID]
-                    ),
-                    asset.id,
-                    trnType = trnType,
-                    quantity =
-                        parse(
-                            row[QUANTITY],
-                            shareSightConfig.numberFormat
-                        ),
-                    tradeCurrency = row[CURRENCY],
-                    cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
-                    tradeDate =
-                        dateUtils.getFormattedDate(
-                            row[DATE],
-                            listOf(shareSightConfig.dateFormat)
-                        ),
-                    fees = fees,
-                    price =
-                        MathUtils.nullSafe(
-                            parse(
-                                row[PRICE],
-                                shareSightConfig.numberFormat
-                            )
-                        ),
-                    tradeAmount = tradeAmount,
-                    comments = comment
-                )
+            val (tradeRate, fees, tradeAmount) = calculateTradeValues(row, trnType)
+            resolveAssetSafely(row)
+            val trnInput = createTrnInput(trustedTrnImportRequest, row, trnType, comment, fees, tradeAmount)
+
             // Zero and null are treated as "unknown"
             trnInput.tradeCashRate = getTradeCashRate(tradeRate)
             trnInput
         } catch (e: ParseException) {
             val message = e.message
-            throw logFirst(
-                "TRADE",
-                message,
-                row
-            )
+            throw logFirst("TRADE", message, row)
         }
+    }
+
+    private fun validateAndParseTrnType(row: List<String>): TrnType {
+        val ttype = row[TYPE]
+        if (ttype.equals("", ignoreCase = true)) {
+            throw BusinessException(String.format("Unsupported type %s", row[TYPE]))
+        }
+        return TrnType.valueOf(ttype.uppercase(Locale.getDefault()))
+    }
+
+    private fun extractComment(row: List<String>): String? = if (row.size == 13) nullSafe(row[COMMENTS]) else null
+
+    private fun calculateTradeValues(
+        row: List<String>,
+        trnType: TrnType
+    ): Triple<BigDecimal, BigDecimal, BigDecimal> {
+        if (trnType == TrnType.SPLIT) {
+            return Triple(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+        }
+
+        val tradeRate = parse(row[FX_RATE], shareSightConfig.numberFormat)
+        val fees = calcFees(row, tradeRate)
+        val tradeAmount = calcTradeAmount(row, tradeRate)
+
+        return Triple(tradeRate, fees, tradeAmount)
+    }
+
+    private fun resolveAssetSafely(row: List<String>): Asset {
+        val asset = resolveAsset(row)
+        if (asset == null) {
+            log.error("Unable to resolve asset [{}]", row)
+            throw BusinessException("Unable to resolve asset [$row]")
+        }
+        return asset
+    }
+
+    private fun createTrnInput(
+        trustedTrnImportRequest: TrustedTrnImportRequest,
+        row: List<String>,
+        trnType: TrnType,
+        comment: String?,
+        fees: BigDecimal,
+        tradeAmount: BigDecimal
+    ): TrnInput {
+        val asset = resolveAssetSafely(row)
+
+        return TrnInput(
+            CallerRef(
+                trustedTrnImportRequest.portfolio.id,
+                "",
+                row[ID]
+            ),
+            asset.id,
+            trnType = trnType,
+            quantity = parse(row[QUANTITY], shareSightConfig.numberFormat),
+            tradeCurrency = row[CURRENCY],
+            cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
+            tradeDate =
+                dateUtils.getFormattedDate(
+                    row[DATE],
+                    listOf(shareSightConfig.dateFormat)
+                ),
+            fees = fees,
+            price = MathUtils.nullSafe(parse(row[PRICE], shareSightConfig.numberFormat)),
+            tradeAmount = tradeAmount,
+            comments = comment
+        )
     }
 
     @Throws(ParseException::class)

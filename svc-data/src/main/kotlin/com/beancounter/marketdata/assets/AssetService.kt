@@ -7,16 +7,12 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import jakarta.transaction.Transactional
-import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
-import java.util.Locale
-import java.util.Optional
 import java.util.UUID
 import java.util.stream.Stream
 
@@ -31,11 +27,10 @@ import java.util.stream.Stream
 @Transactional
 class AssetService(
     private val enrichmentFactory: EnrichmentFactory,
-    // private val marketDataService: MarketDataService,
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
-    private val assetHydrationService: AssetHydrationService,
-    private val keyGenUtils: KeyGenUtils
+    private val keyGenUtils: KeyGenUtils,
+    private val assetFinder: AssetFinder
 ) : Assets {
     fun enrich(asset: Asset): Asset {
         val enricher = enrichmentFactory.getEnricher(asset.market)
@@ -56,36 +51,10 @@ class AssetService(
         return asset
     }
 
-    private fun create(assetInput: AssetInput): Asset {
-        val foundAsset = findLocally(assetInput)
-        return if (foundAsset == null) {
-            // Is the market supported?
-            val market =
-                marketService.getMarket(
-                    assetInput.market,
-                    false
-                )
-            // Fill in missing asset attributes
-            val asset =
-                enrichmentFactory
-                    .getEnricher(market)
-                    .enrich(
-                        id = keyGenUtils.id,
-                        market = market,
-                        assetInput = assetInput
-                    )
-            assetHydrationService.hydrateAsset(assetRepository.save(asset))
-        } else {
-            assetHydrationService.hydrateAsset(foundAsset)
-        }
-    }
-
     override fun handle(assetRequest: AssetRequest): AssetUpdateResponse {
-        val assets: MutableMap<String, Asset> = HashMap()
-        for (callerRef in assetRequest.data.keys) {
-            val createdAsset = create(assetRequest.data[callerRef]!!)
-            assets[callerRef] = createdAsset
-        }
+        val assets =
+            assetRequest.data
+                .mapValues { (_, assetInput) -> create(assetInput) }
         return AssetUpdateResponse(assets)
     }
 
@@ -93,18 +62,9 @@ class AssetService(
         TODO("Not yet implemented")
     }
 
-    // override fun backFillEvents(assetId: String) {
-    //     marketDataService.backFill(find(assetId))
-    // }
-
-    // fun backFill(assetId: String) {
-    //     val asset = find(assetId)
-    //     marketDataService.backFill(asset)
-    // }
-
     fun findOrCreate(assetInput: AssetInput): Asset {
-        val localAsset = findLocally(assetInput)
-        if (findLocally(assetInput) == null) {
+        val localAsset = assetFinder.findLocally(assetInput)
+        if (localAsset == null) {
             val market = marketService.getMarket(assetInput.market)
             val eAsset =
                 enrichmentFactory.getEnricher(market).enrich(
@@ -113,57 +73,20 @@ class AssetService(
                     assetInput = assetInput
                 )
             if (marketService.canPersist(market)) {
-                return assetHydrationService.hydrateAsset(assetRepository.save(eAsset))
+                return assetFinder.hydrateAsset(assetRepository.save(eAsset))
             }
         }
         if (localAsset == null) {
             throw BusinessException("Unable to resolve asset ${assetInput.code}")
         }
-        return assetHydrationService.hydrateAsset(localAsset)
+        return localAsset
     }
 
-    override fun find(assetId: String): Asset {
-        val result: Optional<Asset> =
-            assetRepository
-                .findById(assetId)
-                .map { asset: Asset -> assetHydrationService.hydrateAsset(asset) }
-        if (result.isPresent) {
-            return result.get()
-        }
-        throw BusinessException("Asset $assetId not found")
-    }
+    override fun find(assetId: String): Asset = assetFinder.find(assetId)
 
-    fun findLocally(assetInput: AssetInput): Asset? {
-        val marketCode = assetInput.market.uppercase(Locale.getDefault())
-        val code = assetInput.code
-
-        // Search Local
-        val market = marketService.getMarket(marketCode.uppercase())
-        val findCode =
-            if (market.code == OffMarketEnricher.ID) {
-                OffMarketEnricher.parseCode(
-                    SystemUser(assetInput.owner),
-                    code
-                )
-            } else {
-                code.uppercase(Locale.getDefault())
-            }
-        log.trace(
-            "Search for {}/{}",
-            marketCode,
-            code
-        )
-
-        val optionalAsset =
-            assetRepository.findByMarketCodeAndCode(
-                marketCode.uppercase(Locale.getDefault()),
-                findCode
-            )
-        return optionalAsset
-            .map { asset: Asset ->
-                assetHydrationService.hydrateAsset(asset)
-            }.orElse(null)
-    }
+    fun findLocally(assetInput: AssetInput): Asset =
+        assetFinder.findLocally(assetInput)
+            ?: throw BusinessException("Asset not found for input: ${assetInput.market}:${assetInput.code}")
 
     fun findAllAssets(): Stream<Asset> = assetRepository.findAllAssets()
 
@@ -182,16 +105,27 @@ class AssetService(
         return priceRequest.copy(assets = resolvedAssets)
     }
 
-    fun hydrate(asset: Asset?): Asset? =
-        if (asset == null) {
-            null
-        } else {
-            assetHydrationService.hydrateAsset(asset)
-        }
+    fun hydrate(asset: Asset): Asset = assetFinder.hydrateAsset(asset)
 
     fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
 
-    companion object {
-        private val log = LoggerFactory.getLogger(AssetService::class.java)
+    private fun create(assetInput: AssetInput): Asset {
+        val foundAsset = assetFinder.findLocally(assetInput)
+        return if (foundAsset == null) {
+            // Is the market supported?
+            val market = marketService.getMarket(assetInput.market, false)
+            // Fill in missing asset attributes
+            val asset =
+                enrichmentFactory
+                    .getEnricher(market)
+                    .enrich(
+                        id = keyGenUtils.id,
+                        market = market,
+                        assetInput = assetInput
+                    )
+            assetFinder.hydrateAsset(assetRepository.save(asset))
+        } else {
+            foundAsset
+        }
     }
 }

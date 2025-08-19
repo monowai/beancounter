@@ -8,7 +8,7 @@ import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.assets.AssetHydrationService
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
@@ -37,7 +37,7 @@ internal class PriceRefreshTest {
     private lateinit var assetRepository: AssetRepository
 
     @Autowired
-    private lateinit var assetHydrationService: AssetHydrationService
+    private lateinit var assetFinder: AssetFinder
 
     @BeforeEach
     fun mockAlpha() {
@@ -79,7 +79,7 @@ internal class PriceRefreshTest {
                     marketCode = NASDAQ.code
                 )
             )
-        val hydratedAsset = assetHydrationService.hydrateAsset(asset)
+        val hydratedAsset = assetFinder.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")
         val count = priceRefresh.updatePrices()
         assertThat(count).isGreaterThanOrEqualTo(1)

@@ -4,7 +4,7 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
-import com.beancounter.marketdata.assets.AssetHydrationService
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @Service
 class PriceRefresh(
     private val assetService: AssetService,
-    private val assetHydrationService: AssetHydrationService,
+    private val assetFinder: AssetFinder,
     private val marketDataService: MarketDataService,
     private val dateUtils: DateUtils
 ) {
@@ -36,7 +36,7 @@ class PriceRefresh(
             for (asset in assetStream) {
                 val priceRequest =
                     PriceRequest.of(
-                        assetHydrationService.hydrateAsset(asset),
+                        assetFinder.hydrateAsset(asset),
                         TODAY
                     )
                 marketDataService.getPriceResponse(priceRequest)

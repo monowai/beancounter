@@ -3,7 +3,6 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
@@ -38,7 +37,7 @@ class MarketDataService(
     }
 
     fun backFill(asset: Asset) {
-        val byFactory = providerUtils.splitProviders(providerUtils.getInputs(mutableListOf(asset)))
+        val byFactory = providerUtils.splitProviders(providerUtils.getInputs(listOf(asset)))
         for (marketDataProvider in byFactory.keys) {
             priceService.handle(marketDataProvider.backFill(asset))
         }
@@ -50,19 +49,12 @@ class MarketDataService(
     ): PriceResponse {
         val asset =
             assetService.findLocally(AssetInput(market, assetCode))
-                ?: throw BusinessException(
-                    String.format(
-                        "Asset not found: %s:%s",
-                        market,
-                        assetCode
-                    )
-                )
-        return getPriceResponse(PriceRequest(assets = mutableListOf(PriceAsset(asset))))
+        return getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
     }
 
     fun getPriceResponse(assetId: String): PriceResponse {
         val asset = assetService.find(assetId)
-        return getPriceResponse(PriceRequest(assets = mutableListOf(PriceAsset(asset))))
+        return getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
     }
 
     @Transactional(readOnly = true)
@@ -211,9 +203,7 @@ class MarketDataService(
                 }.let { (found, remaining) ->
                     val foundPrices =
                         found.mapNotNull { asset ->
-                            existingPriceMap[asset.id]?.let { price ->
-                                price.copy(asset = asset)
-                            }
+                            existingPriceMap[asset.id]?.copy(asset = asset)
                         }
                     Pair(foundPrices, remaining)
                 }
@@ -277,7 +267,7 @@ class MarketDataService(
             return emptyList()
         }
 
-        val assetInputs = providerUtils.getInputs(providerAssets.toMutableList())
+        val assetInputs = providerUtils.getInputs(providerAssets.toList())
         val priceRequest =
             PriceRequest(
                 priceDate.toString(),
@@ -315,7 +305,7 @@ class MarketDataService(
         asset: Asset,
         priceDate: String
     ) {
-        val priceAssets = mutableListOf(PriceAsset(asset))
+        val priceAssets = listOf(PriceAsset(asset))
         log.trace("Refreshing ${asset.name}: $priceDate")
         val providers = providerUtils.splitProviders(priceAssets)
         val priceRequest =

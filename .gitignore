@@ -3,7 +3,7 @@
 *.keystore
 .history/
 *.tgz
-
+.kotlin
 # git-secret rules
 .secrets/*.*
 !.secrets/*.secret
@@ -13,7 +13,6 @@
 **/application-local.yaml
 **/application-sentry.yaml
 .run/
-build/
 
 .ci/gradle*
 

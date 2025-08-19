@@ -30,6 +30,8 @@ class TrnService(
     private val assetService: AssetService,
     private val systemUserService: SystemUserService
 ) {
+    private val log = LoggerFactory.getLogger(TrnService::class.java)
+
     fun getPortfolioTrn(trnId: String): Collection<Trn> {
         val trn =
             trnRepository.findById(
@@ -66,7 +68,7 @@ class TrnService(
                 )
             )
         saved.forEach { trn ->
-            trn.asset = assetService.hydrate(trn.asset)!!
+            trn.asset = assetService.hydrate(trn.asset)
             trn.cashAsset = trn.cashAsset?.let { assetService.hydrate(it) }
         }
         val results: MutableCollection<Trn> = mutableListOf()
@@ -131,7 +133,7 @@ class TrnService(
                 .flatMap {
                     listOfNotNull(
                         assetService.hydrate(it.asset),
-                        assetService.hydrate(it.cashAsset)
+                        it.cashAsset?.let { cashAsset -> assetService.hydrate(cashAsset) }
                     )
                 }.associateBy { it.id }
         log.trace("PostProcess ${assets.size} assets")
@@ -222,9 +224,5 @@ class TrnService(
             )
         trnRepository.save(trn)
         return TrnResponse(arrayListOf(trn))
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(TrnService::class.java)
     }
 }

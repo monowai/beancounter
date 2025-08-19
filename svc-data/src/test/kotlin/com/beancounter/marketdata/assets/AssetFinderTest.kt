@@ -18,16 +18,19 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
  */
 @SpringBootTest(
     classes = [
-        AssetHydrationService::class,
+        AssetFinder::class,
         AssetCategoryConfig::class
     ]
 )
-internal class AssetHydrationServiceTest {
+internal class AssetFinderTest {
     @Autowired
-    private lateinit var assetHydrationService: AssetHydrationService
+    private lateinit var assetFinder: AssetFinder
 
     @MockitoBean
     private lateinit var marketService: MarketService
+
+    @MockitoBean
+    private lateinit var assetRepository: AssetRepository
 
     @Autowired
     private lateinit var assetCategoryConfig: AssetCategoryConfig
@@ -46,7 +49,7 @@ internal class AssetHydrationServiceTest {
                 category = "Equity"
             )
         val hydratedAsset =
-            assetHydrationService.hydrateAsset(
+            assetFinder.hydrateAsset(
                 Asset.of(
                     assetInput,
                     NYSE
@@ -67,7 +70,7 @@ internal class AssetHydrationServiceTest {
                 category = "Mutual Fund"
             )
         val hydratedAsset =
-            assetHydrationService.hydrateAsset(
+            assetFinder.hydrateAsset(
                 Asset.of(
                     assetInput,
                     NYSE
@@ -88,7 +91,7 @@ internal class AssetHydrationServiceTest {
                 category = "Cash"
             )
         val hydratedAsset =
-            assetHydrationService.hydrateAsset(
+            assetFinder.hydrateAsset(
                 Asset.of(
                     assetInput,
                     NYSE

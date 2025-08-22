@@ -14,12 +14,10 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.PercentUtils
 import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
-import com.beancounter.position.valuation.RoiCalculator
 import io.sentry.Breadcrumb
 import io.sentry.Sentry
 import io.sentry.SentryLevel
@@ -31,6 +29,7 @@ import org.apache.commons.math3.exception.NoBracketingException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -44,10 +43,9 @@ class PositionValuationService(
     private val fxRateService: FxService,
     private val tokenService: TokenService,
     private val dateUtils: DateUtils,
-    private val irrCalculator: IrrCalculator
+    private val irrCalculator: IrrCalculator,
+    private val calculationSupport: PositionCalculationSupport
 ) {
-    private val percentUtils = PercentUtils()
-    private val roiCalculator = RoiCalculator()
     private val logger = LoggerFactory.getLogger(PositionValuationService::class.java)
 
     fun value(
@@ -104,7 +102,7 @@ class PositionValuationService(
         val irr =
             calculateIrrSafely(
                 positions.periodicCashFlows,
-                roiCalculator.calculateROI(pfTotals),
+                calculationSupport.calculatePortfolioRoi(pfTotals),
                 "Failed to calculate IRR for ${positions.portfolio.code}"
             )
         baseTotals.irr = irr
@@ -173,92 +171,98 @@ class PositionValuationService(
         val refTotals = positions.totals[Position.In.PORTFOLIO]!!
         val tradeTotals = positions.totals[Position.In.TRADE]!!
         val asAtDate = dateUtils.getDate(positions.asAt)
+
         for (position in positions.positions.values) {
-            val tradeMoneyValues =
-                position.getMoneyValues(
-                    Position.In.TRADE,
-                    position.asset.market.currency
-                )
-            tradeMoneyValues.weight =
-                percentUtils.percent(
-                    tradeMoneyValues.marketValue,
-                    refTotals.marketValue
-                )
-
-            val baseMoneyValues =
-                position.getMoneyValues(
-                    Position.In.BASE,
-                    positions.portfolio.base
-                )
-            baseMoneyValues.weight =
-                percentUtils.percent(
-                    baseMoneyValues.marketValue,
-                    baseTotals.marketValue
-                )
-
-            val portfolioMoneyValues =
-                position.getMoneyValues(
-                    Position.In.PORTFOLIO,
-                    positions.portfolio.currency
-                )
-            portfolioMoneyValues.weight =
-                percentUtils.percent(
-                    tradeMoneyValues.marketValue,
-                    tradeTotals.marketValue
-                )
-
-            if (position.asset.market.code != "CASH") {
-                val roi = roiCalculator.calculateROI(tradeMoneyValues)
-                // Mark to Market value.
-                position.periodicCashFlows.add(
-                    position,
-                    asAtDate
-                )
-                positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
-                val irr =
-                    calculateIrrSafely(
-                        position.periodicCashFlows,
-                        roi,
-                        "Failed to calculate IRR for ${position.asset.code}"
-                    )
-                setTotals(
-                    tradeTotals,
-                    tradeMoneyValues,
-                    roi,
-                    irr
-                )
-                setTotals(
-                    baseTotals,
-                    baseMoneyValues,
-                    roi,
-                    irr
-                )
-                setTotals(
-                    refTotals,
-                    portfolioMoneyValues,
-                    roi,
-                    irr
-                )
-            } else {
-                tradeTotals.cash = tradeTotals.cash.add(tradeMoneyValues.marketValue)
-                baseTotals.cash = baseTotals.cash.add(baseMoneyValues.marketValue)
-                refTotals.cash = refTotals.cash.add(portfolioMoneyValues.marketValue)
-            }
+            processPositionWeightsAndGains(position, positions, baseTotals, refTotals, tradeTotals, asAtDate)
         }
     }
 
-    private fun setTotals(
-        totals: Totals,
-        moneyValues: MoneyValues,
-        roi: BigDecimal,
-        irr: BigDecimal
+    private fun processPositionWeightsAndGains(
+        position: Position,
+        positions: Positions,
+        baseTotals: Totals,
+        refTotals: Totals,
+        tradeTotals: Totals,
+        asAtDate: LocalDate
     ) {
-        moneyValues.roi = roi
-        moneyValues.irr = irr
-        totals.purchases = totals.purchases.add(moneyValues.purchases)
-        totals.sales = totals.sales.add(moneyValues.sales)
-        totals.income = totals.income.add(moneyValues.dividends)
-        totals.gain = totals.gain.add(moneyValues.totalGain)
+        val tradeMoneyValues = calculationSupport.calculateTradeMoneyValues(position, refTotals)
+        val baseMoneyValues =
+            calculationSupport.calculateBaseMoneyValues(position, baseTotals, positions.portfolio.base)
+        val portfolioMoneyValues =
+            calculationSupport.calculatePortfolioMoneyValues(
+                position,
+                tradeMoneyValues,
+                tradeTotals,
+                positions.portfolio.currency
+            )
+
+        if (position.asset.market.code != "CASH") {
+            processNonCashPosition(
+                position,
+                positions,
+                tradeTotals,
+                baseTotals,
+                refTotals,
+                tradeMoneyValues,
+                baseMoneyValues,
+                portfolioMoneyValues,
+                asAtDate
+            )
+        } else {
+            processCashPosition(
+                tradeTotals,
+                baseTotals,
+                refTotals,
+                tradeMoneyValues,
+                baseMoneyValues,
+                portfolioMoneyValues
+            )
+        }
+    }
+
+    private fun processNonCashPosition(
+        position: Position,
+        positions: Positions,
+        tradeTotals: Totals,
+        baseTotals: Totals,
+        refTotals: Totals,
+        tradeMoneyValues: MoneyValues,
+        baseMoneyValues: MoneyValues,
+        portfolioMoneyValues: MoneyValues,
+        asAtDate: LocalDate
+    ) {
+        val roi = calculationSupport.calculateRoi(tradeMoneyValues)
+        position.periodicCashFlows.add(position, asAtDate)
+        positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
+
+        val irr =
+            calculateIrrSafely(
+                position.periodicCashFlows,
+                roi,
+                "Failed to calculate IRR for ${position.asset.code}"
+            )
+
+        calculationSupport.updateTotals(tradeTotals, tradeMoneyValues, roi, irr)
+        calculationSupport.updateTotals(baseTotals, baseMoneyValues, roi, irr)
+        calculationSupport.updateTotals(refTotals, portfolioMoneyValues, roi, irr)
+    }
+
+    private fun processCashPosition(
+        tradeTotals: Totals,
+        baseTotals: Totals,
+        refTotals: Totals,
+        tradeMoneyValues: MoneyValues,
+        baseMoneyValues: MoneyValues,
+        portfolioMoneyValues: MoneyValues
+    ) {
+        calculationSupport.updateCashTotals(
+            tradeTotals,
+            baseTotals,
+            refTotals,
+            tradeMoneyValues,
+            baseMoneyValues,
+            portfolioMoneyValues
+        )
     }
 
     suspend fun getValuationData(

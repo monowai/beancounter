@@ -54,6 +54,9 @@ class PositionValuationServiceTest {
     @Mock
     private lateinit var irrCalculator: IrrCalculator
 
+    @Mock
+    private lateinit var calculationSupport: PositionCalculationSupport
+
     private lateinit var valuationService: PositionValuationService
 
     val portfolio: Portfolio = TestHelpers.createTestPortfolio("PositionValuationServiceTest")
@@ -71,7 +74,8 @@ class PositionValuationServiceTest {
                 fxRateService,
                 tokenService,
                 DateUtils(),
-                irrCalculator
+                irrCalculator,
+                calculationSupport
             )
     }
 

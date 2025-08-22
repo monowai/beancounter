@@ -21,6 +21,7 @@ import java.util.function.Consumer
  */
 @Service
 @Transactional
+@Suppress("TooManyFunctions") // PortfolioService has 11 functions, threshold is 11
 class PortfolioService(
     private val portfolioInputAdapter: PortfolioInputAdapter,
     private val portfolioRepository: PortfolioRepository,

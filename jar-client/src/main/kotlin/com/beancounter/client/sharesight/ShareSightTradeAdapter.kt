@@ -66,13 +66,15 @@ class ShareSightTradeAdapter(
             val asset = resolveAssetSafely(row)
             val trnInput =
                 trnInputBuilder.createTrnInput(
-                    trustedTrnImportRequest,
-                    row,
-                    trnType,
-                    comment,
-                    fees,
-                    tradeAmount,
-                    asset.id
+                    TrnInputBuilder.TrnInputParams(
+                        trustedTrnImportRequest,
+                        row,
+                        trnType,
+                        comment,
+                        fees,
+                        tradeAmount,
+                        asset.id
+                    )
                 )
 
             // Zero and null are treated as "unknown"
@@ -215,34 +217,39 @@ private class TrnInputBuilder(
     private val shareSightConfig: ShareSightConfig,
     private val dateUtils: DateUtils
 ) {
-    fun createTrnInput(
-        trustedTrnImportRequest: TrustedTrnImportRequest,
-        row: List<String>,
-        trnType: TrnType,
-        comment: String?,
-        fees: BigDecimal,
-        tradeAmount: BigDecimal,
-        assetId: String
-    ): TrnInput =
+    /**
+     * Data class to encapsulate parameters for TrnInput creation.
+     */
+    data class TrnInputParams(
+        val trustedTrnImportRequest: TrustedTrnImportRequest,
+        val row: List<String>,
+        val trnType: TrnType,
+        val comment: String?,
+        val fees: BigDecimal,
+        val tradeAmount: BigDecimal,
+        val assetId: String
+    )
+
+    fun createTrnInput(params: TrnInputParams): TrnInput =
         TrnInput(
             CallerRef(
-                trustedTrnImportRequest.portfolio.id,
+                params.trustedTrnImportRequest.portfolio.id,
                 "",
-                row[ShareSightTradeAdapter.ID]
+                params.row[ShareSightTradeAdapter.ID]
             ),
-            assetId,
-            trnType = trnType,
-            quantity = parse(row[ShareSightTradeAdapter.QUANTITY], shareSightConfig.numberFormat),
-            tradeCurrency = row[ShareSightTradeAdapter.CURRENCY],
-            cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
+            params.assetId,
+            trnType = params.trnType,
+            quantity = parse(params.row[ShareSightTradeAdapter.QUANTITY], shareSightConfig.numberFormat),
+            tradeCurrency = params.row[ShareSightTradeAdapter.CURRENCY],
+            cashCurrency = params.trustedTrnImportRequest.portfolio.currency.code,
             tradeDate =
                 dateUtils.getFormattedDate(
-                    row[ShareSightTradeAdapter.DATE],
+                    params.row[ShareSightTradeAdapter.DATE],
                     listOf(shareSightConfig.dateFormat)
                 ),
-            fees = fees,
-            price = MathUtils.nullSafe(parse(row[ShareSightTradeAdapter.PRICE], shareSightConfig.numberFormat)),
-            tradeAmount = tradeAmount,
-            comments = comment
+            fees = params.fees,
+            price = MathUtils.nullSafe(parse(params.row[ShareSightTradeAdapter.PRICE], shareSightConfig.numberFormat)),
+            tradeAmount = params.tradeAmount,
+            comments = params.comment
         )
 }

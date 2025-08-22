@@ -35,32 +35,32 @@ class StaticServiceTest {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_GuardChecks() {
+    fun `should perform guard checks`() {
         assertThat(staticService.getCurrency(null)).isNull()
         assertThrows(BusinessException::class.java) { staticService.getCurrency("NOPE") }
     }
 
     @Test
-    fun are_MarketsFound() {
+    fun `should find markets`() {
         val markets = staticService.getMarkets()
         assertThat(markets).isNotNull
         assertThat(markets.data).isNotEmpty
     }
 
     @Test
-    fun is_MarketIllegalArgumentsThrowing() {
+    fun `should throw exception for illegal market arguments`() {
         assertThrows(BusinessException::class.java) { staticService.getMarket("ERR") }
     }
 
     @Test
-    fun are_CurrenciesFound() {
+    fun `should find currencies`() {
         val currencies = staticService.currencies
         assertThat(currencies).isNotNull
         assertThat(currencies.data).isNotEmpty
     }
 
     @Test
-    fun is_CurrencyFound() {
+    fun `should find currency`() {
         val currency = staticService.getCurrency("USD")
         assertThat(currency).isNotNull
         assertThat(currency).hasNoNullFieldsOrProperties()

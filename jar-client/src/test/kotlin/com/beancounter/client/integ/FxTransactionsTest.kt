@@ -71,7 +71,7 @@ class FxTransactionsTest {
     }
 
     @Test
-    fun balanceTransaction() {
+    fun `should handle balance transaction`() {
         val trnInput =
             TrnInput(
                 CallerRef(),
@@ -113,7 +113,7 @@ class FxTransactionsTest {
     }
 
     @Test
-    fun is_FxContractHonoured() {
+    fun `should honour FX contract`() {
         val isoCurrencyPairs: MutableSet<IsoCurrencyPair> =
             mutableSetOf(
                 IsoCurrencyPair(
@@ -154,7 +154,7 @@ class FxTransactionsTest {
     }
 
     @Test
-    fun is_EarlyDateWorking() {
+    fun `should work with early date`() {
         val isoCurrencyPairs: MutableSet<IsoCurrencyPair> =
             mutableSetOf(
                 IsoCurrencyPair(
@@ -191,14 +191,14 @@ class FxTransactionsTest {
     }
 
     @Test
-    fun is_EmptyResponseReturning() {
+    fun `should return empty response`() {
         val fxResponse = fxRateService.getRates(FxRequest("2020-10-01"))
         assertThat(fxResponse).isNotNull
         assertThat(fxResponse.data.rates).isEmpty()
     }
 
     @Test
-    fun is_fxTransactionsSettingCorrectlyWhenRatesNull() {
+    fun `should set FX transactions correctly when rates are null`() {
         val trnInput =
             TrnInput(
                 CallerRef(),
@@ -240,7 +240,7 @@ class FxTransactionsTest {
     }
 
     @Test
-    fun is_fxTransactionsSettingCorrectlyWhenRatesAreZero() {
+    fun `should set FX transactions correctly when rates are zero`() {
         val trnInput =
             TrnInput(
                 CallerRef(),
@@ -283,7 +283,7 @@ class FxTransactionsTest {
     }
 
     @Test
-    fun is_NoArgsWorking() {
+    fun `should work with no arguments`() {
         var response = fxRateService.getRates(FxRequest("2020-01-10"))
         assertThat(response)
             .isNotNull

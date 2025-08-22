@@ -60,7 +60,7 @@ class ShareSightRatesInTrn {
     private val testComment = "Test Comment"
 
     @Test
-    fun is_DividendRowWithFxConverted() {
+    fun `should convert dividend row with FX`() {
         val row: MutableList<String> = mutableListOf()
 
         // Portfolio is in NZD
@@ -143,7 +143,7 @@ class ShareSightRatesInTrn {
 
     @Test
     @Throws(Exception::class)
-    fun is_TradeRowWithFxConverted() {
+    fun `should convert trade row with FX`() {
         val fxRate = "0.8988"
         val tradeAmount = "2097.85"
         val row: List<String> =

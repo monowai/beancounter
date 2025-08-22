@@ -48,7 +48,7 @@ internal class ShareSightAdapterTest {
     lateinit var tokenService: TokenService
 
     @Test
-    fun is_ExchangeAliasReturnedInAssetCode() {
+    fun `should return exchange alias in asset code`() {
         var expectedAsset =
             getTestAsset(
                 NYSE,
@@ -70,7 +70,7 @@ internal class ShareSightAdapterTest {
     }
 
     @Test
-    fun is_IgnoreRatesCorrect() {
+    fun `should ignore rates correctly`() {
         assertThat(shareSightConfig.isCalculateRates).isTrue
     }
 
@@ -87,7 +87,7 @@ internal class ShareSightAdapterTest {
     }
 
     @Test
-    fun is_AssetsSetIntoTransaction() {
+    fun `should set assets into transaction`() {
         var row: MutableList<String> = mutableListOf()
         row.add(
             ShareSightTradeAdapter.ID,

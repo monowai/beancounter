@@ -41,7 +41,7 @@ class TestPortfolioServiceClient {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_PortfolioFinders() {
+    fun `should find portfolios`() {
         val portfolioByCode = portfolioService.getPortfolioByCode("TEST")
         val portfolioById =
             portfolioService.getPortfolioById(
@@ -52,7 +52,7 @@ class TestPortfolioServiceClient {
     }
 
     @Test
-    fun is_PortfolioAddRequest() {
+    fun `should add portfolio request`() {
         val request =
             PortfoliosRequest(
                 setOf(
@@ -70,13 +70,13 @@ class TestPortfolioServiceClient {
     }
 
     @Test
-    fun is_MyPortfolios() {
+    fun `should get my portfolios`() {
         val (data) = portfolioService.portfolios
         assertThat(data).isNotNull.isNotEmpty
     }
 
     @Test
-    fun is_WhereHeld() {
+    fun `should get where held`() {
         val (data) =
             portfolioService.getWhereHeld(
                 "KMI",
@@ -86,7 +86,7 @@ class TestPortfolioServiceClient {
     }
 
     @Test
-    fun is_PortfolioIllegalArgumentsThrowing() {
+    fun `should throw exception for illegal portfolio arguments`() {
         assertThrows(BusinessException::class.java) {
             portfolioService.getPortfolioByCode("NOT-FOUND")
         }

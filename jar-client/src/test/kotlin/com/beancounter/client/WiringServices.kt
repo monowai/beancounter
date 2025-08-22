@@ -48,7 +48,7 @@ class WiringServices {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_Wired() {
+    fun `should be wired`() {
         Assertions.assertThat(assetIngestService).isNotNull
         Assertions.assertThat(fxRateService).isNotNull
         Assertions.assertThat(portfolioService).isNotNull

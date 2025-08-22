@@ -37,14 +37,14 @@ class TestTrnService {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_TrnsReturnedForPortfolioId() {
+    fun `should return transactions for portfolio ID`() {
         val trnResponse = trnService.query(portfolio)
         assertThat(trnResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         assertThat(trnResponse.data).isNotEmpty // Don't care about the contents here.
     }
 
     @Test
-    fun is_TrnsReturnedForPortfolioAssetId() {
+    fun `should return transactions for portfolio asset ID`() {
         val query =
             TrustedTrnQuery(
                 portfolio,

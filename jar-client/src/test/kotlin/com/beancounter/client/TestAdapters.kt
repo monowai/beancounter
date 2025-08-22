@@ -42,7 +42,7 @@ class TestAdapters {
     private lateinit var assetIngestService: AssetIngestService
 
     @Test
-    fun is_DividendIllegalNumber() {
+    fun `should handle dividend illegal number`() {
         val row: MutableList<String> = arrayListOf()
 
         row.add(
@@ -81,7 +81,7 @@ class TestAdapters {
     }
 
     @Test
-    fun is_NullTrnTypeCorrect() {
+    fun `should handle null transaction type correctly`() {
         val row: List<String> =
             arrayListOf(
                 "",
@@ -113,7 +113,7 @@ class TestAdapters {
     }
 
     @Test
-    fun is_BlankTrnTypeCorrect() {
+    fun `should handle blank transaction type correctly`() {
         val row: List<String> =
             arrayListOf(
                 "",
@@ -143,7 +143,7 @@ class TestAdapters {
     }
 
     @Test
-    fun is_ValidTradeRow() {
+    fun `should validate trade row`() {
         val row: MutableList<String> = arrayListOf()
         row.add(
             ShareSightTradeAdapter.ID,
@@ -188,7 +188,7 @@ class TestAdapters {
     }
 
     @Test
-    fun is_TradeAmountComputed() {
+    fun `should compute trade amount`() {
         val row: MutableList<String> = arrayListOf()
         row.add(
             ShareSightTradeAdapter.ID,
@@ -275,7 +275,7 @@ class TestAdapters {
     }
 
     @Test
-    fun is_ValidDividendRow() {
+    fun `should validate dividend row`() {
         val row: MutableList<String> = arrayListOf()
         row.add(
             ShareSightTradeAdapter.ID,

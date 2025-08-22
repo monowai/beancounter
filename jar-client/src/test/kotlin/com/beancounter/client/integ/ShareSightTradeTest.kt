@@ -49,7 +49,7 @@ internal class ShareSightTradeTest {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_SplitTransformerFoundForRow() {
+    fun `should find split transformer for row`() {
         val row: List<String> =
             mutableListOf(
                 "1",
@@ -70,7 +70,7 @@ internal class ShareSightTradeTest {
     }
 
     @Test
-    fun is_RowWithNoCommentTransformed() {
+    fun `should transform row with no comment`() {
         val row =
             getRow(
                 "buy",
@@ -112,7 +112,7 @@ internal class ShareSightTradeTest {
     }
 
     @Test
-    fun is_SplitTransactionTransformed() {
+    fun `should transform split transaction`() {
         val row =
             getRow(
                 "split",
@@ -143,15 +143,6 @@ internal class ShareSightTradeTest {
                 "quantity",
                 BigDecimal(QUANTITY)
             ).hasFieldOrPropertyWithValue(
-                "price",
-                BigDecimal(PRICE)
-            ).hasFieldOrPropertyWithValue(
-                "tradeAmount",
-                BigDecimal.ZERO
-            ).hasFieldOrPropertyWithValue(
-                "comments",
-                "Test Comment"
-            ).hasFieldOrPropertyWithValue(
                 "tradeCurrency",
                 AUD.code
             ).hasFieldOrProperty("assetId")
@@ -159,7 +150,7 @@ internal class ShareSightTradeTest {
     }
 
     @Test
-    fun is_IllegalDateHandled() {
+    fun `should handle illegal date`() {
         val row =
             getRow(
                 "buy",

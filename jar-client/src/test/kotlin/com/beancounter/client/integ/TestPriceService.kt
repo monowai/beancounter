@@ -44,7 +44,7 @@ class TestPriceService {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_TodaysPriceForEbayFound() {
+    fun `should find today's price for eBay`() {
         assertThat(assetIngestService).isNotNull
         val priceRequest =
             PriceRequest(
@@ -76,7 +76,7 @@ class TestPriceService {
     }
 
     @Test
-    fun is_EventsFound() {
+    fun `should find events`() {
         val response = priceService.getEvents("NDAQ")
         assertThat(response)
             .isNotNull

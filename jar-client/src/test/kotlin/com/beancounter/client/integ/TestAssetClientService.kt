@@ -33,7 +33,7 @@ class TestAssetClientService {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_AssetByIdOk() {
+    fun `should find asset by ID`() {
         assertThat(assets.find("KMI")).isNotNull
     }
 }

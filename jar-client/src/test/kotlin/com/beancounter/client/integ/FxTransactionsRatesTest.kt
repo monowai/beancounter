@@ -39,7 +39,7 @@ class FxTransactionsRatesTest {
     lateinit var tokenService: TokenService
 
     @Test
-    fun ratesAreNeededForTrnInput() {
+    fun `should need rates for TrnInput`() {
         assertThat(fxTransactions.needsRates(TrnInput())).isTrue()
         assertThat(fxTransactions.needsRates(TrnInput(tradePortfolioRate = BigDecimal.ONE)))
             .isTrue()
@@ -50,7 +50,7 @@ class FxTransactionsRatesTest {
     }
 
     @Test
-    fun ratesNotNeededWhenSet() {
+    fun `should not need rates when already set`() {
         assertThat(
             fxTransactions.needsRates(
                 TrnInput(
@@ -63,7 +63,7 @@ class FxTransactionsRatesTest {
     }
 
     @Test
-    fun ratesAreSet() {
+    fun `should set rates`() {
         val portfolio = PortfolioUtils.getPortfolio()
         val trnInput = TrnInput(tradeCurrency = USD.code)
         val fxRequest =

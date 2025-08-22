@@ -21,7 +21,7 @@ import java.math.BigDecimal
 
 class TestFxTransactions {
     @Test
-    fun is_TrnDefaultsSetting() {
+    fun `should set transaction defaults`() {
         val tradeBase =
             IsoCurrencyPair(
                 USD.code,
@@ -83,7 +83,7 @@ class TestFxTransactions {
     }
 
     @Test
-    fun is_FxPairsWorking() {
+    fun `should work with FX pairs`() {
         val fxTransactions =
             FxTransactions(
                 Mockito.mock(FxService::class.java)

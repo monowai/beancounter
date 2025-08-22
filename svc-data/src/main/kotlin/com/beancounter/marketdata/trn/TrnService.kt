@@ -22,6 +22,7 @@ import java.util.function.Consumer
  */
 @Service
 @Transactional
+@Suppress("TooManyFunctions") // TrnService has 13 functions, threshold is 11
 class TrnService(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,

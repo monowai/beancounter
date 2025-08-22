@@ -76,7 +76,7 @@ class PositionValuationService(
             return positions // Prevent NPE
         }
 
-        val tradeCurrency = getTradeCurrency(positions)
+        val tradeCurrency = tradeCurrency(positions)
         val baseTotals = Totals(positions.portfolio.base)
         val pfTotals = Totals(positions.portfolio.currency)
         val tradeTotals = Totals(tradeCurrency)
@@ -100,7 +100,7 @@ class PositionValuationService(
             fxResponse,
             tradeCurrency
         )
-        calculateWeightsAndGains(positions)
+        weightsAndGains(positions)
         val irr =
             calculateIrrSafely(
                 positions.periodicCashFlows,
@@ -118,7 +118,7 @@ class PositionValuationService(
         return positions
     }
 
-    private fun getTradeCurrency(positions: Positions): Currency =
+    private fun tradeCurrency(positions: Positions): Currency =
         if (positions.isMixedCurrencies) {
             positions.portfolio.base
         } else {
@@ -168,7 +168,7 @@ class PositionValuationService(
         }
     }
 
-    private fun calculateWeightsAndGains(positions: Positions) {
+    private fun weightsAndGains(positions: Positions) {
         val baseTotals = positions.totals[Position.In.BASE]!!
         val refTotals = positions.totals[Position.In.PORTFOLIO]!!
         val tradeTotals = positions.totals[Position.In.TRADE]!!

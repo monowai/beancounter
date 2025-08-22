@@ -3,6 +3,7 @@ package com.contracts.data
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
@@ -18,6 +19,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.OffMarketEnricher
 import com.beancounter.marketdata.cash.CashService
@@ -26,6 +28,7 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.BcRowAdapter
+import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
 import io.restassured.RestAssured
 import org.assertj.core.api.Assertions.assertThat
@@ -71,14 +74,20 @@ class RealestateBase {
     @MockitoBean
     internal lateinit var ecbService: EcbService
 
-    @Autowired
+    @MockitoBean
     private lateinit var trnService: TrnService
 
-    @Autowired
+    @MockitoBean
     private lateinit var assetService: AssetService
 
     @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
+    @MockitoBean
     private lateinit var systemUserService: SystemUserService
+
+    @MockitoBean
+    private lateinit var trnRepository: TrnRepository
 
     @Autowired
     private lateinit var systemUserRepository: SystemUserRepository
@@ -92,10 +101,11 @@ class RealestateBase {
     lateinit var portfolio: Portfolio
 
     val tenK = BigDecimal("10000.00")
-    private final val oneK = BigDecimal("1000")
+    private val oneK = BigDecimal("1000")
     val nOneK: BigDecimal = oneK.negate()
     private val tradeDate = "2023-05-01"
     private val assetCode = "USD.RE"
+    private val name = "NY Apartment"
     private val pTradeAmount = "tradeAmount"
     private val pCashAmount = "cashAmount"
 
@@ -118,10 +128,365 @@ class RealestateBase {
         Mockito.`when`(systemUserService.find(any())).thenReturn(systemUser)
         // this needs to be in the DB as we persist portfolios
         systemUserRepository.save(systemUser)
+
+        // Mock asset service for cash assets
+        mockCashAssets()
+
         portfolio = portfolio()
         mortgage()
         reTrnFlow()
     }
+
+    private fun mockCashAssets() {
+        // Mock cash assets for mortgage transactions
+        val mortgage1Asset = createCashAsset("Mortgage 1", "CASH")
+        val mortgage2Asset = createCashAsset("Mortgage 2", "CASH")
+        val houseAsset = createRealEstateAsset()
+
+        // Mock asset service responses for specific requests
+        Mockito.`when`(assetService.handle(any())).thenAnswer { invocation ->
+            val request = invocation.getArgument<AssetRequest>(0)
+            val assets = mutableMapOf<String, Asset>()
+
+            request.data.forEach { (key, assetInput) ->
+                val asset =
+                    when {
+                        assetInput.code == "Mortgage 1" -> mortgage1Asset
+                        assetInput.code == "Mortgage 2" -> mortgage2Asset
+                        assetInput.code == assetCode -> houseAsset
+                        else -> createCashAsset(assetInput.code, assetInput.market)
+                    }
+                assets[key] = asset
+            }
+
+            AssetUpdateResponse(assets)
+        }
+
+        // Mock find method
+        Mockito.`when`(assetService.find(any())).thenAnswer { invocation ->
+            when (val assetId = invocation.getArgument<String>(0)) {
+                "Mortgage 1" -> mortgage1Asset
+                "Mortgage 2" -> mortgage2Asset
+                assetCode -> houseAsset
+                else -> createCashAsset(assetId, "CASH")
+            }
+        }
+
+        // Mock assetFinder.find method
+        Mockito.`when`(assetFinder.find(any())).thenAnswer { invocation ->
+            when (val assetId = invocation.getArgument<String>(0)) {
+                "Mortgage 1" -> mortgage1Asset
+                "Mortgage 2" -> mortgage2Asset
+                assetCode -> houseAsset
+                else -> createCashAsset(assetId, "CASH")
+            }
+        }
+
+        // Mock TrnRepository to avoid database persistence
+        Mockito
+            .`when`(
+                trnRepository.saveAll(
+                    any<Collection<Trn>>()
+                )
+            ).thenAnswer { invocation ->
+                val trns = invocation.getArgument<Collection<Trn>>(0)
+                trns
+            }
+
+        // Mock TrnService.save method
+        Mockito
+            .`when`(
+                trnService.save(
+                    any<Portfolio>(),
+                    any<TrnRequest>()
+                )
+            ).thenAnswer { invocation ->
+                val portfolio = invocation.getArgument<Portfolio>(0)
+                val trnRequest = invocation.getArgument<TrnRequest>(1)
+                val trns = mutableListOf<Trn>()
+
+                trnRequest.data.forEach { trnInput ->
+                    val trn =
+                        Trn(
+                            id = keyGenUtils.id,
+                            trnType = trnInput.trnType,
+                            tradeDate = trnInput.tradeDate,
+                            asset = createCashAsset(trnInput.assetId ?: "test", "CASH"),
+                            quantity =
+                                if (trnInput.quantity ==
+                                    BigDecimal.ZERO
+                                ) {
+                                    trnInput.tradeAmount
+                                } else {
+                                    trnInput.quantity
+                                },
+                            callerRef =
+                                CallerRef
+                                    .from(trnInput.callerRef),
+                            price = trnInput.price,
+                            tradeAmount = trnInput.tradeAmount,
+                            tradeCurrency =
+                                com.beancounter.common.model
+                                    .Currency("USD"),
+                            cashAsset = null,
+                            cashCurrency = null,
+                            tradeCashRate = trnInput.tradeCashRate,
+                            tradeBaseRate = trnInput.tradeBaseRate,
+                            tradePortfolioRate = trnInput.tradePortfolioRate,
+                            cashAmount = trnInput.cashAmount,
+                            portfolio = portfolio,
+                            settleDate = trnInput.settleDate,
+                            fees = trnInput.fees,
+                            tax = trnInput.tax,
+                            comments = trnInput.comments,
+                            status = trnInput.status
+                        )
+                    trns.add(trn)
+                }
+
+                trns
+            }
+
+        // Mock TrnService.findForPortfolio method for GET requests
+        Mockito
+            .`when`(
+                trnService.findForPortfolio(
+                    any<String>(),
+                    any<java.time.LocalDate>()
+                )
+            ).thenAnswer { invocation ->
+                val portfolioId = invocation.getArgument<String>(0)
+                val date = invocation.getArgument<java.time.LocalDate>(1)
+
+                if (portfolioId == "RE-TEST" && date.toString() == "2023-05-01") {
+                    val mortgage1Asset = createMortgageAsset("Mortgage 1", "MORTGAGE 1", "Mortgage 1")
+                    val mortgage2Asset = createMortgageAsset("Mortgage 2", "MORTGAGE 2", "Mortgage 2")
+                    val realEstateAsset = createRealEstateAsset()
+
+                    listOf(
+                        Trn(
+                            id = "Mortgage 1",
+                            trnType = TrnType.BALANCE,
+                            tradeDate = java.time.LocalDate.parse("2023-05-01"),
+                            asset = mortgage1Asset,
+                            quantity = BigDecimal("-10000.000000"),
+                            callerRef =
+                                CallerRef("BC", "20230501", "Mortgage 1"),
+                            price = BigDecimal.ZERO,
+                            tradeAmount = BigDecimal("-10000.00"),
+                            tradeCurrency =
+                                com.beancounter.common.model
+                                    .Currency("USD"),
+                            cashAsset = null,
+                            cashCurrency = null,
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeBaseRate = BigDecimal.ONE,
+                            tradePortfolioRate = BigDecimal.ONE,
+                            cashAmount = BigDecimal.ZERO,
+                            portfolio = portfolio,
+                            settleDate = null,
+                            fees = BigDecimal.ZERO,
+                            tax = BigDecimal.ZERO,
+                            comments = null,
+                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                        ),
+                        Trn(
+                            id = "Mortgage 2",
+                            trnType = TrnType.BALANCE,
+                            tradeDate = java.time.LocalDate.parse("2023-05-01"),
+                            asset = mortgage2Asset,
+                            quantity = BigDecimal("-10000.000000"),
+                            callerRef =
+                                CallerRef("BC", "20230501", "Mortgage 2"),
+                            price = BigDecimal.ZERO,
+                            tradeAmount = BigDecimal("-10000.00"),
+                            tradeCurrency =
+                                com.beancounter.common.model
+                                    .Currency("USD"),
+                            cashAsset = null,
+                            cashCurrency = null,
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeBaseRate = BigDecimal.ONE,
+                            tradePortfolioRate = BigDecimal.ONE,
+                            cashAmount = BigDecimal.ZERO,
+                            portfolio = portfolio,
+                            settleDate = null,
+                            fees = BigDecimal.ZERO,
+                            tax = BigDecimal.ZERO,
+                            comments = null,
+                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                        ),
+                        Trn(
+                            id = "1",
+                            trnType = TrnType.BALANCE,
+                            tradeDate = java.time.LocalDate.parse("2023-05-01"),
+                            asset = realEstateAsset,
+                            quantity = BigDecimal("10000.000000"),
+                            callerRef =
+                                CallerRef("BC", "20230501", "1"),
+                            price = BigDecimal.ZERO,
+                            tradeAmount = BigDecimal("10000.00"),
+                            tradeCurrency =
+                                com.beancounter.common.model
+                                    .Currency("USD"),
+                            cashAsset = null,
+                            cashCurrency = null,
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeBaseRate = BigDecimal.ONE,
+                            tradePortfolioRate = BigDecimal.ONE,
+                            cashAmount = BigDecimal.ZERO,
+                            portfolio = portfolio,
+                            settleDate = null,
+                            fees = BigDecimal.ZERO,
+                            tax = BigDecimal.ZERO,
+                            comments = null,
+                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                        ),
+                        Trn(
+                            id = "2",
+                            trnType = TrnType.BALANCE,
+                            tradeDate = java.time.LocalDate.parse("2023-05-01"),
+                            asset = realEstateAsset,
+                            quantity = BigDecimal("-1000.000000"),
+                            callerRef =
+                                CallerRef("BC", "20230501", "2"),
+                            price = BigDecimal.ZERO,
+                            tradeAmount = BigDecimal("-1000.00"),
+                            tradeCurrency =
+                                com.beancounter.common.model
+                                    .Currency("USD"),
+                            cashAsset = null,
+                            cashCurrency = null,
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeBaseRate = BigDecimal.ONE,
+                            tradePortfolioRate = BigDecimal.ONE,
+                            cashAmount = BigDecimal.ZERO,
+                            portfolio = portfolio,
+                            settleDate = null,
+                            fees = BigDecimal.ZERO,
+                            tax = BigDecimal.ZERO,
+                            comments = null,
+                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                        ),
+                        Trn(
+                            id = "3",
+                            trnType = TrnType.BALANCE,
+                            tradeDate = java.time.LocalDate.parse("2023-05-01"),
+                            asset = realEstateAsset,
+                            quantity = BigDecimal("1000.000000"),
+                            callerRef =
+                                CallerRef("BC", "20230501", "3"),
+                            price = BigDecimal.ZERO,
+                            tradeAmount = BigDecimal("1000.00"),
+                            tradeCurrency =
+                                com.beancounter.common.model
+                                    .Currency("USD"),
+                            cashAsset = null,
+                            cashCurrency = null,
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeBaseRate = BigDecimal.ONE,
+                            tradePortfolioRate = BigDecimal.ONE,
+                            cashAmount = BigDecimal.ZERO,
+                            portfolio = portfolio,
+                            settleDate = null,
+                            fees = BigDecimal.ZERO,
+                            tax = BigDecimal.ZERO,
+                            comments = null,
+                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                        )
+                    )
+                } else {
+                    emptyList()
+                }
+            }
+    }
+
+    private fun createCashAsset(
+        code: String,
+        market: String
+    ): Asset =
+        Asset(
+            code = code,
+            id = code,
+            name = "$code Balance",
+            market =
+                com.beancounter.common.model.Market(
+                    code = market,
+                    currencyId = "USD",
+                    timezoneId = "UTC",
+                    timezone = java.util.TimeZone.getTimeZone("UTC"),
+                    priceTime = java.time.LocalTime.of(19, 0),
+                    daysToSubtract = 1,
+                    enricher = "ECHO",
+                    multiplier = BigDecimal.ONE
+                ),
+            assetCategory =
+                com.beancounter.common.model
+                    .AssetCategory("CASH", "Cash"),
+            priceSymbol = code,
+            version = "1",
+            status = com.beancounter.common.model.Status.Active
+        )
+
+    private fun createRealEstateAsset(): Asset {
+        val formattedCode =
+            if (assetCode.startsWith(systemUser.id)) {
+                assetCode
+            } else {
+                "${systemUser.id}.${assetCode.uppercase()}"
+            }
+        return Asset(
+            code = formattedCode,
+            id = assetCode,
+            name = name,
+            market =
+                com.beancounter.common.model.Market(
+                    code = "OFFM",
+                    currencyId = "USD",
+                    timezoneId = "UTC",
+                    timezone = java.util.TimeZone.getTimeZone("UTC"),
+                    priceTime = java.time.LocalTime.of(19, 0),
+                    daysToSubtract = 1,
+                    enricher = "DEFAULT",
+                    multiplier = BigDecimal.ONE
+                ),
+            assetCategory =
+                com.beancounter.common.model
+                    .AssetCategory("RE", "Real Estate"),
+            priceSymbol = "USD",
+            version = "1",
+            status = com.beancounter.common.model.Status.Active,
+            systemUser = systemUser
+        )
+    }
+
+    private fun createMortgageAsset(
+        id: String,
+        code: String,
+        name: String
+    ): Asset =
+        Asset(
+            code = code,
+            id = id,
+            name = name,
+            market =
+                com.beancounter.common.model.Market(
+                    code = "CASH",
+                    currencyId = "USD",
+                    timezoneId = "UTC",
+                    timezone = java.util.TimeZone.getTimeZone("UTC"),
+                    priceTime = java.time.LocalTime.of(19, 0),
+                    daysToSubtract = 1,
+                    enricher = "DEFAULT",
+                    multiplier = BigDecimal.ONE
+                ),
+            assetCategory =
+                com.beancounter.common.model
+                    .AssetCategory("CASH", "Cash"),
+            priceSymbol = "NZD",
+            version = "1",
+            status = com.beancounter.common.model.Status.Active
+        )
 
     fun mortgage() {
         val m1 = "Mortgage 1"
@@ -169,12 +534,12 @@ class RealestateBase {
                     AssetRequest(
                         mapOf(
                             Pair(
-                                assetInput.code,
+                                "${assetInput.code}:${assetInput.market}",
                                 assetInput
                             )
                         )
                     )
-                ).data[assetInput.code]
+                ).data["${assetInput.code}:${assetInput.market}"]
         Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
         return save(
             portfolio,

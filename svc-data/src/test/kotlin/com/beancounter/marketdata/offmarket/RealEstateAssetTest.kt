@@ -11,6 +11,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetCategoryConfig
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.providers.MarketDataService
@@ -50,6 +51,9 @@ class RealEstateAssetTest {
 
     @Autowired
     private lateinit var systemUserService: Registration
+
+    @Autowired
+    private lateinit var assetFinder: AssetFinder
 
     val reInput =
         AssetInput.toRealEstate(
@@ -111,7 +115,7 @@ class RealEstateAssetTest {
             .isEqualTo(reAsset)
 
         // Simple find
-        assertThat(assetService.findLocally(reInput))
+        assertThat(assetFinder.findLocally(reInput))
             .isEqualTo(reAsset)
 
         // Price Flow

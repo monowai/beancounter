@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -37,12 +38,13 @@ import org.springframework.web.bind.annotation.RestController
     "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 @Tag(
-    name = "Asset Management",
-    description = "Operations for managing financial assets including stocks, bonds, and other securities"
+    name = "Assets",
+    description = "Asset management operations"
 )
 class AssetController(
     private val assetService: AssetService,
-    private val priceRefresh: PriceRefresh
+    private val priceRefresh: PriceRefresh,
+    private val assetFinder: AssetFinder
 ) {
     @GetMapping(
         value = ["/{market}/{code}"],
@@ -53,7 +55,7 @@ class AssetController(
         description = """
             Retrieves an existing asset or creates a new one if it doesn't exist.
             This endpoint automatically handles asset creation with market data enrichment.
-            
+
             Use this to:
             * Look up existing assets by market and ticker code
             * Create new assets that will be automatically enriched with market data
@@ -117,23 +119,17 @@ class AssetController(
             )
         )
 
-    @GetMapping(value = ["/{assetId}"])
+    @GetMapping("/{assetId}")
     @Operation(
         summary = "Get asset by ID",
-        description = """
-            Retrieves a specific asset by its unique identifier.
-            
-            Use this to:
-            * Get detailed information about a known asset
-            * Retrieve asset data for display or processing
-            * Access asset metadata and market information
-        """
+        description = "Retrieves a specific asset by its unique identifier"
     )
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "Asset retrieved successfully"
+                description = "Asset found successfully",
+                content = [Content(schema = Schema(implementation = AssetResponse::class))]
             ),
             ApiResponse(
                 responseCode = "404",
@@ -142,31 +138,21 @@ class AssetController(
         ]
     )
     fun getAsset(
-        @Parameter(
-            description = "Unique asset identifier",
-            example = "asset-123"
-        )
+        @Parameter(description = "Unique identifier of the asset", example = "US:AAPL")
         @PathVariable assetId: String
-    ): AssetResponse = AssetResponse(assetService.find(assetId))
+    ): AssetResponse = AssetResponse(assetFinder.find(assetId))
 
-    @PostMapping(value = ["/{assetId}/enrich"])
+    @PostMapping("/{assetId}/enrich")
     @Operation(
-        summary = "Enrich asset with additional market data",
-        description = """
-            Enriches an existing asset with additional market data and metadata.
-            This process may update the asset's name, category, or other attributes.
-            
-            Use this to:
-            * Update asset information with latest market data
-            * Refresh asset metadata from external sources
-            * Ensure asset data is current and complete
-        """
+        summary = "Enrich asset data",
+        description = "Enriches an existing asset with additional market data and information"
     )
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "Asset enriched successfully"
+                description = "Asset enriched successfully",
+                content = [Content(schema = Schema(implementation = AssetResponse::class))]
             ),
             ApiResponse(
                 responseCode = "404",
@@ -175,12 +161,9 @@ class AssetController(
         ]
     )
     fun enrichAsset(
-        @Parameter(
-            description = "Unique asset identifier to enrich",
-            example = "asset-123"
-        )
+        @Parameter(description = "Unique identifier of the asset to enrich", example = "US:AAPL")
         @PathVariable assetId: String
-    ): AssetResponse = AssetResponse(assetService.enrich(assetService.find(assetId)))
+    ): AssetResponse = AssetResponse(assetService.enrich(assetFinder.find(assetId)))
 
     @PostMapping(value = ["/price/refresh"])
     @Operation(
@@ -188,7 +171,7 @@ class AssetController(
         description = """
             Triggers a price refresh for all assets in the system.
             This is a background operation that updates market prices.
-            
+
             Use this to:
             * Update all asset prices with latest market data
             * Ensure price data is current for portfolio calculations
@@ -222,7 +205,7 @@ class AssetController(
         description = """
             Creates or updates multiple assets in a single request.
             This endpoint handles bulk asset operations efficiently.
-            
+
             Use this to:
             * Create multiple assets in one transaction
             * Update existing assets with new information

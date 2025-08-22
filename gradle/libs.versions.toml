@@ -4,6 +4,7 @@
 [versions]
 kotlin = "2.2.10"
 kotlinter = "5.1.1"
+detekt = "1.23.5"
 spring-boot = "3.5.4"
 spring-cloud = "2025.0.0"
 spring-cloud-contract = "4.3.0"
@@ -62,6 +63,7 @@ jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 idea = { id = "idea" }
 jacoco = { id = "jacoco" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 java-test-fixtures = { id = "java-test-fixtures" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }

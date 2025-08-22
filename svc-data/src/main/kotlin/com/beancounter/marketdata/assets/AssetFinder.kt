@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.Locale
+import java.util.stream.Stream
 
 /**
  * Handles asset finding operations with built-in hydration.
@@ -73,6 +74,21 @@ class AssetFinder(
         asset.assetCategory = assetCategoryConfig.get(asset.category)!!
         return asset
     }
+
+    /**
+     * Find all assets by market code.
+     *
+     * @param marketCode the market code to search for
+     * @return list of assets for the given market
+     */
+    fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
+
+    /**
+     * Find all assets as a stream.
+     *
+     * @return stream of all assets
+     */
+    fun findAllAssets(): Stream<Asset> = assetRepository.findAllAssets()
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetFinder::class.java)

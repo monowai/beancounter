@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.jacoco)
     alias(libs.plugins.idea)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.spring)
     id("com.osacky.doctor") version "0.10.0"
@@ -18,6 +19,7 @@ repositories {
     mavenLocal()
     mavenCentral()
     gradlePluginPortal()
+    maven { url = uri("https://plugins.gradle.org/m2/") }
 }
 
 // Shared configuration for all subprojects
@@ -26,6 +28,7 @@ subprojects {
     apply(plugin = "jacoco")
     apply(plugin = "idea")
     apply(plugin = "org.jmailen.kotlinter")
+    apply(plugin = "io.gitlab.arturbosch.detekt") // Direct plugin ID needed in subprojects block
     apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 
@@ -106,6 +109,81 @@ subprojects {
     // Check task dependencies
     tasks.named("check") {
         dependsOn(tasks.named("jacocoTestReport"))
+    }
+
+    // Custom task to format all Kotlin source sets at once
+    tasks.register("formatAllKotlin") {
+        group = "formatting"
+        description = "Format all Kotlin source sets (main, test, contractTest)"
+        
+        dependsOn(tasks.named("formatKotlin"))
+        
+        // Add contract test formatting if the task exists
+        val formatContractTestTask = tasks.findByName("formatKotlinContractTest")
+        if (formatContractTestTask != null) {
+            dependsOn(formatContractTestTask)
+        }
+        
+        doLast {
+            println("✅ All Kotlin source sets formatted successfully!")
+        }
+    }
+
+    // Custom task to lint all Kotlin source sets at once
+    tasks.register("lintAllKotlin") {
+        group = "verification"
+        description = "Lint all Kotlin source sets (main, test, contractTest)"
+        
+        dependsOn(tasks.named("lintKotlin"))
+        
+        // Add contract test linting if the task exists
+        val lintContractTestTask = tasks.findByName("lintKotlinContractTest")
+        if (lintContractTestTask != null) {
+            dependsOn(lintContractTestTask)
+        }
+        
+        doLast {
+            println("✅ All Kotlin source sets linted successfully!")
+        }
+    }
+
+    // Custom task to run Detekt on all projects
+    tasks.register("detektAll") {
+        group = "verification"
+        description = "Run Detekt static analysis on all projects"
+        
+        dependsOn(subprojects.map { it.tasks.named("detekt") })
+        
+        doLast {
+            println("✅ Detekt analysis completed for all projects!")
+        }
+    }
+
+    // Custom task to run Detekt with auto-correction
+    tasks.register("detektFix") {
+        group = "verification"
+        description = "Run Detekt with auto-correction on all projects"
+        
+        dependsOn(subprojects.map { it.tasks.named("detektMain") })
+        
+        doLast {
+            println("✅ Detekt auto-correction completed for all projects!")
+        }
+    }
+
+    // Kotlinter configuration
+    kotlinter {
+        // Note: The function count warning might be from the IDE or another static analysis tool
+        // kotlinter primarily focuses on code style, not complexity metrics
+    }
+
+    // Detekt configuration
+    detekt {
+        config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+        buildUponDefaultConfig = true
+        allRules = false
+        autoCorrect = true
+        parallel = true
     }
 
     // Common dependencies for all modules

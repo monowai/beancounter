@@ -17,6 +17,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -66,13 +67,16 @@ internal class PriceControllerTests
         @MockitoBean
         private lateinit var assetService: AssetService
 
+        @MockitoBean
+        private lateinit var assetFinder: AssetFinder
+
         @BeforeEach
         fun setUp() {
             `when`(
                 assetService.find(asset.id)
             ).thenReturn(asset)
             `when`(
-                assetService.findLocally(
+                assetFinder.findLocally(
                     AssetInput(
                         asset.market.code,
                         asset.code
@@ -289,6 +293,7 @@ internal class PriceControllerTests
                 )
 
             `when`(assetService.find(assetCode)).thenReturn(offMarketAsset)
+            `when`(assetFinder.find(offMarketAsset.id)).thenReturn(offMarketAsset)
 
             `when`(
                 marketDataRepo.save(

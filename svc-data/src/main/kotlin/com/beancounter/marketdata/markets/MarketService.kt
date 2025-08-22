@@ -85,6 +85,7 @@ class MarketService
             var market = getMarketMap()[marketCode.uppercase(Locale.getDefault())]
             val errorMessage =
                 String.format(
+                    Locale.US,
                     "Unable to resolve market code %s",
                     marketCode
                 )

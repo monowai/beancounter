@@ -13,12 +13,12 @@ import java.time.LocalDate
  */
 data class ExRatesResponse(
     val base: String,
-    @JsonFormat(
+    @param:JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @param:JsonSerialize(using = LocalDateSerializer::class)
+    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     val date: LocalDate,
     val rates: Map<String, BigDecimal>
 )

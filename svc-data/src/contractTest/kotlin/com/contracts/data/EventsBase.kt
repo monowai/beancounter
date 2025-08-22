@@ -5,6 +5,7 @@ import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.alpha.AlphaGateway
@@ -24,6 +25,9 @@ class EventsBase : ContractVerifierBase() {
     private lateinit var assetService: AssetService
 
     @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
+    @MockitoBean
     private lateinit var alphaGateway: AlphaGateway
 
     @Autowired
@@ -39,6 +43,9 @@ class EventsBase : ContractVerifierBase() {
     fun doIt() {
         Mockito
             .`when`(assetService.find(asset.id))
+            .thenReturn(asset)
+        Mockito
+            .`when`(assetFinder.find(asset.id))
             .thenReturn(asset)
         Mockito
             .`when`(

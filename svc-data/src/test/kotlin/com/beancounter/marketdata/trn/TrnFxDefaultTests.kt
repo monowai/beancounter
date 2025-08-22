@@ -17,6 +17,7 @@ import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketConfig
@@ -47,6 +48,9 @@ class TrnFxDefaultTests {
     private lateinit var assetService: AssetService
 
     @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
+    @MockitoBean
     private lateinit var portfolioService: PortfolioService
 
     @MockitoBean
@@ -72,6 +76,9 @@ class TrnFxDefaultTests {
             .thenReturn(portfolio)
         Mockito
             .`when`(assetService.find(asset.id))
+            .thenReturn(asset)
+        Mockito
+            .`when`(assetFinder.find(asset.id))
             .thenReturn(asset)
         Mockito
             .`when`(currencyService.getCode(USD.code))

@@ -7,6 +7,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.model.TrnType.Companion.creditsCash
 import com.beancounter.common.model.TrnType.Companion.debitsCash
 import com.beancounter.common.utils.MathUtils
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.cash.CASH
 import com.beancounter.marketdata.currency.CurrencyService
@@ -18,7 +19,8 @@ import java.math.BigDecimal
  */
 @Service
 class CashTrnServices(
-    val assetService: AssetService,
+    private val assetFinder: AssetFinder,
+    private val assetService: AssetService,
     val currencyService: CurrencyService
 ) {
     fun getCashImpact(
@@ -65,17 +67,6 @@ class CashTrnServices(
                 )
             )
         }
-        return assetService.find(cashAssetId)
+        return assetFinder.find(cashAssetId)
     }
-
-    @Deprecated(
-        "Pass all args",
-        ReplaceWith("getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)")
-    )
-    fun getCashAsset(trnInput: TrnInput): Asset? =
-        getCashAsset(
-            trnInput.trnType,
-            trnInput.cashAssetId,
-            trnInput.cashCurrency
-        )
 }

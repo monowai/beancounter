@@ -2,10 +2,10 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetFinder
-import com.beancounter.marketdata.assets.AssetService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Service
 class PriceRefresh(
-    private val assetService: AssetService,
     private val assetFinder: AssetFinder,
     private val marketDataService: MarketDataService,
     private val dateUtils: DateUtils
@@ -31,7 +30,7 @@ class PriceRefresh(
             dateUtils.getFormattedDate().toString()
         )
         val assetCount = AtomicInteger()
-        val assets = assetService.findAllAssets()
+        val assets = assetFinder.findAllAssets()
         assets.use { assetStream ->
             for (asset in assetStream) {
                 val priceRequest =
@@ -61,7 +60,7 @@ class PriceRefresh(
             LocalDateTime.now(dateUtils.zoneId),
             assetId
         )
-        val asset = assetService.find(assetId)
+        val asset = getAsset(assetId)
         val priceRequest =
             PriceRequest.of(
                 asset,
@@ -76,5 +75,10 @@ class PriceRefresh(
             "Refreshed asset price for ${asset.name} "
         )
         return response
+    }
+
+    private fun getAsset(assetId: String): Asset {
+        val asset = assetFinder.find(assetId)
+        return asset
     }
 }

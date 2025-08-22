@@ -3,13 +3,14 @@ package com.beancounter.marketdata.trn
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef.Companion.from
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.TradeCalculator
-import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -19,7 +20,7 @@ import java.math.BigDecimal
  */
 @Service
 class TrnAdapter(
-    var assetService: AssetService,
+    private val assetFinder: AssetFinder,
     var currencyService: CurrencyService,
     var tradeCalculator: TradeCalculator,
     val cashTrnServices: CashTrnServices,
@@ -66,7 +67,7 @@ class TrnAdapter(
                 trnInput,
                 tradeAmount
             )
-        val asset = existing?.asset ?: assetService.find(trnInput.assetId!!)
+        val asset = getAsset(trnInput, existing)
         val tradeCurrency =
             if (trnInput.tradeCurrency.isEmpty()) {
                 asset.market.currency
@@ -99,5 +100,13 @@ class TrnAdapter(
             comments = existing?.comments ?: trnInput.comments,
             status = trnInput.status
         )
+    }
+
+    private fun getAsset(
+        trnInput: TrnInput,
+        existing: Trn?
+    ): Asset {
+        val asset = existing?.asset ?: assetFinder.find(trnInput.assetId!!)
+        return asset
     }
 }

@@ -85,6 +85,7 @@ class PortfolioService(
             found.orElseThrow {
                 BusinessException(
                     String.format(
+                        Locale.US,
                         "Could not find a portfolio with ID %s",
                         id
                     )
@@ -95,6 +96,7 @@ class PortfolioService(
         }
         throw BusinessException(
             String.format(
+                Locale.US,
                 "Could not find a portfolio with ID %s",
                 id
             )
@@ -116,6 +118,7 @@ class PortfolioService(
             found.orElseThrow {
                 BusinessException(
                     String.format(
+                        Locale.US,
                         "Could not find a portfolio with code %s owned by %s",
                         code,
                         systemUser.id
@@ -127,6 +130,7 @@ class PortfolioService(
         }
         throw BusinessException(
             String.format(
+                Locale.US,
                 "Could not find a portfolio with code %s",
                 code
             )

@@ -7,7 +7,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
-import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
@@ -27,7 +27,7 @@ class TrnService(
     private val trnAdapter: TrnAdapter,
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
-    private val assetService: AssetService,
+    private val assetFinder: AssetFinder,
     private val systemUserService: SystemUserService
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
@@ -68,8 +68,8 @@ class TrnService(
                 )
             )
         saved.forEach { trn ->
-            trn.asset = assetService.hydrate(trn.asset)
-            trn.cashAsset = trn.cashAsset?.let { assetService.hydrate(it) }
+            trn.asset = assetFinder.hydrateAsset(trn.asset)
+            trn.cashAsset = trn.cashAsset?.let { assetFinder.hydrateAsset(it) }
         }
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
@@ -132,8 +132,8 @@ class TrnService(
             trns
                 .flatMap {
                     listOfNotNull(
-                        assetService.hydrate(it.asset),
-                        it.cashAsset?.let { cashAsset -> assetService.hydrate(cashAsset) }
+                        assetFinder.hydrateAsset(it.asset),
+                        it.cashAsset?.let { cashAsset -> assetFinder.hydrateAsset(cashAsset) }
                     )
                 }.associateBy { it.id }
         log.trace("PostProcess ${assets.size} assets")

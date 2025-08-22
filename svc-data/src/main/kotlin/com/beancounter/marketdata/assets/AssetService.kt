@@ -14,7 +14,6 @@ import jakarta.transaction.Transactional
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import java.util.UUID
-import java.util.stream.Stream
 
 /**
  * Asset CRUD functionality.
@@ -25,6 +24,7 @@ import java.util.stream.Stream
     MarketDataService::class
 )
 @Transactional
+@Suppress("TooManyFunctions") // AssetService has 12 functions, threshold is 11
 class AssetService(
     private val enrichmentFactory: EnrichmentFactory,
     private val assetRepository: AssetRepository,
@@ -62,6 +62,8 @@ class AssetService(
         TODO("Not yet implemented")
     }
 
+    override fun find(assetId: String): Asset = assetFinder.find(assetId)
+
     fun findOrCreate(assetInput: AssetInput): Asset {
         val localAsset = assetFinder.findLocally(assetInput)
         if (localAsset == null) {
@@ -82,14 +84,6 @@ class AssetService(
         return localAsset
     }
 
-    override fun find(assetId: String): Asset = assetFinder.find(assetId)
-
-    fun findLocally(assetInput: AssetInput): Asset =
-        assetFinder.findLocally(assetInput)
-            ?: throw BusinessException("Asset not found for input: ${assetInput.market}:${assetInput.code}")
-
-    fun findAllAssets(): Stream<Asset> = assetRepository.findAllAssets()
-
     fun purge() = assetRepository.deleteAll()
 
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
@@ -98,16 +92,12 @@ class AssetService(
             priceRequest.assets.map { priceAsset ->
                 val asset = assets.find { it.id == priceAsset.assetId }
                 if (asset != null) {
-                    priceAsset.resolvedAsset = hydrate(asset)
+                    priceAsset.resolvedAsset = assetFinder.hydrateAsset(asset)
                 }
                 priceAsset
             }
         return priceRequest.copy(assets = resolvedAssets)
     }
-
-    fun hydrate(asset: Asset): Asset = assetFinder.hydrateAsset(asset)
-
-    fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
 
     private fun create(assetInput: AssetInput): Asset {
         val foundAsset = assetFinder.findLocally(assetInput)

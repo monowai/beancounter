@@ -29,7 +29,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     fun is_BadRequest() {
-        assertThat(geh.handleBadRequest(request))
+        assertThat(geh.handleBadRequest())
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 message,
@@ -42,7 +42,6 @@ class GlobalExceptionHandlerTest {
         val se = SystemException("SE")
         assertThat(
             geh.handleSystemException(
-                request,
                 se
             )
         ).isNotNull
@@ -57,7 +56,6 @@ class GlobalExceptionHandlerTest {
         val be = BusinessException("BE")
         assertThat(
             geh.handleBusinessException(
-                request,
                 be
             )
         ).isNotNull
@@ -71,7 +69,6 @@ class GlobalExceptionHandlerTest {
     fun is_DataIntegrityException() {
         assertThat(
             geh.handleIntegrity(
-                request,
                 BusinessException("DE")
             )
         ).isNotNull

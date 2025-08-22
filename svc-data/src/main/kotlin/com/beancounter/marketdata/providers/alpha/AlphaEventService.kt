@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import jakarta.transaction.Transactional
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AlphaEventService(
+    private val assetFinder: AssetFinder,
     val alphaGateway: AlphaGateway,
     val alphaConfig: AlphaConfig,
     val assetService: AssetService
@@ -29,7 +31,7 @@ class AlphaEventService(
     @Transactional
     @Cacheable("alpha.asset.event")
     fun getEvents(assetId: String): PriceResponse {
-        val asset = assetService.find(assetId)
+        val asset = assetFinder.find(assetId)
         return getEvents(asset)
     }
 

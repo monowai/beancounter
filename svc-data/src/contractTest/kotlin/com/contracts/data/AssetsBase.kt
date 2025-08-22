@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -20,17 +21,26 @@ class AssetsBase : ContractVerifierBase() {
     @MockitoBean
     private lateinit var assetService: AssetService
 
+    @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
     @BeforeEach
     fun mockAssets() {
+        val kmiAsset =
+            objectMapper
+                .readValue(
+                    ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
+                    AssetResponse::class.java
+                ).data
+
         Mockito
             .`when`(assetService.find("KMI"))
-            .thenReturn(
-                objectMapper
-                    .readValue(
-                        ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
-                        AssetResponse::class.java
-                    ).data
-            )
+            .thenReturn(kmiAsset)
+
+        Mockito
+            .`when`(assetFinder.find("KMI"))
+            .thenReturn(kmiAsset)
+
         Mockito
             .`when`(
                 assetService.findOrCreate(
@@ -46,61 +56,74 @@ class AssetsBase : ContractVerifierBase() {
                         AssetResponse::class.java
                     ).data
             )
-        mockAssets(assetService)
+        mockAssets(assetService, assetFinder)
     }
 
-    fun mockAssets(assetService: AssetService) {
+    fun mockAssets(
+        assetService: AssetService,
+        assetFinder: AssetFinder
+    ) {
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/nzd-cash-request.json").file,
             ClassPathResource("contracts/assets/nzd-cash-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/usd-cash-request.json").file,
             ClassPathResource("contracts/assets/usd-cash-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/create-request.json").file,
             ClassPathResource("contracts/assets/create-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/ebay-request.json").file,
             ClassPathResource("contracts/assets/ebay-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/msft-request.json").file,
             ClassPathResource("contracts/assets/msft-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/bhp-asx-request.json").file,
             ClassPathResource("contracts/assets/bhp-asx-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/bhp-lse-request.json").file,
             ClassPathResource("contracts/assets/bhp-lse-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/abbv-request.json").file,
             ClassPathResource("contracts/assets/abbv-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/amp-request.json").file,
             ClassPathResource("contracts/assets/amp-response.json").file,
-            assetService
+            assetService,
+            assetFinder
         )
     }
 
     private fun mockAssetCreateResponses(
         jsonRequest: File,
         jsonResponse: File,
-        assetService: AssetService
+        assetService: AssetService,
+        assetFinder: AssetFinder
     ) {
         val assetRequest =
             objectMapper.readValue(
@@ -123,7 +146,7 @@ class AssetsBase : ContractVerifierBase() {
             Mockito.`when`(assetService.find(theAsset.id)).thenReturn(theAsset)
             Mockito
                 .`when`(
-                    assetService.findLocally(
+                    assetFinder.findLocally(
                         AssetInput(
                             theAsset.market.code.uppercase(Locale.getDefault()),
                             theAsset.code.uppercase(Locale.getDefault())

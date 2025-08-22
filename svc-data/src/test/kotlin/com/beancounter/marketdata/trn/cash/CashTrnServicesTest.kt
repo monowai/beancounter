@@ -9,6 +9,7 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.trn.CashTrnServices
@@ -24,12 +25,10 @@ internal class CashTrnServicesTest {
     private val nzCashAssetId = "${NZD.code} Cash"
     private val usCashAssetId = "${USD.code} Cash"
 
+    private val assetFinder = Mockito.mock(AssetFinder::class.java)
     private val assetService = Mockito.mock(AssetService::class.java)
-    private val cashTrnServices =
-        CashTrnServices(
-            assetService,
-            Mockito.mock(CurrencyService::class.java)
-        )
+    private val currencyService = Mockito.mock(CurrencyService::class.java)
+    private val cashTrnServices = CashTrnServices(assetFinder, assetService, currencyService)
 
     @Test
     fun is_CashBalanceFromTradeCurrency() {
@@ -118,7 +117,7 @@ internal class CashTrnServicesTest {
             )
         assertThat(cashTrnServices.getCashImpact(debitInput)).isEqualTo(
             BigDecimal("-5000.00")
-        ) // Fx of 1.00
+        )
     }
 
     @Test
@@ -135,38 +134,71 @@ internal class CashTrnServicesTest {
             )
         assertThat(cashTrnServices.getCashImpact(creditInput)).isEqualTo(
             BigDecimal("5000.00")
-        ) // Fx of 1.00
+        )
     }
 
     @Test
-    fun isCashIgnoredForSplit() {
-        val splitInput =
+    fun isCashCreditedForDeposit() {
+        val depositInput =
             TrnInput(
                 callerRef = CallerRef(),
-                assetId = MSFT.code,
-                cashAssetId = nzCashAssetId,
-                trnType = TrnType.SPLIT,
+                assetId = nzCashAssetId,
+                trnType = TrnType.DEPOSIT,
                 tradeAmount = BigDecimal(5000),
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE
             )
-        assertThat(cashTrnServices.getCashImpact(splitInput)).isEqualTo(BigDecimal.ZERO) // Fx of 1.00
+        assertThat(cashTrnServices.getCashImpact(depositInput)).isEqualTo(
+            BigDecimal("5000.00")
+        )
+    }
+
+    @Test
+    fun isCashDebitedForWithdrawal() {
+        val withdrawalInput =
+            TrnInput(
+                callerRef = CallerRef(),
+                assetId = nzCashAssetId,
+                trnType = TrnType.WITHDRAWAL,
+                tradeAmount = BigDecimal(5000),
+                price = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
+            )
+        assertThat(cashTrnServices.getCashImpact(withdrawalInput)).isEqualTo(
+            BigDecimal("-5000.00")
+        )
     }
 
     @Test
     fun isCashDebitedForFxBuy() {
-        val fxBuy =
+        val fxBuyInput =
             TrnInput(
                 callerRef = CallerRef(),
-                assetId = nzCashAssetId,
-                cashAssetId = usCashAssetId,
+                assetId = usCashAssetId,
+                cashAssetId = nzCashAssetId,
                 trnType = TrnType.FX_BUY,
                 tradeAmount = BigDecimal(5000),
                 price = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE
             )
-        assertThat(cashTrnServices.getCashImpact(fxBuy)).isEqualTo(
+        assertThat(cashTrnServices.getCashImpact(fxBuyInput)).isEqualTo(
             BigDecimal("-5000.00")
-        ) // Fx of 1.00
+        )
+    }
+
+    @Test
+    fun isCashImpactZeroForBalance() {
+        val balanceInput =
+            TrnInput(
+                callerRef = CallerRef(),
+                assetId = nzCashAssetId,
+                trnType = TrnType.BALANCE,
+                tradeAmount = BigDecimal(5000),
+                price = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE
+            )
+        assertThat(cashTrnServices.getCashImpact(balanceInput)).isEqualTo(
+            BigDecimal.ZERO
+        )
     }
 }

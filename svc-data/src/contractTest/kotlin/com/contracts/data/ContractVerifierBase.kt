@@ -34,7 +34,7 @@ class ContractVerifierBase {
     @LocalServerPort
     lateinit var port: String
 
-    val rateDate = "2019-10-18"
+    val priceDate = "2019-10-18"
 
     @MockitoBean
     internal lateinit var keyGenUtils: KeyGenUtils

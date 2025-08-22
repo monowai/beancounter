@@ -3,6 +3,7 @@ package com.beancounter.marketdata.cash
 import com.beancounter.marketdata.Constants.Companion.EUR
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import org.junit.jupiter.api.Test
@@ -26,6 +27,9 @@ class CashServiceTest {
     @MockitoBean
     private lateinit var assetService: AssetService
 
+    @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
     @Autowired
     private lateinit var cashService: CashService
 
@@ -48,6 +52,6 @@ class CashServiceTest {
     @Test
     fun `find should return assets by market code`() {
         cashService.find()
-        verify(assetService, times(1)).findByMarketCode(CASH)
+        verify(assetFinder, times(1)).findByMarketCode(CASH)
     }
 }

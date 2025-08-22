@@ -7,6 +7,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import kotlinx.coroutines.CoroutineScope
@@ -28,12 +29,13 @@ import java.time.LocalDate
 class MarketDataService(
     private val providerUtils: ProviderUtils,
     private val priceService: PriceService,
-    private val assetService: AssetService
+    private val assetService: AssetService,
+    private val assetFinder: AssetFinder
 ) {
     private val log = LoggerFactory.getLogger(MarketDataService::class.java)
 
     fun backFill(assetId: String) {
-        backFill(assetService.find(assetId))
+        backFill(getAsset(assetId))
     }
 
     fun backFill(asset: Asset) {
@@ -47,13 +49,16 @@ class MarketDataService(
         market: String,
         assetCode: String
     ): PriceResponse {
-        val asset =
-            assetService.findLocally(AssetInput(market, assetCode))
-        return getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
+        val asset = getAssetLocally(market, assetCode)
+        return if (asset != null) {
+            getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
+        } else {
+            PriceResponse(emptyList())
+        }
     }
 
     fun getPriceResponse(assetId: String): PriceResponse {
-        val asset = assetService.find(assetId)
+        val asset = getAsset(assetId)
         return getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
     }
 
@@ -327,4 +332,14 @@ class MarketDataService(
             )
         response?.let { priceService.purge(it) }
     }
+
+    private fun getAsset(assetId: String): Asset {
+        val asset = assetFinder.find(assetId)
+        return asset
+    }
+
+    private fun getAssetLocally(
+        market: String,
+        assetCode: String
+    ): Asset? = assetFinder.findLocally(AssetInput(market, assetCode))
 }

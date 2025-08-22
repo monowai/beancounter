@@ -130,7 +130,7 @@ class FxBase : ContractVerifierBase() {
                         aud,
                         myr
                     ),
-                rateDate to
+                priceDate to
                     EcbMockUtils.getRateMap(
                         eur,
                         sgd,

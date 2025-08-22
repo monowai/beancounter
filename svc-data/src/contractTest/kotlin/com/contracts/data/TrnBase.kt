@@ -12,6 +12,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.registration.SystemUserRepository
@@ -65,6 +66,9 @@ class TrnBase {
     private lateinit var assetService: AssetService
 
     @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
+    @MockitoBean
     private lateinit var portfolioRepository: PortfolioRepository
 
     private var systemUser: SystemUser = ContractHelper.getSystemUser()
@@ -93,7 +97,7 @@ class TrnBase {
             .thenReturn(ContractHelper.getSystemUser())
 
         // This test depends on assets and portfolios being available
-        AssetsBase().mockAssets(assetService)
+        AssetsBase().mockAssets(assetService, assetFinder)
         PortfolioBase.portfolios(
             systemUser,
             keyGenUtils,

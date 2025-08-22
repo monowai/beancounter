@@ -1,0 +1,57 @@
+build:
+  maxIssues: 20
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+  checkExhaustiveness: false
+
+complexity:
+  TooManyFunctions:
+    thresholdInFiles: 50
+    thresholdInClasses: 40
+    thresholdInInterfaces: 25
+    thresholdInObjects: 40
+  LongParameterList:
+    functionThreshold: 10
+    constructorThreshold: 10
+  CyclomaticComplexMethod:
+    threshold: 25
+  LargeClass:
+    threshold: 1000
+  NestedBlockDepth:
+    threshold: 6
+  LongMethod:
+    threshold: 100
+
+style:
+  MagicNumber:
+    ignoreNumbers: ['-1', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '1900']
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: true
+    ignoreLocalVariableDeclaration: true
+    ignoreAnnotation: true
+  MaxLineLength:
+    maxLineLength: 150
+  NewLineAtEndOfFile:
+    active: false
+  UnusedParameter:
+    active: false
+  UnusedPrivateProperty:
+    active: false
+  ReturnCount:
+    active: false
+  DestructuringDeclarationWithTooManyEntries:
+    active: false
+  UtilityClassWithPublicConstructor:
+    active: false
+
+potential-bugs:
+  active: true
+
+performance:
+  active: true
+
+coroutines:
+  active: true

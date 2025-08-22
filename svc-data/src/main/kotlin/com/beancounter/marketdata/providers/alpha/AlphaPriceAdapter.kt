@@ -38,7 +38,7 @@ class AlphaPriceAdapter(
                 )
             }
         } catch (e: IOException) {
-            throw SystemException(e.message)
+            throw SystemException("Failed to process Alpha price data", e)
         }
         return results
     }

@@ -52,7 +52,7 @@ class AlphaEnricher(
                     result
                 )
             } catch (e: JsonProcessingException) {
-                throw SystemException("This shouldn't have happened")
+                throw SystemException("Failed to process Alpha asset search result", e)
             }
         return if (assetResult == null) {
             defaultEnricher.enrich(

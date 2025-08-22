@@ -9,6 +9,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
@@ -46,6 +47,9 @@ internal class PriceControllerRefreshTests
         @MockitoBean
         private lateinit var assetService: AssetService
 
+        @MockitoBean
+        private lateinit var assetFinder: AssetFinder
+
         @Autowired
         private lateinit var marketDataService: MarketDataService
 
@@ -67,6 +71,7 @@ internal class PriceControllerRefreshTests
         @BeforeEach
         fun mockAlphaPriceService() {
             `when`(assetService.find(asset.id)).thenReturn(asset)
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
             `when`(alphaPriceService.isMarketSupported(US))
                 .thenReturn(true)
 

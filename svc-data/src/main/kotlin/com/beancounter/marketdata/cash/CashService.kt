@@ -3,6 +3,7 @@ package com.beancounter.marketdata.cash
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.AssetUtils
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import jakarta.transaction.Transactional
@@ -16,6 +17,7 @@ const val CASH = "CASH"
 @Configuration
 @Transactional
 class CashService(
+    private val assetFinder: AssetFinder,
     val currencyService: CurrencyService,
     val assetService: AssetService
 ) {
@@ -32,5 +34,5 @@ class CashService(
         }
     }
 
-    fun find() = assetService.findByMarketCode(CASH)
+    fun find() = assetFinder.findByMarketCode(CASH)
 }

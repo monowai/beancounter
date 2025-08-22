@@ -4,9 +4,8 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
-import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.providers.MarketDataRepo
@@ -37,6 +36,9 @@ class PricesBase : ContractVerifierBase() {
     private lateinit var assetRepository: AssetRepository
 
     @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
+    @MockitoBean
     private lateinit var marketDataRepo: MarketDataRepo
 
     @MockitoBean
@@ -48,21 +50,90 @@ class PricesBase : ContractVerifierBase() {
     @BeforeEach
     fun initAssets() {
         val ebay =
-            AAPL.copy(
+            Asset(
                 id = "EBAY",
                 code = "EBAY",
-                name = "eBay Inc."
+                name = "eBay Inc.",
+                market =
+                    Market("NASDAQ"),
+                status = com.beancounter.common.model.Status.Active
             )
         `when`(assetRepository.findAllById(listOf(ebay.id)))
             .thenReturn(listOf(ebay))
+        `when`(assetFinder.find(ebay.id))
+            .thenReturn(ebay)
 
-        `when`(assetRepository.findAllById(listOf(AAPL.id)))
-            .thenReturn(listOf(AAPL))
+        val aapl =
+            Asset(
+                id = "AAPL",
+                code = "AAPL",
+                name = "Apple Inc.",
+                market =
+                    Market("NASDAQ"),
+                status = com.beancounter.common.model.Status.Active
+            )
+        `when`(assetRepository.findAllById(listOf(aapl.id)))
+            .thenReturn(listOf(aapl))
+        `when`(assetFinder.find(aapl.id))
+            .thenReturn(aapl)
 
-        `when`(assetRepository.findAllById(listOf(MSFT.id)))
-            .thenReturn(listOf(MSFT))
+        val msft =
+            Asset(
+                id = "MSFT",
+                code = "MSFT",
+                name = "Microsoft Corporation",
+                market =
+                    Market("NASDAQ"),
+                status = com.beancounter.common.model.Status.Active
+            )
+        `when`(assetRepository.findAllById(listOf(msft.id)))
+            .thenReturn(listOf(msft))
+        `when`(assetFinder.find(msft.id))
+            .thenReturn(msft)
 
-        val cashMarket = Market("CASH")
+        Market("CASH")
+        val usdAsset =
+            Asset(
+                "USD",
+                "USD",
+                name = "USD Balance",
+                category = CASH_MARKET.code,
+                priceSymbol = "USD",
+                assetCategory =
+                    com.beancounter.common.model
+                        .AssetCategory("CASH", "Cash"),
+                market =
+                    Market(
+                        code = "CASH",
+                        currencyId = "USD",
+                        timezoneId = "UTC",
+                        timezone = java.util.TimeZone.getTimeZone("UTC"),
+                        priceTime = java.time.LocalTime.of(19, 0),
+                        daysToSubtract = 1,
+                        multiplier = BigDecimal.ONE
+                    )
+            )
+        val nzdAsset =
+            Asset(
+                "NZD",
+                "NZD",
+                name = "NZD Balance",
+                category = CASH_MARKET.code,
+                priceSymbol = "NZD",
+                assetCategory =
+                    com.beancounter.common.model
+                        .AssetCategory("CASH", "Cash"),
+                market =
+                    Market(
+                        code = "CASH",
+                        currencyId = "USD",
+                        timezoneId = "UTC",
+                        timezone = java.util.TimeZone.getTimeZone("UTC"),
+                        priceTime = java.time.LocalTime.of(19, 0),
+                        daysToSubtract = 1,
+                        multiplier = BigDecimal.ONE
+                    )
+            )
         `when`(
             assetRepository.findAllById(
                 listOf(
@@ -73,25 +144,56 @@ class PricesBase : ContractVerifierBase() {
             )
         ).thenReturn(
             listOf(
-                Asset(
-                    "USD",
-                    "USD",
-                    category = CASH_MARKET.code,
-                    priceSymbol = "USD",
-                    name = "USD Balance",
-                    market = cashMarket
-                ),
-                Asset(
-                    "NZD",
-                    "NZD",
-                    category = CASH_MARKET.code,
-                    priceSymbol = "NZD",
-                    name = "NZD Balance",
-                    market = cashMarket
-                ),
-                AAPL
+                usdAsset,
+                nzdAsset,
+                aapl
             )
         )
+        `when`(assetFinder.find("USD")).thenReturn(usdAsset)
+        `when`(assetFinder.find("NZD")).thenReturn(nzdAsset)
+        `when`(assetFinder.find("EBAY")).thenReturn(ebay)
+        `when`(assetFinder.find("AAPL")).thenReturn(aapl)
+        `when`(assetFinder.find("MSFT")).thenReturn(msft)
+
+        // Mock hydrateAsset calls used by AssetService.resolveAssets
+        `when`(assetFinder.hydrateAsset(usdAsset)).thenReturn(usdAsset)
+        `when`(assetFinder.hydrateAsset(nzdAsset)).thenReturn(nzdAsset)
+        `when`(assetFinder.hydrateAsset(ebay)).thenReturn(ebay)
+        `when`(assetFinder.hydrateAsset(aapl)).thenReturn(aapl)
+        `when`(assetFinder.hydrateAsset(msft)).thenReturn(msft)
+
+        // Mock findLocally calls used by MarketDataService
+        `when`(
+            assetFinder.findLocally(
+                com.beancounter.common.input
+                    .AssetInput("NASDAQ", "EBAY")
+            )
+        ).thenReturn(ebay)
+        `when`(
+            assetFinder.findLocally(
+                com.beancounter.common.input
+                    .AssetInput("CASH", "USD")
+            )
+        ).thenReturn(usdAsset)
+        `when`(
+            assetFinder.findLocally(
+                com.beancounter.common.input
+                    .AssetInput("CASH", "NZD")
+            )
+        ).thenReturn(nzdAsset)
+        `when`(
+            assetFinder.findLocally(
+                com.beancounter.common.input
+                    .AssetInput("NASDAQ", "AAPL")
+            )
+        ).thenReturn(aapl)
+        `when`(
+            assetFinder.findLocally(
+                com.beancounter.common.input
+                    .AssetInput("NASDAQ", "MSFT")
+            )
+        ).thenReturn(msft)
+
         mockPrices()
         `when`(dateUtils.isToday(anyString())).thenReturn(true)
         `when`(dateUtils.getDate()).thenReturn(DateUtils().getDate())
@@ -111,7 +213,7 @@ class PricesBase : ContractVerifierBase() {
                 low,
                 close,
                 volume,
-                rateDate
+                priceDate
             )
         )
         mockPriceResponse(
@@ -122,7 +224,7 @@ class PricesBase : ContractVerifierBase() {
                 low,
                 close,
                 volume,
-                rateDate
+                priceDate
             )
         )
         mockPriceResponse(
@@ -133,7 +235,7 @@ class PricesBase : ContractVerifierBase() {
                 low,
                 close,
                 volume,
-                rateDate
+                priceDate
             )
         )
     }

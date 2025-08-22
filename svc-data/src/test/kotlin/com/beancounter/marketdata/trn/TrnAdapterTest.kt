@@ -16,6 +16,7 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketConfig
@@ -53,6 +54,9 @@ internal class TrnAdapterTest {
     private lateinit var assetService: AssetService
 
     @MockitoBean
+    private lateinit var assetFinder: AssetFinder
+
+    @MockitoBean
     private lateinit var currencyService: CurrencyService
 
     @MockitoBean
@@ -64,8 +68,8 @@ internal class TrnAdapterTest {
     @Autowired
     private lateinit var trnAdapter: TrnAdapter
 
-    final val asset = MSFT
-    final val price: BigDecimal = BigDecimal("10.99")
+    val asset = MSFT
+    val price: BigDecimal = BigDecimal("10.99")
     private val theDate = DateUtils().getFormattedDate("2019-10-10")
     private val one = "1"
     val portfolioId = "abc"
@@ -92,6 +96,12 @@ internal class TrnAdapterTest {
         Mockito
             .`when`(assetService.find("USD-X:USER"))
             .thenReturn(usdCashBalance)
+        Mockito
+            .`when`(assetFinder.find("USD-X:USER"))
+            .thenReturn(usdCashBalance)
+        Mockito
+            .`when`(assetFinder.find(asset.id))
+            .thenReturn(MSFT)
         Mockito
             .`when`(currencyService.getCode(USD.code))
             .thenReturn(USD)

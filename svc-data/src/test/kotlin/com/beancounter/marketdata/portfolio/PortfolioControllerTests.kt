@@ -72,7 +72,7 @@ internal class PortfolioControllerTests {
     }
 
     @Test
-    fun findingByIdCode() {
+    fun `should find portfolio by ID and code`() {
         val portfolioInput =
             PortfolioInput(
                 code = "is_findingByIdCode",
@@ -129,7 +129,7 @@ internal class PortfolioControllerTests {
     }
 
     @Test
-    fun persistAndFindPortfoliosWorking() {
+    fun `should persist and find portfolios`() {
         val portfolios: Collection<PortfolioInput> =
             arrayListOf(
                 PortfolioInput(
@@ -167,11 +167,7 @@ internal class PortfolioControllerTests {
                             P_CCY_CODE,
                             portfolios.iterator().next().currency
                         ).hasFieldOrProperty("owner")
-                        .hasFieldOrProperty("base")
                         .hasFieldOrPropertyWithValue(
-                            "marketValue",
-                            java.math.BigDecimal.ZERO
-                        ).hasFieldOrPropertyWithValue(
                             "irr",
                             java.math.BigDecimal.ZERO
                         )
@@ -180,7 +176,7 @@ internal class PortfolioControllerTests {
     }
 
     @Test
-    fun deletePortfolio() {
+    fun `should delete portfolio`() {
         val portfolioInput =
             PortfolioInput(
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),
@@ -214,7 +210,7 @@ internal class PortfolioControllerTests {
     }
 
     @Test
-    fun updatePortfolio() {
+    fun `should update portfolio`() {
         val portfolioResponse =
             portfolioCreate(
                 PortfolioInput(

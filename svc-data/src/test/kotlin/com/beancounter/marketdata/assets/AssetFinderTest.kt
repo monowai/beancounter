@@ -41,7 +41,7 @@ internal class AssetFinderTest {
     }
 
     @Test
-    fun hydrateEquityWithDefaults() {
+    fun `should hydrate equity with defaults`() {
         val assetInput =
             AssetInput(
                 NYSE.code,
@@ -62,7 +62,7 @@ internal class AssetFinderTest {
     }
 
     @Test
-    fun hydrateMutualFund() {
+    fun `should hydrate mutual fund`() {
         val assetInput =
             AssetInput(
                 NYSE.code,
@@ -83,7 +83,7 @@ internal class AssetFinderTest {
     }
 
     @Test
-    fun hydrateCash() {
+    fun `should hydrate cash`() {
         val assetInput =
             AssetInput(
                 NYSE.code,

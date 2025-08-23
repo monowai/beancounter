@@ -34,7 +34,7 @@ class RegistrationControllerTest {
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Test
-    fun is_RegisterMeWorking() {
+    fun `should register user successfully`() {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(
             mockMvc,
@@ -66,7 +66,7 @@ class RegistrationControllerTest {
     }
 
     @Test
-    fun is_MeWithNoToken() {
+    fun `should return unauthorized when accessing me endpoint without token`() {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(
             mockMvc,
@@ -85,7 +85,7 @@ class RegistrationControllerTest {
     }
 
     @Test
-    fun is_MeUnregistered() {
+    fun `should return forbidden when accessing me endpoint as unregistered user`() {
         val user =
             SystemUser(
                 "is_MeUnregistered",

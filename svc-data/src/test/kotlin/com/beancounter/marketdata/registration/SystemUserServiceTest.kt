@@ -47,7 +47,7 @@ class SystemUserServiceTest {
     lateinit var authUtilService: AuthUtilService
 
     @Test
-    fun registerUserWithNoEmailFails() {
+    fun `should fail to register user with no email`() {
         val auth0User =
             SystemUser(
                 email = "",
@@ -61,7 +61,7 @@ class SystemUserServiceTest {
     }
 
     @Test
-    fun registerAuth0User() {
+    fun `should register Auth0 user successfully`() {
         val auth0User =
             SystemUser(
                 email = "auth0",
@@ -92,7 +92,7 @@ class SystemUserServiceTest {
     }
 
     @Test
-    fun registerGoogleUser() {
+    fun `should register Google user successfully`() {
         val googleUser =
             SystemUser(
                 email = "gmail",
@@ -121,7 +121,7 @@ class SystemUserServiceTest {
     }
 
     @Test
-    fun unauthenticatedUserCanNotRegister() {
+    fun `should not allow unauthenticated user to register`() {
         mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) {
             systemUserService.register()
@@ -129,7 +129,7 @@ class SystemUserServiceTest {
     }
 
     @Test
-    fun auth0AndGoogleId() {
+    fun `should handle Auth0 and Google ID for same user`() {
         authUtilService.authenticate(
             SystemUser(
                 email = USER_EMAIL,
@@ -163,7 +163,7 @@ class SystemUserServiceTest {
     }
 
     @Test
-    fun googleIdAndAuth0() {
+    fun `should handle Google ID and Auth0 for same user`() {
         // Inverse test
         authUtilService.authenticate(
             SystemUser(
@@ -198,7 +198,7 @@ class SystemUserServiceTest {
     }
 
     @Test
-    fun systemAccount() {
+    fun `should handle system account correctly`() {
         val systemUser =
             SystemUser(
                 email = "",

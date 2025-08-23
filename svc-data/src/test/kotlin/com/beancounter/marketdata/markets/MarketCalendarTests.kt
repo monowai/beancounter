@@ -40,7 +40,7 @@ class MarketCalendarTests {
         )
 
     @Test
-    fun nzChristmasOnMondayToFriday() {
+    fun `should handle NZ Christmas on Monday to Friday`() {
         val marketCalendar = MarketCalendar(marketCalendarConfig)
         assertThat(
             marketCalendar.isMarketHoliday(
@@ -73,7 +73,7 @@ class MarketCalendarTests {
 
     @Test
     @Disabled
-    fun nzChristmasOnWeekend() {
+    fun `should handle NZ Christmas on weekend`() {
         val marketCalendar = MarketCalendar(marketCalendarConfig)
         val christmasDay =
             LocalDate.of(

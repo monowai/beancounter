@@ -63,7 +63,7 @@ class EventsBase : ContractVerifierBase() {
     }
 
     @Test
-    fun validateResults() {
+    fun `should validate event results`() {
         val results = alphaEventService.getEvents(asset)
 
         assertThat(results.data)

@@ -22,7 +22,7 @@ import java.math.BigDecimal
 internal class FxRateTests {
     @Test
     @Throws(Exception::class)
-    fun is_FxRateResponseSerializing() {
+    fun `should serialize FX rate response`() {
         val jsonFile = ClassPathResource("$FX_MOCK/ecbEarly.json").file
         val ecbRates = objectMapper.readValue<ExRatesResponse>(jsonFile)
         assertThat(ecbRates)
@@ -32,7 +32,7 @@ internal class FxRateTests {
     }
 
     @Test
-    fun is_RateCalculatorComputing() {
+    fun `should compute rate calculator correctly`() {
         val pairs =
             arrayListOf(
                 USD_USD,

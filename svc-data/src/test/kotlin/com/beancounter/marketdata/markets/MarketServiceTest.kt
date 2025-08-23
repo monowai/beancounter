@@ -54,7 +54,7 @@ class MarketServiceTest {
     }
 
     @Test
-    fun is_FoundForAlias() {
+    fun `should find market for alias`() {
         val nyse = marketService.getMarket(Constants.NYSE.code)
         val nzx = marketService.getMarket(Constants.NZX.code)
         val asx = marketService.getMarket(Constants.ASX.code)
@@ -72,7 +72,7 @@ class MarketServiceTest {
     }
 
     @Test
-    fun does_MockMarketConfigurationExist() {
+    fun `should have mock market configuration`() {
         val market = marketService.getMarket(CashProviderService.ID)
         assertThat(market)
             .isNotNull
@@ -87,7 +87,7 @@ class MarketServiceTest {
     }
 
     @Test
-    fun is_IgnoreAliasLookup() {
+    fun `should ignore alias lookup when requested`() {
         // Alias exists, but no PK with this code
         assertThrows(BusinessException::class.java) {
             marketService.getMarket(
@@ -98,7 +98,7 @@ class MarketServiceTest {
     }
 
     @Test
-    fun is_AliasForMarketStackAndNzxResolving() {
+    fun `should resolve alias for MarketStack and NZX`() {
         val market = marketService.getMarket(Constants.NZX.code)
         assertThat(market)
             .isNotNull
@@ -111,14 +111,14 @@ class MarketServiceTest {
     }
 
     @Test
-    fun does_MarketDataAliasNasdaqResolveToNull() {
+    fun `should resolve MarketStack alias NASDAQ to null`() {
         val market = marketService.getMarket(Constants.NASDAQ.code)
         assertThat(market).isNotNull.hasFieldOrProperty("aliases")
         assertThat(market.getAlias(ID)).isBlank
     }
 
     @Test
-    fun is_IllegalArgumentsHandled() {
+    fun `should handle illegal arguments`() {
         assertThrows(BusinessException::class.java) {
             marketService.getMarket(
                 null,
@@ -128,7 +128,7 @@ class MarketServiceTest {
     }
 
     @Test
-    fun is_CashMarketConfigured() {
+    fun `should have cash market configured`() {
         // Pseudo market for cash Assets.
         val market = marketService.getMarket(CASH_MARKET.code)
         assertThat(market).isNotNull

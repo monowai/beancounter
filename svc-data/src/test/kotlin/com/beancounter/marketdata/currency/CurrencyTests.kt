@@ -24,7 +24,7 @@ internal class CurrencyTests
         private lateinit var jwtDecoder: JwtDecoder
 
         @Test
-        fun is_CurrencyDataLoading() {
+        fun `should load currency data`() {
             assertThat(currencyService.getCode(USD.code))
                 .isNotNull
             assertThat(currencyService.currencyConfig.baseCurrency)

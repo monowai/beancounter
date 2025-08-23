@@ -61,7 +61,7 @@ internal class FxFullStackTest {
     private val date = "2019-08-27"
 
     @Test
-    fun fxResponseObjectReturned() {
+    fun `should return FX response object with all currency pairs`() {
         mockProviderRates() // Assuming this sets up necessary mock responses for rate requests
 
         val fxRequest =
@@ -136,7 +136,7 @@ internal class FxFullStackTest {
     }
 
     @Test
-    fun is_NullDateReturningCurrent() {
+    fun `should return current date when null date is provided`() {
         val fxRequest = FxRequest(pairs = mutableSetOf(nzdUsd))
         `when`(
             fxGateway.getRatesForSymbols(
@@ -199,7 +199,7 @@ internal class FxFullStackTest {
         .andReturn()
 
     @Test
-    fun ratesRetrieved() {
+    fun `should retrieve rates successfully`() {
         val testDate = "2019-07-26"
         `when`(
             fxGateway.getRatesForSymbols(
@@ -250,14 +250,14 @@ internal class FxFullStackTest {
     }
 
     @Test
-    fun earliestRateDateValid() {
+    fun `should validate earliest rate date`() {
         val ecbDate = EcbDate(dateUtils)
         assertThat(ecbDate.getValidDate("1990-01-01"))
             .isEqualTo(EcbDate.EARLIEST)
     }
 
     @Test
-    fun invalidCurrenciesThrowError() {
+    fun `should throw error for invalid currencies`() {
         val date = "2019-08-27"
         val from = "ANC"
         val to = "SDF"

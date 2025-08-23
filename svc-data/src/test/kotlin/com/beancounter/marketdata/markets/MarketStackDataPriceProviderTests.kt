@@ -30,7 +30,7 @@ class MarketStackDataPriceProviderTests
         @MockitoBean private val jwtDecoder: JwtDecoder
     ) {
         @Test
-        fun is_DefaultMarketProvidersSet() {
+        fun `should set default market providers`() {
             assertThat(mdFactory.getMarketDataProvider(MarketStackService.ID)).isNotNull
             assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
             assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
@@ -61,7 +61,7 @@ class MarketStackDataPriceProviderTests
         }
 
         @Test
-        fun is_InvalidMarketException() {
+        fun `should throw exception for invalid market`() {
             assertThrows(BusinessException::class.java) { marketService.getMarket("illegal") }
         }
     }

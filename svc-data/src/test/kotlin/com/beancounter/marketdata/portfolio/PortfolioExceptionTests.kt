@@ -59,7 +59,7 @@ class PortfolioExceptionTests {
     }
 
     @Test
-    fun notFoundByCode() {
+    fun `should return not found when portfolio code does not exist`() {
         // Assert not found
         mockMvc
             .perform(
@@ -74,7 +74,7 @@ class PortfolioExceptionTests {
     }
 
     @Test
-    fun notFoundById() {
+    fun `should return not found when portfolio ID is invalid`() {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
@@ -90,7 +90,7 @@ class PortfolioExceptionTests {
 
     @Test
     @Disabled("Logic in this does not look correct. Where is the existing portfolio?")
-    fun uniqueConstraintInPlace() {
+    fun `should enforce unique constraint on portfolio creation`() {
         val portfolioInput =
             PortfolioInput(
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),
@@ -133,7 +133,7 @@ class PortfolioExceptionTests {
         username = "unregisteredUser",
         authorities = [AuthConstants.SCOPE_BC]
     )
-    fun unregisteredUserRejected() {
+    fun `should reject unregistered user from creating portfolios`() {
         val portfolioInput =
             PortfolioInput(
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),

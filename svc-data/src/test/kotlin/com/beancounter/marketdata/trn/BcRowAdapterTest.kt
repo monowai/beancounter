@@ -125,7 +125,7 @@ class BcRowAdapterTest {
     }
 
     @Test
-    fun trimmedCsvInputValues() {
+    fun `should handle trimmed CSV input values`() {
         val values =
             listOf(
                 "USX",

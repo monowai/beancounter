@@ -62,7 +62,7 @@ internal class MarketMvcTests {
 
     @Test
     @Throws(Exception::class)
-    fun is_SingleMarketFoundCaseInsensitive() {
+    fun `should find single market case insensitive`() {
         val mvcResult =
             mockMvc
                 .perform(
@@ -93,7 +93,7 @@ internal class MarketMvcTests {
 
     @Test
     @Throws(Exception::class)
-    fun is_SingleMarketBadRequest() {
+    fun `should return bad request for non-existent market`() {
         val result =
             mockMvc
                 .perform(

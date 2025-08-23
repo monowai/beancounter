@@ -1,23 +1,15 @@
 package com.beancounter.position.service
 
-import com.beancounter.auth.TokenService
-import com.beancounter.client.FxService
-import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Currency
-import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
-import com.beancounter.common.utils.DateUtils
-import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.model.ValuationData
-import com.beancounter.position.utils.FxUtils
-import com.beancounter.position.valuation.MarketValue
 import io.sentry.Breadcrumb
 import io.sentry.Sentry
 import io.sentry.SentryLevel
@@ -29,7 +21,6 @@ import org.apache.commons.math3.exception.NoBracketingException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.time.LocalDate
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -37,13 +28,7 @@ import kotlin.coroutines.cancellation.CancellationException
  */
 @Service
 class PositionValuationService(
-    private val marketValue: MarketValue,
-    private val fxUtils: FxUtils,
-    private val priceService: PriceService,
-    private val fxRateService: FxService,
-    private val tokenService: TokenService,
-    private val dateUtils: DateUtils,
-    private val irrCalculator: IrrCalculator,
+    private val config: PositionValuationConfig,
     private val calculationSupport: PositionCalculationSupport
 ) {
     private val logger = LoggerFactory.getLogger(PositionValuationService::class.java)
@@ -138,7 +123,7 @@ class PositionValuationService(
         val tradeTotals = positions.totals[Position.In.TRADE]!!
         for (marketData in priceResponse.data) {
             val position =
-                marketValue.value(
+                config.marketValue.value(
                     positions,
                     marketData,
                     fxResponse.data.rates
@@ -170,109 +155,83 @@ class PositionValuationService(
         val baseTotals = positions.totals[Position.In.BASE]!!
         val refTotals = positions.totals[Position.In.PORTFOLIO]!!
         val tradeTotals = positions.totals[Position.In.TRADE]!!
-        val asAtDate = dateUtils.getDate(positions.asAt)
+        val asAtDate = config.dateUtils.getDate(positions.asAt)
 
+        val totalsGroup = TotalsGroup(tradeTotals, baseTotals, refTotals)
         for (position in positions.positions.values) {
-            processPositionWeightsAndGains(position, positions, baseTotals, refTotals, tradeTotals, asAtDate)
+            val positionContext = PositionContext(position, positions, asAtDate)
+            processPositionWeightsAndGains(positionContext, totalsGroup)
         }
     }
 
     private fun processPositionWeightsAndGains(
-        position: Position,
-        positions: Positions,
-        baseTotals: Totals,
-        refTotals: Totals,
-        tradeTotals: Totals,
-        asAtDate: LocalDate
+        positionContext: PositionContext,
+        totalsGroup: TotalsGroup
     ) {
-        val tradeMoneyValues = calculationSupport.calculateTradeMoneyValues(position, refTotals)
+        val tradeMoneyValues =
+            calculationSupport.calculateTradeMoneyValues(
+                positionContext.position,
+                totalsGroup.refTotals
+            )
         val baseMoneyValues =
-            calculationSupport.calculateBaseMoneyValues(position, baseTotals, positions.portfolio.base)
+            calculationSupport.calculateBaseMoneyValues(
+                positionContext.position,
+                totalsGroup.baseTotals,
+                positionContext.positions.portfolio.base
+            )
         val portfolioMoneyValues =
             calculationSupport.calculatePortfolioMoneyValues(
-                position,
+                positionContext.position,
                 tradeMoneyValues,
-                tradeTotals,
-                positions.portfolio.currency
+                totalsGroup.tradeTotals,
+                positionContext.positions.portfolio.currency
             )
 
-        if (position.asset.market.code != "CASH") {
-            processNonCashPosition(
-                position,
-                positions,
-                tradeTotals,
-                baseTotals,
-                refTotals,
-                tradeMoneyValues,
-                baseMoneyValues,
-                portfolioMoneyValues,
-                asAtDate
-            )
+        val moneyValuesGroup = MoneyValuesGroup(tradeMoneyValues, baseMoneyValues, portfolioMoneyValues)
+
+        if (positionContext.position.asset.market.code != "CASH") {
+            processNonCashPosition(positionContext, totalsGroup, moneyValuesGroup)
         } else {
-            processCashPosition(
-                tradeTotals,
-                baseTotals,
-                refTotals,
-                tradeMoneyValues,
-                baseMoneyValues,
-                portfolioMoneyValues
-            )
+            processCashPosition(totalsGroup, moneyValuesGroup)
         }
     }
 
     private fun processNonCashPosition(
-        position: Position,
-        positions: Positions,
-        tradeTotals: Totals,
-        baseTotals: Totals,
-        refTotals: Totals,
-        tradeMoneyValues: MoneyValues,
-        baseMoneyValues: MoneyValues,
-        portfolioMoneyValues: MoneyValues,
-        asAtDate: LocalDate
+        positionContext: PositionContext,
+        totalsGroup: TotalsGroup,
+        moneyValuesGroup: MoneyValuesGroup
     ) {
-        val roi = calculationSupport.calculateRoi(tradeMoneyValues)
-        position.periodicCashFlows.add(position, asAtDate)
-        positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
+        val roi = calculationSupport.calculateRoi(moneyValuesGroup.tradeMoneyValues)
+        positionContext.position.periodicCashFlows.add(positionContext.position, positionContext.asAtDate)
+        positionContext.positions.periodicCashFlows.addAll(positionContext.position.periodicCashFlows.cashFlows)
 
         val irr =
             calculateIrrSafely(
-                position.periodicCashFlows,
+                positionContext.position.periodicCashFlows,
                 roi,
-                "Failed to calculate IRR for ${position.asset.code}"
+                "Failed to calculate IRR for ${positionContext.position.asset.code}"
             )
 
-        calculationSupport.updateTotals(tradeTotals, tradeMoneyValues, roi, irr)
-        calculationSupport.updateTotals(baseTotals, baseMoneyValues, roi, irr)
-        calculationSupport.updateTotals(refTotals, portfolioMoneyValues, roi, irr)
+        calculationSupport.updateTotals(totalsGroup.tradeTotals, moneyValuesGroup.tradeMoneyValues, roi, irr)
+        calculationSupport.updateTotals(totalsGroup.baseTotals, moneyValuesGroup.baseMoneyValues, roi, irr)
+        calculationSupport.updateTotals(totalsGroup.refTotals, moneyValuesGroup.portfolioMoneyValues, roi, irr)
     }
 
     private fun processCashPosition(
-        tradeTotals: Totals,
-        baseTotals: Totals,
-        refTotals: Totals,
-        tradeMoneyValues: MoneyValues,
-        baseMoneyValues: MoneyValues,
-        portfolioMoneyValues: MoneyValues
+        totalsGroup: TotalsGroup,
+        moneyValuesGroup: MoneyValuesGroup
     ) {
-        calculationSupport.updateCashTotals(
-            tradeTotals,
-            baseTotals,
-            refTotals,
-            tradeMoneyValues,
-            baseMoneyValues,
-            portfolioMoneyValues
-        )
+        calculationSupport.updateCashTotals(totalsGroup, moneyValuesGroup)
     }
 
     suspend fun getValuationData(
         positions: Positions,
-        token: String = tokenService.bearerToken
+        token: String = config.tokenService.bearerToken
     ): ValuationData =
         withContext(SentryContext()) {
             try {
                 val fxRequest =
-                    fxUtils.buildRequest(
+                    config.fxUtils.buildRequest(
                         positions.portfolio.base,
                         positions
                     )
@@ -283,14 +242,14 @@ class PositionValuationService(
                     )
                 val priceDeferred =
                     async {
-                        priceService.getPrices(
+                        config.priceService.getPrices(
                             priceRequest,
                             token
                         )
                     }
                 val fxDeferred =
                     async {
-                        fxRateService.getRates(
+                        config.fxRateService.getRates(
                             fxRequest,
                             token
                         )
@@ -317,7 +276,7 @@ class PositionValuationService(
         message: String
     ): BigDecimal =
         try {
-            BigDecimal(irrCalculator.calculate(periodicCashFlows, roi = roi))
+            BigDecimal(config.irrCalculator.calculate(periodicCashFlows, roi = roi))
         } catch (e: NoBracketingException) {
             logger.error(
                 "Failed to calculate IRR [$message]",

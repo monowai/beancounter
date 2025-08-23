@@ -24,7 +24,9 @@ Check out the [demo stack](http://github.com/monowai/bc-demo).
 
 #### ⚠️ Important: Circular Dependencies
 
-This project has circular dependencies that affect the build process. **Clean builds (Day 0) will fail** with dependency resolution errors. This is expected behavior.
+This project has circular dependencies that affect the build process. 
+**Clean builds (Day 0) will fail** with dependency resolution errors. 
+This is expected behavior.
 
 #### Smart Build (Recommended for daily development)
 

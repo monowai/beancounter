@@ -158,14 +158,9 @@ class PositionCalculationSupportTest {
             }
 
         // When
-        calculationSupport.updateCashTotals(
-            tradeTotals,
-            baseTotals,
-            refTotals,
-            tradeMoneyValues,
-            baseMoneyValues,
-            portfolioMoneyValues
-        )
+        val totalsGroup = TotalsGroup(tradeTotals, baseTotals, refTotals)
+        val moneyValuesGroup = MoneyValuesGroup(tradeMoneyValues, baseMoneyValues, portfolioMoneyValues)
+        calculationSupport.updateCashTotals(totalsGroup, moneyValuesGroup)
 
         // Then
         assertThat(tradeTotals.cash).isEqualTo(BigDecimal("100.00"))

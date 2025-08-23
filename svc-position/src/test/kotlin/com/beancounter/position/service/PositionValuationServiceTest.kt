@@ -6,6 +6,7 @@ import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.US
@@ -23,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.math.BigDecimal
 
 /**
  * Test suite for PositionValuationService to ensure proper position valuation functionality.
@@ -63,8 +65,8 @@ class PositionValuationServiceTest {
 
     @BeforeEach
     fun setup() {
-        valuationService =
-            PositionValuationService(
+        val config =
+            PositionValuationConfig(
                 MarketValue(
                     Gains(),
                     DateUtils()
@@ -74,9 +76,9 @@ class PositionValuationServiceTest {
                 fxRateService,
                 tokenService,
                 DateUtils(),
-                irrCalculator,
-                calculationSupport
+                irrCalculator
             )
+        valuationService = PositionValuationService(config, calculationSupport)
     }
 
     @Test
@@ -96,6 +98,17 @@ class PositionValuationServiceTest {
             PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
         )
         whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        // Mock calculation support methods to return proper MoneyValues
+        val mockMoneyValues = MoneyValues(portfolio.currency)
+        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(
+            calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any())
+        ).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal.ZERO)
+        whenever(calculationSupport.calculatePortfolioRoi(any())).thenReturn(BigDecimal.ZERO)
+        whenever(irrCalculator.calculate(any(), any(), any())).thenReturn(0.0)
 
         // When
         val result = valuationService.value(positions, assetInputs)

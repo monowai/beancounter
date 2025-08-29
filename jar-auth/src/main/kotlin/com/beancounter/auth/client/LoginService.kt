@@ -7,7 +7,6 @@ import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
@@ -30,7 +29,8 @@ import org.springframework.web.bind.annotation.RequestBody
 class LoginService(
     private val authGateway: AuthGateway,
     val jwtDecoder: JwtDecoder,
-    val authConfig: AuthConfig
+    val authConfig: AuthConfig,
+    private val jwtTokenCacheService: JwtTokenCacheService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -60,25 +60,35 @@ class LoginService(
     )
 
     /**
-     * m2m login using preconfigured secret.
+     * m2m login using preconfigured secret with intelligent caching and automatic refresh.
      *
-     * Returns token if the call is successful.
+     * Returns token if the call is successful. Uses JwtTokenCacheService for:
+     * - Expiry-aware caching
+     * - Automatic token refresh on expiry
+     * - Proactive refresh (48 hours before expiry)
      *
      * @return token
      */
-    @Cacheable("auth.m2m")
     fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
         if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")
         }
-        val login =
-            ClientCredentialsRequest(
-                client_secret = secretIn,
-                client_id = authConfig.clientId,
-                audience = authConfig.audience
-            )
-        log.trace("m2mLogin: ${authConfig.clientId}")
-        return setAuthContext(authGateway.login(login))
+
+        val cacheKey = "m2m:${authConfig.clientId}:$secretIn"
+
+        return jwtTokenCacheService
+            .getValidToken(cacheKey) {
+                val login =
+                    ClientCredentialsRequest(
+                        client_secret = secretIn,
+                        client_id = authConfig.clientId,
+                        audience = authConfig.audience
+                    )
+                log.trace("m2mLogin: ${authConfig.clientId}")
+                authGateway.login(login)
+            }.also { response ->
+                setAuthContext(response)
+            }
     }
 
     fun setAuthContext(response: OpenIdResponse): OpenIdResponse {
@@ -92,6 +102,34 @@ class LoginService(
                 response.token
             )
         )
+
+    /**
+     * Handle JWT expiry by refreshing the token and retrying the operation.
+     * This method should be called when a JwtException (typically expired token) is caught.
+     *
+     * @param secretIn The client secret to use for refresh
+     * @param operation The operation to retry after token refresh
+     * @return The result of the operation
+     */
+    fun <T> handleJwtExpiryAndRetry(
+        secretIn: String = authConfig.clientSecret,
+        operation: () -> T
+    ): T {
+        try {
+            // Clear the cached token to force refresh
+            val cacheKey = "m2m:${authConfig.clientId}:$secretIn"
+            jwtTokenCacheService.clearToken(cacheKey)
+
+            // Get a fresh token
+            loginM2m(secretIn)
+
+            // Retry the operation
+            return operation()
+        } catch (e: Exception) {
+            log.error("Failed to refresh token and retry operation", e)
+            throw e
+        }
+    }
 
     /**
      * Interface to support various oAuth login request types.

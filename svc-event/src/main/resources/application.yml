@@ -74,6 +74,10 @@ auth:
   email: "${auth.audience}/claims/email"
   client-id: "not-set"
   client-secret: "not-set"
+  jwt:
+    # Proactive refresh time in seconds (default: 48 hours = 172800 seconds)
+    # Tokens will be refreshed this many seconds before expiry
+    proactive-refresh-seconds: 172800
 
 spring:
   application:

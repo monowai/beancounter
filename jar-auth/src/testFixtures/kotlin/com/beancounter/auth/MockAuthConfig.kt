@@ -1,5 +1,6 @@
 package com.beancounter.auth
 
+import com.beancounter.auth.client.JwtTokenCacheService
 import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.model.SystemUser
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Service
 )
 @Import(
     AuthConfig::class,
+    JwtTokenCacheService::class,
     LoginService::class,
     TokenService::class,
     TokenUtils::class,

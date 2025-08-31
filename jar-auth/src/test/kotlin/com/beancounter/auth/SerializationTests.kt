@@ -28,11 +28,11 @@ class SerializationTests {
     fun `should serialize machine-to-machine authentication request correctly`() {
         val clientCredentialsRequest =
             LoginService.ClientCredentialsRequest(
-                client_id = "abc",
-                client_secret = secret,
+                clientId = "abc",
+                clientSecret = secret,
                 audience = "my-audience"
             )
-        assertThat(clientCredentialsRequest.grant_type).isNotNull
+        assertThat(clientCredentialsRequest.grantType).isNotNull
         TestHelpers.assertSerializationRoundTrip(clientCredentialsRequest)
 
         val json = objectMapper.writeValueAsString(clientCredentialsRequest)
@@ -57,13 +57,13 @@ class SerializationTests {
     fun `should serialize interactive authentication request correctly`() {
         val passwordRequest =
             LoginService.PasswordRequest(
-                client_id = "cid",
+                clientId = "cid",
                 username = "mike",
                 password = secret,
                 audience = "the-audience",
-                client_secret = "the-secret"
+                clientSecret = "the-secret"
             )
-        assertThat(passwordRequest.grant_type).isNotNull
+        assertThat(passwordRequest.grantType).isNotNull
         TestHelpers.assertSerializationRoundTrip(passwordRequest)
 
         val json = objectMapper.writeValueAsString(passwordRequest)

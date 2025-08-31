@@ -2,7 +2,6 @@ package com.beancounter.auth
 
 import com.beancounter.auth.TokenService.Companion.BEARER
 import com.beancounter.auth.client.ClientPasswordConfig
-import com.beancounter.auth.client.JwtTokenCacheService
 import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
@@ -77,13 +76,11 @@ class LoginServiceTest {
 
     @BeforeEach
     fun mockJwtService() {
-        val jwtTokenCacheService = JwtTokenCacheService(jwtDecoder, 172800L)
         loginService =
             LoginService(
                 authGateway,
                 jwtDecoder,
-                authConfig,
-                jwtTokenCacheService
+                authConfig
             )
     }
 

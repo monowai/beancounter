@@ -43,9 +43,14 @@ class NoAuthSecurityConfigTest {
 
 @RestController
 class SimpleController {
+    companion object {
+        private const val SWAGGER_UI_RESPONSE = "swagger-ui"
+        private const val ANY_OTHER_RESPONSE = "any-other"
+    }
+
     @GetMapping("/api/swagger-ui/index.html")
-    fun swaggerUi(): String = "swagger-ui"
+    fun swaggerUi(): String = SWAGGER_UI_RESPONSE
 
     @GetMapping("/api/any-other-endpoint")
-    fun anyOther(): String = "any-other"
+    fun anyOther(): String = ANY_OTHER_RESPONSE
 }

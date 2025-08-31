@@ -6,12 +6,17 @@ import com.beancounter.auth.AuthConfig
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.context.annotation.Lazy
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,9 +34,11 @@ import org.springframework.web.bind.annotation.RequestBody
 class LoginService(
     private val authGateway: AuthGateway,
     val jwtDecoder: JwtDecoder,
-    val authConfig: AuthConfig,
-    private val jwtTokenCacheService: JwtTokenCacheService
+    val authConfig: AuthConfig
 ) {
+    @Lazy
+    @Autowired
+    private lateinit var self: LoginService
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun login(
@@ -52,43 +59,34 @@ class LoginService(
         user: String,
         password: String
     ) = PasswordRequest(
-        client_id = authConfig.clientId,
+        clientId = authConfig.clientId,
         username = user,
         password = password,
         audience = authConfig.audience,
-        client_secret = authConfig.clientSecret
+        clientSecret = authConfig.clientSecret
     )
 
     /**
-     * m2m login using preconfigured secret with intelligent caching and automatic refresh.
+     * Simple M2M login with Spring @Cacheable.
      *
-     * Returns token if the call is successful. Uses JwtTokenCacheService for:
-     * - Expiry-aware caching
-     * - Automatic token refresh on expiry
-     * - Proactive refresh (48 hours before expiry)
+     * Returns cached token if available, otherwise fetches new token.
+     * Use retryOnJwtExpiry() wrapper for automatic retry on token expiry.
      *
      * @return token
      */
+    @Cacheable("auth.m2m")
     fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
         if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")
         }
-
-        val cacheKey = "m2m:${authConfig.clientId}:$secretIn"
-
-        return jwtTokenCacheService
-            .getValidToken(cacheKey) {
-                val login =
-                    ClientCredentialsRequest(
-                        client_secret = secretIn,
-                        client_id = authConfig.clientId,
-                        audience = authConfig.audience
-                    )
-                log.trace("m2mLogin: ${authConfig.clientId}")
-                authGateway.login(login)
-            }.also { response ->
-                setAuthContext(response)
-            }
+        val login =
+            ClientCredentialsRequest(
+                clientSecret = secretIn,
+                clientId = authConfig.clientId,
+                audience = authConfig.audience
+            )
+        log.trace("m2mLogin: ${authConfig.clientId}")
+        return setAuthContext(authGateway.login(login))
     }
 
     fun setAuthContext(response: OpenIdResponse): OpenIdResponse {
@@ -104,32 +102,30 @@ class LoginService(
         )
 
     /**
-     * Handle JWT expiry by refreshing the token and retrying the operation.
-     * This method should be called when a JwtException (typically expired token) is caught.
-     *
-     * @param secretIn The client secret to use for refresh
-     * @param operation The operation to retry after token refresh
-     * @return The result of the operation
+     * Clear the JWT token cache when tokens expire
      */
-    fun <T> handleJwtExpiryAndRetry(
-        secretIn: String = authConfig.clientSecret,
-        operation: () -> T
-    ): T {
-        try {
-            // Clear the cached token to force refresh
-            val cacheKey = "m2m:${authConfig.clientId}:$secretIn"
-            jwtTokenCacheService.clearToken(cacheKey)
+    @CacheEvict("auth.m2m", allEntries = true)
+    fun clearTokenCache() {
+        log.info("Cleared JWT token cache due to expiry")
+    }
 
-            // Get a fresh token
-            loginM2m(secretIn)
+    /**
+     * Simple retry mechanism for JWT expiry.
+     * Catches JWT exceptions, clears cache, gets fresh token, and retries operation.
+     */
+    fun <T> retryOnJwtExpiry(operation: () -> T): T =
+        try {
+            operation()
+        } catch (jwtException: JwtException) {
+            log.warn("JWT operation failed: ${jwtException.message}, refreshing token and retrying...")
+
+            // Clear cache and get fresh token
+            clearTokenCache()
+            self.loginM2m()
 
             // Retry the operation
-            return operation()
-        } catch (e: Exception) {
-            log.error("Failed to refresh token and retry operation", e)
-            throw e
+            operation()
         }
-    }
 
     /**
      * Interface to support various oAuth login request types.
@@ -141,12 +137,15 @@ class LoginService(
      * need the underscores in the variable names otherwise they're not mapped correctly
      */
     data class PasswordRequest(
-        var client_id: String,
+        @field:com.fasterxml.jackson.annotation.JsonProperty("client_id")
+        var clientId: String,
         var username: String,
         var password: String,
-        var grant_type: String = "password",
+        @field:com.fasterxml.jackson.annotation.JsonProperty("grant_type")
+        var grantType: String = "password",
         var audience: String,
-        var client_secret: String,
+        @field:com.fasterxml.jackson.annotation.JsonProperty("client_secret")
+        var clientSecret: String,
         var scope: String = "openid profile email beancounter beancounter:user beancounter:admin"
     ) : AuthRequest
 
@@ -154,11 +153,14 @@ class LoginService(
      * M2M request configured from environment.
      */
     data class ClientCredentialsRequest(
-        var client_id: String,
-        var client_secret: String = "not-set",
+        @field:com.fasterxml.jackson.annotation.JsonProperty("client_id")
+        var clientId: String,
+        @field:com.fasterxml.jackson.annotation.JsonProperty("client_secret")
+        var clientSecret: String = "not-set",
         var audience: String,
         var scope: String = "beancounter beancounter:system",
-        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value
+        @field:com.fasterxml.jackson.annotation.JsonProperty("grant_type")
+        var grantType: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value
     ) : AuthRequest
 
     /**

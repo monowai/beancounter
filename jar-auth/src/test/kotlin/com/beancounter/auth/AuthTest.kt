@@ -154,15 +154,21 @@ class AuthTest {
 
     @RestController
     internal class SimpleController {
+        companion object {
+            private const val HELLO_RESPONSE = "hello"
+            private const val WHAT_RESPONSE = "no one can call this"
+            private const val SWAGGER_UI_RESPONSE = "swagger-ui"
+        }
+
         @GetMapping(HELLO)
         @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_USER}')")
-        fun sayHello(): String = "hello"
+        fun sayHello(): String = HELLO_RESPONSE
 
         @GetMapping(WHAT)
         @PreAuthorize("hasAuthority('${AuthConstants.ADMIN}')")
-        fun sayWhat(): String = "no one can call this"
+        fun sayWhat(): String = WHAT_RESPONSE
 
         @GetMapping("/api/swagger-ui/index.html")
-        fun swaggerUi(): String = "swagger-ui"
+        fun swaggerUi(): String = SWAGGER_UI_RESPONSE
     }
 }

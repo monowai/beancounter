@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Import
 @EnableFeignClients(basePackages = ["com.beancounter.auth.client"])
 @Import(
     AuthConfig::class,
-    JwtTokenCacheService::class,
     LoginService::class
 )
 @Configuration

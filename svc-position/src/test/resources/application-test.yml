@@ -6,3 +6,8 @@ kafka:
 
 marketdata:
   url: http://localhost:${stubrunner.port:0}
+
+logging:
+  level:
+    com.beancounter: debug
+    org.springframework.ai: debug

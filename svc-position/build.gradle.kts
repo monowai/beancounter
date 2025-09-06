@@ -24,6 +24,7 @@ publishing {
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
+    implementation(platform(libs.spring.ai.bom))
     implementation(platform(libs.otel.bom))
     implementation(project(":jar-common"))
     implementation(project(":jar-client"))
@@ -50,6 +51,7 @@ dependencies {
     implementation(libs.resilience4j)
     implementation(libs.spring.kafka)
     implementation("org.apache.commons:commons-math3:3.6.1")
+    implementation(libs.spring.ai.starter.mcp.server.webmvc)
     
     compileOnly(libs.spring.boot.configuration.processor)
     contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")

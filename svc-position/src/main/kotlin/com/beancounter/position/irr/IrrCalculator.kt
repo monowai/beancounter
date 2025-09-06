@@ -18,7 +18,7 @@ import kotlin.math.pow
  */
 @Service
 class IrrCalculator(
-    @Value("\${beancounter.irr:225}") private val minHoldingDays: Int = 225
+    @param:Value($$"${beancounter.irr:225}") private val minHoldingDays: Int = 225
 ) {
     private val solver: UnivariateSolver = BrentSolver()
     private val log = LoggerFactory.getLogger(IrrCalculator::class.java)
@@ -105,7 +105,7 @@ class IrrCalculator(
     ) : UnivariateFunction {
         override fun value(rate: Double): Double =
             periodicCashFlows.cashFlows.sumOf {
-                it.amount /
+                return@sumOf it.amount /
                     (1 + rate).pow(
                         ChronoUnit.DAYS.between(
                             startDate,

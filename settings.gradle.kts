@@ -8,6 +8,7 @@ pluginManagement {
         id("io.gitlab.arturbosch.detekt") version "1.23.5"
     }
 }
+
 rootProject.name = "beancounter"
 
 // Define projects in dependency order (this helps with build order)

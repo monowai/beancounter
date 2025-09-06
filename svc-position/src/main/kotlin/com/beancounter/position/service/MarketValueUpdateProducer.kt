@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 @Service
 class MarketValueUpdateProducer(
     private val kafkaTemplate: KafkaTemplate<String, Portfolio>,
-    @Value("\${beancounter.topics.pos.mv:bc-pos-mv-dev}") val topicPosMvName: String
+    @param:Value($$"${beancounter.topics.pos.mv:bc-pos-mv-dev}") val topicPosMvName: String
 ) {
     fun sendMessage(payload: Portfolio) {
         kafkaTemplate.send(

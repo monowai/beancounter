@@ -11,6 +11,8 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants
 import com.beancounter.position.PositionBoot
+import com.beancounter.position.mcp.PositionMcpController
+import com.beancounter.position.mcp.PositionMcpServer
 import com.beancounter.position.valuation.Valuation
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
@@ -45,6 +47,12 @@ class ContractVerifierBase {
 
     @MockitoBean
     internal lateinit var tokenService: TokenService
+
+    @MockitoBean
+    internal lateinit var positionMcpController: PositionMcpController
+
+    @MockitoBean
+    lateinit var positionMcpServer: PositionMcpServer
 
     @LocalServerPort
     lateinit var port: String

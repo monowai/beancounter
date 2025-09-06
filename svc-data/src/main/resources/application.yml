@@ -130,6 +130,14 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: bc-data
+  ai:
+    mcp:
+      server:
+        name: beancounter-data
+        version: 1.0.0
+        type: SYNC
+        stdio: false
+        sse-message-endpoint: /mcp/message
 
 resilience4j:
   ratelimiter:
@@ -311,3 +319,4 @@ beancounter:
       offm:
         batchSize: 1
         markets: OFFM
+

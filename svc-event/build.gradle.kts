@@ -12,6 +12,7 @@ version = "0.1.1"
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
+    implementation(platform(libs.spring.ai.bom))
     implementation(project(":jar-common"))
     implementation(project(":jar-auth"))
     implementation(project(":jar-client"))
@@ -39,6 +40,7 @@ dependencies {
     implementation("com.h2database:h2")
     implementation(libs.postgresql)
     implementation(libs.spring.kafka)
+    implementation(libs.spring.ai.starter.mcp.server.webmvc)
     
     compileOnly(libs.spring.boot.configuration.processor)
     

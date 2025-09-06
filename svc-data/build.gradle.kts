@@ -24,6 +24,7 @@ publishing {
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
+    implementation(platform(libs.spring.ai.bom))
     implementation(platform(libs.otel.bom))
     implementation(project(":jar-common"))
     implementation(project(":jar-auth"))
@@ -54,6 +55,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.spring.kafka)
     implementation("com.opencsv:opencsv:5.11.1")
+    implementation(libs.spring.ai.starter.mcp.server.webmvc)
     
     compileOnly(libs.spring.boot.configuration.processor)
     contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")

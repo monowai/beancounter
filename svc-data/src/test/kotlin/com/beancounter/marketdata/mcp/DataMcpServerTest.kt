@@ -11,6 +11,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateService
@@ -93,7 +94,8 @@ class DataMcpServerTest {
                 trnService,
                 fxRateService,
                 marketService,
-                currencyService
+                currencyService,
+                DateUtils()
             )
     }
 

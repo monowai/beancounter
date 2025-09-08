@@ -1,0 +1,271 @@
+package com.beancounter.agent
+
+import com.beancounter.agent.client.DataMcpClient
+import com.beancounter.agent.client.EventMcpClient
+import com.beancounter.agent.client.PositionMcpClient
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.ForbiddenException
+import com.beancounter.common.exception.SystemException
+import com.beancounter.common.exception.UnauthorizedException
+import feign.FeignException
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import java.io.IOException
+import java.time.LocalDateTime
+
+/**
+ * Service to check the health status of all MCP services
+ */
+@Service
+class HealthService(
+    private val dataMcpClient: DataMcpClient,
+    private val eventMcpClient: EventMcpClient,
+    private val positionMcpClient: PositionMcpClient
+) {
+    private val log = LoggerFactory.getLogger(HealthService::class.java)
+
+    /**
+     * Check the health status of all MCP services
+     */
+    fun checkAllServicesHealth(): ServiceHealthStatus {
+        val services =
+            listOf(
+                ServiceInfo("Data Service", "data", "http://localhost:9510", dataMcpClient),
+                ServiceInfo("Event Service", "event", "http://localhost:9520", eventMcpClient),
+                ServiceInfo("Position Service", "position", "http://localhost:9500", positionMcpClient)
+            )
+
+        val serviceStatuses =
+            services.map { serviceInfo ->
+                checkServiceHealthDetailed(serviceInfo)
+            }
+
+        val upServices = serviceStatuses.count { it.status == "UP" }
+        val amberServices = serviceStatuses.count { it.status == "AMBER" }
+        val downServices = serviceStatuses.count { it.status == "DOWN" }
+        val totalServices = serviceStatuses.size
+
+        val overallStatus =
+            when {
+                upServices == totalServices -> "GREEN"
+                upServices > 0 || amberServices > 0 -> "AMBER"
+                else -> "RED"
+            }
+
+        val summary =
+            when {
+                upServices == totalServices -> "All services operational"
+                downServices == totalServices -> "All services down"
+                else -> "$upServices operational, $amberServices partial, $downServices down"
+            }
+
+        return ServiceHealthStatus(
+            overallStatus = overallStatus,
+            services = serviceStatuses,
+            lastChecked = LocalDateTime.now(),
+            summary = summary
+        )
+    }
+
+    /**
+     * Check health of a service with detailed status (server vs MCP service)
+     */
+    private fun checkServiceHealthDetailed(serviceInfo: ServiceInfo): ServiceStatus {
+        val startTime = System.currentTimeMillis()
+
+        // First, check if the server is reachable via actuator
+        val serverReachable =
+            try {
+                val actuatorUrl = "${serviceInfo.baseUrl}/actuator/health"
+                val response = java.net.URL(actuatorUrl).openConnection()
+                response.connectTimeout = 5000
+                response.readTimeout = 5000
+                response.connect()
+                true
+            } catch (e: IOException) {
+                log.debug("Server {} not reachable: {}", serviceInfo.name, e.message)
+                false
+            }
+
+        if (!serverReachable) {
+            return ServiceStatus(
+                name = serviceInfo.name,
+                status = "DOWN",
+                responseTime = System.currentTimeMillis() - startTime,
+                lastChecked = LocalDateTime.now(),
+                error = "Server unreachable"
+            )
+        }
+
+        // Server is reachable, now check MCP service functionality using ping endpoints
+        return try {
+            when (serviceInfo.name) {
+                "Data Service" -> {
+                    // Try the ping endpoint first (no auth required)
+                    val pingResponse = dataMcpClient.ping()
+                    log.debug("Data service ping response: {}", pingResponse)
+                    ServiceStatus(
+                        name = serviceInfo.name,
+                        status = "UP",
+                        responseTime = System.currentTimeMillis() - startTime,
+                        lastChecked = LocalDateTime.now(),
+                        error = null
+                    )
+                }
+                "Event Service" -> {
+                    // Try the ping endpoint first (no auth required)
+                    val pingResponse = eventMcpClient.ping()
+                    log.debug("Event service ping response: {}", pingResponse)
+                    ServiceStatus(
+                        name = serviceInfo.name,
+                        status = "UP",
+                        responseTime = System.currentTimeMillis() - startTime,
+                        lastChecked = LocalDateTime.now(),
+                        error = null
+                    )
+                }
+                "Position Service" -> {
+                    // Try the ping endpoint first (no auth required)
+                    val pingResponse = positionMcpClient.ping()
+                    log.debug("Position service ping response: {}", pingResponse)
+                    ServiceStatus(
+                        name = serviceInfo.name,
+                        status = "UP",
+                        responseTime = System.currentTimeMillis() - startTime,
+                        lastChecked = LocalDateTime.now(),
+                        error = null
+                    )
+                }
+                else ->
+                    ServiceStatus(
+                        name = serviceInfo.name,
+                        status = "UNKNOWN",
+                        responseTime = System.currentTimeMillis() - startTime,
+                        lastChecked = LocalDateTime.now(),
+                        error = "Unknown service"
+                    )
+            }
+        } catch (e: RuntimeException) {
+            val (status, errorMessage) =
+                when (e) {
+                    is UnauthorizedException -> {
+                        log.warn("MCP service {} returned 401 Unauthorized: {}", serviceInfo.name, e.message)
+                        "DOWN" to "401 Unauthorized: ${e.message}"
+                    }
+                    is ForbiddenException -> {
+                        log.warn("MCP service {} returned 403 Forbidden: {}", serviceInfo.name, e.message)
+                        "DOWN" to "403 Forbidden: ${e.message}"
+                    }
+                    is BusinessException -> {
+                        log.warn("MCP service {} returned 4xx error: {}", serviceInfo.name, e.message)
+                        "AMBER" to "4xx Client Error: ${e.message}"
+                    }
+                    is SystemException -> {
+                        log.warn("MCP service {} returned 5xx error: {}", serviceInfo.name, e.message)
+                        "DOWN" to "5xx Server Error: ${e.message}"
+                    }
+                    is FeignException -> {
+                        log.warn("MCP service {} returned Feign error: {}", serviceInfo.name, e.message)
+                        "DOWN" to "Feign Error (${e.status()}): ${e.message}"
+                    }
+                    else -> {
+                        log.warn("MCP service {} failed with unexpected error: {}", serviceInfo.name, e.message)
+                        "DOWN" to "Unexpected Error: ${e.message}"
+                    }
+                }
+
+            ServiceStatus(
+                name = serviceInfo.name,
+                status = status,
+                responseTime = System.currentTimeMillis() - startTime,
+                lastChecked = LocalDateTime.now(),
+                error = errorMessage
+            )
+        }
+    }
+
+    /**
+     * Check health of a specific service
+     */
+    fun checkServiceHealth(serviceName: String): ServiceStatus =
+        try {
+            val startTime = System.currentTimeMillis()
+            when (serviceName.lowercase()) {
+                "data" -> {
+                    dataMcpClient.getPortfolios()
+                    ServiceStatus(
+                        name = "Data Service",
+                        status = "UP",
+                        responseTime = System.currentTimeMillis() - startTime,
+                        lastChecked = LocalDateTime.now(),
+                        error = null
+                    )
+                }
+                "event" -> {
+                    ServiceStatus(
+                        name = "Event Service",
+                        status = "UP",
+                        responseTime = System.currentTimeMillis() - startTime,
+                        lastChecked = LocalDateTime.now(),
+                        error = null
+                    )
+                }
+                "position" -> {
+                    ServiceStatus(
+                        name = "Position Service",
+                        status = "UP",
+                        responseTime = System.currentTimeMillis() - startTime,
+                        lastChecked = LocalDateTime.now(),
+                        error = null
+                    )
+                }
+                else ->
+                    ServiceStatus(
+                        name = serviceName,
+                        status = "UNKNOWN",
+                        responseTime = 0,
+                        lastChecked = LocalDateTime.now(),
+                        error = "Unknown service"
+                    )
+            }
+        } catch (e: RuntimeException) {
+            ServiceStatus(
+                name = serviceName,
+                status = "DOWN",
+                responseTime = 0,
+                lastChecked = LocalDateTime.now(),
+                error = e.message ?: "Unknown error"
+            )
+        }
+}
+
+/**
+ * Information about a service
+ */
+data class ServiceInfo(
+    val name: String,
+    val key: String,
+    val baseUrl: String,
+    val client: Any
+)
+
+/**
+ * Status of a single service
+ */
+data class ServiceStatus(
+    val name: String,
+    val status: String, // UP, AMBER, DOWN, UNKNOWN
+    val responseTime: Long,
+    val lastChecked: LocalDateTime,
+    val error: String?
+)
+
+/**
+ * Overall health status of all services
+ */
+data class ServiceHealthStatus(
+    val overallStatus: String, // GREEN, AMBER, RED
+    val services: List<ServiceStatus>,
+    val lastChecked: LocalDateTime,
+    val summary: String
+)

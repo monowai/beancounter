@@ -1,0 +1,153 @@
+server:
+  port: 9530
+  servlet:
+    context-path: '/api'
+  shutdown: graceful
+
+sentry:
+  enabled: false
+  environment: local
+  traces-sample-rate: 1
+  debug: false
+
+marketdata:
+  url: "http://localhost:9510"
+event:
+  url: "http://localhost:9520"
+position:
+  url: "http://localhost:9500"
+
+springdoc:
+  use-management-port: true
+
+management:
+  server:
+    port: 9531
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure.include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessState:
+      enabled: true
+  info:
+    git:
+      mode: SIMPLE
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
+  level:
+    root: debug
+    javax: error
+    sun: error
+    netflix: error
+    jdk: error
+
+    io:
+      github:
+        resilience4j: error
+    feign: error
+    com:
+      netfix: error
+      beancounter: debug
+      zaxxer: error
+    org:
+      springframework: error
+      hibernate: error
+      apache: error
+      postgres: error
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      failureRateThreshold: 3
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 3
+      slidingWindowType: TIME_BASED
+      waitDurationInOpenState: 5s
+      registerHealthIndicator: true
+      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+
+resilience4j.retry:
+  configs:
+    default:
+      maxRetryAttempts: 3
+      waitDuration: 20s
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+        - feign.RetryableException
+      ignoreExceptions:
+        - com.beancounter.common.exception.BusinessException
+    instances:
+      bcData:
+        baseConfig: default
+        maxRetryAttempts: 3
+      bcEvent:
+        baseConfig: default
+        maxRetryAttempts: 3
+      bcPosition:
+        baseConfig: default
+        maxRetryAttempts: 3
+
+spring:
+  application:
+    name: bc-agent
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${beancounter.auth.uri}
+          audience: ${beancounter.auth.audience}
+
+# OpenFeign Configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: basic
+
+# Service URLs for MCP communication
+mcp:
+  services:
+    data:
+      url: "http://localhost:9510"
+    event:
+      url: "http://localhost:9520"
+    position:
+      url: "http://localhost:9500"
+
+# Agent Configuration
+agent:
+  llm:
+    provider: "simple" # simple, openai, anthropic, etc.
+    timeout: 30000
+    max-retries: 3
+  mcp:
+    timeout: 10000
+    max-retries: 3
+    circuit-breaker:
+      enabled: true
+      failure-threshold: 5
+      recovery-timeout: 30000
+
+# Security Configuration
+auth:
+  web: true  # Enabled to properly forward JWT tokens to MCP services
+
+beancounter:
+  auth:
+    uri: "${AUTH0_DOMAIN:https://your-domain.auth0.com/}"
+    audience: "${AUTH0_AUDIENCE:your-api-identifier}"
+    enabled: true
+    email: "${AUTH0_EMAIL_CLAIM:https://your-domain.com/email}"

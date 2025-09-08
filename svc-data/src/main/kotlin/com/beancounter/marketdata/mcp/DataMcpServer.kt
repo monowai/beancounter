@@ -8,6 +8,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateService
@@ -33,7 +34,8 @@ class DataMcpServer(
     private val trnService: TrnService,
     private val fxRateService: FxRateService,
     private val marketService: MarketService,
-    private val currencyService: CurrencyService
+    private val currencyService: CurrencyService,
+    private val dateUtils: DateUtils? = null
 ) {
     private val log = LoggerFactory.getLogger(DataMcpServer::class.java)
 
@@ -115,7 +117,7 @@ class DataMcpServer(
         date: String
     ): Map<String, Any> {
         log.info("MCP: Getting market data for asset: {} on date: {}", assetId, date)
-        val priceDate = LocalDate.parse(date)
+        val priceDate = dateUtils?.getDate(date) ?: LocalDate.parse(date)
         val marketData = priceService.getMarketData(assetId, priceDate)
 
         return if (marketData.isPresent) {

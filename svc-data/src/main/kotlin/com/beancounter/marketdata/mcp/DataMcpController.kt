@@ -27,6 +27,21 @@ import org.springframework.web.bind.annotation.RestController
 class DataMcpController(
     private val dataMcpServer: DataMcpServer
 ) {
+    @GetMapping("/ping")
+    @Operation(
+        summary = "Ping endpoint",
+        description = "Simple unauthenticated ping endpoint for health checks and debugging"
+    )
+    fun ping(): Map<String, String> =
+        mapOf(
+            "status" to "ok",
+            "service" to "data-mcp",
+            "timestamp" to
+                java.time.Instant
+                    .now()
+                    .toString()
+        )
+
     @GetMapping("/tools")
     @Operation(
         summary = "Get available MCP tools",

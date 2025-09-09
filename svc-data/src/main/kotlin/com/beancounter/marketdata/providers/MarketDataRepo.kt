@@ -29,4 +29,12 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         @Param("assets") assets: Collection<Asset>,
         @Param("priceDate") priceDate: LocalDate
     ): List<MarketData>
+
+    /**
+     * SAFEGUARD: Count market data records for an asset on a specific date
+     */
+    fun countByAssetIdAndPriceDate(
+        assetId: String,
+        priceDate: LocalDate
+    ): Long
 }

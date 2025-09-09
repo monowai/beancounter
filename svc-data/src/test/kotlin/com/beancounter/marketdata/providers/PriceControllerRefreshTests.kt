@@ -16,6 +16,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -49,6 +50,9 @@ internal class PriceControllerRefreshTests
 
         @MockitoBean
         private lateinit var assetFinder: AssetFinder
+
+        @MockitoBean
+        private lateinit var priceService: PriceService
 
         @Autowired
         private lateinit var marketDataService: MarketDataService
@@ -86,6 +90,12 @@ internal class PriceControllerRefreshTests
                     priceRequest
                 )
             ).thenReturn(testDate)
+
+            // Mock the new getMarketDataCount method to simulate data count increase
+            // First call (before refresh) returns 1, second call (after refresh) returns 2
+            `when`(priceService.getMarketDataCount(any<String>(), any<java.time.LocalDate>()))
+                .thenReturn(1L) // Before refresh
+                .thenReturn(2L) // After refresh
         }
 
         @Test

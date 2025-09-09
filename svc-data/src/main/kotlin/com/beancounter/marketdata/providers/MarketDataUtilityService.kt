@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
+import com.beancounter.common.utils.TestEnvironmentUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -21,9 +22,22 @@ class MarketDataUtilityService(
     private val log = LoggerFactory.getLogger(MarketDataUtilityService::class.java)
 
     /**
-     * Delete all prices. Supports testing.
+     * Delete all prices. Supports testing ONLY!
+     *
+     * CRITICAL: This method should NEVER be called in production!
+     * It will permanently delete ALL market data history.
      */
     fun purge() {
+        // SAFEGUARD: Only allow purge in test environments
+        if (!TestEnvironmentUtils.isTestEnvironment()) {
+            throw IllegalStateException(
+                "CRITICAL ERROR: MarketDataUtilityService.purge() method called in non-test environment! " +
+                    "This would delete ALL market data history. " +
+                    "Current profile: ${System.getProperty("spring.profiles.active")}"
+            )
+        }
+
+        log.warn("PURGE OPERATION: MarketDataUtilityService.purge() called - this should only happen in tests!")
         priceService.purge()
     }
 
@@ -32,7 +46,7 @@ class MarketDataUtilityService(
         priceDate: String
     ) {
         val priceAssets = listOf(PriceAsset(asset))
-        log.trace("Refreshing ${asset.name}: $priceDate")
+
         val providers = providerUtils.splitProviders(priceAssets)
         val priceRequest =
             PriceRequest(
@@ -45,14 +59,15 @@ class MarketDataUtilityService(
                 asset,
                 priceRequest
             )
-        
-        // First, purge the existing data for this asset and date
-        val existingData = getMarketData(asset, priceRequest, marketDate)
-        existingData?.let { priceService.purge(it) }
-        
-        // Then fetch fresh data from the provider
+
+        // Fetch fresh data from the provider and save it (building up history)
         val freshData = getMarketDataFromProvider(asset, priceRequest, marketDate)
-        freshData?.let { priceService.handle(PriceResponse(listOf(it))) }
+        if (freshData != null) {
+            log.info("Saving fresh data for ${asset.name} on $priceDate")
+            priceService.handle(PriceResponse(listOf(freshData)))
+        } else {
+            log.warn("No fresh data retrieved for ${asset.name} on $priceDate")
+        }
     }
 
     fun getMarketDate(
@@ -71,17 +86,6 @@ class MarketDataUtilityService(
         return marketDate
     }
 
-    private fun getMarketData(
-        asset: Asset,
-        priceRequest: PriceRequest,
-        marketDate: LocalDate
-    ) = priceService
-        .getMarketData(
-            asset.id,
-            marketDate,
-            priceRequest.closePrice
-        ).orElse(null)
-    
     private fun getMarketDataFromProvider(
         asset: Asset,
         priceRequest: PriceRequest,
@@ -89,15 +93,16 @@ class MarketDataUtilityService(
     ): MarketData? {
         val providers = providerUtils.splitProviders(listOf(PriceAsset(asset)))
         val provider = providers.keys.iterator().next()
-        
+
         val assetInputs = providerUtils.getInputs(listOf(asset))
-        val freshPriceRequest = PriceRequest(
-            marketDate.toString(),
-            assets = assetInputs,
-            currentMode = priceRequest.currentMode,
-            closePrice = priceRequest.closePrice
-        )
-        
+        val freshPriceRequest =
+            PriceRequest(
+                marketDate.toString(),
+                assets = assetInputs,
+                currentMode = priceRequest.currentMode,
+                closePrice = priceRequest.closePrice
+            )
+
         val marketDataCollection = provider.getMarketData(freshPriceRequest)
         return marketDataCollection.firstOrNull()
     }

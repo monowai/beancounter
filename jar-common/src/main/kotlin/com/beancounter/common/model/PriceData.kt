@@ -76,6 +76,7 @@ data class PriceData(
                 )
 
             if (MathUtils.hasValidRate(rate) &&
+                rate != BigDecimal.ONE &&
                 numberUtils.isSet(result.previousClose) &&
                 numberUtils.isSet(result.close)
             ) {

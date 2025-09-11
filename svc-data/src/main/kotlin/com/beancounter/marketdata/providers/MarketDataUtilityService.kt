@@ -60,13 +60,18 @@ class MarketDataUtilityService(
                 priceRequest
             )
 
-        // Fetch fresh data from the provider and save it (building up history)
+        // Check if data already exists for this date - if so, don't fetch from internet
+        val existingDataCount = priceService.getMarketDataCount(asset.id, marketDate)
+
+        if (existingDataCount > 0) {
+            // Data already exists for this date - maintain price history, don't overwrite
+            return
+        }
+
+        // Only fetch fresh data if it doesn't exist (building up history)
         val freshData = getMarketDataFromProvider(asset, priceRequest, marketDate)
         if (freshData != null) {
-            log.info("Saving fresh data for ${asset.name} on $priceDate")
             priceService.handle(PriceResponse(listOf(freshData)))
-        } else {
-            log.warn("No fresh data retrieved for ${asset.name} on $priceDate")
         }
     }
 

@@ -91,11 +91,9 @@ internal class PriceControllerRefreshTests
                 )
             ).thenReturn(testDate)
 
-            // Mock the new getMarketDataCount method to simulate data count increase
-            // First call (before refresh) returns 1, second call (after refresh) returns 2
+            // Mock the getMarketDataCount method - data already exists, so refresh should not fetch new data
             `when`(priceService.getMarketDataCount(any<String>(), any<java.time.LocalDate>()))
-                .thenReturn(1L) // Before refresh
-                .thenReturn(2L) // After refresh
+                .thenReturn(1L) // Data exists, so refresh should return early
         }
 
         @Test
@@ -128,16 +126,8 @@ internal class PriceControllerRefreshTests
             ).isEqualTo(BigDecimal("10.00"))
             // End setup
 
-            // TEST perform refresh. Make sure the price we get is set correctly to 11 and not 10
-            `when`(alphaPriceService.getMarketData(priceRequest = priceRequest))
-                .thenReturn(
-                    listOf(
-                        MarketData(
-                            asset = asset,
-                            close = BigDecimal("11.00")
-                        )
-                    )
-                )
+            // TEST perform refresh. Since data already exists, refresh should not fetch new data
+            // The price should remain 10.00 (existing data), not change to 11.00
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
@@ -154,6 +144,7 @@ internal class PriceControllerRefreshTests
                     MockMvcResultMatchers.status().isOk
                 )
 
+            // Verify that the existing price (10.00) is maintained, not overwritten
             assertThat(
                 marketDataService
                     .getPriceResponse(priceRequest)
@@ -161,6 +152,6 @@ internal class PriceControllerRefreshTests
                     .iterator()
                     .next()
                     .close
-            ).isEqualTo(BigDecimal("11.00"))
+            ).isEqualTo(BigDecimal("10.00"))
         }
     }

@@ -75,8 +75,6 @@ class MarketDataPriceProcessor(
 
         val priceResults =
             byProviders.entries.fold(PriceResults.empty()) { results, (provider, assets) ->
-                log.debug("marketDataProvider: ${provider.getId()}, assets: ${assets.size}")
-
                 val priceDate = getPriceDateForProvider(provider, assets, priceRequest)
                 val existingPrices = getExistingPrices(provider, assets, priceDate)
 

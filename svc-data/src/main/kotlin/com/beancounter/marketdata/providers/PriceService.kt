@@ -89,12 +89,6 @@ class PriceService(
         val createSet =
             priceResponse.data
                 .filter { !cashUtils.isCash(it.asset) && it.close != BigDecimal.ZERO }
-                .filter {
-                    getMarketData(
-                        it.asset.id,
-                        it.priceDate
-                    ).isEmpty
-                }
 
         priceResponse.data
             .filter { !cashUtils.isCash(it.asset) && isCorporateEvent(it) }

@@ -4,7 +4,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.NumberUtils
-import com.beancounter.common.utils.PercentUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -17,12 +16,12 @@ import java.time.LocalDate
  * Representation of market data information pertaining to the price of an asset.
  */
 data class PriceData(
-    @JsonFormat(
+    @param:JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = DateUtils.FORMAT
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @param:JsonSerialize(using = LocalDateSerializer::class)
+    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate = LocalDate.now(),
     var open: BigDecimal = BigDecimal.ZERO,
     var close: BigDecimal = BigDecimal.ZERO,
@@ -80,23 +79,14 @@ data class PriceData(
                 numberUtils.isSet(result.previousClose) &&
                 numberUtils.isSet(result.close)
             ) {
-                // Convert
-                val change =
-                    BigDecimal("1.00")
-                        .subtract(
-                            percentUtils.percent(
-                                result.previousClose,
-                                result.close,
-                                4
-                            )
-                        )
-                result.changePercent = change
-                result.change = result.close.subtract(result.previousClose)
+                // For currency conversion, we need to convert the change amount
+                // but keep the changePercent the same (percentage doesn't change with currency)
+                result.change = multiplyAbs(money = mktData.change, rate = rate)
+                // changePercent remains the same as it's already a percentage
             }
             return result
         }
 
-        private val percentUtils = PercentUtils()
         private val numberUtils = NumberUtils()
     }
 }

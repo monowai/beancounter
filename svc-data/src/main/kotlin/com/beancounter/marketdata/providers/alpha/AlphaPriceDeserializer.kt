@@ -79,20 +79,24 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         val results = mutableListOf<MarketData>()
         if (asset != null) {
             val priceDate = data[F_DATE].toString()
+            val change = get(data[F_CHANGE].toString()) ?: BigDecimal.ZERO
+            val previousClose = get(data[F_PREVIOUS_CLOSE].toString()) ?: BigDecimal.ZERO
+            val changePercent = percentUtils.percent(change, previousClose)
+
             val price =
                 MarketData(
                     asset,
-                    dateUtils.getFormattedDate(priceDate)
-                ).apply {
-                    open = BigDecimal(data[F_OPEN].toString())
-                    high = BigDecimal(data[F_HIGH].toString())
-                    low = BigDecimal(data[F_LOW].toString())
-                    close = BigDecimal(data[F_PRICE].toString())
-                    volume = Integer.decode(data[F_VOLUME].toString())
-                    previousClose = get(data[F_PREVIOUS_CLOSE].toString()) ?: BigDecimal.ZERO
-                    change = get(data[F_CHANGE].toString()) ?: BigDecimal.ZERO
-                    changePercent = percentUtils.percent(change, previousClose)
-                }
+                    "ALPHA",
+                    dateUtils.getFormattedDate(priceDate),
+                    BigDecimal(data[F_OPEN].toString()),
+                    BigDecimal(data[F_PRICE].toString()),
+                    BigDecimal(data[F_LOW].toString()),
+                    BigDecimal(data[F_HIGH].toString()),
+                    previousClose,
+                    change,
+                    changePercent,
+                    Integer.decode(data[F_VOLUME].toString())
+                )
             results.add(price)
         }
         return PriceResponse(results)

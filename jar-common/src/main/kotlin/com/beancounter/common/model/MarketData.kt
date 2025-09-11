@@ -27,12 +27,12 @@ import java.time.LocalDate
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["source", "asset_id", "priceDate"])])
 data class MarketData(
     @ManyToOne var asset: Asset,
-    @JsonFormat(
+    @param:JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = DateUtils.FORMAT
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
+    @param:JsonSerialize(using = LocalDateSerializer::class)
+    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate = LocalDate.now(),
     @Column(
         precision = 15,
@@ -48,7 +48,17 @@ data class MarketData(
         precision = 15,
         scale = 6
     )
-    var previousClose: BigDecimal = BigDecimal.ZERO
+    var previousClose: BigDecimal = BigDecimal.ZERO,
+    @Column(
+        precision = 15,
+        scale = 6
+    )
+    var change: BigDecimal = BigDecimal.ZERO,
+    @Column(
+        precision = 15,
+        scale = 6
+    )
+    var changePercent: BigDecimal = BigDecimal.ZERO
 ) {
     constructor(
         asset: Asset,
@@ -104,17 +114,6 @@ data class MarketData(
     )
     var high: BigDecimal = BigDecimal.ZERO
 
-    @Column(
-        precision = 7,
-        scale = 4
-    )
-    var change: BigDecimal = BigDecimal.ZERO
-
-    @Column(
-        precision = 7,
-        scale = 4
-    )
-    var changePercent: BigDecimal = BigDecimal.ZERO
     var volume: Int = 0
 
     @Column(

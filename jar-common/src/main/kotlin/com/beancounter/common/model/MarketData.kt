@@ -48,6 +48,16 @@ data class MarketData(
         precision = 15,
         scale = 6
     )
+    var low: BigDecimal = BigDecimal.ZERO,
+    @Column(
+        precision = 15,
+        scale = 6
+    )
+    var high: BigDecimal = BigDecimal.ZERO,
+    @Column(
+        precision = 15,
+        scale = 6
+    )
     var previousClose: BigDecimal = BigDecimal.ZERO,
     @Column(
         precision = 15,
@@ -58,75 +68,23 @@ data class MarketData(
         precision = 15,
         scale = 6
     )
-    var changePercent: BigDecimal = BigDecimal.ZERO
+    var changePercent: BigDecimal = BigDecimal.ZERO,
+    var volume: Int = 0,
+    @Column(
+        precision = 7,
+        scale = 4
+    )
+    var dividend: BigDecimal = BigDecimal.ZERO,
+    @Column(
+        precision = 7,
+        scale = 4
+    )
+    var split: BigDecimal = BigDecimal.ONE,
+    var source: String = "ALPHA"
 ) {
-    constructor(
-        asset: Asset,
-        source: String,
-        priceDate: LocalDate = LocalDate.now(),
-        open: BigDecimal = BigDecimal.ZERO,
-        close: BigDecimal = BigDecimal.ZERO,
-        low: BigDecimal = BigDecimal.ZERO,
-        high: BigDecimal = BigDecimal.ZERO,
-        previousClose: BigDecimal = BigDecimal.ZERO,
-        change: BigDecimal = BigDecimal.ZERO,
-        changePercent: BigDecimal = BigDecimal.ZERO,
-        volume: Int = 0,
-        dividend: BigDecimal = BigDecimal.ZERO,
-        split: BigDecimal = BigDecimal.ONE
-    ) : this(
-        asset,
-        priceDate,
-        close,
-        open
-    ) {
-        this.source = source
-        this.priceDate = priceDate
-        this.low = low
-        this.high = high
-        this.previousClose = previousClose
-        this.change = change
-        this.changePercent = changePercent
-        this.volume = volume
-        this.dividend = dividend
-        this.split = split
-    }
-
-    constructor(asset: Asset, priceDate: LocalDate) : this(asset) {
-        this.priceDate = priceDate
-    }
-
     @Id
     @JsonIgnore
     val id: String = KeyGenUtils().id
-
-    var source: String = "ALPHA"
-
-    @Column(
-        precision = 15,
-        scale = 6
-    )
-    var low: BigDecimal = BigDecimal.ZERO
-
-    @Column(
-        precision = 15,
-        scale = 6
-    )
-    var high: BigDecimal = BigDecimal.ZERO
-
-    var volume: Int = 0
-
-    @Column(
-        precision = 7,
-        scale = 4
-    )
-    var dividend: BigDecimal = BigDecimal.ZERO
-
-    @Column(
-        precision = 7,
-        scale = 4
-    )
-    var split: BigDecimal = BigDecimal.ONE
 
     companion object {
         @JvmStatic

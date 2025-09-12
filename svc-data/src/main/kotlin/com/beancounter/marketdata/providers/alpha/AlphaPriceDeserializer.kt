@@ -85,17 +85,17 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
 
             val price =
                 MarketData(
-                    asset,
-                    "ALPHA",
-                    dateUtils.getFormattedDate(priceDate),
-                    BigDecimal(data[F_OPEN].toString()),
-                    BigDecimal(data[F_PRICE].toString()),
-                    BigDecimal(data[F_LOW].toString()),
-                    BigDecimal(data[F_HIGH].toString()),
-                    previousClose,
-                    change,
-                    changePercent,
-                    Integer.decode(data[F_VOLUME].toString())
+                    asset = asset,
+                    priceDate = dateUtils.getFormattedDate(priceDate),
+                    close = BigDecimal(data[F_PRICE].toString()),
+                    open = BigDecimal(data[F_OPEN].toString()),
+                    low = BigDecimal(data[F_LOW].toString()),
+                    high = BigDecimal(data[F_HIGH].toString()),
+                    previousClose = previousClose,
+                    change = change,
+                    changePercent = changePercent,
+                    volume = Integer.decode(data[F_VOLUME].toString()),
+                    source = "ALPHA"
                 )
             results.add(price)
         }
@@ -135,23 +135,21 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
     ): MarketData {
         val price: MarketData?
         try {
-            price = MarketData(asset, Objects.requireNonNull(priceDate)!!)
-            price.low = BigDecimal(data["3. low"].toString())
-            price.high = BigDecimal(data["2. high"].toString())
-            price.open = BigDecimal(data["1. open"].toString())
-            price.close = BigDecimal(data["4. close"].toString())
-            if (data[VOLUME] != null) {
-                price.volume = BigDecimal(data[VOLUME].toString()).intValueExact()
-            }
-            if (data[SPLIT] != null) {
-                price.split = BigDecimal(data[SPLIT].toString())
-            }
-            if (data[DIVI] != null) {
-                price.dividend = BigDecimal(data[DIVI].toString())
-            }
+            price =
+                MarketData(
+                    asset = asset,
+                    priceDate = Objects.requireNonNull(priceDate)!!,
+                    close = BigDecimal(data["4. close"].toString()),
+                    open = BigDecimal(data["1. open"].toString()),
+                    low = BigDecimal(data["3. low"].toString()),
+                    high = BigDecimal(data["2. high"].toString()),
+                    volume = if (data[VOLUME] != null) BigDecimal(data[VOLUME].toString()).intValueExact() else 0,
+                    dividend = if (data[DIVI] != null) BigDecimal(data[DIVI].toString()) else BigDecimal.ZERO,
+                    split = if (data[SPLIT] != null) BigDecimal(data[SPLIT].toString()) else BigDecimal.ONE
+                )
         } catch (_: NumberFormatException) {
             // oops
-            return MarketData(asset, priceDate)
+            return MarketData(asset = asset, priceDate = priceDate)
         }
         return price
     }

@@ -193,8 +193,8 @@ class AlphaPriceAdapter(
         val priceDate = alphaConfig.dateUtils.getFormattedDate(date)
 
         return MarketData(
-            asset!!,
-            priceDate
+            asset = asset!!,
+            priceDate = priceDate
         )
     }
 

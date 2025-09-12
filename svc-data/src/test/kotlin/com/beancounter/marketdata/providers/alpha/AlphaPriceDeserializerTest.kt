@@ -51,9 +51,13 @@ class AlphaPriceDeserializerTest {
         assertEquals(asset.code, marketData.asset.code)
         assertEquals(asset.market, marketData.asset.market)
         assertEquals(BigDecimal("456.6200"), marketData.close)
+        assertEquals(BigDecimal("450.0000"), marketData.open)
+        assertEquals(BigDecimal("445.0000"), marketData.low)
+        assertEquals(BigDecimal("460.0000"), marketData.high)
         assertEquals(BigDecimal("450.5600"), marketData.previousClose)
         assertEquals(BigDecimal("6.0600"), marketData.change)
         assertEquals(BigDecimal("0.013450"), marketData.changePercent) // 1.3450% as decimal
+        assertEquals(1000000, marketData.volume)
         assertEquals("ALPHA", marketData.source)
     }
 
@@ -88,9 +92,14 @@ class AlphaPriceDeserializerTest {
         val marketData = priceResponse.data.first()
 
         assertEquals(BigDecimal("450.0000"), marketData.close)
+        assertEquals(BigDecimal("450.0000"), marketData.open)
+        assertEquals(BigDecimal("450.0000"), marketData.low)
+        assertEquals(BigDecimal("450.0000"), marketData.high)
         assertEquals(BigDecimal("450.0000"), marketData.previousClose)
         assertEquals(BigDecimal("0.0000"), marketData.change)
         assertEquals(BigDecimal.ZERO, marketData.changePercent)
+        assertEquals(1000000, marketData.volume)
+        assertEquals("ALPHA", marketData.source)
     }
 
     @Test
@@ -124,8 +133,13 @@ class AlphaPriceDeserializerTest {
         val marketData = priceResponse.data.first()
 
         assertEquals(BigDecimal("445.0000"), marketData.close)
+        assertEquals(BigDecimal("450.0000"), marketData.open)
+        assertEquals(BigDecimal("440.0000"), marketData.low)
+        assertEquals(BigDecimal("450.0000"), marketData.high)
         assertEquals(BigDecimal("450.0000"), marketData.previousClose)
         assertEquals(BigDecimal("-5.0000"), marketData.change)
         assertEquals(BigDecimal("-0.011111"), marketData.changePercent) // -1.1111% as decimal
+        assertEquals(1000000, marketData.volume)
+        assertEquals("ALPHA", marketData.source)
     }
 }

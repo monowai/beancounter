@@ -27,17 +27,20 @@ class TestPriceData {
 
     @Test
     fun is_PriceDataWithRates() {
-        val marketData = MarketData(asset)
-        marketData.changePercent = BigDecimal("1.01")
-        marketData.previousClose = BigDecimal("1.00")
-        marketData.change = BigDecimal("1.00")
-        marketData.open = BigDecimal("2.00")
-        marketData.close = BigDecimal("2.00")
+        val marketData =
+            MarketData(
+                asset,
+                changePercent = BigDecimal(".01"),
+                previousClose = BigDecimal("1.00"),
+                change = BigDecimal("1.00"),
+                open = BigDecimal("2.00"),
+                close = BigDecimal("2.00")
+            )
 
         val noFx =
             PriceData.of(
                 marketData,
-                BigDecimal("1.0")
+                rate = BigDecimal("1.0")
             )
         assertThat(noFx)
             .hasFieldOrPropertyWithValue(
@@ -76,7 +79,7 @@ class TestPriceData {
                 BigDecimal("2.00")
             ).hasFieldOrPropertyWithValue(
                 P_CHANGE_PERCENT,
-                BigDecimal("0.5000")
+                BigDecimal("0.01")
             )
     }
 

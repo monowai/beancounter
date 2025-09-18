@@ -6,6 +6,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.AUD
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -51,5 +52,25 @@ internal class DividendTest {
             "dividends",
             trn.tradeAmount
         )
+    }
+
+    @Test
+    fun is_LastDividendDateSetOnDividendAccumulation() {
+        val asx = Market("ASX", AUD.code)
+        val asset = getTestAsset(asx, "MO")
+        val dateUtils = DateUtils()
+        val dividendDate = dateUtils.getFormattedDate("2023-06-15")
+
+        val trn =
+            Trn(
+                trnType = TrnType.DIVI,
+                asset = asset,
+                tradeDate = dividendDate
+            )
+        trn.tradeAmount = BigDecimal("12.99")
+
+        val position = accumulator.accumulate(trn, Positions())
+
+        assertThat(position.dateValues.lastDividend).isEqualTo(dividendDate)
     }
 }

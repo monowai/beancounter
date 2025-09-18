@@ -57,6 +57,12 @@ class Accumulator(
             Position.In.TRADE,
             trn.tradeCurrency
         )
+
+        // Set firstTransaction date if not already set
+        if (position.dateValues.firstTransaction == null) {
+            position.dateValues.firstTransaction = trn.tradeDate
+        }
+
         if (trn.trnType !== DIVI) {
             ensureDateSequential(
                 trn,

@@ -11,6 +11,22 @@ import java.time.LocalDate
  * Significant dates for a position.
  */
 class DateValues {
+    /**
+     * The date of the very first transaction ever received for this asset.
+     * Set once and never changes, even if position is sold out and re-entered.
+     */
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd"
+    )
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    var firstTransaction: LocalDate? = null
+
+    /**
+     * The date the position went from nothing to something.
+     * Set when the first transaction creates a position.
+     */
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
@@ -19,6 +35,10 @@ class DateValues {
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var opened: LocalDate? = null
 
+    /**
+     * The date of the most recent transaction for this position.
+     * Updated on every transaction accumulation.
+     */
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
@@ -27,6 +47,10 @@ class DateValues {
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var last: LocalDate? = null
 
+    /**
+     * The date the position was closed.
+     * Not automatically set by the system - requires manual setting.
+     */
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
@@ -35,6 +59,10 @@ class DateValues {
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var closed: LocalDate? = null
 
+    /**
+     * The date of the most recent dividend payment for this position.
+     * Set automatically when dividend transactions are accumulated.
+     */
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"

@@ -4,6 +4,7 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.PortfolioUtils
 import com.fasterxml.jackson.annotation.JsonIgnore
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.EnumMap
 import java.util.TreeMap
@@ -27,10 +28,14 @@ import java.util.TreeMap
  */
 class Positions(
     val portfolio: Portfolio = PortfolioUtils.getPortfolio(),
-    var asAt: String = "today",
+    var asAt: String = DEFAULT_AS_AT,
     val positions: MutableMap<String, Position> = TreeMap(),
     val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java)
 ) {
+    companion object {
+        const val DEFAULT_AS_AT = "today"
+    }
+
     @JsonIgnore
     val periodicCashFlows = PeriodicCashFlows()
 
@@ -56,9 +61,7 @@ class Positions(
             if (!tradeCurrencies.contains(position.asset.market.currency)) {
                 tradeCurrencies.add(position.asset.market.currency)
             }
-            if (tradeCurrencies.size != 1) {
-                isMixedCurrencies = true
-            }
+            isMixedCurrencies = tradeCurrencies.size > 1
         }
     }
 
@@ -87,7 +90,12 @@ class Positions(
                     tradeCurrency
                 )
             )
-        if (firstTrade) {
+
+        // Set opened date if first trade OR if re-entering after selling out completely
+        val hasZeroQuantity = position.quantityValues.getTotal() == BigDecimal.ZERO
+        val isReopening = hasZeroQuantity && position.dateValues.opened == null
+
+        if (firstTrade || isReopening) {
             position.dateValues.opened = tradeDate
         }
         return position

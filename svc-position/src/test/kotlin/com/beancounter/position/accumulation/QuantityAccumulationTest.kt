@@ -1,17 +1,20 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.PROP_PURCHASED
 import com.beancounter.position.Constants.Companion.PROP_SOLD
 import com.beancounter.position.Constants.Companion.PROP_TOTAL
 import com.beancounter.position.Constants.Companion.hundred
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -142,5 +145,155 @@ internal class QuantityAccumulationTest {
             PROP_SOLD,
             expectedSold
         )
+    }
+
+    @Test
+    fun is_LastDateUpdatedOnEveryTransaction() {
+        val asset = getTestAsset(Market("ASX"), "BUY")
+        val dateUtils = DateUtils()
+        val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
+        val secondTradeDate = dateUtils.getFormattedDate("2023-06-20")
+        val positions = Positions(getPortfolio())
+
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = firstTradeDate,
+                quantity = hundred
+            )
+
+        val position = accumulator.accumulate(buyTrn, positions)
+        assertThat(position.dateValues.last).isEqualTo(firstTradeDate)
+
+        val sellTrn =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                tradeDate = secondTradeDate,
+                quantity = BigDecimal("50")
+            )
+
+        accumulator.accumulate(sellTrn, positions)
+        assertThat(position.dateValues.last).isEqualTo(secondTradeDate)
+    }
+
+    @Test
+    fun is_SequentialDateValidationEnforced() {
+        val asset = getTestAsset(Market("ASX"), "DATE_TEST")
+        val dateUtils = DateUtils()
+        val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
+        val earlierTradeDate = dateUtils.getFormattedDate("2023-06-10")
+        val positions = Positions(getPortfolio())
+
+        val firstTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = firstTradeDate,
+                quantity = hundred
+            )
+
+        accumulator.accumulate(firstTrn, positions)
+
+        val earlierTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = earlierTradeDate,
+                quantity = BigDecimal("50")
+            )
+
+        assertThatThrownBy {
+            accumulator.accumulate(earlierTrn, positions)
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("Date sequence problem")
+    }
+
+    @Test
+    fun is_FirstTransactionDateSetOnceAndNeverChanges() {
+        val asset = getTestAsset(Market("ASX"), "FIRST_TRN")
+        val dateUtils = DateUtils()
+        val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
+        val laterTradeDate = dateUtils.getFormattedDate("2023-06-20")
+        val positions = Positions(getPortfolio())
+
+        // First transaction
+        val firstTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = firstTradeDate,
+                quantity = hundred
+            )
+
+        val position = accumulator.accumulate(firstTrn, positions)
+        assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
+
+        // Second transaction - firstTransaction should not change
+        val secondTrn =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                tradeDate = laterTradeDate,
+                quantity = BigDecimal("50")
+            )
+
+        accumulator.accumulate(secondTrn, positions)
+        assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate) // Should remain unchanged
+        assertThat(position.dateValues.last).isEqualTo(laterTradeDate) // Should update
+    }
+
+    @Test
+    fun is_FirstTransactionDatePreservedAfterSellOutAndReentry() {
+        val asset = getTestAsset(Market("ASX"), "REENTRY")
+        val dateUtils = DateUtils()
+        val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
+        val sellDate = dateUtils.getFormattedDate("2023-06-20")
+        val reentryDate = dateUtils.getFormattedDate("2023-06-25")
+        val positions = Positions(getPortfolio())
+
+        // Initial buy
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = firstTradeDate,
+                quantity = hundred
+            )
+
+        val position = accumulator.accumulate(buyTrn, positions)
+        assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
+        val originalOpened = position.dateValues.opened
+
+        // Sell everything
+        val sellTrn =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                tradeDate = sellDate,
+                quantity = hundred
+            )
+
+        accumulator.accumulate(sellTrn, positions)
+        assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
+
+        // Re-enter position
+        val reentryTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = reentryDate,
+                quantity = BigDecimal("75")
+            )
+
+        accumulator.accumulate(reentryTrn, positions)
+
+        // firstTransaction should remain the original date
+        assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
+        // opened should remain the original date (since position object persists)
+        assertThat(position.dateValues.opened).isEqualTo(originalOpened)
+        // last should be updated to the reentry date
+        assertThat(position.dateValues.last).isEqualTo(reentryDate)
     }
 }

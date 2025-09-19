@@ -22,6 +22,7 @@ publishing {
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
+    implementation(platform(libs.spring.ai.bom))
     // Note: Not using Spring AI MCP server, agent is a client
     implementation(platform(libs.otel.bom))
     implementation(project(":jar-common"))
@@ -40,6 +41,7 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
+    implementation("org.springframework.security:spring-security-oauth2-client")
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.integration)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
@@ -48,6 +50,9 @@ dependencies {
     implementation(libs.resilience4j.annotations)
     implementation(libs.resilience4j)
     implementation(libs.spring.kafka)
+    // Spring AI for LLM integration
+    implementation(libs.spring.ai.openai)
+    implementation(libs.spring.ai.ollama)
     // Note: Agent is an MCP client, not an MCP server
     // Note: OpenFeign handles HTTP client internally, no need for explicit HTTP client
     

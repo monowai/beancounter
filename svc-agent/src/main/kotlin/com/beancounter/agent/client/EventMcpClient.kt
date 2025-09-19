@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @FeignClient(
     name = "event-mcp",
-    url = "\${mcp.services.event.url}",
+    url = "\${event.url}",
     path = "/api/mcp",
     configuration = [FeignAuthInterceptor::class]
 )

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @FeignClient(
     name = "position-mcp",
-    url = "\${mcp.services.position.url}",
+    url = "\${position.url}",
     path = "/api/mcp",
     configuration = [FeignAuthInterceptor::class]
 )

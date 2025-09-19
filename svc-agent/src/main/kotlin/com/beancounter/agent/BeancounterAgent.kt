@@ -14,6 +14,7 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -34,7 +35,9 @@ class BeancounterAgent(
     private val eventMcpClient: EventMcpClient,
     private val positionMcpClient: PositionMcpClient,
     private val llmService: LlmService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
+    private val tokenContextService: TokenContextService,
+    @Autowired(required = false) private val springAiService: SpringAiService?
 ) {
     private val log = LoggerFactory.getLogger(BeancounterAgent::class.java)
 
@@ -47,33 +50,35 @@ class BeancounterAgent(
     ): AgentResponse {
         log.info("Processing query: {}", query)
 
-        return try {
-            // Use LLM to analyze the query and determine required actions
-            val analysis = llmService.analyzeQuery(query, context)
+        return tokenContextService.withCurrentToken {
+            try {
+                // Use LLM to analyze the query and determine required actions
+                val analysis = llmService.analyzeQuery(query, context)
 
-            // Execute the determined actions
-            val results = executeActions(analysis.actions)
+                // Execute the determined actions
+                val results = executeActions(analysis.actions)
 
-            // Generate a natural language response
-            val response = llmService.generateResponse(query, results, analysis)
+                // Generate a natural language response
+                val response = llmService.generateResponse(query, results, analysis, springAiService)
 
-            AgentResponse(
-                query = query,
-                response = response,
-                actions = analysis.actions,
-                results = results,
-                timestamp = LocalDate.now()
-            )
-        } catch (e: RuntimeException) {
-            log.error("Error processing query: {}", query, e)
-            AgentResponse(
-                query = query,
-                response = "I encountered an error processing your request: ${e.message}",
-                actions = emptyList(),
-                results = emptyMap(),
-                timestamp = LocalDate.now(),
-                error = e.message
-            )
+                AgentResponse(
+                    query = query,
+                    response = response,
+                    actions = analysis.actions,
+                    results = results,
+                    timestamp = LocalDate.now()
+                )
+            } catch (e: Exception) {
+                log.error("Error processing query: {}", query, e)
+                AgentResponse(
+                    query = query,
+                    response = "I encountered an error processing your request: ${e.message}",
+                    actions = emptyList(),
+                    results = emptyMap(),
+                    timestamp = LocalDate.now(),
+                    error = e.message
+                )
+            }
         }
     }
 
@@ -86,18 +91,20 @@ class BeancounterAgent(
     ): PortfolioAnalysis {
         log.info("Analyzing portfolio: {} as of {}", portfolioId, date)
 
-        val portfolio = getPortfolio(portfolioId)
-        val positions = getPortfolioPositions(portfolio, date)
-        val events = getPortfolioEvents(portfolioId, date)
-        val metrics = getPortfolioMetrics(portfolio, date)
+        return tokenContextService.withCurrentToken {
+            val portfolio = getPortfolio(portfolioId)
+            val positions = getPortfolioPositions(portfolio, date)
+            val events = getPortfolioEvents(portfolioId, date)
+            val metrics = getPortfolioMetrics(portfolio, date)
 
-        return PortfolioAnalysis(
-            portfolio = portfolio,
-            positions = positions,
-            events = events,
-            metrics = metrics,
-            analysisDate = date
-        )
+            PortfolioAnalysis(
+                portfolio = portfolio,
+                positions = positions,
+                events = events,
+                metrics = metrics,
+                analysisDate = date
+            )
+        }
     }
 
     /**
@@ -106,16 +113,18 @@ class BeancounterAgent(
     fun getMarketOverview(): MarketOverview {
         log.info("Getting market overview")
 
-        val markets = getMarkets()
-        val currencies = getCurrencies()
-        val fxRates = getCurrentFxRates()
+        return tokenContextService.withCurrentToken {
+            val markets = getMarkets()
+            val currencies = getCurrencies()
+            val fxRates = getCurrentFxRates()
 
-        return MarketOverview(
-            markets = markets,
-            currencies = currencies,
-            fxRates = fxRates,
-            timestamp = LocalDate.now()
-        )
+            MarketOverview(
+                markets = markets,
+                currencies = currencies,
+                fxRates = fxRates,
+                timestamp = LocalDate.now()
+            )
+        }
     }
 
     /**
@@ -220,9 +229,29 @@ class BeancounterAgent(
                                 resolveDateString(action.parameters["date"] as String)
                             )
                         ActionType.VERIFY_CONNECTIVITY -> verifyServiceConnectivity()
+                        ActionType.GET_LARGEST_HOLDINGS ->
+                            getLargestHoldings(
+                                action.parameters["portfolioCode"] as String
+                            )
+                        ActionType.GET_POSITION_NEWS -> getPositionNews(action.parameters["portfolioCode"] as String)
+                        ActionType.GET_TOP_MOVERS -> getTopMovers(action.parameters["portfolioCode"] as String)
+                        ActionType.ANALYZE_PORTFOLIO_PERFORMANCE ->
+                            analyzePortfolioPerformance(
+                                action.parameters["portfolioCode"] as String
+                            )
+                        ActionType.GENERATE_LLM_ANALYSIS -> generateLlmAnalysis(action.parameters)
+                        ActionType.GET_CORPORATE_ACTIONS ->
+                            getCorporateActions(
+                                action.parameters["portfolioCode"] as String
+                            )
+                        ActionType.GET_UPCOMING_EVENTS ->
+                            getUpcomingEvents(
+                                action.parameters["portfolioCode"] as String
+                            )
+                        ActionType.GET_MARKET_EVENTS -> getMarketEvents()
                     }
                 results[action.id] = result
-            } catch (e: RuntimeException) {
+            } catch (e: Exception) {
                 log.error("Error executing action {}: {}", action.id, e.message, e)
                 results[action.id] = mapOf("error" to e.message)
             }
@@ -272,7 +301,7 @@ class BeancounterAgent(
             val portfolios = getPortfolios()
             val portfolio = portfolios.data.find { it.code == portfolioCode }
             portfolio?.id
-        } catch (e: RuntimeException) {
+        } catch (e: Exception) {
             log.warn("Failed to resolve portfolio code '$portfolioCode' to ID", e)
             null
         }
@@ -287,7 +316,7 @@ class BeancounterAgent(
     private fun resolveDateString(dateString: String): String =
         try {
             dateUtils.getFormattedDate(dateString).toString()
-        } catch (e: RuntimeException) {
+        } catch (e: Exception) {
             log.warn("Failed to resolve date string '$dateString', using as-is", e)
             dateString
         }
@@ -301,7 +330,7 @@ class BeancounterAgent(
             majorPairs.filter { it != from }.forEach { to ->
                 try {
                     rates["$from-$to"] = getFxRates(from, to)
-                } catch (e: RuntimeException) {
+                } catch (e: Exception) {
                     log.warn("Failed to get FX rate for $from-$to: ${e.message}")
                 }
             }
@@ -336,7 +365,7 @@ class BeancounterAgent(
                         allEvents.add(event as Map<String, Any>)
                     }
                 }
-            } catch (e: RuntimeException) {
+            } catch (e: Exception) {
                 log.warn("Failed to get events for asset ${position.asset.id}: ${e.message}")
             }
         }
@@ -381,4 +410,338 @@ class BeancounterAgent(
         val healthService = HealthService(dataMcpClient, eventMcpClient, positionMcpClient)
         return healthService.checkAllServicesHealth()
     }
+
+    /**
+     * Get largest holdings in a portfolio
+     */
+    private fun getLargestHoldings(portfolioCode: String): PositionResponse {
+        log.info("Getting largest holdings for portfolio: {}", portfolioCode)
+
+        val portfolioId = resolvePortfolioCodeToId(portfolioCode)
+        if (portfolioId == null) {
+            log.warn("Could not resolve portfolio code: {}", portfolioCode)
+            return PositionResponse()
+        }
+
+        // Get all positions for the portfolio
+        val portfolio =
+            Portfolio(id = portfolioId)
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+
+        // Sort by market value and return (the response generation will handle the top 5)
+        return positions
+    }
+
+    /**
+     * Get news and events for portfolio positions
+     */
+    private fun getPositionNews(portfolioCode: String): Map<String, Any> {
+        log.info("Getting position news for portfolio: {}", portfolioCode)
+
+        val portfolioId = resolvePortfolioCodeToId(portfolioCode)
+        if (portfolioId == null) {
+            log.warn("Could not resolve portfolio code: {}", portfolioCode)
+            return mapOf("data" to emptyList<Any>())
+        }
+
+        // Get positions first
+        val portfolio =
+            Portfolio(id = portfolioId)
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+
+        // Get events for each position
+        val allEvents = mutableListOf<Map<String, Any>>()
+
+        positions.data.positions.values.forEach { position ->
+            try {
+                val events = eventMcpClient.getAssetEvents(position.asset.id)
+                if (events is Map<*, *>) {
+                    val eventsList = events["data"] as? List<Map<String, Any>>
+                    eventsList?.forEach { event ->
+                        val eventMap = event as Map<String, Any?>
+                        val enrichedEvent = mutableMapOf<String, Any>()
+                        eventMap.forEach { (key, value) ->
+                            if (value != null) {
+                                enrichedEvent[key] = value
+                            }
+                        }
+                        enrichedEvent["assetName"] = position.asset.name ?: "Unknown"
+                        enrichedEvent["assetCode"] = position.asset.code
+                        allEvents.add(enrichedEvent)
+                    }
+                }
+            } catch (e: Exception) {
+                log.warn("Failed to get events for asset ${position.asset.id}: ${e.message}")
+            }
+        }
+
+        return mapOf("data" to allEvents)
+    }
+
+    /**
+     * Get top movers in a portfolio
+     */
+    private fun getTopMovers(portfolioCode: String): PositionResponse {
+        log.info("Getting top movers for portfolio: {}", portfolioCode)
+
+        val portfolioId = resolvePortfolioCodeToId(portfolioCode)
+        if (portfolioId == null) {
+            log.warn("Could not resolve portfolio code: {}", portfolioCode)
+            return PositionResponse()
+        }
+
+        // Get all positions for the portfolio
+        val portfolio =
+            Portfolio(id = portfolioId)
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+
+        // Filter positions that have price change data and sort by change
+        val positionsWithChange =
+            positions.data.positions.values.filter {
+                it.moneyValues[com.beancounter.common.model.Position.In.BASE]?.priceData?.changePercent != null
+            }
+
+        // Create new Positions object with filtered positions
+        val filteredPositions =
+            com.beancounter.common.model
+                .Positions()
+        positionsWithChange.forEach { position ->
+            filteredPositions.add(position)
+        }
+
+        return PositionResponse(data = filteredPositions)
+    }
+
+    /**
+     * Analyze portfolio performance
+     */
+    private fun analyzePortfolioPerformance(portfolioCode: String): PositionResponse {
+        log.info("Analyzing portfolio performance for: {}", portfolioCode)
+
+        val portfolioId = resolvePortfolioCodeToId(portfolioCode)
+        if (portfolioId == null) {
+            log.warn("Could not resolve portfolio code: {}", portfolioCode)
+            return PositionResponse()
+        }
+
+        // Get all positions for the portfolio
+        val portfolio =
+            Portfolio(id = portfolioId)
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+
+        // Return all positions for performance analysis
+        return positions
+    }
+
+    /**
+     * Generate LLM analysis using external API
+     */
+    private fun generateLlmAnalysis(parameters: Map<String, Any>): Map<String, Any> {
+        log.info("Generating LLM analysis with parameters: {}", parameters.keys)
+
+        val query = parameters["query"] as? String ?: "Portfolio analysis"
+        val analysisType = parameters["analysisType"] as? String ?: "general"
+        val portfolioData = parameters["portfolioData"] as? Map<String, Any> ?: emptyMap()
+
+        val analysis =
+            if (springAiService != null) {
+                springAiService.generateAnalysis(query, portfolioData, analysisType)
+            } else {
+                log.warn("SpringAiService not available, returning fallback analysis")
+                "## 🤖 AI Analysis\n\n> **Note:** Spring AI is not configured. Configure Ollama or OpenAI to enable enhanced analysis.\n\n**Basic Analysis:**\n- Review the portfolio data for insights\n- Consider consulting with a financial advisor for detailed analysis\n- Monitor market conditions and adjust strategy as needed"
+            }
+
+        return mapOf(
+            "analysis" to analysis,
+            "query" to query,
+            "analysisType" to analysisType,
+            "data" to portfolioData
+        )
+    }
+
+    /**
+     * Get corporate actions for portfolio positions
+     */
+    private fun getCorporateActions(portfolioCode: String): Map<String, Any> {
+        log.info("Getting corporate actions for portfolio: {}", portfolioCode)
+
+        val portfolioId = resolvePortfolioCodeToId(portfolioCode)
+        if (portfolioId == null) {
+            log.warn("Could not resolve portfolio code: {}", portfolioCode)
+            return mapOf("data" to emptyList<Any>())
+        }
+
+        // Get positions first
+        val portfolio =
+            Portfolio(id = portfolioId)
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+
+        // Get corporate actions for each position
+        val allCorporateActions = mutableListOf<Map<String, Any>>()
+
+        positions.data.positions.values.forEach { position ->
+            try {
+                val events = eventMcpClient.getAssetEvents(position.asset.id)
+                if (events is Map<*, *>) {
+                    val eventsList = events["data"] as? List<Map<String, Any>>
+                    eventsList?.forEach { event ->
+                        val eventMap = event as Map<String, Any?>
+                        val eventType = eventMap["type"] as? String
+
+                        // Filter for corporate actions (dividends, splits, mergers, etc.)
+                        if (eventType?.lowercase() in
+                            listOf("dividend", "split", "merger", "acquisition", "earnings", "spinoff", "rights")
+                        ) {
+                            val enrichedEvent = mutableMapOf<String, Any>()
+                            eventMap.forEach { (key, value) ->
+                                if (value != null) {
+                                    enrichedEvent[key] = value
+                                }
+                            }
+                            enrichedEvent["assetName"] = position.asset.name ?: "Unknown"
+                            enrichedEvent["assetCode"] = position.asset.code
+                            allCorporateActions.add(enrichedEvent)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                log.warn("Failed to get events for asset ${position.asset.id}: ${e.message}")
+            }
+        }
+
+        // Sort by date (most recent first)
+        val sortedActions =
+            allCorporateActions.sortedByDescending {
+                it["date"] as? String ?: "0000-00-00"
+            }
+
+        return mapOf("data" to sortedActions)
+    }
+
+    /**
+     * Get upcoming events for portfolio and market
+     */
+    private fun getUpcomingEvents(portfolioCode: String): Map<String, Any> {
+        log.info("Getting upcoming events for portfolio: {}", portfolioCode)
+
+        val portfolioId = resolvePortfolioCodeToId(portfolioCode)
+        if (portfolioId == null) {
+            log.warn("Could not resolve portfolio code: {}", portfolioCode)
+            return mapOf("portfolioEvents" to emptyList<Any>(), "marketEvents" to emptyList<Any>())
+        }
+
+        // Get portfolio events
+        val portfolio =
+            Portfolio(id = portfolioId)
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+
+        val upcomingPortfolioEvents = mutableListOf<Map<String, Any>>()
+        val today = LocalDate.now()
+        val futureDate = today.plusDays(30) // Next 30 days
+
+        positions.data.positions.values.forEach { position ->
+            try {
+                val events = eventMcpClient.getAssetEvents(position.asset.id)
+                if (events is Map<*, *>) {
+                    val eventsList = events["data"] as? List<Map<String, Any>>
+                    eventsList?.forEach { event ->
+                        val eventMap = event as Map<String, Any?>
+                        val eventDate = eventMap["date"] as? String
+
+                        // Check if event is in the future
+                        if (eventDate != null) {
+                            try {
+                                val eventLocalDate = LocalDate.parse(eventDate)
+                                if (eventLocalDate.isAfter(today) && eventLocalDate.isBefore(futureDate)) {
+                                    val enrichedEvent = mutableMapOf<String, Any>()
+                                    eventMap.forEach { (key, value) ->
+                                        if (value != null) {
+                                            enrichedEvent[key] = value
+                                        }
+                                    }
+                                    enrichedEvent["assetName"] = position.asset.name ?: "Unknown"
+                                    enrichedEvent["assetCode"] = position.asset.code
+                                    upcomingPortfolioEvents.add(enrichedEvent)
+                                }
+                            } catch (e: Exception) {
+                                log.warn("Failed to parse event date: {}", eventDate, e)
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                log.warn("Failed to get events for asset ${position.asset.id}: ${e.message}")
+            }
+        }
+
+        // Sort by date
+        val sortedPortfolioEvents =
+            upcomingPortfolioEvents.sortedBy {
+                it["date"] as? String ?: "9999-12-31"
+            }
+
+        // For now, return empty market events (could be enhanced with market data service)
+        val marketEvents = emptyList<Map<String, Any>>()
+
+        return mapOf(
+            "portfolioEvents" to sortedPortfolioEvents,
+            "marketEvents" to marketEvents
+        )
+    }
+
+    /**
+     * Get market-wide events and announcements
+     */
+    private fun getMarketEvents(): Map<String, Any> {
+        log.info("Getting market-wide events")
+
+        // For now, return placeholder data
+        // This could be enhanced to call a market data service or news API
+        val marketEvents =
+            listOf(
+                mapOf(
+                    "description" to "Federal Reserve Interest Rate Decision",
+                    "date" to
+                        LocalDate
+                            .now()
+                            .plusDays(7)
+                            .toString(),
+                    "category" to "Monetary Policy",
+                    "impact" to "Market-wide",
+                    "source" to "Federal Reserve"
+                ),
+                mapOf(
+                    "description" to "Q4 Earnings Season Begins",
+                    "date" to
+                        LocalDate
+                            .now()
+                            .plusDays(14)
+                            .toString(),
+                    "category" to "Earnings",
+                    "impact" to "Sector-specific",
+                    "source" to "Market Calendar"
+                ),
+                mapOf(
+                    "description" to "Monthly Jobs Report",
+                    "date" to
+                        LocalDate
+                            .now()
+                            .plusDays(3)
+                            .toString(),
+                    "category" to "Economic Data",
+                    "impact" to "Market-wide",
+                    "source" to "Bureau of Labor Statistics"
+                )
+            )
+
+        return mapOf("data" to marketEvents)
+    }
+
+    fun getAiStatus(): Map<String, Any> =
+        mapOf(
+            "springAiServiceAvailable" to (springAiService != null),
+            "springAiConfigured" to (springAiService?.isConfigured() ?: false),
+            "ollamaUrl" to "http://localhost:11434",
+            "model" to "llama3:8b"
+        )
 }

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @FeignClient(
     name = "data-mcp",
-    url = "\${mcp.services.data.url}",
+    url = "\${marketdata.url}",
     path = "/api/mcp",
     configuration = [FeignAuthInterceptor::class]
 )

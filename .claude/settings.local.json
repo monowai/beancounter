@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/mikeh/IdeaProjects/monowai/bc-deploy/**)",
+      "Read(//Users/mikeh/IdeaProjects/monowai/**)",
+      "Bash(./gradlew:*)",
+      "WebSearch",
+      "Bash(git checkout:*)",
+      "Bash(curl:*)",
+      "Bash(echo:*)",
+      "Bash(source:*)",
+      "Bash(export:*)",
+      "Bash(kill:*)",
+      "Bash(java:*)",
+      "Bash(pkill:*)",
+      "Bash(timeout:*)",
+      "Bash(cat:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Read(//private/tmp/**)",
+      "Bash(python3:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

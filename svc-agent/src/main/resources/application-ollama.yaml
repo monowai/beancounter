@@ -1,0 +1,20 @@
+spring:
+  ai:
+    # Dummy OpenAI config to prevent autoconfiguration errors
+    openai:
+      api-key: "dummy-key-to-prevent-errors"
+    ollama:
+      base-url: "${OLLAMA_BASE_URL:http://localhost:11434}"
+      chat:
+        options:
+          model: "${OLLAMA_MODEL:llama3:8b}"
+          temperature: 0.2
+          num-predict: 2000
+
+    model:
+      chat: ollama
+
+logging:
+  level:
+    org.springframework.ai: DEBUG
+

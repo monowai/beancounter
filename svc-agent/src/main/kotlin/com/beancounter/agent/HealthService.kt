@@ -24,6 +24,11 @@ class HealthService(
 ) {
     private val log = LoggerFactory.getLogger(HealthService::class.java)
 
+    companion object {
+        private const val CONNECTION_TIMEOUT_MS = 5000
+        private const val READ_TIMEOUT_MS = 5000
+    }
+
     /**
      * Check the health status of all MCP services
      */
@@ -74,18 +79,7 @@ class HealthService(
         val startTime = System.currentTimeMillis()
 
         // First, check if the server is reachable via actuator
-        val serverReachable =
-            try {
-                val actuatorUrl = "${serviceInfo.baseUrl}/actuator/health"
-                val response = java.net.URL(actuatorUrl).openConnection()
-                response.connectTimeout = 5000
-                response.readTimeout = 5000
-                response.connect()
-                true
-            } catch (e: IOException) {
-                log.debug("Server {} not reachable: {}", serviceInfo.name, e.message)
-                false
-            }
+        val serverReachable = isServerReachable(serviceInfo)
 
         if (!serverReachable) {
             return ServiceStatus(
@@ -98,12 +92,32 @@ class HealthService(
         }
 
         // Server is reachable, now check MCP service functionality using ping endpoints
-        return try {
+        return checkMcpServiceHealth(serviceInfo, startTime)
+    }
+
+    private fun isServerReachable(serviceInfo: ServiceInfo): Boolean =
+        try {
+            val actuatorUrl = "${serviceInfo.baseUrl}/actuator/health"
+            val response = java.net.URL(actuatorUrl).openConnection()
+            response.connectTimeout = CONNECTION_TIMEOUT_MS
+            response.readTimeout = READ_TIMEOUT_MS
+            response.connect()
+            true
+        } catch (e: IOException) {
+            log.trace("Server {} not reachable: {}", serviceInfo.name, e.message)
+            false
+        }
+
+    private fun checkMcpServiceHealth(
+        serviceInfo: ServiceInfo,
+        startTime: Long
+    ): ServiceStatus =
+        try {
             when (serviceInfo.name) {
                 "Data Service" -> {
                     // Try the ping endpoint first (no auth required)
                     val pingResponse = dataMcpClient.ping()
-                    log.debug("Data service ping response: {}", pingResponse)
+                    log.trace("Data service ping response: {}", pingResponse)
                     ServiceStatus(
                         name = serviceInfo.name,
                         status = "UP",
@@ -115,7 +129,7 @@ class HealthService(
                 "Event Service" -> {
                     // Try the ping endpoint first (no auth required)
                     val pingResponse = eventMcpClient.ping()
-                    log.debug("Event service ping response: {}", pingResponse)
+                    log.trace("Event service ping response: {}", pingResponse)
                     ServiceStatus(
                         name = serviceInfo.name,
                         status = "UP",
@@ -127,7 +141,7 @@ class HealthService(
                 "Position Service" -> {
                     // Try the ping endpoint first (no auth required)
                     val pingResponse = positionMcpClient.ping()
-                    log.debug("Position service ping response: {}", pingResponse)
+                    log.trace("Position service ping response: {}", pingResponse)
                     ServiceStatus(
                         name = serviceInfo.name,
                         status = "UP",
@@ -145,7 +159,7 @@ class HealthService(
                         error = "Unknown service"
                     )
             }
-        } catch (e: RuntimeException) {
+        } catch (e: Exception) {
             val (status, errorMessage) =
                 when (e) {
                     is UnauthorizedException -> {
@@ -180,61 +194,6 @@ class HealthService(
                 responseTime = System.currentTimeMillis() - startTime,
                 lastChecked = LocalDateTime.now(),
                 error = errorMessage
-            )
-        }
-    }
-
-    /**
-     * Check health of a specific service
-     */
-    fun checkServiceHealth(serviceName: String): ServiceStatus =
-        try {
-            val startTime = System.currentTimeMillis()
-            when (serviceName.lowercase()) {
-                "data" -> {
-                    dataMcpClient.getPortfolios()
-                    ServiceStatus(
-                        name = "Data Service",
-                        status = "UP",
-                        responseTime = System.currentTimeMillis() - startTime,
-                        lastChecked = LocalDateTime.now(),
-                        error = null
-                    )
-                }
-                "event" -> {
-                    ServiceStatus(
-                        name = "Event Service",
-                        status = "UP",
-                        responseTime = System.currentTimeMillis() - startTime,
-                        lastChecked = LocalDateTime.now(),
-                        error = null
-                    )
-                }
-                "position" -> {
-                    ServiceStatus(
-                        name = "Position Service",
-                        status = "UP",
-                        responseTime = System.currentTimeMillis() - startTime,
-                        lastChecked = LocalDateTime.now(),
-                        error = null
-                    )
-                }
-                else ->
-                    ServiceStatus(
-                        name = serviceName,
-                        status = "UNKNOWN",
-                        responseTime = 0,
-                        lastChecked = LocalDateTime.now(),
-                        error = "Unknown service"
-                    )
-            }
-        } catch (e: RuntimeException) {
-            ServiceStatus(
-                name = serviceName,
-                status = "DOWN",
-                responseTime = 0,
-                lastChecked = LocalDateTime.now(),
-                error = e.message ?: "Unknown error"
             )
         }
 }

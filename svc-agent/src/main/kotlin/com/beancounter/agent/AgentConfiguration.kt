@@ -4,6 +4,7 @@ import com.beancounter.agent.config.FeignAuthInterceptor
 import org.springframework.cloud.openfeign.EnableFeignClients
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.client.RestTemplate
 
 /**
  * Configuration for the Beancounter AI Agent
@@ -26,5 +27,12 @@ class AgentConfiguration {
      * Feign Auth Interceptor bean for forwarding JWT tokens
      */
     @Bean
-    fun feignAuthInterceptor(): FeignAuthInterceptor = FeignAuthInterceptor()
+    fun feignAuthInterceptor(tokenContextService: TokenContextService): FeignAuthInterceptor =
+        FeignAuthInterceptor(tokenContextService)
+
+    /**
+     * RestTemplate bean for HTTP client operations
+     */
+    @Bean
+    fun restTemplate(): RestTemplate = RestTemplate()
 }

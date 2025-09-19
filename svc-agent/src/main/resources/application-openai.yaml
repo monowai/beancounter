@@ -1,0 +1,15 @@
+spring:
+  ai:
+    # Provide dummy Ollama config to prevent autoconfiguration errors
+    ollama:
+      base-url: "http://undefined:11434"
+    openai:
+      api-key: "${OPENAI_API_KEY:}"
+      base-url: "${OPENAI_BASE_URL:https://api.openai.com}"
+      chat:
+        options:
+          model: "${OPENAI_MODEL:gpt-4o-mini}"
+          temperature: 0.2
+          max-tokens: 2000
+
+

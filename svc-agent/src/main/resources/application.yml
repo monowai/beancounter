@@ -108,6 +108,9 @@ spring:
           issuer-uri: ${beancounter.auth.uri}
           audience: ${beancounter.auth.audience}
 
+  # Default: No AI configuration (Spring AI will not create any beans without config)
+  # AI configuration is provided by specific profiles (ollama, openai)
+
 # OpenFeign Configuration
 feign:
   client:
@@ -130,7 +133,7 @@ mcp:
 # Agent Configuration
 agent:
   llm:
-    provider: "simple" # simple, openai, anthropic, etc.
+    provider: "ollama" # simple, openai, anthropic, etc.
     timeout: 30000
     max-retries: 3
   mcp:
@@ -143,11 +146,13 @@ agent:
 
 # Security Configuration
 auth:
-  web: true  # Enabled to properly forward JWT tokens to MCP services
+  web: true  # Disable auth for testing
+  #audience: "test-audience"
+  email: "email"
 
 beancounter:
   auth:
     uri: "${AUTH0_DOMAIN:https://your-domain.auth0.com/}"
     audience: "${AUTH0_AUDIENCE:your-api-identifier}"
     enabled: true
-    email: "${AUTH0_EMAIL_CLAIM:https://your-domain.com/email}"
+    email: "${AUTH0_EMAIL_CLAIM:email}"

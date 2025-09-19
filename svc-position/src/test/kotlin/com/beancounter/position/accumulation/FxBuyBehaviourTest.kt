@@ -32,7 +32,7 @@ class FxBuyBehaviourTest {
     private lateinit var accumulator: Accumulator
 
     @Test
-    fun is_FxBuyAccumulated() {
+    fun `should accumulate FX buy transaction correctly`() {
         val trn =
             Trn(
                 trnType = TrnType.FX_BUY,

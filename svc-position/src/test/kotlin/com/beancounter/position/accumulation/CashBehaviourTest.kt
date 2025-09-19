@@ -34,7 +34,7 @@ internal class CashBehaviourTest {
     private val cashAmount = BigDecimal("-10000.00")
 
     @Test
-    fun is_DepositAccumulated() {
+    fun `should accumulate deposit correctly`() {
         val trn =
             Trn(
                 trnType = TrnType.DEPOSIT,
@@ -70,7 +70,7 @@ internal class CashBehaviourTest {
     }
 
     @Test
-    fun is_DepositAccumulatedForSell() {
+    fun `should accumulate deposit for sell transaction`() {
         val asset =
             getTestAsset(
                 NASDAQ,
@@ -118,7 +118,7 @@ internal class CashBehaviourTest {
     }
 
     @Test
-    fun is_WithdrawalAccumulated() {
+    fun `should accumulate withdrawal correctly`() {
         val trn =
             Trn(
                 trnType = TrnType.WITHDRAWAL,
@@ -157,7 +157,7 @@ internal class CashBehaviourTest {
     }
 
     @Test
-    fun is_WithdrawalAccumulatedForBuy() {
+    fun `should accumulate withdrawal for buy transaction`() {
         val asset =
             getTestAsset(
                 NASDAQ,

@@ -85,8 +85,9 @@ class Accumulator(
         if (position.quantityValues.hasPosition()) {
             position.periodicCashFlows.add(trn)
         } else {
-            // Reset cash flows if no position exists
+            // Reset cash flows and opened date if no position exists
             position.periodicCashFlows.clear()
+            position.dateValues.opened = null
         }
 
         return position

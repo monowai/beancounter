@@ -20,7 +20,7 @@ internal class DividendTest {
     private lateinit var accumulator: Accumulator
 
     @Test
-    fun is_CashDividendAccumulated() {
+    fun `should accumulate cash dividend correctly`() {
         val asx =
             Market(
                 "ASX",
@@ -55,7 +55,7 @@ internal class DividendTest {
     }
 
     @Test
-    fun is_LastDividendDateSetOnDividendAccumulation() {
+    fun `should set last dividend date when accumulating dividend`() {
         val asx = Market("ASX", AUD.code)
         val asset = getTestAsset(asx, "MO")
         val dateUtils = DateUtils()

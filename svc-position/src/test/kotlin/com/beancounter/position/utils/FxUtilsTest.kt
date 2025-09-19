@@ -29,7 +29,7 @@ internal class FxUtilsTest {
     private val fxUtils = FxUtils()
 
     @Test
-    fun is_CurrencyPairResultsAsExpected() {
+    fun `should return currency pair results as expected`() {
         val asset =
             Position(
                 getTestAsset(
@@ -47,7 +47,7 @@ internal class FxUtilsTest {
     }
 
     @Test
-    fun is_FxRequestCorrect() {
+    fun `should build FX request correctly`() {
         val portfolio =
             Portfolio(
                 "ABC",

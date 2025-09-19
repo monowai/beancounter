@@ -25,7 +25,7 @@ internal class StockSplitTest {
     private val sellBehaviour = SellBehaviour()
 
     @Test
-    fun is_QuantityWorkingForSplit() {
+    fun `should handle quantity correctly for stock split`() {
         val apple =
             getTestAsset(
                 NASDAQ,

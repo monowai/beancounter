@@ -14,7 +14,6 @@ import com.beancounter.position.Constants.Companion.ten
 import com.beancounter.position.Constants.Companion.twoK
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
@@ -31,9 +30,6 @@ internal class MoneyValueTrnTest {
             NASDAQ,
             "MSFT"
         )
-
-    @Autowired
-    private lateinit var accumulator: Accumulator
 
     private val tradePortfolioRate = BigDecimal("1.724")
 
@@ -53,7 +49,7 @@ internal class MoneyValueTrnTest {
      * Simple FX values make assertions easier to calculate.
      */
     @Test
-    fun is_ValuedInTrackedCurrencies() {
+    fun `should value transactions in tracked currencies`() {
         val positions = Positions()
         val position = positions.getOrCreate(microsoft)
         buyBehaviour.accumulate(

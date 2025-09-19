@@ -118,7 +118,7 @@ internal class MoneyValueTest {
     val gainValue = BigDecimal("211.56")
 
     @Test
-    fun is_RealisedGainWithSignedQuantitiesCalculated() {
+    fun `should calculate realised gain with signed quantities`() {
         val positions = Positions()
         var buy =
             Trn(

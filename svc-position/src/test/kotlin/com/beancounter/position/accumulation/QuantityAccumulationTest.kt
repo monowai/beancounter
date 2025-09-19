@@ -148,7 +148,7 @@ internal class QuantityAccumulationTest {
     }
 
     @Test
-    fun is_LastDateUpdatedOnEveryTransaction() {
+    fun `should update last date on every transaction`() {
         val asset = getTestAsset(Market("ASX"), "BUY")
         val dateUtils = DateUtils()
         val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
@@ -179,7 +179,7 @@ internal class QuantityAccumulationTest {
     }
 
     @Test
-    fun is_SequentialDateValidationEnforced() {
+    fun `should enforce sequential date validation`() {
         val asset = getTestAsset(Market("ASX"), "DATE_TEST")
         val dateUtils = DateUtils()
         val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
@@ -211,7 +211,7 @@ internal class QuantityAccumulationTest {
     }
 
     @Test
-    fun is_FirstTransactionDateSetOnceAndNeverChanges() {
+    fun `should set first transaction date once and never change it`() {
         val asset = getTestAsset(Market("ASX"), "FIRST_TRN")
         val dateUtils = DateUtils()
         val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
@@ -245,7 +245,54 @@ internal class QuantityAccumulationTest {
     }
 
     @Test
-    fun is_FirstTransactionDatePreservedAfterSellOutAndReentry() {
+    fun `opened date should reset after complete sellout and reentry`() {
+        // Core scenario: BUY, SELL (all shares), BUY again
+        // The opened date should reset to the second BUY date
+        val asset = getTestAsset(Market("USD"), "SELLOUT_REENTRY")
+        val dateUtils = DateUtils()
+        val firstBuyDate = dateUtils.getFormattedDate("2024-06-03")
+        val sellDate = dateUtils.getFormattedDate("2024-10-03")
+        val secondBuyDate = dateUtils.getFormattedDate("2025-06-13")
+        val positions = Positions(getPortfolio())
+
+        // Initial BUY: 30.00 shares
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = firstBuyDate,
+                quantity = BigDecimal("30.00")
+            )
+        val position = accumulator.accumulate(buyTrn, positions)
+        assertThat(position.dateValues.opened).isEqualTo(firstBuyDate)
+
+        // SELL: All 30.00 shares (position goes to zero)
+        val sellTrn =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                tradeDate = sellDate,
+                quantity = BigDecimal("30.00")
+            )
+        accumulator.accumulate(sellTrn, positions)
+        assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
+
+        // BUY: Re-enter with 15.00 shares
+        val reentryTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                tradeDate = secondBuyDate,
+                quantity = BigDecimal("15.00")
+            )
+        accumulator.accumulate(reentryTrn, positions)
+
+        // The opened date should now be the second buy date, not the first buy date
+        assertThat(position.dateValues.opened).isEqualTo(secondBuyDate)
+    }
+
+    @Test
+    fun `should preserve first transaction date after complete sellout and reentry`() {
         val asset = getTestAsset(Market("ASX"), "REENTRY")
         val dateUtils = DateUtils()
         val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
@@ -264,7 +311,7 @@ internal class QuantityAccumulationTest {
 
         val position = accumulator.accumulate(buyTrn, positions)
         assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
-        val originalOpened = position.dateValues.opened
+        position.dateValues.opened
 
         // Sell everything
         val sellTrn =
@@ -291,8 +338,8 @@ internal class QuantityAccumulationTest {
 
         // firstTransaction should remain the original date
         assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
-        // opened should remain the original date (since position object persists)
-        assertThat(position.dateValues.opened).isEqualTo(originalOpened)
+        // opened should be reset to the reentry date after complete sellout
+        assertThat(position.dateValues.opened).isEqualTo(reentryDate)
         // last should be updated to the reentry date
         assertThat(position.dateValues.last).isEqualTo(reentryDate)
     }

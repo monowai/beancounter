@@ -18,7 +18,7 @@ class TrnBehaviourFactoryTest {
     private lateinit var trnBehaviourFactory: TrnBehaviourFactory
 
     @Test
-    fun is_AccumulatorInitialising() {
+    fun `should initialize accumulator and transaction behaviours correctly`() {
         assertThat(accumulator).isNotNull
         assertThat(trnBehaviourFactory).isNotNull
         assertThat(trnBehaviourFactory[TrnType.BUY]).isNotNull

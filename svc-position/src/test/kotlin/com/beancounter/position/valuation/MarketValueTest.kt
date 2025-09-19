@@ -54,7 +54,7 @@ internal class MarketValueTest {
     private val simpleRate = BigDecimal("0.20")
 
     @Test
-    fun is_MarketValueFromBehaviour() {
+    fun `should calculate market value from behaviour`() {
         val positions = Positions(portfolio)
         val position =
             buyBehaviour.accumulate(
@@ -153,7 +153,7 @@ internal class MarketValueTest {
     }
 
     @Test
-    fun is_GainsOnSellBehaviour() {
+    fun `should calculate gains on sell behaviour`() {
         val simpleRate = BigDecimal("0.20")
         val fxRateMap =
             mapOf(
@@ -289,7 +289,7 @@ internal class MarketValueTest {
     }
 
     @Test
-    fun is_MarketValueWithNoPriceComputedForBuyBehaviour() {
+    fun `should compute market value with no price for buy behaviour`() {
         val asset =
             getTestAsset(
                 NASDAQ,

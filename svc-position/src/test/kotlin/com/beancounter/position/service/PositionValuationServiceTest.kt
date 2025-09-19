@@ -107,8 +107,7 @@ class PositionValuationServiceTest {
             calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any())
         ).thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal.ZERO)
-        whenever(calculationSupport.calculatePortfolioRoi(any())).thenReturn(BigDecimal.ZERO)
-        whenever(irrCalculator.calculate(any(), any(), any())).thenReturn(0.0)
+        whenever(irrCalculator.calculate(any())).thenReturn(0.0)
 
         // When
         val result = valuationService.value(positions, assetInputs)

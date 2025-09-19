@@ -17,7 +17,6 @@ import io.sentry.kotlin.SentryContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.apache.commons.math3.exception.NoBracketingException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -87,7 +86,6 @@ class PositionValuationService(
         val irr =
             calculateIrrSafely(
                 positions.periodicCashFlows,
-                calculationSupport.calculatePortfolioRoi(pfTotals),
                 "Failed to calculate IRR for ${positions.portfolio.code}"
             )
         baseTotals.irr = irr
@@ -208,7 +206,6 @@ class PositionValuationService(
         val irr =
             calculateIrrSafely(
                 positionContext.position.periodicCashFlows,
-                roi,
                 "Failed to calculate IRR for ${positionContext.position.asset.code}"
             )
 
@@ -272,23 +269,20 @@ class PositionValuationService(
 
     private fun calculateIrrSafely(
         periodicCashFlows: PeriodicCashFlows,
-        roi: BigDecimal,
         message: String
-    ): BigDecimal =
-        try {
-            BigDecimal(config.irrCalculator.calculate(periodicCashFlows, roi = roi))
-        } catch (e: NoBracketingException) {
-            logger.error(
-                "Failed to calculate IRR [$message]",
-                e
-            )
+    ): BigDecimal {
+        val result = config.irrCalculator.calculate(periodicCashFlows)
+
+        if (result == 0.0 && periodicCashFlows.cashFlows.isNotEmpty()) {
+            logger.warn("IRR calculation returned zero for non-empty cash flows [$message]")
             val breadcrumb =
                 Breadcrumb(message).apply {
                     category = "data"
-                    level = SentryLevel.ERROR
+                    level = SentryLevel.WARNING
                 }
             Sentry.addBreadcrumb(breadcrumb)
-
-            BigDecimal.ZERO
         }
+
+        return BigDecimal(result)
+    }
 }

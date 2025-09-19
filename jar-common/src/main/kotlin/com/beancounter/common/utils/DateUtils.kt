@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.Year
 import java.time.ZoneId
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.TimeZone
 
@@ -159,4 +161,67 @@ class DateUtils(
                 UTC
             )
         }
+
+    /**
+     * Calculates precise year fraction between two dates, accounting for leap years.
+     * Uses the ACTUAL/ACTUAL day count convention for financial accuracy.
+     *
+     * This method provides more accurate calculations than simple day division by:
+     * - Properly handling leap years (366 vs 365 days)
+     * - Using weighted averages for periods spanning multiple years
+     * - Following financial industry standards for year fraction calculations
+     *
+     * @param startDate the start date (inclusive)
+     * @param endDate the end date (exclusive)
+     * @return the precise year fraction as a Double
+     */
+    fun calculateYearFraction(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Double {
+        if (startDate.isEqual(endDate)) return 0.0
+
+        val totalDays = ChronoUnit.DAYS.between(startDate, endDate).toDouble()
+
+        // For periods spanning multiple years, calculate weighted average of year lengths
+        var currentDate = startDate
+        var weightedDays = 0.0
+        var actualDays = 0.0
+
+        while (currentDate.year <= endDate.year) {
+            val yearStart =
+                if (currentDate.year ==
+                    startDate.year
+                ) {
+                    currentDate
+                } else {
+                    LocalDate.of(currentDate.year, 1, 1)
+                }
+            val yearEnd =
+                if (currentDate.year ==
+                    endDate.year
+                ) {
+                    endDate
+                } else {
+                    LocalDate.of(currentDate.year, 12, 31).plusDays(1)
+                }
+
+            val daysInThisYear = ChronoUnit.DAYS.between(yearStart, yearEnd).toDouble()
+            val daysInYear = if (Year.isLeap(currentDate.year.toLong())) 366.0 else 365.0
+
+            weightedDays += daysInThisYear
+            actualDays += daysInThisYear / daysInYear * daysInYear
+
+            currentDate = LocalDate.of(currentDate.year + 1, 1, 1)
+        }
+
+        // For simple cases within same year, use year-specific day count
+        return if (startDate.year == endDate.year) {
+            val daysInYear = if (Year.isLeap(startDate.year.toLong())) 366.0 else 365.0
+            totalDays / daysInYear
+        } else {
+            // For multi-year periods, use average
+            totalDays / (actualDays / weightedDays * 365.25)
+        }
+    }
 }

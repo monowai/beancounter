@@ -26,7 +26,7 @@ private const val START_DATE = "2024-01-01"
  * internal rate of return for different financial scenarios.
  */
 class IrrCalculatorTests {
-    private val irrService = IrrCalculator()
+    private val irrService = IrrCalculator(dateUtils = DateUtils())
     private val initialCost = -1000.0
     private val marketValue = 1100.0
     private val asset =

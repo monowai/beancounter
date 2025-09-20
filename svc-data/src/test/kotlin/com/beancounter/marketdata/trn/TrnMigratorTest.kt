@@ -85,7 +85,7 @@ internal class TrnMigratorTest {
     }
 
     @Test
-    fun upgrade() {
+    fun `should upgrade v2 transactions through v3 to v4`() {
         val trnV1 =
             Trn(
                 id = "TrnV1",
@@ -116,7 +116,7 @@ internal class TrnMigratorTest {
         assertThat(trnV2)
             .hasFieldOrPropertyWithValue(
                 "version",
-                "3"
+                "4"
             ).hasFieldOrPropertyWithValue(
                 "tradeCashRate",
                 BigDecimal("2.00")
@@ -133,5 +133,98 @@ internal class TrnMigratorTest {
                 "cashCurrency",
                 NZD
             )
+    }
+
+    @Test
+    fun `should upgrade v3 transactions to v4 for cash cost tracking`() {
+        // Test v3 → v4 upgrade (cash cost tracking enablement)
+        val trnV3 =
+            Trn(
+                id = "TrnV3",
+                trnType = TrnType.FX_BUY,
+                tradeDate = tradeDate,
+                asset = Constants.usdCashBalance,
+                quantity = BigDecimal("1000.00"),
+                price = BigDecimal("1.0"),
+                tradeAmount = BigDecimal("1000.00"),
+                tradeCurrency = USD,
+                cashAsset = Constants.nzdCashBalance,
+                cashCurrency = NZD,
+                tradeCashRate = BigDecimal("1.5"),
+                tradeBaseRate = BigDecimal("1.0"),
+                tradePortfolioRate = BigDecimal("1.5"),
+                portfolio =
+                    Portfolio(
+                        "test",
+                        currency = NZD,
+                        base = USD
+                    ),
+                version = "3" // v3: Has FX rates
+            )
+
+        val trnV4 = trnMigrator.upgrade(trnV3)
+
+        assertThat(trnV4)
+            .hasFieldOrPropertyWithValue("version", "4") // Upgraded to v4: Cash cost tracking
+            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("1.5")) // FX rates preserved
+            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal("1.0"))
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("1.5"))
+    }
+
+    @Test
+    fun `should not upgrade v4 transactions as they are already current`() {
+        // Test that v4 transactions are not modified
+        val trnV4 =
+            Trn(
+                id = "TrnV4",
+                trnType = TrnType.BUY,
+                tradeDate = tradeDate,
+                asset = MSFT,
+                quantity = BigDecimal("1.0"),
+                price = BigDecimal("100.0"),
+                tradeAmount = BigDecimal("100.00"),
+                tradeCurrency = USD,
+                portfolio =
+                    Portfolio(
+                        "test",
+                        currency = USD,
+                        base = USD
+                    ),
+                version = "4" // Already at v4
+            )
+
+        val result = trnMigrator.upgrade(trnV4)
+
+        assertThat(result)
+            .hasFieldOrPropertyWithValue("version", "4") // Should remain v4
+            .isSameAs(trnV4) // Should return the same object (no changes)
+    }
+
+    @Test
+    fun `should upgrade all transaction types from v3 to v4`() {
+        // Test that non-cost-tracking transaction types still get v3→v4 upgrade
+        // (the version change applies to all transactions, but cost tracking logic
+        // in the position service only applies to specific types)
+        val depositTrn =
+            Trn(
+                id = "DepositV3",
+                trnType = TrnType.DEPOSIT,
+                tradeDate = tradeDate,
+                asset = Constants.usdCashBalance,
+                quantity = BigDecimal("1000.00"),
+                tradeCurrency = USD,
+                portfolio =
+                    Portfolio(
+                        "test",
+                        currency = USD,
+                        base = USD
+                    ),
+                version = "3"
+            )
+
+        val result = trnMigrator.upgrade(depositTrn)
+
+        assertThat(result)
+            .hasFieldOrPropertyWithValue("version", "4") // All transactions get v4
     }
 }

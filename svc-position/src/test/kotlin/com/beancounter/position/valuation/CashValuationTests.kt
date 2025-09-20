@@ -87,7 +87,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ZERO // Cost of cash is not understood yet.
+                ONE // FX transactions now track exchange cost: 10000 USD cost 20000 SGD at rate 0.5 = 1.0 cost per USD
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 USD
@@ -95,7 +95,8 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ZERO
+                // Cost using the rate: 10000 USD * 0.5 rate = 5000 SGD equivalent, so 5000/10000 = 0.5 cost per USD
+                BigDecimal("0.5")
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.currency
@@ -103,7 +104,7 @@ class CashValuationTests {
         assertThat(usdPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
-                ZERO
+                BigDecimal("0.5") // Cost in base currency (same as portfolio in this test)
             ).hasFieldOrPropertyWithValue(
                 PROP_CURRENCY,
                 positions.portfolio.base

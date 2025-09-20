@@ -33,7 +33,7 @@ abstract class BaseAccumulationStrategy(
      * Create optimized currency context with single resolution per currency type.
      * Replaces 3 separate calls to currencyResolver.resolve() across behaviors.
      */
-    protected open fun createCurrencyContext(
+    open fun createCurrencyContext(
         trn: Trn,
         position: Position
     ): CurrencyContext {
@@ -53,7 +53,7 @@ abstract class BaseAccumulationStrategy(
      * Apply value updates across all currency contexts with optimized rate application.
      * Eliminates repetitive rate multiplication and currency resolution.
      */
-    protected open fun applyMultiCurrencyUpdate(
+    open fun applyMultiCurrencyUpdate(
         context: CurrencyContext,
         trn: Trn,
         updateFunction: (MoneyValues, BigDecimal) -> Unit

@@ -137,12 +137,11 @@ internal class CashLadderMvcTests {
                 BigDecimal("3507.46")
             )
 
-        // Cash does not track purchases and sales totals.
+        // Cash now tracks cost for trade settlements (FX, BUY, SELL, DIVI)
         assertThat(nzdCashPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 PROP_COST_VALUE,
-                BigDecimal.ZERO
-                // BigDecimal("8507.46") // 5k, plus the 3507.46
-            ) // Purchases - Sales
+                BigDecimal("6492.54") // Cost tracking enabled for cash trade settlements
+            ) // Purchases - Sales with cost tracking
     }
 }

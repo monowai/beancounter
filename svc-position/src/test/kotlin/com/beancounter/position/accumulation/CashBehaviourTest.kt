@@ -106,6 +106,7 @@ internal class CashBehaviourTest {
                 "purchased",
                 cashAmount.abs()
             )
+        // SELL transactions now track cost basis for cash received
         assertThat(
             cashPosition.getMoneyValues(
                 Position.In.TRADE,
@@ -113,7 +114,7 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            ZERO
+            cashAmount.abs() // Cost basis equals the cash amount for trade settlements
         )
     }
 

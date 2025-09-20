@@ -87,18 +87,27 @@ class AltCashCurrencyTests {
             .hasFieldOrPropertyWithValue("costValue", BigDecimal("800.00"))
 
         assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.BASE))
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO)
+            // Cash settlement tracking: 1600 NZD cost at 2.00 rate
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("2.00"))
+            // Actual calculated cost basis
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("3200.00"))
+            // Negative cost value due to cash outflow
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal("-3200.00"))
 
         assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.PORTFOLIO))
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(
+                "averageCost",
+                BigDecimal("1.00")
+            ) // In USD: cash amount cost in portfolio currency
+            .hasFieldOrPropertyWithValue(
+                "costBasis",
+                BigDecimal("1600.00")
+            ) // Cost basis in portfolio currency (USD equivalent)
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal("-1600.00")) // Negative due to cash outflow
 
         assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("1.00")) // In NZD: cash amount per unit
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("1600.00")) // 1600 NZD spent
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal("-1600.00")) // Negative due to cash outflow
     }
 }

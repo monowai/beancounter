@@ -18,7 +18,11 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Read(//private/tmp/**)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(xargs ls:*)",
+      "Bash(git reset:*)",
+      "Bash(git clean:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

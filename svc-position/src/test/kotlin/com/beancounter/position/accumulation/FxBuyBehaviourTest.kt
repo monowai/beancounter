@@ -63,14 +63,22 @@ class FxBuyBehaviourTest {
                 "total",
                 trn.tradeAmount
             )
+        // With cost tracking enabled for FX transactions, we now track cost basis
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                ZERO
+                BigDecimal("2500.00") // Trade currency tracks cost (rate defaults to 1.0)
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
                 ZERO
             ) // Not yet valued
+
+        // Cost basis should be tracked in BASE currency (rate defaults to 1.0)
+        assertThat(usdPosition.moneyValues[Position.In.BASE])
+            .hasFieldOrPropertyWithValue(
+                "costBasis",
+                BigDecimal("2500.00") // quantity * rate (2500 * 1.0)
+            )
 
         val nzdPosition = positions.positions[toKey(nzdCashBalance)]
         assertThat(nzdPosition!!.quantityValues)
@@ -78,17 +86,69 @@ class FxBuyBehaviourTest {
                 "total",
                 trn.cashAmount
             )
+        // NZD position now tracks cost basis for FX transactions
         assertThat(nzdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                ZERO
+                BigDecimal("5000.00") // abs(cashAmount) = 5000
             ).hasFieldOrPropertyWithValue(
                 "costValue",
-                ZERO
+                BigDecimal("-5000.00") // Cost value based on quantity and average cost
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
                 ZERO
             ) // Not yet valued
+    }
+
+    @Test
+    fun `should track cost basis for FX transactions`() {
+        // Test FX: Buy USD 2500 with NZD 3750
+        val trn =
+            Trn(
+                trnType = TrnType.FX_BUY,
+                asset = usdCashBalance,
+                quantity = BigDecimal("2500.00"),
+                cashAsset = nzdCashBalance,
+                cashCurrency = NZD,
+                tradeCashRate = BigDecimal("1.5"), // 1.5 NZD per USD
+                cashAmount = BigDecimal("-3750.00"), // 2500 * 1.5 = 3750 NZD cost
+                tradeBaseRate = BigDecimal("1.2"), // USD to NZD base rate
+                tradePortfolioRate = BigDecimal("0.8") // USD to portfolio rate
+            )
+        val positions = Positions()
+        val usdPosition = accumulator.accumulate(trn, positions)
+
+        // For FX transactions, we should track cost in base currency (NZD)
+        val usdBaseMoneyValues = usdPosition.moneyValues[Position.In.BASE]!!
+        assertThat(usdBaseMoneyValues)
+            .hasFieldOrPropertyWithValue("purchases", BigDecimal("3000.00")) // 2500 * 1.2
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("3000.00"))
+
+        // NZD cash position should also track the cost (1:1 for cash currency)
+        val nzdPosition = positions.positions[toKey(nzdCashBalance)]!!
+        assertThat(nzdPosition.moneyValues[Position.In.TRADE])
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("3750.00"))
+            .hasFieldOrPropertyWithValue("sales", BigDecimal("-3750.00")) // Negative because it's money going out
+    }
+
+    @Test
+    fun `should not track cost basis for simple deposits`() {
+        // Test simple deposit: no cost calculation needed
+        val trn =
+            Trn(
+                trnType = TrnType.DEPOSIT,
+                asset = usdCashBalance,
+                quantity = BigDecimal("1000.00"),
+                cashCurrency = USD
+            )
+        val positions = Positions()
+        val position = accumulator.accumulate(trn, positions)
+
+        // Simple cash deposits should not have cost tracking
+        assertThat(position.moneyValues[Position.In.TRADE])
+            .hasFieldOrPropertyWithValue("costBasis", ZERO)
+            .hasFieldOrPropertyWithValue("costValue", ZERO)
+            .hasFieldOrPropertyWithValue("purchases", BigDecimal("1000.00"))
     }
 
     @Test

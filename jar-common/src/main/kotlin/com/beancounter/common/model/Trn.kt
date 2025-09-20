@@ -98,6 +98,14 @@ data class Trn(
     var status: TrnStatus = TrnStatus.CONFIRMED
 ) {
     companion object {
-        const val LATEST_VERSION: String = "3"
+        // Version history:
+        // v1: Initial transaction model
+        // v2: Basic transaction with cash currency support
+        // v3: Enhanced with FX rate calculation
+        // v4: Cash cost tracking for FX/trade transactions (FX_BUY, BUY, SELL, DIVI)
+        const val LATEST_VERSION: String = "4"
+        const val VERSION_CASH_COST_TRACKING: String = "4"
+        const val VERSION_FX_RATES: String = "3"
+        const val VERSION_BASIC_CASH: String = "2"
     }
 }

@@ -36,7 +36,8 @@ class FxBuyBehaviour(
             ),
             position,
             trn.quantity,
-            BigDecimal.ZERO
+            BigDecimal.ZERO,
+            trn.trnType
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
@@ -47,7 +48,8 @@ class FxBuyBehaviour(
             ),
             position,
             trn.quantity,
-            trn.tradeBaseRate
+            trn.tradeBaseRate,
+            trn.trnType
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
@@ -58,7 +60,8 @@ class FxBuyBehaviour(
             ),
             position,
             trn.quantity,
-            trn.tradePortfolioRate
+            trn.tradePortfolioRate,
+            trn.trnType
         )
 
         if (trn.cashAsset != null) {
@@ -80,40 +83,45 @@ class FxBuyBehaviour(
     ) {
         counterPosition.quantityValues.sold =
             counterPosition.quantityValues.sold.add(trn.cashAmount)
-        // cashCost.value(
-        //     currencyResolver.getMoneyValues(
-        //         Position.In.TRADE,
-        //         trn.cashCurrency!!,
-        //         trn.portfolio,
-        //         counterPosition
-        //     ),
-        //     counterPosition,
-        //     trn.cashAmount,
-        //     BigDecimal.ONE
-        // )
-        // // ToDo: Fix rates
-        //
-        // cashCost.value(
-        //     currencyResolver.getMoneyValues(
-        //         Position.In.BASE,
-        //         trn.cashCurrency!!,
-        //         trn.portfolio,
-        //         counterPosition
-        //     ),
-        //     counterPosition,
-        //     trn.cashAmount,
-        //     trn.tradeBaseRate
-        // )
-        // cashCost.value(
-        //     currencyResolver.getMoneyValues(
-        //         Position.In.PORTFOLIO,
-        //         trn.cashCurrency!!,
-        //         trn.portfolio,
-        //         counterPosition
-        //     ),
-        //     counterPosition,
-        //     trn.cashAmount,
-        //     trn.tradePortfolioRate
-        // )
+
+        // Enable cost tracking for FX cash position
+        cashCost.value(
+            currencyResolver.getMoneyValues(
+                Position.In.TRADE,
+                trn.cashCurrency!!,
+                trn.portfolio,
+                counterPosition
+            ),
+            counterPosition,
+            trn.cashAmount,
+            BigDecimal.ONE,
+            trn.trnType
+        )
+
+        cashCost.value(
+            currencyResolver.getMoneyValues(
+                Position.In.BASE,
+                trn.cashCurrency!!,
+                trn.portfolio,
+                counterPosition
+            ),
+            counterPosition,
+            trn.cashAmount,
+            trn.tradeBaseRate,
+            trn.trnType
+        )
+
+        cashCost.value(
+            currencyResolver.getMoneyValues(
+                Position.In.PORTFOLIO,
+                trn.cashCurrency!!,
+                trn.portfolio,
+                counterPosition
+            ),
+            counterPosition,
+            trn.cashAmount,
+            trn.tradePortfolioRate,
+            trn.trnType
+        )
     }
 }

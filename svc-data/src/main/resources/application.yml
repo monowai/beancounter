@@ -180,47 +180,46 @@ beancounter:
   currency:
     base: "USD"
     values:
-      - code: GBP
-        name: Pound
+      - code: "GBP"
+        name: "Pound"
         symbol: "£"
 
-      - code: USD
-        name: Dollar
+      - code: "USD"
+        name: "Dollar"
         symbol: "$"
 
-      - code: NZD
-        name: Dollar
+      - code: "NZD"
+        name: "Dollar"
         symbol: "$"
 
-      - code: AUD
-        name: Dollar
+      - code: "AUD"
+        name: "Dollar"
         symbol: "$"
 
-      - code: EUR
-        name: Euro
+      - code: "EUR"
+        name: "Euro"
         symbol: "€"
 
-      - code: SGD
-        name: Dollar
+      - code: "SGD"
+        name: "Dollar"
         symbol: "$"
 
-      - code: MYR
-        name: Ringgit
+      - code: "MYR"
+        name: "Ringgit"
         symbol: "RM"
 
-  asset.categories:
-    default: Equity
-    values:
-      - id: EQUITY
-        name: Equity
-      - id: MUTUAL FUND
-        name: Mutual Fund
-      - id: ETF
-        name: Exchange Traded Fund
-      - id: CASH
-        name: Cash
-      - id: RE
-        name: Real Estate
+  asset:
+    categories:
+      default: "equity"
+      values:
+        - id: "equity"
+          name: "Equity"
+        - id: "cash"
+          name: "Cash"
+        - id: "mutual fund"
+          name: "Mutual Fund"
+        - id: "re"
+          name: "Real Estate"
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: ALPHA
@@ -233,90 +232,90 @@ beancounter:
           - "ASX"
   market:
     values:
-      - code: CASH
-        timezoneId: UTC
-        enricher: DEFAULT
-        type: Internal
+      - code: "CASH"
+        timezoneId: "UTC"
+        enricher: "DEFAULT"
+        type: "Internal"
 
-      - code: CUSTOM
-        timezoneId: UTC
-        enricher: DEFAULT
-        type: Private
+      - code: "CUSTOM"
+        timezoneId: "UTC"
+        enricher: "DEFAULT"
+        type: "Private"
 
-      - code: OFFM
-        timezoneId: UTC
-        enricher: OFFM
-        type: Private
+      - code: "OFFM"
+        timezoneId: "UTC"
+        enricher: "OFFM"
+        type: "Private"
 
-      - code: NASDAQ
-        timezoneId: US/Eastern
-        currencyId: USD
+      - code: "NASDAQ"
+        timezoneId: "US/Eastern"
+        currencyId: "USD"
         aliases:
-          SHARESIGHT: NAS
-          FIGI: US
+          SHARESIGHT: "NAS"
+          FIGI: "US"
 
-      - code: NYSE
-        timezoneId: US/Eastern
-        currencyId: USD
+      - code: "NYSE"
+        timezoneId: "US/Eastern"
+        currencyId: "USD"
         aliases:
-          SHARESIGHT: NYS
-          FIGI: US
+          SHARESIGHT: "NYS"
+          FIGI: "US"
 
-      - code: AMEX
-        timezoneId: US/Eastern
-        currencyId: USD
+      - code: "AMEX"
+        timezoneId: "US/Eastern"
+        currencyId: "USD"
         aliases:
-          figi: US
+          FIGI: "US"
 
-      - code: US
-        timezoneId: US/Eastern
-        currencyId: USD
+      - code: "US"
+        timezoneId: "US/Eastern"
+        currencyId: "USD"
 
-      - code: ASX
-        timezoneId: Australia/Sydney
-        currencyId: AUD
+      - code: "ASX"
+        timezoneId: "Australia/Sydney"
+        currencyId: "AUD"
         aliases:
-          mstack: XASX
-          sharesight: AX
-          figi: AU
+          mstack: "XASX"
+          sharesight: "AX"
+          FIGI: "AU"
 
-      - code: NZX
-        timezoneId: Pacific/Auckland
-        currencyId: NZD
+      - code: "NZX"
+        timezoneId: "Pacific/Auckland"
+        currencyId: "NZD"
         aliases:
-          mstack: NZ
-          alpha: NZ
-          figi: NZ
+          mstack: "NZ"
+          alpha: "NZ"
+          FIGI: "NZ"
 
-      - code: SGX
-        currencyId: SGD
-        timezoneId: Asia/Singapore
+      - code: "SGX"
+        currencyId: "SGD"
+        timezoneId: "Asia/Singapore"
         aliases:
-          figi: SG
+          FIGI: "SG"
 
-      - code: LON
+      - code: "LON"
         # UK assets priced in pence.
-        currencyId: GBP
-        timezoneId: Europe/London
-        multiplier: .01
+        currencyId: "GBP"
+        timezoneId: "Europe/London"
+        multiplier: 0.01
         aliases:
-          mstack: XLON
+          mstack: "XLON"
     providers:
       alpha:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: US,NASDAQ,AMEX,NYSE,LON,NZX
+        markets: "US,NASDAQ,AMEX,NYSE,LON,NZX"
 
       mstack:
         url: https://api.marketstack.com
         batchSize: 10
-        markets: ASX
+        markets: "ASX"
 
       custom:
         batchSize: 1
-        markets: CUSTOM
+        markets: "CUSTOM"
 
       offm:
         batchSize: 1
-        markets: OFFM
+        markets: "OFFM"
 

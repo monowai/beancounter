@@ -22,6 +22,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @SpringBootTest
 @AutoConfigureMockAuth
 class CashAssetTests {
+    companion object {
+        const val CASH = "cash"
+    }
+
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 

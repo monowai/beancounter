@@ -40,7 +40,8 @@ class CashAccumulator(
             ),
             cashPosition,
             quantity,
-            BigDecimal.ONE
+            BigDecimal.ONE,
+            trn.trnType
         ) // Cash trade currency
         cashCost.value(
             currencyResolver.getMoneyValues(
@@ -51,7 +52,8 @@ class CashAccumulator(
             ),
             cashPosition,
             quantity,
-            trn.tradeBaseRate
+            trn.tradeBaseRate,
+            trn.trnType
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
@@ -62,7 +64,8 @@ class CashAccumulator(
             ),
             cashPosition,
             quantity,
-            trn.tradePortfolioRate
+            trn.tradePortfolioRate,
+            trn.trnType
         )
         return position
     }

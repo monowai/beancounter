@@ -50,14 +50,14 @@ class DividendBehaviour(
     private fun value(
         trn: Trn,
         position: Position,
-        `in`: Position.In,
+        currency: Position.In,
         rate: BigDecimal
     ) {
         val moneyValues =
             position.getMoneyValues(
-                `in`,
+                currency,
                 currencyResolver.resolve(
-                    `in`,
+                    currency,
                     trn.portfolio,
                     trn.tradeCurrency
                 )

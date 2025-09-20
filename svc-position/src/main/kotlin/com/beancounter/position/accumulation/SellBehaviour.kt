@@ -57,16 +57,16 @@ class SellBehaviour(
     }
 
     private fun value(
-        `in`: Position.In,
+        currency: Position.In,
         position: Position,
         rate: BigDecimal,
         trn: Trn
     ) {
         val moneyValues =
             position.getMoneyValues(
-                `in`,
+                currency,
                 currencyResolver.resolve(
-                    `in`,
+                    currency,
                     trn.portfolio,
                     trn.tradeCurrency
                 )

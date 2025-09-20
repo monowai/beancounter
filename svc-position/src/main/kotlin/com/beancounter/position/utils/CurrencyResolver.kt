@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service
 @Service
 class CurrencyResolver {
     fun resolve(
-        `in`: Position.In,
+        currency: Position.In,
         portfolio: Portfolio,
         tradeCurrency: Currency
     ): Currency =
-        when (`in`) {
+        when (currency) {
             Position.In.TRADE -> {
                 tradeCurrency
             }
@@ -31,17 +31,17 @@ class CurrencyResolver {
         }
 
     fun getMoneyValues(
-        `in`: Position.In,
-        currency: Currency,
+        currency: Position.In,
+        tradeCurrency: Currency,
         portfolio: Portfolio,
         position: Position
     ): MoneyValues =
         position.getMoneyValues(
-            `in`,
+            currency,
             resolve(
-                `in`,
+                currency,
                 portfolio,
-                currency
+                tradeCurrency
             )
         )
 }

@@ -22,7 +22,8 @@
       "Bash(xargs ls:*)",
       "Bash(git reset:*)",
       "Bash(git clean:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

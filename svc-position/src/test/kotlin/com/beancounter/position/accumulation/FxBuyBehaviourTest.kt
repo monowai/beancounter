@@ -63,21 +63,21 @@ class FxBuyBehaviourTest {
                 "total",
                 trn.tradeAmount
             )
-        // With cost tracking enabled for FX transactions, we now track cost basis
+        // Cost tracking disabled for cash
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                BigDecimal("2500.00") // Trade currency tracks cost (rate defaults to 1.0)
+                ZERO // Cost tracking disabled for cash
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
                 ZERO
             ) // Not yet valued
 
-        // Cost basis should be tracked in BASE currency (rate defaults to 1.0)
+        // Cost tracking disabled for cash
         assertThat(usdPosition.moneyValues[Position.In.BASE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                BigDecimal("2500.00") // quantity * rate (2500 * 1.0)
+                ZERO // Cost tracking disabled for cash
             )
 
         val nzdPosition = positions.positions[toKey(nzdCashBalance)]
@@ -86,14 +86,14 @@ class FxBuyBehaviourTest {
                 "total",
                 trn.cashAmount
             )
-        // NZD position now tracks cost basis for FX transactions
+        // Cost tracking disabled for cash
         assertThat(nzdPosition.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                BigDecimal("5000.00") // abs(cashAmount) = 5000
+                ZERO // Cost tracking disabled for cash
             ).hasFieldOrPropertyWithValue(
                 "costValue",
-                BigDecimal("-5000.00") // Cost value based on quantity and average cost
+                ZERO // Cost tracking disabled for cash
             ).hasFieldOrPropertyWithValue(
                 "marketValue",
                 ZERO
@@ -122,12 +122,12 @@ class FxBuyBehaviourTest {
         val usdBaseMoneyValues = usdPosition.moneyValues[Position.In.BASE]!!
         assertThat(usdBaseMoneyValues)
             .hasFieldOrPropertyWithValue("purchases", BigDecimal("3000.00")) // 2500 * 1.2
-            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("3000.00"))
+            .hasFieldOrPropertyWithValue("costBasis", ZERO) // Cost tracking disabled for cash
 
         // NZD cash position should also track the cost (1:1 for cash currency)
         val nzdPosition = positions.positions[toKey(nzdCashBalance)]!!
         assertThat(nzdPosition.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("3750.00"))
+            .hasFieldOrPropertyWithValue("costBasis", ZERO) // Cost tracking disabled for cash
             .hasFieldOrPropertyWithValue("sales", BigDecimal("-3750.00")) // Negative because it's money going out
     }
 

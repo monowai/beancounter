@@ -87,27 +87,27 @@ class AltCashCurrencyTests {
             .hasFieldOrPropertyWithValue("costValue", BigDecimal("800.00"))
 
         assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.BASE))
-            // Cash settlement tracking: 1600 NZD cost at 2.00 rate
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("2.00"))
-            // Actual calculated cost basis
-            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("3200.00"))
-            // Negative cost value due to cash outflow
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal("-3200.00"))
+            // Cash cost tracking disabled
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
+            // Cost basis disabled for cash
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
+            // Cost value disabled for cash
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO)
 
         assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.PORTFOLIO))
             .hasFieldOrPropertyWithValue(
                 "averageCost",
-                BigDecimal("1.00")
-            ) // In USD: cash amount cost in portfolio currency
+                BigDecimal.ZERO
+            ) // Cost tracking disabled for cash
             .hasFieldOrPropertyWithValue(
                 "costBasis",
-                BigDecimal("1600.00")
-            ) // Cost basis in portfolio currency (USD equivalent)
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal("-1600.00")) // Negative due to cash outflow
+                BigDecimal.ZERO
+            ) // Cost tracking disabled for cash
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO) // Cost tracking disabled for cash
 
         assertThat(positions.getOrThrow(cashAsset).getMoneyValues(Position.In.TRADE))
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("1.00")) // In NZD: cash amount per unit
-            .hasFieldOrPropertyWithValue("costBasis", BigDecimal("1600.00")) // 1600 NZD spent
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal("-1600.00")) // Negative due to cash outflow
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO) // Cost tracking disabled for cash
+            .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO) // Cost tracking disabled for cash
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal.ZERO) // Cost tracking disabled for cash
     }
 }

@@ -2,9 +2,10 @@ package com.beancounter.position.valuation
 
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
-import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.MathUtils
 import java.math.BigDecimal
+
+private const val ENABLED = false
 
 /**
  * Calculate the cost of cash with selective calculation based on transaction type.
@@ -24,8 +25,7 @@ class CashCost(
         moneyValues: MoneyValues,
         position: Position,
         quantity: BigDecimal,
-        rate: BigDecimal,
-        trnType: TrnType? = null
+        rate: BigDecimal
     ) {
         val amount =
             MathUtils.multiply(
@@ -41,7 +41,7 @@ class CashCost(
         }
 
         // Determine if cost tracking should be enabled for this transaction type
-        val enableCostTracking = shouldTrackCost(trnType)
+        val enableCostTracking = shouldTrackCost()
 
         if (enableCostTracking) {
             // Update cost basis for transactions where cost tracking makes sense
@@ -78,21 +78,10 @@ class CashCost(
      * - Trade settlements: Track settlement amounts to maintain cost basis of cash flows
      * - Simple cash movements: No cost tracking (1:1 rate)
      *
-     * @param trnType The transaction type to check
      * @return true if cost tracking should be enabled, false otherwise
      */
-    private fun shouldTrackCost(trnType: TrnType?): Boolean =
-        when (trnType) {
-            TrnType.FX_BUY -> true // FX transactions have real exchange costs
-            TrnType.BUY -> true // Track cash paid for equity purchases
-            TrnType.SELL -> true // Track cash received from equity sales
-            TrnType.DIVI -> true // Track dividend cash received
-            TrnType.DEPOSIT -> false // Simple deposits are 1:1, no cost tracking needed
-            TrnType.WITHDRAWAL -> false // Simple withdrawals are 1:1, no cost tracking needed
-            TrnType.BALANCE -> false // Balance adjustments don't affect cost
-            TrnType.SPLIT -> false // Splits don't change total cost basis
-            TrnType.ADD -> false // ADD transactions don't impact cash
-            TrnType.IGNORE -> false // Ignored transactions
-            null -> false // Default to no cost tracking when type is unknown
-        }
+    private fun shouldTrackCost(): Boolean =
+        // Disable cost tracking for cash to prevent double counting and inflated cost basis
+        // Transactions will still have values for display purposes
+        ENABLED
 }

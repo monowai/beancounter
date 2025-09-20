@@ -36,8 +36,7 @@ class FxBuyBehaviour(
             ),
             position,
             trn.quantity,
-            BigDecimal.ZERO,
-            trn.trnType
+            BigDecimal.ZERO
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
@@ -48,8 +47,7 @@ class FxBuyBehaviour(
             ),
             position,
             trn.quantity,
-            trn.tradeBaseRate,
-            trn.trnType
+            trn.tradeBaseRate
         )
         cashCost.value(
             currencyResolver.getMoneyValues(
@@ -60,8 +58,7 @@ class FxBuyBehaviour(
             ),
             position,
             trn.quantity,
-            trn.tradePortfolioRate,
-            trn.trnType
+            trn.tradePortfolioRate
         )
 
         if (trn.cashAsset != null) {
@@ -94,8 +91,7 @@ class FxBuyBehaviour(
             ),
             counterPosition,
             trn.cashAmount,
-            BigDecimal.ONE,
-            trn.trnType
+            BigDecimal.ONE
         )
 
         cashCost.value(
@@ -107,8 +103,7 @@ class FxBuyBehaviour(
             ),
             counterPosition,
             trn.cashAmount,
-            trn.tradeBaseRate,
-            trn.trnType
+            trn.tradeBaseRate
         )
 
         cashCost.value(
@@ -120,8 +115,7 @@ class FxBuyBehaviour(
             ),
             counterPosition,
             trn.cashAmount,
-            trn.tradePortfolioRate,
-            trn.trnType
+            trn.tradePortfolioRate
         )
     }
 }

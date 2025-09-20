@@ -114,7 +114,7 @@ internal class CashBehaviourTest {
             )
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            cashAmount.abs() // Cost basis equals the cash amount for trade settlements
+            ZERO // Cost tracking disabled for cash
         )
     }
 

@@ -103,6 +103,23 @@ internal class AssetFinderTest {
         )
     }
 
+    @Test
+    fun `should handle unknown asset category gracefully`() {
+        val assetInput =
+            AssetInput(
+                NYSE.code,
+                "UNKNOWN",
+                category = "UnknownCategory"
+            )
+        val asset = Asset.of(assetInput, NYSE)
+
+        // This should not throw NPE - should fall back to default category
+        val hydratedAsset = assetFinder.hydrateAsset(asset)
+
+        assertThat(hydratedAsset.assetCategory)
+            .isEqualTo(assetCategoryConfig.get()) // Should be default category
+    }
+
     private fun validate(
         hydratedAsset: Asset,
         category: AssetCategory?

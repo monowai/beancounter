@@ -18,7 +18,7 @@ data class AssetCategoryConfig
         val values: Collection<AssetCategory>
     ) {
         private var categories = mutableMapOf<String, AssetCategory>()
-        private val default: String = "Equity"
+        var default: String = "EQUITY"
 
         fun getCategories(): MutableMap<String, AssetCategory> {
             if (categories.isEmpty()) {

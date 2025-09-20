@@ -210,15 +210,15 @@ beancounter:
 
   asset:
     categories:
-      default: "equity"
+      default: "EQUITY"
       values:
-        - id: "equity"
+        - id: "EQUITY"
           name: "Equity"
-        - id: "cash"
+        - id: "CASH"
           name: "Cash"
-        - id: "mutual fund"
+        - id: "MUTUAL FUND"
           name: "Mutual Fund"
-        - id: "re"
+        - id: "RE"
           name: "Real Estate"
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis

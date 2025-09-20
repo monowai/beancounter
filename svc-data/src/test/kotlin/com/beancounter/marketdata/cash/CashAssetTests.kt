@@ -23,7 +23,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @AutoConfigureMockAuth
 class CashAssetTests {
     companion object {
-        const val CASH = "cash"
+        const val CASH = "CASH"
     }
 
     @MockitoBean

@@ -44,8 +44,8 @@ class SpringFeignDecoder : ErrorDecoder {
         return when (response.status()) {
             HttpStatus.UNAUTHORIZED.value() -> UnauthorizedException(reason)
             HttpStatus.FORBIDDEN.value() -> ForbiddenException(reason)
-            in 400..499 -> BusinessException(reason)
-            in 500..599 -> SystemException(reason)
+            in HttpStatus.BAD_REQUEST.value()..499 -> BusinessException(reason)
+            in HttpStatus.INTERNAL_SERVER_ERROR.value()..599 -> SystemException(reason)
             else ->
                 FeignException.errorStatus(
                     methodKey,

@@ -17,6 +17,8 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.TimeZone
 
+private const val YEAR_FRACTION = 365.25
+
 /**
  * Utility class for handling dates and times with respect to a configurable time zone.
  * This class provides various methods to work with dates including getting the current date,
@@ -221,7 +223,7 @@ class DateUtils(
             totalDays / daysInYear
         } else {
             // For multi-year periods, use average
-            totalDays / (actualDays / weightedDays * 365.25)
+            totalDays / (actualDays / weightedDays * YEAR_FRACTION)
         }
     }
 }

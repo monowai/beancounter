@@ -1,5 +1,6 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -11,12 +12,13 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 /**
- * Logic to accumulate a dividend transaction event into a position.
+ * Optimized logic to accumulate a dividend transaction event into a position.
+ * Uses BaseAccumulationStrategy to eliminate redundant currency resolution.
  */
 @Service
 class DividendBehaviour(
-    val currencyResolver: CurrencyResolver = CurrencyResolver()
-) : AccumulationStrategy {
+    currencyResolver: CurrencyResolver = CurrencyResolver()
+) : BaseAccumulationStrategy(currencyResolver) {
     override val supportedType: TrnType
         get() = TrnType.DIVI
 
@@ -26,49 +28,27 @@ class DividendBehaviour(
         position: Position
     ): Position {
         position.dateValues.lastDividend = trn.tradeDate
-        value(
-            trn,
-            position,
-            Position.In.TRADE,
-            BigDecimal.ONE
-        )
-        value(
-            trn,
-            position,
-            Position.In.BASE,
-            trn.tradeBaseRate
-        )
-        value(
-            trn,
-            position,
-            Position.In.PORTFOLIO,
-            trn.tradePortfolioRate
-        )
+
+        // Create optimized currency context once instead of 3 separate resolutions
+        val currencyContext = createCurrencyContext(trn, position)
+
+        // Apply dividend updates across all currencies efficiently
+        applyMultiCurrencyUpdate(currencyContext, trn) { moneyValues, rate ->
+            updateDividends(moneyValues, trn.tradeAmount, rate)
+        }
+
         return position
     }
 
-    private fun value(
-        trn: Trn,
-        position: Position,
-        currency: Position.In,
+    private fun updateDividends(
+        moneyValues: MoneyValues,
+        tradeAmount: BigDecimal,
         rate: BigDecimal
     ) {
-        val moneyValues =
-            position.getMoneyValues(
-                currency,
-                currencyResolver.resolve(
-                    currency,
-                    trn.portfolio,
-                    trn.tradeCurrency
-                )
-            )
         moneyValues.dividends =
             add(
                 moneyValues.dividends,
-                multiply(
-                    trn.tradeAmount,
-                    rate
-                )
+                multiply(tradeAmount, rate)
             )
     }
 }

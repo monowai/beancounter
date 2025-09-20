@@ -1,9 +1,6 @@
 package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Position
-import com.beancounter.common.model.Position.In.BASE
-import com.beancounter.common.model.Position.In.PORTFOLIO
-import com.beancounter.common.model.Position.In.TRADE
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
@@ -14,13 +11,14 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 /**
- * Logic to accumulate a buy transaction into a position.
+ * Optimized logic to accumulate a buy transaction into a position.
+ * Uses BaseAccumulationStrategy to eliminate redundant currency resolution.
  */
 @Service
 class BuyBehaviour(
-    val currencyResolver: CurrencyResolver = CurrencyResolver(),
+    currencyResolver: CurrencyResolver = CurrencyResolver(),
     val averageCost: AverageCost = AverageCost()
-) : AccumulationStrategy {
+) : BaseAccumulationStrategy(currencyResolver) {
     override val supportedType: TrnType
         get() = TrnType.BUY
 
@@ -30,70 +28,31 @@ class BuyBehaviour(
         position: Position
     ): Position {
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
-        value(
-            trn,
-            position,
-            TRADE,
-            BigDecimal.ONE
-        )
-        // Use cost of cash for Base and Portfolio(?) rate if cash is impacted
-        value(
-            trn,
-            position,
-            PORTFOLIO,
-            costRate(
-                trn.tradePortfolioRate
-            )
-        )
-        value(
-            trn,
-            position,
-            BASE,
-            costRate(
-                trn.tradeBaseRate
-            )
-        )
+
+        // Create optimized currency context once instead of 3 separate resolutions
+        val currencyContext = createCurrencyContext(trn, position)
+
+        // Apply buy updates across all currencies efficiently
+        applyMultiCurrencyUpdate(currencyContext, trn) { moneyValues, rate ->
+            updatePurchases(moneyValues, trn.tradeAmount, rate, position)
+        }
+
         return position
     }
 
-    // Routine is flawed and not thought through correctly
-    // Simply use the rate from the TRN.
-    // Check git history for the original implementation
-    private fun costRate(defaultRate: BigDecimal = BigDecimal.ONE): BigDecimal = defaultRate
-
-    private fun value(
-        trn: Trn,
-        position: Position,
-        currency: Position.In,
-        rate: BigDecimal
+    private fun updatePurchases(
+        moneyValues: com.beancounter.common.model.MoneyValues,
+        tradeAmount: BigDecimal,
+        rate: BigDecimal,
+        position: Position
     ) {
-        val moneyValues =
-            position.getMoneyValues(
-                currency,
-                currencyResolver.resolve(
-                    currency,
-                    trn.portfolio,
-                    trn.tradeCurrency
-                )
-            )
-        moneyValues.purchases =
-            moneyValues.purchases.add(
-                multiply(
-                    trn.tradeAmount,
-                    rate
-                )
-            )
-        moneyValues.costBasis =
-            moneyValues.costBasis.add(
-                multiply(
-                    trn.tradeAmount,
-                    rate
-                )
-            )
-        if (moneyValues.costBasis != BigDecimal.ZERO &&
-            position.quantityValues
-                .getTotal()
-                .compareTo(BigDecimal.ZERO) != 0
+        val purchaseAmount = multiply(tradeAmount, rate)
+
+        moneyValues.purchases = moneyValues.purchases.add(purchaseAmount)
+        moneyValues.costBasis = moneyValues.costBasis.add(purchaseAmount)
+
+        if (moneyValues.costBasis != ZERO &&
+            position.quantityValues.getTotal().compareTo(ZERO) != 0
         ) {
             moneyValues.averageCost =
                 averageCost.value(

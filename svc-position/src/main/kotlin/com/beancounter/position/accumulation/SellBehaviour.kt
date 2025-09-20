@@ -13,13 +13,14 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 /**
- * Logic to accumulate a sell transaction into a position.
+ * Optimized logic to accumulate a sell transaction into a position.
+ * Uses BaseAccumulationStrategy to eliminate redundant currency resolution.
  */
 @Service
 class SellBehaviour(
-    val currencyResolver: CurrencyResolver = CurrencyResolver(),
+    currencyResolver: CurrencyResolver = CurrencyResolver(),
     val averageCost: AverageCost = AverageCost()
-) : AccumulationStrategy {
+) : BaseAccumulationStrategy(currencyResolver) {
     override val supportedType: TrnType
         get() = TrnType.SELL
 
@@ -31,85 +32,55 @@ class SellBehaviour(
         var soldQuantity = trn.quantity
         if (soldQuantity.toDouble() > 0) {
             // Sign the quantities
-            soldQuantity = BigDecimal.ZERO.subtract(trn.quantity)
+            soldQuantity = ZERO.subtract(trn.quantity)
         }
         val quantityValues = position.quantityValues
         quantityValues.sold = quantityValues.sold.add(soldQuantity)
-        value(
-            Position.In.TRADE,
-            position,
-            BigDecimal.ONE,
-            trn
-        )
-        value(
-            Position.In.BASE,
-            position,
-            trn.tradeBaseRate,
-            trn
-        )
-        value(
-            Position.In.PORTFOLIO,
-            position,
-            trn.tradePortfolioRate,
-            trn
-        )
+
+        // Create optimized currency context once instead of 3 separate resolutions
+        val currencyContext = createCurrencyContext(trn, position)
+
+        // Apply sell updates across all currencies efficiently
+        applyMultiCurrencyUpdate(currencyContext, trn) { moneyValues, rate ->
+            updateSales(moneyValues, trn, rate, position)
+        }
+
         return position
     }
 
-    private fun value(
-        currency: Position.In,
-        position: Position,
+    private fun updateSales(
+        moneyValues: com.beancounter.common.model.MoneyValues,
+        trn: Trn,
         rate: BigDecimal,
-        trn: Trn
+        position: Position
     ) {
-        val moneyValues =
-            position.getMoneyValues(
-                currency,
-                currencyResolver.resolve(
-                    currency,
-                    trn.portfolio,
-                    trn.tradeCurrency
-                )
-            )
-        moneyValues.sales =
-            moneyValues.sales.add(
-                multiply(
-                    trn.tradeAmount,
-                    rate
-                )
-            )
-        if (trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0) {
+        val saleAmount = multiply(trn.tradeAmount, rate)
+        moneyValues.sales = moneyValues.sales.add(saleAmount)
+
+        if (trn.tradeAmount.compareTo(ZERO) != 0) {
             val unitCost =
-                multiply(
-                    trn.tradeAmount,
-                    rate
-                )?.divide(
+                saleAmount?.divide(
                     trn.quantity.abs(),
                     getMathContext()
                 )
             val unitProfit = unitCost?.subtract(moneyValues.averageCost)
             val realisedGain = unitProfit!!.multiply(trn.quantity.abs())
-            moneyValues.realisedGain =
-                add(
-                    moneyValues.realisedGain,
-                    realisedGain
-                )
+            moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)
         }
-        if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) == 0) {
-            moneyValues.costBasis = BigDecimal.ZERO
-            moneyValues.costValue = BigDecimal.ZERO
-            moneyValues.averageCost = BigDecimal.ZERO
-            moneyValues.marketValue = BigDecimal.ZERO
-            moneyValues.unrealisedGain = BigDecimal.ZERO
-            position.quantityValues.sold = BigDecimal.ZERO
-            position.quantityValues.adjustment = BigDecimal.ZERO
-            position.quantityValues.purchased = BigDecimal.ZERO
+
+        if (position.quantityValues.getTotal().compareTo(ZERO) == 0) {
+            // Position is fully closed - reset all values
+            moneyValues.costBasis = ZERO
+            moneyValues.costValue = ZERO
+            moneyValues.averageCost = ZERO
+            moneyValues.marketValue = ZERO
+            moneyValues.unrealisedGain = ZERO
+            position.quantityValues.sold = ZERO
+            position.quantityValues.adjustment = ZERO
+            position.quantityValues.purchased = ZERO
         }
+
         // If quantity changes, we need to update the cost Value
-        moneyValues.costValue =
-            averageCost.getCostValue(
-                position,
-                moneyValues
-            )
+        moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
     }
 }

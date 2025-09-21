@@ -9,6 +9,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.URL_ASSETS_MARKET_CODE
@@ -39,8 +40,8 @@ import java.math.BigDecimal
 /**
  * Enrichment integration tests.
  */
-@SpringBootTest
-@ActiveProfiles("alpha")
+@SpringBootTest(classes = [MarketDataBoot::class])
+@ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockMvc

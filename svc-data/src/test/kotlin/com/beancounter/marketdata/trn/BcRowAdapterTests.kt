@@ -1,18 +1,20 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Portfolio
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
-@SpringBootTest
+@SpringMvcDbTest
+@AutoConfigureMockAuth
 class BcRowAdapterTests {
     @Autowired
     private lateinit var bcRowAdapter: BcRowAdapter

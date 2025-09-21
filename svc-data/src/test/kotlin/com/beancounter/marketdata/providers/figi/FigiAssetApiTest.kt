@@ -12,6 +12,7 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.P_CODE
 import com.beancounter.marketdata.Constants.Companion.P_NAME
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
@@ -50,8 +51,8 @@ private const val BRK_B = "BRK.B"
 /**
  * Bloomberg OpenFigi via mocks.
  */
-@SpringBootTest
-@ActiveProfiles("figi")
+@SpringBootTest(classes = [MarketDataBoot::class])
+@ActiveProfiles("h2db", "figi")
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth

@@ -1,30 +1,36 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.Market
 import com.beancounter.marketdata.Constants.Companion.NYSE
+import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.config.StaticConfigService
 import com.beancounter.marketdata.markets.MarketService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Are assets hydrated correctly?
  */
-@SpringBootTest(
-    classes = [
-        AssetFinder::class,
-        AssetCategoryConfig::class
-    ]
-)
-internal class AssetFinderTest {
+@SpringMvcDbTest
+@AutoConfigureMockAuth
+class AssetFinderTest {
     @Autowired
     private lateinit var assetFinder: AssetFinder
+
+    @MockitoBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockitoBean
+    private lateinit var staticConfigService: StaticConfigService
 
     @MockitoBean
     private lateinit var marketService: MarketService
@@ -37,7 +43,10 @@ internal class AssetFinderTest {
 
     @BeforeEach
     fun mockData() {
+        val cashMarket = Market(code = "CASH")
         Mockito.`when`(marketService.getMarket(NYSE.code)).thenReturn(NYSE)
+        Mockito.`when`(marketService.getMarket("CASH")).thenReturn(cashMarket)
+        Mockito.`when`(marketService.getMarket(Mockito.anyString())).thenReturn(NYSE)
     }
 
     @Test

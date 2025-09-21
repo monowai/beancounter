@@ -1,8 +1,10 @@
 package com.beancounter.marketdata.cash
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.marketdata.Constants.Companion.EUR
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
@@ -12,14 +14,14 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Test the Cash Service.
  */
-@SpringBootTest
+@SpringMvcDbTest
+@AutoConfigureMockAuth
 class CashServiceTest {
     @MockitoBean
     private lateinit var currencyService: CurrencyService

@@ -216,6 +216,8 @@ beancounter:
           name: "Equity"
         - id: "CASH"
           name: "Cash"
+        - id: "ETF"
+          name: "Exchange Traded Fund"
         - id: "MUTUAL FUND"
           name: "Mutual Fund"
         - id: "RE"

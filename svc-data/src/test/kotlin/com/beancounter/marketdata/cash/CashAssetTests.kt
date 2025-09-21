@@ -6,6 +6,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MdFactory
@@ -14,12 +15,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
  * Cash Asset tests.
  */
-@SpringBootTest
+@SpringBootTest(classes = [MarketDataBoot::class])
+@ActiveProfiles("h2db")
 @AutoConfigureMockAuth
 class CashAssetTests {
     companion object {

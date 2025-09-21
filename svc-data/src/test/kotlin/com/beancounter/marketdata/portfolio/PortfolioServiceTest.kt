@@ -1,19 +1,21 @@
 package com.beancounter.marketdata.portfolio
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.TokenService
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
-@SpringBootTest
+@SpringMvcDbTest
+@AutoConfigureMockAuth
 class PortfolioServiceTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder

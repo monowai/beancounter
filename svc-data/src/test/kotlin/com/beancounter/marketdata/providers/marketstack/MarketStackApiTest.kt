@@ -10,6 +10,7 @@ import com.beancounter.marketdata.Constants.Companion.AMP
 import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.providers.marketstack.MarketStackResponseTest.Companion.CONTRACTS
 import com.beancounter.marketdata.providers.marketstack.MarketStackService.Companion.ID
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackData
@@ -38,8 +39,8 @@ import kotlin.collections.set
  * @author mikeh
  * @since 2019-03-04
  */
-@SpringBootTest
-@ActiveProfiles("mstack")
+@SpringBootTest(classes = [MarketDataBoot::class])
+@ActiveProfiles("h2db", "mstack")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 internal class MarketStackApiTest {

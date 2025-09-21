@@ -4,6 +4,7 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -19,8 +20,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 /**
  * Tests enricher behaviour.
  */
-@SpringBootTest
-@ActiveProfiles("alpha")
+@SpringBootTest(classes = [MarketDataBoot::class])
+@ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth

@@ -7,6 +7,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
@@ -33,8 +34,8 @@ import java.math.BigDecimal
  * @author mikeh
  * @since 2019-03-04
  */
-@SpringBootTest
-@ActiveProfiles("alpha")
+@SpringBootTest(classes = [MarketDataBoot::class])
+@ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
@@ -99,7 +100,7 @@ class AlphaApiErrorTest {
 
         val results =
             alphaProvider.getMarketData(
-                PriceRequest.Companion.of(asset)
+                PriceRequest.of(asset)
             )
         assertThat(results).isNotNull.hasSize(1)
         assertThat(results.iterator().next())

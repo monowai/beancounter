@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.spring)
-    id("com.osacky.doctor") version "0.10.0"
+    id("com.osacky.doctor") version "0.12.1"
 }
 
 

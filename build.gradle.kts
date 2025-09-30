@@ -13,7 +13,6 @@ plugins {
     id("com.osacky.doctor") version "0.10.0"
 }
 
-
 // Build configuration
 
 repositories {
@@ -61,6 +60,13 @@ subprojects {
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
         finalizedBy(tasks.named("jacocoTestReport"))
+
+        // Gradle 8.14+ compatibility: Include main source set output in test classpath
+        testClassesDirs +=
+            sourceSets.main
+                .get()
+                .output.classesDirs
+        classpath = classpath + sourceSets.main.get().output + sourceSets.main.get().compileClasspath
 
         // Test optimizations
         maxParallelForks = 1

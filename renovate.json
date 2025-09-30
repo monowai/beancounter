@@ -1,0 +1,109 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "schedule:earlyMondays",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "Pacific/Auckland",
+  "labels": ["dependencies"],
+  "assignees": ["@mikeh"],
+  "reviewers": ["@mikeh"],
+  "configMigration": true,
+  "packageRules": [
+    {
+      "description": "Auto-merge patch updates for non-major dependencies",
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "excludePackageNames": [
+        "org.springframework.boot",
+        "org.springframework.cloud",
+        "org.jetbrains.kotlin",
+        "com.google.cloud"
+      ]
+    },
+    {
+      "description": "Group Spring Boot packages together",
+      "groupName": "Spring Boot",
+      "matchPackageNames": ["/^org\\.springframework\\.boot/", "/^org\\.springframework\\./"]
+    },
+    {
+      "description": "Group Spring Cloud packages together",
+      "groupName": "Spring Cloud",
+      "matchPackageNames": ["/^org\\.springframework\\.cloud/"]
+    },
+    {
+      "description": "Group Kotlin packages together",
+      "groupName": "Kotlin",
+      "matchPackageNames": ["/^org\\.jetbrains\\.kotlin/", "/^org\\.jetbrains\\.kotlinx/"]
+    },
+    {
+      "description": "Group testing packages together",
+      "groupName": "testing packages",
+      "matchPackageNames": [
+        "/junit/",
+        "/mockito/",
+        "/assertj/",
+        "/testcontainers/",
+        "/wiremock/"
+      ]
+    },
+    {
+      "description": "Group OpenTelemetry packages together",
+      "groupName": "OpenTelemetry packages",
+      "matchPackageNames": ["/^io\\.opentelemetry/"]
+    },
+    {
+      "description": "Group Google Cloud packages together",
+      "groupName": "Google Cloud",
+      "matchPackageNames": ["/^com\\.google\\.cloud/", "/^com\\.google\\.api/"]
+    },
+    {
+      "description": "Separate major updates for critical packages",
+      "matchPackageNames": [
+        "org.springframework.boot",
+        "org.springframework.cloud",
+        "org.jetbrains.kotlin.jvm",
+        "org.jetbrains.kotlin.plugin.spring",
+        "com.google.cloud.spring-cloud-gcp-dependencies"
+      ],
+      "separateMajorMinor": true,
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Auto-merge minor and patch updates for test dependencies",
+      "matchFileNames": ["**/test/**", "**/src/test/**"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Ignore specific problematic versions from Dependabot config",
+      "matchPackageNames": [
+        "com.google.apis:google-api-services-sheets",
+        "com.google.api-client:google-api-client",
+        "com.google.oauth-client:google-oauth-client-jetty"
+      ],
+      "allowedVersions": "!/^(v4-rev20201130-1\\.31\\.0|v4-rev20210223-1\\.31\\.0|v4-rev20210309-1\\.31\\.0|v4-rev20210316-1\\.31\\.0|1\\.31\\.[23]|1\\.31\\.4)$/"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "assignees": ["@mikeh"],
+    "labels": ["security"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on Monday"]
+  },
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "commitMessagePrefix": "chore:",
+  "commitMessageAction": "update",
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+  "prTitle": "{{commitMessagePrefix}} {{commitMessageAction}} {{commitMessageTopic}} {{commitMessageExtra}}",
+  "prBodyTemplate": "This PR updates {{depName}} from `{{currentVersion}}` to `{{newVersion}}`.\n\n{{#if hasReleaseNotes}}**Release Notes:**\n{{{releaseNotes}}}{{/if}}\n\n{{#if hasChangelog}}**Changelog:**\n{{{changelog}}}{{/if}}\n\n---\n*This PR was generated automatically by Renovate Bot.*",
+  "rangeStrategy": "bump"
+}

@@ -17,7 +17,7 @@ sentry = "7.22.5"
 postgres = "42.7.7"
 guava = "33.4.0-jre"
 servlet-api = "6.1.0"
-spring-ai = "1.0.1"
+spring-ai = "1.0.2"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }

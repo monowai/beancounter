@@ -7,37 +7,55 @@
     ":semanticCommits"
   ],
   "timezone": "Pacific/Auckland",
-  "labels": ["dependencies"],
-  "assignees": ["@mikeh"],
-  "reviewers": ["@mikeh"],
+  "labels": [
+    "dependencies"
+  ],
+  "assignees": [
+    "@mikeh"
+  ],
+  "reviewers": [
+    "@mikeh"
+  ],
   "configMigration": true,
   "packageRules": [
     {
       "description": "Auto-merge patch updates for non-major dependencies",
-      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": [
+        "patch",
+        "pin",
+        "digest"
+      ],
       "automerge": true,
       "automergeType": "pr",
-      "excludePackageNames": [
-        "org.springframework.boot",
-        "org.springframework.cloud",
-        "org.jetbrains.kotlin",
-        "com.google.cloud"
+      "matchPackageNames": [
+        "!org.springframework.boot",
+        "!org.springframework.cloud",
+        "!org.jetbrains.kotlin",
+        "!com.google.cloud"
       ]
     },
     {
       "description": "Group Spring Boot packages together",
       "groupName": "Spring Boot",
-      "matchPackageNames": ["/^org\\.springframework\\.boot/", "/^org\\.springframework\\./"]
+      "matchPackageNames": [
+        "/^org\\.springframework\\.boot/",
+        "/^org\\.springframework\\./"
+      ]
     },
     {
       "description": "Group Spring Cloud packages together",
       "groupName": "Spring Cloud",
-      "matchPackageNames": ["/^org\\.springframework\\.cloud/"]
+      "matchPackageNames": [
+        "/^org\\.springframework\\.cloud/"
+      ]
     },
     {
       "description": "Group Kotlin packages together",
       "groupName": "Kotlin",
-      "matchPackageNames": ["/^org\\.jetbrains\\.kotlin/", "/^org\\.jetbrains\\.kotlinx/"]
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin/",
+        "/^org\\.jetbrains\\.kotlinx/"
+      ]
     },
     {
       "description": "Group testing packages together",
@@ -53,12 +71,17 @@
     {
       "description": "Group OpenTelemetry packages together",
       "groupName": "OpenTelemetry packages",
-      "matchPackageNames": ["/^io\\.opentelemetry/"]
+      "matchPackageNames": [
+        "/^io\\.opentelemetry/"
+      ]
     },
     {
       "description": "Group Google Cloud packages together",
       "groupName": "Google Cloud",
-      "matchPackageNames": ["/^com\\.google\\.cloud/", "/^com\\.google\\.api/"]
+      "matchPackageNames": [
+        "/^com\\.google\\.cloud/",
+        "/^com\\.google\\.api/"
+      ]
     },
     {
       "description": "Separate major updates for critical packages",
@@ -74,8 +97,14 @@
     },
     {
       "description": "Auto-merge minor and patch updates for test dependencies",
-      "matchFileNames": ["**/test/**", "**/src/test/**"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchFileNames": [
+        "**/test/**",
+        "**/src/test/**"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     },
     {
@@ -90,12 +119,18 @@
   ],
   "vulnerabilityAlerts": {
     "enabled": true,
-    "assignees": ["@mikeh"],
-    "labels": ["security"]
+    "assignees": [
+      "@mikeh"
+    ],
+    "labels": [
+      "security"
+    ]
   },
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on Monday"]
+    "schedule": [
+      "before 6am on Monday"
+    ]
   },
   "prConcurrentLimit": 5,
   "prHourlyLimit": 2,

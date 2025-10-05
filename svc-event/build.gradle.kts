@@ -9,6 +9,15 @@ plugins {
 
 version = "0.1.1"
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.springframework.data" && requested.name != "spring-data-bom") {
+            useVersion("3.5.3")
+            because("Force Spring Data 2025.0.3 to fix deleteBy regression in 3.5.4")
+        }
+    }
+}
+
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))

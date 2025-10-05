@@ -10,7 +10,7 @@ extra["guavaVersion"] = "33.3.1-jre"
 dependencies {
     api(libs.jackson.kotlin)
     api(libs.sentry.opentelemetry)
-    
+
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform("io.opentelemetry:opentelemetry-bom:1.54.1"))
@@ -28,7 +28,7 @@ dependencies {
     }
     implementation(libs.commons.io)
     implementation(libs.guava)
-    
+
     testImplementation(libs.spring.boot.starter.test) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
@@ -45,11 +45,11 @@ dependencies {
     testImplementation(libs.guava)
     testImplementation("org.springframework:spring-web")
     testImplementation("org.junit.jupiter:junit-jupiter")
-    
+
     testImplementation(libs.jackson.kotlin) {
         exclude(module = "kotlin-reflect")
     }
-    
+
     // Test fixtures dependencies
     testFixturesImplementation(libs.spring.boot.starter.test) {
         exclude(group = "org.apache.commons", module = "commons-lang3")

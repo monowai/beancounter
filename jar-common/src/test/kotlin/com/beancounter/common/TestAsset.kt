@@ -159,8 +159,7 @@ internal class TestAsset {
         if (marketAsset.size != 2) {
             throw BusinessException(
                 String.format(
-                    "Unable to parse the key %s",
-                    key
+                    "Unable to parse the key $key"
                 )
             )
         }

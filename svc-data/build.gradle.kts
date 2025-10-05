@@ -10,6 +10,15 @@ plugins {
 
 version = "0.1.1"
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.springframework.data" && requested.name != "spring-data-bom") {
+            useVersion("3.5.3")
+            because("Force Spring Data 2025.0.3 to fix deleteBy regression in 3.5.4")
+        }
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("data-stubs") {
@@ -22,6 +31,7 @@ publishing {
 }
 
 dependencies {
+    implementation(platform(libs.spring.data.bom))
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
     implementation(platform(libs.spring.ai.bom))

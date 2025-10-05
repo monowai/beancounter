@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.spring)
-    id("com.osacky.doctor") version "0.10.0"
 }
 
 // Build configuration
@@ -52,7 +51,7 @@ subprojects {
     kotlin {
         jvmToolchain(21)
         compilerOptions {
-            languageVersion.set(KotlinVersion.KOTLIN_2_1)
+            languageVersion.set(KotlinVersion.KOTLIN_2_2)
         }
     }
 
@@ -95,7 +94,8 @@ subprojects {
             freeCompilerArgs.addAll(
                 "-Xjsr305=strict",
                 "-Xjvm-default=all",
-                "-Xmulti-dollar-interpolation"
+                "-Xmulti-dollar-interpolation",
+                "-Xannotation-default-target=param-property"
             )
         }
     }

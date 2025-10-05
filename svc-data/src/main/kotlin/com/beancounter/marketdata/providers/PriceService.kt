@@ -89,6 +89,13 @@ class PriceService(
         val createSet =
             priceResponse.data
                 .filter { !cashUtils.isCash(it.asset) && it.close != BigDecimal.ZERO }
+                .filter { marketData ->
+                    // Skip if already exists (idempotent operation)
+                    marketDataRepo.countByAssetIdAndPriceDate(
+                        marketData.asset.id,
+                        marketData.priceDate
+                    ) == 0L
+                }
 
         priceResponse.data
             .filter { !cashUtils.isCash(it.asset) && isCorporateEvent(it) }

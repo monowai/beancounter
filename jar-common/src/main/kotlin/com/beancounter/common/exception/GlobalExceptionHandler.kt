@@ -22,6 +22,17 @@ import java.net.ConnectException
 class GlobalExceptionHandler(
     @param:Value($$"${sentry.enabled:false}") val sentryEnabled: Boolean = false
 ) {
+    @ExceptionHandler(UnauthorizedException::class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun handleUnauthorized(e: UnauthorizedException): ProblemDetail {
+        log.debug("Unauthorized access attempt: {}", e.message)
+        return ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNAUTHORIZED,
+            e.message ?: "Authentication required"
+        )
+    }
+
     @ExceptionHandler(
         AccessDeniedException::class,
         ForbiddenException::class

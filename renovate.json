@@ -11,10 +11,10 @@
         "dependencies"
     ],
     "assignees": [
-        "@monowai"
+        "monowai"
     ],
     "reviewers": [
-        "@monowai"
+        "monowai"
     ],
     "configMigration": true,
     "packageRules": [
@@ -120,12 +120,13 @@
     "vulnerabilityAlerts": {
         "enabled": true,
         "assignees": [
-            "@monowai"
+            "monowai"
         ],
         "labels": [
             "security"
         ]
     },
+    "dependencyDashboardAutoclose": false,
     "lockFileMaintenance": {
         "enabled": true,
         "schedule": [

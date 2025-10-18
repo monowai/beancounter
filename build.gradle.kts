@@ -61,11 +61,14 @@ subprojects {
         finalizedBy(tasks.named("jacocoTestReport"))
 
         // Gradle 8.14+ compatibility: Include main source set output in test classpath
-        testClassesDirs +=
-            sourceSets.main
-                .get()
-                .output.classesDirs
-        classpath = classpath + sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+        // Skip this for contractTest task as it has its own source set
+        if (name != "contractTest") {
+            testClassesDirs +=
+                sourceSets.main
+                    .get()
+                    .output.classesDirs
+            classpath = classpath + sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+        }
 
         // Test optimizations
         maxParallelForks = 1

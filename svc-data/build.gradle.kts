@@ -69,7 +69,8 @@ dependencies {
     
     compileOnly(libs.spring.boot.configuration.processor)
     contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")
-    
+    contractTestRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     testImplementation(libs.spring.boot.starter.test) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
@@ -80,6 +81,7 @@ dependencies {
     testImplementation(libs.spring.kafka.test)
     testImplementation("org.junit.platform:junit-platform-suite-api")
     testImplementation("org.junit.platform:junit-platform-suite-engine")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
 }
@@ -94,6 +96,7 @@ contracts {
 }
 
 tasks.named<Test>("contractTest") {
+    useJUnitPlatform()
     testLogging {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }

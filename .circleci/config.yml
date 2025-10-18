@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
-  codecov: codecov/codecov@3.2.5
-  snyk: snyk/snyk@2.3.3
+  codecov: codecov/codecov@3.3.0
+  snyk: snyk/snyk@2.3.0
 
 # Configurable branch patterns for different actions
 # These can be overridden via CircleCI environment variables
@@ -18,7 +18,7 @@ executors:
       GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
       STACK_VER: << pipeline.number >>
     docker:
-      - image: cimg/openjdk:21.0
+      - image: cimg/openjdk:21.0.8
 
 jobs:
   # Complete build job that handles everything in the correct order

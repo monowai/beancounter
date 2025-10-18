@@ -47,6 +47,15 @@ style:
   UtilityClassWithPublicConstructor:
     active: false
 
+naming:
+  FunctionNaming:
+    active: true
+    excludes: ['**/test/**', '**/*Test.kt', '**/*Tests.kt', '**/*Spec.kt']
+  FunctionMaxLength:
+    active: true
+    excludes: ['**/test/**', '**/*Test.kt', '**/*Tests.kt', '**/*Spec.kt']
+    maximumFunctionNameLength: 64
+
 potential-bugs:
   active: true
 

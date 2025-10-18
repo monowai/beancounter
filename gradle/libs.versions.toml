@@ -11,11 +11,11 @@ spring-cloud-contract = "4.3.0"
 spring-data-bom = "2025.0.3"
 spring-kafka = "3.3.8"
 spring-security = "6.5.2"
-spring-doc = "2.8.8"
-jackson = "2.18.2"
+spring-doc = "2.8.13"
+jackson = "2.20.0"
 mockitoKotlin = '5.4.0'
 sentry = "7.22.5"
-postgres = "42.7.7"
+postgres = "42.7.8"
 guava = "33.4.0-jre"
 servlet-api = "6.1.0"
 spring-ai = "1.0.2"
@@ -77,6 +77,6 @@ kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 sentry = { id = "io.sentry.jvm.gradle", version = "4.14.1" }
 spring-contract = { id = "org.springframework.cloud.contract", version.ref = "spring-cloud-contract" }
-git-properties = { id = "com.gorylenko.gradle-git-properties", version = "2.4.2" }
+git-properties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.3" }
 download = { id = "de.undercouch.download", version = "5.6.0" }
 

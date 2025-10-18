@@ -15,6 +15,7 @@ import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.event.service.Event
 import com.beancounter.event.service.TaxService
 import java.math.BigDecimal
+import java.util.Locale
 
 /**
  * Generate a BC corporate event from an AlphaVantage data row.
@@ -80,6 +81,7 @@ class AlphaEventAdapter(
         }
         throw SystemException(
             String.format(
+                Locale.US,
                 "Unsupported event type %s",
                 corporateEvent.trnType
             )

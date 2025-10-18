@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.5
+  snyk: snyk/snyk@2.3.3
 
 # Configurable branch patterns for different actions
 # These can be overridden via CircleCI environment variables
@@ -52,6 +53,13 @@ jobs:
             ./gradlew :svc-event:build --no-daemon --parallel --max-workers=4
             echo "📦 Step 3: Building client libraries..."
             ./gradlew :jar-client:build :jar-shell:build --no-daemon --parallel --max-workers=4
+
+      # Snyk security scanning (monitor mode - does not fail build)
+      - snyk/scan:
+          fail-on-issues: false
+          monitor-on-build: true
+          severity-threshold: low
+          target-file: build.gradle.kts
 
       # Upload coverage for all projects
       - codecov/upload:

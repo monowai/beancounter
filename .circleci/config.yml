@@ -60,6 +60,7 @@ jobs:
           monitor-on-build: true
           severity-threshold: low
           target-file: build.gradle.kts
+          additional-arguments: --all-sub-projects
 
       # Upload coverage for all projects
       - codecov/upload:

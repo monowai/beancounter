@@ -24,7 +24,6 @@ import java.time.Duration
  * Configuration to integrate with Auth0.  This config has eager initialization, so you might want to
  * mock this out in Unit Tests:
  *
- * @see com.beancounter.auth.MockAuthConfig
  */
 @Configuration
 @ConditionalOnBean(AuthConfig::class)
@@ -34,8 +33,8 @@ class OAuthConfig {
     fun jwtDecoder(authConfig: AuthConfig): JwtDecoder {
         val jwtRestOperations =
             RestTemplateBuilder()
-                .connectTimeout(Duration.ofSeconds(60))
-                .readTimeout(Duration.ofSeconds(60))
+                .connectTimeout(Duration.ofSeconds(authConfig.jwksConnectTimeout))
+                .readTimeout(Duration.ofSeconds(authConfig.jwksReadTimeout))
                 .build()
 
         // JwtUtil is  a copy and paste of JwtDecoderProviderConfigurationUtils in order to be able to

@@ -8,18 +8,24 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class AuthConfig(
-    @Value("\${auth.email:\${auth.audience}/claims/email}")
+    @Value($$"${auth.email:${auth.audience}/claims/email}")
     var claimEmail: String
 ) {
-    @Value("\${auth.audience:https://holdsworth.app}")
+    @Value($$"${auth.audience:https://holdsworth.app}")
     val audience: String = "beancounter"
 
-    @Value("\${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+    @Value($$"${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     val issuer: String = "not-set"
 
-    @Value("\${spring.security.oauth2.registration.custom.client-id:bc-service}")
+    @Value($$"${spring.security.oauth2.registration.custom.client-id:bc-service}")
     lateinit var clientId: String
 
-    @Value("\${spring.security.oauth2.registration.custom.client-secret:not-set}")
+    @Value($$"${spring.security.oauth2.registration.custom.client-secret:not-set}")
     lateinit var clientSecret: String
+
+    @Value($$"${auth.jwks.connect-timeout:10}")
+    val jwksConnectTimeout: Long = 10
+
+    @Value($$"${auth.jwks.read-timeout:10}")
+    val jwksReadTimeout: Long = 10
 }

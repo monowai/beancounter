@@ -141,7 +141,7 @@ class KafkaTrnExportImportTest {
             )
         ).thenReturn(ZERO)
         assertThat(currencyService.currencies()).isNotEmpty
-        assertThat(eventProducer.kafkaEnabled).isTrue
+        // StreamBridge is always available - no need to check kafkaEnabled
         val rateResponse = ClassPathResource("mock/fx/fx-current-rates.json").file
 
         stubFx(

@@ -6,7 +6,6 @@ spring:
     function:
       definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
     stream:
-      defaultBinder: test
       kafka:
         binder:
           brokers: "localhost:${kafka.broker.port:9092}"

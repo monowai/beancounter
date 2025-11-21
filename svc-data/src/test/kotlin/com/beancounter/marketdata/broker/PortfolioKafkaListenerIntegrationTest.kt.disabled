@@ -10,8 +10,6 @@ import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.stream.binder.test.InputDestination
-import org.springframework.cloud.stream.binder.test.TestChannelBinder.MessageCollectorConfiguration
-import org.springframework.context.annotation.Import
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.annotation.DirtiesContext
@@ -25,8 +23,7 @@ import java.util.concurrent.TimeUnit
  */
 @SpringBootTest(
     properties = [
-        "spring.cloud.stream.defaultBinder=test",
-        "spring.autoconfigure.exclude=org.springframework.cloud.stream.test.binder.TestSupportBinderAutoConfiguration"
+        "spring.cloud.stream.defaultBinder=test"
     ]
 )
 @ActiveProfiles("test")

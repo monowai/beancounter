@@ -2,7 +2,6 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceResponse
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.function.Consumer

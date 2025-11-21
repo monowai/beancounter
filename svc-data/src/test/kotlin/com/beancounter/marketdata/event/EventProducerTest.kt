@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.cloud.stream.function.StreamBridge
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -23,35 +23,24 @@ import java.time.LocalDate
  * - Corporate event publishing for dividend data
  * - Corporate event publishing for split data
  * - Event filtering for invalid or null market data
- * - Kafka configuration and topic handling
+ * - Stream configuration and binding handling
  * - Event producer lifecycle and configuration
  *
  * Tests verify that the EventProducer correctly identifies and publishes
- * corporate events to Kafka when valid market data is provided.
+ * corporate events via Spring Cloud Stream when valid market data is provided.
  */
 class EventProducerTest {
     private lateinit var eventProducer: EventProducer
-    private lateinit var kafkaTemplate: KafkaTemplate<String, TrustedEventInput>
+    private lateinit var streamBridge: StreamBridge
     private val dateUtils = DateUtils()
     private lateinit var testAsset: Asset
     private lateinit var testMarketData: MarketData
 
     @BeforeEach
     fun setUp() {
-        @Suppress("UNCHECKED_CAST")
-        kafkaTemplate = Mockito.mock(KafkaTemplate::class.java) as KafkaTemplate<String, TrustedEventInput>
-        eventProducer = EventProducer()
-        eventProducer.kafkaEnabled = true
-
-        // Use reflection to set the private field
-        val field = EventProducer::class.java.getDeclaredField("topicEvent")
-        field.isAccessible = true
-        field.set(eventProducer, "test-ca-event")
-
-        // Set the kafka template
-        val setKafkaMethod =
-            EventProducer::class.java.getDeclaredMethod("setKafkaCaProducer", KafkaTemplate::class.java)
-        setKafkaMethod.invoke(eventProducer, kafkaTemplate)
+        streamBridge = Mockito.mock(StreamBridge::class.java)
+        eventProducer = EventProducer(streamBridge)
+        eventProducer.streamEnabled = true
 
         testAsset =
             Asset(
@@ -89,9 +78,9 @@ class EventProducerTest {
         // When the event producer writes the market data
         eventProducer.write(dividendMarketData)
 
-        // Then the event should be published to Kafka
-        verify(kafkaTemplate).send(
-            Mockito.eq("test-ca-event"),
+        // Then the event should be published via StreamBridge
+        verify(streamBridge).send(
+            Mockito.eq("corporateEvent-out-0"),
             Mockito.any(TrustedEventInput::class.java)
         )
     }
@@ -112,9 +101,9 @@ class EventProducerTest {
         // When the event producer writes the market data
         eventProducer.write(splitMarketData)
 
-        // Then the event should be published to Kafka
-        verify(kafkaTemplate).send(
-            Mockito.eq("test-ca-event"),
+        // Then the event should be published via StreamBridge
+        verify(streamBridge).send(
+            Mockito.eq("corporateEvent-out-0"),
             Mockito.any(TrustedEventInput::class.java)
         )
     }
@@ -136,7 +125,7 @@ class EventProducerTest {
         eventProducer.write(regularMarketData)
 
         // Then no event should be published
-        verifyNoInteractions(kafkaTemplate)
+        verifyNoInteractions(streamBridge)
     }
 
     @Test
@@ -156,8 +145,8 @@ class EventProducerTest {
         eventProducer.write(dividendMarketData)
 
         // Then the correct corporate event should be created and sent
-        verify(kafkaTemplate).send(
-            Mockito.eq("test-ca-event"),
+        verify(streamBridge).send(
+            Mockito.eq("corporateEvent-out-0"),
             Mockito.argThat { eventInput: TrustedEventInput ->
                 val event = eventInput.data
                 event.trnType == TrnType.DIVI &&
@@ -187,8 +176,8 @@ class EventProducerTest {
         eventProducer.write(splitMarketData)
 
         // Then the correct corporate event should be created and sent
-        verify(kafkaTemplate).send(
-            Mockito.eq("test-ca-event"),
+        verify(streamBridge).send(
+            Mockito.eq("corporateEvent-out-0"),
             Mockito.argThat { eventInput: TrustedEventInput ->
                 val event = eventInput.data
                 event.trnType == TrnType.DIVI &&
@@ -218,8 +207,8 @@ class EventProducerTest {
         eventProducer.write(combinedMarketData)
 
         // Then the event should be published with both values
-        verify(kafkaTemplate).send(
-            Mockito.eq("test-ca-event"),
+        verify(streamBridge).send(
+            Mockito.eq("corporateEvent-out-0"),
             Mockito.argThat { eventInput: TrustedEventInput ->
                 val event = eventInput.data
                 event.rate == BigDecimal("0.25") &&

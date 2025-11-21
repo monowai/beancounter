@@ -42,7 +42,7 @@ otel:
 marketdata:
   url: "http://localhost:9510"
 beancounter:
-  irr: 225
+  irr: 365
 auth:
   uri: "http://your-auth0-endpoint/"
   audience: "auth0-audience"
@@ -57,11 +57,22 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${auth.uri}
-  kafka:
-    bootstrap-servers: kafka:9092
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   cloud:
+    stream:
+      bindings:
+        # Portfolio Market Value Producer (StreamBridge)
+        portfolioMarketValue-out-0:
+          destination: bc-pos-mv-dev
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: kafka:9092
+        bindings:
+          portfolioMarketValue-out-0:
+            producer:
+              configuration:
+                # Use StringSerializer for message keys (portfolio.id)
+                key.serializer: org.apache.kafka.common.serialization.StringSerializer
     openfeign:
       client:
         config:

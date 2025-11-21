@@ -36,6 +36,9 @@ spring-cloud-feign = { module = "org.springframework.cloud:spring-cloud-starter-
 commons-io = { module = "commons-io:commons-io", version = "2.18.0" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test", version.ref = "spring-kafka" }
+spring-cloud-stream = { module = "org.springframework.cloud:spring-cloud-stream" }
+spring-cloud-stream-binder-kafka = { module = "org.springframework.cloud:spring-cloud-stream-binder-kafka" }
+spring-cloud-stream-test-binder = { module = "org.springframework.cloud:spring-cloud-stream-test-support" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }

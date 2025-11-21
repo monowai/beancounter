@@ -6,45 +6,23 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.model.TrnType
-import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.stereotype.Service
 
 /**
- * Kafka Corporate Action/Event subscriber.
+ * Corporate Action/Event publisher using Spring Cloud Stream.
  */
 @Service
-@ConditionalOnProperty(
-    value = ["kafka.enabled"],
-    matchIfMissing = true
-)
-class EventProducer {
-    @Value("\${kafka.enabled:true}")
-    var kafkaEnabled: Boolean = false
-
-    @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")
-    private lateinit var topicEvent: String
-    private lateinit var kafkaCaProducer: KafkaTemplate<String, TrustedEventInput>
-
-    @PostConstruct
-    fun logConfig() {
-        log.info(
-            "BEANCOUNTER_TOPICS_CA_EVENT: {}",
-            topicEvent
-        )
-    }
-
-    @Autowired
-    fun setKafkaCaProducer(kafkaCaProducer: KafkaTemplate<String, TrustedEventInput>) {
-        this.kafkaCaProducer = kafkaCaProducer
-    }
+class EventProducer(
+    private val streamBridge: StreamBridge
+) {
+    @Value("\${stream.enabled:true}")
+    var streamEnabled: Boolean = true
 
     fun write(marketData: MarketData) {
-        if (!kafkaEnabled || !isValidEvent(marketData)) {
+        if (!streamEnabled || !isValidEvent(marketData)) {
             return
         }
         val corporateEvent =
@@ -58,14 +36,10 @@ class EventProducer {
                 split = marketData.split
             )
         log.trace(
-            "Dispatch {} ... {}",
-            topicEvent,
+            "Publishing corporate event: {}",
             marketData
         )
-        kafkaCaProducer.send(
-            topicEvent,
-            TrustedEventInput(corporateEvent)
-        )
+        streamBridge.send("corporateEvent-out-0", TrustedEventInput(corporateEvent))
     }
 
     private fun isValidEvent(marketData: MarketData?): Boolean =

@@ -81,6 +81,9 @@ auth:
   client: "not-set"
   client-secret: "not-set"
 
+stream:
+  enabled: true
+
 spring:
   cloud:
     openfeign:
@@ -93,6 +96,60 @@ spring:
             url: https://www.marketstack.com
             loggerLevel: NONE # BASIC, FULL, HEADERS
 
+    function:
+      definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
+    stream:
+      bindings:
+        # CSV Import Consumer
+        csvImportConsumer-in-0:
+          destination: bc-trn-csv-dev
+          group: bc-data
+          content-type: application/json
+        # Transaction Event Consumer
+        trnEventConsumer-in-0:
+          destination: bc-trn-event-dev
+          group: bc-data
+          content-type: application/json
+        # Price Data Consumer
+        priceConsumer-in-0:
+          destination: bc-price-dev
+          group: bc-data
+          content-type: application/json
+        # Portfolio Updates Consumer
+        portfolioConsumer-in-0:
+          destination: bc-pos-mv-dev
+          group: bc-data
+          content-type: application/json
+        # Corporate Event Producer (StreamBridge)
+        corporateEvent-out-0:
+          destination: bc-ca-event-dev
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: kafka:9092
+          consumer-properties:
+            # Spring Cloud Stream handles deserialization based on content-type
+            # No need for custom deserializer configuration
+            key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+        bindings:
+          # DLQ configuration for all consumers
+          csvImportConsumer-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: bc-trn-csv-dev-dlq
+          trnEventConsumer-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: bc-trn-event-dev-dlq
+          priceConsumer-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: bc-price-dev-dlq
+          portfolioConsumer-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: bc-pos-mv-dev-dlq
 
   security:
     oauth2:
@@ -124,12 +181,6 @@ spring:
         globally_quoted_identifiers: true
         globally_quoted_identifiers_skip_column_definitions: true
 
-  kafka:
-    bootstrap-servers: kafka:9092
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      group-id: bc-data
   ai:
     mcp:
       server:
@@ -172,9 +223,6 @@ resilience4j:
         waitDuration: PT10S
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
-
-kafka:
-  enabled: false
 
 beancounter:
   currency:

@@ -1,17 +1,27 @@
-kafka:
+stream:
   enabled: "true"
-  broker.port: 0
 
 spring:
+  cloud:
+    function:
+      definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
+    stream:
+      defaultBinder: test
+      kafka:
+        binder:
+          brokers: "localhost:${kafka.broker.port:9092}"
   kafka:
     consumer:
       auto-offset-reset: earliest
       auto-create-topics-enable: true
-      group-id: "data-test:${kafka.broker.port}"
-    bootstrap-servers: "${spring.embedded.kafka.brokers}"
+      group-id: "data-test:${kafka.broker.port:9092}"
+    bootstrap-servers: "${spring.embedded.kafka.brokers:localhost:9092}"
   embedded:
     kafka:
-      brokers: "localhost:${kafka.broker.port}"
+      brokers: "localhost:${kafka.broker.port:9092}"
+
+kafka:
+  broker.port: 0
 
 
 beancounter:

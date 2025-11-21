@@ -5,57 +5,57 @@ import com.beancounter.position.utils.TestHelpers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.support.SendResult
-import java.util.concurrent.CompletableFuture
+import org.springframework.cloud.stream.function.StreamBridge
+import org.springframework.kafka.support.KafkaHeaders
+import org.springframework.messaging.Message
 
 /**
- * Test suite for MarketValueUpdateProducer to ensure proper Kafka message publishing.
+ * Test suite for MarketValueUpdateProducer to ensure proper message publishing via Spring Cloud Stream.
  *
  * This class tests:
- * - Portfolio message publishing to Kafka
- * - Topic configuration and message routing
- * - Kafka template interaction
+ * - Portfolio message publishing via StreamBridge
+ * - Message key handling
+ * - StreamBridge interaction
  * - Message payload handling
  *
  * Tests verify that the MarketValueUpdateProducer correctly
- * publishes portfolio updates to the configured Kafka topic.
+ * publishes portfolio updates via the configured binding.
  */
 @ExtendWith(MockitoExtension::class)
 class MarketValueUpdateProducerTest {
     @Mock
-    private lateinit var kafkaTemplate: KafkaTemplate<String, Portfolio>
-
-    @Mock
-    private lateinit var sendResult: SendResult<String, Portfolio>
+    private lateinit var streamBridge: StreamBridge
 
     private lateinit var marketValueUpdateProducer: MarketValueUpdateProducer
 
     private lateinit var testPortfolio: Portfolio
-    private val testTopicName = "test-pos-mv-topic"
 
     @BeforeEach
     fun setUp() {
         testPortfolio = TestHelpers.createTestPortfolio("test-portfolio")
-        marketValueUpdateProducer = MarketValueUpdateProducer(kafkaTemplate, testTopicName)
+        marketValueUpdateProducer = MarketValueUpdateProducer(streamBridge)
+        whenever(streamBridge.send(any(), any<Message<*>>())).thenReturn(true)
     }
 
     @Test
-    fun `should send portfolio message to Kafka topic`() {
-        // Given
-        val future = CompletableFuture.completedFuture(sendResult)
-        whenever(kafkaTemplate.send(testTopicName, testPortfolio.id, testPortfolio))
-            .thenReturn(future)
-
+    fun `should send portfolio message via StreamBridge`() {
         // When
         marketValueUpdateProducer.sendMessage(testPortfolio)
 
         // Then
-        verify(kafkaTemplate).send(testTopicName, testPortfolio.id, testPortfolio)
+        verify(streamBridge).send(
+            eq("portfolioMarketValue-out-0"),
+            ArgumentMatchers.argThat<Message<Portfolio>> { message ->
+                message.payload == testPortfolio
+            }
+        )
     }
 
     @Test
@@ -63,48 +63,50 @@ class MarketValueUpdateProducerTest {
         // Given
         val portfolioId = "custom-portfolio-id"
         val customPortfolio = TestHelpers.createTestPortfolio(portfolioId)
-        val future = CompletableFuture.completedFuture(sendResult)
-
-        whenever(kafkaTemplate.send(testTopicName, portfolioId, customPortfolio))
-            .thenReturn(future)
 
         // When
         marketValueUpdateProducer.sendMessage(customPortfolio)
 
         // Then
-        verify(kafkaTemplate).send(testTopicName, portfolioId, customPortfolio)
+        verify(streamBridge).send(
+            eq("portfolioMarketValue-out-0"),
+            ArgumentMatchers.argThat<Message<Portfolio>> { message ->
+                message.payload == customPortfolio &&
+                    message.headers[KafkaHeaders.KEY] == portfolioId
+            }
+        )
     }
 
     @Test
-    fun `should use configured topic name`() {
-        // Given
-        val customTopicName = "custom-topic-name"
-        val customProducer = MarketValueUpdateProducer(kafkaTemplate, customTopicName)
-        val future = CompletableFuture.completedFuture(sendResult)
-
-        whenever(kafkaTemplate.send(customTopicName, testPortfolio.id, testPortfolio))
-            .thenReturn(future)
-
+    fun `should set Kafka message key header`() {
         // When
-        customProducer.sendMessage(testPortfolio)
+        marketValueUpdateProducer.sendMessage(testPortfolio)
 
         // Then
-        verify(kafkaTemplate).send(customTopicName, testPortfolio.id, testPortfolio)
+        verify(streamBridge).send(
+            eq("portfolioMarketValue-out-0"),
+            ArgumentMatchers.argThat<Message<Portfolio>> { message ->
+                message.headers.containsKey(KafkaHeaders.KEY) &&
+                    message.headers[KafkaHeaders.KEY] == testPortfolio.id
+            }
+        )
     }
 
     @Test
     fun `should handle different portfolio types`() {
         // Given
         val differentPortfolio = TestHelpers.createTestPortfolio("different-portfolio", "EUR")
-        val future = CompletableFuture.completedFuture(sendResult)
-
-        whenever(kafkaTemplate.send(testTopicName, differentPortfolio.id, differentPortfolio))
-            .thenReturn(future)
 
         // When
         marketValueUpdateProducer.sendMessage(differentPortfolio)
 
         // Then
-        verify(kafkaTemplate).send(testTopicName, differentPortfolio.id, differentPortfolio)
+        verify(streamBridge).send(
+            eq("portfolioMarketValue-out-0"),
+            ArgumentMatchers.argThat<Message<Portfolio>> { message ->
+                message.payload == differentPortfolio &&
+                    message.headers[KafkaHeaders.KEY] == differentPortfolio.id
+            }
+        )
     }
 }

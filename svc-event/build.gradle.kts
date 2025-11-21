@@ -48,7 +48,8 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("com.h2database:h2")
     implementation(libs.postgresql)
-    implementation(libs.spring.kafka)
+    implementation(libs.spring.cloud.stream)
+    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.ai.starter.mcp.server.webmvc)
     
     compileOnly(libs.spring.boot.configuration.processor)
@@ -63,7 +64,7 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.sentry:sentry-jdbc")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
-    testImplementation(libs.spring.kafka.test)
+    testImplementation(libs.spring.cloud.stream.test.binder)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)

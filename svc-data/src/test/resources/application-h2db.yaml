@@ -8,10 +8,18 @@ jpa:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
     #url: jdbc:sqlite:memory:myDb?cache=shared
 
-kafka:
+stream:
   enabled: false
 cache:
   enabled: false
+
+spring:
+  cloud:
+    function:
+      definition: ""
+    stream:
+      defaultBinder: test
+      bindings: {}
 beancounter:
   enricher: DEFAULT
 

@@ -20,12 +20,16 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${auth.uri}
-  kafka:
-    enabled: false
-    bootstrap-servers: kafka:9092
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   cloud:
+    stream:
+      bindings:
+        # CSV Import Producer (StreamBridge)
+        csvImport-out-0:
+          destination: bc-trn-csv-dev
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: kafka:9092
     openfeign:
       client:
         config:

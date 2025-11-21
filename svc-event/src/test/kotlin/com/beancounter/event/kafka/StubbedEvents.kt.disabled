@@ -21,8 +21,6 @@ import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.service.BackFillService
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -35,10 +33,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory
-import org.springframework.kafka.test.EmbeddedKafkaBroker
-import org.springframework.kafka.test.context.EmbeddedKafka
-import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.cloud.stream.binder.test.OutputDestination
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.annotation.DirtiesContext
@@ -49,38 +44,25 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
-import java.time.Duration
 
 private const val EMAIL = "blah@blah.com"
 
 /**
- * Test inbound Kafka corporate action events
+ * Test inbound Spring Cloud Stream corporate action events
  *
- * IMPORTANT: This test uses its own isolated Spring context and stub runner configuration
- * rather than the shared context approach used by other tests. This is necessary because:
- *
- * 1. Kafka tests are more complex and require isolated environments
- * 2. Embedded Kafka broker needs its own configuration
- * 3. Stub runner timing issues occur with shared contexts
- * 4. Kafka consumer/producer setup is sensitive to context reuse
+ * IMPORTANT: This test uses Spring Cloud Stream Test Binder instead of embedded Kafka.
+ * This provides:
+ * 1. Faster test execution (no broker startup)
+ * 2. Broker-agnostic testing
+ * 3. Simplified message verification
  *
  * Configuration:
- * - Uses "kafka" profile (application-kafka.yaml)
+ * - Uses "test" profile
+ * - Spring Cloud Stream Test Binder for message capture
  * - Fixed stub runner ports: 11999 (svc-data), 12999 (svc-position)
  * - @DirtiesContext to ensure clean state between tests
- * - Separate from shared context ports (10990-10993)
  */
 
-@EmbeddedKafka(
-    partitions = 1,
-    topics = [
-        StubbedEvents.TRN_EVENT,
-        StubbedEvents.CA_EVENT
-    ],
-    brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"]
-)
-// Kafka tests use fixed ports to avoid timing issues with shared contexts
-// These ports are separate from the shared context ports (10990-10993)
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = [
@@ -88,15 +70,15 @@ private const val EMAIL = "blah@blah.com"
         "org.beancounter:svc-position:0.1.1:stubs:12999"
     ]
 )
-@Tag("kafka")
-@SpringBootTest
-// Uses dedicated "kafka" profile instead of shared context profiles
-// This ensures Kafka tests have their own isolated configuration
-@ActiveProfiles("kafka")
+@Tag("stream")
+@SpringBootTest(
+    properties = [
+        "spring.cloud.stream.defaultBinder=test"
+    ]
+)
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
-// Use @DirtiesContext (not AFTER_CLASS) to ensure complete isolation for Kafka tests
-// This prevents any shared state issues that could affect Kafka consumer/producer behavior
 @DirtiesContext
 class StubbedEvents {
     @MockitoBean
@@ -114,9 +96,8 @@ class StubbedEvents {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
-    private lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
+    private lateinit var outputDestination: OutputDestination
 
     @Autowired
     private lateinit var positionService: PositionService
@@ -166,20 +147,6 @@ class StubbedEvents {
 
     @Test
     fun is_DividendTransactionGenerated() {
-        val consumerProps =
-            KafkaTestUtils.consumerProps(
-                "event-test",
-                "false",
-                embeddedKafkaBroker
-            )
-        consumerProps["session.timeout.ms"] = 6000
-        consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-        val cf = DefaultKafkaConsumerFactory<String, String>(consumerProps)
-        val consumer = cf.createConsumer()
-        embeddedKafkaBroker.consumeFromEmbeddedTopics(
-            consumer,
-            TRN_EVENT
-        )
         val corporateEvent =
             CorporateEvent(
                 trnType = TrnType.DIVI,
@@ -192,12 +159,13 @@ class StubbedEvents {
         val trnEvents = eventService.process(eventInput)
         assertThat(trnEvents).isNotNull.hasSize(1)
 
-        // Check the receiver gets what we send
-        val record = KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT, Duration.ofSeconds(10))
+        // Check the message published to the output binding
+        val message = outputDestination.receive(1000, "transactionEvent-out-0")
+        assertThat(message).isNotNull
         verify(
             portfolio,
             trnEvents,
-            record
+            message.payload
         )
         val events = eventService.forAsset(KMI)
         assertThat(events).hasSize(1)
@@ -219,13 +187,12 @@ class StubbedEvents {
                 CorporateEventResponse::class.java
             )
         assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
-        val record2 = KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT, Duration.ofSeconds(10))
+        val message2 = outputDestination.receive(1000, "transactionEvent-out-0")
         verify(
             portfolio,
             trnEvents,
-            record2
+            message2.payload
         )
-        consumer.close()
 
         mockMvc
             .perform(
@@ -259,12 +226,12 @@ class StubbedEvents {
     private fun verify(
         portfolio: Portfolio,
         trnEvents: Collection<TrustedTrnEvent>,
-        consumerRecord: ConsumerRecord<String, String>
+        payload: ByteArray
     ) {
-        assertThat(consumerRecord.value()).isNotNull
+        assertThat(payload).isNotNull
         val received =
             objectMapper.readValue(
-                consumerRecord.value(),
+                payload,
                 TrustedTrnEvent::class.java
             )
         val (portfolio1, importFormat, message, trnInput) = trnEvents.iterator().next()

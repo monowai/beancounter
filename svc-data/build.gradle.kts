@@ -63,7 +63,8 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("com.h2database:h2") // Dev
     implementation(libs.postgresql)
-    implementation(libs.spring.kafka)
+    implementation(libs.spring.cloud.stream)
+    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation("com.opencsv:opencsv:5.11.1")
     implementation(libs.spring.ai.starter.mcp.server.webmvc)
     
@@ -78,7 +79,7 @@ dependencies {
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
-    testImplementation(libs.spring.kafka.test)
+    testImplementation(libs.spring.cloud.stream.test.binder)
     testImplementation("org.junit.platform:junit-platform-suite-api")
     testImplementation("org.junit.platform:junit-platform-suite-engine")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

@@ -49,7 +49,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(libs.resilience4j.annotations)
     implementation(libs.resilience4j)
-    implementation(libs.spring.kafka)
+    implementation(libs.spring.cloud.stream)
+    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation(libs.spring.ai.starter.mcp.server.webmvc)
     
@@ -64,7 +65,7 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")
-    testImplementation(libs.spring.kafka.test)
+    testImplementation(libs.spring.cloud.stream.test.binder)
     testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
     

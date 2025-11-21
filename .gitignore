@@ -13,7 +13,7 @@
 **/application-local.y*ml
 **/application-sentry.y*ml
 .run/
-
+.claude/
 .ci/gradle*
 
 # You can put a script which call `yarn prettier-eslint --write` that prettify the file in-place.

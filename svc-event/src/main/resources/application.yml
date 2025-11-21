@@ -117,17 +117,23 @@ spring:
             - beancounter:system
           authorization-grant-type: client_credentials
 
-  kafka:
-    bootstrap-servers: kafka:9092
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      group-id: bc-event
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: com.beancounter.common.input
-
   cloud:
+    function:
+      definition: eventProcessor
+    stream:
+      bindings:
+        # Corporate Action Event Consumer
+        eventProcessor-in-0:
+          destination: bc-ca-event-dev
+          group: bc-event
+          content-type: application/json
+        # Transaction Event Producer (StreamBridge)
+        transactionEvent-out-0:
+          destination: bc-trn-event-dev
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: kafka:9092
     openfeign:
       client:
         config:
@@ -144,8 +150,8 @@ spring:
         stdio: false
         sse-message-endpoint: /mcp/message
 
-kafka:
-  enabled: "true"
+stream:
+  enabled: true
 
 resilience4j.ratelimiter:
   instances:

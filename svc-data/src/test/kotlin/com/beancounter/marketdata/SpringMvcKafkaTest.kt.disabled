@@ -1,7 +1,6 @@
 package com.beancounter.marketdata
 
 import com.beancounter.auth.AutoConfigureMockAuth
-import com.beancounter.common.utils.KafkaUtils
 import com.beancounter.marketdata.broker.KafkaMarketStackDataTest.Companion.TOPIC_EVENT
 import com.beancounter.marketdata.broker.KafkaMarketStackDataTest.Companion.TOPIC_MV
 import com.beancounter.marketdata.broker.KafkaTrnExportImportTest.Companion.TOPIC_CSV_IO
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.Tag
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
-import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
@@ -42,7 +40,6 @@ import kotlin.annotation.AnnotationTarget.CLASS
 @AutoConfigureMockMvc
 @ActiveProfiles
 @DirtiesContext
-@Import(KafkaUtils::class)
 annotation class SpringMvcKafkaTest(
     /**
      * Defines the active profiles to be used for the annotated test class.

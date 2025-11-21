@@ -407,7 +407,7 @@ workflows:
             branches:
               only:
                 - master
-                - /^mike\/.*/
+                - /^deploy\/.*/
           requires:
             - build-and-test
       - package-data:
@@ -415,7 +415,7 @@ workflows:
             branches:
               only:
                 - master
-                - /^mike\/.*/
+                - /^deploy\/.*/
           requires:
             - build-and-test
       - package-position:
@@ -423,7 +423,7 @@ workflows:
             branches:
               only:
                 - master
-                - /^mike\/.*/
+                - /^deploy\/.*/
           requires:
             - build-and-test
       - package-event:
@@ -431,7 +431,7 @@ workflows:
             branches:
               only:
                 - master
-                - /^mike\/.*/
+                - /^deploy\/.*/
           requires:
             - build-and-test
 
@@ -441,7 +441,7 @@ workflows:
             branches:
               only:
                 - master
-                - /^mike\/.*/
+                - /^deploy\/.*/
                 - /^codacy.*/
           requires:
             - build-and-test

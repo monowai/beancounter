@@ -1,24 +1,33 @@
 package com.beancounter.marketdata.broker
 
 import com.beancounter.common.model.Portfolio
-import com.beancounter.marketdata.SpringMvcKafkaTest
-import com.beancounter.marketdata.config.KafkaConfig
+import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cloud.stream.binder.test.InputDestination
+import org.springframework.messaging.support.MessageBuilder
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
 /**
- * Test the Kafka listener for Portfolio updates.
+ * Test the Spring Cloud Stream consumer for Portfolio updates.
  */
-@SpringMvcKafkaTest
+@SpringBootTest(
+    properties = [
+        "spring.cloud.stream.defaultBinder=test"
+    ]
+)
+@ActiveProfiles("test")
+@DirtiesContext
 class PortfolioKafkaListenerIntegrationTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
@@ -27,16 +36,13 @@ class PortfolioKafkaListenerIntegrationTest {
     private lateinit var eventProducer: EventProducer
 
     @Autowired
-    private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
+    private lateinit var inputDestination: InputDestination
 
     @MockitoBean
     private lateinit var portfolioService: PortfolioService
 
-    @Autowired
-    private lateinit var kafkaConfig: KafkaConfig
-
     @Test
-    fun testKafkaListener() {
+    fun testStreamConsumer() {
         val portfolio =
             Portfolio(
                 id = "1",
@@ -45,12 +51,15 @@ class PortfolioKafkaListenerIntegrationTest {
                 marketValue = BigDecimal.TEN,
                 irr = BigDecimal.ONE
             )
-        kafkaTemplate.send(
-            kafkaConfig.topicPosMvName,
-            portfolio
-        )
 
-        // Wait for the listener to process the message
+        // Send message via test binder
+        val message = MessageBuilder.withPayload(
+            BcJson.objectMapper.writeValueAsBytes(portfolio)
+        ).build()
+
+        inputDestination.send(message, "portfolioConsumer-in-0")
+
+        // Wait for the consumer to process the message
         await()
             .atMost(
                 10,

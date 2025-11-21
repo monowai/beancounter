@@ -31,7 +31,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
-import kotlin.collections.set
 
 /**
  * MarketStack API tests using WireMock.

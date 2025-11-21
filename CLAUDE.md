@@ -85,13 +85,111 @@ Uses Spring Cloud Contract with hybrid approach:
 - Port allocation for shared context: jar-client(10990), jar-shell(10991), svc-event(10992),
   svc-position(10993)
 
+## Messaging Architecture (Spring Cloud Stream)
+
+The project uses **Spring Cloud Stream** with the functional programming model for broker-agnostic
+messaging. This allows swapping message brokers (Kafka ↔ RabbitMQ) via configuration only.
+
+### Message Flows
+
+```
+Price Updates:
+  External Provider → svc-data (priceConsumer) → Database
+                   ↓ (if dividend/split)
+                   EventProducer → corporateEvent-out-0 → bc-ca-event-dev
+                   ↓
+                   svc-event (eventProcessor) → EventPublisher
+                   ↓
+                   transactionEvent-out-0 → bc-trn-event-dev
+                   ↓
+                   svc-data (trnEventConsumer) → Database
+
+Transaction Import:
+  jar-shell (csvImport-out-0) → bc-trn-csv-dev
+                   ↓
+                   svc-data (csvImportConsumer) → Database
+
+Portfolio Updates:
+  svc-position (portfolioMarketValue-out-0) → bc-pos-mv-dev
+                   ↓
+                   svc-data (portfolioConsumer) → Database
+```
+
+### Functional Consumers and Producers
+
+**svc-data consumers:**
+
+- `csvImportConsumer`: Consumer&lt;TrustedTrnImportRequest&gt; - Processes CSV transaction imports
+- `trnEventConsumer`: Consumer&lt;TrustedTrnEvent&gt; - Processes transaction events
+- `priceConsumer`: Consumer&lt;PriceResponse&gt; - Persists market data prices
+- `portfolioConsumer`: Consumer&lt;Portfolio&gt; - Maintains portfolio data from position updates
+
+**svc-data producers:**
+
+- `EventProducer` (StreamBridge): Publishes corporate action events via `corporateEvent-out-0`
+
+**svc-position producers:**
+
+- `MarketValueUpdateProducer` (StreamBridge): Publishes portfolio updates via
+  `portfolioMarketValue-out-0`
+
+**svc-event:**
+
+- `eventProcessor`: Consumer&lt;TrustedEventInput&gt; - Processes corporate action events
+- `EventPublisher` (StreamBridge): Publishes transaction events via `transactionEvent-out-0`
+
+**jar-shell:**
+
+- `KafkaTrnProducer` (StreamBridge): Sends CSV imports via `csvImport-out-0` (disabled by default)
+
+### Configuration
+
+Bindings are configured in each service's `application.yml`:
+
+```yaml
+spring.cloud.stream:
+  function.definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
+  bindings:
+    csvImportConsumer-in-0:
+      destination: bc-trn-csv-dev # Kafka topic name
+      group: bc-data # Consumer group
+      content-type: application/json
+  kafka.binder.brokers: kafka:9092
+```
+
+### Topic Naming Convention
+
+Topics follow the pattern: `bc-{service}-{type}-{env}`
+
+- `bc-pos-mv-dev` - Portfolio market values
+- `bc-trn-csv-dev` - CSV transaction imports
+- `bc-trn-event-dev` - Transaction events
+- `bc-ca-event-dev` - Corporate action events
+- `bc-price-dev` - Price data updates
+
+### Switching to RabbitMQ
+
+To switch from Kafka to RabbitMQ:
+
+1. Replace `spring-cloud-stream-binder-kafka` with `spring-cloud-stream-binder-rabbit` in
+   build.gradle.kts
+2. Update `spring.cloud.stream.kafka.binder.*` to `spring.cloud.stream.rabbit.binder.*`
+3. Change `brokers` configuration to RabbitMQ host/port/credentials
+4. No code changes required - same functional beans work with both brokers
+
+### Testing
+
+- **Production**: Uses Kafka binder with real Kafka broker
+- **Testing**: Uses `spring-cloud-stream-test-binder` for broker-agnostic unit tests
+- **Integration Tests**: May use embedded Kafka or TestContainers for end-to-end flows
+
 ## Deployment
 
 **Production Environment**: `kauri.monowai.com`
 
 - **Orchestration**: Kubernetes with Helm charts (`../bc-deploy/`)
 - **Database**: PostgreSQL hosted on kauri.monowai.com
-- **Configuration**: `../bc-deploy/env/minikube.yaml` contains service configurations
+- **Configuration**: `../bc-deploy/env/kauri.yaml` contains service configurations
 - **Secrets**: `../bc-deploy/.env` contains integration tokens (⚠️ use as variables, never expose)
 - **Helm Charts**: Individual charts in `../bc-deploy/charts/` (bc-data, bc-position, bc-event,
   bc-view)

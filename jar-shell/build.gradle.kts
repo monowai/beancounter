@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":jar-common"))
     implementation(project(":jar-auth"))
     implementation(project(":jar-client"))
+    implementation(platform(libs.spring.cloud.dependencies))
     implementation(platform("org.springframework.shell:spring-shell-dependencies:3.4.0"))
     implementation("org.springframework.shell:spring-shell-starter:3.4.0")
     implementation(libs.spring.boot.starter)
@@ -18,7 +19,8 @@ dependencies {
     }
     implementation(libs.spring.security.oauth2)
     implementation(libs.spring.security.jose)
-    implementation(libs.spring.kafka)
+    implementation(libs.spring.cloud.stream)
+    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
     implementation("com.opencsv:opencsv:5.11.1")
     
@@ -31,7 +33,7 @@ dependencies {
     }
     testImplementation(libs.spring.stub.runner)
     testImplementation(libs.apache.groovy)
-    testImplementation(libs.spring.kafka.test)
+    testImplementation(libs.spring.cloud.stream.test.binder)
     testImplementation("org.junit.jupiter:junit-jupiter")
     
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {

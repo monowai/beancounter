@@ -1,0 +1,39 @@
+server:
+  port: 0
+
+stream:
+  enabled: true
+
+spring:
+  cloud:
+    function:
+      # Only enable portfolio consumer for lightweight Test Binder tests
+      definition: portfolioConsumer
+    stream:
+      defaultBinder: test
+      bindings:
+        # Portfolio Updates Consumer
+        portfolioConsumer-in-0:
+          destination: test-pos-mv
+          content-type: application/json
+        # Corporate Event Producer (StreamBridge)
+        corporateEvent-out-0:
+          destination: test-ca-event
+          content-type: application/json
+
+jpa:
+  datasource:
+    username: sa
+    password:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+
+beancounter:
+  enricher: DEFAULT
+  market.providers:
+    alpha:
+      markets: NASDAQ,AMEX,NYSE,ASX,LON,US
+    mstack:
+      markets: NZX
+    fx:
+      url: http://localhost:${wiremock.server.port:0}
+      key: test

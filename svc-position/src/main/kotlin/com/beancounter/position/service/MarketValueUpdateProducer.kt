@@ -1,20 +1,21 @@
 package com.beancounter.position.service
 
 import com.beancounter.common.model.Portfolio
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.cloud.stream.function.StreamBridge
+import org.springframework.kafka.support.KafkaHeaders
+import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 
 @Service
 class MarketValueUpdateProducer(
-    private val kafkaTemplate: KafkaTemplate<String, Portfolio>,
-    @param:Value($$"${beancounter.topics.pos.mv:bc-pos-mv-dev}") val topicPosMvName: String
+    private val streamBridge: StreamBridge
 ) {
     fun sendMessage(payload: Portfolio) {
-        kafkaTemplate.send(
-            topicPosMvName,
-            payload.id,
-            payload
-        )
+        val message =
+            MessageBuilder
+                .withPayload(payload)
+                .setHeader(KafkaHeaders.KEY, payload.id)
+                .build()
+        streamBridge.send("portfolioMarketValue-out-0", message)
     }
 }

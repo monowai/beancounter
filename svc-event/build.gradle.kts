@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.spring.cloud.stream)
     implementation(libs.spring.cloud.stream.binder.kafka)
+    implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation(libs.spring.ai.starter.mcp.server.webmvc)
     
     compileOnly(libs.spring.boot.configuration.processor)

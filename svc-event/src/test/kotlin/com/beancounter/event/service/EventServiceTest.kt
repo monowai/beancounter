@@ -9,6 +9,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.event.integration.EventPublisher
+import com.beancounter.event.metrics.EventMetrics
 import com.beancounter.event.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -16,8 +17,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
+import org.mockito.Mockito.lenient
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.LocalDate
@@ -50,6 +53,9 @@ class EventServiceTest {
     @Mock
     private lateinit var eventPublisher: EventPublisher
 
+    @Mock
+    private lateinit var eventMetrics: EventMetrics
+
     private lateinit var eventService: EventService
 
     private lateinit var testCorporateEvent: CorporateEvent
@@ -59,7 +65,13 @@ class EventServiceTest {
 
     @BeforeEach
     fun setUp() {
-        eventService = EventService(positionService, eventRepository, keyGenUtils)
+        // Stub timeEventProcessing to execute the lambda (lenient to avoid unnecessary stubbing errors)
+        lenient().`when`(eventMetrics.timeEventProcessing<Collection<TrustedTrnEvent>>(any())).doAnswer { invocation ->
+            val operation = invocation.getArgument<() -> Collection<TrustedTrnEvent>>(0)
+            operation.invoke()
+        }
+
+        eventService = EventService(positionService, eventRepository, keyGenUtils, eventMetrics)
         eventService.setEventPublisher(eventPublisher)
 
         testCorporateEvent = TestHelpers.createTestCorporateEvent()

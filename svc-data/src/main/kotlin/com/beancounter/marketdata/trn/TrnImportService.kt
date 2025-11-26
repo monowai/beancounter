@@ -6,6 +6,7 @@ import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
+import com.beancounter.marketdata.metrics.TrnMetrics
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Service
 class TrnImportService(
     private val adapterFactory: AdapterFactory,
     private val portfolioService: PortfolioService,
-    private val trnService: TrnService
+    private val trnService: TrnService,
+    private val trnMetrics: TrnMetrics
 ) {
     /**
      * Imports transaction data from a CSV file from a trusted source.
@@ -57,27 +59,50 @@ class TrnImportService(
      * @return A collection of transactions.
      */
     fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
-        logger.trace(
-            "Message {}",
-            trustedTrnEvent.toString()
-        )
-        if (!verifyPortfolio(trustedTrnEvent.portfolio.id)) {
-            return emptySet()
-        }
-        val existing = trnService.existing(trustedTrnEvent)
-        if (existing.isNotEmpty()) {
-            logger.debug(
-                "Ignoring " +
-                    "tradeDate: ${trustedTrnEvent.trnInput.tradeDate}, " +
-                    "assetId: ${trustedTrnEvent.trnInput.assetId}, " +
-                    "portfolioId: ${trustedTrnEvent.portfolio.id}"
+        // Record transaction event received
+        trnMetrics.recordTrnEventReceived(trustedTrnEvent.trnInput.trnType.name)
+
+        return trnMetrics.timeTransactionImport {
+            logger.trace(
+                "Message {}",
+                trustedTrnEvent.toString()
             )
-            return emptySet()
+            if (!verifyPortfolio(trustedTrnEvent.portfolio.id)) {
+                trnMetrics.recordTrnIgnored("portfolio_verification_failed")
+                return@timeTransactionImport emptySet()
+            }
+            val existing = trnService.existing(trustedTrnEvent)
+            if (existing.isNotEmpty()) {
+                // Calculate days difference for metrics
+                val daysDiff =
+                    existing.firstOrNull()?.let { existingTrn ->
+                        java.time.temporal.ChronoUnit.DAYS
+                            .between(
+                                existingTrn.tradeDate,
+                                trustedTrnEvent.trnInput.tradeDate
+                            ).let { kotlin.math.abs(it) }
+                    }
+                trnMetrics.recordDuplicateDetected(
+                    trustedTrnEvent.trnInput.trnType.name,
+                    daysDiff
+                )
+                logger.debug(
+                    "Ignoring duplicate: " +
+                        "tradeDate: ${trustedTrnEvent.trnInput.tradeDate}, " +
+                        "assetId: ${trustedTrnEvent.trnInput.assetId}, " +
+                        "portfolioId: ${trustedTrnEvent.portfolio.id}, " +
+                        "daysDiff: $daysDiff"
+                )
+                return@timeTransactionImport emptySet()
+            }
+            val written =
+                writeTrn(
+                    trustedTrnEvent.portfolio,
+                    trustedTrnEvent.trnInput
+                )
+            trnMetrics.recordTrnWritten(trustedTrnEvent.trnInput.trnType.name, written.size)
+            written
         }
-        return writeTrn(
-            trustedTrnEvent.portfolio,
-            trustedTrnEvent.trnInput
-        )
     }
 
     private fun writeTrn(

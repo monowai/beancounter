@@ -106,7 +106,7 @@ spring:
           issuer-uri: ${auth.uri}
       registration:
         custom:
-          client-id: ${auth.client-id}
+          client-id: ${auth.client:not-set}
           client-secret: ${auth.client-secret}
           scope:
             - openid
@@ -121,6 +121,9 @@ spring:
     function:
       definition: eventProcessor
     stream:
+      # Switch between kafka and rabbit using environment variable:
+      # SPRING_CLOUD_STREAM_DEFAULT_BINDER=kafka (or rabbit)
+      default-binder: kafka
       bindings:
         # Corporate Action Event Consumer
         eventProcessor-in-0:
@@ -131,9 +134,19 @@ spring:
         transactionEvent-out-0:
           destination: bc-trn-event-dev
           content-type: application/json
+      # Kafka-specific configuration (when default-binder=kafka)
       kafka:
         binder:
           brokers: kafka:9092
+      # RabbitMQ-specific configuration (when default-binder=rabbit)
+      rabbit:
+        binder:
+          connection-name-prefix: bc-event
+    rabbitmq:
+      host: kauri.monowai.com
+      port: 5672
+      username: admin
+      password: admin
     openfeign:
       client:
         config:

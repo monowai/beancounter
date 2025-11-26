@@ -7,14 +7,9 @@ package com.beancounter.common.exception
  * @since 2019-02-03
  */
 class SystemException(
-    reason: String?,
+    reason: String,
     throwable: Throwable? = null
 ) : RuntimeException(
         reason,
         throwable
-    ) {
-    constructor(reason: String?) : this(
-        reason,
-        null
     )
-}

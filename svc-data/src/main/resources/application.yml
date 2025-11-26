@@ -99,6 +99,9 @@ spring:
     function:
       definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
     stream:
+      # Switch between kafka and rabbit using environment variable:
+      # SPRING_CLOUD_STREAM_DEFAULT_BINDER=kafka (or rabbit)
+      default-binder: rabbit
       bindings:
         # CSV Import Consumer
         csvImportConsumer-in-0:
@@ -124,32 +127,19 @@ spring:
         corporateEvent-out-0:
           destination: bc-ca-event-dev
           content-type: application/json
+      # Kafka-specific configuration (when default-binder=kafka)
       kafka:
         binder:
           brokers: kafka:9092
-          consumer-properties:
-            # Spring Cloud Stream handles deserialization based on content-type
-            # No need for custom deserializer configuration
-            key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-            value.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
-        bindings:
-          # DLQ configuration for all consumers
-          csvImportConsumer-in-0:
-            consumer:
-              enable-dlq: true
-              dlq-name: bc-trn-csv-dev-dlq
-          trnEventConsumer-in-0:
-            consumer:
-              enable-dlq: true
-              dlq-name: bc-trn-event-dev-dlq
-          priceConsumer-in-0:
-            consumer:
-              enable-dlq: true
-              dlq-name: bc-price-dev-dlq
-          portfolioConsumer-in-0:
-            consumer:
-              enable-dlq: true
-              dlq-name: bc-pos-mv-dev-dlq
+      # RabbitMQ-specific configuration (when default-binder=rabbit)
+      rabbit:
+        binder:
+          connection-name-prefix: bc-data
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
 
   security:
     oauth2:

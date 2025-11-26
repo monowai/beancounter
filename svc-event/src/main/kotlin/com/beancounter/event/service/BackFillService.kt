@@ -2,6 +2,7 @@ package com.beancounter.event.service
 
 import com.beancounter.event.common.DateSplitter
 import com.beancounter.event.config.BackFillServiceConfig
+import com.beancounter.event.metrics.EventMetrics
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class BackFillService(
-    private val config: BackFillServiceConfig
+    config: BackFillServiceConfig,
+    private val eventMetrics: EventMetrics
 ) {
     private val portfolioService = config.sharedConfig.portfolioService
     private val positionService = config.positionService
@@ -61,6 +63,8 @@ class BackFillService(
                 eventCount += events.size
             }
         }
-        log.trace("BackFilled portfolio: ${portfolio.code}, events: $eventCount completed")
+        // Record backfill operation metrics
+        eventMetrics.recordBackfillOperation(eventCount)
+        log.debug("BackFilled portfolio: ${portfolio.code}, events: $eventCount completed")
     }
 }

@@ -7,6 +7,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.metrics.TrnMetrics
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -32,6 +33,7 @@ import java.time.LocalDate
 class EventProducerTest {
     private lateinit var eventProducer: EventProducer
     private lateinit var streamBridge: StreamBridge
+    private lateinit var trnMetrics: TrnMetrics
     private val dateUtils = DateUtils()
     private lateinit var testAsset: Asset
     private lateinit var testMarketData: MarketData
@@ -39,7 +41,8 @@ class EventProducerTest {
     @BeforeEach
     fun setUp() {
         streamBridge = Mockito.mock(StreamBridge::class.java)
-        eventProducer = EventProducer(streamBridge)
+        trnMetrics = Mockito.mock(TrnMetrics::class.java)
+        eventProducer = EventProducer(streamBridge, trnMetrics)
         eventProducer.streamEnabled = true
 
         testAsset =

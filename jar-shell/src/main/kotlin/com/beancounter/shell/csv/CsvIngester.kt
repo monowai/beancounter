@@ -34,7 +34,7 @@ class CsvIngester : AbstractIngester() {
             // Unit tests
             val file = ClassPathResource(trimmedFile).file
             reader = Files.newBufferedReader(Paths.get(file.toURI()))
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             try {
                 // Runtime
                 reader = Files.newBufferedReader(Paths.get(trimmedFile))
@@ -72,9 +72,9 @@ class CsvIngester : AbstractIngester() {
                     }
                 }
             } catch (e: IOException) {
-                throw SystemException(e.message)
+                throw SystemException(e.message!!, e)
             } catch (e: CsvException) {
-                throw SystemException(e.message)
+                throw SystemException(e.message!!, e)
             }
             return results
         }

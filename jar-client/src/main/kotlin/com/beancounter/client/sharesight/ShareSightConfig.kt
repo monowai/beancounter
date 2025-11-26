@@ -46,7 +46,7 @@ class ShareSightConfig {
         @JvmStatic
         fun logFirst(
             type: String,
-            message: String?,
+            message: String,
             row: List<String>
         ): BusinessException {
             log.error(

@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.spring.cloud.stream)
     implementation(libs.spring.cloud.stream.binder.kafka)
+    implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation("com.opencsv:opencsv:5.11.1")
     implementation(libs.spring.ai.starter.mcp.server.webmvc)
     

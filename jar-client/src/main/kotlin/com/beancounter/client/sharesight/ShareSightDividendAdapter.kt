@@ -54,10 +54,10 @@ class ShareSightDividendAdapter(
         return try {
             createTrnInput(trustedTrnImportRequest, row)
         } catch (e: NumberFormatException) {
-            val message = e.message
+            val message = e.message!!
             throw logFirst("DIVI", message, row)
         } catch (e: ParseException) {
-            val message = e.message
+            val message = e.message!!
             throw logFirst("DIVI", message, row)
         }
     }

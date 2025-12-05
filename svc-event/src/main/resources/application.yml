@@ -106,7 +106,7 @@ spring:
           issuer-uri: ${auth.uri}
       registration:
         custom:
-          client-id: ${auth.client-id}
+          client-id: ${auth.client:not-set}
           client-secret: ${auth.client-secret}
           scope:
             - openid

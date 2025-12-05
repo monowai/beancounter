@@ -136,7 +136,7 @@ spring:
         binder:
           connection-name-prefix: bc-data
   rabbitmq:
-    host: kauri.monowai.com
+    host: localhost
     port: 5672
     username: admin
     password: admin

@@ -81,7 +81,7 @@ class ShareSightTradeAdapter(
             trnInput.tradeCashRate = tradeValueCalculator.getTradeCashRate(tradeRate)
             trnInput
         } catch (e: ParseException) {
-            val message = e.message
+            val message = e.message!!
             throw logFirst("TRADE", message, row)
         }
     }

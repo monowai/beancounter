@@ -9,6 +9,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.integration.EventPublisher
+import com.beancounter.event.metrics.EventMetrics
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +24,8 @@ import java.time.LocalDate
 class EventService(
     private val positionService: PositionService,
     private val eventRepository: EventRepository,
-    private val keyGenUtils: KeyGenUtils
+    private val keyGenUtils: KeyGenUtils,
+    private val eventMetrics: EventMetrics
 ) {
     private lateinit var eventPublisher: EventPublisher
 
@@ -34,10 +36,20 @@ class EventService(
         this.eventPublisher = eventPublisher
     }
 
-    fun process(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> =
-        processEvent(
-            save(eventRequest.data)
-        )
+    fun process(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
+        // Record event received
+        val isDividend = eventRequest.data.trnType == TrnType.DIVI
+        eventMetrics.recordEventReceived(isDividend)
+
+        return try {
+            eventMetrics.timeEventProcessing {
+                processEvent(save(eventRequest.data))
+            }
+        } catch (e: Exception) {
+            eventMetrics.recordEventError(e.javaClass.simpleName)
+            throw e
+        }
+    }
 
     fun processEvent(event: CorporateEvent): Collection<TrustedTrnEvent> {
         val response =
@@ -46,24 +58,41 @@ class EventService(
                 event.recordDate
             )
 
-        return response.data.mapNotNull { portfolio ->
-            val trnEvent =
-                positionService.process(
-                    portfolio,
-                    event
-                )
-            // Skip forward dated transactions
-            if (trnEvent.trnInput.trnType == TrnType.IGNORE) {
-                null
-            } else {
-                log.info(
-                    "Processed event: ${event.id}, asset: ${event.assetId}, " +
-                        "portfolio: ${trnEvent.portfolio.code}, tradeDate: ${trnEvent.trnInput.tradeDate}"
-                )
-                eventPublisher.send(trnEvent)
-                trnEvent
+        val portfolioCount = response.data.size
+        var ignoredCount = 0
+        var transactionCount = 0
+
+        val results =
+            response.data.mapNotNull { portfolio ->
+                val trnEvent =
+                    positionService.process(
+                        portfolio,
+                        event
+                    )
+                // Skip forward dated transactions
+                if (trnEvent.trnInput.trnType == TrnType.IGNORE) {
+                    ignoredCount++
+                    null
+                } else {
+                    transactionCount++
+                    log.info(
+                        "Processed event: ${event.id}, asset: ${event.assetId}, " +
+                            "portfolio: ${trnEvent.portfolio.code}, tradeDate: ${trnEvent.trnInput.tradeDate}"
+                    )
+                    eventPublisher.send(trnEvent)
+                    trnEvent
+                }
             }
+
+        // Record metrics
+        if (transactionCount > 0) {
+            eventMetrics.recordEventProcessed(portfolioCount, transactionCount)
         }
+        if (ignoredCount > 0) {
+            eventMetrics.recordEventIgnored("no_positions_or_future_dated")
+        }
+
+        return results
     }
 
     fun save(event: CorporateEvent): CorporateEvent {

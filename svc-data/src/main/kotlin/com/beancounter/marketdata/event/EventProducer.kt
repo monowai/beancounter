@@ -6,6 +6,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.metrics.TrnMetrics
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.stream.function.StreamBridge
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class EventProducer(
-    private val streamBridge: StreamBridge
+    private val streamBridge: StreamBridge,
+    private val trnMetrics: TrnMetrics
 ) {
     @Value("\${stream.enabled:true}")
     var streamEnabled: Boolean = true
@@ -25,6 +27,15 @@ class EventProducer(
         if (!streamEnabled || !isValidEvent(marketData)) {
             return
         }
+
+        // Record metrics for dividend/split detection
+        if (isDividend(marketData)) {
+            trnMetrics.recordDividendDetected()
+        }
+        if (isSplit(marketData)) {
+            trnMetrics.recordSplitDetected()
+        }
+
         val corporateEvent =
             CorporateEvent(
                 id = null,
@@ -40,6 +51,7 @@ class EventProducer(
             marketData
         )
         streamBridge.send("corporateEvent-out-0", TrustedEventInput(corporateEvent))
+        trnMetrics.recordCorporateEventPublished(corporateEvent.trnType.name)
     }
 
     private fun isValidEvent(marketData: MarketData?): Boolean =

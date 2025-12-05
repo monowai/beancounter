@@ -7,5 +7,6 @@ package com.beancounter.common.exception
  * @since 2019-02-03
  */
 class BusinessException(
-    message: String?
-) : RuntimeException(message)
+    message: String,
+    throwable: Throwable? = null
+) : RuntimeException(message, throwable)

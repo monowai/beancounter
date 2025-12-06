@@ -45,7 +45,7 @@ class AlphaEventService(
                 apiKey
             )
         if (json.contains("Error Message")) {
-            log.error("Provider API error $json")
+            log.error("Provider API error for {}: {}", asset.code, json)
             return PriceResponse()
         }
         val priceResponse: PriceResponse =

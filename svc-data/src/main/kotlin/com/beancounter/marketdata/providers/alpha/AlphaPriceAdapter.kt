@@ -18,7 +18,8 @@ import java.math.BigDecimal
  */
 @Service
 class AlphaPriceAdapter(
-    val alphaConfig: AlphaConfig
+    val alphaConfig: AlphaConfig,
+    private val corporateEventEnricher: AlphaCorporateEventEnricher
 ) : MarketDataAdapter {
     operator fun get(
         providerArguments: ProviderArguments,
@@ -88,6 +89,9 @@ class AlphaPriceAdapter(
                     asset.market,
                     marketData
                 )
+                // Enrich with corporate events (splits/dividends) from adjusted time series
+                // This handles the case where Global Quote doesn't include split data
+                corporateEventEnricher.enrich(marketData)
                 log.trace(
                     "Valued {} ",
                     asset.name

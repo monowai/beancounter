@@ -84,7 +84,7 @@ class WebAuthFilterConfig {
                     .hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users
                 auth
                     .requestMatchers("$actuatorPath/**")
-                    .hasAuthority(AuthConstants.SCOPE_ADMIN) // Admin users
+                    .hasAnyAuthority(AuthConstants.SCOPE_ADMIN, AuthConstants.SCOPE_SYSTEM) // Admin or System users
 //            auth.requestMatchers("$actuatorPath/**").hasRole(AuthConstants.ADMIN) // Admin users
                 auth.anyRequest().permitAll() //
             }.csrf { csrf ->

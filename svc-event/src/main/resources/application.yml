@@ -178,11 +178,11 @@ resilience4j.ratelimiter:
 resilience4j.circuitbreaker:
   configs:
     default:
-      failureRateThreshold: 3
-      slidingWindowSize: 10
-      permittedNumberOfCallsInHalfOpenState: 3
-      slidingWindowType: TIME_BASED
-      waitDurationInOpenState: 5s
+      failureRateThreshold: 50
+      slidingWindowSize: 20
+      permittedNumberOfCallsInHalfOpenState: 5
+      slidingWindowType: COUNT_BASED
+      waitDurationInOpenState: 30s
       registerHealthIndicator: true
       recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
 

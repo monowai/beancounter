@@ -227,4 +227,107 @@ internal class TrnMigratorTest {
         assertThat(result)
             .hasFieldOrPropertyWithValue("version", "4") // All transactions get v4
     }
+
+    @Test
+    fun `should upgrade split transactions without cashAsset from v2 to v4`() {
+        // Split transactions don't have cashAsset or cashCurrency
+        // This test verifies that the upgrade process handles this correctly
+        val splitTrn =
+            Trn(
+                id = "SplitV2",
+                trnType = TrnType.SPLIT,
+                tradeDate = tradeDate,
+                asset = MSFT,
+                quantity = BigDecimal("100.00"),
+                price = BigDecimal.ZERO, // Splits have zero price
+                tradeAmount = BigDecimal.ZERO, // Splits have zero trade amount
+                tradeCurrency = USD,
+                cashAsset = null, // Splits don't have cash assets
+                cashCurrency = null, // Splits don't have cash currency
+                portfolio =
+                    Portfolio(
+                        "test",
+                        currency = NZD,
+                        base = USD
+                    ),
+                version = "2" // Old version that needs upgrade
+            )
+
+        val result = trnMigrator.upgrade(splitTrn)
+
+        assertThat(result)
+            .hasFieldOrPropertyWithValue("version", "4") // Should be upgraded to v4
+            .hasFieldOrPropertyWithValue("cashAsset", null) // Should remain null
+            .hasFieldOrPropertyWithValue("cashCurrency", null) // Should remain null
+            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `should upgrade split transactions without cashAsset from v3 to v4`() {
+        // Split transactions with v3 going to v4
+        val splitTrn =
+            Trn(
+                id = "SplitV3",
+                trnType = TrnType.SPLIT,
+                tradeDate = tradeDate,
+                asset = MSFT,
+                quantity = BigDecimal("100.00"),
+                price = BigDecimal.ZERO,
+                tradeAmount = BigDecimal.ZERO,
+                tradeCurrency = USD,
+                cashAsset = null,
+                cashCurrency = null,
+                tradeBaseRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal("2.00"),
+                portfolio =
+                    Portfolio(
+                        "test",
+                        currency = NZD,
+                        base = USD
+                    ),
+                version = "3"
+            )
+
+        val result = trnMigrator.upgrade(splitTrn)
+
+        assertThat(result)
+            .hasFieldOrPropertyWithValue("version", "4")
+            .hasFieldOrPropertyWithValue("cashAsset", null)
+    }
+
+    @Test
+    fun `should handle v2 transaction with cashAsset but null cashCurrency gracefully`() {
+        // Edge case: Transaction created with cashAsset but cashCurrency is null
+        // This could happen due to data corruption or invalid data entry
+        // The migrator should derive cashCurrency from cashAsset.market.currency
+        val corruptedTrn =
+            Trn(
+                id = "CorruptedV2",
+                trnType = TrnType.BUY,
+                tradeDate = tradeDate,
+                asset = MSFT,
+                quantity = BigDecimal("100.00"),
+                price = BigDecimal("100.00"),
+                tradeAmount = BigDecimal("10000.00"),
+                tradeCurrency = USD,
+                cashAsset = Constants.nzdCashBalance, // Cash asset is set with NZD market
+                cashCurrency = null, // But cash currency is null - data inconsistency
+                portfolio =
+                    Portfolio(
+                        "test",
+                        currency = NZD,
+                        base = USD
+                    ),
+                version = "2"
+            )
+
+        // This should not throw NullPointerException
+        // The migrator should derive cashCurrency from cashAsset.market.currency
+        val result = trnMigrator.upgrade(corruptedTrn)
+
+        assertThat(result)
+            .hasFieldOrPropertyWithValue("version", "4")
+            // cashCurrency should now be derived from cashAsset's market currency (NZD)
+            .hasFieldOrPropertyWithValue("cashCurrency", NZD)
+    }
 }

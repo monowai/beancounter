@@ -19,7 +19,7 @@ import kotlin.math.pow
  */
 @Service
 class IrrCalculator(
-    @param:Value($$"${beancounter.irr:225}") private val minHoldingDays: Int = 225,
+    @param:Value("\${beancounter.irr:365}") private val minHoldingDays: Int = 365,
     private val dateUtils: DateUtils
 ) {
     private val solver: UnivariateSolver = BrentSolver()

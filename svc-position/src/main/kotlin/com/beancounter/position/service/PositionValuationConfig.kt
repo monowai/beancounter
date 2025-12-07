@@ -7,6 +7,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
@@ -21,5 +22,18 @@ data class PositionValuationConfig(
     val fxRateService: FxService,
     val tokenService: TokenService,
     val dateUtils: DateUtils,
-    val irrCalculator: IrrCalculator
+    val irrCalculator: IrrCalculator,
+    /**
+     * Minimum holding period (in days) before using IRR (XIRR) instead of simple ROI.
+     *
+     * Industry best practice is to use simple ROI for short-term investments (< 1 year)
+     * because XIRR can produce extreme/misleading annualized values for short periods.
+     * For investments held longer than this threshold, XIRR provides a more meaningful
+     * time-weighted return that accounts for the timing of cash flows.
+     *
+     * Can be configured via BEANCOUNTER_IRR environment variable or beancounter.irr property.
+     * Default: 365 days (1 year)
+     */
+    @param:Value("\${beancounter.irr:365}")
+    val minHoldingDaysForIrr: Long = 365L
 )

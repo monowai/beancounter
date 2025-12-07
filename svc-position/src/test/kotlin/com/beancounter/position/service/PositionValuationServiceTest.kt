@@ -25,6 +25,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Test suite for PositionValuationService to ensure proper position valuation functionality.
@@ -127,5 +128,75 @@ class PositionValuationServiceTest {
 
         // Then
         assertThat(result).isEqualTo(positions)
+    }
+
+    @Test
+    fun `should use ROI for positions held less than minHoldingDays`() {
+        // Given - position opened 100 days ago (less than 365 day threshold)
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("SHORT_HOLD", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+        position.dateValues.opened = LocalDate.now().minusDays(100)
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val expectedRoi = BigDecimal("0.38")
+        val mockMoneyValues = MoneyValues(portfolio.currency)
+        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+            .thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
+        // IRR calculator returns different value - but for short holding period, ROI should be used
+        whenever(irrCalculator.calculate(any())).thenReturn(0.27)
+
+        // When
+        valuationService.value(positions, assetInputs)
+
+        // Then - verify updateTotals was called with ROI value for both roi AND irr parameters
+        // For short holding periods, the IRR should equal the ROI (called 3 times for trade/base/portfolio)
+        verify(calculationSupport, org.mockito.kotlin.times(3))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(expectedRoi))
+    }
+
+    @Test
+    fun `should use IRR calculator for positions held longer than minHoldingDays`() {
+        // Given - position opened 400 days ago (more than 365 day threshold)
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("LONG_HOLD", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+        position.dateValues.opened = LocalDate.now().minusDays(400)
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val expectedRoi = BigDecimal("0.38")
+        val mockMoneyValues = MoneyValues(portfolio.currency)
+        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+            .thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
+        whenever(irrCalculator.calculate(any())).thenReturn(0.27)
+
+        // When
+        valuationService.value(positions, assetInputs)
+
+        // Then - verify updateTotals was called with different ROI and IRR values
+        // For long holding periods, the IRR should be calculated (different from ROI)
+        // Called 3 times for trade/base/portfolio
+        verify(calculationSupport, org.mockito.kotlin.times(3))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal(0.27)))
     }
 }

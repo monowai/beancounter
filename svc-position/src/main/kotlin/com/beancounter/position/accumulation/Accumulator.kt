@@ -82,9 +82,9 @@ class Accumulator(
                 positions
             )
         }
-        if (position.quantityValues.hasPosition()) {
+        if (position.quantityValues.hasPosition() && shouldAddToCashFlows(trn.trnType)) {
             position.periodicCashFlows.add(trn)
-        } else {
+        } else if (!position.quantityValues.hasPosition()) {
             // Reset cash flows and opened date if no position exists
             position.periodicCashFlows.clear()
             position.dateValues.opened = null
@@ -103,6 +103,12 @@ class Accumulator(
         trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType) && trn.trnType !in cashSet
 
     /**
+     * Determines if a transaction type should contribute to periodic cash flows for IRR calculation.
+     * SPLIT and BALANCE transactions don't represent actual cash movements and should be excluded.
+     */
+    private fun shouldAddToCashFlows(trnType: TrnType): Boolean = trnType != TrnType.SPLIT && trnType != BALANCE
+
+    /**
      * Accumulates cash-related transactions to the corresponding position based on the transaction type.
      *
      * @param trn The transaction to be processed.
@@ -119,19 +125,20 @@ class Accumulator(
             )
 
         when {
-            TrnType.isCashCredited(trn.trnType) ->
+            TrnType.isCashCredited(trn.trnType) -> {
                 trnBehaviourFactory[DEPOSIT].accumulate(
                     trn,
                     positions,
                     cashPosition
                 )
-
-            TrnType.isCashDebited(trn.trnType) ->
+            }
+            TrnType.isCashDebited(trn.trnType) -> {
                 trnBehaviourFactory[WITHDRAWAL].accumulate(
                     trn,
                     positions,
                     cashPosition
                 )
+            }
         }
 
         cashPosition.dateValues.last = trn.tradeDate

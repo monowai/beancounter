@@ -3,6 +3,7 @@ package com.beancounter.common.trn
 import com.beancounter.common.Constants
 import com.beancounter.common.V_BATCH
 import com.beancounter.common.V_PROVIDER
+import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
@@ -14,6 +15,7 @@ import com.beancounter.common.utils.PortfolioUtils
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 
 /**
  * Trn related defaults
@@ -162,5 +164,93 @@ class TrnTest {
                 "\"fees\":1.08,\"cashAmount\":-859.6,\"tradeAmount\":859.6,\"quantity\":2,\"tradeCurrency\":\"USD\"," +
                 "\"trnType\":\"BUY\",\"tradeDate\":\"2021-10-06\"}"
         Assertions.assertThat(BcJson.objectMapper.readValue<TrnInput>(json)).isNotNull
+    }
+
+    @Test
+    fun `TrnResponse with split transaction serializes and deserializes correctly`() {
+        // Split transactions have null cashAsset/cashCurrency and zero amounts
+        // This test verifies the serialization round-trip works correctly
+        val splitTrn =
+            Trn(
+                id = "split-123",
+                trnType = TrnType.SPLIT,
+                asset =
+                    AssetUtils.getTestAsset(
+                        Constants.NYSE,
+                        "AAPL"
+                    ),
+                portfolio = PortfolioUtils.getPortfolio(),
+                quantity = BigDecimal("100.00"),
+                price = BigDecimal.ZERO,
+                tradeAmount = BigDecimal.ZERO,
+                cashAmount = BigDecimal.ZERO,
+                cashAsset = null,
+                cashCurrency = null
+            )
+
+        val trnResponse = TrnResponse(listOf(splitTrn))
+
+        // Serialize to JSON
+        val json = BcJson.objectMapper.writeValueAsString(trnResponse)
+        Assertions.assertThat(json).isNotNull
+
+        // Deserialize back
+        val deserialized = BcJson.objectMapper.readValue<TrnResponse>(json)
+        Assertions.assertThat(deserialized).isNotNull
+        Assertions.assertThat(deserialized.data).hasSize(1)
+        Assertions
+            .assertThat(deserialized.data.first())
+            .hasFieldOrPropertyWithValue("trnType", TrnType.SPLIT)
+            .hasFieldOrPropertyWithValue("price", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("cashAsset", null)
+            .hasFieldOrPropertyWithValue("cashCurrency", null)
+    }
+
+    @Test
+    fun `TrnResponse with multiple transaction types serializes correctly`() {
+        // Test that a mix of transaction types (including splits) serialize correctly
+        val buyTrn =
+            Trn(
+                id = "buy-123",
+                trnType = TrnType.BUY,
+                asset =
+                    AssetUtils.getTestAsset(
+                        Constants.NYSE,
+                        "AAPL"
+                    ),
+                portfolio = PortfolioUtils.getPortfolio(),
+                quantity = BigDecimal("10.00"),
+                price = BigDecimal("150.00"),
+                tradeAmount = BigDecimal("1500.00")
+            )
+
+        val splitTrn =
+            Trn(
+                id = "split-456",
+                trnType = TrnType.SPLIT,
+                asset =
+                    AssetUtils.getTestAsset(
+                        Constants.NYSE,
+                        "AAPL"
+                    ),
+                portfolio = PortfolioUtils.getPortfolio(),
+                quantity = BigDecimal("40.00"),
+                price = BigDecimal.ZERO,
+                tradeAmount = BigDecimal.ZERO,
+                cashAsset = null,
+                cashCurrency = null
+            )
+
+        val trnResponse = TrnResponse(listOf(buyTrn, splitTrn))
+
+        // Serialize and deserialize
+        val json = BcJson.objectMapper.writeValueAsString(trnResponse)
+        val deserialized = BcJson.objectMapper.readValue<TrnResponse>(json)
+
+        Assertions.assertThat(deserialized.data).hasSize(2)
+        Assertions
+            .assertThat(deserialized.data.map { it.trnType })
+            .containsExactly(TrnType.BUY, TrnType.SPLIT)
     }
 }

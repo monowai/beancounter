@@ -83,6 +83,7 @@ class PriceService(
 
     /**
      * Persistence and distribution of MarketData objects.
+     * If previousClose is not provided by the API, it is calculated from the previous day's close.
      */
     @Transactional
     fun handle(priceResponse: PriceResponse): Iterable<MarketData> {
@@ -95,6 +96,8 @@ class PriceService(
                         marketData.asset.id,
                         marketData.priceDate
                     ) == 0L
+                }.map { marketData ->
+                    enrichWithPreviousClose(marketData)
                 }
 
         priceResponse.data
@@ -108,6 +111,44 @@ class PriceService(
         } else {
             marketDataRepo.saveAll(createSet)
         }
+    }
+
+    /**
+     * If previousClose is not provided by the API (zero), calculate it from the previous day's close.
+     * Also calculates change and changePercent when previousClose is derived.
+     */
+    private fun enrichWithPreviousClose(marketData: MarketData): MarketData {
+        if (marketData.previousClose.compareTo(BigDecimal.ZERO) != 0) {
+            // API already provided previousClose, no enrichment needed
+            return marketData
+        }
+
+        // Try to get previous day's close from database
+        val previousDayData =
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
+                marketData.asset,
+                marketData.priceDate
+            )
+
+        if (previousDayData.isPresent) {
+            val previousClose = previousDayData.get().close
+            marketData.previousClose = previousClose
+            marketData.change = marketData.close.subtract(previousClose)
+            if (previousClose.compareTo(BigDecimal.ZERO) != 0) {
+                marketData.changePercent =
+                    marketData.change.divide(previousClose, 6, java.math.RoundingMode.HALF_UP)
+            }
+            log.debug(
+                "Calculated previousClose for {} on {}: {} -> change={}, changePercent={}",
+                marketData.asset.code,
+                marketData.priceDate,
+                previousClose,
+                marketData.change,
+                marketData.changePercent
+            )
+        }
+
+        return marketData
     }
 
     private fun isCorporateEvent(marketData: MarketData): Boolean =

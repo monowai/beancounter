@@ -40,10 +40,18 @@ class TrnMigrator(
         // Migrate from cashCurrency to cashAsset and calculate FX rates
         var tradeCash: IsoCurrencyPair? = null
         if (trn.cashAsset != null) {
+            // Handle edge case where cashAsset is set but cashCurrency is null
+            // Derive cashCurrency from cashAsset's market currency
+            val cashCurrencyCode =
+                trn.cashCurrency?.code ?: trn.cashAsset!!
+                    .market.currency.code
+            if (trn.cashCurrency == null) {
+                trn.cashCurrency = trn.cashAsset!!.market.currency
+            }
             tradeCash =
                 IsoCurrencyPair(
                     trn.tradeCurrency.code,
-                    trn.cashCurrency!!.code
+                    cashCurrencyCode
                 )
         }
         val tradePortfolio =

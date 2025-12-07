@@ -22,6 +22,15 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         priceDate: LocalDate
     ): Optional<MarketData>
 
+    /**
+     * Find the most recent market data for an asset strictly before the given date.
+     * Used to calculate previousClose when API doesn't provide it.
+     */
+    fun findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
+        asset: Asset,
+        priceDate: LocalDate
+    ): Optional<MarketData>
+
     @Query(
         "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate"
     )

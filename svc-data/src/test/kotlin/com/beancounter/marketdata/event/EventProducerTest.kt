@@ -157,7 +157,7 @@ class EventProducerTest {
                     event.rate == BigDecimal("0.75") &&
                     event.split == BigDecimal.ONE &&
                     event.source == "TEST" &&
-                    event.recordDate == LocalDate.now()
+                    event.recordDate.isEqual(LocalDate.now())
             }
         )
     }
@@ -188,7 +188,7 @@ class EventProducerTest {
                     event.rate == BigDecimal.ZERO &&
                     event.split == BigDecimal("3.0") &&
                     event.source == "TEST" &&
-                    event.recordDate == LocalDate.now(dateUtils.zoneId)
+                    event.recordDate.isEqual(LocalDate.now(dateUtils.zoneId))
             }
         )
     }

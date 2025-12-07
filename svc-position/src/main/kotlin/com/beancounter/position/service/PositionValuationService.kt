@@ -203,15 +203,44 @@ class PositionValuationService(
         positionContext.position.periodicCashFlows.add(positionContext.position, positionContext.asAtDate)
         positionContext.positions.periodicCashFlows.addAll(positionContext.position.periodicCashFlows.cashFlows)
 
-        val irr =
-            calculateIrrSafely(
-                positionContext.position.periodicCashFlows,
-                "Failed to calculate IRR for ${positionContext.position.asset.code}"
-            )
+        val irr = calculatePositionIrr(positionContext, roi)
 
         calculationSupport.updateTotals(totalsGroup.tradeTotals, moneyValuesGroup.tradeMoneyValues, roi, irr)
         calculationSupport.updateTotals(totalsGroup.baseTotals, moneyValuesGroup.baseMoneyValues, roi, irr)
         calculationSupport.updateTotals(totalsGroup.refTotals, moneyValuesGroup.portfolioMoneyValues, roi, irr)
+    }
+
+    /**
+     * Calculate IRR for a position, using ROI for short holding periods.
+     *
+     * Industry best practice is to use simple ROI for short-term investments (typically < 1 year)
+     * because XIRR can produce extreme/misleading annualized values for short periods.
+     * Additionally, when a position has been closed and reopened, the cash flows only reflect
+     * the current holding period, while ROI correctly includes historical realized gains.
+     *
+     * The threshold is configurable via `beancounter.irr.minHoldingDays` (default: 365 days).
+     */
+    private fun calculatePositionIrr(
+        positionContext: PositionContext,
+        roi: BigDecimal
+    ): BigDecimal {
+        val openedDate = positionContext.position.dateValues.opened
+        val holdingDays =
+            if (openedDate != null) {
+                java.time.temporal.ChronoUnit.DAYS
+                    .between(openedDate, positionContext.asAtDate)
+            } else {
+                0L
+            }
+
+        return if (holdingDays < config.minHoldingDaysForIrr) {
+            roi
+        } else {
+            calculateIrrSafely(
+                positionContext.position.periodicCashFlows,
+                "Failed to calculate IRR for ${positionContext.position.asset.code}"
+            )
+        }
     }
 
     private fun processCashPosition(

@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.PercentUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -15,11 +14,13 @@ import java.time.LocalDate
 /**
  * Tests for AlphaCorporateEventEnricher - ensures Global Quote prices are enriched
  * with split/dividend data from TIME_SERIES_DAILY_ADJUSTED.
+ *
+ * Note: GLOBAL_QUOTE already returns split-adjusted previousClose and change values,
+ * so we only copy the split/dividend metadata without adjusting prices.
  */
 class AlphaCorporateEventEnricherTest {
     private val alphaEventService = mock(AlphaEventService::class.java)
-    private val percentUtils = PercentUtils()
-    private val enricher = AlphaCorporateEventEnricher(alphaEventService, percentUtils)
+    private val enricher = AlphaCorporateEventEnricher(alphaEventService)
 
     private val market = Market("US")
     private val asset = Asset(id = "test-id", code = "SLK", market = market)
@@ -28,7 +29,7 @@ class AlphaCorporateEventEnricherTest {
     @Test
     fun `should enrich Global Quote with split data when split exists for same date`() {
         // Given: A Global Quote MarketData with no split info (defaults to split=1)
-        // The API returns unadjusted previous close, creating incorrect change
+        // Note: GLOBAL_QUOTE already returns split-adjusted previousClose and change
         val globalQuoteMarketData =
             MarketData(
                 asset = asset,
@@ -37,9 +38,9 @@ class AlphaCorporateEventEnricherTest {
                 open = BigDecimal("99.00"),
                 high = BigDecimal("101.00"),
                 low = BigDecimal("98.00"),
-                previousClose = BigDecimal("200.00"), // Unadjusted (pre-split)
-                change = BigDecimal("-100.00"), // Wrong - not split-adjusted
-                changePercent = BigDecimal("-0.50"), // Wrong - 50% drop instead of ~0%
+                previousClose = BigDecimal("99.50"), // Already split-adjusted by GLOBAL_QUOTE
+                change = BigDecimal("0.50"), // Already correct
+                changePercent = BigDecimal("0.005"),
                 volume = 1000000,
                 source = "ALPHA"
             )
@@ -60,19 +61,14 @@ class AlphaCorporateEventEnricherTest {
         // When: Enriching the Global Quote data
         val enrichedData = enricher.enrich(globalQuoteMarketData)
 
-        // Then: The split should be copied from adjusted data
+        // Then: The split metadata should be copied from adjusted data
         assertThat(enrichedData.split).isEqualTo(BigDecimal("2.0"))
 
-        // And: The previous close should be adjusted for the split
-        // Previous close 200 / split 2 = 100
-        assertThat(enrichedData.previousClose).isEqualByComparingTo(BigDecimal("100.00"))
-
-        // And: The change should be recalculated (close - adjusted previousClose)
-        // 100 - 100 = 0
-        assertThat(enrichedData.change).isEqualByComparingTo(BigDecimal("0.00"))
-
-        // And: The changePercent should be recalculated
-        assertThat(enrichedData.changePercent).isEqualByComparingTo(BigDecimal.ZERO)
+        // And: previousClose and change should remain unchanged
+        // (GLOBAL_QUOTE already returns split-adjusted values)
+        assertThat(enrichedData.previousClose).isEqualByComparingTo(BigDecimal("99.50"))
+        assertThat(enrichedData.change).isEqualByComparingTo(BigDecimal("0.50"))
+        assertThat(enrichedData.changePercent).isEqualByComparingTo(BigDecimal("0.005"))
     }
 
     @Test
@@ -182,13 +178,14 @@ class AlphaCorporateEventEnricherTest {
     @Test
     fun `should handle fractional splits correctly`() {
         // Given: A Global Quote MarketData affected by a 3:2 split
+        // Note: GLOBAL_QUOTE already returns split-adjusted previousClose and change
         val globalQuoteMarketData =
             MarketData(
                 asset = asset,
                 priceDate = priceDate,
                 close = BigDecimal("66.67"),
-                previousClose = BigDecimal("100.00"), // Unadjusted
-                change = BigDecimal("-33.33"),
+                previousClose = BigDecimal("66.00"), // Already split-adjusted by GLOBAL_QUOTE
+                change = BigDecimal("0.67"), // Already correct
                 source = "ALPHA"
             )
 
@@ -208,13 +205,12 @@ class AlphaCorporateEventEnricherTest {
         // When: Enriching the Global Quote data
         val enrichedData = enricher.enrich(globalQuoteMarketData)
 
-        // Then: The split should be set
+        // Then: The split metadata should be copied
         assertThat(enrichedData.split).isEqualByComparingTo(BigDecimal("1.5"))
 
-        // And: Previous close should be adjusted: 100 / 1.5 = 66.67
-        assertThat(enrichedData.previousClose).isEqualByComparingTo(BigDecimal("66.67"))
-
-        // And: Change should be ~0
-        assertThat(enrichedData.change).isEqualByComparingTo(BigDecimal("0.00"))
+        // And: previousClose and change should remain unchanged
+        // (GLOBAL_QUOTE already returns split-adjusted values)
+        assertThat(enrichedData.previousClose).isEqualByComparingTo(BigDecimal("66.00"))
+        assertThat(enrichedData.change).isEqualByComparingTo(BigDecimal("0.67"))
     }
 }

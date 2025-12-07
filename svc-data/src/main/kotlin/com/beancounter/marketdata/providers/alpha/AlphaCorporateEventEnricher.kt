@@ -3,8 +3,6 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
-import com.beancounter.common.utils.MathUtils
-import com.beancounter.common.utils.PercentUtils
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -12,19 +10,18 @@ import org.springframework.stereotype.Service
  * Enriches Global Quote MarketData with corporate event data (splits/dividends)
  * from TIME_SERIES_DAILY_ADJUSTED.
  *
- * The Global Quote API does not include split/dividend information. This service
- * fetches the adjusted time series data to:
+ * The Global Quote API does not include split/dividend information, but it DOES
+ * return split-adjusted previousClose and change values. This service fetches
+ * the adjusted time series data to:
  * 1. Detect splits and dividends that occurred on the price date
- * 2. Adjust previousClose when a split occurred (divide by split coefficient)
- * 3. Recalculate change and changePercent for split-adjusted values
+ * 2. Copy the split coefficient and dividend amount to the MarketData
  *
- * This ensures corporate events are properly detected and price changes are
- * accurately reported even when using the Global Quote API for current prices.
+ * Note: We do NOT adjust previousClose or change since GLOBAL_QUOTE already
+ * returns split-adjusted values. Only the split/dividend metadata is enriched.
  */
 @Service
 class AlphaCorporateEventEnricher(
-    private val alphaEventService: AlphaEventService,
-    private val percentUtils: PercentUtils
+    private val alphaEventService: AlphaEventService
 ) {
     /**
      * Enriches Global Quote MarketData with corporate event data.
@@ -37,7 +34,7 @@ class AlphaCorporateEventEnricher(
             val events = alphaEventService.getEvents(marketData.asset)
 
             // Find event for the same date
-            val eventForDate = events.data.find { it.priceDate == marketData.priceDate }
+            val eventForDate = events.data.find { it.priceDate.isEqual(marketData.priceDate) }
 
             if (eventForDate == null) {
                 log.trace("No corporate event found for {} on {}", marketData.asset.code, marketData.priceDate)
@@ -55,33 +52,16 @@ class AlphaCorporateEventEnricher(
                 )
             }
 
-            // Enrich with split if present and adjust previousClose/change
+            // Enrich with split if present
+            // Note: We do NOT adjust previousClose since GLOBAL_QUOTE already returns
+            // split-adjusted values. We only copy the split coefficient metadata.
             if (isSplit(eventForDate)) {
                 marketData.split = eventForDate.split
-
-                // Adjust previousClose by dividing by split coefficient
-                // For a 2:1 split, previousClose of $200 becomes $100
-                val adjustedPreviousClose =
-                    MathUtils.divide(
-                        marketData.previousClose,
-                        eventForDate.split
-                    )
-
-                marketData.previousClose = adjustedPreviousClose
-
-                // Recalculate change: close - adjusted previousClose
-                val adjustedChange = marketData.close.subtract(adjustedPreviousClose)
-                marketData.change = adjustedChange
-
-                // Recalculate changePercent
-                marketData.changePercent = percentUtils.percent(adjustedChange, adjustedPreviousClose)
-
                 log.info(
-                    "Enriched {} with split {} on {}, adjusted previousClose from pre-split to {}",
+                    "Enriched {} with split {} on {}",
                     marketData.asset.code,
                     eventForDate.split,
-                    marketData.priceDate,
-                    adjustedPreviousClose
+                    marketData.priceDate
                 )
             }
 

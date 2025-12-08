@@ -212,4 +212,102 @@ class PriceServiceTest {
         assertEquals(1, savedData.size)
         assertEquals(BigDecimal.ZERO, savedData[0].previousClose)
     }
+
+    @Test
+    fun `should reject zero close price with different decimal representations`() {
+        // Given: Market data with various zero representations
+        val today = LocalDate.of(2025, 12, 3)
+        val zeroVariants =
+            listOf(
+                BigDecimal.ZERO,
+                BigDecimal("0"),
+                BigDecimal("0.0"),
+                BigDecimal("0.00"),
+                BigDecimal("0.000000")
+            )
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+
+        for (zeroValue in zeroVariants) {
+            val marketData =
+                MarketData(
+                    asset = asset,
+                    priceDate = today,
+                    close = zeroValue
+                )
+
+            // When: Processing the price response with zero close
+            val result = priceService.handle(PriceResponse(listOf(marketData)))
+
+            // Then: No data should be saved
+            assertEquals(0, result.count(), "Zero price $zeroValue should not be saved")
+        }
+
+        // Verify saveAll was never called
+        verify(marketDataRepo, times(0)).saveAll(anyList())
+    }
+
+    @Test
+    fun `should save only valid prices when batch contains zero prices`() {
+        // Given: A batch with mixed valid and zero prices
+        val today = LocalDate.of(2025, 12, 3)
+        val validAsset1 = Asset(code = "VALID1", market = NASDAQ)
+        val validAsset2 = Asset(code = "VALID2", market = NASDAQ)
+        val zeroAsset = Asset(code = "ZERO", market = NASDAQ)
+
+        val validPrice1 = MarketData(asset = validAsset1, priceDate = today, close = BigDecimal("100.50"))
+        val zeroPrice = MarketData(asset = zeroAsset, priceDate = today, close = BigDecimal.ZERO)
+        val validPrice2 = MarketData(asset = validAsset2, priceDate = today, close = BigDecimal("200.75"))
+
+        `when`(cashUtils.isCash(validAsset1)).thenReturn(false)
+        `when`(cashUtils.isCash(validAsset2)).thenReturn(false)
+        `when`(cashUtils.isCash(zeroAsset)).thenReturn(false)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(validAsset1.id, today)).thenReturn(0L)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(validAsset2.id, today)).thenReturn(0L)
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
+                validAsset1,
+                today
+            )
+        ).thenReturn(Optional.empty())
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
+                validAsset2,
+                today
+            )
+        ).thenReturn(Optional.empty())
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        // When: Processing a batch with mixed prices
+        val result = priceService.handle(PriceResponse(listOf(validPrice1, zeroPrice, validPrice2)))
+
+        // Then: Only valid prices should be saved (2 out of 3)
+        val savedData = result.toList()
+        assertEquals(2, savedData.size, "Only valid (non-zero) prices should be saved")
+        assertTrue(
+            savedData.none { it.close.compareTo(BigDecimal.ZERO) == 0 },
+            "No zero prices should be in saved data"
+        )
+    }
+
+    @Test
+    fun `should reject negative close prices as invalid`() {
+        // Given: Market data with negative close price (invalid data from provider)
+        val today = LocalDate.of(2025, 12, 3)
+        val negativePrice =
+            MarketData(
+                asset = asset,
+                priceDate = today,
+                close = BigDecimal("-10.50")
+            )
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+
+        // When: Processing the price response with negative close
+        val result = priceService.handle(PriceResponse(listOf(negativePrice)))
+
+        // Then: No data should be saved
+        assertEquals(0, result.count(), "Negative price should not be saved")
+        verify(marketDataRepo, times(0)).saveAll(anyList())
+    }
 }

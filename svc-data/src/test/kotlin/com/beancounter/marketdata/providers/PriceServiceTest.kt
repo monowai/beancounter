@@ -284,7 +284,10 @@ class PriceServiceTest {
         // Then: Only valid prices should be saved (2 out of 3)
         val savedData = result.toList()
         assertEquals(2, savedData.size, "Only valid (non-zero) prices should be saved")
-        assertTrue(savedData.none { it.close.compareTo(BigDecimal.ZERO) == 0 }, "No zero prices should be in saved data")
+        assertTrue(
+            savedData.none { it.close.compareTo(BigDecimal.ZERO) == 0 },
+            "No zero prices should be in saved data"
+        )
     }
 
     @Test

@@ -84,12 +84,15 @@ class PriceService(
     /**
      * Persistence and distribution of MarketData objects.
      * If previousClose is not provided by the API, it is calculated from the previous day's close.
+     *
+     * IMPORTANT: Prices with close <= 0 are rejected as invalid data from the provider.
+     * A zero or negative price indicates a provider issue and should never be stored.
      */
     @Transactional
     fun handle(priceResponse: PriceResponse): Iterable<MarketData> {
         val createSet =
             priceResponse.data
-                .filter { !cashUtils.isCash(it.asset) && it.close != BigDecimal.ZERO }
+                .filter { !cashUtils.isCash(it.asset) && isValidPrice(it) }
                 .filter { marketData ->
                     // Skip if already exists (idempotent operation)
                     marketDataRepo.countByAssetIdAndPriceDate(
@@ -153,6 +156,24 @@ class PriceService(
 
     private fun isCorporateEvent(marketData: MarketData): Boolean =
         marketData.asset.isKnown && (isDividend(marketData) || isSplit(marketData))
+
+    /**
+     * Validates that a price is valid for storage.
+     * A valid price must have a close price > 0.
+     * Zero or negative prices indicate provider issues and are rejected.
+     */
+    private fun isValidPrice(marketData: MarketData): Boolean {
+        val isValid = marketData.close.compareTo(BigDecimal.ZERO) > 0
+        if (!isValid) {
+            log.warn(
+                "Rejecting invalid price for {} on {}: close={} (must be > 0)",
+                marketData.asset.code,
+                marketData.priceDate,
+                marketData.close
+            )
+        }
+        return isValid
+    }
 
     /**
      * Delete all prices.  Supports testing ONLY!

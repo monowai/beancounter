@@ -10,8 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.context.annotation.Lazy
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.AuthorizationGrantType
@@ -19,11 +20,14 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestTemplate
 
 /**
- * OpenID client-credential login service to service M2M authentication requests
+ * OpenID client-credential login service to service M2M authentication requests.
+ * Uses RestTemplate for form-urlencoded requests to Auth0.
  */
 @Service
 @ConditionalOnProperty(
@@ -32,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody
     matchIfMissing = true
 )
 class LoginService(
-    private val authGateway: AuthGateway,
     val jwtDecoder: JwtDecoder,
     val authConfig: AuthConfig
 ) {
@@ -40,31 +43,26 @@ class LoginService(
     @Autowired
     private lateinit var self: LoginService
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val restTemplate = RestTemplate()
 
     fun login(
         user: String,
         password: String
     ): OpenIdResponse {
-        val passwordRequest =
-            passwordRequest(
-                user,
-                password
-            )
-        val response = authGateway.login(passwordRequest)
+        val formData =
+            LinkedMultiValueMap<String, String>().apply {
+                add("grant_type", "password")
+                add("client_id", authConfig.clientId)
+                add("client_secret", authConfig.clientSecret)
+                add("audience", authConfig.audience)
+                add("username", user)
+                add("password", password)
+                add("scope", "openid profile email beancounter beancounter:user beancounter:admin")
+            }
+        val response = postToAuth0(formData)
         log.debug("Logged in $user")
         return response
     }
-
-    fun passwordRequest(
-        user: String,
-        password: String
-    ) = PasswordRequest(
-        clientId = authConfig.clientId,
-        username = user,
-        password = password,
-        audience = authConfig.audience,
-        clientSecret = authConfig.clientSecret
-    )
 
     /**
      * Simple M2M login with Spring @Cacheable.
@@ -82,12 +80,6 @@ class LoginService(
             )
             throw UnauthorizedException("Client Secret is not set")
         }
-        val login =
-            ClientCredentialsRequest(
-                clientSecret = secretIn,
-                clientId = authConfig.clientId,
-                audience = authConfig.audience
-            )
         log.info(
             "M2M login: clientId={}, audience={}, secret={}...{}",
             authConfig.clientId,
@@ -95,7 +87,38 @@ class LoginService(
             secretIn.take(4),
             secretIn.takeLast(4)
         )
-        return setAuthContext(authGateway.login(login))
+        val formData =
+            LinkedMultiValueMap<String, String>().apply {
+                add("grant_type", AuthorizationGrantType.CLIENT_CREDENTIALS.value)
+                add("client_id", authConfig.clientId)
+                add("client_secret", secretIn)
+                add("audience", authConfig.audience)
+                add("scope", "beancounter beancounter:system")
+            }
+        return setAuthContext(postToAuth0(formData))
+    }
+
+    private fun postToAuth0(formData: MultiValueMap<String, String>): OpenIdResponse {
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_FORM_URLENCODED
+            }
+        val request = HttpEntity(formData, headers)
+        val tokenUrl = "${authConfig.issuer}oauth/token"
+
+        try {
+            val response =
+                restTemplate.postForEntity(
+                    tokenUrl,
+                    request,
+                    OpenIdResponse::class.java
+                )
+            return response.body
+                ?: throw UnauthorizedException("Empty response from Auth0")
+        } catch (e: RestClientException) {
+            log.error("Auth0 token request failed: ${e.message}")
+            throw UnauthorizedException("Authentication failed: ${e.message}")
+        }
     }
 
     fun setAuthContext(response: OpenIdResponse): OpenIdResponse {
@@ -171,27 +194,4 @@ class LoginService(
         @field:com.fasterxml.jackson.annotation.JsonProperty("grant_type")
         var grantType: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value
     ) : AuthRequest
-
-    /**
-     * Obtain a token from BC-DATA that can be used by the client app.
-     */
-    @FeignClient(
-        name = "auth0",
-        url = "\${auth.uri:https://beancounter.eu.auth0.com/}"
-    )
-    @ConditionalOnProperty(
-        value = ["auth.enabled"],
-        havingValue = "true",
-        matchIfMissing = true
-    )
-    interface AuthGateway {
-        @PostMapping(
-            value = ["oauth/token"],
-            consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
-            produces = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun login(
-            @RequestBody authRequest: AuthRequest
-        ): OpenIdResponse
-    }
 }

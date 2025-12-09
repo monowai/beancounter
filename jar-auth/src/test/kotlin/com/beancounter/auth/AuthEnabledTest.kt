@@ -44,9 +44,6 @@ class AuthEnabledTest {
     lateinit var springContext: ApplicationContext
 
     @MockitoBean
-    lateinit var authGateway: LoginService.AuthGateway
-
-    @MockitoBean
     lateinit var jwtDecoder: JwtDecoder
 
     @Autowired

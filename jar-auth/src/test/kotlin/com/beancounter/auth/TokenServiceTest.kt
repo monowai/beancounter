@@ -1,6 +1,5 @@
 package com.beancounter.auth
 
-import com.beancounter.auth.client.LoginService
 import com.beancounter.common.exception.UnauthorizedException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -27,9 +26,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 class TokenServiceTest {
     @Autowired
     private lateinit var tokenService: TokenService
-
-    @MockitoBean
-    lateinit var authGateway: LoginService.AuthGateway
 
     @MockitoBean
     lateinit var jwtDecoder: JwtDecoder

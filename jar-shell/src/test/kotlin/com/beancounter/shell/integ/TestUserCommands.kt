@@ -3,7 +3,6 @@ package com.beancounter.shell.integ
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.TokenUtils
-import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.LoginRequest
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.client.services.RegistrationService
@@ -40,9 +39,6 @@ class TestUserCommands {
 
     @MockitoBean
     private lateinit var lineReader: LineReader
-
-    @MockitoBean
-    lateinit var authGateway: LoginService.AuthGateway
 
     @MockitoBean
     lateinit var jwtDecoder: JwtDecoder

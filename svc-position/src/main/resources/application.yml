@@ -61,7 +61,7 @@ spring:
     stream:
       # Switch between kafka and rabbit using environment variable:
       # SPRING_CLOUD_STREAM_DEFAULT_BINDER=kafka (or rabbit)
-      default-binder: kafka
+      default-binder: rabbit
       bindings:
         # Portfolio Market Value Producer (StreamBridge)
         portfolioMarketValue-out-0:
@@ -76,7 +76,7 @@ spring:
         binder:
           connection-name-prefix: bc-position
     rabbitmq:
-      host: kauri.monowai.com
+      host: localhost
       port: 5672
       username: admin
       password: admin

@@ -8,6 +8,8 @@ schedule:
 
 springdoc:
   use-management-port: true
+  swagger-ui:
+    path: /swagger-ui.html
 
 management:
   server:

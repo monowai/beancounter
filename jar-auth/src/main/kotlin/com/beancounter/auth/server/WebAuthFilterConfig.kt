@@ -41,13 +41,13 @@ class WebAuthFilterConfig {
     @Value("\${server.servlet.context-path:/api}")
     private lateinit var apiPath: String
 
-    @Value("\${management.endpoints.web.base-path:/actuator}")
+    @Value($$"${management.endpoints.web.base-path:/actuator}")
     private lateinit var actuatorPath: String
 
-    @Value("\${cors.origins:http://localhost:3000,http://localhost:4000,http://localhost:5000}")
+    @Value($$"${cors.origins:http://localhost:3000,http://localhost:4000,http://localhost:5000}")
     private lateinit var origins: List<String>
 
-    @Value("\${cors.origins:Authorization,Cache-Control,Content-Type}")
+    @Value($$"${cors.origins:Authorization,Cache-Control,Content-Type}")
     private lateinit var headers: List<String>
 
     @Value("\${cors.exposedHeaders:Authorization}")

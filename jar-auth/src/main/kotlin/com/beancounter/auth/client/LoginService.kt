@@ -77,6 +77,9 @@ class LoginService(
     @Cacheable("auth.m2m")
     fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
         if ("not-set" == secretIn) {
+            log.error(
+                "M2M login failed: client secret is 'not-set'. Check AUTH_CLIENT_SECRET or SPRING_SECURITY_OAUTH2_REGISTRATION_CUSTOM_CLIENT_SECRET env vars"
+            )
             throw UnauthorizedException("Client Secret is not set")
         }
         val login =
@@ -85,7 +88,13 @@ class LoginService(
                 clientId = authConfig.clientId,
                 audience = authConfig.audience
             )
-        log.trace("m2mLogin: ${authConfig.clientId}")
+        log.info(
+            "M2M login: clientId={}, audience={}, secret={}...{}",
+            authConfig.clientId,
+            authConfig.audience,
+            secretIn.take(4),
+            secretIn.takeLast(4)
+        )
         return setAuthContext(authGateway.login(login))
     }
 

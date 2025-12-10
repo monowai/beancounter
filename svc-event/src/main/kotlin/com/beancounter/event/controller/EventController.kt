@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -49,7 +50,7 @@ import org.springframework.web.bind.annotation.RestController
     description = "Endpoints for managing corporate actions (dividends, splits) and generating transactions"
 )
 class EventController(
-    private val config: EventControllerConfig
+    config: EventControllerConfig
 ) {
     private val eventService = config.serviceConfig.eventService
     private val backFillService = config.serviceConfig.backFillService
@@ -67,14 +68,14 @@ class EventController(
     @Operation(
         summary = "Process corporate events for a specific portfolio",
         description = """
-            Processes existing corporate events (dividends, splits) for a specific portfolio 
+            Processes existing corporate events (dividends, splits) for a specific portfolio
             and generates the corresponding transactions. This endpoint:
-            
+
             * Finds all corporate events that occurred between the specified dates
             * Identifies which assets in the portfolio were affected
             * Generates dividend or split transactions for each affected position
             * Returns immediately (asynchronous processing)
-            
+
             Use this when you want to process events for a single portfolio.
         """
     )
@@ -119,14 +120,14 @@ class EventController(
     @Operation(
         summary = "Process corporate events for all portfolios",
         description = """
-            Processes existing corporate events for ALL portfolios in the system and generates 
+            Processes existing corporate events for ALL portfolios in the system and generates
             the corresponding transactions. This endpoint:
-            
+
             * First loads any missing events from external sources for the date range
             * Then processes events for each portfolio in the system
             * Generates dividend or split transactions for affected positions
             * Processes portfolios sequentially
-            
+
             Use this for bulk processing across all portfolios.
         """
     )
@@ -170,14 +171,14 @@ class EventController(
     @Operation(
         summary = "Load corporate events from external sources for all portfolios",
         description = """
-            Fetches new corporate events (dividends, splits) from external data sources 
+            Fetches new corporate events (dividends, splits) from external data sources
             for all portfolios in the system. This endpoint:
-            
+
             * Connects to external market data providers
             * Retrieves corporate events for assets held in portfolios
             * Stores the events in the local database
             * Processes events from the specified date to today
-            
+
             This is typically the first step in the corporate event workflow.
         """
     )
@@ -207,12 +208,12 @@ class EventController(
         description = """
             Fetches new corporate events from external data sources for a specific portfolio.
             This endpoint:
-            
+
             * Identifies assets held in the specified portfolio
             * Retrieves corporate events for those assets from external sources
             * Stores the events in the local database
             * Processes events for the specified date
-            
+
             Use this when you want to load events for a single portfolio.
         """
     )
@@ -254,7 +255,7 @@ class EventController(
         summary = "Get a specific corporate event by ID",
         description = """
             Retrieves a single corporate event by its unique identifier.
-            
+
             Use this to:
             * Get details of a specific corporate event
             * Verify event information
@@ -291,12 +292,12 @@ class EventController(
         description = """
             Retrieves a corporate event by ID and reprocesses it to generate transactions.
             This endpoint:
-            
+
             * Finds the event by its unique identifier
             * Processes the event to generate dividend or split transactions
             * Returns the event details
             * Returns immediately (asynchronous processing)
-            
+
             Use this to reprocess events that may have failed or need to be regenerated.
         """
     )
@@ -317,10 +318,17 @@ class EventController(
             description = "Unique identifier of the corporate event to reprocess",
             example = "event-123"
         )
-        @PathVariable eventId: String
+        @PathVariable eventId: String,
+        @Parameter(
+            description =
+                "Optional override pay date (YYYY-MM-DD). " +
+                    "If provided, bypasses the default recordDate + 18 days calculation",
+            example = "2024-12-10"
+        )
+        @RequestParam(required = false) payDate: String? = null
     ): CorporateEventResponse {
         val event = eventService[eventId]
-        eventService.processEvent(event.data)
+        eventService.processEvent(event.data, payDate)
         return event
     }
 
@@ -333,7 +341,7 @@ class EventController(
         description = """
             Retrieves all stored corporate events (dividends, splits) for a specific asset.
             Returns events ordered by payment date (most recent first).
-            
+
             This is useful for:
             * Analyzing dividend history for an asset
             * Checking split events
@@ -369,7 +377,7 @@ class EventController(
         description = """
             Alternative endpoint to retrieve all stored corporate events for a specific asset.
             This endpoint provides the same functionality as /asset/{assetId}.
-            
+
             Returns events ordered by payment date (most recent first).
         """
     )
@@ -426,7 +434,7 @@ class EventController(
         description = """
             Retrieves corporate events for a specific asset within the specified date range.
             This endpoint filters events by both asset and date range.
-            
+
             Use this for:
             * Analyzing events in a specific time period
             * Generating reports for specific dates

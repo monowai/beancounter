@@ -51,7 +51,10 @@ class EventService(
         }
     }
 
-    fun processEvent(event: CorporateEvent): Collection<TrustedTrnEvent> {
+    fun processEvent(
+        event: CorporateEvent,
+        overridePayDate: String? = null
+    ): Collection<TrustedTrnEvent> {
         val response =
             positionService.findWhereHeld(
                 event.assetId,
@@ -67,7 +70,8 @@ class EventService(
                 val trnEvent =
                     positionService.process(
                         portfolio,
-                        event
+                        event,
+                        overridePayDate
                     )
                 // Skip forward dated transactions
                 if (trnEvent.trnInput.trnType == TrnType.IGNORE) {

@@ -75,7 +75,8 @@ class PositionService(
 
     fun process(
         portfolio: Portfolio,
-        event: CorporateEvent
+        event: CorporateEvent,
+        overridePayDate: String? = null
     ): TrustedTrnEvent {
         val positionResponse =
             positionGateway.query(
@@ -95,7 +96,8 @@ class PositionService(
                         .calculate(
                             positionResponse.data.portfolio,
                             position,
-                            event
+                            event,
+                            overridePayDate
                         )
                 }
             }

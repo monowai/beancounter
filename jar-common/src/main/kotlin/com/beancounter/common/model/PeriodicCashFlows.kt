@@ -30,6 +30,12 @@ class PeriodicCashFlows {
         }
     }
 
+    /**
+     * Add a terminal cash flow for valuation purposes.
+     *
+     * For active positions: adds the current market value as a positive cash flow (what you'd get if sold today)
+     * For sold-out positions: no cash flow is added, but historical cash flows are preserved for XIRR calculation
+     */
     fun add(
         position: Position,
         date: LocalDate
@@ -41,9 +47,8 @@ class PeriodicCashFlows {
                     date
                 )
             )
-        } else {
-            clear()
         }
+        // Don't clear cash flows for sold-out positions - we need them for XIRR calculation
     }
 
     fun addAll(toAdd: List<CashFlow>) {

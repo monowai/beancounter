@@ -215,20 +215,27 @@ class PositionValuationService(
      *
      * Industry best practice is to use simple ROI for short-term investments (typically < 1 year)
      * because XIRR can produce extreme/misleading annualized values for short periods.
-     * Additionally, when a position has been closed and reopened, the cash flows only reflect
-     * the current holding period, while ROI correctly includes historical realized gains.
      *
-     * The threshold is configurable via `beancounter.irr.minHoldingDays` (default: 365 days).
+     * We use `opened` date to determine if the position was held long enough for XIRR.
+     * The `opened` date tracks the current holding period - it's preserved after sell-out
+     * for display purposes and reset when re-entering a position after complete sell-out.
+     *
+     * The threshold is configurable via `beancounter.irr` (default: 365 days).
      */
     private fun calculatePositionIrr(
         positionContext: PositionContext,
         roi: BigDecimal
     ): BigDecimal {
-        val openedDate = positionContext.position.dateValues.opened
+        val position = positionContext.position
+
+        // Use opened date for holding period calculation - it tracks the current/last holding period
+        // and is preserved after sell-out, reset on reentry
+        val referenceDate = position.dateValues.opened
+
         val holdingDays =
-            if (openedDate != null) {
+            if (referenceDate != null) {
                 java.time.temporal.ChronoUnit.DAYS
-                    .between(openedDate, positionContext.asAtDate)
+                    .between(referenceDate, positionContext.asAtDate)
             } else {
                 0L
             }
@@ -236,10 +243,15 @@ class PositionValuationService(
         return if (holdingDays < config.minHoldingDaysForIrr) {
             roi
         } else {
-            calculateIrrSafely(
-                positionContext.position.periodicCashFlows,
-                "Failed to calculate IRR for ${positionContext.position.asset.code}"
-            )
+            // Fallback to ROI if no cash flows available (shouldn't happen normally)
+            if (position.periodicCashFlows.cashFlows.isEmpty()) {
+                roi
+            } else {
+                calculateIrrSafely(
+                    position.periodicCashFlows,
+                    "Failed to calculate IRR for ${position.asset.code}"
+                )
+            }
         }
     }
 

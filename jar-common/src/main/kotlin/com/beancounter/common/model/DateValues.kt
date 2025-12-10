@@ -48,8 +48,9 @@ class DateValues {
     var last: LocalDate? = null
 
     /**
-     * The date the position was closed.
-     * Not automatically set by the system - requires manual setting.
+     * The date the position was closed (quantity reached zero).
+     * Automatically set when a sell transaction brings the position quantity to zero.
+     * Automatically cleared when a buy transaction reopens a closed position.
      */
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,

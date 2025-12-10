@@ -82,13 +82,11 @@ class Accumulator(
                 positions
             )
         }
-        if (position.quantityValues.hasPosition() && shouldAddToCashFlows(trn.trnType)) {
+        if (shouldAddToCashFlows(trn.trnType)) {
             position.periodicCashFlows.add(trn)
-        } else if (!position.quantityValues.hasPosition()) {
-            // Reset cash flows and opened date if no position exists
-            position.periodicCashFlows.clear()
-            position.dateValues.opened = null
         }
+        // Note: We do NOT reset dates when sold out - they remain for display purposes.
+        // Dates are only reset when re-entering a position (handled in Positions.getOrCreate)
 
         return position
     }

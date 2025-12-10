@@ -65,12 +65,23 @@ class Positions(
         }
     }
 
+    /**
+     * Get an existing position or create a new one without setting the opened date.
+     * This overload is used during valuation where we don't want to affect date values.
+     * Use getOrCreate(Trn) or getOrCreate(Asset, LocalDate) when processing transactions.
+     */
     @JsonIgnore
-    fun getOrCreate(asset: Asset): Position =
-        getOrCreate(
-            asset,
-            LocalDate.now()
-        )
+    fun getOrCreate(asset: Asset): Position {
+        val position =
+            positions[toKey(asset)] ?: add(
+                Position(
+                    asset,
+                    portfolio,
+                    asset.market.currency
+                )
+            )
+        return position
+    }
 
     @JsonIgnore
     operator fun contains(asset: Asset) = positions.contains(toKey(asset))
@@ -91,13 +102,31 @@ class Positions(
                 )
             )
 
-        // Set opened date if first trade OR if re-entering after selling out completely
+        // Detect if we're re-entering a sold-out position
+        // A position is "reopening" if:
+        // 1. It's not a first trade (position already exists)
+        // 2. It has zero quantity
+        // 3. It had actual transactions (firstTransaction is set by Accumulator)
+        //    Note: We use firstTransaction to detect true sell-out vs just having getOrCreate called
+        //    without actual transaction processing. SellBehaviour resets quantity values (including sold)
+        //    when position is fully closed, so we can't rely on sold < 0.
         val hasZeroQuantity = position.quantityValues.getTotal() == BigDecimal.ZERO
-        val isReopening = hasZeroQuantity && position.dateValues.opened == null
+        val hadActualTransactions = position.dateValues.firstTransaction != null
+        val isReopening = !firstTrade && hasZeroQuantity && hadActualTransactions
 
+        // Set opened date if first trade OR if re-entering after selling out completely
         if (firstTrade || isReopening) {
             position.dateValues.opened = tradeDate
         }
+
+        // When reopening after a complete sell-out, clear historical cash flows
+        // This starts a new investment cycle - historical returns are realized and not relevant
+        // for the new position's ROI/XIRR calculation
+        // Note: firstTransaction is NOT reset - it tracks the very first transaction ever for this asset
+        if (isReopening) {
+            position.periodicCashFlows.clear()
+        }
+
         return position
     }
 

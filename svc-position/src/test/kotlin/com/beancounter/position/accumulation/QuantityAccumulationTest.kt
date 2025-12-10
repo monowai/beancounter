@@ -276,6 +276,8 @@ internal class QuantityAccumulationTest {
             )
         accumulator.accumulate(sellTrn, positions)
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
+        // Opened date is preserved after sellout for UI display purposes
+        assertThat(position.dateValues.opened).isEqualTo(firstBuyDate)
 
         // BUY: Re-enter with 15.00 shares
         val reentryTrn =
@@ -292,7 +294,7 @@ internal class QuantityAccumulationTest {
     }
 
     @Test
-    fun `should preserve first transaction date after complete sellout and reentry`() {
+    fun `should reset opened date when reopening position after complete sellout - new investment cycle`() {
         val asset = getTestAsset(Market("ASX"), "REENTRY")
         val dateUtils = DateUtils()
         val firstTradeDate = dateUtils.getFormattedDate("2023-06-15")
@@ -311,9 +313,9 @@ internal class QuantityAccumulationTest {
 
         val position = accumulator.accumulate(buyTrn, positions)
         assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
-        position.dateValues.opened
+        assertThat(position.dateValues.opened).isEqualTo(firstTradeDate)
 
-        // Sell everything
+        // Sell everything - completes the investment cycle
         val sellTrn =
             Trn(
                 trnType = TrnType.SELL,
@@ -324,8 +326,12 @@ internal class QuantityAccumulationTest {
 
         accumulator.accumulate(sellTrn, positions)
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
+        // firstTransaction should always be preserved - it's the very first transaction ever
+        assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
+        // opened is preserved after sellout for UI display purposes
+        assertThat(position.dateValues.opened).isEqualTo(firstTradeDate)
 
-        // Re-enter position
+        // Re-enter position - starts a NEW investment cycle
         val reentryTrn =
             Trn(
                 trnType = TrnType.BUY,
@@ -336,9 +342,9 @@ internal class QuantityAccumulationTest {
 
         accumulator.accumulate(reentryTrn, positions)
 
-        // firstTransaction should remain the original date
+        // firstTransaction should NEVER change - it tracks the very first transaction ever for this asset
         assertThat(position.dateValues.firstTransaction).isEqualTo(firstTradeDate)
-        // opened should be reset to the reentry date after complete sellout
+        // opened should be reset to the reentry date after complete sellout (new holding period)
         assertThat(position.dateValues.opened).isEqualTo(reentryDate)
         // last should be updated to the reentry date
         assertThat(position.dateValues.last).isEqualTo(reentryDate)

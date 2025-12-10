@@ -69,7 +69,7 @@ class SellBehaviour(
         }
 
         if (position.quantityValues.getTotal().compareTo(ZERO) == 0) {
-            // Position is fully closed - reset all values
+            // Position is fully closed - reset all values and record closed date
             moneyValues.costBasis = ZERO
             moneyValues.costValue = ZERO
             moneyValues.averageCost = ZERO
@@ -78,6 +78,7 @@ class SellBehaviour(
             position.quantityValues.sold = ZERO
             position.quantityValues.adjustment = ZERO
             position.quantityValues.purchased = ZERO
+            position.dateValues.closed = trn.tradeDate
         }
 
         // If quantity changes, we need to update the cost Value

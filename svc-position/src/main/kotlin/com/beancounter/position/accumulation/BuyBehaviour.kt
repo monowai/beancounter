@@ -27,6 +27,10 @@ class BuyBehaviour(
         positions: Positions,
         position: Position
     ): Position {
+        // Clear closed date if reopening a previously closed position
+        if (position.dateValues.closed != null) {
+            position.dateValues.closed = null
+        }
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
 
         // Create optimized currency context once instead of 3 separate resolutions

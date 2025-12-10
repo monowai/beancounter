@@ -20,7 +20,10 @@ import org.mockito.Mock
 import org.mockito.Mockito.lenient
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.LocalDate
@@ -91,7 +94,7 @@ class EventServiceTest {
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
         whenever(eventRepository.save(any())).thenReturn(savedEvent)
         whenever(positionService.findWhereHeld(any(), any())).thenReturn(portfoliosResponse)
-        whenever(positionService.process(any(), any())).thenReturn(testTrustedTrnEvent)
+        whenever(positionService.process(any(), any(), anyOrNull())).thenReturn(testTrustedTrnEvent)
 
         // When
         val result = eventService.process(testTrustedEventInput)
@@ -264,7 +267,7 @@ class EventServiceTest {
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
         whenever(eventRepository.save(any())).thenReturn(savedEvent)
         whenever(positionService.findWhereHeld(any(), any())).thenReturn(portfoliosResponse)
-        whenever(positionService.process(any(), any())).thenReturn(ignoredTrnEvent)
+        whenever(positionService.process(any(), any(), anyOrNull())).thenReturn(ignoredTrnEvent)
 
         // When
         val result = eventService.process(testTrustedEventInput)
@@ -273,5 +276,68 @@ class EventServiceTest {
         assertThat(result).isEmpty()
         verify(eventRepository).save(any())
         verify(positionService).findWhereHeld(testCorporateEvent.assetId, testCorporateEvent.recordDate)
+    }
+
+    @Test
+    fun `should pass overridePayDate to position service when processing event`() {
+        // Given
+        val eventId = "test-event-id"
+        val savedEvent = testCorporateEvent.copy(id = eventId)
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
+        val overridePayDate = "2024-03-15"
+
+        whenever(positionService.findWhereHeld(any(), any())).thenReturn(portfoliosResponse)
+        whenever(positionService.process(any(), any(), eq(overridePayDate))).thenReturn(testTrustedTrnEvent)
+
+        // When
+        eventService.processEvent(savedEvent, overridePayDate)
+
+        // Then
+        verify(positionService).process(testPortfolio, savedEvent, overridePayDate)
+    }
+
+    @Test
+    fun `should pass null overridePayDate when not provided`() {
+        // Given
+        val eventId = "test-event-id"
+        val savedEvent = testCorporateEvent.copy(id = eventId)
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
+
+        whenever(positionService.findWhereHeld(any(), any())).thenReturn(portfoliosResponse)
+        whenever(positionService.process(any(), any(), isNull())).thenReturn(testTrustedTrnEvent)
+
+        // When
+        eventService.processEvent(savedEvent)
+
+        // Then
+        verify(positionService).process(testPortfolio, savedEvent, null)
+    }
+
+    @Test
+    fun `should process event with override pay date for multiple portfolios`() {
+        // Given
+        val eventId = "multi-portfolio-event"
+        val savedEvent = testCorporateEvent.copy(id = eventId)
+        val secondPortfolio = testPortfolio.copy(id = "second-portfolio", code = "P2")
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio, secondPortfolio))
+        val overridePayDate = "2024-04-01"
+
+        val secondTrustedTrnEvent = testTrustedTrnEvent.copy(portfolio = secondPortfolio)
+
+        whenever(positionService.findWhereHeld(any(), any())).thenReturn(portfoliosResponse)
+        whenever(positionService.process(testPortfolio, savedEvent, overridePayDate)).thenReturn(testTrustedTrnEvent)
+        whenever(
+            positionService.process(secondPortfolio, savedEvent, overridePayDate)
+        ).thenReturn(secondTrustedTrnEvent)
+
+        // When
+        val result = eventService.processEvent(savedEvent, overridePayDate)
+
+        // Then
+        assertThat(result).hasSize(2)
+        verify(positionService).process(testPortfolio, savedEvent, overridePayDate)
+        verify(positionService).process(secondPortfolio, savedEvent, overridePayDate)
+        verify(eventPublisher).send(testTrustedTrnEvent)
+        verify(eventPublisher).send(secondTrustedTrnEvent)
     }
 }

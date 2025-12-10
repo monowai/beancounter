@@ -15,6 +15,7 @@ import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.event.service.Event
 import com.beancounter.event.service.TaxService
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.Locale
 
 /**
@@ -50,16 +51,30 @@ class AlphaEventAdapter(
             )
         )
 
+    /**
+     * Calculate the default pay date for a dividend event (recordDate + 18 days).
+     */
+    fun calculatePayDate(corporateEvent: CorporateEvent): LocalDate = corporateEvent.recordDate.plusDays(18)
+
     override fun calculate(
         portfolio: Portfolio,
         currentPosition: Position,
-        corporateEvent: CorporateEvent
+        corporateEvent: CorporateEvent,
+        overridePayDate: String?
     ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
+            // Use override if provided, otherwise calculate default (recordDate + 18 days)
+            val payDate =
+                if (overridePayDate != null) {
+                    dateUtils.getFormattedDate(overridePayDate)
+                } else {
+                    calculatePayDate(corporateEvent)
+                }
             val trnInput =
                 toDividend(
                     currentPosition,
-                    corporateEvent
+                    corporateEvent,
+                    payDate
                 )
                     ?: return TrustedTrnEvent(
                         portfolio,
@@ -111,13 +126,12 @@ class AlphaEventAdapter(
 
     private fun toDividend(
         currentPosition: Position,
-        corporateEvent: CorporateEvent
+        corporateEvent: CorporateEvent,
+        payDate: LocalDate
     ): TrnInput? {
-        val payDate = corporateEvent.recordDate.plusDays(18)
-        if (payDate != null) {
-            if (payDate > dateUtils.date) {
-                return null // Don't create forward dated transactions
-            }
+        // Skip if pay date is in the future
+        if (payDate > dateUtils.date) {
+            return null // Don't create forward dated transactions
         }
         val gross =
             calculateGross(

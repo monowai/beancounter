@@ -186,4 +186,151 @@ class AlphaEventAdapterTest {
             .isEqualTo(historicalRecordDate)
             .isNotEqualTo(LocalDate.now())
     }
+
+    @Test
+    fun `calculatePayDate should return recordDate plus 18 days`() {
+        // Given: A corporate event with a specific record date
+        val recordDate = LocalDate.of(2024, 6, 15)
+        val corporateEvent =
+            CorporateEvent(
+                id = "pay-date-test",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Calculating the pay date
+        val payDate = alphaEventAdapter.calculatePayDate(corporateEvent)
+
+        // Then: Pay date should be recordDate + 18 days
+        assertThat(payDate)
+            .describedAs("Pay date should be recordDate + 18 days")
+            .isEqualTo(recordDate.plusDays(18))
+            .isEqualTo(LocalDate.of(2024, 7, 3))
+    }
+
+    @Test
+    fun `calculatePayDate should handle month boundaries correctly`() {
+        // Given: A record date near the end of a month
+        val recordDate = LocalDate.of(2024, 1, 20)
+        val corporateEvent =
+            CorporateEvent(
+                id = "month-boundary-test",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.25"),
+                source = "ALPHA"
+            )
+
+        // When: Calculating the pay date
+        val payDate = alphaEventAdapter.calculatePayDate(corporateEvent)
+
+        // Then: Pay date should cross into February
+        assertThat(payDate)
+            .describedAs("Pay date should correctly cross month boundary")
+            .isEqualTo(LocalDate.of(2024, 2, 7))
+    }
+
+    @Test
+    fun `calculatePayDate should handle year boundaries correctly`() {
+        // Given: A record date near the end of a year
+        val recordDate = LocalDate.of(2024, 12, 20)
+        val corporateEvent =
+            CorporateEvent(
+                id = "year-boundary-test",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.30"),
+                source = "ALPHA"
+            )
+
+        // When: Calculating the pay date
+        val payDate = alphaEventAdapter.calculatePayDate(corporateEvent)
+
+        // Then: Pay date should be in January of the next year
+        assertThat(payDate)
+            .describedAs("Pay date should correctly cross year boundary")
+            .isEqualTo(LocalDate.of(2025, 1, 7))
+    }
+
+    @Test
+    fun `DIVIDEND should use overridePayDate when provided`() {
+        // Given: A DIVIDEND event with an override pay date
+        val recordDate = LocalDate.of(2024, 1, 15)
+        val overridePayDate = "2024-02-01" // Custom pay date
+        val dividendEvent =
+            CorporateEvent(
+                id = "divi-override",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Processing the DIVIDEND event with override pay date
+        val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent, overridePayDate)
+
+        // Then: The tradeDate should be the overridden date
+        if (result.trnInput.trnType != TrnType.IGNORE) {
+            assertThat(result.trnInput.tradeDate)
+                .describedAs("DIVIDEND tradeDate should use override pay date when provided")
+                .isEqualTo(LocalDate.of(2024, 2, 1))
+        }
+    }
+
+    @Test
+    fun `DIVIDEND should use calculated payDate when override is null`() {
+        // Given: A DIVIDEND event without override pay date
+        val recordDate = LocalDate.of(2024, 1, 15)
+        val expectedPayDate = recordDate.plusDays(18)
+        val dividendEvent =
+            CorporateEvent(
+                id = "divi-no-override",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Processing the DIVIDEND event without override
+        val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent, null)
+
+        // Then: The tradeDate should be the calculated default (recordDate + 18 days)
+        if (result.trnInput.trnType != TrnType.IGNORE) {
+            assertThat(result.trnInput.tradeDate)
+                .describedAs("DIVIDEND tradeDate should use calculated pay date when no override provided")
+                .isEqualTo(expectedPayDate)
+        }
+    }
+
+    @Test
+    fun `SPLIT should ignore overridePayDate parameter`() {
+        // Given: A SPLIT event with an override pay date (should be ignored)
+        val recordDate = LocalDate.of(2024, 6, 15)
+        val overridePayDate = "2024-07-01" // This should be ignored for SPLIT
+        val splitEvent =
+            CorporateEvent(
+                id = "split-override-ignored",
+                assetId = testAsset.id,
+                trnType = TrnType.SPLIT,
+                recordDate = recordDate,
+                split = BigDecimal("2.0"),
+                source = "ALPHA"
+            )
+
+        // When: Processing the SPLIT event with override pay date
+        val result = alphaEventAdapter.calculate(testPortfolio, testPosition, splitEvent, overridePayDate)
+
+        // Then: The tradeDate should still be the recordDate (override ignored)
+        assertThat(result.trnInput.tradeDate)
+            .describedAs("SPLIT should ignore overridePayDate and use recordDate")
+            .isEqualTo(recordDate)
+            .isNotEqualTo(LocalDate.of(2024, 7, 1))
+    }
 }

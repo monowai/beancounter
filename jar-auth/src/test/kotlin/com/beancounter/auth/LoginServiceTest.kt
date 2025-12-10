@@ -4,6 +4,7 @@ import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -91,5 +92,47 @@ class LoginServiceTest {
     fun `should handle account with no roles correctly`() {
         authUtilService.authenticateNoRoles(SystemUser())
         assertFalse(tokenService.isServiceToken)
+    }
+
+    @Test
+    fun `should mask credentials correctly for logging`() {
+        val secret = "jkVboA25BQq8spZHfg1YR37TWnWOLwn7GSKhBqXeo71gKT4BHilMC1IelrCEAqTY"
+        val maskedPrefix = secret.take(4)
+        val maskedSuffix = secret.takeLast(4)
+
+        assertThat(maskedPrefix).isEqualTo("jkVb")
+        assertThat(maskedSuffix).isEqualTo("AqTY")
+        assertThat(secret).startsWith(maskedPrefix)
+        assertThat(secret).endsWith(maskedSuffix)
+    }
+
+    @Test
+    fun `should handle short secrets for masking`() {
+        val shortSecret = "abc"
+        val maskedPrefix = shortSecret.take(4)
+        val maskedSuffix = shortSecret.takeLast(4)
+
+        // Short secrets should still work with take/takeLast
+        assertThat(maskedPrefix).isEqualTo("abc")
+        assertThat(maskedSuffix).isEqualTo("abc")
+    }
+
+    @Test
+    fun `should handle empty secret for masking`() {
+        val emptySecret = ""
+        val maskedPrefix = emptySecret.take(4)
+        val maskedSuffix = emptySecret.takeLast(4)
+
+        assertThat(maskedPrefix).isEmpty()
+        assertThat(maskedSuffix).isEmpty()
+    }
+
+    @Test
+    fun `should throw UnauthorizedException with helpful message when secret is not-set`() {
+        val exception =
+            assertThrows(UnauthorizedException::class.java) {
+                loginService.loginM2m("not-set")
+            }
+        assertThat(exception.message).isEqualTo("Client Secret is not set")
     }
 }

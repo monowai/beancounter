@@ -138,7 +138,7 @@ class PeriodicCashFlowsTests {
     }
 
     @Test
-    fun `cash flows are not cleared after full sell out (broken logic) using Accumulator`() {
+    fun `cash flows are preserved after full sell out for XIRR calculation`() {
         val accumulator = Accumulator(TrnBehaviourFactory(listOf(BuyBehaviour(), SellBehaviour())))
         val asset = AssetUtils.getTestAsset(Constants.US, "TEST")
         val positions = Positions()
@@ -155,6 +155,47 @@ class PeriodicCashFlowsTests {
             positions
         )
         // Sell 1000 on day 10 (fully close)
+        val soldOutPosition =
+            accumulator.accumulate(
+                Trn(
+                    asset = asset,
+                    trnType = TrnType.SELL,
+                    quantity = BigDecimal(-10),
+                    tradeDate = LocalDate.of(2024, 1, 10),
+                    tradeAmount = BigDecimal(-1000),
+                    cashAmount = BigDecimal(1100)
+                ),
+                positions
+            )
+
+        // Position quantity should be 0
+        assertThat(soldOutPosition.quantityValues.getTotal().compareTo(BigDecimal.ZERO)).isEqualTo(0)
+        // Cash flows should be preserved (2 flows: buy and sell) for XIRR calculation
+        assertEquals(2, soldOutPosition.periodicCashFlows.cashFlows.size)
+        // Opened date is preserved for UI display (shows holding period even when sold out)
+        assertThat(soldOutPosition.dateValues.opened).isEqualTo(LocalDate.of(2024, 1, 1))
+        // firstTransaction should be preserved
+        assertThat(soldOutPosition.dateValues.firstTransaction).isEqualTo(LocalDate.of(2024, 1, 1))
+    }
+
+    @Test
+    fun `cash flows are cleared when position is reopened after sell out - new investment cycle`() {
+        val accumulator = Accumulator(TrnBehaviourFactory(listOf(BuyBehaviour(), SellBehaviour())))
+        val asset = AssetUtils.getTestAsset(Constants.US, "TEST")
+        val positions = Positions()
+        // Buy 1000 on day 1
+        accumulator.accumulate(
+            Trn(
+                asset = asset,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal(10),
+                tradeDate = LocalDate.of(2024, 1, 1),
+                tradeAmount = BigDecimal(1000),
+                cashAmount = BigDecimal(-1000)
+            ),
+            positions
+        )
+        // Sell 1000 on day 10 (fully close) - this completes the investment cycle
         accumulator.accumulate(
             Trn(
                 asset = asset,
@@ -166,7 +207,7 @@ class PeriodicCashFlowsTests {
             ),
             positions
         )
-        // Buy again on day 20
+        // Buy again on day 20 (reopen position) - this starts a NEW investment cycle
         val position =
             accumulator.accumulate(
                 Trn(
@@ -182,7 +223,14 @@ class PeriodicCashFlowsTests {
 
         // Quantity should be 10 after the last buy
         assertEquals(BigDecimal(10), position.quantityValues.getTotal())
-        // Expecting 1 cash flows - the last buy after we sold out.
+        // Only 1 cash flow should exist (the new buy) - historical cash flows are cleared on reopening
+        // because the previous investment cycle is complete and realized
         assertEquals(1, position.periodicCashFlows.cashFlows.size)
+        // The cash flow should be from the new buy
+        assertThat(position.periodicCashFlows.cashFlows[0].date).isEqualTo(LocalDate.of(2024, 1, 20))
+        // Opened date should be set to reopening date (new holding period)
+        assertThat(position.dateValues.opened).isEqualTo(LocalDate.of(2024, 1, 20))
+        // firstTransaction should NEVER change - it tracks the very first transaction ever for this asset
+        assertThat(position.dateValues.firstTransaction).isEqualTo(LocalDate.of(2024, 1, 1))
     }
 }

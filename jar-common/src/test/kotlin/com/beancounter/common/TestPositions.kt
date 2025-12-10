@@ -148,6 +148,50 @@ internal class TestPositions {
     }
 
     @Test
+    fun `getOrCreate without date should not set opened date`() {
+        // This is important for valuation - we don't want to overwrite
+        // the historical opened date when valuing positions
+        val positions = Positions(PortfolioUtils.getPortfolio())
+        val asset =
+            getTestAsset(
+                NYSE,
+                "TestAsset"
+            )
+
+        // Create position without date (used during valuation)
+        val position = positions.getOrCreate(asset)
+
+        // The opened date should NOT be set
+        assertThat(position.dateValues.opened)
+            .describedAs("getOrCreate(asset) should not set opened date")
+            .isNull()
+    }
+
+    @Test
+    fun `getOrCreate without date should not overwrite existing opened date`() {
+        // Ensure valuation doesn't corrupt existing position dates
+        val positions = Positions(PortfolioUtils.getPortfolio())
+        val asset =
+            getTestAsset(
+                NYSE,
+                "ExistingAsset"
+            )
+
+        // First, create position with a historical date (simulating transaction processing)
+        val historicalDate = dateUtils.getFormattedDate("2021-10-06")
+        val originalPosition = positions.getOrCreate(asset, historicalDate)
+        assertThat(originalPosition.dateValues.opened).isEqualTo(historicalDate)
+
+        // Now call getOrCreate without date (simulating valuation)
+        val valuatedPosition = positions.getOrCreate(asset)
+
+        // The opened date should still be the original historical date
+        assertThat(valuatedPosition.dateValues.opened)
+            .describedAs("Valuation should not change the opened date")
+            .isEqualTo(historicalDate)
+    }
+
+    @Test
     @Throws(Exception::class)
     fun is_PositionRequestSerializing() {
         val trns: MutableCollection<Trn> = ArrayList()

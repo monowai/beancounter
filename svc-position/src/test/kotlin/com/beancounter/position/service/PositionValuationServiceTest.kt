@@ -138,6 +138,8 @@ class PositionValuationServiceTest {
         val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
         val position = TestHelpers.createTestPosition(asset, portfolio)
         position.dateValues.opened = LocalDate.now().minusDays(100)
+        // Ensure position has quantity (not sold-out)
+        position.quantityValues.purchased = BigDecimal.TEN
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
 
         whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
@@ -173,6 +175,15 @@ class PositionValuationServiceTest {
         val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
         val position = TestHelpers.createTestPosition(asset, portfolio)
         position.dateValues.opened = LocalDate.now().minusDays(400)
+
+        // Add historical cash flow so IRR can be calculated
+        position.periodicCashFlows.cashFlows.add(
+            com.beancounter.common.model
+                .CashFlow(-1000.0, LocalDate.now().minusDays(400))
+        )
+        // Ensure position has quantity so terminal cash flow gets added
+        position.quantityValues.purchased = BigDecimal.TEN
+
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
 
         whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
@@ -198,5 +209,94 @@ class PositionValuationServiceTest {
         // Called 3 times for trade/base/portfolio
         verify(calculationSupport, org.mockito.kotlin.times(3))
             .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal(0.27)))
+    }
+
+    @Test
+    fun `should use IRR for sold-out position held longer than minHoldingDays`() {
+        // Given - sold-out position with opened date 500 days ago (preserved after sell-out)
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("SOLD_OUT", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+
+        // Simulate sold-out position: quantity = 0, but opened date preserved for display
+        position.quantityValues.purchased = BigDecimal.ZERO
+        position.quantityValues.sold = BigDecimal.ZERO
+        position.dateValues.opened = LocalDate.now().minusDays(500) // Preserved after sell-out
+        position.dateValues.firstTransaction = LocalDate.now().minusDays(500) // Historical date
+
+        // Add some cash flows to simulate historical trading
+        position.periodicCashFlows.cashFlows.add(
+            com.beancounter.common.model
+                .CashFlow(-1000.0, LocalDate.now().minusDays(500))
+        )
+        position.periodicCashFlows.cashFlows.add(
+            com.beancounter.common.model
+                .CashFlow(1200.0, LocalDate.now().minusDays(100))
+        )
+
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val expectedRoi = BigDecimal("0.20") // 20% ROI
+        val mockMoneyValues = MoneyValues(portfolio.currency)
+        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+            .thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
+        whenever(irrCalculator.calculate(any())).thenReturn(0.18) // XIRR returns different value
+
+        // When
+        valuationService.value(positions, assetInputs)
+
+        // Then - verify updateTotals was called with XIRR (not ROI) since held > 365 days
+        // Should use opened date (500 days ago) to determine holding period
+        verify(calculationSupport, org.mockito.kotlin.times(3))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal(0.18)))
+    }
+
+    @Test
+    fun `should use ROI for sold-out position held less than minHoldingDays`() {
+        // Given - sold-out position with opened date 200 days ago (less than threshold)
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("SOLD_OUT_SHORT", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+
+        // Simulate sold-out position: quantity = 0, opened preserved after sell-out
+        position.quantityValues.purchased = BigDecimal.ZERO
+        position.quantityValues.sold = BigDecimal.ZERO
+        position.dateValues.opened = LocalDate.now().minusDays(200) // Preserved, less than 365 days
+        position.dateValues.firstTransaction = LocalDate.now().minusDays(200)
+
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val expectedRoi = BigDecimal("0.15")
+        val mockMoneyValues = MoneyValues(portfolio.currency)
+        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+            .thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
+        whenever(irrCalculator.calculate(any())).thenReturn(0.12)
+
+        // When
+        valuationService.value(positions, assetInputs)
+
+        // Then - verify updateTotals was called with ROI (not XIRR) since held < 365 days
+        verify(calculationSupport, org.mockito.kotlin.times(3))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(expectedRoi))
     }
 }

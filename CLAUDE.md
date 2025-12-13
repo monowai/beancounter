@@ -67,28 +67,23 @@ Contract stubs are published to local Maven repository (`~/.m2/repository`):
 - **jar-common**: Shared utilities, models, and contracts
 - **jar-auth**: Authentication and authorization
 - **jar-client**: Client libraries for service communication (depends on svc-data stubs)
-- **jar-shell**: Command-line interface (depends on svc-data stubs)
+- **jar-shell**: Command-line interface (depends on svc-data stubs) not in active use.
 
 ### Services (Build Order: 2nd)
 
 - **svc-data**: Data persistence and market data services (publishes stubs)
 - **svc-position**: Portfolio position calculations (depends on svc-data stubs, publishes stubs)
 - **svc-event**: Corporate event processing (depends on both svc-data and svc-position stubs)
-- **svc-agent**: AI agent service for chat functionality
+- **svc-agent**: AI agent service for chat functionality (in development)
 
 ### Contract Testing
 
-Uses Spring Cloud Contract with hybrid approach:
-
-- **Shared Context** (default): ~4-6x faster, shared Spring context
-- **Isolated Context** (Kafka tests): Complete isolation, fixed ports 11999/12999
-- Port allocation for shared context: jar-client(10990), jar-shell(10991), svc-event(10992),
-  svc-position(10993)
+Uses Spring Cloud Contract testing. code for the contracts exists in {service}/src/contractTest
 
 ## Messaging Architecture (Spring Cloud Stream)
 
 The project uses **Spring Cloud Stream** with the functional programming model for broker-agnostic
-messaging. This allows swapping message brokers (Kafka ↔ RabbitMQ) via configuration only.
+messaging. Default broker is **RabbitMQ**. Kafka can be used via configuration.
 
 ### Message Flows
 
@@ -148,13 +143,13 @@ Bindings are configured in each service's `application.yml`:
 
 ```yaml
 spring.cloud.stream:
-  function.definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
-  bindings:
-    csvImportConsumer-in-0:
-      destination: bc-trn-csv-dev # Kafka topic name
-      group: bc-data # Consumer group
-      content-type: application/json
-  kafka.binder.brokers: kafka:9092
+    function.definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
+    bindings:
+        csvImportConsumer-in-0:
+            destination: bc-trn-csv-dev # Kafka topic name
+            group: bc-data # Consumer group
+            content-type: application/json
+    kafka.binder.brokers: kafka:9092
 ```
 
 ### Topic Naming Convention
@@ -167,43 +162,28 @@ Topics follow the pattern: `bc-{service}-{type}-{env}`
 - `bc-ca-event-dev` - Corporate action events
 - `bc-price-dev` - Price data updates
 
-### Switching to RabbitMQ
+### Switching to Kafka
 
-To switch from Kafka to RabbitMQ:
+To switch from RabbitMQ to Kafka:
 
-1. Replace `spring-cloud-stream-binder-kafka` with `spring-cloud-stream-binder-rabbit` in
+1. Replace `spring-cloud-stream-binder-rabbit` with `spring-cloud-stream-binder-kafka` in
    build.gradle.kts
-2. Update `spring.cloud.stream.kafka.binder.*` to `spring.cloud.stream.rabbit.binder.*`
-3. Change `brokers` configuration to RabbitMQ host/port/credentials
-4. No code changes required - same functional beans work with both brokers
+2. Update `spring.cloud.stream.rabbit.binder.*` to `spring.cloud.stream.kafka.binder.*`
+3. No code changes required - same functional beans work with both brokers
 
 ### Testing
 
-- **Production**: Uses Kafka binder with real Kafka broker
+- **Production**: Uses RabbitMQ binder
 - **Testing**: Uses `spring-cloud-stream-test-binder` for broker-agnostic unit tests
-- **Integration Tests**: May use embedded Kafka or TestContainers for end-to-end flows
 
-## Deployment
+## Local Service Ports
 
-**Production Environment**: `kauri.monowai.com`
-
-- **Orchestration**: Kubernetes with Helm charts (`../bc-deploy/`)
-- **Database**: PostgreSQL hosted on kauri.monowai.com
-- **Configuration**: `../bc-deploy/env/kauri.yaml` contains service configurations
-- **Secrets**: `../bc-deploy/.env` contains integration tokens (⚠️ use as variables, never expose)
-- **Helm Charts**: Individual charts in `../bc-deploy/charts/` (bc-data, bc-position, bc-event,
-  bc-view)
-
-## CI/CD Pipeline (CircleCI)
-
-The project uses CircleCI with optimized build pipelines:
-
-- **build-and-test**: Complete build handling circular dependencies and stub publishing
-- **Docker packaging**: Multi-platform images (linux/amd64, linux/arm64) published to GitHub
-  Container Registry
-- **Coverage reporting**: Codecov and Codacy integration
-- **Branch filters**: Docker builds only on `master` and `/^mike\/.*/` branches
-- **Container registry**: `ghcr.io/monowai/` (bc-shell, bc-data, bc-position, bc-event)
+| Service      | API Port | Management Port | OpenAPI Specs                          |
+|--------------|----------|-----------------|----------------------------------------|
+| svc-data     | 9510     | 9511            | http://localhost:9511/actuator/openapi |
+| svc-position | 9500     | 9501            | http://localhost:9501/actuator/openapi |
+| svc-event    | 9520     | 9521            | http://localhost:9521/actuator/openapi |
+| svc-agent    | 9530     | 9531            | -                                      |
 
 ## Development Workflow
 
@@ -223,18 +203,6 @@ Services require JWT token authentication via Auth0:
 - **Token Usage**: Include in Authorization header: `Authorization: Bearer {token}`
 - **Auth0 Setup**: See `svc-agent/AUTH0_SETUP.md` for configuration details
 
-## OpenAPI Documentation
-
-Services expose OpenAPI specifications via SpringDoc:
-
-- **SpringDoc version**: 2.8.8 (configured in `gradle/libs.versions.toml`)
-- **Configuration**: `springdoc.use-management-port: true` - OpenAPI docs served on management port
-- **Access URLs**:
-    - svc-data: http://localhost:9511/swagger-ui.html (management port)
-    - svc-position: http://localhost:9501/swagger-ui.html (management port)
-    - API docs available at `/v3/api-docs` endpoint
-- **Authentication**: API endpoints require JWT token from `BC_TOKEN`
-
 ## Technology Stack
 
 - **Language**: Kotlin with Java 21
@@ -244,10 +212,16 @@ Services expose OpenAPI specifications via SpringDoc:
 - **Code Quality**: Kotlinter (formatting), Detekt (static analysis)
 - **API Documentation**: SpringDoc OpenAPI 3
 
+## Related Repositories
+
+For cross-repository work (debugging message flows, tracing requests, architectural changes):
+
+- **`../bc-claude/CLAUDE.md`**: Ecosystem overview, system architecture, Auth0 config, message flows
+- **`../bc-deploy/CLAUDE.md`**: Production deployment (kauri.monowai.com), Kubernetes/Helm
+- **`../bc-view/CLAUDE.md`**: Next.js frontend
+
 ## Important Files
 
-- `BUILD_PROCESS.md`: Detailed build process and stub management
-- `CONTRACT_TEST_ARCHITECTURE.md`: Contract testing approach and configuration
 - `build-with-stubs.sh`: Script for clean builds handling circular dependencies
 
 # Test-Driven Development (TDD) Approach
@@ -293,21 +267,13 @@ When implementing new features or fixing bugs, ALWAYS follow this strict TDD cyc
 
 - Improve code quality while keeping tests green
 - Remove duplication
+- Improve cohesion - group related information by capability, not technical concerns.
 - Improve naming and structure
 - Run tests after each refactoring step
 
 ### 7. Repeat the Cycle
 
 - Continue with the next smallest piece of functionality
-
-## Testing Framework Preferences
-
-For Next.js/React projects, prefer:
-
-- **Unit Tests**: Jest + React Testing Library
-- **Component Tests**: React Testing Library
-- **Integration Tests**: Jest + MSW (Mock Service Worker)
-- **E2E Tests**: Playwright or Cypress
 
 ## TDD Guidelines
 
@@ -334,24 +300,11 @@ For Next.js/React projects, prefer:
 - Aim for 80%+ code coverage
 - 100% coverage for critical business logic
 - Focus on meaningful coverage, not just hitting percentages
+- Test edge case scenarios, minimum, mid and maximum.
 
-When Working on Existing Code
-If adding to untested code:
+## Checklist Before Committing
 
-Write tests for the NEW functionality first
-Add tests for AFFECTED existing code
-Refactor with tests in place
-Gradually improve test coverage
-
-Checklist Before Committing
-
-All tests are passing
-New functionality has corresponding tests
-Tests are clear and well-named
-No commented-out test code
-Test coverage hasn't decreased
-Tests run quickly
-Linting checks pass
-
-Remember
-"Red, Green, Refactor" - This is the rhythm of TDD. Never skip the Red phase!
+- [ ] All tests passing (`./gradlew testSmart`)
+- [ ] New functionality has tests
+- [ ] Code formatted (`./gradlew formatKotlin`)
+- [ ] Linting passes (`./gradlew lintKotlin`)

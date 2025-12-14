@@ -90,8 +90,8 @@ internal class TestPositions {
                 code = "NZDAsset",
                 market =
                     Market(
-                        "NZMarket",
-                        NZD.code
+                        code = "NZMarket",
+                        currencyId = NZD.code
                     )
             )
         val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))

@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers.custom
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
@@ -20,7 +21,7 @@ import java.time.LocalDate
  * @since 2021-12-01
  */
 @Service
-class OffMarketDataProvider(
+class PrivateMarketDataProvider(
     val marketDataRepo: MarketDataRepo,
     val dateUtils: DateUtils
 ) : MarketDataPriceProvider {
@@ -28,6 +29,15 @@ class OffMarketDataProvider(
         asset: Asset,
         defaultPrice: BigDecimal
     ): MarketData {
+        // ACCOUNT assets (bank accounts) are treated like cash - always price = 1
+        if (asset.assetCategory.id == AssetCategory.ACCOUNT) {
+            return MarketData(
+                asset,
+                priceDate,
+                close = BigDecimal.ONE
+            )
+        }
+
         val closest =
             marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(
                 asset,
@@ -84,11 +94,11 @@ class OffMarketDataProvider(
     ): LocalDate = dateUtils.getFormattedDate(priceRequest.date)
 
     override fun backFill(asset: Asset): PriceResponse =
-        throw UnsupportedOperationException("Custom assets do not support backfill requests")
+        throw UnsupportedOperationException("Private market assets do not support backfill requests")
 
     override fun isApiSupported(): Boolean = false
 
     companion object {
-        const val ID = "OFFM"
+        const val ID = "PRIVATE"
     }
 }

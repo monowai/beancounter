@@ -4,17 +4,17 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
-import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import com.beancounter.marketdata.registration.SystemUserService
 import org.springframework.stereotype.Service
 
 /**
- * Enricher for custom assets that are created for users
+ * Enricher for private market assets that are created for users
  *
  * There are no external dependencies for this Enricher.
  */
 @Service
-class OffMarketEnricher(
+class PrivateMarketEnricher(
     private val systemUserService: SystemUserService
 ) : AssetEnricher {
     override fun enrich(
@@ -52,7 +52,7 @@ class OffMarketEnricher(
     override fun id(): String = ID
 
     companion object {
-        const val ID = OffMarketDataProvider.ID
+        const val ID = PrivateMarketDataProvider.ID
 
         @JvmStatic
         fun parseCode(

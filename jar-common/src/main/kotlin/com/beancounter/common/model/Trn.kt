@@ -94,18 +94,10 @@ data class Trn(
     // In trade Currency
     var tax: BigDecimal = BigDecimal.ZERO,
     var comments: String? = null,
-    var version: String = LATEST_VERSION,
+    var version: String = VERSION,
     var status: TrnStatus = TrnStatus.CONFIRMED
 ) {
     companion object {
-        // Version history:
-        // v1: Initial transaction model
-        // v2: Basic transaction with cash currency support
-        // v3: Enhanced with FX rate calculation
-        // v4: Cash cost tracking for FX/trade transactions (FX_BUY, BUY, SELL, DIVI)
-        const val LATEST_VERSION: String = "4"
-        const val VERSION_CASH_COST_TRACKING: String = "4"
-        const val VERSION_FX_RATES: String = "3"
-        const val VERSION_BASIC_CASH: String = "2"
+        const val VERSION: String = "4"
     }
 }

@@ -19,12 +19,12 @@ import jakarta.persistence.UniqueConstraint
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "marketCode"])])
 data class Asset(
-    val code: String,
+    var code: String,
     @Id val id: String = code,
     @JsonInclude(JsonInclude.Include.NON_NULL) var name: String? = null,
     @Transient var market: Market,
     @JsonIgnore val marketCode: String = market.code,
-    val priceSymbol: String? = null,
+    var priceSymbol: String? = null,
     @JsonIgnore var category: String = "Equity",
     @Transient var assetCategory: AssetCategory =
         AssetCategory(

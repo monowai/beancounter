@@ -23,6 +23,8 @@ import java.util.EnumMap
     SellBehaviour::class,
     DepositBehaviour::class,
     WithdrawalBehaviour::class,
+    IncomeBehaviour::class,
+    DeductionBehaviour::class,
     DividendBehaviour::class,
     CashAccumulator::class,
     SplitBehaviour::class,

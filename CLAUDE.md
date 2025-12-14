@@ -212,6 +212,41 @@ Services require JWT token authentication via Auth0:
 - **Code Quality**: Kotlinter (formatting), Detekt (static analysis)
 - **API Documentation**: SpringDoc OpenAPI 3
 
+## Critical: Enum Ordering Rules
+
+### ⚠️ NEVER insert new enum values in the middle of an existing enum
+
+When adding new values to enums (especially `TrnType`), **always add them at the END**.
+
+**Why this matters:**
+- Enum ordinals are used for serialization in some contexts
+- Inserting values in the middle shifts all subsequent ordinal positions
+- This causes deserialization to map old values to wrong enum constants
+- Example: If DIVI was ordinal 5, inserting INCOME before it makes DIVI ordinal 6
+- Old serialized DIVI (5) would then deserialize as INCOME - causing silent data corruption
+
+**Correct approach:**
+```kotlin
+enum class TrnType {
+    SELL,       // 0 - existing
+    BUY,        // 1 - existing
+    DIVI,       // 2 - existing
+    NEW_TYPE    // 3 - ADD NEW VALUES AT THE END
+}
+```
+
+**Wrong approach:**
+```kotlin
+enum class TrnType {
+    SELL,       // 0
+    NEW_TYPE,   // 1 - WRONG! This shifts BUY and DIVI
+    BUY,        // 2 - was 1, now broken
+    DIVI        // 3 - was 2, now broken
+}
+```
+
+This rule applies to all enums that may be serialized or stored in databases.
+
 ## Related Repositories
 
 For cross-repository work (debugging message flows, tracing requests, architectural changes):

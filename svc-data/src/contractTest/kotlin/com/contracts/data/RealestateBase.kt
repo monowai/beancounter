@@ -21,7 +21,7 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.assets.OffMarketEnricher
+import com.beancounter.marketdata.assets.PrivateMarketEnricher
 import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -441,7 +441,7 @@ class RealestateBase {
             name = name,
             market =
                 com.beancounter.common.model.Market(
-                    code = "OFFM",
+                    code = "PRIVATE",
                     currencyId = "USD",
                     timezoneId = "UTC",
                     timezone = java.util.TimeZone.getTimeZone("UTC"),
@@ -501,7 +501,7 @@ class RealestateBase {
                 "code"
             ).containsExactly(
                 assetCode,
-                OffMarketEnricher.parseCode(
+                PrivateMarketEnricher.parseCode(
                     systemUser = systemUser,
                     assetCode
                 )

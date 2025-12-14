@@ -13,7 +13,7 @@ import com.beancounter.marketdata.assets.figi.FigiEnricher
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaEnricher
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
-import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -25,7 +25,7 @@ import org.mockito.Mockito
  * This class tests:
  * - FIGI enrichment for assets without names
  * - Alpha Vantage enrichment for market data
- * - Off-market asset enrichment for custom assets
+ * - Private market asset enrichment for custom assets
  * - Enrichment condition validation (when enrichment should/shouldn't occur)
  * - Asset code generation and system user assignment
  *
@@ -101,12 +101,12 @@ class EnrichmentTest {
     }
 
     @Test
-    fun `should enrich off-market asset with system user and custom code when asset name is null`() {
-        // Given an off-market enricher and an asset without a name
-        val offMarket = Market(OffMarketDataProvider.ID)
+    fun `should enrich private market asset with system user and custom code when asset name is null`() {
+        // Given a private market enricher and an asset without a name
+        val privateMarket = Market(PrivateMarketDataProvider.ID)
         val keyGenUtils = Mockito.mock(KeyGenUtils::class.java)
         val systemUserService = Mockito.mock(SystemUserService::class.java)
-        val enricher: AssetEnricher = OffMarketEnricher(systemUserService)
+        val enricher: AssetEnricher = PrivateMarketEnricher(systemUserService)
 
         // And mocked dependencies
         Mockito.`when`(systemUserService.getOrThrow()).thenReturn(SystemUser(testSystemUserId))
@@ -117,7 +117,7 @@ class EnrichmentTest {
                 code = testAssetCode,
                 id = testAssetId,
                 name = null,
-                market = offMarket
+                market = privateMarket
             )
 
         // When checking if the asset can be enriched
@@ -130,7 +130,7 @@ class EnrichmentTest {
         val enriched =
             enricher.enrich(
                 asset.id,
-                offMarket,
+                privateMarket,
                 AssetInput.toRealEstate(
                     USD,
                     testAssetCode,

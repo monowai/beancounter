@@ -16,7 +16,9 @@ enum class TrnType {
     FX_BUY, // FX between Trade and Cash
     IGNORE,
     BALANCE, // absolute impact on MV. No cash impact.
-    ADD // Same as buy but does not impact cash.
+    ADD, // Same as buy but does not impact cash.
+    INCOME, // +ve Cash Impact (interest, salary, etc.)
+    DEDUCTION // -ve Cash Impact (fees, charges, etc.)
     ;
 
     companion object {
@@ -24,20 +26,28 @@ enum class TrnType {
             arrayOf(
                 DEPOSIT,
                 SELL,
-                DIVI
+                DIVI,
+                INCOME
             )
         val debitsCash =
             arrayOf(
                 BUY,
                 WITHDRAWAL,
-                FX_BUY
+                FX_BUY,
+                DEDUCTION
             )
 
         @JvmStatic
         fun isCashImpacted(trnType: TrnType): Boolean = (trnType != SPLIT && trnType != ADD && trnType != BALANCE)
 
         @JvmStatic
-        fun isCash(trnType: TrnType): Boolean = (trnType == DEPOSIT || trnType == WITHDRAWAL)
+        fun isCash(trnType: TrnType): Boolean =
+            (
+                trnType == DEPOSIT ||
+                    trnType == WITHDRAWAL ||
+                    trnType == INCOME ||
+                    trnType == DEDUCTION
+            )
 
         @JvmStatic
         fun isCashCredited(trnType: TrnType): Boolean = creditsCash.contains(trnType)

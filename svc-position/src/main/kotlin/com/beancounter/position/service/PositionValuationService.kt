@@ -9,6 +9,7 @@ import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.position.model.ValuationData
 import io.sentry.Breadcrumb
 import io.sentry.Sentry
@@ -28,7 +29,8 @@ import kotlin.coroutines.cancellation.CancellationException
 @Service
 class PositionValuationService(
     private val config: PositionValuationConfig,
-    private val calculationSupport: PositionCalculationSupport
+    private val calculationSupport: PositionCalculationSupport,
+    private val cashUtils: CashUtils = CashUtils()
 ) {
     private val logger = LoggerFactory.getLogger(PositionValuationService::class.java)
 
@@ -187,7 +189,7 @@ class PositionValuationService(
 
         val moneyValuesGroup = MoneyValuesGroup(tradeMoneyValues, baseMoneyValues, portfolioMoneyValues)
 
-        if (positionContext.position.asset.market.code != "CASH") {
+        if (!cashUtils.isCash(positionContext.position.asset)) {
             processNonCashPosition(positionContext, totalsGroup, moneyValuesGroup)
         } else {
             processCashPosition(totalsGroup, moneyValuesGroup)

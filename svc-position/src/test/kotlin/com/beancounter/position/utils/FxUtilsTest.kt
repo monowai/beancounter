@@ -56,10 +56,10 @@ internal class FxUtilsTest {
         val positions = Positions(portfolio)
         val gbpMarket =
             Market(
-                GBP.code,
-                GBP.code
+                code = GBP.code,
+                currencyId = GBP.code
             )
-        val usdMarket = Market(USD.code)
+        val usdMarket = Market(code = USD.code, currencyId = USD.code)
 
         positions.add(
             getPosition(

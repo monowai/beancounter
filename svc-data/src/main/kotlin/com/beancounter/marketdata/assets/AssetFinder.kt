@@ -48,8 +48,8 @@ class AssetFinder(
         // Search Local
         val market = marketService.getMarket(marketCode.uppercase())
         val findCode =
-            if (market.code == OffMarketEnricher.ID) {
-                OffMarketEnricher.parseCode(SystemUser(assetInput.owner), code)
+            if (market.code == PrivateMarketEnricher.ID) {
+                PrivateMarketEnricher.parseCode(SystemUser(assetInput.owner), code)
             } else {
                 code.uppercase(Locale.getDefault())
             }

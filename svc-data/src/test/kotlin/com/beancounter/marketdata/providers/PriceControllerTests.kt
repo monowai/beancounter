@@ -19,7 +19,7 @@ import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -280,33 +280,41 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
-        fun is_OffMarketPriceWritten() {
-            val offMarketAsset =
+        fun is_PrivateMarketPriceWritten() {
+            val privateMarketAsset =
                 getTestAsset(
-                    market = Market(OffMarketDataProvider.ID),
+                    market = Market(PrivateMarketDataProvider.ID),
                     code = assetCode
                 )
-            val offMarketPrice =
+            val privateMarketPrice =
                 OffMarketPriceRequest(
-                    offMarketAsset.id,
+                    privateMarketAsset.id,
                     closePrice = BigDecimal("999.0")
                 )
 
-            `when`(assetService.find(assetCode)).thenReturn(offMarketAsset)
-            `when`(assetFinder.find(offMarketAsset.id)).thenReturn(offMarketAsset)
+            `when`(assetService.find(assetCode)).thenReturn(privateMarketAsset)
+            `when`(assetFinder.find(privateMarketAsset.id)).thenReturn(privateMarketAsset)
+            `when`(
+                marketDataRepo.findByAssetIdAndPriceDate(
+                    privateMarketAsset.id,
+                    DateUtils().getFormattedDate(privateMarketPrice.date)
+                )
+            ).thenReturn(Optional.empty())
 
             `when`(
                 marketDataRepo.save(
                     MarketData(
-                        asset = offMarketAsset,
-                        priceDate = DateUtils().getFormattedDate(offMarketPrice.date),
-                        close = offMarketPrice.closePrice
+                        asset = privateMarketAsset,
+                        priceDate = DateUtils().getFormattedDate(privateMarketPrice.date),
+                        close = privateMarketPrice.closePrice,
+                        source = "USER"
                     )
                 )
             ).thenReturn(
                 MarketData(
-                    asset = offMarketAsset,
-                    close = offMarketPrice.closePrice
+                    asset = privateMarketAsset,
+                    close = privateMarketPrice.closePrice,
+                    source = "USER"
                 )
             )
             val json =
@@ -321,7 +329,7 @@ internal class PriceControllerTests
                                     .jwt(mockAuthConfig.getUserToken())
                             ).content(
                                 objectMapper.writeValueAsString(
-                                    offMarketPrice
+                                    privateMarketPrice
                                 )
                             )
                     ).andExpect(
@@ -338,7 +346,7 @@ internal class PriceControllerTests
             assertThat(data).isNotNull.hasSize(1)
             assertThat(data.iterator().next()).hasFieldOrPropertyWithValue(
                 "close",
-                offMarketPrice.closePrice
+                privateMarketPrice.closePrice
             )
         }
 

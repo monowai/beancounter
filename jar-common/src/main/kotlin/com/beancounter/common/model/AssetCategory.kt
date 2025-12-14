@@ -8,6 +8,8 @@ data class AssetCategory(
     var name: String
 ) {
     companion object {
+        const val CASH: String = "CASH"
         const val RE: String = "RE"
+        const val ACCOUNT: String = "ACCOUNT"
     }
 }

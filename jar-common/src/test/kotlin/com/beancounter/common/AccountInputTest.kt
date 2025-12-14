@@ -10,53 +10,62 @@ import org.junit.jupiter.api.Test
 private const val PRIVATE_MARKET = "PRIVATE"
 
 /**
- * Verify we can create RealEstate assets.
+ * Verify we can create user-scoped bank account assets.
  */
-class RealEstateInputTest {
+class AccountInputTest {
     @Test
-    fun is_RealEstateDefaulting() {
-        val apartment =
-            AssetInput.toRealEstate(
-                NZD,
-                "APT",
-                "Apartment",
-                "test-user"
-            )
-        val house =
-            AssetInput.toRealEstate(
+    fun is_AccountDefaulting() {
+        val currentAccount =
+            AssetInput.toAccount(
                 USD,
-                "HOUSE",
-                "House",
+                "USD-SAVINGS",
+                "My USD Savings Account",
                 "test-user"
             )
-        assertThat(apartment)
+        val mortgageAccount =
+            AssetInput.toAccount(
+                NZD,
+                "KB-MORTGAGE",
+                "Kiwibank Mortgage",
+                "test-user"
+            )
+        assertThat(currentAccount)
             .hasFieldOrPropertyWithValue(
                 "market",
                 PRIVATE_MARKET
             ).hasFieldOrPropertyWithValue(
                 "category",
-                AssetCategory.RE
+                AssetCategory.ACCOUNT
             ).hasFieldOrPropertyWithValue(
                 "name",
-                "Apartment"
+                "My USD Savings Account"
             ).hasFieldOrPropertyWithValue(
                 "code",
-                apartment.code
+                "USD-SAVINGS"
+            ).hasFieldOrPropertyWithValue(
+                "currency",
+                USD.code
+            ).hasFieldOrPropertyWithValue(
+                "owner",
+                "test-user"
             )
 
-        assertThat(house)
+        assertThat(mortgageAccount)
             .hasFieldOrPropertyWithValue(
                 "market",
                 PRIVATE_MARKET
             ).hasFieldOrPropertyWithValue(
                 "category",
-                AssetCategory.RE
+                AssetCategory.ACCOUNT
             ).hasFieldOrPropertyWithValue(
                 "name",
-                "House"
+                "Kiwibank Mortgage"
             ).hasFieldOrPropertyWithValue(
                 "code",
-                house.code
+                "KB-MORTGAGE"
+            ).hasFieldOrPropertyWithValue(
+                "currency",
+                NZD.code
             )
     }
 }

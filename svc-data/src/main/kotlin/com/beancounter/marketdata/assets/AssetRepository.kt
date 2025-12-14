@@ -19,4 +19,17 @@ interface AssetRepository : CrudRepository<Asset, String> {
 
     @Query("select a from Asset a")
     fun findAllAssets(): Stream<Asset>
+
+    /**
+     * Find all assets owned by a specific user with a specific category.
+     */
+    fun findBySystemUserIdAndCategory(
+        systemUserId: String,
+        category: String
+    ): List<Asset>
+
+    /**
+     * Find all assets owned by a specific user.
+     */
+    fun findBySystemUserId(systemUserId: String): List<Asset>
 }

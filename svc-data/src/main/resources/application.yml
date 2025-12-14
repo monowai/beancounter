@@ -262,6 +262,10 @@ beancounter:
           name: "Mutual Fund"
         - id: "RE"
           name: "Real Estate"
+        - id: "ACCOUNT"
+          name: "Bank Account"
+        - id: "POLICY"
+          name: "Insurance Policy"
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: ALPHA
@@ -279,17 +283,16 @@ beancounter:
         enricher: "DEFAULT"
         type: "Internal"
 
-      - code: "CUSTOM"
+      - code: "PRIVATE"
+        name: "Private Assets"
         timezoneId: "UTC"
-        enricher: "DEFAULT"
+        enricher: "PRIVATE"
         type: "Private"
-
-      - code: "OFFM"
-        timezoneId: "UTC"
-        enricher: "OFFM"
-        type: "Private"
+        aliases:
+          legacy: "OFFM"
 
       - code: "NASDAQ"
+        name: "NASDAQ"
         timezoneId: "US/Eastern"
         currencyId: "USD"
         aliases:
@@ -297,6 +300,7 @@ beancounter:
           FIGI: "US"
 
       - code: "NYSE"
+        name: "New York Stock Exchange"
         timezoneId: "US/Eastern"
         currencyId: "USD"
         aliases:
@@ -304,16 +308,19 @@ beancounter:
           FIGI: "US"
 
       - code: "AMEX"
+        name: "American Stock Exchange"
         timezoneId: "US/Eastern"
         currencyId: "USD"
         aliases:
           FIGI: "US"
 
       - code: "US"
+        name: "US Market"
         timezoneId: "US/Eastern"
         currencyId: "USD"
 
       - code: "ASX"
+        name: "Australian Securities Exchange"
         timezoneId: "Australia/Sydney"
         currencyId: "AUD"
         aliases:
@@ -322,6 +329,7 @@ beancounter:
           FIGI: "AU"
 
       - code: "NZX"
+        name: "New Zealand Exchange"
         timezoneId: "Pacific/Auckland"
         currencyId: "NZD"
         aliases:
@@ -330,12 +338,14 @@ beancounter:
           FIGI: "NZ"
 
       - code: "SGX"
+        name: "Singapore Exchange"
         currencyId: "SGD"
         timezoneId: "Asia/Singapore"
         aliases:
           FIGI: "SG"
 
       - code: "LON"
+        name: "London Stock Exchange"
         # UK assets priced in pence.
         currencyId: "GBP"
         timezoneId: "Europe/London"
@@ -353,11 +363,7 @@ beancounter:
         batchSize: 10
         markets: "ASX"
 
-      custom:
+      private:
         batchSize: 1
-        markets: "CUSTOM"
-
-      offm:
-        batchSize: 1
-        markets: "OFFM"
+        markets: "PRIVATE"
 

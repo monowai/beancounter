@@ -166,7 +166,7 @@
                 "code": "blah@blah.com.USD.RE",
                 "name": "NY Apartment",
                 "market": {
-                    "code": "OFFM",
+                    "code": "PRIVATE",
                     "currencyId": "USD",
                     "timezoneId": "UTC",
                     "timezone": "UTC",
@@ -245,7 +245,7 @@
                 "code": "blah@blah.com.USD.RE",
                 "name": "NY Apartment",
                 "market": {
-                    "code": "OFFM",
+                    "code": "PRIVATE",
                     "currencyId": "USD",
                     "timezoneId": "UTC",
                     "timezone": "UTC",
@@ -324,7 +324,7 @@
                 "code": "blah@blah.com.USD.RE",
                 "name": "NY Apartment",
                 "market": {
-                    "code": "OFFM",
+                    "code": "PRIVATE",
                     "currencyId": "USD",
                     "timezoneId": "UTC",
                     "timezone": "UTC",

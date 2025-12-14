@@ -17,7 +17,7 @@ import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,10 +26,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 
 /**
- * Validate prices for off market assets.
+ * Validate prices for private market assets.
  */
 @SpringMvcDbTest
-class OffMarketPriceDataTest {
+class PrivateMarketPriceDataTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 
@@ -62,8 +62,8 @@ class OffMarketPriceDataTest {
     }
 
     @Test
-    fun offMarketProviderExists() {
-        val provider = mdFactory.getMarketDataProvider(Market(OffMarketDataProvider.ID))
+    fun privateMarketProviderExists() {
+        val provider = mdFactory.getMarketDataProvider(Market(PrivateMarketDataProvider.ID))
         assertThat(provider).isNotNull
     }
 
@@ -167,7 +167,7 @@ class OffMarketPriceDataTest {
                 BigDecimal("10.000000")
             ).hasFieldOrPropertyWithValue(
                 "asset.market.code",
-                OffMarketDataProvider.ID
+                PrivateMarketDataProvider.ID
             )
     }
 }

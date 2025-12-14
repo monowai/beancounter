@@ -44,11 +44,30 @@ data class AssetInput(
             owner: String
         ): AssetInput =
             AssetInput(
-                "OFFM",
+                "PRIVATE",
                 code = code,
                 name = name,
                 currency = currency.code,
                 category = AssetCategory.RE,
+                owner = owner
+            )
+
+        /**
+         * Create a user-scoped bank account asset (savings, current, mortgage, etc.)
+         */
+        @JvmStatic
+        fun toAccount(
+            currency: Currency,
+            code: String,
+            name: String,
+            owner: String
+        ): AssetInput =
+            AssetInput(
+                "PRIVATE",
+                code = code,
+                name = name,
+                currency = currency.code,
+                category = AssetCategory.ACCOUNT,
                 owner = owner
             )
     }

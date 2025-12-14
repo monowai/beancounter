@@ -8,13 +8,12 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.util.Objects
-
-private const val CASH = "CASH"
 
 /**
  * Compute the market value and accumulate gains
@@ -22,7 +21,8 @@ private const val CASH = "CASH"
 @Service
 class MarketValue(
     private val gains: Gains,
-    private val dateUtils: DateUtils = DateUtils()
+    private val dateUtils: DateUtils = DateUtils(),
+    private val cashUtils: CashUtils = CashUtils()
 ) {
     fun value(
         positions: Positions,
@@ -33,7 +33,7 @@ class MarketValue(
         val position = positions.getOrCreate(asset)
 
         val portfolio = positions.portfolio
-        val isCash = asset.market.code == CASH
+        val isCash = cashUtils.isCash(asset)
         val tradeCurrency = position.getMoneyValues(Position.In.TRADE).currency
 
         // Loop through each valuation context to apply values

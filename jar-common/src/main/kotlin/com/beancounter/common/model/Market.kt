@@ -19,6 +19,7 @@ import java.util.TimeZone
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Market(
     val code: String,
+    val name: String = code,
     val currencyId: String = "USD",
     val timezoneId: String = "US/Eastern",
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

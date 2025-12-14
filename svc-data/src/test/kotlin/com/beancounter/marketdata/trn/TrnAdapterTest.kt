@@ -176,7 +176,7 @@ internal class TrnAdapterTest {
                 trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION
+                Trn.VERSION
             ).hasFieldOrPropertyWithValue(
                 "tradeBaseRate",
                 trnInput.tradeBaseRate
@@ -257,7 +257,7 @@ internal class TrnAdapterTest {
                 trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION
+                Trn.VERSION
             ).hasFieldOrPropertyWithValue(
                 tradeAmountProp,
                 tradeAmount
@@ -319,7 +319,7 @@ internal class TrnAdapterTest {
                 trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION
+                Trn.VERSION
             ).hasFieldOrPropertyWithValue(
                 tradeAmountProp,
                 tradeAmount
@@ -374,7 +374,7 @@ internal class TrnAdapterTest {
                 trnInput.quantity
             ).hasFieldOrPropertyWithValue(
                 versionProp,
-                Trn.LATEST_VERSION
+                Trn.VERSION
             ).hasFieldOrPropertyWithValue(
                 trnTypeProp,
                 trnInput.trnType

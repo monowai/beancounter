@@ -9,7 +9,7 @@ import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.TestEnvironmentUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.event.EventProducer
-import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,38 +47,42 @@ class PriceService(
         closePrice: BigDecimal = BigDecimal.ZERO
     ): Optional<MarketData> {
         val asset = getAsset(assetId)
-        val response =
+        val existing =
             marketDataRepo.findByAssetIdAndPriceDate(
                 asset.id,
                 date
             )
-        if (response.isPresent) return response
-        return handleOffMarketPrice(
-            asset,
-            closePrice,
-            date,
-            response
-        )
+
+        // For private market assets with a provided price, allow create or update
+        if (asset.market.code == PrivateMarketDataProvider.ID && closePrice != BigDecimal.ZERO) {
+            return handlePrivateMarketPrice(asset, closePrice, date, existing)
+        }
+
+        return existing
     }
 
-    private fun handleOffMarketPrice(
+    private fun handlePrivateMarketPrice(
         asset: Asset,
         closePrice: BigDecimal,
         date: LocalDate,
-        response: Optional<MarketData>
+        existing: Optional<MarketData>
     ): Optional<MarketData> {
-        if (asset.market.code == OffMarketDataProvider.ID && closePrice != BigDecimal.ZERO) {
-            val price =
-                marketDataRepo.save(
-                    MarketData(
-                        asset = asset,
-                        close = closePrice,
-                        priceDate = date
-                    )
+        val marketData =
+            if (existing.isPresent) {
+                // Update existing price
+                val md = existing.get()
+                md.close = closePrice
+                md
+            } else {
+                // Create new price
+                MarketData(
+                    asset = asset,
+                    close = closePrice,
+                    priceDate = date,
+                    source = "USER"
                 )
-            return Optional.of(price)
-        }
-        return response
+            }
+        return Optional.of(marketDataRepo.save(marketData))
     }
 
     /**

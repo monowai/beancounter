@@ -12,7 +12,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.currency.CurrencyConfig
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.cash.CashProviderService
-import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import com.beancounter.marketdata.providers.marketstack.MarketStackService.Companion.ID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -64,7 +64,7 @@ class MarketServiceTest {
         assertThat(marketService.getMarket("XASX")).isEqualTo(asx)
         assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq)
         assertThat(
-            marketService.getMarket(OffMarketDataProvider.ID)
+            marketService.getMarket(PrivateMarketDataProvider.ID)
         ).isNotNull.hasFieldOrPropertyWithValue(
             "currencyId",
             USD.code

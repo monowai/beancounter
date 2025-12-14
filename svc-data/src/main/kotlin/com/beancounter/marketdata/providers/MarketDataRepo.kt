@@ -46,4 +46,10 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         assetId: String,
         priceDate: LocalDate
     ): Long
+
+    /**
+     * Delete all market data for a specific asset.
+     * Used when cascading asset deletion.
+     */
+    fun deleteByAssetId(assetId: String)
 }

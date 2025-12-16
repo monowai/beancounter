@@ -171,7 +171,7 @@ class PositionValuationService(
         val tradeMoneyValues =
             calculationSupport.calculateTradeMoneyValues(
                 positionContext.position,
-                totalsGroup.refTotals
+                totalsGroup.tradeTotals
             )
         val baseMoneyValues =
             calculationSupport.calculateBaseMoneyValues(

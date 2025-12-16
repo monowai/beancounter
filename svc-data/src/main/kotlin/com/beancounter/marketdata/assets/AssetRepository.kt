@@ -3,6 +3,7 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.model.Asset
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.query.Param
 import java.util.Optional
 import java.util.stream.Stream
 
@@ -32,4 +33,16 @@ interface AssetRepository : CrudRepository<Asset, String> {
      * Find all assets owned by a specific user.
      */
     fun findBySystemUserId(systemUserId: String): List<Asset>
+
+    /**
+     * Search user's assets by code (case-insensitive partial match).
+     */
+    @Query(
+        "SELECT a FROM Asset a WHERE a.systemUser.id = :userId " +
+            "AND LOWER(a.code) LIKE LOWER(CONCAT('%', :keyword, '%'))"
+    )
+    fun searchByUserAndCode(
+        @Param("userId") userId: String,
+        @Param("keyword") keyword: String
+    ): List<Asset>
 }

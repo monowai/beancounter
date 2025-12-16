@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.AssetCategoryResponse
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
+import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.providers.PriceRefresh
@@ -56,8 +57,17 @@ class AssetController(
     private val priceRefresh: PriceRefresh,
     private val assetFinder: AssetFinder,
     private val assetIoDefinition: AssetIoDefinition,
-    private val assetCategoryConfig: AssetCategoryConfig
+    private val assetCategoryConfig: AssetCategoryConfig,
+    private val assetSearchService: AssetSearchService
 ) {
+    companion object {
+        // Sanitize input to prevent path traversal patterns
+        private fun sanitize(input: String?): String? =
+            input
+                ?.replace(Regex("\\.{2,}[/\\\\]?|[/\\\\]"), "")
+                ?.take(50) // Limit length
+    }
+
     @GetMapping(
         value = ["/categories"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
@@ -76,6 +86,38 @@ class AssetController(
         ]
     )
     fun getCategories(): AssetCategoryResponse = AssetCategoryResponse(assetCategoryConfig.getCategories().values)
+
+    @GetMapping(
+        value = ["/search"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Search for assets by keyword",
+        description = """
+            Searches for assets matching the given keyword.
+            - For PRIVATE market: Searches user-owned assets by code
+            - For public markets (US, ASX, etc): Uses AlphaVantage SYMBOL_SEARCH
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Search results returned successfully",
+                content = [Content(schema = Schema(implementation = AssetSearchResponse::class))]
+            )
+        ]
+    )
+    fun searchAssets(
+        @Parameter(description = "Search keyword (asset code or partial code)", example = "AAPL")
+        @RequestParam keyword: String,
+        @Parameter(description = "Market code to search in (e.g., US, ASX, PRIVATE)", example = "US")
+        @RequestParam(required = false) market: String?
+    ): AssetSearchResponse =
+        assetSearchService.search(
+            sanitize(keyword) ?: "",
+            sanitize(market)
+        )
 
     @GetMapping(
         value = ["/{market}/{code}"],
@@ -144,8 +186,8 @@ class AssetController(
         AssetResponse(
             assetService.findOrCreate(
                 AssetInput(
-                    market,
-                    code
+                    sanitize(market) ?: "",
+                    sanitize(code) ?: ""
                 )
             )
         )

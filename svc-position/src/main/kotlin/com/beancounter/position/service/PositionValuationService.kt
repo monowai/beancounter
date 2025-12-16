@@ -105,10 +105,12 @@ class PositionValuationService(
         if (positions.isMixedCurrencies) {
             positions.portfolio.base
         } else {
+            // Use the position's actual trade currency, not market.currency
+            // This handles PRIVATE market assets (bank accounts) that have their own currency
             positions.positions.values
                 .firstOrNull()
-                ?.asset
-                ?.market
+                ?.moneyValues
+                ?.get(Position.In.TRADE)
                 ?.currency ?: positions.portfolio.base
         }
 

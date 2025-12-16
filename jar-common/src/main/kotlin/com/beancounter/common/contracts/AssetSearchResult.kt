@@ -8,5 +8,7 @@ data class AssetSearchResult(
     var name: String,
     var type: String,
     var region: String?,
-    var currency: String?
+    var currency: String?,
+    var market: String? = null,
+    var assetId: String? = null
 )

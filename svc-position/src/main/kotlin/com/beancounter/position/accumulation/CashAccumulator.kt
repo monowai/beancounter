@@ -25,10 +25,19 @@ class CashAccumulator(
         quantity: BigDecimal,
         trn: Trn
     ): Position {
+        // Enforce sign based on transaction type - credits are positive, debits are negative
+        // This ensures getTotal() (purchased + sold) calculates correctly regardless of input sign
+        val signedQuantity =
+            if (TrnType.isCashCredited(trn.trnType)) {
+                quantity.abs()
+            } else {
+                quantity.abs().negate()
+            }
+
         if (TrnType.isCashCredited(trn.trnType)) {
-            cashPosition.quantityValues.purchased = position.quantityValues.purchased.add(quantity)
+            cashPosition.quantityValues.purchased = position.quantityValues.purchased.add(signedQuantity)
         } else {
-            cashPosition.quantityValues.sold = position.quantityValues.sold.add(quantity)
+            cashPosition.quantityValues.sold = position.quantityValues.sold.add(signedQuantity)
         }
 
         cashCost.value(
@@ -39,7 +48,7 @@ class CashAccumulator(
                 position
             ),
             cashPosition,
-            quantity,
+            signedQuantity,
             BigDecimal.ONE
         ) // Cash trade currency
         cashCost.value(
@@ -50,7 +59,7 @@ class CashAccumulator(
                 position
             ),
             cashPosition,
-            quantity,
+            signedQuantity,
             trn.tradeBaseRate
         )
         cashCost.value(
@@ -61,7 +70,7 @@ class CashAccumulator(
                 position
             ),
             cashPosition,
-            quantity,
+            signedQuantity,
             trn.tradePortfolioRate
         )
         return position

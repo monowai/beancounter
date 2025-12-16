@@ -8,6 +8,7 @@ import com.beancounter.common.model.CallerRef.Companion.from
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetFinder
@@ -61,7 +62,18 @@ class TrnAdapter(
         val tradeAmount = tradeCalculator.amount(trnInput)
         val tradeCashRate = tradeCalculator.cashFxRate(tradeAmount, trnInput)
 
-        val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
+        val rawQuantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
+        // Enforce correct sign for cash transactions based on type
+        val quantity =
+            if (TrnType.isCash(trnInput.trnType)) {
+                if (TrnType.isCashCredited(trnInput.trnType)) {
+                    rawQuantity.abs()
+                } else {
+                    rawQuantity.abs().negate()
+                }
+            } else {
+                rawQuantity
+            }
         val cashAmount =
             cashTrnServices.getCashImpact(
                 trnInput,

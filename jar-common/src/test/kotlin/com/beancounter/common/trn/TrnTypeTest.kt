@@ -32,13 +32,14 @@ class TrnTypeTest {
         assertThat(TrnType.ADD.ordinal).isEqualTo(9)
         assertThat(TrnType.INCOME.ordinal).isEqualTo(10)
         assertThat(TrnType.DEDUCTION.ordinal).isEqualTo(11)
+        assertThat(TrnType.REDUCE.ordinal).isEqualTo(12)
     }
 
     @Test
     fun `enum count must match expected to detect additions`() {
         // Update this count when adding new TrnType values.
         // This ensures new values are consciously added with ordinal assertions above.
-        assertThat(TrnType.entries).hasSize(12)
+        assertThat(TrnType.entries).hasSize(13)
     }
 
     @Test
@@ -58,6 +59,7 @@ class TrnTypeTest {
         // No cash impact
         assertThat(TrnType.isCashImpacted(TrnType.SPLIT)).isFalse()
         assertThat(TrnType.isCashImpacted(TrnType.ADD)).isFalse()
+        assertThat(TrnType.isCashImpacted(TrnType.REDUCE)).isFalse()
         assertThat(TrnType.isCashImpacted(TrnType.BALANCE)).isFalse()
     }
 

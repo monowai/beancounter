@@ -18,7 +18,8 @@ enum class TrnType {
     BALANCE, // absolute impact on MV. No cash impact.
     ADD, // Same as buy but does not impact cash.
     INCOME, // +ve Cash Impact (interest, salary, etc.)
-    DEDUCTION // -ve Cash Impact (fees, charges, etc.)
+    DEDUCTION, // -ve Cash Impact (fees, charges, etc.)
+    REDUCE // Same as sell but does not impact cash.
     ;
 
     companion object {
@@ -38,7 +39,13 @@ enum class TrnType {
             )
 
         @JvmStatic
-        fun isCashImpacted(trnType: TrnType): Boolean = (trnType != SPLIT && trnType != ADD && trnType != BALANCE)
+        fun isCashImpacted(trnType: TrnType): Boolean =
+            (
+                trnType != SPLIT &&
+                    trnType != ADD &&
+                    trnType != REDUCE &&
+                    trnType != BALANCE
+            )
 
         @JvmStatic
         fun isCash(trnType: TrnType): Boolean =

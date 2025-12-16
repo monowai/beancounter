@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.contracts.AssetCategoryResponse
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
@@ -54,8 +55,28 @@ class AssetController(
     private val assetService: AssetService,
     private val priceRefresh: PriceRefresh,
     private val assetFinder: AssetFinder,
-    private val assetIoDefinition: AssetIoDefinition
+    private val assetIoDefinition: AssetIoDefinition,
+    private val assetCategoryConfig: AssetCategoryConfig
 ) {
+    @GetMapping(
+        value = ["/categories"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get all asset categories",
+        description = "Returns all available asset categories that can be used when creating custom assets"
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Categories retrieved successfully",
+                content = [Content(schema = Schema(implementation = AssetCategoryResponse::class))]
+            )
+        ]
+    )
+    fun getCategories(): AssetCategoryResponse = AssetCategoryResponse(assetCategoryConfig.getCategories().values)
+
     @GetMapping(
         value = ["/{market}/{code}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]

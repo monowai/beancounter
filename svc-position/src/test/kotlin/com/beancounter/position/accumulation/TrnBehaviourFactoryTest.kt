@@ -28,5 +28,6 @@ class TrnBehaviourFactoryTest {
         assertThat(trnBehaviourFactory[TrnType.DEPOSIT]).isNotNull
         assertThat(trnBehaviourFactory[TrnType.FX_BUY]).isNotNull
         assertThat(trnBehaviourFactory[TrnType.BALANCE]).isNotNull
+        assertThat(trnBehaviourFactory[TrnType.REDUCE]).isNotNull
     }
 }

@@ -5,6 +5,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -95,7 +96,8 @@ class SystemUserService(
         if (isServiceAccount()) {
             return AuthConstants.authSystem
         }
-        return getActiveUser()!!
+        return getActiveUser()
+            ?: throw ForbiddenException("User is authenticated but not registered. Please call /register first.")
     }
 
     override fun register(systemUser: SystemUser): RegistrationResponse = RegistrationResponse(save(systemUser))

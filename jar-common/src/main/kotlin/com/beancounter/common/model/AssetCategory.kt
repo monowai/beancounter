@@ -11,5 +11,6 @@ data class AssetCategory(
         const val CASH: String = "CASH"
         const val RE: String = "RE"
         const val ACCOUNT: String = "ACCOUNT"
+        const val TRADE: String = "TRADE"
     }
 }

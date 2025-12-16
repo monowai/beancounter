@@ -21,6 +21,7 @@ import java.util.EnumMap
 @Import(
     BuyBehaviour::class,
     SellBehaviour::class,
+    ReduceBehaviour::class,
     DepositBehaviour::class,
     WithdrawalBehaviour::class,
     IncomeBehaviour::class,

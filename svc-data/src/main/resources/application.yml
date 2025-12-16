@@ -264,6 +264,8 @@ beancounter:
           name: "Real Estate"
         - id: "ACCOUNT"
           name: "Bank Account"
+        - id: "TRADE"
+          name: "Trade Account"
         - id: "POLICY"
           name: "Insurance Policy"
 

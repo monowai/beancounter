@@ -3,6 +3,7 @@ package com.beancounter.common.model
 import com.beancounter.common.input.AssetInput
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
@@ -26,6 +27,13 @@ data class Asset(
     @JsonIgnore val marketCode: String = market.code,
     var priceSymbol: String? = null,
     @JsonIgnore var category: String = "Equity",
+    /**
+     * Higher-level category for reporting/grouping purposes.
+     * If null, falls back to mapping from [category] using [AssetCategory.toReportCategory].
+     * This allows backward compatibility - existing assets work without migration.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    var reportCategory: String? = null,
     @Transient var assetCategory: AssetCategory =
         AssetCategory(
             category,
@@ -63,6 +71,16 @@ data class Asset(
                 id,
                 ignoreCase = true
             )
+
+    /**
+     * Returns the effective report category for grouping/display.
+     * Uses [reportCategory] if explicitly set, otherwise maps from [assetCategory.id].
+     * Serialized to JSON but ignored during deserialization (read-only).
+     */
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val effectiveReportCategory: String
+        get() = reportCategory ?: AssetCategory.toReportCategory(assetCategory.id)
 
     override fun toString(): String = "Asset(code=$code, name=$name)"
 }

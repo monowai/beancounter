@@ -139,7 +139,8 @@ class FigiAssetApiTest {
             .hasNoNullFieldsOrPropertiesExcept(
                 "id",
                 "priceSymbol",
-                "systemUser"
+                "systemUser",
+                "reportCategory"
             ).isNotNull
     }
 

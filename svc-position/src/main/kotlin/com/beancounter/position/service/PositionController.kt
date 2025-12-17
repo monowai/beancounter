@@ -200,7 +200,7 @@ class PositionController(
         description = """
             Queries portfolio positions using custom parameters.
             This endpoint provides flexible position querying capabilities.
-            
+
             Use this to:
             * Query positions with specific criteria
             * Filter positions by asset or date ranges
@@ -225,6 +225,68 @@ class PositionController(
         )
         @RequestBody trnQuery: TrustedTrnQuery
     ): PositionResponse = valuationService.build(trnQuery)
+
+    @GetMapping(
+        value = ["/aggregated/{valuationDate}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get aggregated positions across portfolios",
+        description = """
+            Retrieves aggregated positions across user portfolios.
+            Positions for the same asset from different portfolios are combined.
+
+            Use this to:
+            * View total asset allocation across all or selected portfolios
+            * Calculate overall portfolio exposure
+            * Generate consolidated position reports
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Aggregated positions retrieved successfully"
+            )
+        ]
+    )
+    fun aggregated(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Whether to include market values in the response",
+            example = "true"
+        )
+        @RequestParam(
+            value = "value",
+            defaultValue = "true"
+        ) value: Boolean,
+        @Parameter(
+            description = "Comma-separated portfolio codes to include. If empty, all portfolios are included.",
+            example = "PORTFOLIO1,PORTFOLIO2"
+        )
+        @RequestParam(
+            value = "codes",
+            required = false
+        ) codes: String?
+    ): PositionResponse {
+        val allPortfolios = portfolioServiceClient.portfolios.data
+        val selectedPortfolios =
+            if (codes.isNullOrBlank()) {
+                allPortfolios
+            } else {
+                val codeSet = codes.split(",").map { it.trim() }.toSet()
+                allPortfolios.filter { it.code in codeSet }
+            }
+        return valuationService.getAggregatedPositions(
+            selectedPortfolios,
+            valuationDate,
+            value
+        )
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)

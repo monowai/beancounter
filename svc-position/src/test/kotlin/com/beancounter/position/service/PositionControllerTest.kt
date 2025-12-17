@@ -1,8 +1,10 @@
 package com.beancounter.position.service
 
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.utils.TestHelpers
@@ -13,6 +15,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -169,5 +174,93 @@ class PositionControllerTest {
         // Then
         assertThat(result).isNotNull()
         verify(valuationService).getPositions(testPortfolio, valuationDate, false)
+    }
+
+    @Test
+    fun `should return aggregated positions for all portfolios`() {
+        // Given
+        val valuationDate = "2024-01-15"
+        val portfolio2 = TestHelpers.createTestPortfolio("portfolio-2")
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio, portfolio2))
+
+        whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
+        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, valuationDate, true))
+            .thenReturn(testPositionResponse)
+
+        // When
+        val result = positionController.aggregated(valuationDate, true, null)
+
+        // Then
+        assertThat(result).isNotNull()
+        assertThat(result).isEqualTo(testPositionResponse)
+        verify(portfolioServiceClient).portfolios
+        verify(valuationService).getAggregatedPositions(portfoliosResponse.data, valuationDate, true)
+    }
+
+    @Test
+    fun `should return aggregated positions with default valuation date`() {
+        // Given
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
+
+        whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
+        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, DateUtils.TODAY, true))
+            .thenReturn(testPositionResponse)
+
+        // When
+        val result = positionController.aggregated(DateUtils.TODAY, true, null)
+
+        // Then
+        assertThat(result).isNotNull()
+        verify(valuationService).getAggregatedPositions(portfoliosResponse.data, DateUtils.TODAY, true)
+    }
+
+    @Test
+    fun `should handle empty portfolios in aggregation`() {
+        // Given
+        val valuationDate = "2024-01-15"
+        val emptyPortfoliosResponse = PortfoliosResponse(emptyList())
+        val emptyPositionResponse = PositionResponse()
+
+        whenever(portfolioServiceClient.portfolios).thenReturn(emptyPortfoliosResponse)
+        whenever(valuationService.getAggregatedPositions(emptyPortfoliosResponse.data, valuationDate, true))
+            .thenReturn(emptyPositionResponse)
+
+        // When
+        val result = positionController.aggregated(valuationDate, true, null)
+
+        // Then
+        assertThat(result).isNotNull()
+        assertThat(result.data.positions).isEmpty()
+    }
+
+    @Test
+    fun `should filter portfolios by codes when provided`() {
+        // Given
+        val valuationDate = "2024-01-15"
+        val portfolio2 =
+            Portfolio(
+                id = "port-2",
+                code = "PORT2",
+                name = "Second Portfolio",
+                currency = Currency("USD"),
+                base = Currency("NZD")
+            )
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio, portfolio2))
+
+        whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
+        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+            .thenReturn(testPositionResponse)
+
+        // When - only request the test portfolio by its code
+        val result = positionController.aggregated(valuationDate, true, testPortfolio.code)
+
+        // Then
+        assertThat(result).isNotNull()
+        // Verify that only the filtered portfolio was passed
+        verify(valuationService).getAggregatedPositions(
+            argThat { size == 1 && first().code == testPortfolio.code },
+            eq(valuationDate),
+            eq(true)
+        )
     }
 }

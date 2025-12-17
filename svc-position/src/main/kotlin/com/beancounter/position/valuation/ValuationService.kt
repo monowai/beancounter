@@ -14,9 +14,14 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.service.MarketValueUpdateProducer
 import com.beancounter.position.service.PositionService
 import com.beancounter.position.service.PositionValuationService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 
 /**
@@ -108,6 +113,66 @@ class ValuationService
                     valuationDate
                 ).data
             return if (value) value(positions) else PositionResponse(positions)
+        }
+
+        override fun getAggregatedPositions(
+            portfolios: Collection<Portfolio>,
+            valuationDate: String,
+            value: Boolean
+        ): PositionResponse {
+            if (portfolios.isEmpty()) {
+                return PositionResponse()
+            }
+
+            // Capture the security context to propagate to coroutines
+            val securityContext = SecurityContextHolder.getContext()
+
+            // Concurrently fetch transactions for all portfolios
+            val allTransactions =
+                runBlocking(Dispatchers.IO) {
+                    portfolios
+                        .map { portfolio ->
+                            async {
+                                SecurityContextHolder.setContext(securityContext)
+                                try {
+                                    trnService.query(portfolio, valuationDate)
+                                } finally {
+                                    SecurityContextHolder.clearContext()
+                                }
+                            }
+                        }.awaitAll()
+                }
+
+            // Combine all transactions and sort by trade date
+            // Sorting is required because the Accumulator validates date sequence
+            val combinedTransactions =
+                allTransactions
+                    .flatMap { it.data }
+                    .sortedBy { it.tradeDate }
+
+            if (combinedTransactions.isEmpty()) {
+                return PositionResponse()
+            }
+
+            // Use the first portfolio as context for currency settings and owner
+            // No fake "AGGREGATED" portfolio is created - positions are built using
+            // the first portfolio's context but contain aggregated transaction data
+            val contextPortfolio = portfolios.first()
+
+            // Build positions from combined transactions using the normal accumulation flow
+            val positionRequest =
+                PositionRequest(
+                    contextPortfolio.id,
+                    combinedTransactions
+                )
+            val positionResponse = positionService.build(contextPortfolio, positionRequest)
+
+            if (!valuationDate.equals(DateUtils.TODAY, ignoreCase = true)) {
+                positionResponse.data.asAt = valuationDate
+            }
+
+            // Value the positions if requested
+            return if (value) value(positionResponse.data) else positionResponse
         }
 
         override fun value(positions: Positions): PositionResponse {

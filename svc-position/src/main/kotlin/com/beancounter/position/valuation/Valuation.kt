@@ -28,6 +28,21 @@ interface Valuation {
     ): PositionResponse
 
     /**
+     * Aggregates positions across all provided portfolios into a single view.
+     * Positions for the same asset from different portfolios are combined.
+     *
+     * @param portfolios collection of portfolios to aggregate
+     * @param valuationDate date for position valuation
+     * @param value whether to include market values
+     * @return aggregated positions from all portfolios
+     */
+    fun getAggregatedPositions(
+        portfolios: Collection<Portfolio>,
+        valuationDate: String = DateUtils.TODAY,
+        value: Boolean
+    ): PositionResponse
+
+    /**
      * Values positions. This should also set the Asset details as the caller has only
      * minimal knowledge.  MarketData contains asset and market details
      *

@@ -189,7 +189,7 @@ resilience4j:
         registerHealthIndicator: false
         limitForPeriod: 70
         limitRefreshPeriod: 60s
-        timeoutDuration: 70s
+        timeoutDuration: 20s
         eventConsumerBufferSize: 200
       fxRates:
         registerHealthIndicator: false

@@ -58,8 +58,21 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         return when {
             source.has(TIME_SERIES_DAILY) -> handleTimeSeries(source)
             source.has(GLOBAL_QUOTE) -> handleGlobal(source)
-            else -> throw BusinessException("Unable to handle ${source.asText()}")
+            source.has("Information") || source.has("Note") || source.has("Error Message") -> {
+                // AlphaVantage error response (rate limit, invalid key, etc.)
+                // Return empty response - let caller handle gracefully
+                log.warn("AlphaVantage API error: {}", source.toString().take(200))
+                PriceResponse(emptyList())
+            }
+            else -> throw BusinessException("Unable to handle AlphaVantage response: ${source.toString().take(200)}")
         }
+    }
+
+    companion object {
+        const val GLOBAL_QUOTE = "Global Quote"
+        const val TIME_SERIES_DAILY = "Time Series (Daily)"
+        private val mapper = objectMapper
+        private val log = org.slf4j.LoggerFactory.getLogger(AlphaPriceDeserializer::class.java)
     }
 
     private fun handleGlobal(source: JsonNode): PriceResponse {
@@ -174,10 +187,4 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
     }
 
     private fun isNull(nodeValue: JsonNode) = nodeValue.isNull || nodeValue.asText() == "null"
-
-    companion object {
-        const val GLOBAL_QUOTE = "Global Quote"
-        const val TIME_SERIES_DAILY = "Time Series (Daily)"
-        private val mapper = objectMapper
-    }
 }

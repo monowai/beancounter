@@ -332,6 +332,57 @@ internal class MarketValueTest {
         assertThat(result).isNotNull.hasFieldOrProperty("moneyValues")
     }
 
+    @Test
+    fun `should preserve position values when price returns zero`() {
+        // Scenario: Position was valued at $100/share, now bc-data returns no price (close=0)
+        // The position should still be usable and not crash
+        val positions = Positions(portfolio)
+        val position =
+            buyBehaviour.accumulate(
+                Trn(
+                    trnType = TrnType.BUY,
+                    asset = asset,
+                    quantity = hundred,
+                    tradeAmount = twoThousand,
+                    tradePortfolioRate = simpleRate,
+                    portfolio = portfolio
+                ),
+                positions
+            )
+
+        // First valuation with valid price
+        val validMarketData =
+            MarketData(
+                asset,
+                close = BigDecimal("20.00"),
+                previousClose = BigDecimal("19.00")
+            )
+        val fxRateMap = getRates(portfolio, asset, simpleRate)
+
+        MarketValue(Gains()).value(positions, validMarketData, fxRateMap)
+
+        val tradeValues = position.getMoneyValues(Position.In.TRADE, asset.market.currency)
+        assertThat(tradeValues.marketValue).isEqualTo(twoThousand) // 100 * $20
+
+        // Second valuation with zero/missing price (simulates bc-data rate limit failure)
+        val zeroMarketData =
+            MarketData(
+                asset,
+                close = BigDecimal.ZERO // No price available
+            )
+
+        MarketValue(Gains()).value(positions, zeroMarketData, fxRateMap)
+
+        // Position should handle zero price gracefully
+        val tradeValuesAfterZero = position.getMoneyValues(Position.In.TRADE, asset.market.currency)
+        // Market value becomes 0 when price is 0 (quantity * 0 = 0)
+        assertThat(tradeValuesAfterZero.marketValue).isEqualTo(BigDecimal.ZERO)
+        // But cost basis should be preserved
+        assertThat(tradeValuesAfterZero.costBasis).isEqualTo(twoThousand)
+        // And quantity should be unchanged
+        assertThat(position.quantityValues.getTotal()).isEqualTo(hundred)
+    }
+
     private fun getRates(
         portfolio: Portfolio,
         asset: Asset,

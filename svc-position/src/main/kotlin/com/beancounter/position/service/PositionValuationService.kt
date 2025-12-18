@@ -280,7 +280,8 @@ class PositionValuationService(
                 val priceRequest =
                     PriceRequest.of(
                         positions.asAt,
-                        positions
+                        positions,
+                        includeZeroQuantity = config.includeZeroQuantity
                     )
                 val priceDeferred =
                     async {

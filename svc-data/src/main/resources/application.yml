@@ -187,9 +187,9 @@ resilience4j:
     instances:
       alphaVantage:
         registerHealthIndicator: false
-        limitForPeriod: 70
-        limitRefreshPeriod: 60s
-        timeoutDuration: 20s
+        limitForPeriod: 5
+        limitRefreshPeriod: 1s
+        timeoutDuration: 60s
         eventConsumerBufferSize: 200
       fxRates:
         registerHealthIndicator: false

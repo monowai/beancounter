@@ -35,5 +35,18 @@ data class PositionValuationConfig(
      * Default: 365 days (1 year)
      */
     @param:Value("\${beancounter.irr:365}")
-    val minHoldingDaysForIrr: Long = 365L
+    val minHoldingDaysForIrr: Long = 365L,
+    /**
+     * Whether to include zero-quantity positions when fetching prices.
+     *
+     * When false (default), positions with zero quantity (sold out) are excluded from
+     * price requests, reducing unnecessary API calls to market data providers.
+     * When true, prices are fetched for all positions including those fully sold.
+     *
+     * Can be configured via BEANCOUNTER_VALUATION_INCLUDE_ZERO_QUANTITY environment variable
+     * or beancounter.valuation.includeZeroQuantity property.
+     * Default: false
+     */
+    @param:Value("\${beancounter.valuation.includeZeroQuantity:false}")
+    val includeZeroQuantity: Boolean = false
 )

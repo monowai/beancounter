@@ -43,6 +43,9 @@ marketdata:
   url: "http://localhost:9510"
 beancounter:
   irr: 365
+  valuation:
+    # When false, zero-quantity positions are excluded from price requests
+    includeZeroQuantity: false
 auth:
   uri: "http://your-auth0-endpoint/"
   audience: "auth0-audience"

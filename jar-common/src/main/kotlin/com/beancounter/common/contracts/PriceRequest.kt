@@ -62,11 +62,14 @@ data class PriceRequest(
         fun of(
             date: String,
             positions: Positions,
-            currentMode: Boolean = true
+            currentMode: Boolean = true,
+            includeZeroQuantity: Boolean = false
         ): PriceRequest =
             PriceRequest(
                 date,
-                positions.positions.values.map { parse(it.asset) },
+                positions.positions.values
+                    .filter { includeZeroQuantity || it.quantityValues.getTotal().signum() != 0 }
+                    .map { parse(it.asset) },
                 currentMode
             )
     }

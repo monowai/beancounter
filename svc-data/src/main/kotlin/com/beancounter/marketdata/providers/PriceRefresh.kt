@@ -65,7 +65,12 @@ class PriceRefresh(
                     val priceRequest = PriceRequest.of(hydratedAsset, TODAY)
                     val response = marketDataService.getPriceResponse(priceRequest)
 
-                    if (response.data.isNotEmpty() && response.data.first().close.signum() > 0) {
+                    if (response.data.isNotEmpty() &&
+                        response.data
+                            .first()
+                            .close
+                            .signum() > 0
+                    ) {
                         fetched.getAndIncrement()
                     } else {
                         failed.getAndIncrement()

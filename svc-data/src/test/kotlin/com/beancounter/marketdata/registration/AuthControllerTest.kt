@@ -53,7 +53,7 @@ class AuthControllerTest {
     private var wiremockPort: Int = 0
 
     @Test
-    fun unauthenticatedUserCanRequestTokenByPassword() {
+    fun `should allow unauthenticated user to request token by password`() {
         val loginRequest =
             LoginRequest(
                 "user",

@@ -4,8 +4,10 @@ import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.RegistrationResponse
+import com.beancounter.common.model.UserPreferences
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.registration.UserPreferencesService
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -38,6 +40,9 @@ class RegisterBase {
     @MockitoBean
     lateinit var systemUserService: SystemUserService
 
+    @MockitoBean
+    lateinit var userPreferencesService: UserPreferencesService
+
     @Autowired
     lateinit var authUtilService: AuthUtilService
 
@@ -47,9 +52,13 @@ class RegisterBase {
     fun mockRegistration() {
         RestAssured.port = Integer.valueOf(port)
         val jwt = authUtilService.authenticate(systemUser)
+        val userPreferences = UserPreferences(owner = systemUser)
         Mockito
             .`when`(systemUserService.register())
             .thenReturn(RegistrationResponse(systemUser))
+        Mockito
+            .`when`(userPreferencesService.getOrCreate(systemUser))
+            .thenReturn(userPreferences)
         Mockito.`when`(tokenService.subject).thenReturn(jwt.token.subject)
         ContractHelper(authUtilService).defaultUser(
             systemUser,

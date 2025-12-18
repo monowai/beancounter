@@ -172,10 +172,30 @@ class ValuationService
             }
 
             // Value the positions if requested
-            return if (value) value(positionResponse.data) else positionResponse
+            // Pass skipMarketValueUpdate=true since aggregated positions don't belong to a single portfolio
+            return if (value) {
+                value(
+                    positions = positionResponse.data,
+                    skipMarketValueUpdate = true
+                )
+            } else {
+                positionResponse
+            }
         }
 
-        override fun value(positions: Positions): PositionResponse {
+        override fun value(positions: Positions): PositionResponse = value(positions, skipMarketValueUpdate = false)
+
+        /**
+         * Values positions with optional control over market value updates.
+         *
+         * @param positions positions to value
+         * @param skipMarketValueUpdate if true, don't send market value updates (used for aggregated positions)
+         * @return valued positions
+         */
+        private fun value(
+            positions: Positions,
+            skipMarketValueUpdate: Boolean
+        ): PositionResponse {
             if (!positions.hasPositions()) {
                 return PositionResponse(positions)
             }
@@ -193,7 +213,8 @@ class ValuationService
                     assets.toList()
                 )
 
-            if (DateUtils().isToday(positions.asAt) && !kafkaEnabled.toBoolean()) {
+            // Only send market value updates for individual portfolio valuations (not aggregated)
+            if (!skipMarketValueUpdate && DateUtils().isToday(positions.asAt) && !kafkaEnabled.toBoolean()) {
                 val portfolio = valuedPositions.portfolio
                 val updateTo =
                     portfolio.setMarketValue(

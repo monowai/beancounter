@@ -84,11 +84,12 @@ class AssetFinder(
     fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
 
     /**
-     * Find all assets as a stream.
+     * Find all active assets for pricing.
+     * Excludes inactive assets and those with empty codes.
      *
-     * @return stream of all assets
+     * @return stream of active assets suitable for price refresh
      */
-    fun findAllAssets(): Stream<Asset> = assetRepository.findAllAssets()
+    fun findActiveAssetsForPricing(): Stream<Asset> = assetRepository.findActiveAssetsForPricing()
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetFinder::class.java)

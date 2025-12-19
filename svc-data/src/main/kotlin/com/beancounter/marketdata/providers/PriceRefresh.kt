@@ -48,7 +48,7 @@ class PriceRefresh(
         val fetched = AtomicInteger()
         val failed = AtomicInteger()
 
-        val assets = assetFinder.findAllAssets()
+        val assets = assetFinder.findActiveAssetsForPricing()
         assets.use { assetStream ->
             for (asset in assetStream) {
                 totalAssets.getAndIncrement()

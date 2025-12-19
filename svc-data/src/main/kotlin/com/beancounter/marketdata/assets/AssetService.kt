@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Status
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataRepo
@@ -225,4 +226,23 @@ class AssetService(
     fun getCurrentOwnerId(): String =
         systemUserService.getActiveUser()?.id
             ?: throw BusinessException("User not authenticated")
+
+    /**
+     * Update the status of an asset.
+     * Use this to deactivate delisted assets so they are excluded from price refresh.
+     * @throws BusinessException if asset not found
+     */
+    fun updateStatus(
+        assetId: String,
+        status: Status
+    ): Asset {
+        val asset =
+            assetRepository.findById(assetId).orElseThrow {
+                BusinessException("Asset not found: $assetId")
+            }
+        // Hydrate first to get the transient market field, then create updated copy
+        val hydratedAsset = assetFinder.hydrateAsset(asset)
+        val updatedAsset = hydratedAsset.copy(status = status)
+        return assetFinder.hydrateAsset(assetRepository.save(updatedAsset))
+    }
 }

@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.AssetCategoryResponse
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetSearchResponse
+import com.beancounter.common.contracts.AssetStatusRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.providers.PriceRefresh
@@ -524,4 +525,31 @@ class AssetController(
     private fun isHeaderRow(row: Array<String>): Boolean =
         row.isNotEmpty() &&
             row[0].equals(AssetIoDefinition.Columns.Code.name, ignoreCase = true)
+
+    @PatchMapping(
+        value = ["/{assetId}/status"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Update asset status",
+        description = """
+            Updates the status of an asset (Active/Inactive).
+            Use this to deactivate delisted assets so they are excluded from price refresh.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Asset status updated successfully",
+                content = [Content(schema = Schema(implementation = AssetResponse::class))]
+            ),
+            ApiResponse(responseCode = "404", description = "Asset not found")
+        ]
+    )
+    fun updateAssetStatus(
+        @Parameter(description = "Asset ID to update", example = "abc123")
+        @PathVariable assetId: String,
+        @RequestBody request: AssetStatusRequest
+    ): AssetResponse = AssetResponse(assetService.updateStatus(assetId, request.status))
 }

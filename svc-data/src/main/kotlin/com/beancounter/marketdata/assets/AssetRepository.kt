@@ -18,8 +18,17 @@ interface AssetRepository : CrudRepository<Asset, String> {
         code: String
     ): Optional<Asset>
 
-    @Query("select a from Asset a")
-    fun findAllAssets(): Stream<Asset>
+    /**
+     * Find all active assets with non-empty codes for price refresh.
+     * Excludes:
+     * - Inactive assets (delisted, etc.)
+     * - Assets with empty codes (data quality issues)
+     */
+    @Query(
+        "select a from Asset a where a.status = com.beancounter.common.model.Status.Active " +
+            "and a.code is not null and a.code <> ''"
+    )
+    fun findActiveAssetsForPricing(): Stream<Asset>
 
     /**
      * Find all assets owned by a specific user with a specific category.

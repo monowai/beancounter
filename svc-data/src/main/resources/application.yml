@@ -191,6 +191,12 @@ resilience4j:
         limitRefreshPeriod: 1s
         timeoutDuration: 60s
         eventConsumerBufferSize: 200
+      morningstar:
+        registerHealthIndicator: false
+        limitForPeriod: 2
+        limitRefreshPeriod: 1s
+        timeoutDuration: 30s
+        eventConsumerBufferSize: 100
       fxRates:
         registerHealthIndicator: false
         limitForPeriod: 5
@@ -354,6 +360,13 @@ beancounter:
         multiplier: 0.01
         aliases:
           mstack: "XLON"
+
+      - code: "MUTF"
+        name: "Mutual Funds"
+        currencyId: "GBP"
+        timezoneId: "Europe/London"
+        enricher: "DEFAULT"
+        type: "Fund"
     providers:
       alpha:
         url: https://www.alphavantage.co
@@ -368,4 +381,8 @@ beancounter:
       private:
         batchSize: 1
         markets: "PRIVATE"
+
+      morningstar:
+        batchSize: 1
+        markets: "MUTF"
 

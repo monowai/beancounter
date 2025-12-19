@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 
 /**
  * Values requested positions against market prices.
@@ -216,10 +217,12 @@ class ValuationService
             // Only send market value updates for individual portfolio valuations (not aggregated)
             if (!skipMarketValueUpdate && DateUtils().isToday(positions.asAt) && !kafkaEnabled.toBoolean()) {
                 val portfolio = valuedPositions.portfolio
+                val portfolioTotals = valuedPositions.totals[Position.In.PORTFOLIO]
+                // If totals are null (all positions sold), send market value of 0
                 val updateTo =
                     portfolio.setMarketValue(
-                        valuedPositions.totals[Position.In.PORTFOLIO]!!.marketValue,
-                        valuedPositions.totals[Position.In.PORTFOLIO]!!.irr
+                        portfolioTotals?.marketValue ?: BigDecimal.ZERO,
+                        portfolioTotals?.irr ?: BigDecimal.ZERO
                     )
                 marketValueUpdateProducer.sendMessage(updateTo)
             }

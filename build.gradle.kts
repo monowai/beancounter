@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.spring)
+    `maven-publish`
 }
 
 // Build configuration
@@ -224,6 +225,63 @@ subprojects {
         testImplementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.4"))
         testImplementation("org.assertj:assertj-core:3.27.3")
     }
+
+    // Publishing configuration for library modules (jar-common, jar-auth, jar-client)
+    if (name.startsWith("jar-")) {
+        apply(plugin = "maven-publish")
+        apply(plugin = "java-library")
+
+        // Ensure group is set for publishing
+        group = "com.beancounter"
+
+        configure<PublishingExtension> {
+            publications {
+                create<MavenPublication>("mavenJava") {
+                    groupId = "com.beancounter"
+                    from(components["java"])
+
+                    pom {
+                        name.set(project.name)
+                        description.set("Beancounter ${project.name} library")
+                        url.set("https://github.com/monowai/beancounter")
+
+                        licenses {
+                            license {
+                                name.set("MIT License")
+                                url.set("https://opensource.org/licenses/MIT")
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id.set("monowai")
+                                name.set("Mike Holdsworth")
+                            }
+                        }
+
+                        scm {
+                            connection.set("scm:git:git://github.com/monowai/beancounter.git")
+                            developerConnection.set("scm:git:ssh://github.com/monowai/beancounter.git")
+                            url.set("https://github.com/monowai/beancounter")
+                        }
+                    }
+                }
+            }
+
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/monowai/beancounter")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String? ?: ""
+                        password = System.getenv("GH_GCR") ?: project.findProperty("gpr.key") as String? ?: ""
+                    }
+                }
+                // Local Maven repository for testing
+                mavenLocal()
+            }
+        }
+    }
 }
 
 // Root project configuration
@@ -265,6 +323,22 @@ tasks.register("publishStubs") {
     dependsOn(":svc-data:pubStubs")
     dependsOn(":svc-position:pubStubs")
     description = "Publish contract stubs to local Maven repository"
+}
+
+// Publish jar libraries to Maven repository
+tasks.register("publishJars") {
+    dependsOn(":jar-common:publish")
+    dependsOn(":jar-auth:publish")
+    dependsOn(":jar-client:publish")
+    description = "Publish jar-common, jar-auth, and jar-client to Maven repository"
+}
+
+// Publish jar libraries to local Maven repository
+tasks.register("publishJarsLocal") {
+    dependsOn(":jar-common:publishToMavenLocal")
+    dependsOn(":jar-auth:publishToMavenLocal")
+    dependsOn(":jar-client:publishToMavenLocal")
+    description = "Publish jar-common, jar-auth, and jar-client to local Maven repository"
 }
 
 tasks.register("testAll") {

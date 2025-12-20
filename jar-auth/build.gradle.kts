@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.java.test.fixtures)
 }
 
-version = "0.0.1"
+version = "0.1.0"
 
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))

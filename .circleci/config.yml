@@ -377,6 +377,24 @@ jobs:
 
             echo "✅ bc-event image built and pushed successfully"
 
+  publish-jars:
+    executor: java-build
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
+      - restore_cache:
+          keys:
+            - v3-build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle.kts" }}
+      - run:
+          name: Publish JAR Libraries to GitHub Packages
+          command: |
+            echo "📦 Publishing jar-common, jar-auth, jar-client to GitHub Packages..."
+            export GITHUB_ACTOR=$DOCKER_USER
+            ./gradlew publishJars --no-daemon
+            echo "✅ JAR libraries published successfully"
+
   publish-coverage:
     docker:
       - image: circleci/buildpack-deps:stretch
@@ -443,5 +461,15 @@ workflows:
                 - master
                 - /^deploy\/.*/
                 - /^codacy.*/
+          requires:
+            - build-and-test
+
+      # Publish JAR libraries to GitHub Packages (runs concurrently with Docker jobs)
+      - publish-jars:
+          filters:
+            branches:
+              only:
+                - master
+                - /^deploy\/.*/
           requires:
             - build-and-test

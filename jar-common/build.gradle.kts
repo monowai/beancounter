@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.sentry)
 }
 
+version = "0.1.0"
+
 extra["guavaVersion"] = "33.3.1-jre"
 
 dependencies {

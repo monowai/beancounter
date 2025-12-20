@@ -52,13 +52,6 @@ class PositionValuationService(
             runBlocking {
                 getValuationData(positions)
             }
-        if (priceResponse.data.isEmpty()) {
-            logger.info(
-                "No prices found on date {}",
-                positions.asAt
-            )
-            return positions // Prevent NPE
-        }
 
         val tradeCurrency = tradeCurrency(positions)
         val baseTotals = Totals(positions.portfolio.base)
@@ -78,12 +71,22 @@ class PositionValuationService(
             tradeTotals
         )
 
-        calculateMarketValues(
-            positions,
-            priceResponse,
-            fxResponse,
-            tradeCurrency
-        )
+        // Calculate market values only if we have prices
+        // For sold-out positions (zero quantity), prices are filtered out but we still need
+        // to calculate gains from realized gains and historical cash flows
+        if (priceResponse.data.isNotEmpty()) {
+            calculateMarketValues(
+                positions,
+                priceResponse,
+                fxResponse,
+                tradeCurrency
+            )
+        } else {
+            logger.info(
+                "No prices found on date {} - calculating gains from realized values only",
+                positions.asAt
+            )
+        }
         weightsAndGains(positions)
         val irr =
             calculateIrrSafely(

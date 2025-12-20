@@ -299,4 +299,64 @@ class PositionValuationServiceTest {
         verify(calculationSupport, org.mockito.kotlin.times(3))
             .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(expectedRoi))
     }
+
+    @Test
+    fun `should calculate gains and IRR for sold-out positions when no prices are returned`() {
+        // Given - sold-out position where PriceRequest filters it out (zero quantity)
+        // This tests the bug where early return on empty priceResponse skips gains calculation
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("FULLY_SOLD", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+
+        // Simulate sold-out position with realized gains
+        position.quantityValues.purchased = BigDecimal.ZERO
+        position.quantityValues.sold = BigDecimal.ZERO
+        position.dateValues.opened = LocalDate.now().minusDays(400)
+        position.dateValues.firstTransaction = LocalDate.now().minusDays(400)
+
+        // Position has realized gains from historical trades
+        val tradeMoneyValues = position.getMoneyValues(com.beancounter.common.model.Position.In.TRADE, portfolio.currency)
+        tradeMoneyValues.realisedGain = BigDecimal("500.00")
+        tradeMoneyValues.purchases = BigDecimal("1000.00")
+        tradeMoneyValues.sales = BigDecimal("1500.00")
+
+        // Add historical cash flows
+        position.periodicCashFlows.cashFlows.add(
+            com.beancounter.common.model.CashFlow(-1000.0, LocalDate.now().minusDays(400))
+        )
+        position.periodicCashFlows.cashFlows.add(
+            com.beancounter.common.model.CashFlow(1500.0, LocalDate.now().minusDays(50))
+        )
+
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        // KEY: Empty price response because zero-quantity positions are filtered out
+        whenever(priceService.getPrices(any(), any())).thenReturn(PriceResponse(emptyList()))
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val expectedRoi = BigDecimal("0.50") // 50% gain
+        val mockMoneyValues = MoneyValues(portfolio.currency)
+        mockMoneyValues.realisedGain = BigDecimal("500.00")
+        mockMoneyValues.totalGain = BigDecimal("500.00")
+        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+            .thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
+        whenever(irrCalculator.calculate(any())).thenReturn(0.55)
+
+        // When
+        val result = valuationService.value(positions, assetInputs)
+
+        // Then - gains should still be calculated even with empty price response
+        // Totals should be set
+        assertThat(result.totals).isNotEmpty
+        assertThat(result.totals[com.beancounter.common.model.Position.In.PORTFOLIO]).isNotNull
+
+        // updateTotals should be called for gains calculation (3 times: trade/base/portfolio)
+        verify(calculationSupport, org.mockito.kotlin.times(3))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal(0.55)))
+    }
 }

@@ -28,16 +28,11 @@ dependencies {
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.logging)
-    implementation(libs.spring.cloud.feign) {
-        exclude(group = "org.apache.commons", module = "commons-lang3")
-        exclude(group = "org.apache.commons", module = "commons-text")
-    }
     implementation(libs.spring.boot.starter.security)
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.integration)
-    implementation(libs.sentry.openfeign)
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

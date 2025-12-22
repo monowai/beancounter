@@ -1,30 +1,30 @@
 package com.beancounter.marketdata.assets.figi
 
-import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
 
 /**
- * Api calls to OpenFIGI.
- *
- * @author mikeh
- * @since 2019-03-03
+ * API calls to OpenFIGI using RestClient.
  */
-@FeignClient(
-    name = "figi",
-    url = "\${beancounter.market.providers.figi.url:https://api.openfigi.com}"
-)
-interface FigiGateway {
-    // https://bsym.bloomberg.com/api#post-v2-search
-    @RequestMapping(
-        method = [RequestMethod.POST],
-        value = ["/v2/mapping"],
-        consumes = [MediaType.APPLICATION_JSON_VALUE]
-    )
+@Component
+class FigiGateway(
+    @Qualifier("openFigiRestClient")
+    private val restClient: RestClient
+) {
     fun search(
         searchBody: Collection<FigiSearch>,
-        @RequestHeader("X-OPENFIGI-APIKEY") apiKey: String
-    ): Collection<FigiResponse>
+        apiKey: String
+    ): Collection<FigiResponse> =
+        restClient
+            .post()
+            .uri("/v2/mapping")
+            .header("X-OPENFIGI-APIKEY", apiKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(searchBody)
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Collection<FigiResponse>>() {})
+            ?: emptyList()
 }

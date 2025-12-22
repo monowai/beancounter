@@ -21,10 +21,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(libs.resilience4j)
     implementation(libs.resilience4j.annotations)
-    implementation(libs.spring.cloud.feign) {
-        exclude(group = "org.apache.commons", module = "commons-lang3")
-        exclude(group = "org.apache.commons", module = "commons-text")
-    }
+    implementation("org.springframework:spring-web")
+    implementation(libs.spring.boot.starter.logging)
+    implementation(libs.spring.boot.autoconfigure)
+    implementation(libs.servlet.api)
+    implementation("jakarta.annotation:jakarta.annotation-api")
     
     testImplementation(libs.spring.boot.starter.test) {
         exclude(group = "org.apache.commons", module = "commons-lang3")

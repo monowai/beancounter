@@ -7,9 +7,9 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.exception.UnauthorizedException
-import feign.FeignException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import java.io.IOException
 import java.time.LocalDateTime
 
@@ -178,9 +178,9 @@ class HealthService(
                         log.warn("MCP service {} returned 5xx error: {}", serviceInfo.name, e.message)
                         "DOWN" to "5xx Server Error: ${e.message}"
                     }
-                    is FeignException -> {
-                        log.warn("MCP service {} returned Feign error: {}", serviceInfo.name, e.message)
-                        "DOWN" to "Feign Error (${e.status()}): ${e.message}"
+                    is RestClientException -> {
+                        log.warn("MCP service {} returned RestClient error: {}", serviceInfo.name, e.message)
+                        "DOWN" to "RestClient Error: ${e.message}"
                     }
                     else -> {
                         log.warn("MCP service {} failed with unexpected error: {}", serviceInfo.name, e.message)

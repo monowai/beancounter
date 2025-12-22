@@ -18,14 +18,4 @@ server:
 marketdata:
   url: http://localhost:${stubrunner.port:10999}
 
-spring:
-  cloud:
-    openfeign:
-      client:
-        config:
-          default:
-            # Loooong because of API limits with data providers
-            connectTimeout: 3000
-            errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
-            loggerLevel: NONE
 

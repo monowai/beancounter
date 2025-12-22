@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 
 /**
  * Service to manage JWT token context across thread boundaries.
- * Provides explicit token capture and retrieval for Feign clients.
+ * Provides explicit token capture and retrieval for RestClient interceptors.
  */
 @Service
 class TokenContextService {

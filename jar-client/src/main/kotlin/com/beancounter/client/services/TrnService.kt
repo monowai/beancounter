@@ -3,84 +3,57 @@ package com.beancounter.client.services
 import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
-import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.client.RestClient
 
 /**
  * Obtain transactions from the backend.
  */
 @Service
-class TrnService internal constructor(
-    private val trnGateway: TrnGateway,
+class TrnService(
+    @Qualifier("bcDataRestClient")
+    private val restClient: RestClient,
     private val tokenService: TokenService
 ) {
     fun write(trnRequest: TrnRequest): TrnResponse =
-        trnGateway.write(
-            tokenService.bearerToken,
-            trnRequest
-        )
+        restClient
+            .post()
+            .uri("/api/trns")
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(trnRequest)
+            .retrieve()
+            .body(TrnResponse::class.java)
+            ?: throw BusinessException("Failed to write transactions")
 
     @CircuitBreaker(name = "default")
     fun query(trustedTrnQuery: TrustedTrnQuery): TrnResponse =
-        trnGateway.read(
-            tokenService.bearerToken,
-            trustedTrnQuery
-        )
+        restClient
+            .post()
+            .uri("/api/trns/query")
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(trustedTrnQuery)
+            .retrieve()
+            .body(TrnResponse::class.java)
+            ?: throw BusinessException("Failed to query transactions")
 
     fun query(
         portfolio: Portfolio,
         asAt: String = "today"
     ): TrnResponse =
-        trnGateway.read(
-            tokenService.bearerToken,
-            portfolio.id,
-            asAt
-        )
-
-    /**
-     * GatewayProxy to talk to svc-data and obtain the transactions.
-     */
-    @FeignClient(
-        name = "trns",
-        url = "\${marketdata.url:http://localhost:9510}"
-    )
-    interface TrnGateway {
-        @PostMapping(
-            value = ["/api/trns"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun write(
-            @RequestHeader("Authorization") bearerToken: String,
-            trnRequest: TrnRequest
-        ): TrnResponse
-
-        @GetMapping(
-            value = ["/api/trns/portfolio/{portfolioId}/{asAt}"],
-            produces = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun read(
-            @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("portfolioId") portfolioId: String,
-            @PathVariable("asAt") asAt: String
-        ): TrnResponse
-
-        @PostMapping(
-            value = ["/api/trns/query"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun read(
-            @RequestHeader("Authorization") bearerToken: String,
-            trnQuery: TrustedTrnQuery
-        ): TrnResponse
-    }
+        restClient
+            .get()
+            .uri("/api/trns/portfolio/{portfolioId}/{asAt}", portfolio.id, asAt)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(TrnResponse::class.java)
+            ?: throw BusinessException("Failed to query portfolio transactions")
 }

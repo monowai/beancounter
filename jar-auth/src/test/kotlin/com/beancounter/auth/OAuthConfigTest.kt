@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
-import org.springframework.cloud.openfeign.FeignAutoConfiguration
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -37,7 +36,6 @@ import org.springframework.web.client.RestTemplate
 @ImportAutoConfiguration(
     ClientPasswordConfig::class,
     HttpMessageConvertersAutoConfiguration::class,
-    FeignAutoConfiguration::class,
     OAuthConfig::class
 )
 @ActiveProfiles("auth")

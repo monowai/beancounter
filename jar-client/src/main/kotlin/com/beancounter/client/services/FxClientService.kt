@@ -4,19 +4,21 @@ import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
+import com.beancounter.common.exception.BusinessException
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.client.RestClient
 
 /**
  * Client side calls to the server to obtain FX Rates over a Gateway.
  */
 @Service
-class FxClientService internal constructor(
-    private val fxGateway: FxGateway
+class FxClientService(
+    @Qualifier("bcDataRestClient")
+    private val restClient: RestClient
 ) : FxService {
     @Cacheable("fx-request")
     override fun getRates(
@@ -26,28 +28,14 @@ class FxClientService internal constructor(
         if (fxRequest.pairs.isEmpty()) {
             FxResponse(FxPairResults())
         } else {
-            fxGateway.getRates(
-                token,
-                fxRequest
-            )
+            restClient
+                .post()
+                .uri("/api/fx")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(fxRequest)
+                .retrieve()
+                .body(FxResponse::class.java)
+                ?: throw BusinessException("Failed to get FX rates")
         }
-
-    /**
-     * Gateway integration call to the backend.
-     */
-    @FeignClient(
-        name = "fxrates",
-        url = "\${marketdata.url:http://localhost:9510}"
-    )
-    interface FxGateway {
-        @PostMapping(
-            value = ["/api/fx"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun getRates(
-            @RequestHeader("Authorization") bearerToken: String?,
-            fxRequest: FxRequest
-        ): FxResponse
-    }
 }

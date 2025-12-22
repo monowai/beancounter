@@ -1,40 +1,69 @@
 package com.beancounter.agent.client
 
-import com.beancounter.agent.config.FeignAuthInterceptor
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
 
 /**
- * Feign client for Event MCP service
+ * RestClient for Event MCP service.
  */
-@FeignClient(
-    name = "event-mcp",
-    url = "\${event.url}",
-    path = "/api/mcp",
-    configuration = [FeignAuthInterceptor::class]
-)
-interface EventMcpClient {
-    @GetMapping("/ping")
-    fun ping(): Map<String, String>
+@Component
+class EventMcpClient(
+    @Qualifier("eventMcpRestClient")
+    private val restClient: RestClient
+) {
+    fun ping(): Map<String, String> =
+        restClient
+            .get()
+            .uri("/ping")
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, String>>() {})
+            ?: emptyMap()
 
-    @GetMapping("/asset/{assetId}/events")
-    fun getAssetEvents(
-        @PathVariable assetId: String
-    ): Map<String, Any>
+    fun getAssetEvents(assetId: String): Map<String, Any> =
+        restClient
+            .get()
+            .uri("/asset/{assetId}/events", assetId)
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: emptyMap()
 
-    @PostMapping("/portfolio/{portfolioId}/load-events")
     fun loadEventsForPortfolio(
-        @PathVariable portfolioId: String,
-        @RequestParam fromDate: String
-    ): Map<String, Any>
+        portfolioId: String,
+        fromDate: String
+    ): Map<String, Any> =
+        restClient
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/portfolio/{portfolioId}/load-events")
+                    .queryParam("fromDate", fromDate)
+                    .build(portfolioId)
+            }.contentType(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: emptyMap()
 
-    @PostMapping("/portfolio/{portfolioId}/backfill")
     fun backfillEvents(
-        @PathVariable portfolioId: String,
-        @RequestParam fromDate: String,
-        @RequestParam(required = false) toDate: String?
-    ): Map<String, Any>
+        portfolioId: String,
+        fromDate: String,
+        toDate: String? = null
+    ): Map<String, Any> =
+        restClient
+            .post()
+            .uri { uriBuilder ->
+                val builder =
+                    uriBuilder
+                        .path("/portfolio/{portfolioId}/backfill")
+                        .queryParam("fromDate", fromDate)
+                if (toDate != null) {
+                    builder.queryParam("toDate", toDate)
+                }
+                builder.build(portfolioId)
+            }.contentType(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: emptyMap()
 }

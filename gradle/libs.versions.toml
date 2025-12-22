@@ -5,7 +5,7 @@
 kotlin = "2.2.20"
 kotlinter = "5.1.1"
 detekt = "1.23.8"
-spring-boot = "3.5.6"
+spring-boot = "3.5.9"
 spring-cloud = "2025.0.0"
 spring-cloud-contract = "4.3.0"
 spring-data-bom = "2025.0.3"
@@ -32,7 +32,6 @@ servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "s
 otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.12.0" }
 resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.1.0" }
 resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.3.0" }
-spring-cloud-feign = { module = "org.springframework.cloud:spring-cloud-starter-openfeign", version = "4.3.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.18.0" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test", version.ref = "spring-kafka" }
@@ -54,7 +53,6 @@ spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-aut
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
 spring-security-oauth2 = { module = "org.springframework.security:spring-security-oauth2-resource-server", version.ref = "spring-security" }
 spring-security-jose = { module = "org.springframework.security:spring-security-oauth2-jose", version.ref = "spring-security" }
-sentry-openfeign = { module = "io.sentry:sentry-openfeign", version.ref = "sentry" }
 sentry-opentelemetry = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentry" }
 jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }

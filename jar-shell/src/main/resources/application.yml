@@ -30,12 +30,6 @@ spring:
       kafka:
         binder:
           brokers: kafka:9092
-    openfeign:
-      client:
-        config:
-          default:
-            errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
-            loggerLevel: NONE
 
   jackson:
     serialization:
@@ -53,7 +47,6 @@ logging:
     com.beancounter: info
     org.hibernate: error
     org.springframework.web.servlet: info
-    feign: error
     sun: error
     jdk: error
     javax: error
@@ -84,8 +77,3 @@ resilience4j:
         waitDurationInOpenState: 5s
         registerHealthIndicator: true
         recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
-feign:
-  client:
-    config:
-      auth0:
-        loggerLevel: full

@@ -25,7 +25,7 @@ class AgentApplication
 /**
  * Configuration to enable SecurityContext propagation to child threads.
  * This ensures JWT tokens are properly forwarded from Spring MVC request threads
- * to Feign client threads when making MCP service calls.
+ * to RestClient threads when making MCP service calls.
  */
 @Component
 class SecurityContextConfiguration {

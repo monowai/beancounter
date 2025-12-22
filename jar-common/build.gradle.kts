@@ -24,10 +24,6 @@ dependencies {
     implementation("org.springframework:spring-web")
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.kafka)
-    implementation(libs.spring.cloud.feign) {
-        exclude(group = "org.apache.commons", module = "commons-lang3")
-        exclude(group = "org.apache.commons", module = "commons-text")
-    }
     implementation(libs.commons.io)
     implementation(libs.guava)
 

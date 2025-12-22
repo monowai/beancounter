@@ -58,7 +58,6 @@ logging:
       openttelemetry: error
       github:
         resilience4j: error
-    feign: error
     okhttp3: error
     com:
       netfix: error
@@ -88,16 +87,6 @@ stream:
 
 spring:
   cloud:
-    openfeign:
-      client:
-        config:
-          alphaVantage:
-            url: https://www.alphavantage.co
-            loggerLevel: NONE # BASIC, FULL, HEADERS
-          marketstack:
-            url: https://www.marketstack.com
-            loggerLevel: NONE # BASIC, FULL, HEADERS
-
     function:
       definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
     stream:

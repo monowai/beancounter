@@ -1,29 +1,34 @@
 package com.beancounter.agent.config
 
 import com.beancounter.agent.TokenContextService
-import feign.RequestInterceptor
-import feign.RequestTemplate
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpRequest
+import org.springframework.http.client.ClientHttpRequestExecution
+import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.client.ClientHttpResponse
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import org.springframework.stereotype.Component
 
 /**
- * Feign interceptor to forward JWT tokens to MCP services
+ * RestClient interceptor to forward JWT tokens to MCP services.
+ * Replaces FeignAuthInterceptor.
  */
-@Component
-class FeignAuthInterceptor(
+class RestClientAuthInterceptor(
     private val tokenContextService: TokenContextService
-) : RequestInterceptor {
-    private val log = LoggerFactory.getLogger(FeignAuthInterceptor::class.java)
+) : ClientHttpRequestInterceptor {
+    private val log = LoggerFactory.getLogger(RestClientAuthInterceptor::class.java)
 
-    override fun apply(template: RequestTemplate) {
+    override fun intercept(
+        request: HttpRequest,
+        body: ByteArray,
+        execution: ClientHttpRequestExecution
+    ): ClientHttpResponse {
         try {
             // Skip authentication for ping endpoints (they are designed to be unauthenticated)
-            if (template.url().contains("/ping")) {
-                log.trace("Skipping authentication for ping endpoint: {}", template.url())
-                return
+            if (request.uri.path.contains("/ping")) {
+                log.trace("Skipping authentication for ping endpoint: {}", request.uri)
+                return execution.execute(request, body)
             }
 
             // Get the current JWT token from the security context
@@ -38,23 +43,23 @@ class FeignAuthInterceptor(
                 authentication is JwtAuthenticationToken -> {
                     val jwt = authentication.token
                     val tokenValue = jwt.tokenValue
-                    template.header("Authorization", "Bearer $tokenValue")
+                    request.headers.setBearerAuth(tokenValue)
                 }
                 authentication != null && authentication.principal is Jwt -> {
                     val jwt = authentication.principal as Jwt
                     val tokenValue = jwt.tokenValue
-                    template.header("Authorization", "Bearer $tokenValue")
+                    request.headers.setBearerAuth(tokenValue)
                 }
                 else -> {
                     // Try fallback to TokenContextService
                     val fallbackToken = tokenContextService.getCurrentToken()
                     if (fallbackToken != null) {
-                        log.debug("Using fallback token from TokenContextService for request to: {}", template.url())
-                        template.header("Authorization", "Bearer $fallbackToken")
+                        log.debug("Using fallback token from TokenContextService for request to: {}", request.uri)
+                        request.headers.setBearerAuth(fallbackToken)
                     } else {
                         log.warn(
                             "No JWT token found in security context or TokenContextService for request to: {} (auth: {})",
-                            template.url(),
+                            request.uri,
                             authentication?.javaClass?.simpleName ?: "null"
                         )
                         // Don't add Authorization header - let the downstream service handle the missing token
@@ -65,5 +70,7 @@ class FeignAuthInterceptor(
             log.error("Error forwarding JWT token to MCP service: {}", e.message, e)
             // Don't add Authorization header on error
         }
+
+        return execution.execute(request, body)
     }
 }

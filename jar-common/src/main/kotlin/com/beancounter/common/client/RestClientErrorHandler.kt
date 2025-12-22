@@ -1,0 +1,45 @@
+package com.beancounter.common.client
+
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.ForbiddenException
+import com.beancounter.common.exception.SystemException
+import com.beancounter.common.exception.UnauthorizedException
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.http.client.ClientHttpResponse
+import org.springframework.web.client.ResponseErrorHandler
+import java.nio.charset.StandardCharsets
+
+/**
+ * Error handler for RestClient that maps HTTP errors to custom exceptions.
+ * Ported from SpringFeignDecoder.
+ */
+class RestClientErrorHandler : ResponseErrorHandler {
+    private val log = LoggerFactory.getLogger(RestClientErrorHandler::class.java)
+
+    override fun hasError(response: ClientHttpResponse): Boolean = response.statusCode.isError
+
+    @Suppress("DEPRECATION")
+    override fun handleError(response: ClientHttpResponse) {
+        val statusCode = response.statusCode.value()
+        val reason =
+            try {
+                response.body.bufferedReader(StandardCharsets.UTF_8).readText().ifBlank {
+                    response.statusText
+                }
+            } catch (e: Exception) {
+                log.error("Error reading response body", e)
+                "Failed to read response body"
+            }
+
+        log.error("HTTP error [$statusCode] $reason")
+
+        throw when (statusCode) {
+            HttpStatus.UNAUTHORIZED.value() -> UnauthorizedException(reason)
+            HttpStatus.FORBIDDEN.value() -> ForbiddenException(reason)
+            in HttpStatus.BAD_REQUEST.value()..499 -> BusinessException(reason)
+            in HttpStatus.INTERNAL_SERVER_ERROR.value()..599 -> SystemException(reason)
+            else -> SystemException("HTTP $statusCode: $reason")
+        }
+    }
+}

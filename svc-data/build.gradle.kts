@@ -42,13 +42,8 @@ dependencies {
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.logging)
-    implementation(libs.spring.cloud.feign) {
-        exclude(group = "org.apache.commons", module = "commons-lang3")
-        exclude(group = "org.apache.commons", module = "commons-text")
-    }
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)
-    implementation(libs.sentry.openfeign)
     implementation("io.sentry:sentry-jdbc")
     implementation(libs.spring.boot.starter.aop)
     implementation(libs.spring.boot.starter.security)

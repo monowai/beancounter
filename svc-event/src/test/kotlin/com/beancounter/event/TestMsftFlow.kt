@@ -4,7 +4,6 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenService
 import com.beancounter.client.services.PortfolioServiceClient
-import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedEventInput
@@ -16,6 +15,7 @@ import com.beancounter.event.service.PositionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
@@ -65,48 +65,35 @@ class TestMsftFlow {
                 ClassPathResource("/msft-flow/3-position.json").file,
                 PositionResponse::class.java
             )
-        val positionGateway = Mockito.mock(PositionGateway::class.java)
+        val mockPositionGateway = Mockito.mock(PositionGateway::class.java)
         val (_, _, _, assetId, recordDate) = trustedEvent.data
 
-        Mockito
-            .`when`(
-                positionGateway["demo", assetId, recordDate.toString()]
-            ).thenReturn(positionResponse)
+        `when`(
+            mockPositionGateway["demo", assetId, recordDate.toString()]
+        ).thenReturn(positionResponse)
 
         val portfolio = whereHeld.data.iterator().next()
-        Mockito
-            .`when`(
-                positionGateway
-                    .query(
-                        "demo",
-                        TrustedTrnQuery(
-                            portfolio,
-                            recordDate,
-                            assetId
-                        )
-                    )
-            ).thenReturn(positionResponse)
-
-        val portfolioGw = Mockito.mock(PortfolioGw::class.java)
-        Mockito
-            .`when`(
-                portfolioGw.getWhereHeld(
-                    "demo",
-                    assetId,
-                    recordDate.toString()
+        `when`(
+            mockPositionGateway.query(
+                "demo",
+                TrustedTrnQuery(
+                    portfolio,
+                    recordDate,
+                    assetId
                 )
-            ).thenReturn(whereHeld)
-        val tokenService = Mockito.mock(TokenService::class.java)
-        Mockito
-            .`when`(tokenService.bearerToken)
-            .thenReturn("demo")
-        val portfolioServiceClient =
-            PortfolioServiceClient(
-                portfolioGw,
-                tokenService
             )
+        ).thenReturn(positionResponse)
+
+        val mockPortfolioServiceClient = Mockito.mock(PortfolioServiceClient::class.java)
+        `when`(mockPortfolioServiceClient.getWhereHeld(assetId, recordDate))
+            .thenReturn(whereHeld)
+
+        val tokenService = Mockito.mock(TokenService::class.java)
+        `when`(tokenService.bearerToken)
+            .thenReturn("demo")
+
         positionService.setTokenService(tokenService)
-        positionService.setPortfolioClientService(portfolioServiceClient)
+        positionService.setPortfolioClientService(mockPortfolioServiceClient)
         val results = eventService.process(trustedEvent)
         assertThat(results).isEmpty()
     }

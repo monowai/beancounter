@@ -13,10 +13,6 @@ dependencies {
     implementation(libs.spring.boot.starter)
     implementation(libs.spring.boot.starter.security)
     implementation("org.springframework.shell:spring-shell-starter-jansi")
-    implementation(libs.spring.cloud.feign) {
-        exclude(group = "org.apache.commons", module = "commons-lang3")
-        exclude(group = "org.apache.commons", module = "commons-text")
-    }
     implementation(libs.spring.security.oauth2)
     implementation(libs.spring.security.jose)
     implementation(libs.spring.cloud.stream)
@@ -25,6 +21,7 @@ dependencies {
     implementation("com.opencsv:opencsv:5.11.1")
     
     testImplementation(libs.assertj)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
     testImplementation(libs.spring.security.oauth2)
     testImplementation(libs.spring.boot.starter.test) {

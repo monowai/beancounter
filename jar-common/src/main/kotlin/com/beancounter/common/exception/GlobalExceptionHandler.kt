@@ -1,6 +1,5 @@
 package com.beancounter.common.exception
 
-import feign.FeignException
 import io.sentry.Sentry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.client.ResourceAccessException
+import org.springframework.web.client.RestClientException
 import java.net.ConnectException
 
 /**
@@ -20,7 +20,7 @@ import java.net.ConnectException
  */
 @ControllerAdvice
 class GlobalExceptionHandler(
-    @param:Value($$"${sentry.enabled:false}") val sentryEnabled: Boolean = false
+    @param:Value("\${sentry.enabled:false}") val sentryEnabled: Boolean = false
 ) {
     @ExceptionHandler(UnauthorizedException::class)
     @ResponseBody
@@ -48,7 +48,7 @@ class GlobalExceptionHandler(
     @ExceptionHandler(
         ConnectException::class,
         ResourceAccessException::class,
-        FeignException::class
+        RestClientException::class
     )
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody

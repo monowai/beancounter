@@ -1,63 +1,72 @@
 package com.beancounter.marketdata.providers.alpha
 
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 
 /**
- * Api calls to alphavantage.
- *
- * @author mikeh
- * @since 2019-03-03
+ * API calls to AlphaVantage using RestClient.
  */
-@FeignClient(
-    name = "alphaVantage",
-    url = "\${beancounter.market.providers.alpha.url:https://www.alphavantage.co}"
-)
-interface AlphaGateway {
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        value = ["/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}"]
-    )
+@Component
+class AlphaGateway(
+    @Qualifier("alphaVantageRestClient")
+    private val restClient: RestClient
+) {
     fun getCurrent(
-        @PathVariable("assetId") assetId: String,
-        @PathVariable("apiKey") apiKey: String
-    ): String
+        assetId: String,
+        apiKey: String
+    ): String =
+        restClient
+            .get()
+            .uri("/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}", assetId, apiKey)
+            .retrieve()
+            .body<String>()
+            ?: ""
 
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}"]
-    )
     fun getHistoric(
-        @PathVariable("assetId") assetId: String?,
-        @PathVariable("apiKey") apiKey: String?
-    ): String
+        assetId: String?,
+        apiKey: String?
+    ): String =
+        restClient
+            .get()
+            .uri("/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}", assetId, apiKey)
+            .retrieve()
+            .body<String>()
+            ?: ""
 
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}&outputsize=full"]
-    )
     fun getFullOutput(
-        @PathVariable("assetId") assetId: String,
-        @PathVariable("apiKey") apiKey: String
-    ): String?
+        assetId: String,
+        apiKey: String
+    ): String? =
+        restClient
+            .get()
+            .uri("/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}&outputsize=full", assetId, apiKey)
+            .retrieve()
+            .body(String::class.java)
 
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        value = ["/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}&outputsize=full"]
-    )
     fun getAdjusted(
-        @PathVariable("assetId") assetId: String?,
-        @PathVariable("apiKey") apiKey: String?
-    ): String
+        assetId: String?,
+        apiKey: String?
+    ): String =
+        restClient
+            .get()
+            .uri(
+                "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}&outputsize=full",
+                assetId,
+                apiKey
+            ).retrieve()
+            .body<String>()
+            ?: ""
 
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        value = ["/query?function=SYMBOL_SEARCH&keywords={symbol}&apikey={apiKey}"]
-    )
     fun search(
-        @PathVariable("symbol") symbol: String?,
-        @PathVariable("apiKey") apiKey: String?
-    ): String
+        symbol: String?,
+        apiKey: String?
+    ): String =
+        restClient
+            .get()
+            .uri("/query?function=SYMBOL_SEARCH&keywords={symbol}&apikey={apiKey}", symbol, apiKey)
+            .retrieve()
+            .body(String::class.java)
+            ?: ""
 }

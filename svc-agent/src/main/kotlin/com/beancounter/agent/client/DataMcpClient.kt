@@ -1,72 +1,134 @@
 package com.beancounter.agent.client
 
-import com.beancounter.agent.config.FeignAuthInterceptor
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.PortfoliosResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
 
 /**
- * Feign client for Data MCP service
+ * RestClient for Data MCP service.
  */
-@FeignClient(
-    name = "data-mcp",
-    url = "\${marketdata.url}",
-    path = "/api/mcp",
-    configuration = [FeignAuthInterceptor::class]
-)
-interface DataMcpClient {
-    @GetMapping("/ping")
-    fun ping(): Map<String, String>
+@Component
+class DataMcpClient(
+    @Qualifier("dataMcpRestClient")
+    private val restClient: RestClient
+) {
+    fun ping(): Map<String, String> =
+        restClient
+            .get()
+            .uri("/ping")
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, String>>() {})
+            ?: emptyMap()
 
-    @GetMapping("/portfolio/{portfolioId}")
-    fun getPortfolio(
-        @PathVariable portfolioId: String
-    ): Portfolio
+    fun getPortfolio(portfolioId: String): Portfolio =
+        restClient
+            .get()
+            .uri("/portfolio/{portfolioId}", portfolioId)
+            .retrieve()
+            .body(Portfolio::class.java)
+            ?: throw BusinessException("Portfolio not found: $portfolioId")
 
-    @GetMapping("/portfolio/code/{code}")
-    fun getPortfolioByCode(
-        @PathVariable code: String
-    ): Portfolio
+    fun getPortfolioByCode(code: String): Portfolio =
+        restClient
+            .get()
+            .uri("/portfolio/code/{code}", code)
+            .retrieve()
+            .body(Portfolio::class.java)
+            ?: throw BusinessException("Portfolio not found: $code")
 
-    @GetMapping("/portfolios")
-    fun getPortfolios(): PortfoliosResponse
+    fun getPortfolios(): PortfoliosResponse =
+        restClient
+            .get()
+            .uri("/portfolios")
+            .retrieve()
+            .body(PortfoliosResponse::class.java)
+            ?: throw BusinessException("Failed to get portfolios")
 
-    @PostMapping("/asset/find-or-create")
     fun findOrCreateAsset(
-        @RequestParam market: String,
-        @RequestParam code: String,
-        @RequestParam category: String
-    ): Asset
+        market: String,
+        code: String,
+        category: String
+    ): Asset =
+        restClient
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/asset/find-or-create")
+                    .queryParam("market", market)
+                    .queryParam("code", code)
+                    .queryParam("category", category)
+                    .build()
+            }.contentType(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .body(Asset::class.java)
+            ?: throw BusinessException("Failed to find or create asset")
 
-    @GetMapping("/asset/{assetId}")
-    fun getAsset(
-        @PathVariable assetId: String
-    ): Asset
+    fun getAsset(assetId: String): Asset =
+        restClient
+            .get()
+            .uri("/asset/{assetId}", assetId)
+            .retrieve()
+            .body(Asset::class.java)
+            ?: throw BusinessException("Asset not found: $assetId")
 
-    @GetMapping("/asset/{assetId}/market-data")
     fun getMarketData(
-        @PathVariable assetId: String,
-        @RequestParam date: String
-    ): Map<String, Any>
+        assetId: String,
+        date: String
+    ): Map<String, Any> =
+        restClient
+            .get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/asset/{assetId}/market-data")
+                    .queryParam("date", date)
+                    .build(assetId)
+            }.retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: emptyMap()
 
-    @GetMapping("/fx-rates")
     fun getFxRates(
-        @RequestParam fromCurrency: String,
-        @RequestParam toCurrency: String,
-        @RequestParam(required = false) rateDate: String?
-    ): FxResponse
+        fromCurrency: String,
+        toCurrency: String,
+        rateDate: String? = null
+    ): FxResponse =
+        restClient
+            .get()
+            .uri { uriBuilder ->
+                val builder =
+                    uriBuilder
+                        .path("/fx-rates")
+                        .queryParam("fromCurrency", fromCurrency)
+                        .queryParam("toCurrency", toCurrency)
+                if (rateDate != null) {
+                    builder.queryParam("rateDate", rateDate)
+                }
+                builder.build()
+            }.retrieve()
+            .body(FxResponse::class.java)
+            ?: throw BusinessException("Failed to get FX rates")
 
-    @GetMapping("/markets")
-    fun getMarkets(): MarketResponse
+    fun getMarkets(): MarketResponse =
+        restClient
+            .get()
+            .uri("/markets")
+            .retrieve()
+            .body(MarketResponse::class.java)
+            ?: throw BusinessException("Failed to get markets")
 
-    @GetMapping("/currencies")
-    fun getCurrencies(): Array<Currency>
+    fun getCurrencies(): Array<Currency> =
+        restClient
+            .get()
+            .uri("/currencies")
+            .retrieve()
+            .body(Array<Currency>::class.java)
+            ?: emptyArray()
 }

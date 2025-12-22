@@ -1,42 +1,45 @@
 package com.beancounter.event.integration
 
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedTrnQuery
-import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 
 /**
- * Integration calls to svc-position.
+ * Integration calls to svc-position using RestClient.
  */
-@FeignClient(
-    name = "bcPosition",
-    url = "\${position.url:http://localhost:9500}"
-)
-interface PositionGateway {
-    @RequestMapping(
-        method = [RequestMethod.POST],
-        value = ["/api/query"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = [MediaType.APPLICATION_JSON_VALUE]
-    )
+@Component
+class PositionGateway(
+    private val positionRestClient: RestClient
+) {
     fun query(
-        @RequestHeader("Authorization") bearerToken: String,
+        bearerToken: String,
         trnQuery: TrustedTrnQuery
-    ): PositionResponse?
+    ): PositionResponse? =
+        positionRestClient
+            .post()
+            .uri("/api/query")
+            .header(HttpHeaders.AUTHORIZATION, bearerToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(trnQuery)
+            .retrieve()
+            .body<PositionResponse>()
 
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        value = ["/api/id/{id}/{asAt}?value={value}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
     operator fun get(
-        @RequestHeader("Authorization") bearerToken: String,
-        @PathVariable("id") code: String,
-        @PathVariable("asAt") asAt: String,
-        @PathVariable("value") value: Boolean = false
-    ): PositionResponse
+        bearerToken: String,
+        code: String,
+        asAt: String,
+        value: Boolean = false
+    ): PositionResponse =
+        positionRestClient
+            .get()
+            .uri("/api/id/{id}/{asAt}?value={value}", code, asAt, value)
+            .header(HttpHeaders.AUTHORIZATION, bearerToken)
+            .retrieve()
+            .body<PositionResponse>()
+            ?: throw BusinessException("Failed to get positions")
 }

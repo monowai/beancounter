@@ -12,10 +12,6 @@ import com.beancounter.client.services.RegistrationService
 import com.beancounter.client.services.StaticService
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.utils.DateUtils
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration
-import org.springframework.cloud.openfeign.EnableFeignClients
-import org.springframework.cloud.openfeign.FeignAutoConfiguration
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
@@ -35,12 +31,8 @@ import org.springframework.context.annotation.Import
     RegistrationService::class,
     MarketDataClient::class,
     TrnService::class,
-    TokenService::class
-)
-@EnableFeignClients(basePackages = ["com.beancounter.client"])
-@ImportAutoConfiguration(
-    HttpMessageConvertersAutoConfiguration::class,
-    FeignAutoConfiguration::class
+    TokenService::class,
+    RestClientConfig::class
 )
 @Configuration
 class ClientConfig

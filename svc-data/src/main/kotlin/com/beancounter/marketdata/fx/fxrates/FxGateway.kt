@@ -1,30 +1,34 @@
 package com.beancounter.marketdata.fx.fxrates
 
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 
 /**
- * Api calls to exchangeratesapi.io.
- *
- * @author mikeh
- * @since 2019-03-03
+ * API calls to exchangeratesapi.io using RestClient.
  */
-@FeignClient(
-    name = "fxRequest",
-    url = "\${beancounter.market.providers.fx.url:https://api.exchangeratesapi.io}"
-)
-interface FxGateway {
-    @RequestMapping(
-        method = [RequestMethod.GET],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-        value = ["/v1/{date}?base={base}&symbols={symbols}&access_key=\${beancounter.market.providers.fx.key}"]
-    )
+@Component
+class FxGateway(
+    @Qualifier("exchangeRatesRestClient")
+    private val restClient: RestClient,
+    @Value($$"${beancounter.market.providers.fx.key:}")
+    private val accessKey: String
+) {
     fun getRatesForSymbols(
-        @PathVariable("date") date: String,
-        @PathVariable("base") base: String,
-        @PathVariable("symbols") symbols: String
-    ): ExRatesResponse?
+        date: String,
+        base: String,
+        symbols: String
+    ): ExRatesResponse? =
+        restClient
+            .get()
+            .uri(
+                "/v1/{date}?base={base}&symbols={symbols}&access_key={accessKey}",
+                date,
+                base,
+                symbols,
+                accessKey
+            ).retrieve()
+            .body<ExRatesResponse>()
 }

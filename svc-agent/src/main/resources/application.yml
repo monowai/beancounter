@@ -52,7 +52,6 @@ logging:
     io:
       github:
         resilience4j: error
-    feign: error
     com:
       netfix: error
       beancounter: debug
@@ -84,7 +83,6 @@ resilience4j.retry:
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
         - java.io.IOException
-        - feign.RetryableException
       ignoreExceptions:
         - com.beancounter.common.exception.BusinessException
     instances:
@@ -110,15 +108,6 @@ spring:
 
   # Default: No AI configuration (Spring AI will not create any beans without config)
   # AI configuration is provided by specific profiles (ollama, openai)
-
-# OpenFeign Configuration
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000
-        readTimeout: 10000
-        loggerLevel: basic
 
 # Service URLs for MCP communication
 mcp:

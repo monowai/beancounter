@@ -5,11 +5,10 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.client.services.PortfolioServiceClient
-import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw
 import com.beancounter.client.services.RegistrationService
-import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
@@ -22,7 +21,9 @@ import com.beancounter.shell.config.ShellConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
@@ -52,7 +53,7 @@ class TestPortfolioCommands {
     private lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
-    private lateinit var portfolioGw: PortfolioGw
+    private lateinit var portfolioServiceClient: PortfolioServiceClient
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -64,13 +65,7 @@ class TestPortfolioCommands {
 
     @BeforeEach
     fun configure() {
-        portfolioCommands =
-            PortfolioCommands(
-                PortfolioServiceClient(
-                    portfolioGw,
-                    tokenService
-                )
-            )
+        portfolioCommands = PortfolioCommands(portfolioServiceClient)
     }
 
     private val pfCode = "ABC"
@@ -92,21 +87,12 @@ class TestPortfolioCommands {
                     )
                 )
             )
-        Mockito
-            .`when`(
-                portfolioGw.getPortfolioByCode(
-                    Mockito.anyString(),
-                    Mockito.anyString()
-                )
-            ).thenReturn(PortfolioResponse(getPortfolio(pfCode)))
+        // Throw exception so creation path is taken
+        `when`(portfolioServiceClient.getPortfolioByCode(anyString()))
+            .thenThrow(BusinessException("Not found"))
 
-        Mockito
-            .`when`(
-                portfolioGw.addPortfolios(
-                    Mockito.eq(tokenService.bearerToken),
-                    Mockito.isA(PortfoliosRequest::class.java)
-                )
-            ).thenReturn(response)
+        `when`(portfolioServiceClient.add(any<PortfoliosRequest>()))
+            .thenReturn(response)
 
         val result =
             portfolioCommands.add(
@@ -136,14 +122,8 @@ class TestPortfolioCommands {
                 code,
                 owner
             )
-        val portfolioResponse = PortfolioResponse(existing)
-        Mockito
-            .`when`(
-                portfolioGw.getPortfolioByCode(
-                    tokenService.bearerToken,
-                    existing.code
-                )
-            ).thenReturn(portfolioResponse) // Portfolio exists
+        `when`(portfolioServiceClient.getPortfolioByCode(existing.code))
+            .thenReturn(existing) // Portfolio exists
         val result =
             portfolioCommands.add(
                 code,
@@ -157,7 +137,7 @@ class TestPortfolioCommands {
                 result,
                 Portfolio::class.java
             )
-        assertThat(portfolio).usingRecursiveComparison().isEqualTo(portfolioResponse.data)
+        assertThat(portfolio).usingRecursiveComparison().isEqualTo(existing)
     }
 
     private val systemUser: SystemUser

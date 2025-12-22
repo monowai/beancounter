@@ -1,59 +1,116 @@
 package com.beancounter.agent.client
 
-import com.beancounter.agent.config.FeignAuthInterceptor
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
 
 /**
- * Feign client for Position MCP service
+ * RestClient for Position MCP service.
  */
-@FeignClient(
-    name = "position-mcp",
-    url = "\${position.url}",
-    path = "/api/mcp",
-    configuration = [FeignAuthInterceptor::class]
-)
-interface PositionMcpClient {
-    @GetMapping("/ping")
-    fun ping(): Map<String, String>
+@Component
+class PositionMcpClient(
+    @Qualifier("positionMcpRestClient")
+    private val restClient: RestClient
+) {
+    fun ping(): Map<String, String> =
+        restClient
+            .get()
+            .uri("/ping")
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, String>>() {})
+            ?: emptyMap()
 
-    @PostMapping("/portfolio/positions")
     fun getPortfolioPositions(
-        @RequestBody portfolio: Portfolio,
-        @RequestParam valuationDate: String
-    ): PositionResponse
+        portfolio: Portfolio,
+        valuationDate: String
+    ): PositionResponse =
+        restClient
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/portfolio/positions")
+                    .queryParam("valuationDate", valuationDate)
+                    .build()
+            }.contentType(MediaType.APPLICATION_JSON)
+            .body(portfolio)
+            .retrieve()
+            .body(PositionResponse::class.java)
+            ?: throw BusinessException("Failed to get portfolio positions")
 
-    @PostMapping("/query")
-    fun queryPositions(
-        @RequestBody query: TrustedTrnQuery
-    ): PositionResponse
+    fun queryPositions(query: TrustedTrnQuery): PositionResponse =
+        restClient
+            .post()
+            .uri("/query")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(query)
+            .retrieve()
+            .body(PositionResponse::class.java)
+            ?: throw BusinessException("Failed to query positions")
 
-    @PostMapping("/portfolio/build")
     fun buildPositions(
-        @RequestBody portfolio: Portfolio,
-        @RequestParam valuationDate: String
-    ): PositionResponse
+        portfolio: Portfolio,
+        valuationDate: String
+    ): PositionResponse =
+        restClient
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/portfolio/build")
+                    .queryParam("valuationDate", valuationDate)
+                    .build()
+            }.contentType(MediaType.APPLICATION_JSON)
+            .body(portfolio)
+            .retrieve()
+            .body(PositionResponse::class.java)
+            ?: throw BusinessException("Failed to build positions")
 
-    @PostMapping("/value")
-    fun valuePositions(
-        @RequestBody positionResponse: PositionResponse
-    ): PositionResponse
+    fun valuePositions(positionResponse: PositionResponse): PositionResponse =
+        restClient
+            .post()
+            .uri("/value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(positionResponse)
+            .retrieve()
+            .body(PositionResponse::class.java)
+            ?: throw BusinessException("Failed to value positions")
 
-    @PostMapping("/portfolio/metrics")
     fun getPortfolioMetrics(
-        @RequestBody portfolio: Portfolio,
-        @RequestParam valuationDate: String
-    ): Map<String, Any>
+        portfolio: Portfolio,
+        valuationDate: String
+    ): Map<String, Any> =
+        restClient
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/portfolio/metrics")
+                    .queryParam("valuationDate", valuationDate)
+                    .build()
+            }.contentType(MediaType.APPLICATION_JSON)
+            .body(portfolio)
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: emptyMap()
 
-    @PostMapping("/portfolio/breakdown")
     fun getPositionBreakdown(
-        @RequestBody portfolio: Portfolio,
-        @RequestParam valuationDate: String
-    ): Map<String, Any>
+        portfolio: Portfolio,
+        valuationDate: String
+    ): Map<String, Any> =
+        restClient
+            .post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/portfolio/breakdown")
+                    .queryParam("valuationDate", valuationDate)
+                    .build()
+            }.contentType(MediaType.APPLICATION_JSON)
+            .body(portfolio)
+            .retrieve()
+            .body(object : ParameterizedTypeReference<Map<String, Any>>() {})
+            ?: emptyMap()
 }

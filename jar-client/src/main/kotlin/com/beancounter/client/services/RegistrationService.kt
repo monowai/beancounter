@@ -5,20 +5,20 @@ import com.beancounter.auth.model.LoginRequest
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.RegistrationResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.client.RestClient
 
 /**
  * Handles client side registration duties.
@@ -30,12 +30,22 @@ import org.springframework.web.bind.annotation.RequestHeader
     matchIfMissing = false
 )
 class RegistrationService(
-    private val registrationGateway: RegistrationGateway,
+    @Qualifier("bcDataRestClient")
+    private val restClient: RestClient,
     private val jwtDecoder: JwtDecoder,
     private val tokenService: TokenService
 ) {
     fun login(loginRequest: LoginRequest): OpenIdResponse {
-        val openIdResponse = registrationGateway.auth(loginRequest)
+        val openIdResponse =
+            restClient
+                .post()
+                .uri("/api/auth")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(loginRequest)
+                .retrieve()
+                .body(OpenIdResponse::class.java)
+                ?: throw BusinessException("Failed to authenticate")
+
         SecurityContextHolder.getContext().authentication =
             JwtAuthenticationToken(jwtDecoder.decode(openIdResponse.token))
         log.info("Logged in ${loginRequest.user}")
@@ -43,54 +53,33 @@ class RegistrationService(
     }
 
     fun register(registrationRequest: RegistrationRequest): SystemUser {
-        val (data) =
-            registrationGateway
-                .register(
-                    token,
-                    registrationRequest
-                )
+        val response =
+            restClient
+                .post()
+                .uri("/api/register")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(registrationRequest)
+                .retrieve()
+                .body(RegistrationResponse::class.java)
                 ?: throw UnauthorizedException("Your request was rejected. Have you logged in?")
-        return data
+        return response.data
     }
 
-    fun me(): SystemUser = registrationGateway.me(token).data
+    fun me(): SystemUser {
+        val response =
+            restClient
+                .get()
+                .uri("/api/me")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .retrieve()
+                .body(RegistrationResponse::class.java)
+                ?: throw BusinessException("Failed to get user info")
+        return response.data
+    }
 
     val token: String
         get() = tokenService.bearerToken
-
-    /**
-     * HTTP gateway calls to svc-data
-     */
-    @FeignClient(
-        name = "registrationGw",
-        url = "\${marketdata.url:http://localhost:9510}"
-    )
-    interface RegistrationGateway {
-        @PostMapping(
-            value = ["/api/register"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun register(
-            @RequestHeader("Authorization") bearerToken: String,
-            registrationRequest: RegistrationRequest
-        ): RegistrationResponse?
-
-        @GetMapping(
-            value = ["/api/me"],
-            produces = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun me(
-            @RequestHeader("Authorization") bearerToken: String
-        ): RegistrationResponse
-
-        @PostMapping(
-            value = ["/api/auth"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun auth(loginRequest: LoginRequest): OpenIdResponse
-    }
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(this::class.java)

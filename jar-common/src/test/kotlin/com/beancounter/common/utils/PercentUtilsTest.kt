@@ -113,4 +113,50 @@ class PercentUtilsTest {
             )
         assertThat(result).isEqualTo(BigDecimal("1.055000"))
     }
+
+    @Test
+    fun `scaleRate should scale to 4 decimal places`() {
+        // Basic scaling
+        assertThat(percentUtils.scaleRate(BigDecimal("0.07")))
+            .isEqualTo(BigDecimal("0.0700"))
+
+        // Already at correct scale
+        assertThat(percentUtils.scaleRate(BigDecimal("0.0700")))
+            .isEqualTo(BigDecimal("0.0700"))
+
+        // More precision - rounds down
+        assertThat(percentUtils.scaleRate(BigDecimal("0.07004")))
+            .isEqualTo(BigDecimal("0.0700"))
+
+        // More precision - rounds up (HALF_UP)
+        assertThat(percentUtils.scaleRate(BigDecimal("0.07005")))
+            .isEqualTo(BigDecimal("0.0701"))
+
+        // Larger value
+        assertThat(percentUtils.scaleRate(BigDecimal("1.23456789")))
+            .isEqualTo(BigDecimal("1.2346"))
+    }
+
+    @Test
+    fun `scalePercent should scale to 2 decimal places`() {
+        // Basic scaling
+        assertThat(percentUtils.scalePercent(BigDecimal("7.11")))
+            .isEqualTo(BigDecimal("7.11"))
+
+        // More precision - rounds down
+        assertThat(percentUtils.scalePercent(BigDecimal("7.114")))
+            .isEqualTo(BigDecimal("7.11"))
+
+        // More precision - rounds up (HALF_UP)
+        assertThat(percentUtils.scalePercent(BigDecimal("7.115")))
+            .isEqualTo(BigDecimal("7.12"))
+
+        // Whole number
+        assertThat(percentUtils.scalePercent(BigDecimal("7")))
+            .isEqualTo(BigDecimal("7.00"))
+
+        // Larger value
+        assertThat(percentUtils.scalePercent(BigDecimal("123.456")))
+            .isEqualTo(BigDecimal("123.46"))
+    }
 }

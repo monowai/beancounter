@@ -39,28 +39,30 @@ jobs:
             - v1-build-cache
 
       # Use manual build order to handle circular dependencies
+      # Optimization: Use daemon (faster JVM reuse) and combine invocations
       - run:
           name: Build All Projects and Publish Stubs
           command: |
             echo "🔨 Building all projects and publishing stubs..."
-            echo "📦 Step 1: Building core libraries..."
-            ./gradlew :jar-common:build :jar-auth:build --no-daemon --parallel --max-workers=4
-            echo "📦 Step 2: Building services and publishing stubs..."
-            ./gradlew :svc-data:build --no-daemon --parallel --max-workers=4
-            ./gradlew :svc-data:pubStubs --no-daemon
-            ./gradlew :svc-position:build --no-daemon --parallel --max-workers=4
-            ./gradlew :svc-position:pubStubs --no-daemon
-            ./gradlew :svc-event:build --no-daemon --parallel --max-workers=4
-            echo "📦 Step 3: Building client libraries..."
-            ./gradlew :jar-client:build :jar-shell:build --no-daemon --parallel --max-workers=4
 
-      # Snyk security scanning (monitor mode - does not fail build)
-      - snyk/scan:
-          fail-on-issues: false
-          monitor-on-build: true
-          severity-threshold: low
-          target-file: build.gradle.kts
-          additional-arguments: --all-sub-projects
+            # Phase 1: Core libraries (can run in parallel)
+            echo "📦 Phase 1: Building core libraries..."
+            ./gradlew :jar-common:build :jar-auth:build --parallel
+
+            # Phase 2: svc-data + stubs (needed by svc-position and clients)
+            echo "📦 Phase 2: Building svc-data and publishing stubs..."
+            ./gradlew :svc-data:build :svc-data:pubStubs --parallel
+
+            # Phase 3: svc-position + stubs AND client libraries (both need svc-data stubs)
+            # These can run in parallel since they only need svc-data stubs
+            echo "📦 Phase 3: Building svc-position, stubs, and client libraries..."
+            ./gradlew :svc-position:build :svc-position:pubStubs :jar-client:build :jar-shell:build --parallel
+
+            # Phase 4: svc-event (needs both svc-data and svc-position stubs)
+            echo "📦 Phase 4: Building svc-event..."
+            ./gradlew :svc-event:build --parallel
+
+            echo "✅ Build completed!"
 
       # Upload coverage for all projects
       - codecov/upload:
@@ -377,6 +379,21 @@ jobs:
 
             echo "✅ bc-event image built and pushed successfully"
 
+  # Security scanning - runs only on master to save time on feature branches
+  security-scan:
+    executor: java-build
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v3-build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle.kts" }}
+      - snyk/scan:
+          fail-on-issues: false
+          monitor-on-build: true
+          severity-threshold: low
+          target-file: build.gradle.kts
+          additional-arguments: --all-sub-projects
+
   publish-jars:
     executor: java-build
     steps:
@@ -392,7 +409,7 @@ jobs:
           command: |
             echo "📦 Publishing jar-common, jar-auth, jar-client to GitHub Packages..."
             export GITHUB_ACTOR=$DOCKER_USER
-            ./gradlew publishJars --no-daemon
+            ./gradlew publishJars
             echo "✅ JAR libraries published successfully"
 
   publish-coverage:
@@ -471,5 +488,14 @@ workflows:
               only:
                 - master
                 - /^deploy\/.*/
+          requires:
+            - build-and-test
+
+      # Security scanning (master only - runs concurrently with other jobs)
+      - security-scan:
+          filters:
+            branches:
+              only:
+                - master
           requires:
             - build-and-test

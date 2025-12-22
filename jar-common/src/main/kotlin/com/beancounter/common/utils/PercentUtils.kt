@@ -42,11 +42,17 @@ class PercentUtils {
      * Scale a rate value to consistent precision to avoid floating point serialization issues.
      * Uses 4 decimal places (e.g., 0.0700 for 7%).
      */
-    fun scaleRate(value: BigDecimal): BigDecimal = value.setScale(rateScale, RoundingMode.HALF_UP)
+    fun scaleRate(
+        value: BigDecimal,
+        rateScale: Int = this.rateScale
+    ): BigDecimal = value.setScale(rateScale, RoundingMode.HALF_UP)
 
     /**
-     * Scale a percentage value to 2 decimal places.
+     * Scale a percentage value to requested decimal places.
      * Use this when storing/returning percentage values directly (e.g., 7.11 for 7.11%).
      */
-    fun scalePercent(value: BigDecimal): BigDecimal = value.setScale(2, RoundingMode.HALF_UP)
+    fun scalePercent(
+        value: BigDecimal,
+        scale: Int = 2
+    ): BigDecimal = value.setScale(scale, RoundingMode.HALF_UP)
 }

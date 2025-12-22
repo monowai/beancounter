@@ -1,21 +1,6 @@
 {
     "properties": [
         {
-            "name": "beancounter.enricher",
-            "type": "java.lang.String",
-            "description": "Which enricher to use to provided additional asset properties."
-        },
-        {
-            "name": "beancounter.currency.base",
-            "type": "java.lang.String",
-            "description": "System based ISO currency code."
-        },
-        {
-            "name": "schedule.enabled",
-            "type": "java.lang.Boolean",
-            "description": "Deploy price schedule update beans."
-        },
-        {
             "name": "otel.traces.exporter",
             "type": "java.lang.String",
             "description": "Description for otel.traces.exporter."
@@ -29,6 +14,16 @@
             "name": "otel.logs.exporter",
             "type": "java.lang.String",
             "description": "Description for otel.logs.exporter."
+        },
+        {
+            "name": "auth.enabled",
+            "type": "java.lang.String",
+            "description": "Description for auth.enabled."
+        },
+        {
+            "name": "auth.email",
+            "type": "java.lang.String",
+            "description": "Description for auth.email."
         }
     ]
 }

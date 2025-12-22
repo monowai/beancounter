@@ -141,11 +141,12 @@ spring:
       rabbit:
         binder:
           connection-name-prefix: bc-event
-    rabbitmq:
-      host: localhost
-      port: 5672
-      username: admin
-      password: admin
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+
   ai:
     mcp:
       server:

@@ -2,6 +2,7 @@ package com.beancounter.position.service
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.contracts.AllocationResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
@@ -45,7 +46,8 @@ import org.springframework.web.bind.annotation.RestController
 )
 class PositionController(
     private val portfolioServiceClient: PortfolioServiceClient,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
+    private val allocationService: AllocationService
 ) {
     private lateinit var valuationService: Valuation
 
@@ -285,6 +287,71 @@ class PositionController(
             selectedPortfolios,
             valuationDate,
             value
+        )
+    }
+
+    @GetMapping(
+        value = ["/allocation/{valuationDate}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get asset allocation across portfolios",
+        description = """
+            Calculates asset allocation breakdown by category across selected portfolios.
+            Groups positions by asset category (Cash, Equity, ETF, Property, etc.)
+            and returns allocation percentages for retirement planning.
+
+            Use this to:
+            * Get current asset allocation for retirement planning
+            * Determine portfolio balance across asset classes
+            * Pre-populate allocation assumptions based on actual holdings
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Allocation calculated successfully"
+            )
+        ]
+    )
+    fun allocation(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Comma-separated portfolio IDs to include. If empty, all portfolios are included.",
+            example = "portfolio-id-1,portfolio-id-2"
+        )
+        @RequestParam(
+            value = "ids",
+            required = false
+        ) ids: String?
+    ): AllocationResponse {
+        val allPortfolios = portfolioServiceClient.portfolios.data
+        val selectedPortfolios =
+            if (ids.isNullOrBlank()) {
+                allPortfolios
+            } else {
+                val idSet = ids.split(",").map { it.trim() }.toSet()
+                allPortfolios.filter { it.id in idSet }
+            }
+
+        if (selectedPortfolios.isEmpty()) {
+            return AllocationResponse()
+        }
+
+        val positions =
+            valuationService.getAggregatedPositions(
+                selectedPortfolios,
+                valuationDate,
+                true
+            )
+
+        return AllocationResponse(
+            data = allocationService.calculateAllocation(positions.data)
         )
     }
 

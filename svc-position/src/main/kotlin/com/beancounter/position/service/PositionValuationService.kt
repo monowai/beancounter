@@ -323,7 +323,13 @@ class PositionValuationService(
         val result = config.irrCalculator.calculate(periodicCashFlows)
 
         if (result == 0.0 && periodicCashFlows.cashFlows.isNotEmpty()) {
-            logger.warn("IRR calculation returned zero for non-empty cash flows [$message]")
+            val cashFlowSummary =
+                periodicCashFlows.cashFlows
+                    .sortedBy { it.date }
+                    .joinToString(", ") { "${it.date}:${it.amount}" }
+            logger.warn(
+                "IRR calculation returned zero for non-empty cash flows [$message]. Cash flows: $cashFlowSummary"
+            )
             val breadcrumb =
                 Breadcrumb(message).apply {
                     category = "data"

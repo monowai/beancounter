@@ -316,17 +316,23 @@ class PositionValuationServiceTest {
         position.dateValues.firstTransaction = LocalDate.now().minusDays(400)
 
         // Position has realized gains from historical trades
-        val tradeMoneyValues = position.getMoneyValues(com.beancounter.common.model.Position.In.TRADE, portfolio.currency)
+        val tradeMoneyValues =
+            position.getMoneyValues(
+                com.beancounter.common.model.Position.In.TRADE,
+                portfolio.currency
+            )
         tradeMoneyValues.realisedGain = BigDecimal("500.00")
         tradeMoneyValues.purchases = BigDecimal("1000.00")
         tradeMoneyValues.sales = BigDecimal("1500.00")
 
         // Add historical cash flows
         position.periodicCashFlows.cashFlows.add(
-            com.beancounter.common.model.CashFlow(-1000.0, LocalDate.now().minusDays(400))
+            com.beancounter.common.model
+                .CashFlow(-1000.0, LocalDate.now().minusDays(400))
         )
         position.periodicCashFlows.cashFlows.add(
-            com.beancounter.common.model.CashFlow(1500.0, LocalDate.now().minusDays(50))
+            com.beancounter.common.model
+                .CashFlow(1500.0, LocalDate.now().minusDays(50))
         )
 
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))

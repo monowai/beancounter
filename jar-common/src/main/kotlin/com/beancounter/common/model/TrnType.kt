@@ -61,5 +61,13 @@ enum class TrnType {
 
         @JvmStatic
         fun isCashDebited(trnType: TrnType): Boolean = debitsCash.contains(trnType)
+
+        /**
+         * Determines if a transaction type builds/enters a position.
+         * Used to detect true position re-entry after a sell-out, vs just receiving
+         * dividends or other non-position-building events.
+         */
+        @JvmStatic
+        fun isPositionBuilding(trnType: TrnType): Boolean = trnType == BUY || trnType == ADD
     }
 }

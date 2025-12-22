@@ -5,9 +5,11 @@ import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.client.ResponseErrorHandler
+import java.net.URI
 import java.nio.charset.StandardCharsets
 
 /**
@@ -19,8 +21,11 @@ class RestClientErrorHandler : ResponseErrorHandler {
 
     override fun hasError(response: ClientHttpResponse): Boolean = response.statusCode.isError
 
-    @Suppress("DEPRECATION")
-    override fun handleError(response: ClientHttpResponse) {
+    override fun handleError(
+        uri: URI,
+        httpMethod: HttpMethod,
+        response: ClientHttpResponse
+    ) {
         val statusCode = response.statusCode.value()
         val reason =
             try {

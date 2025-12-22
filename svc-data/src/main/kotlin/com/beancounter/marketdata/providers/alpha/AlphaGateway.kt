@@ -35,16 +35,6 @@ class AlphaGateway(
             .body<String>()
             ?: ""
 
-    fun getFullOutput(
-        assetId: String,
-        apiKey: String
-    ): String? =
-        restClient
-            .get()
-            .uri("/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}&outputsize=full", assetId, apiKey)
-            .retrieve()
-            .body(String::class.java)
-
     fun getAdjusted(
         assetId: String?,
         apiKey: String?

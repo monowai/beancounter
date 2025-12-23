@@ -39,6 +39,11 @@ class AlphaEventService(
     // AV "Free Plan" rate limits
     @Cacheable("alpha.asset.event")
     fun getEvents(asset: Asset): PriceResponse {
+        // Only fetch events for markets supported by Alpha Vantage
+        if (!isMarketSupported(asset.market.code)) {
+            log.debug("Market {} not supported for events, skipping asset {}", asset.market.code, asset.code)
+            return PriceResponse()
+        }
         val json =
             alphaGateway.getAdjusted(
                 asset.code,
@@ -57,6 +62,11 @@ class AlphaEventService(
                 )
         val events = priceResponse.data.filter(this::inFilter)
         return PriceResponse(events)
+    }
+
+    private fun isMarketSupported(marketCode: String): Boolean {
+        val supportedMarkets = alphaConfig.markets ?: return false
+        return supportedMarkets.contains(marketCode)
     }
 
     private fun inFilter(marketData: MarketData): Boolean = (isSplit(marketData) || isDividend(marketData))

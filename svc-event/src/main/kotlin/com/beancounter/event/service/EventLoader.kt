@@ -10,6 +10,7 @@ import com.beancounter.event.config.EventLoaderConfig
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.concurrent.Callable
@@ -21,7 +22,9 @@ import java.util.concurrent.Executors
  */
 @Service
 class EventLoader(
-    private val config: EventLoaderConfig
+    config: EventLoaderConfig,
+    @Value("\${events.lookback-days:7}")
+    private val lookbackDays: Long = 7
 ) {
     private val portfolioService = config.sharedConfig.portfolioService
     private val positionService = config.serviceConfig.positionService
@@ -35,7 +38,9 @@ class EventLoader(
 
     fun loadEvents(date: String) {
         val portfolios = portfolioService.portfolios
-        log.info("Loading missing events from date: $date for ${portfolios.data.size} portfolios")
+        log.info(
+            "Loading missing events from date: $date (lookback: $lookbackDays days) for ${portfolios.data.size} portfolios"
+        )
         for (portfolio in portfolios.data) {
             loadEvents(portfolio.id, date)
             log.info("Completed event load for ${portfolio.code}")
@@ -112,8 +117,11 @@ class EventLoader(
         if (positionService.includePosition(position)) {
             loginService.setAuthContext(authContext)
             val events = priceService.getEvents(position.asset.id)
+            val lookbackStart = date.minusDays(lookbackDays)
             for (priceResponse in events.data) {
-                if (date.compareTo(priceResponse.priceDate) == 0) {
+                val eventDate = priceResponse.priceDate
+                // Check if event falls within the lookback window (lookbackStart to date inclusive)
+                if (!eventDate.isBefore(lookbackStart) && !eventDate.isAfter(date)) {
                     eventCount++
                     eventService.save(
                         CorporateEvent(

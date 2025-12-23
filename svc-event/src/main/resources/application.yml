@@ -159,6 +159,11 @@ spring:
 stream:
   enabled: true
 
+# Corporate event configuration
+events:
+  # Number of days to look back when loading events to catch any missed dividends
+  lookback-days: 7
+
 resilience4j.ratelimiter:
   instances:
     positions:

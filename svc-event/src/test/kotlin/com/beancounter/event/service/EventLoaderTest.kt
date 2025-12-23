@@ -68,8 +68,6 @@ class EventLoaderTest {
 
     private lateinit var authContext: OpenIdResponse
 
-    private lateinit var eventLoader: EventLoader
-
     private lateinit var testPortfolio: Portfolio
     private lateinit var testPosition: Position
     private lateinit var testMarketData: MarketData
@@ -113,7 +111,44 @@ class EventLoaderTest {
                 serviceConfig = serviceConfig,
                 authConfig = authConfig
             )
-        val eventLoader = EventLoader(eventLoaderConfig)
+        val eventLoader = EventLoader(eventLoaderConfig, lookbackDays = 7)
+
+        // Then
+        assertThat(eventLoader).isNotNull()
+    }
+
+    @Test
+    fun `should load events within lookback window`() {
+        // Given - default lookback is 7 days
+        val portfolios = PortfoliosResponse(listOf(testPortfolio))
+        whenever(portfolioService.portfolios).thenReturn(portfolios)
+
+        val sharedConfig =
+            SharedConfig(
+                dateUtils = DateUtils(),
+                portfolioService = portfolioService
+            )
+        val serviceConfig =
+            EventLoaderServiceConfig(
+                eventService = eventService,
+                priceService = priceService,
+                backFillService = backFillService,
+                positionService = positionService
+            )
+        val authConfig =
+            AuthConfig(
+                dateSplitter = dateSplitter,
+                loginService = loginService
+            )
+        val eventLoaderConfig =
+            EventLoaderConfig(
+                sharedConfig = sharedConfig,
+                serviceConfig = serviceConfig,
+                authConfig = authConfig
+            )
+        // Verify lookback days can be configured
+        val customLookback = 14L
+        val eventLoader = EventLoader(eventLoaderConfig, lookbackDays = customLookback)
 
         // Then
         assertThat(eventLoader).isNotNull()

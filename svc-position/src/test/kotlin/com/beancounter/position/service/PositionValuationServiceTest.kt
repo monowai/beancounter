@@ -66,12 +66,14 @@ class PositionValuationServiceTest {
 
     @BeforeEach
     fun setup() {
+        val gains = Gains()
         val config =
             PositionValuationConfig(
                 MarketValue(
-                    Gains(),
+                    gains,
                     DateUtils()
                 ),
+                gains,
                 fxUtils,
                 priceService,
                 fxRateService,

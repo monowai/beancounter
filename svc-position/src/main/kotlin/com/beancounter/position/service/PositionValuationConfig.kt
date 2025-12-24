@@ -6,6 +6,7 @@ import com.beancounter.client.services.PriceService
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.utils.FxUtils
+import com.beancounter.position.valuation.Gains
 import com.beancounter.position.valuation.MarketValue
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component
 @Component
 data class PositionValuationConfig(
     val marketValue: MarketValue,
+    val gains: Gains,
     val fxUtils: FxUtils,
     val priceService: PriceService,
     val fxRateService: FxService,

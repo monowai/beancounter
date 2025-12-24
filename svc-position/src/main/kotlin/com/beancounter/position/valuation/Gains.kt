@@ -16,9 +16,13 @@ class Gains {
         total: BigDecimal,
         moneyValues: MoneyValues
     ) {
-        if (total.signum() != 0) {
-            moneyValues.unrealisedGain = moneyValues.marketValue.subtract(moneyValues.costValue)
-        }
+        moneyValues.unrealisedGain =
+            if (total.signum() != 0) {
+                moneyValues.marketValue.subtract(moneyValues.costValue)
+            } else {
+                // Closed position - no unrealised gain possible
+                BigDecimal.ZERO
+            }
         moneyValues.totalGain =
             moneyValues.unrealisedGain.add(moneyValues.dividends).add(moneyValues.realisedGain)
     }

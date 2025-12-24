@@ -87,6 +87,11 @@ class PositionValuationService(
                 positions.asAt
             )
         }
+
+        // Ensure gains are calculated for ALL positions, including those without market data
+        // (e.g., closed positions where quantity = 0)
+        calculateGainsForAllPositions(positions)
+
         weightsAndGains(positions)
         val irr =
             calculateIrrSafely(
@@ -116,6 +121,26 @@ class PositionValuationService(
                 ?.get(Position.In.TRADE)
                 ?.currency ?: positions.portfolio.base
         }
+
+    /**
+     * Calculates gains (unrealisedGain and totalGain) for all positions.
+     *
+     * This ensures that positions without market data (e.g., closed positions with quantity=0)
+     * have their totalGain correctly calculated as: unrealisedGain + dividends + realisedGain.
+     *
+     * For positions that already went through MarketValue.value() -> Gains.value(),
+     * this will recalculate with the same formula, producing the same result.
+     */
+    private fun calculateGainsForAllPositions(positions: Positions) {
+        for (position in positions.positions.values) {
+            if (!cashUtils.isCash(position.asset)) {
+                val quantity = position.quantityValues.getTotal()
+                for (moneyValues in position.moneyValues.values) {
+                    config.gains.value(quantity, moneyValues)
+                }
+            }
+        }
+    }
 
     private fun calculateMarketValues(
         positions: Positions,

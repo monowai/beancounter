@@ -82,7 +82,11 @@ class AssetSearchService(
             AssetSearchResponse(
                 response.data.map { it.copy(market = market ?: it.region) }
             )
-        } catch (e: Exception) {
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            // Return empty results on any search failure
             log.error("Error searching for assets: ${e.message}", e)
             AssetSearchResponse(emptyList())
         }

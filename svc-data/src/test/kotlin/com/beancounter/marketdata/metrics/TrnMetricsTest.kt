@@ -285,6 +285,7 @@ class TrnMetricsTest {
         // When/Then
         try {
             trnMetrics.timeTransactionImport {
+                @Suppress("TooGenericExceptionThrown")
                 throw RuntimeException("test exception")
             }
         } catch (e: RuntimeException) {

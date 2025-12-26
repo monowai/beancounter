@@ -48,6 +48,11 @@ subprojects {
         gradlePluginPortal()
     }
 
+    // Exclude commons-logging to avoid conflicts with spring-jcl
+    configurations.all {
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
+
     // JVM configuration
     kotlin {
         jvmToolchain(21)

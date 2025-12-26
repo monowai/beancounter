@@ -1,11 +1,13 @@
 package com.beancounter.position
 
 import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.position.config.TestClassificationConfig
 import org.junit.jupiter.api.Tag
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 
@@ -21,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles
 @SpringBootTest
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
+@Import(TestClassificationConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 annotation class StubbedTest(
     /**

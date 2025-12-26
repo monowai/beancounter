@@ -41,7 +41,21 @@ data class Asset(
         ),
     @ManyToOne val systemUser: SystemUser? = null,
     val status: Status = Status.Active,
-    var version: String = "1"
+    var version: String = "1",
+    /**
+     * Sector classification (e.g., "Information Technology", "Health Care").
+     * Transient - populated during valuation from classification service.
+     */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    var sector: String? = null,
+    /**
+     * Industry classification (e.g., "Software", "Biotechnology").
+     * Transient - populated during valuation from classification service.
+     */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    var industry: String? = null
 ) {
     companion object {
         @JvmStatic

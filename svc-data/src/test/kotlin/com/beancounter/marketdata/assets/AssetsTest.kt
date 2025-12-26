@@ -74,14 +74,18 @@ class AssetsTest {
             .hasNoNullFieldsOrPropertiesExcept(
                 "systemUser",
                 "priceSymbol",
-                "reportCategory"
+                "reportCategory",
+                "sector",
+                "industry"
             )
         assertThat(result.assets[1].resolvedAsset)
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept(
                 "systemUser",
                 "priceSymbol",
-                "reportCategory"
+                "reportCategory",
+                "sector",
+                "industry"
             )
 
         // val byProviders = ProviderUtils().splitProviders(priceRequest.assets)

@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.AllocationResponse
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.contracts.SectorExposureResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.valuation.Valuation
@@ -47,7 +48,8 @@ import org.springframework.web.bind.annotation.RestController
 class PositionController(
     private val portfolioServiceClient: PortfolioServiceClient,
     private val dateUtils: DateUtils,
-    private val allocationService: AllocationService
+    private val allocationService: AllocationService,
+    private val sectorExposureService: SectorExposureService
 ) {
     private lateinit var valuationService: Valuation
 
@@ -352,6 +354,72 @@ class PositionController(
 
         return AllocationResponse(
             data = allocationService.calculateAllocation(positions.data)
+        )
+    }
+
+    @GetMapping(
+        value = ["/sector-exposure/{valuationDate}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get sector exposure across portfolios",
+        description = """
+            Calculates sector exposure breakdown across selected portfolios.
+            - ETFs: Uses weighted sector allocations from stored exposures
+            - Equities: Uses 100% allocation to classified sector
+            - Other: Groups by report category as "Unclassified"
+
+            Use this to:
+            * View sector allocation for retirement planning
+            * Determine portfolio concentration by sector
+            * Analyze sector diversification
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Sector exposure calculated successfully"
+            )
+        ]
+    )
+    fun sectorExposure(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Comma-separated portfolio IDs to include. If empty, all portfolios are included.",
+            example = "portfolio-id-1,portfolio-id-2"
+        )
+        @RequestParam(
+            value = "ids",
+            required = false
+        ) ids: String?
+    ): SectorExposureResponse {
+        val allPortfolios = portfolioServiceClient.portfolios.data
+        val selectedPortfolios =
+            if (ids.isNullOrBlank()) {
+                allPortfolios
+            } else {
+                val idSet = ids.split(",").map { it.trim() }.toSet()
+                allPortfolios.filter { it.id in idSet }
+            }
+
+        if (selectedPortfolios.isEmpty()) {
+            return SectorExposureResponse()
+        }
+
+        val positions =
+            valuationService.getAggregatedPositions(
+                selectedPortfolios,
+                valuationDate,
+                true
+            )
+
+        return SectorExposureResponse(
+            data = sectorExposureService.calculateSectorExposure(positions.data)
         )
     }
 

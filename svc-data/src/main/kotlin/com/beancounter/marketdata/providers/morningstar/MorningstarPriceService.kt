@@ -59,7 +59,11 @@ class MorningstarPriceService(
                         results.add(marketData)
                     }
                 }
-            } catch (e: Exception) {
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception
+            ) {
+                // Continue processing other assets even if one fails
                 log.error("Error fetching price for {}: {}", priceCode, e.message)
             }
         }
@@ -112,7 +116,11 @@ class MorningstarPriceService(
                 close = closePrice,
                 source = ID
             )
-        } catch (e: Exception) {
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            // Return null on parsing failure
             log.error("Error parsing Morningstar response for {}: {}", asset.code, e.message)
             null
         }
@@ -170,11 +178,18 @@ class MorningstarPriceService(
                         close = closePrice,
                         source = ID
                     )
-                } catch (_: Exception) {
+                } catch (
+                    @Suppress("TooGenericExceptionCaught")
+                    _: Exception
+                ) {
                     null
                 }
             }
-        } catch (e: Exception) {
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            // Return empty list on parsing failure
             log.error("Error parsing historical response for {}: {}", asset.code, e.message)
             emptyList()
         }

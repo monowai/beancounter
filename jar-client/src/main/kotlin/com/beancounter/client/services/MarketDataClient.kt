@@ -2,11 +2,15 @@ package com.beancounter.client.services
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.Assets
+import com.beancounter.common.contracts.AssetClassificationsResponse
+import com.beancounter.common.contracts.AssetExposuresResponse
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetClassification
+import com.beancounter.common.model.AssetExposure
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -65,6 +69,36 @@ class MarketDataClient(
                 .body(AssetResponse::class.java)
                 ?: throw BusinessException("Asset not found: $assetId")
         return response.data
+    }
+
+    /**
+     * Get classifications for an asset.
+     * Returns sector and industry classifications for equities.
+     */
+    fun getClassifications(assetId: String): List<AssetClassification> {
+        val response =
+            restClient
+                .get()
+                .uri("/api/classifications/{assetId}", assetId)
+                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+                .retrieve()
+                .body(AssetClassificationsResponse::class.java)
+        return response?.data ?: emptyList()
+    }
+
+    /**
+     * Get sector exposures for an ETF.
+     * Returns weighted sector allocations.
+     */
+    fun getExposures(assetId: String): List<AssetExposure> {
+        val response =
+            restClient
+                .get()
+                .uri("/api/classifications/{assetId}/exposures", assetId)
+                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+                .retrieve()
+                .body(AssetExposuresResponse::class.java)
+        return response?.data ?: emptyList()
     }
 
     companion object {

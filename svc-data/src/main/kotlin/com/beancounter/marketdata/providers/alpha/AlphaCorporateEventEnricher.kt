@@ -66,7 +66,10 @@ class AlphaCorporateEventEnricher(
             }
 
             return marketData
-        } catch (e: Exception) {
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
             // Don't fail price retrieval if enrichment fails
             log.warn(
                 "Failed to enrich {} with corporate events: {}",

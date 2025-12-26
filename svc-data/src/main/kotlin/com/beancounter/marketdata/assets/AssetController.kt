@@ -62,11 +62,13 @@ class AssetController(
     private val assetSearchService: AssetSearchService
 ) {
     companion object {
+        private const val MAX_INPUT_LENGTH = 50
+
         // Sanitize input to prevent path traversal patterns
         private fun sanitize(input: String?): String? =
             input
                 ?.replace(Regex("\\.{2,}[/\\\\]?|[/\\\\]"), "")
-                ?.take(50) // Limit length
+                ?.take(MAX_INPUT_LENGTH)
     }
 
     @GetMapping(

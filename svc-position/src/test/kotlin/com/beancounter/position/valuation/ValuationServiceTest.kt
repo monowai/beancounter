@@ -1,6 +1,8 @@
 package com.beancounter.position.valuation
 
+import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.TrnService
+import com.beancounter.common.contracts.BulkClassificationResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Position
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
@@ -39,18 +42,29 @@ class ValuationServiceTest {
     @Mock
     private lateinit var marketValueUpdateProducer: MarketValueUpdateProducer
 
+    @Mock
+    private lateinit var classificationClient: ClassificationClient
+
     private lateinit var valuationService: ValuationService
 
     private val portfolio = TestHelpers.createTestPortfolio("ValuationServiceTest")
 
     @BeforeEach
     fun setup() {
+        // Default mock for classificationClient - returns empty response (lenient because not all tests use it)
+        Mockito
+            .lenient()
+            .`when`(
+                classificationClient.getClassifications(any())
+            ).thenReturn(BulkClassificationResponse())
+
         valuationService =
             ValuationService(
                 positionValuationService,
                 trnService,
                 positionService,
-                marketValueUpdateProducer
+                marketValueUpdateProducer,
+                classificationClient
             )
         // Set kafkaEnabled property that would normally be injected by Spring
         ReflectionTestUtils.setField(valuationService, "kafkaEnabled", "false")

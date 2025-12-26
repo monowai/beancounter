@@ -77,7 +77,11 @@ class MorningstarGateway {
                 )
 
             response.body
-        } catch (e: Exception) {
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            // Return null on any API/network failure
             log.error("Error fetching price for {}: {}", securityId, e.message)
             null
         }

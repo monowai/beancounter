@@ -1,11 +1,13 @@
 package com.beancounter.position.valuation
 
+import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -39,7 +41,8 @@ class ValuationService
         private val positionValuationService: PositionValuationService,
         private val trnService: TrnService,
         private val positionService: PositionService,
-        private val marketValueUpdateProducer: MarketValueUpdateProducer
+        private val marketValueUpdateProducer: MarketValueUpdateProducer,
+        private val classificationClient: ClassificationClient
     ) : Valuation {
         @Value("kafka.enabled")
         private lateinit var kafkaEnabled: String
@@ -214,6 +217,9 @@ class ValuationService
                     assets.toList()
                 )
 
+            // Enrich positions with classification data (sector/industry)
+            enrichWithClassifications(valuedPositions)
+
             // Only send market value updates for individual portfolio valuations (not aggregated)
             if (!skipMarketValueUpdate && DateUtils().isToday(positions.asAt) && !kafkaEnabled.toBoolean()) {
                 val portfolio = valuedPositions.portfolio
@@ -227,5 +233,29 @@ class ValuationService
                 marketValueUpdateProducer.sendMessage(updateTo)
             }
             return PositionResponse(valuedPositions)
+        }
+
+        /**
+         * Enriches positions with sector/industry classification data from svc-data.
+         * Cash assets are always classified as "Cash" sector.
+         * Failures are logged but don't block the response - positions just lack classification data.
+         */
+        private fun enrichWithClassifications(positions: Positions) {
+            if (!positions.hasPositions()) return
+
+            val assetIds = positions.positions.values.map { it.asset.id }
+            val classifications = classificationClient.getClassifications(assetIds)
+
+            positions.positions.values.forEach { position ->
+                // Cash assets always have sector "Cash"
+                if (position.asset.effectiveReportCategory == AssetCategory.REPORT_CASH) {
+                    position.asset.sector = AssetCategory.REPORT_CASH
+                } else {
+                    classifications.data[position.asset.id]?.let { classification ->
+                        position.asset.sector = classification.sector
+                        position.asset.industry = classification.industry
+                    }
+                }
+            }
         }
     }

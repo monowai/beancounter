@@ -54,4 +54,24 @@ interface AssetRepository : CrudRepository<Asset, String> {
         @Param("userId") userId: String,
         @Param("keyword") keyword: String
     ): List<Asset>
+
+    /**
+     * Find all active ETF assets for classification refresh.
+     */
+    @Query(
+        "SELECT a FROM Asset a WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND UPPER(a.category) IN ('ETF', 'EXCHANGE TRADED FUND') " +
+            "AND a.code IS NOT NULL AND a.code <> ''"
+    )
+    fun findActiveEtfs(): List<Asset>
+
+    /**
+     * Find all active Equity assets for classification refresh.
+     */
+    @Query(
+        "SELECT a FROM Asset a WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND UPPER(a.category) IN ('EQUITY', 'COMMON STOCK') " +
+            "AND a.code IS NOT NULL AND a.code <> ''"
+    )
+    fun findActiveEquities(): List<Asset>
 }

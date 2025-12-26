@@ -12,63 +12,42 @@ import org.springframework.web.client.RestClient
  */
 @Configuration
 class ExternalApiRestClientConfig {
-    @Bean
-    fun alphaVantageRestClient(
-        @Value("\${beancounter.market.providers.alpha.url:https://www.alphavantage.co}") baseUrl: String
-    ): RestClient =
+    companion object {
+        private const val CONNECT_TIMEOUT_MS = 5000
+        private const val READ_TIMEOUT_MS = 30000
+    }
+
+    private fun createRequestFactory(): SimpleClientHttpRequestFactory =
+        SimpleClientHttpRequestFactory().apply {
+            setConnectTimeout(CONNECT_TIMEOUT_MS)
+            setReadTimeout(READ_TIMEOUT_MS)
+        }
+
+    private fun buildRestClient(baseUrl: String): RestClient =
         RestClient
             .builder()
             .baseUrl(baseUrl)
-            .requestFactory(
-                SimpleClientHttpRequestFactory().apply {
-                    setConnectTimeout(5000)
-                    setReadTimeout(30000)
-                }
-            ).requestInterceptor(SentryTracingInterceptor())
+            .requestFactory(createRequestFactory())
+            .requestInterceptor(SentryTracingInterceptor())
             .build()
+
+    @Bean
+    fun alphaVantageRestClient(
+        @Value($$"${beancounter.market.providers.alpha.url:https://www.alphavantage.co}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
 
     @Bean
     fun exchangeRatesRestClient(
-        @Value("\${beancounter.market.providers.fx.url:https://api.exchangeratesapi.io}") baseUrl: String
-    ): RestClient =
-        RestClient
-            .builder()
-            .baseUrl(baseUrl)
-            .requestFactory(
-                SimpleClientHttpRequestFactory().apply {
-                    setConnectTimeout(5000)
-                    setReadTimeout(30000)
-                }
-            ).requestInterceptor(SentryTracingInterceptor())
-            .build()
+        @Value($$"${beancounter.market.providers.fx.url:https://api.exchangeratesapi.io}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
 
     @Bean
     fun openFigiRestClient(
-        @Value("\${beancounter.market.providers.figi.url:https://api.openfigi.com}") baseUrl: String
-    ): RestClient =
-        RestClient
-            .builder()
-            .baseUrl(baseUrl)
-            .requestFactory(
-                SimpleClientHttpRequestFactory().apply {
-                    setConnectTimeout(5000)
-                    setReadTimeout(30000)
-                }
-            ).requestInterceptor(SentryTracingInterceptor())
-            .build()
+        @Value($$"${beancounter.market.providers.figi.url:https://api.openfigi.com}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
 
     @Bean
     fun marketStackRestClient(
-        @Value("\${beancounter.market.providers.mstack.url:https://api.marketstack.com}") baseUrl: String
-    ): RestClient =
-        RestClient
-            .builder()
-            .baseUrl(baseUrl)
-            .requestFactory(
-                SimpleClientHttpRequestFactory().apply {
-                    setConnectTimeout(5000)
-                    setReadTimeout(30000)
-                }
-            ).requestInterceptor(SentryTracingInterceptor())
-            .build()
+        @Value($$"${beancounter.market.providers.mstack.url:https://api.marketstack.com}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
 }

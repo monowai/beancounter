@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 
 /**
  * Client side calls to the server to obtain FX Rates over a Gateway.
@@ -35,7 +36,7 @@ class FxClientService(
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fxRequest)
                 .retrieve()
-                .body(FxResponse::class.java)
+                .body<FxResponse>()
                 ?: throw BusinessException("Failed to get FX rates")
         }
 }

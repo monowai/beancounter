@@ -59,4 +59,34 @@ class AlphaGateway(
             .retrieve()
             .body(String::class.java)
             ?: ""
+
+    /**
+     * Get company overview including sector and industry.
+     * Used for Equity classification.
+     */
+    fun getOverview(
+        symbol: String,
+        apiKey: String
+    ): String =
+        restClient
+            .get()
+            .uri("/query?function=OVERVIEW&symbol={symbol}&apikey={apiKey}", symbol, apiKey)
+            .retrieve()
+            .body<String>()
+            ?: ""
+
+    /**
+     * Get ETF profile including sector allocations.
+     * Used for ETF exposure classification.
+     */
+    fun getEtfProfile(
+        symbol: String,
+        apiKey: String
+    ): String =
+        restClient
+            .get()
+            .uri("/query?function=ETF_PROFILE&symbol={symbol}&apikey={apiKey}", symbol, apiKey)
+            .retrieve()
+            .body<String>()
+            ?: ""
 }

@@ -61,16 +61,19 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             source.has("Information") || source.has("Note") || source.has("Error Message") -> {
                 // AlphaVantage error response (rate limit, invalid key, etc.)
                 // Return empty response - let caller handle gracefully
-                log.warn("AlphaVantage API error: {}", source.toString().take(200))
+                log.warn("AlphaVantage API error: {}", source.toString().take(ERROR_MESSAGE_MAX_LENGTH))
                 PriceResponse(emptyList())
             }
-            else -> throw BusinessException("Unable to handle AlphaVantage response: ${source.toString().take(200)}")
+            else -> throw BusinessException(
+                "Unable to handle AlphaVantage response: ${source.toString().take(ERROR_MESSAGE_MAX_LENGTH)}"
+            )
         }
     }
 
     companion object {
         const val GLOBAL_QUOTE = "Global Quote"
         const val TIME_SERIES_DAILY = "Time Series (Daily)"
+        private const val ERROR_MESSAGE_MAX_LENGTH = 200
         private val mapper = objectMapper
         private val log = org.slf4j.LoggerFactory.getLogger(AlphaPriceDeserializer::class.java)
     }

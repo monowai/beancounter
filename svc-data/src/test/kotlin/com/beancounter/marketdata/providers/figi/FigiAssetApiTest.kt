@@ -140,7 +140,9 @@ class FigiAssetApiTest {
                 "id",
                 "priceSymbol",
                 "systemUser",
-                "reportCategory"
+                "reportCategory",
+                "sector",
+                "industry"
             ).isNotNull
     }
 

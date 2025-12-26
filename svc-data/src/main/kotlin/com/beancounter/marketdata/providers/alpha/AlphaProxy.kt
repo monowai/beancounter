@@ -49,4 +49,24 @@ class AlphaProxy(
             code,
             apiKey
         )
+
+    @RateLimiter(name = "alphaVantage")
+    fun getOverview(
+        symbol: String,
+        apiKey: String
+    ): String =
+        alphaGateway.getOverview(
+            symbol,
+            apiKey
+        )
+
+    @RateLimiter(name = "alphaVantage")
+    fun getEtfProfile(
+        symbol: String,
+        apiKey: String
+    ): String =
+        alphaGateway.getEtfProfile(
+            symbol,
+            apiKey
+        )
 }

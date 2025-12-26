@@ -76,7 +76,11 @@ class PriceRefresh(
                         failed.getAndIncrement()
                         log.debug("No valid price returned for {}", hydratedAsset.code)
                     }
-                } catch (e: Exception) {
+                } catch (
+                    @Suppress("TooGenericExceptionCaught")
+                    e: Exception
+                ) {
+                    // Continue processing other assets even if one fails
                     failed.getAndIncrement()
                     log.warn("Failed to fetch price for {}: {}", hydratedAsset.code, e.message)
                 }

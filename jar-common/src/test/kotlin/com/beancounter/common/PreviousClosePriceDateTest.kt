@@ -5,7 +5,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -200,21 +199,14 @@ internal class PreviousClosePriceDateTest {
                 nasdaq,
                 true
             )
-        val deduct =
-            when (today.dayOfWeek) {
-                DayOfWeek.MONDAY -> {
-                    3L // Close of business Friday
-                }
 
-                DayOfWeek.SUNDAY -> {
-                    2L // CoB Friday
-                }
+        // Calculate expected date by going back to the last trading day
+        var expectedDate = today.minusDays(1)
+        while (!previousClose.isTradingDay(expectedDate.atStartOfDay(ZoneId.of("UTC")))) {
+            expectedDate = expectedDate.minusDays(1)
+        }
 
-                else -> {
-                    1L // CoB Yesterday
-                }
-            }
-        assertThat(todayNoPrices).isEqualTo(today.minusDays(deduct))
+        assertThat(todayNoPrices).isEqualTo(expectedDate)
     }
 
     @Test
@@ -230,4 +222,34 @@ internal class PreviousClosePriceDateTest {
     private val saturday: ZonedDateTime = ZonedDateTime.of(2019, 10, 19, 0, 0, 0, 0, ZoneId.of("UTC"))
     private val sunday: ZonedDateTime = ZonedDateTime.of(2019, 10, 20, 0, 0, 0, 0, ZoneId.of("UTC"))
     private val monday: ZonedDateTime = ZonedDateTime.of(2019, 10, 21, 0, 0, 0, 0, ZoneId.of("UTC"))
+
+    @Test
+    fun `Christmas is not a trading day`() {
+        // Christmas 2024 falls on Wednesday
+        val christmas2024 = ZonedDateTime.of(2024, 12, 25, 12, 0, 0, 0, ZoneId.of("UTC"))
+        assertThat(previousClose.isTradingDay(christmas2024)).isFalse
+    }
+
+    @Test
+    fun `New Years Day is not a trading day`() {
+        val newYears2025 = ZonedDateTime.of(2025, 1, 1, 12, 0, 0, 0, ZoneId.of("UTC"))
+        assertThat(previousClose.isTradingDay(newYears2025)).isFalse
+    }
+
+    @Test
+    fun `Independence Day is not a trading day`() {
+        val july4th2024 = ZonedDateTime.of(2024, 7, 4, 12, 0, 0, 0, ZoneId.of("UTC"))
+        assertThat(previousClose.isTradingDay(july4th2024)).isFalse
+    }
+
+    @Test
+    fun `day after Christmas should resolve to Christmas Eve when requesting previous close`() {
+        // Dec 26, 2024 - day after Christmas, before market close time
+        val dec26Morning = ZonedDateTime.of(2024, 12, 26, 10, 0, 0, 0, ZoneId.of("America/New_York"))
+
+        // When requesting current prices before market close, should resolve to previous trading day
+        // Dec 25 is Christmas (holiday), so should resolve to Dec 24 (Christmas Eve)
+        val resolvedDate = previousClose.getPriceDate(dec26Morning, nasdaq, true)
+        assertThat(resolvedDate).isEqualTo(dateUtils.getFormattedDate("2024-12-24"))
+    }
 }

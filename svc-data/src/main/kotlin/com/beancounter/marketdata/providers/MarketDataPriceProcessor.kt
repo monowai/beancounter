@@ -169,13 +169,47 @@ class MarketDataPriceProcessor(
 
     /**
      * Get new prices from provider for remaining assets.
+     * For API-based providers: if no valid prices returned (market closed/holiday),
+     * falls back to most recent available price.
+     * For custom providers (private assets): returns whatever the provider returns.
      */
     private fun getNewPricesFromProvider(
         remainingAssets: List<Asset>,
         priceDate: LocalDate,
         marketDataProvider: MarketDataPriceProvider,
         priceRequest: PriceRequest
-    ): Collection<MarketData> = getFromProvider(remainingAssets, priceDate, marketDataProvider, priceRequest)
+    ): Collection<MarketData> {
+        val providerPrices = getFromProvider(remainingAssets, priceDate, marketDataProvider, priceRequest)
+
+        // For non-API providers (private/custom assets), return as-is
+        if (!marketDataProvider.isApiSupported()) {
+            return providerPrices
+        }
+
+        // For API providers, filter to only valid prices (close > 0)
+        val validPrices = providerPrices.filter { it.close.signum() > 0 }
+
+        if (validPrices.isNotEmpty() || remainingAssets.isEmpty()) {
+            return validPrices
+        }
+
+        // API provider returned no valid prices - market may be closed (holiday)
+        // Fall back to most recent available prices
+        val fallbackPrices =
+            remainingAssets.mapNotNull { asset ->
+                priceService.getLatestMarketData(asset, priceDate)?.copy(asset = asset)
+            }
+
+        if (fallbackPrices.isNotEmpty()) {
+            log.info(
+                "Market closed on {} - using {} fallback prices from previous trading day",
+                priceDate,
+                fallbackPrices.size
+            )
+        }
+
+        return fallbackPrices
+    }
 
     /**
      * Log price results summary.

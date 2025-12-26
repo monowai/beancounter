@@ -225,7 +225,9 @@ class PriceService(
         marketDataRepo.deleteById(marketData.id)
     }
 
-    // In PriceService.kt
+    /**
+     * Get market data for assets on a specific date (exact match only).
+     */
     @Transactional
     fun getMarketData(
         assets: Collection<Asset>,
@@ -235,6 +237,19 @@ class PriceService(
             assets,
             date
         )
+
+    /**
+     * Get the most recent market data for an asset on or before the given date.
+     * Used as a fallback when the market was closed on the requested date.
+     */
+    @Transactional
+    fun getLatestMarketData(
+        asset: Asset,
+        date: LocalDate
+    ): MarketData? =
+        marketDataRepo
+            .findTop1ByAssetAndPriceDateLessThanEqual(asset, date)
+            .orElse(null)
 
     /**
      * SAFEGUARD: Count market data records for an asset on a specific date

@@ -28,7 +28,7 @@ class MarketCalendarConfig
             year: Int = LocalDate.now().year,
             market: String
         ): List<LocalDate> =
-            map.getOrPut(market) {
+            map.getOrPut(cacheKey(market, year)) {
                 buildMarketHolidays(
                     year,
                     market
@@ -52,4 +52,9 @@ class MarketCalendarConfig
                     )
                 }.sorted() // Sort for consistency and easier usage
         }
+
+        private fun cacheKey(
+            market: String,
+            year: Int
+        ): String = "$market-$year"
     }

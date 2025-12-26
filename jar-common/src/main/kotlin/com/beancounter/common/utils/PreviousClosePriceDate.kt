@@ -15,7 +15,8 @@ import java.time.ZonedDateTime
  */
 @Service
 class PreviousClosePriceDate(
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
+    private val marketHolidays: MarketHolidays = MarketHolidays()
 ) {
     companion object {
         val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -96,14 +97,18 @@ class PreviousClosePriceDate(
     }
 
     fun isTradingDay(dateTime: ZonedDateTime): Boolean {
-        // Naive implementation that is only aware of Western markets
-        // ToDo: market holidays...
-        val weekend =
-            if (dateTime.dayOfWeek == DayOfWeek.SUNDAY) {
-                false
-            } else {
-                dateTime.dayOfWeek != DayOfWeek.SATURDAY
-            }
-        return weekend
+        val dayOfWeek = dateTime.dayOfWeek
+
+        // Check for weekends
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            return false
+        }
+
+        // Check for market holidays
+        if (marketHolidays.isHoliday(dateTime.toLocalDate())) {
+            return false
+        }
+
+        return true
     }
 }

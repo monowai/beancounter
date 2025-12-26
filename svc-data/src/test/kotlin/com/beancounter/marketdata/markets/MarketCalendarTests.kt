@@ -72,6 +72,26 @@ class MarketCalendarTests {
     }
 
     @Test
+    fun `should treat fixed holidays as constant across years`() {
+        val marketCalendar = MarketCalendar(marketCalendarConfig)
+        val christmas2023 = LocalDate.of(2023, 12, 25)
+        val christmas2024 = LocalDate.of(2024, 12, 25)
+
+        assertThat(
+            marketCalendar.isMarketHoliday(
+                market,
+                christmas2023
+            )
+        ).isTrue()
+        assertThat(
+            marketCalendar.isMarketHoliday(
+                market,
+                christmas2024
+            )
+        ).isTrue()
+    }
+
+    @Test
     @Disabled
     fun `should handle NZ Christmas on weekend`() {
         val marketCalendar = MarketCalendar(marketCalendarConfig)

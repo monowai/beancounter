@@ -11,7 +11,7 @@ import jakarta.persistence.Table
 
 /**
  * User preferences for the application.
- * Stores settings like default holdings view and base currency.
+ * Stores settings like default holdings view, value currency, grouping, and base currency.
  */
 @Entity
 @Table
@@ -24,5 +24,9 @@ data class UserPreferences(
     var preferredName: String? = null,
     @Enumerated(EnumType.STRING)
     var defaultHoldingsView: HoldingsView = HoldingsView.SUMMARY,
+    @Enumerated(EnumType.STRING)
+    var defaultValueIn: ValueInPreference = ValueInPreference.PORTFOLIO,
+    @Enumerated(EnumType.STRING)
+    var defaultGroupBy: GroupByPreference = GroupByPreference.ASSET_CLASS,
     var baseCurrencyCode: String = "USD"
 )

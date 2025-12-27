@@ -2,8 +2,10 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.common.contracts.UserPreferencesRequest
+import com.beancounter.common.model.GroupByPreference
 import com.beancounter.common.model.HoldingsView
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.ValueInPreference
 import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -46,6 +48,8 @@ class UserPreferencesServiceTest {
             .isNotNull
             .hasFieldOrPropertyWithValue("preferredName", null)
             .hasFieldOrPropertyWithValue("defaultHoldingsView", HoldingsView.SUMMARY)
+            .hasFieldOrPropertyWithValue("defaultValueIn", ValueInPreference.PORTFOLIO)
+            .hasFieldOrPropertyWithValue("defaultGroupBy", GroupByPreference.ASSET_CLASS)
             .hasFieldOrPropertyWithValue("baseCurrencyCode", "USD")
         assertThat(preferences.owner.id).isEqualTo(user.id)
 
@@ -131,6 +135,78 @@ class UserPreferencesServiceTest {
 
         assertThat(updated.defaultHoldingsView).isEqualTo(HoldingsView.ALLOCATION) // unchanged
         assertThat(updated.baseCurrencyCode).isEqualTo("JPY")
+    }
+
+    @Test
+    fun `should update defaultValueIn preference`() {
+        val user = createAndAuthenticateUser("prefs-test-8@email.com")
+
+        val request = UserPreferencesRequest(defaultValueIn = ValueInPreference.BASE)
+        val updated = userPreferencesService.update(user, request)
+
+        assertThat(updated.defaultValueIn).isEqualTo(ValueInPreference.BASE)
+        assertThat(updated.defaultGroupBy).isEqualTo(GroupByPreference.ASSET_CLASS) // unchanged
+    }
+
+    @Test
+    fun `should update defaultGroupBy preference`() {
+        val user = createAndAuthenticateUser("prefs-test-9@email.com")
+
+        val request = UserPreferencesRequest(defaultGroupBy = GroupByPreference.SECTOR)
+        val updated = userPreferencesService.update(user, request)
+
+        assertThat(updated.defaultGroupBy).isEqualTo(GroupByPreference.SECTOR)
+        assertThat(updated.defaultValueIn).isEqualTo(ValueInPreference.PORTFOLIO) // unchanged
+    }
+
+    @Test
+    fun `should update all preferences at once`() {
+        val user = createAndAuthenticateUser("prefs-test-10@email.com")
+
+        val request =
+            UserPreferencesRequest(
+                preferredName = "Test User",
+                defaultHoldingsView = HoldingsView.TABLE,
+                defaultValueIn = ValueInPreference.TRADE,
+                defaultGroupBy = GroupByPreference.MARKET_CURRENCY,
+                baseCurrencyCode = "NZD"
+            )
+        val updated = userPreferencesService.update(user, request)
+
+        assertThat(updated.preferredName).isEqualTo("Test User")
+        assertThat(updated.defaultHoldingsView).isEqualTo(HoldingsView.TABLE)
+        assertThat(updated.defaultValueIn).isEqualTo(ValueInPreference.TRADE)
+        assertThat(updated.defaultGroupBy).isEqualTo(GroupByPreference.MARKET_CURRENCY)
+        assertThat(updated.baseCurrencyCode).isEqualTo("NZD")
+    }
+
+    @Test
+    fun `should preserve existing preferences when updating only new fields`() {
+        val user = createAndAuthenticateUser("prefs-test-11@email.com")
+
+        // First set legacy preferences
+        userPreferencesService.update(
+            user,
+            UserPreferencesRequest(
+                defaultHoldingsView = HoldingsView.HEATMAP,
+                baseCurrencyCode = "AUD"
+            )
+        )
+
+        // Now update only new fields
+        val request =
+            UserPreferencesRequest(
+                defaultValueIn = ValueInPreference.BASE,
+                defaultGroupBy = GroupByPreference.MARKET
+            )
+        val updated = userPreferencesService.update(user, request)
+
+        // Legacy preferences unchanged
+        assertThat(updated.defaultHoldingsView).isEqualTo(HoldingsView.HEATMAP)
+        assertThat(updated.baseCurrencyCode).isEqualTo("AUD")
+        // New preferences updated
+        assertThat(updated.defaultValueIn).isEqualTo(ValueInPreference.BASE)
+        assertThat(updated.defaultGroupBy).isEqualTo(GroupByPreference.MARKET)
     }
 
     private fun createAndAuthenticateUser(email: String): SystemUser {

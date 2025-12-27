@@ -34,6 +34,8 @@ class UserPreferencesService(
         val preferences = getOrCreate(owner)
         request.preferredName?.let { preferences.preferredName = it }
         request.defaultHoldingsView?.let { preferences.defaultHoldingsView = it }
+        request.defaultValueIn?.let { preferences.defaultValueIn = it }
+        request.defaultGroupBy?.let { preferences.defaultGroupBy = it }
         request.baseCurrencyCode?.let { preferences.baseCurrencyCode = it }
         return userPreferencesRepository.save(preferences)
     }

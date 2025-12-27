@@ -1,34 +1,239 @@
 {
     "properties": [
         {
-            "name": "beancounter.enricher",
-            "type": "java.lang.String",
-            "description": "Which enricher to use to provided additional asset properties."
-        },
-        {
-            "name": "beancounter.currency.base",
-            "type": "java.lang.String",
-            "description": "System based ISO currency code."
-        },
-        {
-            "name": "schedule.enabled",
-            "type": "java.lang.Boolean",
-            "description": "Deploy price schedule update beans."
-        },
-        {
             "name": "otel.traces.exporter",
             "type": "java.lang.String",
-            "description": "Description for otel.traces.exporter."
+            "description": "OpenTelemetry traces exporter (none, otlp, jaeger, zipkin).",
+            "defaultValue": "otlp"
         },
         {
             "name": "otel.metrics.exporter",
             "type": "java.lang.String",
-            "description": "Description for otel.metrics.exporter."
+            "description": "OpenTelemetry metrics exporter (none, otlp, prometheus).",
+            "defaultValue": "otlp"
         },
         {
             "name": "otel.logs.exporter",
             "type": "java.lang.String",
-            "description": "Description for otel.logs.exporter."
+            "description": "OpenTelemetry logs exporter (none, otlp).",
+            "defaultValue": "otlp"
+        },
+        {
+            "name": "auth.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Enable or disable authentication.",
+            "defaultValue": true
+        },
+        {
+            "name": "auth.email",
+            "type": "java.lang.String",
+            "description": "JWT claim path for extracting user email."
+        },
+        {
+            "name": "auth.client",
+            "type": "java.lang.String",
+            "description": "OAuth2 client ID for interactive login."
+        },
+        {
+            "name": "auth.client-secret",
+            "type": "java.lang.String",
+            "description": "OAuth2 client secret for interactive login."
+        },
+        {
+            "name": "stream.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Enable Spring Cloud Stream messaging.",
+            "defaultValue": true
+        },
+        {
+            "name": "schedule.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Deploy price schedule update beans.",
+            "defaultValue": false
+        },
+        {
+            "name": "beancounter.enricher",
+            "type": "java.lang.String",
+            "description": "Default asset enricher (ALPHA, FIGI, DEFAULT, PRIVATE).",
+            "defaultValue": "ALPHA"
+        },
+        {
+            "name": "beancounter.currency.base",
+            "type": "java.lang.String",
+            "description": "System base ISO currency code.",
+            "defaultValue": "USD"
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.alphaVantage.registerHealthIndicator",
+            "type": "java.lang.Boolean",
+            "description": "Register health indicator for AlphaVantage rate limiter."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.alphaVantage.limitForPeriod",
+            "type": "java.lang.Integer",
+            "description": "Number of calls allowed per period for AlphaVantage."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.alphaVantage.limitRefreshPeriod",
+            "type": "java.lang.String",
+            "description": "Period for AlphaVantage rate limit refresh."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.alphaVantage.timeoutDuration",
+            "type": "java.lang.String",
+            "description": "Timeout duration for AlphaVantage rate limit."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.alphaVantage.eventConsumerBufferSize",
+            "type": "java.lang.Integer",
+            "description": "Event consumer buffer size for AlphaVantage rate limiter."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.morningstar.registerHealthIndicator",
+            "type": "java.lang.Boolean",
+            "description": "Register health indicator for Morningstar rate limiter."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.morningstar.limitForPeriod",
+            "type": "java.lang.Integer",
+            "description": "Number of calls allowed per period for Morningstar."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.morningstar.limitRefreshPeriod",
+            "type": "java.lang.String",
+            "description": "Period for Morningstar rate limit refresh."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.morningstar.timeoutDuration",
+            "type": "java.lang.String",
+            "description": "Timeout duration for Morningstar rate limit."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.morningstar.eventConsumerBufferSize",
+            "type": "java.lang.Integer",
+            "description": "Event consumer buffer size for Morningstar rate limiter."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.fxRates.registerHealthIndicator",
+            "type": "java.lang.Boolean",
+            "description": "Register health indicator for FX rates rate limiter."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.fxRates.limitForPeriod",
+            "type": "java.lang.Integer",
+            "description": "Number of calls allowed per period for FX rates."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.fxRates.limitRefreshPeriod",
+            "type": "java.lang.String",
+            "description": "Period for FX rates rate limit refresh."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.fxRates.timeoutDuration",
+            "type": "java.lang.String",
+            "description": "Timeout duration for FX rates rate limit."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.fxRates.eventConsumerBufferSize",
+            "type": "java.lang.Integer",
+            "description": "Event consumer buffer size for FX rates rate limiter."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.failureRateThreshold",
+            "type": "java.lang.Integer",
+            "description": "Failure rate threshold percentage for circuit breaker."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.slidingWindowSize",
+            "type": "java.lang.Integer",
+            "description": "Sliding window size for circuit breaker."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.permittedNumberOfCallsInHalfOpenState",
+            "type": "java.lang.Integer",
+            "description": "Number of calls permitted in half-open state."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.slidingWindowType",
+            "type": "java.lang.String",
+            "description": "Sliding window type (COUNT_BASED or TIME_BASED)."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.waitDurationInOpenState",
+            "type": "java.lang.String",
+            "description": "Duration to wait in open state."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.registerHealthIndicator",
+            "type": "java.lang.Boolean",
+            "description": "Register health indicator for circuit breaker."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
+            "type": "java.lang.String",
+            "description": "Fully qualified class name of failure predicate."
+        },
+        {
+            "name": "resilience4j.retry.instances.backend.maxRetryAttempts",
+            "type": "java.lang.Integer",
+            "description": "Maximum retry attempts for backend."
+        },
+        {
+            "name": "resilience4j.retry.instances.backend.waitDuration",
+            "type": "java.lang.String",
+            "description": "Wait duration between retries."
+        },
+        {
+            "name": "resilience4j.retry.instances.backend.enableExponentialBackoff",
+            "type": "java.lang.Boolean",
+            "description": "Enable exponential backoff for retries."
+        },
+        {
+            "name": "resilience4j.retry.instances.backend.exponentialBackoffMultiplier",
+            "type": "java.lang.Integer",
+            "description": "Multiplier for exponential backoff."
+        }
+    ],
+    "hints": [
+        {
+            "name": "otel.traces.exporter",
+            "values": [
+                {"value": "none", "description": "Disable traces export."},
+                {"value": "otlp", "description": "OpenTelemetry Protocol exporter."},
+                {"value": "jaeger", "description": "Jaeger exporter."},
+                {"value": "zipkin", "description": "Zipkin exporter."}
+            ]
+        },
+        {
+            "name": "otel.metrics.exporter",
+            "values": [
+                {"value": "none", "description": "Disable metrics export."},
+                {"value": "otlp", "description": "OpenTelemetry Protocol exporter."},
+                {"value": "prometheus", "description": "Prometheus exporter."}
+            ]
+        },
+        {
+            "name": "otel.logs.exporter",
+            "values": [
+                {"value": "none", "description": "Disable logs export."},
+                {"value": "otlp", "description": "OpenTelemetry Protocol exporter."}
+            ]
+        },
+        {
+            "name": "beancounter.enricher",
+            "values": [
+                {"value": "ALPHA", "description": "AlphaVantage enricher."},
+                {"value": "FIGI", "description": "OpenFIGI enricher."},
+                {"value": "DEFAULT", "description": "Default (no enrichment)."},
+                {"value": "PRIVATE", "description": "Private asset enricher."}
+            ]
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.slidingWindowType",
+            "values": [
+                {"value": "COUNT_BASED", "description": "Count-based sliding window."},
+                {"value": "TIME_BASED", "description": "Time-based sliding window."}
+            ]
         }
     ]
 }

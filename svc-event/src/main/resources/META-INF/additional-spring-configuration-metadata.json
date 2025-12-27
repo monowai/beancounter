@@ -1,6 +1,24 @@
 {
     "properties": [
         {
+            "name": "otel.traces.exporter",
+            "type": "java.lang.String",
+            "description": "OpenTelemetry traces exporter (none, otlp, jaeger, zipkin).",
+            "defaultValue": "otlp"
+        },
+        {
+            "name": "otel.metrics.exporter",
+            "type": "java.lang.String",
+            "description": "OpenTelemetry metrics exporter (none, otlp, prometheus).",
+            "defaultValue": "otlp"
+        },
+        {
+            "name": "otel.logs.exporter",
+            "type": "java.lang.String",
+            "description": "OpenTelemetry logs exporter (none, otlp).",
+            "defaultValue": "otlp"
+        },
+        {
             "name": "spring.security.oauth2.registration.custom.scope",
             "type": "java.util.List",
             "description": "OAuth2 scopes for custom registration."
@@ -106,6 +124,30 @@
         }
     ],
     "hints": [
+        {
+            "name": "otel.traces.exporter",
+            "values": [
+                {"value": "none", "description": "Disable traces export."},
+                {"value": "otlp", "description": "OpenTelemetry Protocol exporter."},
+                {"value": "jaeger", "description": "Jaeger exporter."},
+                {"value": "zipkin", "description": "Zipkin exporter."}
+            ]
+        },
+        {
+            "name": "otel.metrics.exporter",
+            "values": [
+                {"value": "none", "description": "Disable metrics export."},
+                {"value": "otlp", "description": "OpenTelemetry Protocol exporter."},
+                {"value": "prometheus", "description": "Prometheus exporter."}
+            ]
+        },
+        {
+            "name": "otel.logs.exporter",
+            "values": [
+                {"value": "none", "description": "Disable logs export."},
+                {"value": "otlp", "description": "OpenTelemetry Protocol exporter."}
+            ]
+        },
         {
             "name": "resilience4j.circuitbreaker.configs.default.slidingWindowType",
             "values": [

@@ -107,11 +107,19 @@ class EventController(
             example = "2024-01-31"
         )
         @PathVariable(required = false) toDate: String = DateUtils.TODAY
-    ) = backFillService.backFillEvents(
-        portfolioId,
-        fromDate,
-        toDate
-    )
+    ): Map<String, Any> {
+        backFillService.backFillEvents(
+            portfolioId,
+            fromDate,
+            toDate
+        )
+        return mapOf(
+            "status" to "accepted",
+            "portfolioId" to portfolioId,
+            "fromDate" to fromDate,
+            "toDate" to toDate
+        )
+    }
 
     @PostMapping(
         value = ["/backfill/{fromDate}/{toDate}"],
@@ -150,10 +158,11 @@ class EventController(
             example = "2024-01-31"
         )
         @PathVariable(required = false) toDate: String = DateUtils.TODAY
-    ) {
+    ): Map<String, Any> {
         eventLoader.loadEvents(fromDate)
         val portfolios = portfolioService.portfolios
         log.info("Backfill events for portfolioCount: ${portfolios.data.size}, from: $fromDate, to: $toDate")
+        val processed = mutableListOf<String>()
         for (portfolio in portfolios.data) {
             log.info("BackFilling ${portfolio.code}, $fromDate to $toDate")
             backFillService.backFillEvents(
@@ -161,7 +170,14 @@ class EventController(
                 fromDate,
                 toDate
             )
+            processed.add(portfolio.code)
         }
+        return mapOf(
+            "status" to "completed",
+            "fromDate" to fromDate,
+            "toDate" to toDate,
+            "portfolios" to processed
+        )
     }
 
     @PostMapping(
@@ -196,7 +212,14 @@ class EventController(
             example = "2024-01-01"
         )
         @PathVariable(required = false) fromDate: String = DateUtils.TODAY
-    ) = eventLoader.loadEvents(fromDate)
+    ): Map<String, Any> {
+        eventLoader.loadEvents(fromDate)
+        return mapOf(
+            "status" to "completed",
+            "fromDate" to fromDate,
+            "portfolios" to portfolioService.portfolios.data.size
+        )
+    }
 
     @PostMapping(
         value = ["/load/{portfolioId}/{asAtDate}"],
@@ -240,10 +263,15 @@ class EventController(
             example = "portfolio-123"
         )
         @PathVariable portfolioId: String
-    ) {
+    ): Map<String, Any> {
         eventLoader.loadEvents(
             portfolioId,
             asAtDate
+        )
+        return mapOf(
+            "status" to "accepted",
+            "portfolioId" to portfolioId,
+            "asAtDate" to asAtDate
         )
     }
 

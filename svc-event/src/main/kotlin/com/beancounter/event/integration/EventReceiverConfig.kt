@@ -12,7 +12,7 @@ import org.springframework.kafka.config.TopicBuilder
  */
 @Configuration
 class EventReceiverConfig {
-    @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")
+    @Value($$"${beancounter.topics.ca.event:bc-ca-event-dev}")
     lateinit var topicCaEvent: String
 
     @Bean

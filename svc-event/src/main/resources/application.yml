@@ -58,7 +58,7 @@ logging:
       apache: error
       postgres: error
       postgresql: error
-    kafa: info
+    kafka: info
 
 marketdata:
   url: "http://localhost:9510"
@@ -79,6 +79,9 @@ auth:
     proactive-refresh-seconds: 172800
 
 spring:
+  kafka:
+    admin:
+      auto-create: false
   application:
     name: bc-event
   cache:

@@ -28,5 +28,6 @@ data class UserPreferences(
     var defaultValueIn: ValueInPreference = ValueInPreference.PORTFOLIO,
     @Enumerated(EnumType.STRING)
     var defaultGroupBy: GroupByPreference = GroupByPreference.ASSET_CLASS,
-    var baseCurrencyCode: String = "USD"
+    var baseCurrencyCode: String = "USD",
+    var showWeightedIrr: Boolean = true
 )

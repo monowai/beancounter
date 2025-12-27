@@ -37,6 +37,7 @@ class UserPreferencesService(
         request.defaultValueIn?.let { preferences.defaultValueIn = it }
         request.defaultGroupBy?.let { preferences.defaultGroupBy = it }
         request.baseCurrencyCode?.let { preferences.baseCurrencyCode = it }
+        request.showWeightedIrr?.let { preferences.showWeightedIrr = it }
         return userPreferencesRepository.save(preferences)
     }
 }

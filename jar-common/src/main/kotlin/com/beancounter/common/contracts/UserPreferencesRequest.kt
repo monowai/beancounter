@@ -13,5 +13,6 @@ data class UserPreferencesRequest(
     val defaultHoldingsView: HoldingsView? = null,
     val defaultValueIn: ValueInPreference? = null,
     val defaultGroupBy: GroupByPreference? = null,
-    val baseCurrencyCode: String? = null
+    val baseCurrencyCode: String? = null,
+    val showWeightedIrr: Boolean? = null
 )

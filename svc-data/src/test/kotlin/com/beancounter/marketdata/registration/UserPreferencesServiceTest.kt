@@ -51,6 +51,7 @@ class UserPreferencesServiceTest {
             .hasFieldOrPropertyWithValue("defaultValueIn", ValueInPreference.PORTFOLIO)
             .hasFieldOrPropertyWithValue("defaultGroupBy", GroupByPreference.ASSET_CLASS)
             .hasFieldOrPropertyWithValue("baseCurrencyCode", "USD")
+            .hasFieldOrPropertyWithValue("showWeightedIrr", true)
         assertThat(preferences.owner.id).isEqualTo(user.id)
 
         // Verify preferences are now persisted
@@ -207,6 +208,23 @@ class UserPreferencesServiceTest {
         // New preferences updated
         assertThat(updated.defaultValueIn).isEqualTo(ValueInPreference.BASE)
         assertThat(updated.defaultGroupBy).isEqualTo(GroupByPreference.MARKET)
+    }
+
+    @Test
+    fun `should update showWeightedIrr preference`() {
+        val user = createAndAuthenticateUser("prefs-test-12@email.com")
+
+        // Default should be true
+        val initial = userPreferencesService.getOrCreate(user)
+        assertThat(initial.showWeightedIrr).isTrue()
+
+        // Update to false
+        val request = UserPreferencesRequest(showWeightedIrr = false)
+        val updated = userPreferencesService.update(user, request)
+
+        assertThat(updated.showWeightedIrr).isFalse()
+        // Other preferences unchanged
+        assertThat(updated.defaultHoldingsView).isEqualTo(HoldingsView.SUMMARY)
     }
 
     private fun createAndAuthenticateUser(email: String): SystemUser {

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
  */
 class UserPreferencesEnumTest {
     private val objectMapper = ObjectMapper().registerKotlinModule()
+
     @Test
     fun `ValueInPreference enum values match frontend expectations`() {
         // bc-view sends these exact values from types/constants.ts
@@ -117,5 +118,21 @@ class UserPreferencesEnumTest {
                 .describedAs("JSON value '$jsonValue' should deserialize to $expectedEnum")
                 .isEqualTo(expectedEnum)
         }
+    }
+
+    @Test
+    fun `deserialize showWeightedIrr boolean from frontend JSON`() {
+        val jsonTrue = """{"showWeightedIrr": true}"""
+        val requestTrue = objectMapper.readValue(jsonTrue, UserPreferencesRequest::class.java)
+        assertThat(requestTrue.showWeightedIrr).isTrue()
+
+        val jsonFalse = """{"showWeightedIrr": false}"""
+        val requestFalse = objectMapper.readValue(jsonFalse, UserPreferencesRequest::class.java)
+        assertThat(requestFalse.showWeightedIrr).isFalse()
+
+        // Null when not provided
+        val jsonMissing = """{"preferredName": "Test"}"""
+        val requestMissing = objectMapper.readValue(jsonMissing, UserPreferencesRequest::class.java)
+        assertThat(requestMissing.showWeightedIrr).isNull()
     }
 }

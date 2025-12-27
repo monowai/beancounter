@@ -1,0 +1,123 @@
+{
+    "properties": [
+        {
+            "name": "spring.security.oauth2.registration.custom.scope",
+            "type": "java.util.List",
+            "description": "OAuth2 scopes for custom registration."
+        },
+        {
+            "name": "spring.security.oauth2.registration.custom.authorization-grant-type",
+            "type": "java.lang.String",
+            "description": "OAuth2 grant type for custom registration."
+        },
+        {
+            "name": "auth.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Enable or disable authentication.",
+            "defaultValue": true
+        },
+        {
+            "name": "auth.email",
+            "type": "java.lang.String",
+            "description": "JWT claim path for extracting user email."
+        },
+        {
+            "name": "auth.client-id",
+            "type": "java.lang.String",
+            "description": "OAuth2 client ID for M2M authentication."
+        },
+        {
+            "name": "auth.jwt.proactive-refresh-seconds",
+            "type": "java.lang.Long",
+            "description": "Seconds before token expiry to proactively refresh.",
+            "defaultValue": 172800
+        },
+        {
+            "name": "stream.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Enable Spring Cloud Stream messaging.",
+            "defaultValue": true
+        },
+        {
+            "name": "beancounter.events.dividend.days-to-add",
+            "type": "java.lang.Long",
+            "description": "Days to add to dividend record date to calculate pay date.",
+            "defaultValue": 10
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.positions.registerHealthIndicator",
+            "type": "java.lang.Boolean",
+            "description": "Register health indicator for rate limiter."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.positions.limitForPeriod",
+            "type": "java.lang.Integer",
+            "description": "Number of calls allowed per period."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.positions.limitRefreshPeriod",
+            "type": "java.lang.String",
+            "description": "Period for rate limit refresh (e.g., 65s)."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.positions.timeoutDuration",
+            "type": "java.lang.String",
+            "description": "Timeout duration for waiting on rate limit (e.g., 80s)."
+        },
+        {
+            "name": "resilience4j.ratelimiter.instances.positions.eventConsumerBufferSize",
+            "type": "java.lang.Integer",
+            "description": "Event consumer buffer size for rate limiter."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.failureRateThreshold",
+            "type": "java.lang.Integer",
+            "description": "Failure rate threshold percentage for circuit breaker."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.slidingWindowSize",
+            "type": "java.lang.Integer",
+            "description": "Sliding window size for circuit breaker."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.permittedNumberOfCallsInHalfOpenState",
+            "type": "java.lang.Integer",
+            "description": "Number of calls permitted in half-open state."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.slidingWindowType",
+            "type": "java.lang.String",
+            "description": "Sliding window type (COUNT_BASED or TIME_BASED)."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.waitDurationInOpenState",
+            "type": "java.lang.String",
+            "description": "Duration to wait in open state before transitioning to half-open."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.registerHealthIndicator",
+            "type": "java.lang.Boolean",
+            "description": "Register health indicator for circuit breaker."
+        },
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
+            "type": "java.lang.String",
+            "description": "Fully qualified class name of failure predicate."
+        }
+    ],
+    "hints": [
+        {
+            "name": "resilience4j.circuitbreaker.configs.default.slidingWindowType",
+            "values": [
+                {
+                    "value": "COUNT_BASED",
+                    "description": "Count-based sliding window."
+                },
+                {
+                    "value": "TIME_BASED",
+                    "description": "Time-based sliding window."
+                }
+            ]
+        }
+    ]
+}

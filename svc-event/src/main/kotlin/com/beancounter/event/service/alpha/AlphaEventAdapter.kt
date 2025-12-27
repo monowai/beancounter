@@ -22,9 +22,14 @@ import java.util.Locale
  * Generate a BC corporate event from an AlphaVantage data row.
  */
 class AlphaEventAdapter(
-    private val taxService: TaxService
+    private val taxService: TaxService,
+    private val daysToAdd: Long = DEFAULT_DAYS_TO_ADD
 ) : Event {
     private val dateUtils = DateUtils()
+
+    companion object {
+        const val DEFAULT_DAYS_TO_ADD = 10L
+    }
 
     private fun calculateGross(
         currentPosition: Position?,
@@ -52,9 +57,9 @@ class AlphaEventAdapter(
         )
 
     /**
-     * Calculate the default pay date for a dividend event (recordDate + 18 days).
+     * Calculate the default pay date for a dividend event (recordDate + daysToAdd).
      */
-    fun calculatePayDate(corporateEvent: CorporateEvent): LocalDate = corporateEvent.recordDate.plusDays(18)
+    fun calculatePayDate(corporateEvent: CorporateEvent): LocalDate = corporateEvent.recordDate.plusDays(daysToAdd)
 
     override fun calculate(
         portfolio: Portfolio,

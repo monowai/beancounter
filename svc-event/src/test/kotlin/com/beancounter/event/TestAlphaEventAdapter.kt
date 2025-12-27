@@ -61,6 +61,8 @@ class TestAlphaEventAdapter {
             )
         assertThat(trnEvent).isNotNull
         assertThat(trnEvent.portfolio).isNotNull
+        // Expected pay date = recordDate (2020-05-01) + configured days (default 10) = 2020-05-11
+        val expectedPayDate = onDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
         assertThat(trnEvent.trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue(
@@ -74,7 +76,7 @@ class TestAlphaEventAdapter {
                 TrnStatus.PROPOSED
             ).hasFieldOrPropertyWithValue(
                 "tradeDate",
-                dateUtils.getFormattedDate("2020-05-19")
+                expectedPayDate
             ).hasFieldOrPropertyWithValue(
                 "price",
                 event.rate

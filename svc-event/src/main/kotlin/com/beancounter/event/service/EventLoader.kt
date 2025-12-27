@@ -19,12 +19,14 @@ import java.util.concurrent.Executors
 
 /**
  * Loads corporate events for portfolios.
+ * Scans both backwards and forwards using the same daysToAdd value
+ * to catch missed events and pre-load upcoming events.
  */
 @Service
 class EventLoader(
     config: EventLoaderConfig,
-    @Value("\${events.lookback-days:7}")
-    private val lookbackDays: Long = 7
+    @Value("\${beancounter.events.dividend.days-to-add:10}")
+    private val daysToAdd: Long = 10
 ) {
     private val portfolioService = config.sharedConfig.portfolioService
     private val positionService = config.serviceConfig.positionService
@@ -39,7 +41,7 @@ class EventLoader(
     fun loadEvents(date: String) {
         val portfolios = portfolioService.portfolios
         log.info(
-            "Loading missing events from date: $date (lookback: $lookbackDays days) for ${portfolios.data.size} portfolios"
+            "Loading events from date: $date (window: +/- $daysToAdd days) for ${portfolios.data.size} portfolios"
         )
         for (portfolio in portfolios.data) {
             loadEvents(portfolio.id, date)
@@ -117,11 +119,12 @@ class EventLoader(
         if (positionService.includePosition(position)) {
             loginService.setAuthContext(authContext)
             val events = priceService.getEvents(position.asset.id)
-            val lookbackStart = date.minusDays(lookbackDays)
+            val windowStart = date.minusDays(daysToAdd)
+            val windowEnd = date.plusDays(daysToAdd)
             for (priceResponse in events.data) {
                 val eventDate = priceResponse.priceDate
-                // Check if event falls within the lookback window (lookbackStart to date inclusive)
-                if (!eventDate.isBefore(lookbackStart) && !eventDate.isAfter(date)) {
+                // Check if event falls within the window (date - daysToAdd to date + daysToAdd inclusive)
+                if (!eventDate.isBefore(windowStart) && !eventDate.isAfter(windowEnd)) {
                     eventCount++
                     eventService.save(
                         CorporateEvent(

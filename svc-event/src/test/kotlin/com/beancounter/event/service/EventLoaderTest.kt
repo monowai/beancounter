@@ -111,15 +111,15 @@ class EventLoaderTest {
                 serviceConfig = serviceConfig,
                 authConfig = authConfig
             )
-        val eventLoader = EventLoader(eventLoaderConfig, lookbackDays = 7)
+        val eventLoader = EventLoader(eventLoaderConfig, daysToAdd = 10)
 
         // Then
         assertThat(eventLoader).isNotNull()
     }
 
     @Test
-    fun `should load events within lookback window`() {
-        // Given - default lookback is 7 days
+    fun `should load events within configured window`() {
+        // Given - default daysToAdd is 10
         val portfolios = PortfoliosResponse(listOf(testPortfolio))
         whenever(portfolioService.portfolios).thenReturn(portfolios)
 
@@ -146,9 +146,9 @@ class EventLoaderTest {
                 serviceConfig = serviceConfig,
                 authConfig = authConfig
             )
-        // Verify lookback days can be configured
-        val customLookback = 14L
-        val eventLoader = EventLoader(eventLoaderConfig, lookbackDays = customLookback)
+        // Verify daysToAdd can be configured - scans both backwards and forwards
+        val customDaysToAdd = 14L
+        val eventLoader = EventLoader(eventLoaderConfig, daysToAdd = customDaysToAdd)
 
         // Then
         assertThat(eventLoader).isNotNull()

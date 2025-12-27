@@ -162,10 +162,12 @@ spring:
 stream:
   enabled: true
 
-# Corporate event configuration
-events:
-  # Number of days to look back when loading events to catch any missed dividends
-  lookback-days: 7
+beancounter:
+  events:
+    dividend:
+      # Days to add to record date to calculate pay date.
+      # Also used for event scanning window (+/- days from current date).
+      days-to-add: 10
 
 resilience4j.ratelimiter:
   instances:

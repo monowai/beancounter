@@ -112,7 +112,7 @@ class AlphaEventAdapterTest {
         assertThat(result.trnInput.tradeDate)
             .describedAs("SPLIT should NOT have T+30 or any future settlement")
             .isNotEqualTo(recordDate.plusDays(30))
-            .isNotEqualTo(recordDate.plusDays(18))
+            .isNotEqualTo(recordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD))
             .isNotEqualTo(recordDate.plusDays(20))
     }
 
@@ -138,10 +138,10 @@ class AlphaEventAdapterTest {
     }
 
     @Test
-    fun `DIVIDEND transaction should use recordDate plus 18 days as payDate`() {
+    fun `DIVIDEND transaction should use recordDate plus configured days as payDate`() {
         // Given: A DIVIDEND corporate event
         val recordDate = LocalDate.of(2024, 1, 15)
-        val expectedPayDate = recordDate.plusDays(18)
+        val expectedPayDate = recordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
         val dividendEvent =
             CorporateEvent(
                 id = "divi-event",
@@ -155,10 +155,10 @@ class AlphaEventAdapterTest {
         // When: Processing the DIVIDEND event (with pay date in the past)
         val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
 
-        // Then: The tradeDate should be recordDate + 18 days (not like SPLIT)
+        // Then: The tradeDate should be recordDate + configured days (not like SPLIT)
         if (result.trnInput.trnType != TrnType.IGNORE) {
             assertThat(result.trnInput.tradeDate)
-                .describedAs("DIVIDEND tradeDate should be recordDate + 18 days")
+                .describedAs("DIVIDEND tradeDate should be recordDate + configured days")
                 .isEqualTo(expectedPayDate)
         }
     }
@@ -188,7 +188,7 @@ class AlphaEventAdapterTest {
     }
 
     @Test
-    fun `calculatePayDate should return recordDate plus 18 days`() {
+    fun `calculatePayDate should return recordDate plus configured days`() {
         // Given: A corporate event with a specific record date
         val recordDate = LocalDate.of(2024, 6, 15)
         val corporateEvent =
@@ -204,17 +204,17 @@ class AlphaEventAdapterTest {
         // When: Calculating the pay date
         val payDate = alphaEventAdapter.calculatePayDate(corporateEvent)
 
-        // Then: Pay date should be recordDate + 18 days
+        // Then: Pay date should be recordDate + configured days (default 10)
         assertThat(payDate)
-            .describedAs("Pay date should be recordDate + 18 days")
-            .isEqualTo(recordDate.plusDays(18))
-            .isEqualTo(LocalDate.of(2024, 7, 3))
+            .describedAs("Pay date should be recordDate + configured days")
+            .isEqualTo(recordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD))
+            .isEqualTo(LocalDate.of(2024, 6, 25))
     }
 
     @Test
     fun `calculatePayDate should handle month boundaries correctly`() {
         // Given: A record date near the end of a month
-        val recordDate = LocalDate.of(2024, 1, 20)
+        val recordDate = LocalDate.of(2024, 1, 25)
         val corporateEvent =
             CorporateEvent(
                 id = "month-boundary-test",
@@ -228,16 +228,17 @@ class AlphaEventAdapterTest {
         // When: Calculating the pay date
         val payDate = alphaEventAdapter.calculatePayDate(corporateEvent)
 
-        // Then: Pay date should cross into February
+        // Then: Pay date should cross into February (Jan 25 + 10 days = Feb 4)
         assertThat(payDate)
             .describedAs("Pay date should correctly cross month boundary")
-            .isEqualTo(LocalDate.of(2024, 2, 7))
+            .isEqualTo(recordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD))
+            .isEqualTo(LocalDate.of(2024, 2, 4))
     }
 
     @Test
     fun `calculatePayDate should handle year boundaries correctly`() {
         // Given: A record date near the end of a year
-        val recordDate = LocalDate.of(2024, 12, 20)
+        val recordDate = LocalDate.of(2024, 12, 25)
         val corporateEvent =
             CorporateEvent(
                 id = "year-boundary-test",
@@ -251,10 +252,11 @@ class AlphaEventAdapterTest {
         // When: Calculating the pay date
         val payDate = alphaEventAdapter.calculatePayDate(corporateEvent)
 
-        // Then: Pay date should be in January of the next year
+        // Then: Pay date should be in January of the next year (Dec 25 + 10 days = Jan 4)
         assertThat(payDate)
             .describedAs("Pay date should correctly cross year boundary")
-            .isEqualTo(LocalDate.of(2025, 1, 7))
+            .isEqualTo(recordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD))
+            .isEqualTo(LocalDate.of(2025, 1, 4))
     }
 
     @Test
@@ -287,7 +289,7 @@ class AlphaEventAdapterTest {
     fun `DIVIDEND should use calculated payDate when override is null`() {
         // Given: A DIVIDEND event without override pay date
         val recordDate = LocalDate.of(2024, 1, 15)
-        val expectedPayDate = recordDate.plusDays(18)
+        val expectedPayDate = recordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
         val dividendEvent =
             CorporateEvent(
                 id = "divi-no-override",
@@ -301,7 +303,7 @@ class AlphaEventAdapterTest {
         // When: Processing the DIVIDEND event without override
         val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent, null)
 
-        // Then: The tradeDate should be the calculated default (recordDate + 18 days)
+        // Then: The tradeDate should be the calculated default (recordDate + configured days)
         if (result.trnInput.trnType != TrnType.IGNORE) {
             assertThat(result.trnInput.tradeDate)
                 .describedAs("DIVIDEND tradeDate should use calculated pay date when no override provided")
@@ -332,5 +334,82 @@ class AlphaEventAdapterTest {
             .describedAs("SPLIT should ignore overridePayDate and use recordDate")
             .isEqualTo(recordDate)
             .isNotEqualTo(LocalDate.of(2024, 7, 1))
+    }
+
+    @Test
+    fun `daysToAdd configured to 1 should calculate payDate as recordDate plus 1 day`() {
+        // Given: An adapter configured with daysToAdd = 1
+        val adapterWithOneDay = AlphaEventAdapter(taxService, daysToAdd = 1)
+        val recordDate = LocalDate.of(2024, 6, 15)
+        val corporateEvent =
+            CorporateEvent(
+                id = "one-day-test",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Calculating the pay date
+        val payDate = adapterWithOneDay.calculatePayDate(corporateEvent)
+
+        // Then: Pay date should be recordDate + 1 day
+        assertThat(payDate)
+            .describedAs("Pay date should be recordDate + 1 day when configured with daysToAdd=1")
+            .isEqualTo(recordDate.plusDays(1))
+            .isEqualTo(LocalDate.of(2024, 6, 16))
+    }
+
+    @Test
+    fun `daysToAdd can be configured to custom value`() {
+        // Given: An adapter configured with daysToAdd = 30
+        val adapterWith30Days = AlphaEventAdapter(taxService, daysToAdd = 30)
+        val recordDate = LocalDate.of(2024, 6, 1)
+        val corporateEvent =
+            CorporateEvent(
+                id = "custom-days-test",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Calculating the pay date
+        val payDate = adapterWith30Days.calculatePayDate(corporateEvent)
+
+        // Then: Pay date should be recordDate + 30 days
+        assertThat(payDate)
+            .describedAs("Pay date should be recordDate + 30 days when configured with daysToAdd=30")
+            .isEqualTo(recordDate.plusDays(30))
+            .isEqualTo(LocalDate.of(2024, 7, 1))
+    }
+
+    @Test
+    fun `DIVIDEND with daysToAdd=1 should use recordDate plus 1 day as tradeDate`() {
+        // Given: An adapter configured with daysToAdd = 1
+        val adapterWithOneDay = AlphaEventAdapter(taxService, daysToAdd = 1)
+        val recordDate = LocalDate.of(2024, 1, 15)
+        val dividendEvent =
+            CorporateEvent(
+                id = "divi-one-day",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = recordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Processing the DIVIDEND event
+        val result = adapterWithOneDay.calculate(testPortfolio, testPosition, dividendEvent)
+
+        // Then: The tradeDate should be recordDate + 1 day
+        if (result.trnInput.trnType != TrnType.IGNORE) {
+            assertThat(result.trnInput.tradeDate)
+                .describedAs("DIVIDEND tradeDate should be recordDate + 1 day when daysToAdd=1")
+                .isEqualTo(recordDate.plusDays(1))
+                .isEqualTo(LocalDate.of(2024, 1, 16))
+        }
     }
 }

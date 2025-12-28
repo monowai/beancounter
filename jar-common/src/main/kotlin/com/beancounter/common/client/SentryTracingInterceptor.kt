@@ -9,7 +9,7 @@ import org.springframework.http.client.ClientHttpResponse
 
 /**
  * RestClient interceptor that adds Sentry tracing to HTTP requests.
- * Replaces SentryCapability used with Feign.
+ * Creates child spans and propagates trace context via sentry-trace and baggage headers.
  */
 class SentryTracingInterceptor : ClientHttpRequestInterceptor {
     override fun intercept(
@@ -23,6 +23,14 @@ class SentryTracingInterceptor : ClientHttpRequestInterceptor {
                 "http.client",
                 "${request.method} ${request.uri.host}${request.uri.path}"
             )
+
+        // Propagate trace context to downstream service
+        Sentry.getTraceparent()?.let { traceparent ->
+            request.headers.add(traceparent.name, traceparent.value)
+        }
+        Sentry.getBaggage()?.let { baggage ->
+            request.headers.add(baggage.name, baggage.value)
+        }
 
         return try {
             val response = execution.execute(request, body)

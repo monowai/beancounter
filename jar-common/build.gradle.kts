@@ -12,6 +12,7 @@ extra["guavaVersion"] = "33.3.1-jre"
 dependencies {
     api(libs.jackson.kotlin)
     api(libs.sentry.opentelemetry)
+    api(libs.sentry.spring.boot)
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(platform(libs.spring.boot.dependencies))

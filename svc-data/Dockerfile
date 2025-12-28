@@ -1,4 +1,4 @@
-FROM ghcr.io/monowai/eclipse-temurin:21-jre-alpine-sentry7
+FROM ghcr.io/monowai/eclipse-temurin:21-jre-alpine-sentry8.13.3
 
 ARG JAR_FILE=build/libs/svc-data-0.1.1.jar
 

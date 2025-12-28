@@ -44,7 +44,7 @@ dependencies {
     implementation(libs.spring.boot.starter.logging)
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)
-    implementation("io.sentry:sentry-jdbc")
+    implementation(libs.sentry.jdbc)
     implementation(libs.spring.boot.starter.aop)
     implementation(libs.spring.boot.starter.security)
     implementation("org.springframework.security:spring-security-oauth2-resource-server")

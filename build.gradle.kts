@@ -49,8 +49,15 @@ subprojects {
     }
 
     // Exclude commons-logging to avoid conflicts with spring-jcl
+    // Align all Sentry dependencies to avoid mixed versions warning
     configurations.all {
         exclude(group = "commons-logging", module = "commons-logging")
+        resolutionStrategy.eachDependency {
+            if (requested.group == "io.sentry") {
+                useVersion("8.13.3")
+                because("Align all Sentry dependencies to avoid mixed versions warning")
+            }
+        }
     }
 
     // JVM configuration

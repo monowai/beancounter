@@ -41,15 +41,15 @@ dependencies {
     implementation(libs.resilience4j)
     implementation(libs.resilience4j.annotations)
     implementation("com.github.ben-manes.caffeine:caffeine")
-    implementation("com.h2database:h2")
+    runtimeOnly("com.h2database:h2")
     implementation(libs.postgresql)
     implementation(libs.spring.cloud.stream)
     implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation(libs.spring.ai.starter.mcp.server.webmvc)
-    
+
     compileOnly(libs.spring.boot.configuration.processor)
-    
+
     testImplementation(libs.spring.boot.starter.test) {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
@@ -58,7 +58,7 @@ dependencies {
     testImplementation(libs.jackson.kotlin)
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("io.sentry:sentry-jdbc")
+    testImplementation(libs.sentry.jdbc)
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation(libs.spring.cloud.stream.test.binder)
     testImplementation(libs.mockito.kotlin)
@@ -66,7 +66,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.framework.engine)
     testImplementation(testFixtures(project(":jar-auth")))
-    
+
     testImplementation("org.beancounter:svc-position:0.1.1:stubs") {
         isTransitive = false
     }

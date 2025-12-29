@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.body
 
 /**
@@ -45,7 +46,7 @@ class ClassificationClient(
                 .retrieve()
                 .body<BulkClassificationResponse>()
                 ?: BulkClassificationResponse()
-        } catch (e: Exception) {
+        } catch (e: RestClientException) {
             log.warn("Failed to fetch classifications: ${e.message}")
             BulkClassificationResponse()
         }

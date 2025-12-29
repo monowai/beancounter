@@ -36,6 +36,7 @@ class EventService(
         this.eventPublisher = eventPublisher
     }
 
+    @Suppress("TooGenericExceptionCaught") // Intentionally catching all exceptions for metrics
     fun process(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
         // Record event received
         val isDividend = eventRequest.data.trnType == TrnType.DIVI

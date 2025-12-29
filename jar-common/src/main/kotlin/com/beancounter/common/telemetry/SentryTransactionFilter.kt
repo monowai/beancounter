@@ -83,6 +83,7 @@ class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
 
     private fun shouldFilter(httpTarget: String): Boolean = filterPatterns.any { it.containsMatchIn(httpTarget) }
 
+    @Suppress("TooGenericExceptionCaught") // Defensive extraction - return null on any error
     private fun extractHttpTarget(transaction: SentryTransaction): String? {
         return try {
             // Try request URL first

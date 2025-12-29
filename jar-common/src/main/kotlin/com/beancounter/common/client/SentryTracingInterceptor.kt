@@ -12,6 +12,7 @@ import org.springframework.http.client.ClientHttpResponse
  * Creates child spans and propagates trace context via sentry-trace and baggage headers.
  */
 class SentryTracingInterceptor : ClientHttpRequestInterceptor {
+    @Suppress("TooGenericExceptionCaught") // Intentionally catching all exceptions for tracing
     override fun intercept(
         request: HttpRequest,
         body: ByteArray,

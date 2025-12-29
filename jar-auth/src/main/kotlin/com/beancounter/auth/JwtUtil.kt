@@ -14,6 +14,7 @@ import org.springframework.http.RequestEntity
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm
 import org.springframework.util.Assert
 import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
@@ -114,7 +115,7 @@ internal object JwtUtil {
                     "The public JWK set URI must not be null"
                 )
                 return configuration
-            } catch (ex: RuntimeException) {
+            } catch (ex: RestClientException) {
                 if (!(ex is HttpClientErrorException && ex.statusCode.is4xxClientError)) {
                     throw IllegalArgumentException(
                         errorMessage,

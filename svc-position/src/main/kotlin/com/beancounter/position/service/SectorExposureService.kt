@@ -10,6 +10,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -117,7 +118,7 @@ class SectorExposureService(
                     marketValue.multiply(exposure.weight).divide(BigDecimal(100), 4, RoundingMode.HALF_UP)
                 sectorValues[sectorName] = (sectorValues[sectorName] ?: BigDecimal.ZERO) + weightedValue
             }
-        } catch (e: Exception) {
+        } catch (e: RestClientException) {
             log.warn("Failed to fetch exposures for ETF $assetId: ${e.message}")
             sectorValues[ClassificationItem.UNCLASSIFIED] =
                 (sectorValues[ClassificationItem.UNCLASSIFIED] ?: BigDecimal.ZERO) + marketValue
@@ -142,7 +143,7 @@ class SectorExposureService(
                 sectorValues[ClassificationItem.UNCLASSIFIED] =
                     (sectorValues[ClassificationItem.UNCLASSIFIED] ?: BigDecimal.ZERO) + marketValue
             }
-        } catch (e: Exception) {
+        } catch (e: RestClientException) {
             log.warn("Failed to fetch classifications for Equity $assetId: ${e.message}")
             sectorValues[ClassificationItem.UNCLASSIFIED] =
                 (sectorValues[ClassificationItem.UNCLASSIFIED] ?: BigDecimal.ZERO) + marketValue

@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.client.ResponseErrorHandler
+import java.io.IOException
 import java.net.URI
 import java.nio.charset.StandardCharsets
 
@@ -32,7 +33,7 @@ class RestClientErrorHandler : ResponseErrorHandler {
                 response.body.bufferedReader(StandardCharsets.UTF_8).readText().ifBlank {
                     response.statusText
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 log.error("Error reading response body", e)
                 "Failed to read response body"
             }

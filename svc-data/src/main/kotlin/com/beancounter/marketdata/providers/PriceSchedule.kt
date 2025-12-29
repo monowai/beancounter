@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.utils.DateUtils
+import io.sentry.spring.jakarta.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
@@ -24,6 +25,7 @@ class PriceSchedule(
         private val log = LoggerFactory.getLogger(PriceSchedule::class.java)
     }
 
+    @SentryTransaction(operation = "scheduled", name = "PriceSchedule.updatePrices")
     @Scheduled(
         cron = "#{@assetsSchedule}",
         zone = "#{@scheduleZone}"

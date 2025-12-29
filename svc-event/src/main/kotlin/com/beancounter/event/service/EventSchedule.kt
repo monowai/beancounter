@@ -2,6 +2,7 @@ package com.beancounter.event.service
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.utils.DateUtils
+import io.sentry.spring.jakarta.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -23,6 +24,7 @@ class EventSchedule(
         this.loginService = loginService
     }
 
+    @SentryTransaction(operation = "scheduled", name = "EventSchedule.processEventsForRange")
     @Scheduled(
         cron = "#{@eventsSchedule}",
         zone = "#{@scheduleZone}"

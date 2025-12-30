@@ -23,10 +23,12 @@ interface AssetRepository : CrudRepository<Asset, String> {
      * Excludes:
      * - Inactive assets (delisted, etc.)
      * - Assets with empty codes (data quality issues)
+     * - Private market assets (user-defined assets without external pricing)
      */
     @Query(
         "select a from Asset a where a.status = com.beancounter.common.model.Status.Active " +
-            "and a.code is not null and a.code <> ''"
+            "and a.code is not null and a.code <> '' " +
+            "and a.marketCode <> 'PRIVATE'"
     )
     fun findActiveAssetsForPricing(): Stream<Asset>
 

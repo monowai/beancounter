@@ -128,4 +128,45 @@ class AssetStatusTest {
             assertThat(assets.any { it.code == "NORMAL" }).isTrue()
         }
     }
+
+    @Test
+    fun `findActiveAssetsForPricing should exclude private market assets`() {
+        // Create a private market asset directly in repository
+        val privateMarket =
+            com.beancounter.common.model
+                .Market("PRIVATE")
+        val privateAsset =
+            assetRepository.save(
+                com.beancounter.common.model.Asset(
+                    code = "PRIVATE-ASSET",
+                    id = "private-asset-id",
+                    name = "Private Investment",
+                    market = privateMarket,
+                    marketCode = "PRIVATE",
+                    status = Status.Active
+                )
+            )
+
+        // Also create a normal tradeable asset
+        assetService.handle(
+            AssetRequest(
+                mapOf(
+                    "TRADEABLE" to
+                        AssetInput(
+                            NASDAQ.code,
+                            "TRADEABLE",
+                            name = "Tradeable Asset"
+                        )
+                )
+            )
+        )
+
+        // Verify private asset is excluded - use stream within transaction
+        assetFinder.findActiveAssetsForPricing().use { stream ->
+            val assets = stream.toList()
+            val ids = assets.map { it.id }
+            assertThat(ids).doesNotContain(privateAsset.id)
+            assertThat(assets.any { it.code == "TRADEABLE" }).isTrue()
+        }
+    }
 }

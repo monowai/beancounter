@@ -127,7 +127,7 @@ class TrnFxDefaultTests {
                 comments = "Comment"
             )
 
-        val trns = trnAdapter.convert(portfolio, TrnRequest(portfolio.id, arrayOf(trnInput)))
+        val trns = trnAdapter.convert(portfolio, TrnRequest(portfolio.id, listOf(trnInput)))
         assertThat(trns.size).isEqualTo(1)
         val trn = trns[0]
         assertThat(trn)

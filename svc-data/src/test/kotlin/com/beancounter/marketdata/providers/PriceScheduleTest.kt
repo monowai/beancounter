@@ -71,7 +71,7 @@ class PriceScheduleTest {
 
     @Test
     fun is_PriceUpdated() {
-        val code = "AMP"
+        val code = "AMPX"
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         mockMvc =
             MockMvcBuilders
@@ -80,7 +80,6 @@ class PriceScheduleTest {
                 .build()
 
         marketDataService.purge()
-        assetService.purge()
         val asxMarket =
             marketService.getMarket(
                 ASX.code,

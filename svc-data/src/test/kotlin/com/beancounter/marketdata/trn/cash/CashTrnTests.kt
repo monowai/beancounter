@@ -141,7 +141,7 @@ class CashTrnTests {
                 usPortfolio,
                 TrnRequest(
                     usPortfolio.id,
-                    arrayOf(cashDeposit)
+                    listOf(cashDeposit)
                 )
             )
         assertThat(trns).isNotNull.hasSize(1)
@@ -198,7 +198,7 @@ class CashTrnTests {
                 usPortfolio,
                 TrnRequest(
                     usPortfolio.id,
-                    arrayOf(buy)
+                    listOf(buy)
                 )
             )
         assertThat(trns).isNotNull.hasSize(1)

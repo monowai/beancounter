@@ -171,7 +171,7 @@ class TrnControllerTest {
             )
 
         // When the dividend transaction is saved
-        val existingTrns = arrayOf(trnInput)
+        val existingTrns = listOf(trnInput)
         val trnRequest = TrnRequest(portfolioA.id, existingTrns)
         trnService.save(portfolioA, trnRequest)
 

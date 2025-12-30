@@ -142,7 +142,7 @@ internal class TrnAdapterTest {
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(
@@ -233,7 +233,7 @@ internal class TrnAdapterTest {
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(
@@ -294,7 +294,7 @@ internal class TrnAdapterTest {
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(
@@ -350,7 +350,7 @@ internal class TrnAdapterTest {
         val trnRequest =
             TrnRequest(
                 portfolioId,
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         val trnResponse =
             trnAdapter.convert(

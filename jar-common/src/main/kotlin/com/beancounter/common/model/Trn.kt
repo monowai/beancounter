@@ -99,7 +99,7 @@ data class Trn(
     var comments: String? = null,
     var version: String = VERSION,
     @Enumerated(EnumType.STRING)
-    var status: TrnStatus = TrnStatus.CONFIRMED
+    var status: TrnStatus = TrnStatus.SETTLED
 ) {
     companion object {
         const val VERSION: String = "4"

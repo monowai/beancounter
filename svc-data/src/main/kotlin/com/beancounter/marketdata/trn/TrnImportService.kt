@@ -112,7 +112,7 @@ class TrnImportService(
         val trnRequest =
             TrnRequest(
                 portfolio.id,
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         return trnService.save(
             portfolio,

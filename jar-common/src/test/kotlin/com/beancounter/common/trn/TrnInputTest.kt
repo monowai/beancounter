@@ -68,7 +68,7 @@ internal class TrnInputTest {
         val trnRequest =
             TrnRequest(
                 abc.lowercase(Locale.getDefault()),
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         val json = BcJson.objectMapper.writeValueAsString(trnRequest)
         val fromJson =

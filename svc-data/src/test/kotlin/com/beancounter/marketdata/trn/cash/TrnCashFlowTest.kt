@@ -125,7 +125,7 @@ class TrnCashFlowTest {
                 portfolio,
                 TrnRequest(
                     portfolio.id,
-                    arrayOf(
+                    listOf(
                         TrnInput(
                             callerRef = CallerRef(),
                             trnType = TrnType.FX_BUY,
@@ -169,7 +169,7 @@ class TrnCashFlowTest {
                 portfolio,
                 TrnRequest(
                     portfolio.id,
-                    arrayOf(
+                    listOf(
                         TrnInput(
                             callerRef = CallerRef(),
                             trnType = TrnType.DEPOSIT,
@@ -213,7 +213,7 @@ class TrnCashFlowTest {
                 portfolio,
                 TrnRequest(
                     portfolio.id,
-                    arrayOf(
+                    listOf(
                         TrnInput(
                             callerRef = CallerRef(),
                             assetId = aapl.id,

@@ -13,6 +13,7 @@ import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
@@ -133,7 +134,8 @@ class TrnControllerFlowTest(
                 tradeCurrency = USD.code,
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal.ONE
+                tradePortfolioRate = BigDecimal.ONE,
+                status = TrnStatus.SETTLED
             )
 
         trnInputB =
@@ -147,7 +149,8 @@ class TrnControllerFlowTest(
                 tradeCashRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal.ONE,
                 tradeDate = dateUtils.getFormattedDate(TRADE_DATE),
-                price = BigDecimal.TEN
+                price = BigDecimal.TEN,
+                status = TrnStatus.SETTLED
             )
 
         val earlyTradeDate = "2017-01-01"
@@ -162,7 +165,8 @@ class TrnControllerFlowTest(
                 tradeCashRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal.ONE,
                 tradeDate = dateUtils.getFormattedDate(earlyTradeDate),
-                price = BigDecimal.TEN
+                price = BigDecimal.TEN,
+                status = TrnStatus.SETTLED
             )
 
         trnInputD =
@@ -176,7 +180,8 @@ class TrnControllerFlowTest(
                 tradeCashRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal.ONE,
                 tradeDate = dateUtils.getFormattedDate(earlyTradeDate),
-                price = BigDecimal.TEN
+                price = BigDecimal.TEN,
+                status = TrnStatus.SETTLED
             )
     }
 
@@ -211,7 +216,7 @@ class TrnControllerFlowTest(
         val trnRequest =
             TrnRequest(
                 portfolio.id,
-                arrayOf(
+                listOf(
                     trnInputA,
                     trnInputB,
                     trnInputC,

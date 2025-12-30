@@ -149,7 +149,7 @@ class RealEstateTrnTests {
                 portfolio,
                 TrnRequest(
                     portfolio.id,
-                    arrayOf(
+                    listOf(
                         purchase,
                         reduce,
                         increase

@@ -698,7 +698,7 @@ class RealestateBase {
             portfolio,
             TrnRequest(
                 portfolio.id,
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         )
 }

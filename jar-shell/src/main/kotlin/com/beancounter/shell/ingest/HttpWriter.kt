@@ -54,7 +54,7 @@ class HttpWriter(
                 val trnRequest =
                     TrnRequest(
                         portfolio!!.id,
-                        trnInputs.toTypedArray()
+                        trnInputs.toList()
                     )
                 val (data) = trnService.write(trnRequest)
                 log.info(

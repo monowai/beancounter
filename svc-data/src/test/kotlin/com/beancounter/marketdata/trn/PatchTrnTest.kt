@@ -124,7 +124,7 @@ class PatchTrnTest {
         val transactionRequest =
             TrnRequest(
                 portfolio.id,
-                arrayOf(trnInput)
+                listOf(trnInput)
             )
         val httpResponse = bcMvcHelper.postTrn(transactionRequest).response.contentAsString
         return objectMapper.readValue(

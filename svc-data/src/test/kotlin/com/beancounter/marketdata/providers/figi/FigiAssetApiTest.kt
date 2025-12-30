@@ -194,7 +194,7 @@ class FigiAssetApiTest {
                 BRK_B
             ).hasFieldOrPropertyWithValue(
                 P_NAME,
-                "BERKSHIRE HATHAWAY INC-CL B"
+                "Berkshire Hathaway Inc."
             )
     }
 

@@ -1,6 +1,129 @@
 {
     "properties": [
         {
+            "name": "beancounter.currency.values",
+            "type": "java.util.Collection<com.beancounter.common.model.Currency>",
+            "description": "List of supported currencies."
+        },
+        {
+            "name": "beancounter.currency.values[].code",
+            "type": "java.lang.String",
+            "description": "ISO currency code (e.g., USD, GBP, EUR)."
+        },
+        {
+            "name": "beancounter.currency.values[].name",
+            "type": "java.lang.String",
+            "description": "Currency display name."
+        },
+        {
+            "name": "beancounter.currency.values[].symbol",
+            "type": "java.lang.String",
+            "description": "Currency symbol (e.g., $, £, €)."
+        },
+        {
+            "name": "beancounter.market.values",
+            "type": "java.util.Collection<com.beancounter.common.model.Market>",
+            "description": "List of supported markets/exchanges."
+        },
+        {
+            "name": "beancounter.market.values[].code",
+            "type": "java.lang.String",
+            "description": "Market code (e.g., NYSE, NASDAQ, ASX)."
+        },
+        {
+            "name": "beancounter.market.values[].name",
+            "type": "java.lang.String",
+            "description": "Market display name."
+        },
+        {
+            "name": "beancounter.market.values[].currencyId",
+            "type": "java.lang.String",
+            "description": "Default currency code for the market."
+        },
+        {
+            "name": "beancounter.market.values[].timezoneId",
+            "type": "java.lang.String",
+            "description": "Timezone ID for the market (e.g., US/Eastern)."
+        },
+        {
+            "name": "beancounter.market.values[].aliases",
+            "type": "java.util.Map<java.lang.String, java.lang.String>",
+            "description": "Market code aliases for different providers."
+        },
+        {
+            "name": "beancounter.market.values[].enricher",
+            "type": "java.lang.String",
+            "description": "Asset enricher to use for this market."
+        },
+        {
+            "name": "beancounter.market.values[].multiplier",
+            "type": "java.math.BigDecimal",
+            "description": "Price multiplier (e.g., 0.01 for pence to pounds)."
+        },
+        {
+            "name": "beancounter.market.values[].type",
+            "type": "java.lang.String",
+            "description": "Market type (e.g., Internal, Private, Fund)."
+        },
+        {
+            "name": "beancounter.market.providers",
+            "type": "java.util.Map<java.lang.String, java.lang.Object>",
+            "description": "Market data provider configurations."
+        },
+        {
+            "name": "beancounter.asset.categories.values",
+            "type": "java.util.Collection<com.beancounter.common.model.AssetCategory>",
+            "description": "List of asset categories."
+        },
+        {
+            "name": "beancounter.asset.categories.values[].id",
+            "type": "java.lang.String",
+            "description": "Category identifier."
+        },
+        {
+            "name": "beancounter.asset.categories.values[].name",
+            "type": "java.lang.String",
+            "description": "Category display name."
+        },
+        {
+            "name": "beancounter.asset.categories.default",
+            "type": "java.lang.String",
+            "description": "Default asset category.",
+            "defaultValue": "EQUITY"
+        },
+        {
+            "name": "beancounter.calendar.values",
+            "type": "java.util.List<com.beancounter.marketdata.markets.MarketHolidayAnnual>",
+            "description": "List of market holidays."
+        },
+        {
+            "name": "beancounter.calendar.values[].day",
+            "type": "java.lang.Integer",
+            "description": "Day of month (1-31)."
+        },
+        {
+            "name": "beancounter.calendar.values[].month",
+            "type": "java.lang.String",
+            "description": "Month number (1-12)."
+        },
+        {
+            "name": "beancounter.calendar.values[].year",
+            "type": "java.lang.String",
+            "description": "Year or '*' for all years.",
+            "defaultValue": "*"
+        },
+        {
+            "name": "beancounter.calendar.values[].markets",
+            "type": "java.util.List<java.lang.String>",
+            "description": "List of market codes this holiday applies to."
+        },
+        {
+            "name": "beancounter.events.dividend.days-to-add",
+            "type": "java.lang.Integer",
+            "description": "Days to add to record date to calculate pay date.",
+            "defaultValue": 10
+        },
+        {
             "name": "otel.traces.exporter",
             "type": "java.lang.String",
             "description": "OpenTelemetry traces exporter (none, otlp, jaeger, zipkin).",

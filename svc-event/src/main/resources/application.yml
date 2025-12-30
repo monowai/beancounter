@@ -86,6 +86,11 @@ spring:
     name: bc-event
   cache:
     cache-names: auth.m2m
+  flyway:
+    enabled: false  # Disabled for H2, enable in local profile for PostgreSQL
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
   datasource:
     username: sa
     password:

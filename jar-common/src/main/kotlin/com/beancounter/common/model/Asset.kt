@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -40,6 +42,7 @@ data class Asset(
             category
         ),
     @ManyToOne val systemUser: SystemUser? = null,
+    @Enumerated(EnumType.STRING)
     val status: Status = Status.Active,
     var version: String = "1",
     /**

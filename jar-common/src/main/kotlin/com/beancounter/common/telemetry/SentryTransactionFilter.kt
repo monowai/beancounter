@@ -3,7 +3,6 @@ package com.beancounter.common.telemetry
 import io.sentry.Hint
 import io.sentry.SentryOptions
 import io.sentry.protocol.SentryTransaction
-import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
@@ -24,8 +23,6 @@ import org.springframework.stereotype.Component
     havingValue = "true"
 )
 class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
-    private val log = LoggerFactory.getLogger(SentryTransactionFilter::class.java)
-
     private val filterPatterns =
         listOf(
             // Actuator / management endpoints (any context path)
@@ -66,15 +63,15 @@ class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
         val targetToCheck = httpTarget ?: transactionName
 
         // Debug: log what we're checking
-        log.trace(
-            "Sentry filter check - target: {}, name: {}, shouldFilter: {}",
-            httpTarget,
-            transactionName,
-            shouldFilter(targetToCheck)
-        )
+        // log.trace(
+        //     "Sentry filter check - target: {}, name: {}, shouldFilter: {}",
+        //     httpTarget,
+        //     transactionName,
+        //     shouldFilter(targetToCheck)
+        // )
 
         return if (shouldFilter(targetToCheck)) {
-            log.trace("Filtering transaction: {} (name: {})", httpTarget, transactionName)
+            // log.trace("Filtering transaction: {} (name: {})", httpTarget, transactionName)
             null
         } else {
             transaction
@@ -100,8 +97,8 @@ class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
                     ?: attributes?.get("url.path")
                     ?: attributes?.get("url.full")
             )?.toString()
-        } catch (e: Exception) {
-            log.debug("Could not extract http.target from transaction: {}", e.message)
+        } catch (_: Exception) {
+            // log.debug("Could not extract http.target from transaction: {}", e.message)
             null
         }
     }

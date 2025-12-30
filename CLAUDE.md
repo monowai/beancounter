@@ -178,12 +178,12 @@ To switch from RabbitMQ to Kafka:
 
 ## Local Service Ports
 
-| Service      | API Port | Management Port | OpenAPI Specs                          |
-|--------------|----------|-----------------|----------------------------------------|
-| svc-data     | 9510     | 9511            | http://localhost:9511/actuator/openapi |
-| svc-position | 9500     | 9501            | http://localhost:9501/actuator/openapi |
-| svc-event    | 9520     | 9521            | http://localhost:9521/actuator/openapi |
-| svc-agent    | 9530     | 9531            | -                                      |
+| Service      | API Port | Management Port | OpenAPI Specs                            |
+|--------------|----------|-----------------|------------------------------------------|
+| svc-data     | 9510     | 9511            | <http://localhost:9511/actuator/openapi> |
+| svc-position | 9500     | 9501            | <http://localhost:9501/actuator/openapi> |
+| svc-event    | 9520     | 9521            | <http://localhost:9521/actuator/openapi> |
+| svc-agent    | 9530     | 9531            | -                                        |
 
 ## Development Workflow
 
@@ -212,40 +212,54 @@ Services require JWT token authentication via Auth0:
 - **Code Quality**: Kotlinter (formatting), Detekt (static analysis)
 - **API Documentation**: SpringDoc OpenAPI 3
 
-## Critical: Enum Ordering Rules
+## Database Migrations (Flyway)
 
-### ⚠️ NEVER insert new enum values in the middle of an existing enum
+The project uses **Flyway** for database schema migrations.
 
-When adding new values to enums (especially `TrnType`), **always add them at the END**.
+### Migration Locations
 
-**Why this matters:**
-- Enum ordinals are used for serialization in some contexts
-- Inserting values in the middle shifts all subsequent ordinal positions
-- This causes deserialization to map old values to wrong enum constants
-- Example: If DIVI was ordinal 5, inserting INCOME before it makes DIVI ordinal 6
-- Old serialized DIVI (5) would then deserialize as INCOME - causing silent data corruption
+- `svc-data/src/main/resources/db/migration/` - PostgreSQL migrations
+- `svc-event/src/main/resources/db/migration/` - PostgreSQL migrations (when using PostgreSQL)
 
-**Correct approach:**
-```kotlin
-enum class TrnType {
-    SELL,       // 0 - existing
-    BUY,        // 1 - existing
-    DIVI,       // 2 - existing
-    NEW_TYPE    // 3 - ADD NEW VALUES AT THE END
-}
+### Configuration
+
+- **Production/Local PostgreSQL**: Flyway enabled, runs migrations on startup
+- **H2 Testing**: Flyway disabled (H2 uses Hibernate DDL auto-generation)
+
+### Local Development Setup
+
+For local development with PostgreSQL:
+
+```bash
+# Create local databases (one-time)
+psql -U postgres -c "CREATE DATABASE \"bc-dev\";"
+psql -U postgres -c "CREATE DATABASE \"ev-dev\";"
+
+# Optional: Copy production data
+pg_dump -h kauri.monowai.com -U postgres bc | psql -U postgres bc-dev
+pg_dump -h kauri.monowai.com -U postgres ev | psql -U postgres ev-dev
 ```
 
-**Wrong approach:**
-```kotlin
-enum class TrnType {
-    SELL,       // 0
-    NEW_TYPE,   // 1 - WRONG! This shifts BUY and DIVI
-    BUY,        // 2 - was 1, now broken
-    DIVI        // 3 - was 2, now broken
-}
-```
+Run services with local profile: `--spring.profiles.active=local`
 
-This rule applies to all enums that may be serialized or stored in databases.
+## Enum Storage
+
+### TrnType and TrnStatus
+
+Both `TrnType` and `TrnStatus` enums are stored as **STRING** values in the database using
+`@Enumerated(EnumType.STRING)`. This was migrated from ordinal storage via Flyway V1.
+
+**Benefits:**
+
+- Human-readable database values (e.g., "BUY", "SELL" instead of 0, 1)
+- New enum values can be added anywhere (order doesn't matter for persistence)
+- No risk of data corruption from enum reordering
+
+**Adding new enum values:**
+
+- New values can be added anywhere in the enum definition
+- Adding at the end is still recommended for consistency
+- No database migration needed for additions (STRING storage handles new values automatically)
 
 ## Related Repositories
 

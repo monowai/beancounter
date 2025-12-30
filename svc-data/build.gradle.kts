@@ -58,6 +58,8 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("com.h2database:h2") // Dev
     implementation(libs.postgresql)
+    implementation(libs.flyway.core)
+    runtimeOnly(libs.flyway.postgresql)
     implementation(libs.spring.cloud.stream)
     implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.cloud.stream.binder.rabbit)

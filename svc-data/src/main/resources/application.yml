@@ -148,6 +148,11 @@ spring:
     name: bc-data
   cache:
     cache-names: system.user, asset.prices, asset.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
+  flyway:
+    enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
   datasource:
     hikari:
       leak-detection-threshold: 20000

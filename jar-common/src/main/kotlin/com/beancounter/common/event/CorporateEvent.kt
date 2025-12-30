@@ -9,6 +9,8 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
@@ -22,6 +24,7 @@ import java.time.LocalDate
  */
 data class CorporateEvent(
     @Id val id: String? = null,
+    @Enumerated(EnumType.STRING)
     val trnType: TrnType = TrnType.DIVI,
     val source: String = "ALPHA",
     var assetId: String,

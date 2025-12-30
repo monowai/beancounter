@@ -7,38 +7,38 @@ import org.junit.jupiter.api.Test
 /**
  * Tests for TrnType enum stability.
  *
- * CRITICAL: These tests protect against accidentally breaking database serialization.
- * If you need to add new TrnType values, add them at the END of the enum and add
- * corresponding assertions here. NEVER insert values in the middle.
- *
- * See CLAUDE.md "Critical: Enum Ordering Rules" for details.
+ * NOTE: As of the Flyway migration V1, TrnType is now stored as STRING in the database
+ * using @Enumerated(EnumType.STRING). The ordinal position no longer matters for persistence.
+ * New values can be added anywhere in the enum, though adding at the end is still recommended
+ * for consistency.
  */
 class TrnTypeTest {
     @Test
-    fun `enum ordinals must not change for backward compatibility`() {
-        // These ordinal values are persisted in the database.
-        // Changing them will cause existing transactions to be misinterpreted.
-        // If this test fails, you likely inserted a new enum value in the wrong position.
-        // New values MUST be added at the END of the enum.
-        assertThat(TrnType.SELL.ordinal).isEqualTo(0)
-        assertThat(TrnType.BUY.ordinal).isEqualTo(1)
-        assertThat(TrnType.SPLIT.ordinal).isEqualTo(2)
-        assertThat(TrnType.DEPOSIT.ordinal).isEqualTo(3)
-        assertThat(TrnType.WITHDRAWAL.ordinal).isEqualTo(4)
-        assertThat(TrnType.DIVI.ordinal).isEqualTo(5)
-        assertThat(TrnType.FX_BUY.ordinal).isEqualTo(6)
-        assertThat(TrnType.IGNORE.ordinal).isEqualTo(7)
-        assertThat(TrnType.BALANCE.ordinal).isEqualTo(8)
-        assertThat(TrnType.ADD.ordinal).isEqualTo(9)
-        assertThat(TrnType.INCOME.ordinal).isEqualTo(10)
-        assertThat(TrnType.DEDUCTION.ordinal).isEqualTo(11)
-        assertThat(TrnType.REDUCE.ordinal).isEqualTo(12)
+    fun `enum values are defined correctly`() {
+        // Verify all expected enum values exist
+        val expectedValues =
+            listOf(
+                "SELL",
+                "BUY",
+                "SPLIT",
+                "DEPOSIT",
+                "WITHDRAWAL",
+                "DIVI",
+                "FX_BUY",
+                "IGNORE",
+                "BALANCE",
+                "ADD",
+                "INCOME",
+                "DEDUCTION",
+                "REDUCE"
+            )
+        val actualValues = TrnType.entries.map { it.name }
+        assertThat(actualValues).containsExactlyInAnyOrderElementsOf(expectedValues)
     }
 
     @Test
     fun `enum count must match expected to detect additions`() {
         // Update this count when adding new TrnType values.
-        // This ensures new values are consciously added with ordinal assertions above.
         assertThat(TrnType.entries).hasSize(13)
     }
 

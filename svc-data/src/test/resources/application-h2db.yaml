@@ -1,19 +1,18 @@
 server:
   port: 0
 
-jpa:
-  datasource:
-    username: sa
-    password:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
-    #url: jdbc:sqlite:memory:myDb?cache=shared
-
 stream:
   enabled: false
 cache:
   enabled: false
 
 spring:
+  flyway:
+    enabled: false
+  datasource:
+    username: sa
+    password:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
   cloud:
     function:
       definition: ""

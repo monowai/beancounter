@@ -5,6 +5,8 @@ stream:
   enabled: true
 
 spring:
+  flyway:
+    enabled: false
   cloud:
     function:
       # Only enable portfolio consumer for lightweight Test Binder tests
@@ -20,8 +22,6 @@ spring:
         corporateEvent-out-0:
           destination: test-ca-event
           content-type: application/json
-
-jpa:
   datasource:
     username: sa
     password:

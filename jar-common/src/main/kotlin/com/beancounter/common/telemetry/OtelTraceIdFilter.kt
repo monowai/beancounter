@@ -28,20 +28,18 @@ private const val SPAN_ID = "spanId"
     havingValue = "true"
 )
 class OtelTraceIdFilter : OncePerRequestFilter() {
-    private val log = org.slf4j.LoggerFactory.getLogger(OtelTraceIdFilter::class.java)
-
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
         try {
-            val (traceId, spanId, source) = getTraceContext()
+            val (traceId, spanId, _) = getTraceContext()
             MDC.put(TRACE_ID, traceId)
             MDC.put(SPAN_ID, spanId)
-            if (traceId.isNotEmpty()) {
-                log.trace("MDC set from {} - traceId: {}, spanId: {}", source, traceId, spanId)
-            }
+            // if (traceId.isNotEmpty()) {
+            //     log.trace("MDC set from {} - traceId: {}, spanId: {}", source, traceId, spanId)
+            // }
             filterChain.doFilter(request, response)
         } finally {
             MDC.remove(TRACE_ID)

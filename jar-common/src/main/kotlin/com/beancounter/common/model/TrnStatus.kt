@@ -8,5 +8,6 @@ package com.beancounter.common.model
  */
 enum class TrnStatus {
     CONFIRMED,
-    PROPOSED
+    PROPOSED,
+    SETTLED
 }

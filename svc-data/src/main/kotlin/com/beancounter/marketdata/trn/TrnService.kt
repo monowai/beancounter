@@ -7,6 +7,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnStatus
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -102,6 +103,7 @@ class TrnService(
             trnRepository.findByPortfolioId(
                 portfolio.id,
                 tradeDate,
+                TrnStatus.SETTLED,
                 Sort.by("tradeDate").and(Sort.by("asset.code"))
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")

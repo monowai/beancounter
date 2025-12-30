@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.Query
@@ -12,14 +13,20 @@ import java.util.Optional
  * CRUD Repo for business transactions.
  */
 interface TrnRepository : CrudRepository<Trn, String> {
+    /**
+     * Find transactions for position building. Only SETTLED transactions are included
+     * in holdings calculations.
+     */
     @Query(
         "select t from Trn t " +
             "where t.portfolio.id =?1  " +
-            "and t.tradeDate <= ?2"
+            "and t.tradeDate <= ?2 " +
+            "and t.status = ?3"
     )
     fun findByPortfolioId(
         portfolioId: String,
         tradeDate: LocalDate,
+        status: TrnStatus,
         sort: Sort
     ): Collection<Trn>
 

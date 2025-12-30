@@ -151,7 +151,7 @@ spring:
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true
-    baseline-version: 0
+    baseline-version: 1
     locations: classpath:db/migration
   datasource:
     hikari:

@@ -137,7 +137,7 @@ Portfolio Updates:
 
 - `KafkaTrnProducer` (StreamBridge): Sends CSV imports via `csvImport-out-0` (disabled by default)
 
-### Configuration
+### Service Configuration
 
 Bindings are configured in each service's `application.yml`:
 
@@ -221,7 +221,7 @@ The project uses **Flyway** for database schema migrations.
 - `svc-data/src/main/resources/db/migration/` - PostgreSQL migrations
 - `svc-event/src/main/resources/db/migration/` - PostgreSQL migrations (when using PostgreSQL)
 
-### Configuration
+### DB Configuration
 
 - **Production/Local PostgreSQL**: Flyway enabled, runs migrations on startup
 - **H2 Testing**: Flyway disabled (H2 uses Hibernate DDL auto-generation)

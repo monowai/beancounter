@@ -1,0 +1,15 @@
+---
+# Codacy configuration
+# https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+
+engines:
+  # Disable TSQLLint - it's for SQL Server, not PostgreSQL
+  tsqllint:
+    enabled: false
+
+exclude_paths:
+  # Exclude generated files
+  - "**/build/**"
+  - "**/generated/**"
+  # Exclude AI assistant instructions
+  - "CLAUDE.md"

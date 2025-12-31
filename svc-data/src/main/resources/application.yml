@@ -176,26 +176,31 @@ spring:
         stdio: false
         sse-message-endpoint: /mcp/message
 
+# Resilience4j configuration
+# Defaults are conservative for local development/free tier APIs
+# Production overrides via environment variables in bc-deploy/env/kauri.yaml
 resilience4j:
   ratelimiter:
     instances:
+      # AlphaVantage: Free tier = 25/day, Standard = 5/min, Premium = 75/min
+      # Limit to 5 requests per second to prevent burst detection
       alphaVantage:
         registerHealthIndicator: false
         limitForPeriod: 5
         limitRefreshPeriod: 1s
-        timeoutDuration: 60s
+        timeoutDuration: 120s
         eventConsumerBufferSize: 200
       morningstar:
         registerHealthIndicator: false
-        limitForPeriod: 2
-        limitRefreshPeriod: 1s
-        timeoutDuration: 30s
+        limitForPeriod: 10
+        limitRefreshPeriod: 60s
+        timeoutDuration: 60s
         eventConsumerBufferSize: 100
       fxRates:
         registerHealthIndicator: false
-        limitForPeriod: 5
-        limitRefreshPeriod: PT2S
-        timeoutDuration: PT5S
+        limitForPeriod: 10
+        limitRefreshPeriod: 60s
+        timeoutDuration: 60s
         eventConsumerBufferSize: 200
 
   circuitbreaker:
@@ -212,7 +217,7 @@ resilience4j:
     instances:
       backend:
         maxRetryAttempts: 3
-        waitDuration: PT10S
+        waitDuration: 10s
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
 

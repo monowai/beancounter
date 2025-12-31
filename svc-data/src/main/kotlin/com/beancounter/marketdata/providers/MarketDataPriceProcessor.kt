@@ -216,7 +216,7 @@ class MarketDataPriceProcessor(
      */
     private fun logPriceResults(priceResults: PriceResults) {
         if (priceResults.foundInDb.size + priceResults.foundOverApi.size > 1) {
-            log.debug(
+            log.trace(
                 "From DB: ${priceResults.foundInDb.size}, " +
                     "from API: ${priceResults.foundOverApi.size}, " +
                     "custom prices: ${priceResults.customPrice.size}"

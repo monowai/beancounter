@@ -174,24 +174,27 @@ beancounter:
       # Also used for event scanning window (+/- days from current date).
       days-to-add: 10
 
-resilience4j.ratelimiter:
-  instances:
-    positions:
-      registerHealthIndicator: false
-      limitForPeriod: 60
-      limitRefreshPeriod: 65s
-      timeoutDuration: 80s
-      eventConsumerBufferSize: 200
+# Resilience4j configuration for svc-event
+# Rate limiting for calls to position service
+resilience4j:
+  ratelimiter:
+    instances:
+      positions:
+        registerHealthIndicator: false
+        limitForPeriod: 60
+        limitRefreshPeriod: 60s
+        timeoutDuration: 120s
+        eventConsumerBufferSize: 200
 
-resilience4j.circuitbreaker:
-  configs:
-    default:
-      failureRateThreshold: 50
-      slidingWindowSize: 20
-      permittedNumberOfCallsInHalfOpenState: 5
-      slidingWindowType: COUNT_BASED
-      waitDurationInOpenState: 30s
-      registerHealthIndicator: true
-      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 50
+        slidingWindowSize: 20
+        permittedNumberOfCallsInHalfOpenState: 5
+        slidingWindowType: COUNT_BASED
+        waitDurationInOpenState: 30s
+        registerHealthIndicator: true
+        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
 
 

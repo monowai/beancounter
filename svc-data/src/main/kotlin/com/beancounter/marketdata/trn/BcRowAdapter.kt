@@ -8,6 +8,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
@@ -86,6 +87,7 @@ class BcRowAdapter(
         val tradeAmount = MathUtils.nullSafe(MathUtils.parse(row[Columns.TradeAmount.ordinal]))
         val tradeCurrency = getTradeCurrency(row, asset)
         val cashCurrency = row[Columns.CashCurrency.ordinal].trim()
+        val status = getStatus(row)
 
         return TrnInput(
             callerRef =
@@ -106,8 +108,22 @@ class BcRowAdapter(
             cashAssetId = cashAssetId,
             fees = fees,
             price = price,
-            comments = row[Columns.Comments.ordinal]
+            comments = row[Columns.Comments.ordinal],
+            status = status
         )
+    }
+
+    private fun getStatus(row: List<String>): TrnStatus {
+        // Handle backwards compatibility: if status column doesn't exist or is empty, default to SETTLED
+        if (row.size <= Columns.Status.ordinal) {
+            return TrnStatus.SETTLED
+        }
+        val statusValue = row[Columns.Status.ordinal].trim()
+        return if (statusValue.isEmpty()) {
+            TrnStatus.SETTLED
+        } else {
+            TrnStatus.valueOf(statusValue)
+        }
     }
 
     private fun getTradeCurrency(

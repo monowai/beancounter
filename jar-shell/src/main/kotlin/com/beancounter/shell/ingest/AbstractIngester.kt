@@ -40,12 +40,7 @@ abstract class AbstractIngester : Ingester {
         val portfolio = portfolioService.getPortfolioByCode(ingestionRequest.portfolioCode!!)
         val writer =
             getWriter(ingestionRequest.writer)
-                ?: throw BusinessException(
-                    String.format(
-                        "Unable to resolve the Writer %s",
-                        ingestionRequest.writer
-                    )
-                )
+                ?: throw BusinessException("Unable to resolve the Writer ${ingestionRequest.writer}")
         prepare(
             ingestionRequest,
             writer

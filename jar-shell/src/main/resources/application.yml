@@ -55,14 +55,14 @@ logging:
   pattern:
     console: "%d - %m%n"
 
-    # http://localhost:9500/actuator/circuitbreaker-events/marketdata
-
+# Resilience4j configuration for jar-shell (CLI batch processing)
+# Circuit breaker events: http://localhost:9500/actuator/circuitbreaker-events/marketdata
 resilience4j:
   retry:
     configs:
       default:
         maxRetryAttempts: 10
-        waitDuration: 700
+        waitDuration: 1s
         ignoreExceptions:
           - com.beancounter.common.exception.BusinessException
           - io.github.resilience4j.circuitbreaker.CallNotPermittedException

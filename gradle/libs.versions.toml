@@ -33,6 +33,7 @@ servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "s
 otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.23.0" }
 resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.3.0" }
 resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.3.0" }
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version = "2.3.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.18.0" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test", version.ref = "spring-kafka" }

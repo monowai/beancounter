@@ -62,29 +62,32 @@ logging:
       apache: error
       postgres: error
 
-resilience4j.circuitbreaker:
-  configs:
-    default:
-      failureRateThreshold: 3
-      slidingWindowSize: 10
-      permittedNumberOfCallsInHalfOpenState: 3
-      slidingWindowType: TIME_BASED
-      waitDurationInOpenState: 5s
-      registerHealthIndicator: true
-      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+# Resilience4j configuration for svc-agent
+# Circuit breaker and retry for calls to bc-data, bc-event, bc-position
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 3
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: TIME_BASED
+        waitDurationInOpenState: 5s
+        registerHealthIndicator: true
+        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
 
-resilience4j.retry:
-  configs:
-    default:
-      maxRetryAttempts: 3
-      waitDuration: 20s
-      enableExponentialBackoff: true
-      exponentialBackoffMultiplier: 2
-      retryExceptions:
-        - org.springframework.web.client.HttpServerErrorException
-        - java.io.IOException
-      ignoreExceptions:
-        - com.beancounter.common.exception.BusinessException
+  retry:
+    configs:
+      default:
+        maxRetryAttempts: 3
+        waitDuration: 10s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+        ignoreExceptions:
+          - com.beancounter.common.exception.BusinessException
     instances:
       bcData:
         baseConfig: default

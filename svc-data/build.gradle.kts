@@ -53,8 +53,7 @@ dependencies {
     implementation(libs.spring.boot.starter.integration)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation(libs.resilience4j)
-    implementation(libs.resilience4j.annotations)
+    implementation(libs.resilience4j.spring.boot3)
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("com.h2database:h2") // Dev
     implementation(libs.postgresql)

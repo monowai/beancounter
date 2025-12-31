@@ -38,12 +38,12 @@ class TrnQueryService(
                     assetId,
                     tradeDate
                 )
-        log.debug(
-            "count: {}, portfolio: {}, asset: {}",
-            results.size,
-            portfolio.code,
-            assetId
-        )
+        // log.debug(
+        //     "count: {}, portfolio: {}, asset: {}",
+        //     results.size,
+        //     portfolio.code,
+        //     assetId
+        // )
         return trnService.postProcess(
             results,
             false

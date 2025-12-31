@@ -66,10 +66,7 @@ class PortfolioCommands(
             portfolio = portfolioService.getPortfolioByCode(code)
             return writer.writeValueAsString(portfolio)
         } catch (e: BusinessException) {
-            log.info(
-                "Creating portfolio {}",
-                code
-            )
+            log.info("Portfolio {} not found ({}), creating new one", code, e.message)
         }
         val portfoliosRequest =
             PortfoliosRequest(

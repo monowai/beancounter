@@ -183,11 +183,12 @@ resilience4j:
   ratelimiter:
     instances:
       # AlphaVantage: Free tier = 25/day, Standard = 5/min, Premium = 75/min
-      # Limit to 5 requests per second to prevent burst detection
+      # Spread requests evenly - 1 request per 12 seconds (5/min for Standard tier)
+      # Production override for Premium: limitForPeriod=75, limitRefreshPeriod=60s
       alphaVantage:
         registerHealthIndicator: false
-        limitForPeriod: 5
-        limitRefreshPeriod: 1s
+        limitForPeriod: 1
+        limitRefreshPeriod: 12s
         timeoutDuration: 120s
         eventConsumerBufferSize: 200
       morningstar:
@@ -283,6 +284,17 @@ beancounter:
         markets:
           - "US"
           - "ASX"
+          - "SGX"
+      - day: "01"
+        month: "01"
+        markets:
+          - "US"
+          - "ASX"
+          - "SGX"
+      - day: "04"
+        month: "07"
+        markets:
+          - "US"
   market:
     values:
       - code: "CASH"

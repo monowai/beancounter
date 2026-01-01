@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
@@ -38,6 +39,7 @@ import java.math.BigDecimal
 @ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockMvc
 @AutoConfigureMockAuth
 class AlphaApiErrorTest {
     private val api = "API"

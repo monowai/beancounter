@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
@@ -52,6 +53,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
@@ -59,16 +61,12 @@ import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 
 /**
  * AlphaApi business functional
@@ -76,13 +74,12 @@ import org.springframework.web.context.WebApplicationContext
  * @author mikeh
  * @since 2019-03-04
  */
-@SpringBootTest(classes = [MarketDataBoot::class, MockAuthConfig::class])
-@ActiveProfiles(
-    "h2db",
-    "alpha"
-)
+@SpringBootTest(classes = [MarketDataBoot::class])
+@ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockMvc
+@AutoConfigureMockAuth
 internal class AlphaPriceApiTest {
     @MockitoBean
     private lateinit var dateUtils: DateUtils
@@ -111,11 +108,10 @@ internal class AlphaPriceApiTest {
     @Autowired
     private lateinit var assetService: AssetService
 
-    @Autowired
-    private lateinit var context: WebApplicationContext
-
     @MockitoSpyBean
     private lateinit var mockEventProducer: EventProducer
+
+    @Autowired
     private lateinit var mockMvc: MockMvc
     private lateinit var token: Jwt
 
@@ -123,18 +119,9 @@ internal class AlphaPriceApiTest {
     fun mockServices() {
         DateUtilsMocker.mockToday(dateUtils)
         mockAlphaAssets()
-        mockMvc =
-            MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-                .build()
-
         // Set up a user account
         token = mockAuthConfig.getUserToken(Constants.systemUser)
-        RegistrationUtils.registerUser(
-            mockMvc,
-            token
-        )
+        RegistrationUtils.registerUser(mockMvc, token)
     }
 
     private val amp = "AMP"

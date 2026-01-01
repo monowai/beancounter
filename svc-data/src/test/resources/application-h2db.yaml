@@ -6,6 +6,23 @@ stream:
 cache:
   enabled: false
 
+# Disable rate limiting for tests - using WireMock stubs, not real APIs
+resilience4j:
+  ratelimiter:
+    instances:
+      alphaVantage:
+        limitForPeriod: 1000
+        limitRefreshPeriod: 1s
+        timeoutDuration: 1s
+      morningstar:
+        limitForPeriod: 1000
+        limitRefreshPeriod: 1s
+        timeoutDuration: 1s
+      fxRates:
+        limitForPeriod: 1000
+        limitRefreshPeriod: 1s
+        timeoutDuration: 1s
+
 spring:
   flyway:
     enabled: false

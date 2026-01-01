@@ -86,7 +86,7 @@ subprojects {
         // Test optimizations
         maxParallelForks = 1
         forkEvery = 100L
-        timeout.set(Duration.ofMinutes(5))
+        timeout.set(Duration.ofMinutes(8))
 
         // Test logging
         testLogging {

@@ -2,7 +2,7 @@ package com.beancounter.event.service
 
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.event.CorporateEvent
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
@@ -157,15 +157,15 @@ class EventServiceTest {
     }
 
     @Test
-    fun `should throw business exception when event not found by ID`() {
+    fun `should throw NotFoundException when event not found by ID`() {
         // Given
         val eventId = "non-existent-event"
         whenever(eventRepository.findById(eventId)).thenReturn(Optional.empty())
 
         // When & Then
         assertThatThrownBy { eventService[eventId] }
-            .isInstanceOf(BusinessException::class.java)
-            .hasMessage("Not found $eventId")
+            .isInstanceOf(NotFoundException::class.java)
+            .hasMessage("Event not found: $eventId")
     }
 
     @Test

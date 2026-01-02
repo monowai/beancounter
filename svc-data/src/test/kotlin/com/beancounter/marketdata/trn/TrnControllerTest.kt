@@ -200,7 +200,7 @@ class TrnControllerTest {
     }
 
     @Test
-    fun `should return bad request when retrieving transaction with invalid ID`() {
+    fun `should return not found when retrieving transaction with invalid ID`() {
         // Given a portfolio and an invalid transaction ID
         bcMvcHelper.portfolio(
             PortfolioInput(
@@ -215,13 +215,13 @@ class TrnControllerTest {
             .perform(
                 get("$TRNS_ROOT/{trnId}", "x123x")
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()
     }
 
     @Test
-    fun `should return bad request when deleting transaction with invalid ID`() {
+    fun `should return not found when deleting transaction with invalid ID`() {
         // Given an invalid transaction ID
         val invalidTrnId = "illegalTrnId"
 
@@ -230,7 +230,7 @@ class TrnControllerTest {
             .perform(
                 delete("$TRNS_ROOT/{trnId}", invalidTrnId)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()
     }

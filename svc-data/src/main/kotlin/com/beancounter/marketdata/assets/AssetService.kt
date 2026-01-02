@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
@@ -163,7 +164,8 @@ class AssetService(
     /**
      * Delete an asset owned by the current user.
      * Cascades deletion to associated market data.
-     * @throws BusinessException if asset not found or not owned by current user
+     * @throws NotFoundException if asset not found
+     * @throws BusinessException if asset not owned by current user
      */
     fun deleteOwnedAsset(assetId: String) {
         val user =
@@ -171,7 +173,7 @@ class AssetService(
                 ?: throw BusinessException("User not authenticated")
         val asset =
             assetRepository.findById(assetId).orElseThrow {
-                BusinessException("Asset not found: $assetId")
+                NotFoundException("Asset not found: $assetId")
             }
         if (asset.systemUser?.id != user.id) {
             throw BusinessException("Asset not owned by current user")
@@ -184,7 +186,8 @@ class AssetService(
     /**
      * Update an asset owned by the current user.
      * Allows updating code, name, currency (priceSymbol), and category.
-     * @throws BusinessException if asset not found or not owned by current user
+     * @throws NotFoundException if asset not found
+     * @throws BusinessException if asset not owned by current user
      */
     fun updateOwnedAsset(
         assetId: String,
@@ -195,7 +198,7 @@ class AssetService(
                 ?: throw BusinessException("User not authenticated")
         val asset =
             assetRepository.findById(assetId).orElseThrow {
-                BusinessException("Asset not found: $assetId")
+                NotFoundException("Asset not found: $assetId")
             }
         if (asset.systemUser?.id != user.id) {
             throw BusinessException("Asset not owned by current user")
@@ -230,7 +233,7 @@ class AssetService(
     /**
      * Update the status of an asset.
      * Use this to deactivate delisted assets so they are excluded from price refresh.
-     * @throws BusinessException if asset not found
+     * @throws NotFoundException if asset not found
      */
     fun updateStatus(
         assetId: String,
@@ -238,7 +241,7 @@ class AssetService(
     ): Asset {
         val asset =
             assetRepository.findById(assetId).orElseThrow {
-                BusinessException("Asset not found: $assetId")
+                NotFoundException("Asset not found: $assetId")
             }
         // Hydrate first to get the transient market field, then create updated copy
         val hydratedAsset = assetFinder.hydrateAsset(asset)

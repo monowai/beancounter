@@ -7,7 +7,7 @@ import com.beancounter.common.contracts.AssetExposuresResponse
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.AssetExposure
@@ -67,7 +67,7 @@ class MarketDataClient(
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
                 .body(AssetResponse::class.java)
-                ?: throw BusinessException("Asset not found: $assetId")
+                ?: throw NotFoundException("Asset not found: $assetId")
         return response.data
     }
 

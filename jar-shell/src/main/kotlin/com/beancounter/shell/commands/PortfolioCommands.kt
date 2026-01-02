@@ -2,7 +2,7 @@ package com.beancounter.shell.commands
 
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PortfoliosRequest
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson.Companion.writer
@@ -65,7 +65,7 @@ class PortfolioCommands(
         try {
             portfolio = portfolioService.getPortfolioByCode(code)
             return writer.writeValueAsString(portfolio)
-        } catch (e: BusinessException) {
+        } catch (e: NotFoundException) {
             log.info("Portfolio {} not found ({}), creating new one", code, e.message)
         }
         val portfoliosRequest =

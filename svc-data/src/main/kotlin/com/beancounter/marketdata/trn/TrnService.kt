@@ -2,7 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
@@ -40,7 +40,7 @@ class TrnService(
                 trnId
             )
         if (trn.isEmpty) {
-            throw BusinessException("Trn $trnId not found")
+            throw NotFoundException("Trn not found: $trnId")
         }
         val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         return result.get()
@@ -186,7 +186,7 @@ class TrnService(
     fun delete(trnId: String): Collection<String> {
         val result =
             trnRepository.findById(trnId).orElseThrow {
-                BusinessException("Transaction not found $trnId")
+                NotFoundException("Transaction not found: $trnId")
             }
         val deleted = mutableListOf<Trn>()
         if (portfolioService.canView(result.portfolio)) {

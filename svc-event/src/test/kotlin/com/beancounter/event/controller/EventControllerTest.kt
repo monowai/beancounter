@@ -67,7 +67,7 @@ internal class EventControllerTest {
     }
 
     @Test
-    fun validateBadRequestResponse() {
+    fun validateNotFoundResponse() {
         // Execute the request and directly retrieve and parse the response body
         val message =
             mockMvc
@@ -77,7 +77,7 @@ internal class EventControllerTest {
                             "/{eventId}",
                             "event.getId()"
                         ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                ).andExpect(MockMvcResultMatchers.status().isNotFound)
                 .andExpect(
                     MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 ).andReturn()

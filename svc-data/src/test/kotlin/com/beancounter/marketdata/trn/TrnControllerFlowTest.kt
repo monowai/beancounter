@@ -186,7 +186,7 @@ class TrnControllerFlowTest(
     }
 
     @Test
-    fun `should return bad request when deleting non-existent transaction`() {
+    fun `should return not found when deleting non-existent transaction`() {
         // Given a non-existent transaction ID
         val nonExistentId = "illegalId"
 
@@ -196,7 +196,7 @@ class TrnControllerFlowTest(
                 MockMvcRequestBuilders
                     .delete(TRNS_BY_ID, nonExistentId)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
             )

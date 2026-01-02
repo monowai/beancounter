@@ -131,7 +131,7 @@ internal class PortfolioControllerOwnershipTests {
                         "$PORTFOLIO_ROOT/{id}",
                         portfolio.id
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
             .andReturn()
         mockMvc
             .perform(
@@ -140,7 +140,7 @@ internal class PortfolioControllerOwnershipTests {
                         "$PORTFOLIO_ROOT/code/{code}",
                         portfolio.code
                     ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
             .andReturn()
     }
 }

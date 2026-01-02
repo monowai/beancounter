@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.assets
 
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.SystemUser
@@ -27,13 +27,13 @@ class AssetFinder(
      *
      * @param assetId the unique identifier of the asset
      * @return the found asset
-     * @throws BusinessException if the asset is not found
+     * @throws NotFoundException if the asset is not found
      */
     fun find(assetId: String): Asset =
         assetRepository
             .findById(assetId)
             .map { asset: Asset -> hydrateAsset(asset) }
-            .orElseThrow { BusinessException("Asset $assetId not found") }
+            .orElseThrow { NotFoundException("Asset not found: $assetId") }
 
     /**
      * Find an asset locally by market code and asset code.

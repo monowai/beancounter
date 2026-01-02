@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
@@ -248,7 +249,8 @@ internal class AssetControllerTest {
     }
 
     @Test
-    fun `missing asset throws bad request`() {
+    fun `missing asset throws appropriate error`() {
+        // Invalid market code - throws BusinessException (BAD_REQUEST)
         var result =
             mockMvc
                 .perform(
@@ -260,11 +262,12 @@ internal class AssetControllerTest {
                                 .jwt(mockAuthConfig.getUserToken())
                         ).with(csrf())
                         .contentType(APPLICATION_JSON)
-                ).andExpect(status().is4xxClientError)
+                ).andExpect(status().isBadRequest)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
 
+        // Valid market but missing asset - throws BusinessException (BAD_REQUEST)
         result =
             mockMvc
                 .perform(
@@ -275,11 +278,12 @@ internal class AssetControllerTest {
                                 .jwt()
                                 .jwt(mockAuthConfig.getUserToken())
                         ).contentType(APPLICATION_JSON)
-                ).andExpect(status().is4xxClientError)
+                ).andExpect(status().isBadRequest)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
 
+        // Asset ID not found - throws NotFoundException (NOT_FOUND)
         result =
             mockMvc
                 .perform(
@@ -292,9 +296,9 @@ internal class AssetControllerTest {
                                 .jwt()
                                 .jwt(mockAuthConfig.getUserToken())
                         ).contentType(APPLICATION_JSON)
-                ).andExpect(status().is4xxClientError)
+                ).andExpect(status().isNotFound)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
-            .isInstanceOfAny(BusinessException::class.java)
+            .isInstanceOfAny(NotFoundException::class.java)
     }
 }

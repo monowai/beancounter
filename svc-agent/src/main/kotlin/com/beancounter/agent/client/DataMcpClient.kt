@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
@@ -35,7 +36,7 @@ class DataMcpClient(
             .uri("/portfolio/{portfolioId}", portfolioId)
             .retrieve()
             .body(Portfolio::class.java)
-            ?: throw BusinessException("Portfolio not found: $portfolioId")
+            ?: throw NotFoundException("Portfolio not found: $portfolioId")
 
     fun getPortfolioByCode(code: String): Portfolio =
         restClient
@@ -43,7 +44,7 @@ class DataMcpClient(
             .uri("/portfolio/code/{code}", code)
             .retrieve()
             .body(Portfolio::class.java)
-            ?: throw BusinessException("Portfolio not found: $code")
+            ?: throw NotFoundException("Portfolio not found: $code")
 
     fun getPortfolios(): PortfoliosResponse =
         restClient
@@ -78,7 +79,7 @@ class DataMcpClient(
             .uri("/asset/{assetId}", assetId)
             .retrieve()
             .body(Asset::class.java)
-            ?: throw BusinessException("Asset not found: $assetId")
+            ?: throw NotFoundException("Asset not found: $assetId")
 
     fun getMarketData(
         assetId: String,

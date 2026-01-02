@@ -45,6 +45,15 @@ class GlobalExceptionHandler(
             e.message ?: "Access Denied"
         )
 
+    @ExceptionHandler(NotFoundException::class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun handleNotFound(e: NotFoundException): ProblemDetail =
+        ProblemDetail.forStatusAndDetail(
+            HttpStatus.NOT_FOUND,
+            e.message ?: "Resource not found"
+        )
+
     @ExceptionHandler(
         ConnectException::class,
         ResourceAccessException::class,

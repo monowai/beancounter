@@ -1,7 +1,7 @@
 package com.beancounter.event.service
 
 import com.beancounter.common.event.CorporateEvent
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.TrnType
@@ -140,7 +140,7 @@ class EventService(
         eventRepository
             .findById(id)
             .map { CorporateEventResponse(it) }
-            .orElseThrow { BusinessException("Not found $id") }
+            .orElseThrow { NotFoundException("Event not found: $id") }
 
     fun getAssetEvents(assetId: String): CorporateEventResponses {
         val events = forAsset(assetId)

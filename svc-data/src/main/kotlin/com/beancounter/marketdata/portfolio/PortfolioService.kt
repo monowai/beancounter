@@ -2,7 +2,7 @@ package com.beancounter.marketdata.portfolio
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PortfoliosResponse
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
@@ -84,24 +84,12 @@ class PortfolioService(
         val found = portfolioRepository.findById(id)
         val portfolio =
             found.orElseThrow {
-                BusinessException(
-                    String.format(
-                        Locale.US,
-                        "Could not find a portfolio with ID %s",
-                        id
-                    )
-                )
+                NotFoundException("Portfolio not found: $id")
             }
         if (canView(portfolio)) {
             return portfolio
         }
-        throw BusinessException(
-            String.format(
-                Locale.US,
-                "Could not find a portfolio with ID %s",
-                id
-            )
-        )
+        throw NotFoundException("Portfolio not found: $id")
     }
 
     fun findByCode(code: String): Portfolio {
@@ -117,25 +105,12 @@ class PortfolioService(
             )
         val portfolio =
             found.orElseThrow {
-                BusinessException(
-                    String.format(
-                        Locale.US,
-                        "Could not find a portfolio with code %s owned by %s",
-                        code,
-                        systemUser.id
-                    )
-                )
+                NotFoundException("Portfolio not found: $code")
             }
         if (canView(portfolio)) {
             return portfolio
         }
-        throw BusinessException(
-            String.format(
-                Locale.US,
-                "Could not find a portfolio with code %s",
-                code
-            )
-        )
+        throw NotFoundException("Portfolio not found: $code")
     }
 
     fun update(

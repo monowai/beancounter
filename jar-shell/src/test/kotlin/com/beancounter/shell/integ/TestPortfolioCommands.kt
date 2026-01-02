@@ -8,7 +8,7 @@ import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.RegistrationService
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
@@ -89,7 +89,7 @@ class TestPortfolioCommands {
             )
         // Throw exception so creation path is taken
         `when`(portfolioServiceClient.getPortfolioByCode(anyString()))
-            .thenThrow(BusinessException("Not found"))
+            .thenThrow(NotFoundException("Portfolio not found"))
 
         `when`(portfolioServiceClient.add(any<PortfoliosRequest>()))
             .thenReturn(response)

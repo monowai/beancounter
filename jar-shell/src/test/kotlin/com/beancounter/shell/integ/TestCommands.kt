@@ -4,7 +4,7 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.common.contracts.MarketResponse
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.shell.commands.DataCommands
@@ -91,7 +91,7 @@ class TestCommands {
                 Portfolio::class.java
             )
         assertThat(portfolio).isNotNull
-        assertThrows(BusinessException::class.java) {
+        assertThrows(NotFoundException::class.java) {
             portfolioCommands.portfolioCode("is_PortfolioByCode")
         }
     }
@@ -105,7 +105,7 @@ class TestCommands {
                 Portfolio::class.java
             )
         assertThat(portfolio).isNotNull
-        assertThrows(BusinessException::class.java) {
+        assertThrows(NotFoundException::class.java) {
             portfolioCommands.portfolioCode("is_PortfolioById")
         }
     }

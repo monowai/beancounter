@@ -2,6 +2,7 @@ package com.beancounter.common.client
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
@@ -43,6 +44,7 @@ class RestClientErrorHandler : ResponseErrorHandler {
         throw when (statusCode) {
             HttpStatus.UNAUTHORIZED.value() -> UnauthorizedException(reason)
             HttpStatus.FORBIDDEN.value() -> ForbiddenException(reason)
+            HttpStatus.NOT_FOUND.value() -> NotFoundException(reason)
             in HttpStatus.BAD_REQUEST.value()..499 -> BusinessException(reason)
             in HttpStatus.INTERNAL_SERVER_ERROR.value()..599 -> SystemException(reason)
             else -> SystemException("HTTP $statusCode: $reason")

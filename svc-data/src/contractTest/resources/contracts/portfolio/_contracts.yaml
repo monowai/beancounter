@@ -75,7 +75,7 @@ request:
   method: GET
   url: /api/portfolios/code/NOT-FOUND
 response:
-  status: 400
+  status: 404
   bodyFromFile: "./not-found-by-code.json"
   headers:
     Content-Type: application/problem+json
@@ -86,7 +86,7 @@ request:
   method: GET
   url: /api/portfolios/NOT-FOUND
 response:
-  status: 400
+  status: 404
   bodyFromFile: "./not-found-by-id.json"
   headers:
     Content-Type: application/problem+json
@@ -117,8 +117,9 @@ name: whereHeld
 priority: 1
 request:
   method: GET
-  url: /api/portfolios/asset/KMI/2020-05-01
-
+  urlPath: /api/portfolios/asset/KMI
+  queryParameters:
+    asAt: "2020-05-01"
 response:
   status: 200
   bodyFromFile: "./where-held-response.json"

@@ -26,15 +26,16 @@ class MarketHolidays {
         val month = date.month
         val day = date.dayOfMonth
 
-        return when {
-            // New Year's Day - January 1
-            month == Month.JANUARY && day == 1 -> true
+        return when ( // New Year's Day - January 1
+            month
+        ) {
+            Month.JANUARY if day == 1 -> true
             // Juneteenth - June 19 (since 2021)
-            month == Month.JUNE && day == 19 && date.year >= 2021 -> true
+            Month.JUNE if day == 19 && date.year >= 2021 -> true
             // Independence Day - July 4
-            month == Month.JULY && day == 4 -> true
+            Month.JULY if day == 4 -> true
             // Christmas Day - December 25
-            month == Month.DECEMBER && day == 25 -> true
+            Month.DECEMBER if day == 25 -> true
             else -> false
         }
     }

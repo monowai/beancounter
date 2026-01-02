@@ -1,7 +1,7 @@
 {
-  "detail": "Could not find a portfolio with code NOT-FOUND owned by blah@blah.com",
+  "detail": "Portfolio not found: NOT-FOUND",
   "type": "about:blank",
-  "title": "Bad Request",
-  "status": 400,
+  "title": "Not Found",
+  "status": 404,
   "instance": "/api/portfolios/code/NOT-FOUND"
 }

@@ -6,7 +6,7 @@ import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PortfoliosRequest
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -87,7 +87,7 @@ class TestPortfolioServiceClient {
 
     @Test
     fun `should throw exception for illegal portfolio arguments`() {
-        assertThrows(BusinessException::class.java) {
+        assertThrows(NotFoundException::class.java) {
             portfolioService.getPortfolioByCode("NOT-FOUND")
         }
     }

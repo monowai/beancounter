@@ -115,7 +115,8 @@ class TrnPortfolioControllerTest(
         val response =
             mockMvc
                 .perform(
-                    get("$PORTFOLIO_ROOT/asset/{assetId}/{tradeDate}", msftId, TRADE_DATE)
+                    get("$PORTFOLIO_ROOT/asset/{assetId}", msftId)
+                        .param("asAt", TRADE_DATE)
                         .with(jwt().jwt(bcMvcHelper.token))
                         .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(status().isOk)

@@ -15,7 +15,7 @@ request:
   method: GET
   url: /api/markets/ERR
 response:
-  status: 400
+  status: 404
 ---
 name: casahMarket
 priority: 1

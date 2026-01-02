@@ -76,7 +76,7 @@ class PortfolioServiceClient(
     ): PortfoliosResponse =
         restClient
             .get()
-            .uri("/api/portfolios/asset/{assetId}/{tradeDate}", assetId, tradeDate.toString())
+            .uri("/api/portfolios/asset/{assetId}?asAt={tradeDate}", assetId, tradeDate.toString())
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
             .body(PortfoliosResponse::class.java)

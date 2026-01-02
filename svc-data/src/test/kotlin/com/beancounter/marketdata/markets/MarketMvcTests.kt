@@ -4,7 +4,7 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.Payload
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions
@@ -105,6 +105,6 @@ internal class MarketMvcTests {
         Assertions
             .assertThat(result.andReturn().resolvedException)
             .isNotNull
-            .isInstanceOfAny(BusinessException::class.java)
+            .isInstanceOfAny(NotFoundException::class.java)
     }
 }

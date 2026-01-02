@@ -131,11 +131,9 @@ internal class PriceControllerRefreshTests
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get(
-                            "/prices/refresh/{assetId}/{date}",
-                            asset.id,
-                            testDate
-                        ).with(
+                        .get("/prices/refresh/{assetId}", asset.id)
+                        .param("asAt", testDate.toString())
+                        .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
                                 .jwt(mockAuthConfig.getUserToken())

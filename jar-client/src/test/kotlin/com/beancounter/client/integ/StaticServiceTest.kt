@@ -4,6 +4,7 @@ import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.services.StaticService
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -49,7 +50,7 @@ class StaticServiceTest {
 
     @Test
     fun `should throw exception for illegal market arguments`() {
-        assertThrows(BusinessException::class.java) { staticService.getMarket("ERR") }
+        assertThrows(NotFoundException::class.java) { staticService.getMarket("ERR") }
     }
 
     @Test

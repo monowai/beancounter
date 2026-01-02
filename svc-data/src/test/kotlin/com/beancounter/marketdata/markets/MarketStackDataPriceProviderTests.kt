@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.markets
 
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.marketdata.SpringMvcDbTest
@@ -62,6 +62,6 @@ class MarketStackDataPriceProviderTests
 
         @Test
         fun `should throw exception for invalid market`() {
-            assertThrows(BusinessException::class.java) { marketService.getMarket("illegal") }
+            assertThrows(NotFoundException::class.java) { marketService.getMarket("illegal") }
         }
     }

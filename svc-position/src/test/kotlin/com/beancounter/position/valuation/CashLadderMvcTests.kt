@@ -78,9 +78,10 @@ internal class CashLadderMvcTests {
                 .perform(
                     MockMvcRequestBuilders
                         .get(
-                            "/{portfolioCode}/$date",
+                            "/{portfolioCode}",
                             portfolio.code
-                        ).with(
+                        ).param("asAt", date)
+                        .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
                                 .jwt(mockAuthConfig.getUserToken())

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.markets
 
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Market
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
@@ -94,7 +95,7 @@ class MarketService
                 market = marketMap[byAlias]
             }
             if (market == null) {
-                throw BusinessException(errorMessage)
+                throw NotFoundException(errorMessage)
             }
             return market
         }

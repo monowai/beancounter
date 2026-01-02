@@ -3,7 +3,9 @@ name: reResponse
 priority: 1
 request:
   method: GET
-  url: /api/trns/portfolio/RE-TEST/2023-05-01
+  urlPath: /api/trns/portfolio/RE-TEST
+  queryParameters:
+    asAt: "2023-05-01"
 response:
   status: 200
   bodyFromFile: "./re-response.json"

@@ -330,11 +330,9 @@ class TrnControllerFlowTest(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get(
-                        "$TRNS_ROOT/portfolio/{portfolioId}/{asAt}",
-                        portfolio.id,
-                        dateUtils.today()
-                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .get("$TRNS_ROOT/portfolio/{portfolioId}", portfolio.id)
+                    .param("asAt", dateUtils.today())
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))

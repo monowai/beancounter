@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -259,13 +260,13 @@ class PriceController(
         @RequestBody priceRequest: PriceRequest
     ): PriceResponse = marketDataService.getAssetPrices(priceRequest)
 
-    @GetMapping("/refresh/{assetId}/{date}")
+    @GetMapping("/refresh/{assetId}")
     @Operation(
         summary = "Refresh price for specific asset and date",
         description = """
             Refreshes the price for a specific asset and date.
             This triggers a price update from external market data sources.
-            
+
             Use this to:
             * Force price updates for specific assets
             * Refresh stale price data
@@ -294,11 +295,11 @@ class PriceController(
             description = "Date to refresh (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-15"
         )
-        @PathVariable(required = false) date: String = TODAY
+        @RequestParam(required = false) asAt: String = TODAY
     ): PriceResponse =
         priceRefresh.refreshPrice(
             assetId,
-            date
+            asAt
         )
 
     @PostMapping(

@@ -114,9 +114,10 @@ internal class TrnValuationTest {
                 .perform(
                     MockMvcRequestBuilders
                         .get(
-                            "/{portfolioCode}/$date",
+                            "/{portfolioCode}",
                             portfolio.code
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        ).param("asAt", date)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(
@@ -156,9 +157,10 @@ internal class TrnValuationTest {
                 .perform(
                     MockMvcRequestBuilders
                         .get(
-                            "/{portfolioCode}/${DateUtils.TODAY}",
+                            "/{portfolioCode}",
                             empty
-                        ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        ).param("asAt", DateUtils.TODAY)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                 ).andExpect(
                     MockMvcResultMatchers.status().isOk

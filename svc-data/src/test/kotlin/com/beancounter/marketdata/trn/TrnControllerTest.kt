@@ -133,7 +133,8 @@ class TrnControllerTest {
         val mvcResult =
             mockMvc
                 .perform(
-                    get("$TRNS_ROOT/portfolio/{portfolioId}/{asAt}", portfolio.id, dateUtils.today())
+                    get("$TRNS_ROOT/portfolio/{portfolioId}", portfolio.id)
+                        .param("asAt", dateUtils.today())
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))

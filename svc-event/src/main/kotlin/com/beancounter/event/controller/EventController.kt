@@ -61,7 +61,7 @@ class EventController(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     @PostMapping(
-        value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"],
+        value = ["/backfill/{portfolioId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -101,12 +101,12 @@ class EventController(
             description = "Start date for event processing (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-01"
         )
-        @PathVariable(required = false) fromDate: String = DateUtils.TODAY,
+        @RequestParam(required = false) fromDate: String = DateUtils.TODAY,
         @Parameter(
             description = "End date for event processing (YYYY-MM-DD format, defaults to fromDate)",
             example = "2024-01-31"
         )
-        @PathVariable(required = false) toDate: String = DateUtils.TODAY
+        @RequestParam(required = false) toDate: String = DateUtils.TODAY
     ): Map<String, Any> {
         backFillService.backFillEvents(
             portfolioId,
@@ -122,7 +122,7 @@ class EventController(
     }
 
     @PostMapping(
-        value = ["/backfill/{fromDate}/{toDate}"],
+        value = ["/backfill"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -152,12 +152,12 @@ class EventController(
             description = "Start date for event processing (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-01"
         )
-        @PathVariable(required = false) fromDate: String = DateUtils.TODAY,
+        @RequestParam(required = false) fromDate: String = DateUtils.TODAY,
         @Parameter(
             description = "End date for event processing (YYYY-MM-DD format, defaults to fromDate)",
             example = "2024-01-31"
         )
-        @PathVariable(required = false) toDate: String = DateUtils.TODAY
+        @RequestParam(required = false) toDate: String = DateUtils.TODAY
     ): Map<String, Any> {
         eventLoader.loadEvents(fromDate)
         val portfolios = portfolioService.portfolios
@@ -181,7 +181,7 @@ class EventController(
     }
 
     @PostMapping(
-        value = ["/load/{fromDate}"],
+        value = ["/load"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -211,7 +211,7 @@ class EventController(
             description = "Start date for loading events (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-01"
         )
-        @PathVariable(required = false) fromDate: String = DateUtils.TODAY
+        @RequestParam(required = false) fromDate: String = DateUtils.TODAY
     ): Map<String, Any> {
         eventLoader.loadEvents(fromDate)
         return mapOf(
@@ -222,7 +222,7 @@ class EventController(
     }
 
     @PostMapping(
-        value = ["/load/{portfolioId}/{asAtDate}"],
+        value = ["/load/{portfolioId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -254,24 +254,24 @@ class EventController(
     )
     fun loadPortfolioEvents(
         @Parameter(
-            description = "Date for loading events (YYYY-MM-DD format, defaults to today)",
-            example = "2024-01-15"
-        )
-        @PathVariable(required = false) asAtDate: String = DateUtils.TODAY,
-        @Parameter(
             description = "Unique identifier of the portfolio",
             example = "portfolio-123"
         )
-        @PathVariable portfolioId: String
+        @PathVariable portfolioId: String,
+        @Parameter(
+            description = "Date for loading events (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(required = false) asAt: String = DateUtils.TODAY
     ): Map<String, Any> {
         eventLoader.loadEvents(
             portfolioId,
-            asAtDate
+            asAt
         )
         return mapOf(
             "status" to "accepted",
             "portfolioId" to portfolioId,
-            "asAtDate" to asAtDate
+            "asAt" to asAt
         )
     }
 
@@ -401,12 +401,15 @@ class EventController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
-        summary = "Get all corporate events for a specific asset (alternative endpoint)",
+        summary = "Get corporate events for an asset",
         description = """
-            Alternative endpoint to retrieve all stored corporate events for a specific asset.
-            This endpoint provides the same functionality as /asset/{assetId}.
+            Retrieves corporate events for a specific asset, optionally filtered by date range.
+            If fromDate and toDate are not provided, returns all events for the asset.
 
-            Returns events ordered by payment date (most recent first).
+            Use this for:
+            * Analyzing events in a specific time period
+            * Generating reports for specific dates
+            * Auditing corporate actions within a timeframe
         """
     )
     @ApiResponses(
@@ -440,42 +443,6 @@ class EventController(
                 ]
             ),
             ApiResponse(
-                responseCode = "404",
-                description = "Asset not found or no events exist"
-            )
-        ]
-    )
-    fun getEvents(
-        @Parameter(
-            description = "Asset identifier (e.g., ticker symbol)",
-            example = "AAPL"
-        )
-        @PathVariable assetId: String
-    ): CorporateEventResponses = eventService.getAssetEvents(assetId)
-
-    @GetMapping(
-        value = ["/events/{assetId}/{fromDate}/{toDate}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @Operation(
-        summary = "Get corporate events for an asset within a date range",
-        description = """
-            Retrieves corporate events for a specific asset within the specified date range.
-            This endpoint filters events by both asset and date range.
-
-            Use this for:
-            * Analyzing events in a specific time period
-            * Generating reports for specific dates
-            * Auditing corporate actions within a timeframe
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Corporate events retrieved successfully"
-            ),
-            ApiResponse(
                 responseCode = "400",
                 description = "Invalid date format"
             )
@@ -488,16 +455,19 @@ class EventController(
         )
         @PathVariable assetId: String,
         @Parameter(
-            description = "Start date for filtering events (YYYY-MM-DD format)",
+            description = "Start date for filtering events (YYYY-MM-DD format, optional)",
             example = "2024-01-01"
         )
-        @PathVariable fromDate: String,
+        @RequestParam(required = false) fromDate: String? = null,
         @Parameter(
-            description = "End date for filtering events (YYYY-MM-DD format)",
+            description = "End date for filtering events (YYYY-MM-DD format, optional)",
             example = "2024-01-31"
         )
-        @PathVariable toDate: String
+        @RequestParam(required = false) toDate: String? = null
     ): CorporateEventResponses {
+        if (fromDate == null || toDate == null) {
+            return eventService.getAssetEvents(assetId)
+        }
         val startDate = dateUtils.getDate(fromDate)
         val endDate = dateUtils.getDate(toDate)
         val events =

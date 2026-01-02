@@ -4,8 +4,9 @@ priority: 2
 request:
   method: GET
   # https://github.com/tomakehurst/wiremock/issues/1262
-  url: /api/id/TEST/2020-05-01
-
+  urlPath: /api/id/TEST
+  queryParameters:
+    asAt: "2020-05-01"
 response:
   status: 200
   bodyFromFile: "test-response.json"

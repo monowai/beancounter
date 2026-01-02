@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.markets
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
@@ -89,7 +90,7 @@ class MarketServiceTest {
     @Test
     fun `should ignore alias lookup when requested`() {
         // Alias exists, but no PK with this code
-        assertThrows(BusinessException::class.java) {
+        assertThrows(NotFoundException::class.java) {
             marketService.getMarket(
                 "NZ",
                 false

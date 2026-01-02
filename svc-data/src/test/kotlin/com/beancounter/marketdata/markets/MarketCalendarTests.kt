@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.markets
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -89,50 +88,5 @@ class MarketCalendarTests {
                 christmas2024
             )
         ).isTrue()
-    }
-
-    @Test
-    @Disabled
-    fun `should handle NZ Christmas on weekend`() {
-        val marketCalendar = MarketCalendar(marketCalendarConfig)
-        val christmasDay =
-            LocalDate.of(
-                2021,
-                12,
-                25
-            )
-        val boxingDay =
-            LocalDate.of(
-                2021,
-                12,
-                26
-            )
-        assertThat(
-            marketCalendar.isMarketHoliday(
-                market,
-                christmasDay
-            )
-        ).isTrue()
-        assertThat(
-            marketCalendar.isMarketHoliday(
-                market,
-                boxingDay
-            )
-        ).isTrue()
-        assertThat(
-            marketCalendar.getNextBusinessDay(
-                christmasDay,
-                marketCalendarConfig.marketHolidays(
-                    2021,
-                    market
-                )
-            )
-        ).isEqualTo(
-            LocalDate.of(
-                2021,
-                12,
-                29
-            )
-        )
     }
 }

@@ -29,7 +29,7 @@ class KeyGenUtils {
      */
     fun format(uuid: UUID?): String {
         val bb =
-            ByteBuffer.wrap(ByteArray(16)).apply {
+            ByteBuffer.wrap(ByteArray(TWO_BYTES)).apply {
                 putLong(uuid?.mostSignificantBits ?: throw BusinessException("Null UUID"))
                 putLong(uuid.leastSignificantBits)
             }
@@ -53,18 +53,18 @@ class KeyGenUtils {
         if (uuidString.isNullOrEmpty()) {
             throw BusinessException("Invalid UUID string")
         }
-        if (uuidString.length > 24) {
+        if (uuidString.length > THREE_BYTES) {
             return UUID.fromString(uuidString)
         }
-        if (uuidString.length < 22) {
-            throw BusinessException("Short UUID must be 22 characters: $uuidString")
+        if (uuidString.length < MIN_LEN) {
+            throw BusinessException("Short UUID must be $MIN_LEN characters: $uuidString")
         }
         val bytes = decodeBase64(uuidString)
-        val bb = ByteBuffer.wrap(ByteArray(16))
+        val bb = ByteBuffer.wrap(ByteArray(TWO_BYTES))
         bb.put(
             bytes,
             0,
-            16
+            TWO_BYTES
         )
         bb.clear()
         return UUID(
@@ -80,6 +80,9 @@ class KeyGenUtils {
         private val CHARS =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray()
         private val i256 = IntArray(256)
+        private const val MIN_LEN = 22
+        private const val THREE_BYTES = 24
+        private const val TWO_BYTES = 16
 
         init {
             for (i in CHARS.indices) {
@@ -89,13 +92,13 @@ class KeyGenUtils {
 
         private fun encodeBase64(bytes: ByteArray): String {
             // Output is always 22 characters.
-            val chars = CharArray(22)
+            val chars = CharArray(MIN_LEN)
             var i = 0
             var j = 0
             while (i < 15) {
                 // Get the next three bytes.
                 val d: Int =
-                    bytes[i++].toInt() and 0xff shl 16 or (bytes[i++].toInt() and 0xff shl 8) or
+                    bytes[i++].toInt() and 0xff shl TWO_BYTES or (bytes[i++].toInt() and 0xff shl 8) or
                         (bytes[i++].toInt() and 0xff)
 
                 // Put them in these four characters
@@ -114,7 +117,7 @@ class KeyGenUtils {
 
         private fun decodeBase64(s: String): ByteArray {
             // Output is always 16 bytes (UUID).
-            val bytes = ByteArray(16)
+            val bytes = ByteArray(TWO_BYTES)
             var i = 0
             var j = 0
             while (i < 15) {
@@ -127,7 +130,7 @@ class KeyGenUtils {
                     ) or i256[s[j++].code]
 
                 // Put them in these three bytes.
-                bytes[i++] = (d shr 16).toByte()
+                bytes[i++] = (d shr TWO_BYTES).toByte()
                 bytes[i++] = (d shr 8).toByte()
                 bytes[i++] = d.toByte()
             }
@@ -136,7 +139,7 @@ class KeyGenUtils {
             val most = i256[s[j++].code] shl 18
             val least = i256[s[j].code] shl 12
 
-            bytes[i] = (((most or least) shr 16).toByte())
+            bytes[i] = (((most or least) shr TWO_BYTES).toByte())
             return bytes
         }
     }

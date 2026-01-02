@@ -4,7 +4,6 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
@@ -250,7 +249,7 @@ internal class AssetControllerTest {
 
     @Test
     fun `missing asset throws appropriate error`() {
-        // Invalid market code - throws BusinessException (BAD_REQUEST)
+        // Invalid market code - throws NotFoundException (NOT_FOUND)
         var result =
             mockMvc
                 .perform(
@@ -262,12 +261,12 @@ internal class AssetControllerTest {
                                 .jwt(mockAuthConfig.getUserToken())
                         ).with(csrf())
                         .contentType(APPLICATION_JSON)
-                ).andExpect(status().isBadRequest)
+                ).andExpect(status().isNotFound)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
-            .isInstanceOfAny(BusinessException::class.java)
+            .isInstanceOfAny(NotFoundException::class.java)
 
-        // Valid market but missing asset - throws BusinessException (BAD_REQUEST)
+        // Valid market but missing asset - throws NotFoundException (NOT_FOUND)
         result =
             mockMvc
                 .perform(
@@ -278,10 +277,10 @@ internal class AssetControllerTest {
                                 .jwt()
                                 .jwt(mockAuthConfig.getUserToken())
                         ).contentType(APPLICATION_JSON)
-                ).andExpect(status().isBadRequest)
+                ).andExpect(status().isNotFound)
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
-            .isInstanceOfAny(BusinessException::class.java)
+            .isInstanceOfAny(NotFoundException::class.java)
 
         // Asset ID not found - throws NotFoundException (NOT_FOUND)
         result =

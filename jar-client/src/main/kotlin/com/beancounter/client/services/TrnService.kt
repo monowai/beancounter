@@ -51,7 +51,7 @@ class TrnService(
     ): TrnResponse =
         restClient
             .get()
-            .uri("/api/trns/portfolio/{portfolioId}/{asAt}", portfolio.id, asAt)
+            .uri("/api/trns/portfolio/{portfolioId}?asAt={asAt}", portfolio.id, asAt)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
             .body(TrnResponse::class.java)

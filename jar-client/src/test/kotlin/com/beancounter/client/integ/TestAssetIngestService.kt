@@ -3,7 +3,7 @@ package com.beancounter.client.integ
 import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.AssetIngestService
-import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -59,7 +59,7 @@ class TestAssetIngestService {
 
     @Test
     fun `should throw exception when asset not found`() {
-        assertThrows(BusinessException::class.java) {
+        assertThrows(NotFoundException::class.java) {
             assetIngestService.resolveAsset(
                 AssetInput(
                     nasdaq,

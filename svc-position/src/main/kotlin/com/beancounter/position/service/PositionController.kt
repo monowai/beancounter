@@ -59,7 +59,7 @@ class PositionController(
     }
 
     @GetMapping(
-        value = ["/id/{id}/{valuationDate}"],
+        value = ["/id/{id}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -119,7 +119,10 @@ class PositionController(
             description = "Valuation date (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-15"
         )
-        @PathVariable(required = false) valuationDate: String = dateUtils.offsetDateString(),
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = dateUtils.offsetDateString(),
         @Parameter(
             description = "Whether to include market values in the response",
             example = "true"
@@ -132,13 +135,13 @@ class PositionController(
         val portfolio = portfolioServiceClient.getPortfolioById(id)
         return valuationService.getPositions(
             portfolio,
-            valuationDate,
+            asAt,
             value
         )
     }
 
     @GetMapping(
-        value = ["/{code}/{valuationDate}"],
+        value = ["/{code}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -175,7 +178,10 @@ class PositionController(
             description = "Valuation date (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-15"
         )
-        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
         @Parameter(
             description = "Whether to include market values in the response",
             example = "true"
@@ -185,11 +191,11 @@ class PositionController(
             defaultValue = "true"
         ) value: Boolean
     ): PositionResponse {
-        log.debug("valuationDate: $valuationDate")
+        log.debug("asAt: $asAt")
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
         return valuationService.getPositions(
             portfolio,
-            valuationDate,
+            asAt,
             value
         )
     }
@@ -231,7 +237,7 @@ class PositionController(
     ): PositionResponse = valuationService.build(trnQuery)
 
     @GetMapping(
-        value = ["/aggregated/{valuationDate}"],
+        value = ["/aggregated"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -259,7 +265,10 @@ class PositionController(
             description = "Valuation date (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-15"
         )
-        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
         @Parameter(
             description = "Whether to include market values in the response",
             example = "true"
@@ -287,13 +296,13 @@ class PositionController(
             }
         return valuationService.getAggregatedPositions(
             selectedPortfolios,
-            valuationDate,
+            asAt,
             value
         )
     }
 
     @GetMapping(
-        value = ["/allocation/{valuationDate}"],
+        value = ["/allocation"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -322,7 +331,10 @@ class PositionController(
             description = "Valuation date (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-15"
         )
-        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
         @Parameter(
             description = "Comma-separated portfolio IDs to include. If empty, all portfolios are included.",
             example = "portfolio-id-1,portfolio-id-2"
@@ -348,7 +360,7 @@ class PositionController(
         val positions =
             valuationService.getAggregatedPositions(
                 selectedPortfolios,
-                valuationDate,
+                asAt,
                 true
             )
 
@@ -358,7 +370,7 @@ class PositionController(
     }
 
     @GetMapping(
-        value = ["/sector-exposure/{valuationDate}"],
+        value = ["/sector-exposure"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -388,7 +400,10 @@ class PositionController(
             description = "Valuation date (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-15"
         )
-        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
         @Parameter(
             description = "Comma-separated portfolio IDs to include. If empty, all portfolios are included.",
             example = "portfolio-id-1,portfolio-id-2"
@@ -414,7 +429,7 @@ class PositionController(
         val positions =
             valuationService.getAggregatedPositions(
                 selectedPortfolios,
-                valuationDate,
+                asAt,
                 true
             )
 

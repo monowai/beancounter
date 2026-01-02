@@ -91,8 +91,6 @@ class AssetService(
         return localAsset
     }
 
-    fun purge() = assetRepository.deleteAll()
-
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
         val assets = assetRepository.findAllById(priceRequest.assets.map { it.assetId })
         val resolvedAssets =

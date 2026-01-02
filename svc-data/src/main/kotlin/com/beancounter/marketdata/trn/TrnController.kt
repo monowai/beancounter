@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -50,7 +51,7 @@ class TrnController(
     var trnIoDefinition: TrnIoDefinition
 ) {
     @GetMapping(
-        value = ["/portfolio/{portfolioId}/{asAt}"],
+        value = ["/portfolio/{portfolioId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
@@ -111,7 +112,7 @@ class TrnController(
             description = "Date to retrieve transactions for (YYYY-MM-DD format)",
             example = "2024-01-15"
         )
-        @PathVariable asAt: String = dateUtils.today()
+        @RequestParam(required = false) asAt: String = dateUtils.today()
     ): TrnResponse =
         TrnResponse(
             trnService.findForPortfolio(

@@ -32,7 +32,9 @@ name: transactionsForToday
 priority: 1
 request:
   method: GET
-  url: /api/trns/portfolio/TEST/today
+  urlPath: /api/trns/portfolio/TEST
+  queryParameters:
+    asAt: today
 response:
   status: 200
   bodyFromFile: "./trns-test-response.json"
@@ -43,7 +45,9 @@ name: transactionsFor2019
 priority: 1
 request:
   method: GET
-  url: /api/trns/portfolio/TEST/2019-10-18
+  urlPath: /api/trns/portfolio/TEST
+  queryParameters:
+    asAt: "2019-10-18"
 response:
   status: 200
   bodyFromFile: "./trns-test-response.json"
@@ -54,7 +58,9 @@ name: noTransactionsForPortfolio
 priority: 1
 request:
   method: GET
-  url: /api/trns/portfolio/EMPTY/today
+  urlPath: /api/trns/portfolio/EMPTY
+  queryParameters:
+    asAt: today
 response:
   status: 200
   bodyFromFile: "./trns-empty-response.json"
@@ -65,7 +71,9 @@ name: cashLadder2021
 priority: 1
 request:
   method: GET
-  url: /api/trns/portfolio/CASHLADDER/2021-10-18
+  urlPath: /api/trns/portfolio/CASHLADDER
+  queryParameters:
+    asAt: "2021-10-18"
 response:
   status: 200
   bodyFromFile: "./cash/ladder-response.json"

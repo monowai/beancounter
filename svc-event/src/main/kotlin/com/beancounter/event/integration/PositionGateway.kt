@@ -37,7 +37,7 @@ class PositionGateway(
     ): PositionResponse =
         positionRestClient
             .get()
-            .uri("/api/id/{id}/{asAt}?value={value}", code, asAt, value)
+            .uri("/api/id/{id}?asAt={asAt}&value={value}", code, asAt, value)
             .header(HttpHeaders.AUTHORIZATION, bearerToken)
             .retrieve()
             .body<PositionResponse>()

@@ -307,12 +307,12 @@ class PortfolioController internal constructor(
         @RequestBody portfolio: PortfoliosRequest
     ): PortfoliosResponse = PortfoliosResponse(portfolioService.save(portfolio.data))
 
-    @GetMapping(value = ["/asset/{assetId}/{tradeDate}"])
+    @GetMapping(value = ["/asset/{assetId}"])
     @Operation(
         summary = "Find portfolios holding specific asset",
         description = """
             Finds all portfolios that hold a specific asset as of a given trade date.
-            
+
             Use this to:
             * Identify which portfolios contain a specific asset
             * Track asset ownership across portfolios
@@ -341,11 +341,11 @@ class PortfolioController internal constructor(
             description = "Trade date (YYYY-MM-DD format)",
             example = "2024-01-15"
         )
-        @PathVariable("tradeDate") tradeDate: String
+        @RequestParam(required = false) asAt: String = dateUtils.today()
     ): PortfoliosResponse =
         portfolioService.findWhereHeld(
             assetId,
-            dateUtils.getFormattedDate(tradeDate)
+            dateUtils.getFormattedDate(asAt)
         )
 
     @GetMapping(

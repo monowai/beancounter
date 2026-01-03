@@ -13,7 +13,8 @@
           "symbol": "$"
         },
         "rate": 0.9078529278,
-        "date": "2019-11-12"
+        "date": "2019-11-12",
+        "provider": "FRANKFURTER"
       },
       "USD:GBP": {
         "to": {
@@ -27,7 +28,8 @@
           "symbol": "$"
         },
         "rate": 0.7791193827,
-        "date": "2019-11-12"
+        "date": "2019-11-12",
+        "provider": "FRANKFURTER"
       },
       "USD:NZD": {
         "to": {
@@ -41,7 +43,8 @@
           "symbol": "$"
         },
         "rate": 1.5780299591,
-        "date": "2019-11-12"
+        "date": "2019-11-12",
+        "provider": "FRANKFURTER"
       }
     }
   }

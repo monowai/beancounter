@@ -13,7 +13,8 @@
           "symbol": "$"
         },
         "rate": 1.4103,
-        "date": "2021-10-18"
+        "date": "2021-10-18",
+        "provider": "FRANKFURTER"
       }
     }
   }

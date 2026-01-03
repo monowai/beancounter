@@ -7,9 +7,13 @@ import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.fx.EcbMockUtils
 import com.beancounter.marketdata.fx.FxRateRepository
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
+import com.beancounter.marketdata.fx.fxrates.FrankfurterGateway
+import com.beancounter.marketdata.fx.fxrates.FrankfurterResponse
 import com.beancounter.marketdata.fx.fxrates.FxGateway
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
@@ -44,6 +48,9 @@ import java.math.BigDecimal
 class FxBase : ContractVerifierBase() {
     @MockitoBean
     private lateinit var fxGateway: FxGateway
+
+    @MockitoBean
+    private lateinit var frankfurterGateway: FrankfurterGateway
 
     @MockitoBean
     private lateinit var fxRateRepository: FxRateRepository
@@ -165,13 +172,25 @@ class FxBase : ContractVerifierBase() {
                         "10.0",
                         aud,
                         myr
+                    ),
+                // 2018-12-31 is the previous business day for 2019-01-01 (Tuesday)
+                "2018-12-31" to
+                    EcbMockUtils.getRateMap(
+                        eur,
+                        sgd,
+                        gbp,
+                        "10.0",
+                        aud,
+                        myr
                     )
             )
         historicalRates.forEach { (date, rates) ->
-            mockEcbRates(EcbMockUtils[date, rates])
+            val response = EcbMockUtils[date, rates]
+            mockEcbRates(response)
+            mockFrankfurterRates(response)
         }
         // Saturday's result values are exactly the same as Fridays
-        mockEcbRates(
+        val fridayResponse =
             EcbMockUtils[
                 friday,
                 EcbMockUtils.getRateMap(
@@ -183,17 +202,35 @@ class FxBase : ContractVerifierBase() {
                     myr
                 )
             ]
-        )
+        mockEcbRates(fridayResponse)
+        mockFrankfurterRates(fridayResponse)
     }
 
     private fun mockEcbRates(exRatesResponse: ExRatesResponse) {
         Mockito
             .`when`(
                 fxGateway.getRatesForSymbols(
-                    exRatesResponse.date.toString(),
-                    Constants.USD.code,
-                    exRatesResponse.rates.keys.joinToString(",")
+                    eq(exRatesResponse.date.toString()),
+                    eq(Constants.USD.code),
+                    any()
                 )
             ).thenReturn(exRatesResponse)
+    }
+
+    private fun mockFrankfurterRates(exRatesResponse: ExRatesResponse) {
+        val frankfurterResponse =
+            FrankfurterResponse(
+                base = Constants.USD.code,
+                date = exRatesResponse.date,
+                rates = exRatesResponse.rates
+            )
+        Mockito
+            .`when`(
+                frankfurterGateway.getRatesForSymbols(
+                    eq(exRatesResponse.date.toString()),
+                    eq(Constants.USD.code),
+                    any()
+                )
+            ).thenReturn(frankfurterResponse)
     }
 }

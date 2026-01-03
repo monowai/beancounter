@@ -13,7 +13,8 @@
           "symbol": "$"
         },
         "rate": 1.6586648571,
-        "date": "1996-07-27"
+        "date": "1996-07-27",
+        "provider": "FRANKFURTER"
       },
       "GBP:NZD": {
         "to": {
@@ -27,7 +28,8 @@
           "symbol": "£"
         },
         "rate": 3.12600197,
-        "date": "1996-07-27"
+        "date": "1996-07-27",
+        "provider": "FRANKFURTER"
       }
     }
   }

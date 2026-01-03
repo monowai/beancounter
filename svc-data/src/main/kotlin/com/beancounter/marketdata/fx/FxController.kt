@@ -7,10 +7,14 @@ import com.beancounter.common.contracts.FxResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * FX Market Data Controller.
@@ -38,4 +42,43 @@ class FxController
                 fxRequest,
                 tokenService.bearerToken
             )
+
+        /**
+         * Get available FX rate provider IDs for comparison.
+         */
+        @GetMapping("/providers")
+        fun getProviders(): FxProvidersResponse = FxProvidersResponse(fxRateService.getAvailableProviders())
+
+        /**
+         * Get historical FX rates for a currency pair from the database cache.
+         */
+        @GetMapping("/history")
+        fun getHistory(
+            @RequestParam from: String,
+            @RequestParam to: String,
+            @RequestParam(defaultValue = "3") months: Int
+        ): FxHistoryResponse = fxRateService.getHistoricalRates(from, to, months)
     }
+
+/**
+ * Response wrapper for available FX providers.
+ */
+data class FxProvidersResponse(
+    val providers: List<String>
+)
+
+/**
+ * Response for historical FX rate data (for charting).
+ */
+data class FxHistoryResponse(
+    val from: String,
+    val to: String,
+    val startDate: LocalDate,
+    val endDate: LocalDate,
+    val data: List<FxHistoryPoint>
+)
+
+data class FxHistoryPoint(
+    val date: LocalDate,
+    val rate: BigDecimal
+)

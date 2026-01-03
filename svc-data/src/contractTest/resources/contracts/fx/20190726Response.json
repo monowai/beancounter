@@ -13,7 +13,8 @@
           "symbol": "£"
         },
         "rate": 1.87062801,
-        "date": "2019-07-26"
+        "date": "2019-07-26",
+        "provider": "FRANKFURTER"
       },
       "USD:NZD": {
         "to": {
@@ -27,7 +28,8 @@
           "symbol": "$"
         },
         "rate": 1.5053869635,
-        "date": "2019-07-26"
+        "date": "2019-07-26",
+        "provider": "FRANKFURTER"
       }
     }
   }

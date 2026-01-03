@@ -183,8 +183,8 @@ resilience4j:
   ratelimiter:
     instances:
       # AlphaVantage: Free tier = 25/day, Standard = 5/min, Premium = 75/min
-      # Spread requests evenly - 1 request per 12 seconds (5/min for Standard tier)
-      # Production override for Premium: limitForPeriod=75, limitRefreshPeriod=60s
+      # Spread requests evenly to avoid burst-prevention at AWS/NASDAQ/NYSE
+      # Local dev: 1 per 12s (5/min). Production: 1 per 800ms (75/min, no bursting)
       alphaVantage:
         registerHealthIndicator: false
         limitForPeriod: 1
@@ -223,6 +223,9 @@ resilience4j:
         exponentialBackoffMultiplier: 2
 
 beancounter:
+  # Default FX rate provider: FRANKFURTER (free, unlimited) or EXCHANGE_RATES_API
+  fx:
+    provider: FRANKFURTER
   currency:
     base: "USD"
     values:
@@ -396,4 +399,8 @@ beancounter:
       morningstar:
         batchSize: 1
         markets: "MUTF"
+
+      # Frankfurter FX rates - free, unlimited, ECB-based
+      frankfurter:
+        url: https://api.frankfurter.app
 

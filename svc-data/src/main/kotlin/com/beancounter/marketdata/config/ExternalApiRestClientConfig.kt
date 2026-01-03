@@ -42,6 +42,11 @@ class ExternalApiRestClientConfig {
     ): RestClient = buildRestClient(baseUrl)
 
     @Bean
+    fun frankfurterRestClient(
+        @Value($$"${beancounter.market.providers.frankfurter.url:https://api.frankfurter.app}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
+
+    @Bean
     fun openFigiRestClient(
         @Value($$"${beancounter.market.providers.figi.url:https://api.openfigi.com}") baseUrl: String
     ): RestClient = buildRestClient(baseUrl)

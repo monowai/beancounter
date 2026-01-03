@@ -3,53 +3,52 @@ package com.beancounter.marketdata.fx.fxrates
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.currency.CurrencyService
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
- * exchangeratesapi.io service implementation to obtain FX rates.
- * Used as fallback when Frankfurter is unavailable.
+ * Frankfurter (frankfurter.dev) FX rate provider - free, unlimited, ECB-based rates.
+ * Primary FX rate provider.
  */
 @Service
-class EcbService
+class FrankfurterService
     @Autowired
     internal constructor(
-        private val fxGateway: FxGateway,
+        private val frankfurterGateway: FrankfurterGateway,
         private val currencyService: CurrencyService,
         dateUtils: DateUtils
     ) : FxRateProvider {
-        private val log = LoggerFactory.getLogger(EcbService::class.java)
+        private val log = LoggerFactory.getLogger(FrankfurterService::class.java)
         private val ecbDate = EcbDate(dateUtils)
 
-        override val id: String = "EXCHANGE_RATES_API"
+        override val id: String = "FRANKFURTER"
 
-        @RateLimiter(name = "fxRates")
         override fun getRates(asAt: String): List<FxRate> =
             try {
-                val ecbRates =
-                    fxGateway.getRatesForSymbols(
-                        ecbDate.getValidDate(asAt),
+                val validDate = ecbDate.getValidDate(asAt)
+                val response =
+                    frankfurterGateway.getRatesForSymbols(
+                        validDate,
                         currencyService.currencyConfig.baseCurrency.code,
                         currencyService.currenciesAs()
                     )
-                if (ecbRates?.rates != null) {
-                    ecbRates.rates.map { (code, rate) ->
+                if (response?.rates != null) {
+                    response.rates.map { (code, rate) ->
                         FxRate(
                             from = currencyService.currencyConfig.baseCurrency,
                             to = currencyService.getCode(code),
                             rate = rate,
-                            date = ecbDate.dateUtils.getDate(ecbRates.date.toString()),
+                            date = ecbDate.dateUtils.getDate(response.date.toString()),
                             provider = id
                         )
                     }
                 } else {
-                    log.warn("ExchangeRatesAPI returned null response for date {}", asAt)
+                    log.warn("Frankfurter returned null response for date {}", asAt)
                     emptyList()
                 }
             } catch (e: Exception) {
-                log.warn("ExchangeRatesAPI FX rate fetch failed for {}: {}", asAt, e.message)
+                log.warn("Frankfurter FX rate fetch failed for {}: {}", asAt, e.message)
                 emptyList()
             }
     }

@@ -23,7 +23,7 @@ data class UserPreferences(
     val owner: SystemUser,
     var preferredName: String? = null,
     @Enumerated(EnumType.STRING)
-    var defaultHoldingsView: HoldingsView = HoldingsView.SUMMARY,
+    var defaultHoldingsView: HoldingsView = HoldingsView.CARDS,
     @Enumerated(EnumType.STRING)
     var defaultValueIn: ValueInPreference = ValueInPreference.PORTFOLIO,
     @Enumerated(EnumType.STRING)

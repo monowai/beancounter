@@ -33,6 +33,8 @@ class UserPreferencesServiceTest {
     @Autowired
     lateinit var authUtilService: AuthUtilService
 
+    private val defaultView = HoldingsView.CARDS
+
     @Test
     fun `should create default preferences for new user with no existing preferences`() {
         val user = createAndAuthenticateUser("prefs-test-1@email.com")
@@ -47,7 +49,7 @@ class UserPreferencesServiceTest {
         assertThat(preferences)
             .isNotNull
             .hasFieldOrPropertyWithValue("preferredName", null)
-            .hasFieldOrPropertyWithValue("defaultHoldingsView", HoldingsView.SUMMARY)
+            .hasFieldOrPropertyWithValue("defaultHoldingsView", defaultView)
             .hasFieldOrPropertyWithValue("defaultValueIn", ValueInPreference.PORTFOLIO)
             .hasFieldOrPropertyWithValue("defaultGroupBy", GroupByPreference.ASSET_CLASS)
             .hasFieldOrPropertyWithValue("baseCurrencyCode", "USD")
@@ -87,7 +89,7 @@ class UserPreferencesServiceTest {
         val updated = userPreferencesService.update(user, request)
 
         assertThat(updated.baseCurrencyCode).isEqualTo("SGD")
-        assertThat(updated.defaultHoldingsView).isEqualTo(HoldingsView.SUMMARY) // unchanged
+        assertThat(updated.defaultHoldingsView).isEqualTo(defaultView) // unchanged
     }
 
     @Test
@@ -113,7 +115,7 @@ class UserPreferencesServiceTest {
         val updated = userPreferencesService.update(user, request)
 
         assertThat(updated.preferredName).isEqualTo("Mike")
-        assertThat(updated.defaultHoldingsView).isEqualTo(HoldingsView.SUMMARY) // unchanged
+        assertThat(updated.defaultHoldingsView).isEqualTo(defaultView) // unchanged
         assertThat(updated.baseCurrencyCode).isEqualTo("USD") // unchanged
     }
 
@@ -224,7 +226,7 @@ class UserPreferencesServiceTest {
 
         assertThat(updated.showWeightedIrr).isFalse()
         // Other preferences unchanged
-        assertThat(updated.defaultHoldingsView).isEqualTo(HoldingsView.SUMMARY)
+        assertThat(updated.defaultHoldingsView).isEqualTo(defaultView)
     }
 
     private fun createAndAuthenticateUser(email: String): SystemUser {

@@ -5,7 +5,8 @@ package com.beancounter.common.model
  */
 enum class HoldingsView {
     SUMMARY,
-    TABLE,
+    CARDS,
     HEATMAP,
+    TABLE,
     ALLOCATION
 }

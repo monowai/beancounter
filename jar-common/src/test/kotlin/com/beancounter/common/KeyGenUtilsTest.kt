@@ -67,4 +67,45 @@ class KeyGenUtilsTest {
         assertThrows(BusinessException::class.java) { keyGenUtils.parse("12345678901234567") }
         assertThrows(BusinessException::class.java) { keyGenUtils.parse("") }
     }
+
+    @Test
+    fun isValidAcceptsShortBase64Format() {
+        // Generate a valid short UUID
+        val uuid = UUID.randomUUID()
+        val shortId = keyGenUtils.format(uuid)
+        assertThat(keyGenUtils.isValid(shortId)).isTrue()
+    }
+
+    @Test
+    fun isValidAcceptsStandardUuidFormat() {
+        val uuid = UUID.randomUUID()
+        assertThat(keyGenUtils.isValid(uuid.toString())).isTrue()
+    }
+
+    @Test
+    fun isValidRejectsInvalidStrings() {
+        // Null and empty
+        assertThat(keyGenUtils.isValid(null)).isFalse()
+        assertThat(keyGenUtils.isValid("")).isFalse()
+
+        // Asset symbols (not UUIDs)
+        assertThat(keyGenUtils.isValid("VOO")).isFalse()
+        assertThat(keyGenUtils.isValid("US:VOO")).isFalse()
+        assertThat(keyGenUtils.isValid("NASDAQ:AAPL")).isFalse()
+
+        // Too short
+        assertThat(keyGenUtils.isValid("ABC")).isFalse()
+        assertThat(keyGenUtils.isValid("12345678901234567")).isFalse()
+
+        // Invalid characters
+        assertThat(keyGenUtils.isValid("invalid-uuid-string!!")).isFalse()
+    }
+
+    @Test
+    fun isValidWithKnownIds() {
+        // Known valid base64 UUIDs from production
+        assertThat(keyGenUtils.isValid("PuEcMsbjRnalL6GBs4O6YA")).isTrue()
+        assertThat(keyGenUtils.isValid("2lluqzg7SGqO_3yoSd0s6A")).isTrue()
+        assertThat(keyGenUtils.isValid("mxTJNIVORwGeMG5KAzQwaA")).isTrue()
+    }
 }

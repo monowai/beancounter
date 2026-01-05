@@ -58,7 +58,13 @@ data class Asset(
      */
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    var industry: String? = null
+    var industry: String? = null,
+    /**
+     * Expected annual return rate for this asset (as decimal, e.g., 0.03 for 3%).
+     * Used in retirement projections. If null, defaults to 0.03 (3%).
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    var expectedReturnRate: Double? = null
 ) {
     companion object {
         @JvmStatic
@@ -75,7 +81,8 @@ data class Asset(
                 marketCode = market.code,
                 priceSymbol = input.code,
                 category = input.category,
-                status = status
+                status = status,
+                expectedReturnRate = input.expectedReturnRate
             )
     }
 

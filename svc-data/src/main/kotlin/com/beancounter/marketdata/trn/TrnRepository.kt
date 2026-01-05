@@ -79,4 +79,18 @@ interface TrnRepository : CrudRepository<Trn, String> {
         tradeDate: LocalDate,
         endDate: LocalDate
     ): Collection<Trn>
+
+    /**
+     * Find transactions for a portfolio with a specific status.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.portfolio.id = ?1 " +
+            "and t.status = ?2 " +
+            "order by t.tradeDate desc"
+    )
+    fun findByPortfolioIdAndStatus(
+        portfolioId: String,
+        status: TrnStatus
+    ): Collection<Trn>
 }

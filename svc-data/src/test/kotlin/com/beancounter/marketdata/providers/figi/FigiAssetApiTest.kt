@@ -142,7 +142,8 @@ class FigiAssetApiTest {
                 "systemUser",
                 "reportCategory",
                 "sector",
-                "industry"
+                "industry",
+                "expectedReturnRate"
             ).isNotNull
     }
 
@@ -192,10 +193,12 @@ class FigiAssetApiTest {
             .hasFieldOrPropertyWithValue(
                 P_CODE,
                 BRK_B
-            ).hasFieldOrPropertyWithValue(
-                P_NAME,
-                "Berkshire Hathaway Inc."
             )
+        // Name may vary based on which enricher processed the asset first (FIGI or Alpha)
+        assertThat(data.name).isIn(
+            "BERKSHIRE HATHAWAY INC-CL B",
+            "Berkshire Hathaway Inc."
+        )
     }
 
     @Test

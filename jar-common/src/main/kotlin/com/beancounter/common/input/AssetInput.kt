@@ -17,7 +17,9 @@ data class AssetInput(
     val currency: String? = null,
     // Case in-sensitive assetCategory ID
     val category: String = "Equity",
-    val owner: String = ""
+    val owner: String = "",
+    // Expected annual return rate (as decimal, e.g., 0.03 for 3%). Default 3% if null.
+    val expectedReturnRate: Double? = null
 ) {
     companion object {
         @JvmStatic

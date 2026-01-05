@@ -59,7 +59,7 @@ class TrnController(
         description = """
             Retrieves all transactions for a portfolio as of a specific date.
             If no date is provided, uses today's date.
-            
+
             Use this to:
             * View portfolio transactions for a specific date
             * Get transaction history for reporting
@@ -95,24 +95,21 @@ class TrnController(
                         ]
                     )
                 ]
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Portfolio not found"
             )
         ]
     )
     fun findAsAt(
-        @Parameter(
+        @PathVariable @Parameter(
             description = "Portfolio identifier",
             example = "portfolio-123"
-        )
-        @PathVariable("portfolioId") portfolioId: String,
+        ) portfolioId: String,
         @Parameter(
             description = "Date to retrieve transactions for (YYYY-MM-DD format)",
             example = "2024-01-15"
-        )
-        @RequestParam(required = false) asAt: String = dateUtils.today()
+        ) @RequestParam(required = false) asAt: String = dateUtils.today()
     ): TrnResponse =
         TrnResponse(
             trnService.findForPortfolio(
@@ -126,7 +123,7 @@ class TrnController(
         summary = "Get transaction by ID",
         description = """
             Retrieves a specific transaction by its unique identifier.
-            
+
             Use this to:
             * Get detailed information about a specific transaction
             * View transaction details for auditing or reporting
@@ -138,8 +135,7 @@ class TrnController(
             ApiResponse(
                 responseCode = "200",
                 description = "Transaction retrieved successfully"
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Transaction not found"
             )
@@ -149,8 +145,7 @@ class TrnController(
         @Parameter(
             description = "Unique transaction identifier",
             example = "trn-123"
-        )
-        @PathVariable("trnId") trnId: String
+        ) @PathVariable("trnId") trnId: String
     ): TrnResponse =
         TrnResponse(
             trnService.getPortfolioTrn(
@@ -167,7 +162,7 @@ class TrnController(
         description = """
             Creates new transactions for a portfolio.
             This endpoint handles bulk transaction creation efficiently.
-            
+
             Use this to:
             * Record new trades or corporate actions
             * Import transactions from external systems
@@ -203,8 +198,7 @@ class TrnController(
                         ]
                     )
                 ]
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "400",
                 description = "Invalid transaction data"
             )
@@ -213,8 +207,7 @@ class TrnController(
     fun update(
         @Parameter(
             description = "Transaction request containing portfolio and transaction data"
-        )
-        @RequestBody trnRequest: TrnRequest
+        ) @RequestBody trnRequest: TrnRequest
     ): TrnResponse =
         TrnResponse(
             trnService.save(
@@ -233,7 +226,7 @@ class TrnController(
         description = """
             Updates an existing transaction with new data.
             Only the provided fields will be updated.
-            
+
             Use this to:
             * Correct transaction details
             * Update transaction metadata
@@ -245,8 +238,7 @@ class TrnController(
             ApiResponse(
                 responseCode = "200",
                 description = "Transaction updated successfully"
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Transaction not found"
             )
@@ -256,17 +248,14 @@ class TrnController(
         @Parameter(
             description = "Portfolio identifier",
             example = "portfolio-123"
-        )
-        @PathVariable("portfolioId") portfolioId: String,
+        ) @PathVariable("portfolioId") portfolioId: String,
         @Parameter(
             description = "Transaction identifier to update",
             example = "trn-123"
-        )
-        @PathVariable("trnId") trnId: String,
+        ) @PathVariable("trnId") trnId: String,
         @Parameter(
             description = "Updated transaction data"
-        )
-        @RequestBody trnInput: TrnInput
+        ) @RequestBody trnInput: TrnInput
     ): TrnResponse =
         trnService.patch(
             portfolioId,
@@ -280,7 +269,7 @@ class TrnController(
         description = """
             Permanently deletes all transactions for a specific portfolio.
             This operation cannot be undone.
-            
+
             Use this to:
             * Clear all transaction history for a portfolio
             * Remove portfolio data for privacy or compliance
@@ -303,8 +292,7 @@ class TrnController(
                         ]
                     )
                 ]
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Portfolio not found"
             )
@@ -314,8 +302,7 @@ class TrnController(
         @Parameter(
             description = "Portfolio identifier",
             example = "portfolio-123"
-        )
-        @PathVariable("portfolioId") portfolioId: String
+        ) @PathVariable("portfolioId") portfolioId: String
     ): Long = trnService.purge(portfolioId)
 
     @DeleteMapping(
@@ -327,7 +314,7 @@ class TrnController(
         description = """
             Permanently deletes a specific transaction.
             This operation cannot be undone.
-            
+
             Use this to:
             * Remove incorrect transactions
             * Delete duplicate entries
@@ -339,8 +326,7 @@ class TrnController(
             ApiResponse(
                 responseCode = "200",
                 description = "Transaction deleted successfully"
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Transaction not found"
             )
@@ -350,8 +336,7 @@ class TrnController(
         @Parameter(
             description = "Transaction identifier to delete",
             example = "trn-123"
-        )
-        @PathVariable("trnId") trnId: String
+        ) @PathVariable("trnId") trnId: String
     ): TrnDeleteResponse = TrnDeleteResponse(trnService.delete(trnId))
 
     @GetMapping(
@@ -362,7 +347,7 @@ class TrnController(
         summary = "Get corporate events for asset in portfolio",
         description = """
             Retrieves all corporate events (dividends, splits, etc.) for a specific asset in a portfolio.
-            
+
             Use this to:
             * View dividend history for an asset
             * Track corporate actions
@@ -374,8 +359,7 @@ class TrnController(
             ApiResponse(
                 responseCode = "200",
                 description = "Corporate events retrieved successfully"
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Portfolio or asset not found"
             )
@@ -385,13 +369,11 @@ class TrnController(
         @Parameter(
             description = "Portfolio identifier",
             example = "portfolio-123"
-        )
-        @PathVariable("portfolioId") portfolioId: String,
+        ) @PathVariable("portfolioId") portfolioId: String,
         @Parameter(
             description = "Asset identifier",
             example = "AAPL"
-        )
-        @PathVariable("assetId") assetId: String
+        ) @PathVariable("assetId") assetId: String
     ): TrnResponse =
         TrnResponse(
             trnQueryService.findEvents(
@@ -408,7 +390,7 @@ class TrnController(
         summary = "Get trade transactions for asset in portfolio",
         description = """
             Retrieves all trade transactions (buys, sells) for a specific asset in a portfolio.
-            
+
             Use this to:
             * View trading history for an asset
             * Analyze trading patterns
@@ -420,8 +402,7 @@ class TrnController(
             ApiResponse(
                 responseCode = "200",
                 description = "Trade transactions retrieved successfully"
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Portfolio or asset not found"
             )
@@ -431,13 +412,11 @@ class TrnController(
         @Parameter(
             description = "Portfolio identifier",
             example = "portfolio-123"
-        )
-        @PathVariable("portfolioId") portfolioId: String,
+        ) @PathVariable("portfolioId") portfolioId: String,
         @Parameter(
             description = "Asset identifier",
             example = "AAPL"
-        )
-        @PathVariable("assetId") assetId: String
+        ) @PathVariable("assetId") assetId: String
     ): TrnResponse =
         TrnResponse(
             trnQueryService.findAssetTrades(
@@ -454,7 +433,7 @@ class TrnController(
         description = """
             Queries transactions for a specific asset and date range.
             This endpoint provides flexible transaction searching.
-            
+
             Use this to:
             * Search for specific transactions
             * Filter transactions by date range
@@ -466,8 +445,7 @@ class TrnController(
             ApiResponse(
                 responseCode = "200",
                 description = "Query results retrieved successfully"
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "400",
                 description = "Invalid query parameters"
             )
@@ -476,8 +454,7 @@ class TrnController(
     fun findByAsset(
         @Parameter(
             description = "Query parameters for transaction search"
-        )
-        @RequestBody query: TrustedTrnQuery
+        ) @RequestBody query: TrustedTrnQuery
     ): TrnResponse =
         TrnResponse(
             trnQueryService.findAssetTrades(
@@ -493,7 +470,7 @@ class TrnController(
         description = """
             Exports all transactions for a portfolio to CSV format.
             The file will be downloaded with the portfolio ID as the filename.
-            
+
             Use this to:
             * Export transaction data for external analysis
             * Create backup files of transaction history
@@ -510,8 +487,7 @@ class TrnController(
                         mediaType = "text/csv"
                     )
                 ]
-            ),
-            ApiResponse(
+            ), ApiResponse(
                 responseCode = "404",
                 description = "Portfolio not found"
             )
@@ -522,8 +498,7 @@ class TrnController(
         @Parameter(
             description = "Portfolio identifier to export",
             example = "portfolio-123"
-        )
-        @PathVariable("portfolioId") portfolioId: String
+        ) @PathVariable("portfolioId") portfolioId: String
     ) {
         response.contentType = MediaType.TEXT_PLAIN_VALUE
         response.setHeader(
@@ -536,10 +511,7 @@ class TrnController(
                 dateUtils.date
             )
 
-        val csvWriter =
-            CSVWriterBuilder(response.writer)
-                .withSeparator(',')
-                .build()
+        val csvWriter = CSVWriterBuilder(response.writer).withSeparator(',').build()
         csvWriter.writeNext(
             trnIoDefinition.headers(),
             false
@@ -552,4 +524,88 @@ class TrnController(
         }
         csvWriter.close()
     }
+
+    @GetMapping(
+        value = ["/portfolio/{portfolioId}/status/{status}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get transactions for portfolio by status",
+        description = """
+            Retrieves all transactions for a portfolio with a specific status.
+            Valid statuses: PROPOSED, CONFIRMED, SETTLED
+
+            Use this to:
+            * View pending/proposed transactions that need review
+            * Filter transactions by their processing status
+            * Find unsettled transactions for a portfolio
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Transactions retrieved successfully"
+            ), ApiResponse(
+                responseCode = "404",
+                description = "Portfolio not found"
+            )
+        ]
+    )
+    fun findByStatus(
+        @Parameter(
+            description = "Portfolio identifier",
+            example = "portfolio-123"
+        ) @PathVariable("portfolioId") portfolioId: String,
+        @Parameter(
+            description = "Transaction status to filter by",
+            example = "PROPOSED"
+        ) @PathVariable("status") status: String
+    ): TrnResponse {
+        val trnStatus =
+            com.beancounter.common.model.TrnStatus
+                .valueOf(status.uppercase())
+        return TrnResponse(trnService.findByStatus(portfolioId, trnStatus))
+    }
+
+    @PostMapping(
+        value = ["/portfolio/{portfolioId}/settle"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Settle proposed transactions",
+        description = """
+            Updates the status of PROPOSED transactions to SETTLED.
+            Only transactions with PROPOSED status will be affected.
+
+            Use this to:
+            * Finalize proposed transactions after review
+            * Convert pending rebalance transactions to actual trades
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Transactions settled successfully"
+            ), ApiResponse(
+                responseCode = "404",
+                description = "Portfolio not found"
+            )
+        ]
+    )
+    fun settleTransactions(
+        @Parameter(
+            description = "Portfolio identifier",
+            example = "portfolio-123"
+        ) @PathVariable("portfolioId") portfolioId: String,
+        @Parameter(
+            description = "Request body containing transaction IDs to settle"
+        ) @RequestBody request: SettleTransactionsRequest
+    ): TrnResponse = TrnResponse(trnService.settleTransactions(portfolioId, request.trnIds))
 }
+
+data class SettleTransactionsRequest(
+    val trnIds: List<String>
+)

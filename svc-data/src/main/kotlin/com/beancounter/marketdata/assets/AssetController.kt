@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetStatusRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
+import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceRefresh
 import com.opencsv.CSVParserBuilder
 import com.opencsv.CSVReaderBuilder
@@ -59,7 +60,8 @@ class AssetController(
     private val assetFinder: AssetFinder,
     private val assetIoDefinition: AssetIoDefinition,
     private val assetCategoryConfig: AssetCategoryConfig,
-    private val assetSearchService: AssetSearchService
+    private val assetSearchService: AssetSearchService,
+    private val marketDataService: MarketDataService
 ) {
     companion object {
         private const val MAX_INPUT_LENGTH = 50
@@ -198,7 +200,10 @@ class AssetController(
     @GetMapping("/{assetId}")
     @Operation(
         summary = "Get asset by ID",
-        description = "Retrieves a specific asset by its unique identifier"
+        description = """
+            Retrieves a specific asset by its unique identifier.
+            Optionally includes current price data when includePrice=true.
+        """
     )
     @ApiResponses(
         value = [
@@ -215,8 +220,19 @@ class AssetController(
     )
     fun getAsset(
         @Parameter(description = "Unique identifier of the asset", example = "US:AAPL")
-        @PathVariable assetId: String
-    ): AssetResponse = AssetResponse(assetFinder.find(assetId))
+        @PathVariable assetId: String,
+        @Parameter(description = "Include current price data in response", example = "true")
+        @RequestParam(required = false, defaultValue = "false") includePrice: Boolean
+    ): AssetResponse {
+        val asset = assetFinder.find(assetId)
+        val price =
+            if (includePrice) {
+                marketDataService.getPriceResponse(assetId).data.firstOrNull()
+            } else {
+                null
+            }
+        return AssetResponse(asset, price)
+    }
 
     @PostMapping("/{assetId}/enrich")
     @Operation(

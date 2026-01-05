@@ -248,6 +248,99 @@ internal class AssetControllerTest {
     }
 
     @Test
+    fun `get asset with includePrice returns price data`() {
+        // First create an asset
+        val asset =
+            getTestAsset(
+                market = NASDAQ,
+                code = "PRICEASSET"
+            )
+        val assetInputMap =
+            mapOf(
+                toKey(asset) to
+                    getAssetInput(
+                        NASDAQ.code,
+                        asset.code
+                    )
+            )
+        val createResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post(ASSET_ROOT)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).content(objectMapper.writeValueAsString(AssetRequest(assetInputMap)))
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        val createdAsset =
+            objectMapper
+                .readValue<AssetUpdateResponse>(createResult.response.contentAsString)
+                .data[toKey(asset)]!!
+
+        // Fetch without includePrice - price should be null
+        var mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$ASSET_ROOT/{assetId}", createdAsset.id)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        var response = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
+        assertThat(response.data.id).isEqualTo(createdAsset.id)
+        assertThat(response.price).isNull()
+
+        // Fetch with includePrice=false - price should be null
+        mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$ASSET_ROOT/{assetId}", createdAsset.id)
+                        .param("includePrice", "false")
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        response = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
+        assertThat(response.data.id).isEqualTo(createdAsset.id)
+        assertThat(response.price).isNull()
+
+        // Fetch with includePrice=true - response should have price field (may be null if no price data exists)
+        mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$ASSET_ROOT/{assetId}", createdAsset.id)
+                        .param("includePrice", "true")
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        response = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
+        assertThat(response.data.id).isEqualTo(createdAsset.id)
+        // Price may be null if no price data exists for the asset, but the field should be present
+    }
+
+    @Test
     fun `missing asset throws appropriate error`() {
         // Invalid market code - throws NotFoundException (NOT_FOUND)
         var result =

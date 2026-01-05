@@ -183,7 +183,8 @@ class AssetSerialization {
             "resolvedAsset",
             "name",
             "currency",
-            "owner"
+            "owner",
+            "expectedReturnRate"
         )
     }
 }

@@ -76,7 +76,8 @@ class AssetsTest {
                 "priceSymbol",
                 "reportCategory",
                 "sector",
-                "industry"
+                "industry",
+                "expectedReturnRate"
             )
         assertThat(result.assets[1].resolvedAsset)
             .isNotNull
@@ -85,7 +86,8 @@ class AssetsTest {
                 "priceSymbol",
                 "reportCategory",
                 "sector",
-                "industry"
+                "industry",
+                "expectedReturnRate"
             )
 
         // val byProviders = ProviderUtils().splitProviders(priceRequest.assets)

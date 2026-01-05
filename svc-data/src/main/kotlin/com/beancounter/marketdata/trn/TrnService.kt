@@ -110,6 +110,55 @@ class TrnService(
         return postProcess(results)
     }
 
+    /**
+     * Find transactions for a portfolio with a specific status.
+     */
+    fun findByStatus(
+        portfolioId: String,
+        status: TrnStatus
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        val results = trnRepository.findByPortfolioIdAndStatus(portfolio.id, status)
+        log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, status: $status")
+        return postProcess(results)
+    }
+
+    /**
+     * Settle transactions by updating their status from PROPOSED to SETTLED.
+     * @param portfolioId Portfolio ID
+     * @param trnIds List of transaction IDs to settle
+     * @return Updated transactions
+     */
+    fun settleTransactions(
+        portfolioId: String,
+        trnIds: List<String>
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        val settled = mutableListOf<Trn>()
+        for (trnId in trnIds) {
+            val trnOptional = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
+            if (trnOptional.isPresent) {
+                val trn = trnOptional.get()
+                if (trn.status == TrnStatus.PROPOSED) {
+                    trn.status = TrnStatus.SETTLED
+                    val saved = trnRepository.save(trn)
+                    settled.add(saved)
+                    log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
+                } else {
+                    log.warn(
+                        "Cannot settle transaction {} - status is {} not PROPOSED",
+                        trnId,
+                        trn.status
+                    )
+                }
+            } else {
+                log.warn("Transaction {} not found in portfolio {}", trnId, portfolio.code)
+            }
+        }
+        log.info("Settled {} transactions for portfolio {}", settled.size, portfolio.code)
+        return postProcess(settled)
+    }
+
     fun purge(portfolioId: String): Long {
         val portfolio = portfolioService.find(portfolioId)
         return purge(portfolio)

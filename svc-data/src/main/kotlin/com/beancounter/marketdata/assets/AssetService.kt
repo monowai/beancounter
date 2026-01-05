@@ -217,6 +217,8 @@ class AssetService(
                 asset.category = newCategory.id
             }
         }
+        // Update expected return rate for retirement projections
+        assetInput.expectedReturnRate?.let { asset.expectedReturnRate = it }
         return assetFinder.hydrateAsset(assetRepository.save(asset))
     }
 

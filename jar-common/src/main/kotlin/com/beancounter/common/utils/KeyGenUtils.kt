@@ -76,6 +76,23 @@ class KeyGenUtils {
     val id: String
         get() = format(UUID.randomUUID())
 
+    /**
+     * Check if a string is a valid UUID representation.
+     * Accepts both standard 36-char format (with hyphens) and short 22-char base64 format.
+     *
+     * @param value the string to check
+     * @return true if the string is a valid UUID representation
+     */
+    fun isValid(value: String?): Boolean {
+        if (value.isNullOrEmpty()) return false
+        return try {
+            parse(value)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     companion object {
         private val CHARS =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray()

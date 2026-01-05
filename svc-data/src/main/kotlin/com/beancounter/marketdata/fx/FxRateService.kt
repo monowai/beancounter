@@ -84,8 +84,10 @@ class FxRateService(
                 fxRateRepository.findByDateRange(dateToFind)
             }
 
-        if (rates.size <= 1) { // You should always get the base rate of 1
-            // No cached rates found - fetch from external API using the calculated date
+        // Check if we have actual rates for the requested date (not just base rates from 1900)
+        val hasRatesForDate = rates.any { it.date == dateToFind }
+        if (!hasRatesForDate) {
+            // No cached rates found for this date - fetch from external API
             val effectiveProvider = fxRequest.provider ?: fxProviderService.getDefaultProviderId()
             val dateString = dateToFind.toString()
             log.info(

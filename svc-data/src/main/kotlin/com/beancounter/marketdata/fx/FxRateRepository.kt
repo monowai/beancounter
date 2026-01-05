@@ -71,7 +71,7 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
      * @param earlyDate The early date to compare against, default is 1900-01-01.
      * @return The base FxRate entity that matches the criteria, or null if not found.
      */
-    @Query("select f from FxRate f where f.from = :from and f.to = :from and f.date <= :earlyDate")
+    @Query("select f from FxRate f where f.from = :from and f.to = :from and f.date <= :earlyDate order by f.date desc limit 1")
     fun findBaseRate(
         from: Currency,
         earlyDate: LocalDate =

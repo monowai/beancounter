@@ -225,7 +225,7 @@ resilience4j:
 beancounter:
   # Default FX rate provider: FRANKFURTER (free, unlimited) or EXCHANGE_RATES_API
   fx:
-    provider: FRANKFURTER
+    provider: EXCHANGE_RATES_API
   currency:
     base: "USD"
     values:

@@ -282,6 +282,84 @@ internal class FxFullStackTest {
         assertThat(someException.get()).hasMessageContaining(from)
     }
 
+    @Autowired
+    private lateinit var fxRateRepository: FxRateRepository
+
+    @Test
+    fun `should fetch rates even when multiple base rates exist from different providers`() {
+        // Given: Multiple base rates from different providers exist in the database
+        val baseCurrency = currencyService.getCode(USD.code)
+        val baseDate = dateUtils.getDate("1900-01-01")
+
+        // Create base rates from multiple providers (simulating production scenario)
+        val frankfurterBase =
+            com.beancounter.common.model.FxRate(
+                from = baseCurrency,
+                to = baseCurrency,
+                rate = BigDecimal.ONE,
+                date = baseDate,
+                provider = "FRANKFURTER"
+            )
+        val exchangeRatesBase =
+            com.beancounter.common.model.FxRate(
+                from = baseCurrency,
+                to = baseCurrency,
+                rate = BigDecimal.ONE,
+                date = baseDate,
+                provider = "EXCHANGE_RATES_API"
+            )
+        fxRateRepository.save(frankfurterBase)
+        fxRateRepository.save(exchangeRatesBase)
+
+        // And: Mock the API to return actual rates
+        val testDate = "2019-07-26"
+        `when`(
+            fxGateway.getRatesForSymbols(
+                eq(testDate),
+                eq(USD.code),
+                eq(currencyService.currenciesAs())
+            )
+        ).thenReturn(
+            ExRatesResponse(
+                base = USD.code,
+                date = dateUtils.getDate(testDate),
+                mapOf(
+                    NZD.code to BigDecimal("1.5"),
+                    AUD.code to BigDecimal("1.2"),
+                    SGD.code to BigDecimal("1.3")
+                )
+            )
+        )
+
+        // When: Requesting FX rates for a date that's not cached
+        val fxRequest =
+            FxRequest(
+                testDate,
+                pairs =
+                    mutableSetOf(
+                        IsoCurrencyPair(USD.code, NZD.code),
+                        IsoCurrencyPair(USD.code, AUD.code),
+                        IsoCurrencyPair(AUD.code, SGD.code)
+                    )
+            )
+        val mvcResult = fxPost(fxRequest)
+
+        // Then: Rates should be fetched from API and returned
+        val (results) =
+            objectMapper.readValue(
+                mvcResult.response.contentAsString,
+                FxResponse::class.java
+            )
+        assertThat(results.rates)
+            .isNotNull
+            .hasSize(3)
+
+        // Verify cross-rate calculation works (AUD:SGD)
+        val audSgdRate = results.rates[IsoCurrencyPair(AUD.code, SGD.code)]
+        assertThat(audSgdRate).isNotNull
+        assertThat(audSgdRate!!.rate).isNotNull
+    }
+
     companion object {
         val nzd = NZD.code
         val usd = USD.code

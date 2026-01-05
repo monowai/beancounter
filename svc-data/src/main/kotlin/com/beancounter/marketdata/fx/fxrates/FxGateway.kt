@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.fx.fxrates
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -13,15 +14,18 @@ import org.springframework.web.client.body
 class FxGateway(
     @Qualifier("exchangeRatesRestClient")
     private val restClient: RestClient,
-    @Value($$"${beancounter.market.providers.fx.key:}")
+    @Value("\${beancounter.market.providers.fx.key:}")
     private val accessKey: String
 ) {
+    private val log = LoggerFactory.getLogger(FxGateway::class.java)
+
     fun getRatesForSymbols(
         date: String,
         base: String,
         symbols: String
-    ): ExRatesResponse? =
-        restClient
+    ): ExRatesResponse? {
+        log.debug("FX API call: date={}, base={}, keyPresent={}", date, base, accessKey.isNotEmpty())
+        return restClient
             .get()
             .uri(
                 "/v1/{date}?base={base}&symbols={symbols}&access_key={accessKey}",
@@ -31,4 +35,5 @@ class FxGateway(
                 accessKey
             ).retrieve()
             .body<ExRatesResponse>()
+    }
 }

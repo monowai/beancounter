@@ -28,13 +28,13 @@ class EcbService
         @RateLimiter(name = "fxRates")
         override fun getRates(asAt: String): List<FxRate> =
             try {
-                val ecbRates =
-                    fxGateway.getRatesForSymbols(
-                        ecbDate.getValidDate(asAt),
-                        currencyService.currencyConfig.baseCurrency.code,
-                        currencyService.currenciesAs()
-                    )
+                val validDate = ecbDate.getValidDate(asAt)
+                val baseCurrency = currencyService.currencyConfig.baseCurrency.code
+                val symbols = currencyService.currenciesAs()
+                log.info("Fetching FX rates: date={}, base={}, symbols={}", validDate, baseCurrency, symbols)
+                val ecbRates = fxGateway.getRatesForSymbols(validDate, baseCurrency, symbols)
                 if (ecbRates?.rates != null) {
+                    log.info("Received {} rates from ExchangeRatesAPI for {}", ecbRates.rates.size, validDate)
                     ecbRates.rates.map { (code, rate) ->
                         FxRate(
                             from = currencyService.currencyConfig.baseCurrency,
@@ -49,7 +49,7 @@ class EcbService
                     emptyList()
                 }
             } catch (e: Exception) {
-                log.warn("ExchangeRatesAPI FX rate fetch failed for {}: {}", asAt, e.message)
+                log.error("ExchangeRatesAPI FX rate fetch failed for {}: {}", asAt, e.message, e)
                 emptyList()
             }
     }

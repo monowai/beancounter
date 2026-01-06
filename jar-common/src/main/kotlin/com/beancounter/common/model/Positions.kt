@@ -34,6 +34,25 @@ class Positions(
 ) {
     companion object {
         const val DEFAULT_AS_AT = "today"
+        private const val CASH_MARKET = "CASH"
+        private const val PRIVATE_MARKET = "PRIVATE"
+
+        /**
+         * Get the appropriate trade currency for an asset.
+         * - For CASH/PRIVATE markets: use priceSymbol which stores the currency
+         * - For other markets: use the market's default currency
+         */
+        fun getTradeCurrency(asset: Asset): Currency =
+            when (asset.market.code) {
+                CASH_MARKET, PRIVATE_MARKET -> {
+                    if (asset.priceSymbol != null) {
+                        Currency(asset.priceSymbol!!)
+                    } else {
+                        asset.market.currency
+                    }
+                }
+                else -> asset.market.currency
+            }
     }
 
     @JsonIgnore
@@ -58,8 +77,9 @@ class Positions(
 
     private fun updateMixedCurrenciesFlag(position: Position) {
         if (!isMixedCurrencies) {
-            if (!tradeCurrencies.contains(position.asset.market.currency)) {
-                tradeCurrencies.add(position.asset.market.currency)
+            val tradeCurrency = getTradeCurrency(position.asset)
+            if (!tradeCurrencies.contains(tradeCurrency)) {
+                tradeCurrencies.add(tradeCurrency)
             }
             isMixedCurrencies = tradeCurrencies.size > 1
         }
@@ -77,7 +97,7 @@ class Positions(
                 Position(
                     asset,
                     portfolio,
-                    asset.market.currency
+                    getTradeCurrency(asset)
                 )
             )
         return position
@@ -94,7 +114,7 @@ class Positions(
     fun getOrCreate(
         asset: Asset,
         tradeDate: LocalDate,
-        tradeCurrency: Currency = asset.market.currency
+        tradeCurrency: Currency = getTradeCurrency(asset)
     ): Position {
         val firstTrade = !positions.containsKey(toKey(asset))
         val position =

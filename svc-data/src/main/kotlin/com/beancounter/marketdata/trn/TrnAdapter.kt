@@ -82,7 +82,12 @@ class TrnAdapter(
         val asset = getAsset(trnInput, existing)
         val tradeCurrency =
             if (trnInput.tradeCurrency.isEmpty()) {
-                asset.market.currency
+                // For CASH/PRIVATE markets, use priceSymbol which stores the currency
+                // For other markets, use the market's default currency
+                when (asset.market.code) {
+                    "CASH", "PRIVATE" -> currencyService.getCode(asset.priceSymbol ?: asset.market.currency.code)
+                    else -> asset.market.currency
+                }
             } else {
                 currencyService.getCode(
                     trnInput.tradeCurrency

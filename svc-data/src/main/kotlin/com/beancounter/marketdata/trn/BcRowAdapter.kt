@@ -131,7 +131,12 @@ class BcRowAdapter(
         asset: Asset
     ): String =
         if (row[Columns.TradeCurrency.ordinal].isEmpty()) {
-            asset.market.currency.code
+            // For CASH/PRIVATE markets, use priceSymbol which stores the currency
+            // For other markets, use the market's default currency
+            when (asset.market.code) {
+                "CASH", "PRIVATE" -> asset.priceSymbol ?: asset.market.currency.code
+                else -> asset.market.currency.code
+            }
         } else {
             row[Columns.TradeCurrency.ordinal].trim()
         }

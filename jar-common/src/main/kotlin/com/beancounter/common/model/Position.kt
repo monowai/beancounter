@@ -13,7 +13,7 @@ import java.util.EnumMap
 class Position(
     val asset: Asset,
     portfolio: Portfolio?,
-    tradeCurrency: Currency = asset.market.currency
+    tradeCurrency: Currency = Positions.getTradeCurrency(asset)
 ) {
     constructor(asset: Asset) : this(
         asset,

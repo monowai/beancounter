@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
@@ -112,4 +113,32 @@ interface TrnRepository : CrudRepository<Trn, String> {
         eventTypes: List<TrnType>,
         tradeDate: LocalDate
     ): Collection<Trn>
+
+    /**
+     * Find all transactions with a specific status for portfolios owned by the given user.
+     * Used for cross-portfolio proposed transaction views.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.status = ?1 " +
+            "and t.portfolio.owner = ?2 " +
+            "order by t.tradeDate desc"
+    )
+    fun findByStatusAndPortfolioOwner(
+        status: TrnStatus,
+        owner: SystemUser
+    ): Collection<Trn>
+
+    /**
+     * Count all transactions with a specific status for portfolios owned by the given user.
+     */
+    @Query(
+        "select count(t) from Trn t " +
+            "where t.status = ?1 " +
+            "and t.portfolio.owner = ?2"
+    )
+    fun countByStatusAndPortfolioOwner(
+        status: TrnStatus,
+        owner: SystemUser
+    ): Long
 }

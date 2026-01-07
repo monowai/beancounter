@@ -142,10 +142,10 @@ class TrnController(
         ]
     )
     fun find(
-        @Parameter(
+        @PathVariable @Parameter(
             description = "Unique transaction identifier",
             example = "trn-123"
-        ) @PathVariable("trnId") trnId: String
+        ) trnId: String
     ): TrnResponse =
         TrnResponse(
             trnService.getPortfolioTrn(

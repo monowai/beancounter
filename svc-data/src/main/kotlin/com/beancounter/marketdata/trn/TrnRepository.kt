@@ -93,4 +93,23 @@ interface TrnRepository : CrudRepository<Trn, String> {
         portfolioId: String,
         status: TrnStatus
     ): Collection<Trn>
+
+    /**
+     * Find EVENT transactions (DIVI, SPLIT) with a specific status where tradeDate
+     * is on or before the given date. Used by the auto-settle scheduler to find
+     * PROPOSED event transactions that are due for settlement.
+     * TRADE transactions (BUY, SELL, etc.) are NOT included.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.status = ?1 " +
+            "and t.trnType in (?2) " +
+            "and t.tradeDate <= ?3 " +
+            "order by t.tradeDate asc"
+    )
+    fun findDueEventTransactions(
+        status: TrnStatus,
+        eventTypes: List<TrnType>,
+        tradeDate: LocalDate
+    ): Collection<Trn>
 }

@@ -8,6 +8,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.event.service.TaxService
 import org.assertj.core.api.Assertions.assertThat
@@ -411,5 +412,101 @@ class AlphaEventAdapterTest {
                 .isEqualTo(recordDate.plusDays(1))
                 .isEqualTo(LocalDate.of(2024, 1, 16))
         }
+    }
+
+    @Test
+    fun `future dated DIVIDEND should be created as PROPOSED transaction`() {
+        // Given: A DIVIDEND event with a record date that results in a future pay date
+        val futureRecordDate = LocalDate.now().plusDays(5)
+        val expectedPayDate = futureRecordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
+        val dividendEvent =
+            CorporateEvent(
+                id = "future-divi",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = futureRecordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Processing the future-dated DIVIDEND event
+        val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
+
+        // Then: The transaction should be created as PROPOSED (not IGNORE)
+        assertThat(result.trnInput.trnType)
+            .describedAs("Future-dated dividends should be created as DIVI, not IGNORE")
+            .isEqualTo(TrnType.DIVI)
+
+        assertThat(result.trnInput.status)
+            .describedAs("Future-dated dividends should have PROPOSED status")
+            .isEqualTo(TrnStatus.PROPOSED)
+
+        assertThat(result.trnInput.tradeDate)
+            .describedAs("Future-dated dividends should have the calculated pay date as tradeDate")
+            .isEqualTo(expectedPayDate)
+    }
+
+    @Test
+    fun `DIVIDEND with pay date far in the future should still be PROPOSED`() {
+        // Given: A DIVIDEND event with a record date far in the future (next year)
+        val farFutureRecordDate = LocalDate.now().plusMonths(6)
+        val expectedPayDate = farFutureRecordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
+        val dividendEvent =
+            CorporateEvent(
+                id = "far-future-divi",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = farFutureRecordDate,
+                rate = BigDecimal("0.75"),
+                source = "ALPHA"
+            )
+
+        // When: Processing the far future DIVIDEND event
+        val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
+
+        // Then: The transaction should still be created as PROPOSED
+        assertThat(result.trnInput.trnType)
+            .describedAs("Far future dividends should be created as DIVI, not IGNORE")
+            .isEqualTo(TrnType.DIVI)
+
+        assertThat(result.trnInput.status)
+            .describedAs("Far future dividends should have PROPOSED status")
+            .isEqualTo(TrnStatus.PROPOSED)
+
+        assertThat(result.trnInput.tradeDate)
+            .describedAs("Far future dividends should have the calculated pay date")
+            .isEqualTo(expectedPayDate)
+    }
+
+    @Test
+    fun `past dated DIVIDEND should also be PROPOSED`() {
+        // Given: A DIVIDEND event with a past record date
+        val pastRecordDate = LocalDate.of(2024, 1, 15)
+        val expectedPayDate = pastRecordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
+        val dividendEvent =
+            CorporateEvent(
+                id = "past-divi",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = pastRecordDate,
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        // When: Processing the past DIVIDEND event
+        val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
+
+        // Then: Past dividends should still be PROPOSED (user can manually settle)
+        assertThat(result.trnInput.trnType)
+            .describedAs("Past dividends should be created as DIVI")
+            .isEqualTo(TrnType.DIVI)
+
+        assertThat(result.trnInput.status)
+            .describedAs("Past dividends should have PROPOSED status")
+            .isEqualTo(TrnStatus.PROPOSED)
+
+        assertThat(result.trnInput.tradeDate)
+            .describedAs("Past dividends should have the calculated pay date")
+            .isEqualTo(expectedPayDate)
     }
 }

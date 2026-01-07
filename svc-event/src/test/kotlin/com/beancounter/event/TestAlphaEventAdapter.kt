@@ -91,7 +91,9 @@ class TestAlphaEventAdapter {
     }
 
     @Test
-    fun is_FutureDatedTrnIgnored() {
+    fun is_FutureDatedDividendProposed() {
+        // Future-dated dividends should be created as PROPOSED transactions
+        // so users can see upcoming dividends and manually confirm them
         val asset =
             getTestAsset(
                 market,
@@ -103,6 +105,7 @@ class TestAlphaEventAdapter {
         assertThat(today).isNotNull
         val event =
             CorporateEvent(
+                id = "future-dated-test",
                 trnType = TrnType.DIVI,
                 recordDate = today,
                 assetId = asset.id,
@@ -110,15 +113,23 @@ class TestAlphaEventAdapter {
             )
         val behaviourFactory = EventBehaviourFactory()
         val portfolio = getPortfolio()
-        assertThat(
+        // Set up position with quantity for dividend calculation
+        val position = Position(asset)
+        position.quantityValues = QuantityValues(purchased = BigDecimal("100"))
+        val trnEvent =
             behaviourFactory
                 .getAdapter(event)
                 .calculate(
                     portfolio,
-                    Position(asset),
+                    position,
                     event
-                ).trnInput.trnType
-        ).isEqualTo(TrnType.IGNORE)
+                )
+        // Future-dated dividends should be PROPOSED, not IGNORE
+        assertThat(trnEvent.trnInput.trnType).isEqualTo(TrnType.DIVI)
+        assertThat(trnEvent.trnInput.status).isEqualTo(TrnStatus.PROPOSED)
+        // Trade date should be record date + configured days
+        val expectedPayDate = today.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
+        assertThat(trnEvent.trnInput.tradeDate).isEqualTo(expectedPayDate)
     }
 
     @Test

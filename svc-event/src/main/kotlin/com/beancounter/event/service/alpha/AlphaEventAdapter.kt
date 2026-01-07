@@ -68,26 +68,21 @@ class AlphaEventAdapter(
         overridePayDate: String?
     ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
-            // Use override if provided, otherwise calculate default (recordDate + 18 days)
+            // Use override if provided, otherwise calculate default (recordDate + configured days)
             val payDate =
                 if (overridePayDate != null) {
                     dateUtils.getFormattedDate(overridePayDate)
                 } else {
                     calculatePayDate(corporateEvent)
                 }
-            val trnInput =
-                toDividend(
-                    currentPosition,
-                    corporateEvent,
-                    payDate
-                )
-                    ?: return TrustedTrnEvent(
-                        portfolio,
-                        trnInput = TrnInput(trnType = TrnType.IGNORE)
-                    ) // We didn't create anything
             return TrustedTrnEvent(
                 portfolio,
-                trnInput = trnInput
+                trnInput =
+                    toDividend(
+                        currentPosition,
+                        corporateEvent,
+                        payDate
+                    )
             )
         } else if (corporateEvent.trnType == TrnType.SPLIT) {
             return TrustedTrnEvent(
@@ -133,11 +128,9 @@ class AlphaEventAdapter(
         currentPosition: Position,
         corporateEvent: CorporateEvent,
         payDate: LocalDate
-    ): TrnInput? {
-        // Skip if pay date is in the future
-        if (payDate > dateUtils.date) {
-            return null // Don't create forward dated transactions
-        }
+    ): TrnInput {
+        // All dividends are created as PROPOSED transactions regardless of pay date.
+        // A daily scheduler will auto-settle them when the tradeDate arrives.
         val gross =
             calculateGross(
                 currentPosition,

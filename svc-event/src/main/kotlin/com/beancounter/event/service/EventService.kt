@@ -74,7 +74,7 @@ class EventService(
                         event,
                         overridePayDate
                     )
-                // Skip forward dated transactions
+                // Skip ignored transactions (e.g., unsupported event types)
                 if (trnEvent.trnInput.trnType == TrnType.IGNORE) {
                     ignoredCount++
                     null
@@ -94,7 +94,7 @@ class EventService(
             eventMetrics.recordEventProcessed(portfolioCount, transactionCount)
         }
         if (ignoredCount > 0) {
-            eventMetrics.recordEventIgnored("no_positions_or_future_dated")
+            eventMetrics.recordEventIgnored("unsupported_event_type")
         }
 
         return results

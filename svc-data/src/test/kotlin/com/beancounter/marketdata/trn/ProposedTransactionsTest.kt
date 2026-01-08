@@ -87,53 +87,58 @@ class ProposedTransactionsTest {
         // Given: Two portfolios with proposed transactions
         val msft = bcMvcHelper.asset(AssetRequest(msftInput))
 
-        val portfolio1 = bcMvcHelper.portfolio(
-            PortfolioInput("PROPOSED-P1", "Portfolio 1 for Proposed", currency = USD.code)
-        )
-        val portfolio2 = bcMvcHelper.portfolio(
-            PortfolioInput("PROPOSED-P2", "Portfolio 2 for Proposed", currency = USD.code)
-        )
+        val portfolio1 =
+            bcMvcHelper.portfolio(
+                PortfolioInput("PROPOSED-P1", "Portfolio 1 for Proposed", currency = USD.code)
+            )
+        val portfolio2 =
+            bcMvcHelper.portfolio(
+                PortfolioInput("PROPOSED-P2", "Portfolio 2 for Proposed", currency = USD.code)
+            )
 
         // Create PROPOSED transactions in both portfolios
-        val trnInput1 = TrnInput(
-            CallerRef(batch = "PROPOSED-TEST", callerId = "1"),
-            msft.id,
-            trnType = TrnType.DIVI,
-            quantity = BigDecimal.TEN,
-            tradeCurrency = USD.code,
-            tradeDate = dateUtils.getFormattedDate("2024-03-10"),
-            price = BigDecimal("1.50"),
-            status = TrnStatus.PROPOSED
-        )
-        val trnInput2 = TrnInput(
-            CallerRef(batch = "PROPOSED-TEST", callerId = "2"),
-            msft.id,
-            trnType = TrnType.DIVI,
-            quantity = BigDecimal("20"),
-            tradeCurrency = USD.code,
-            tradeDate = dateUtils.getFormattedDate("2024-03-15"),
-            price = BigDecimal("2.00"),
-            status = TrnStatus.PROPOSED
-        )
+        val trnInput1 =
+            TrnInput(
+                CallerRef(batch = "PROPOSED-TEST", callerId = "1"),
+                msft.id,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal.TEN,
+                tradeCurrency = USD.code,
+                tradeDate = dateUtils.getFormattedDate("2024-03-10"),
+                price = BigDecimal("1.50"),
+                status = TrnStatus.PROPOSED
+            )
+        val trnInput2 =
+            TrnInput(
+                CallerRef(batch = "PROPOSED-TEST", callerId = "2"),
+                msft.id,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal("20"),
+                tradeCurrency = USD.code,
+                tradeDate = dateUtils.getFormattedDate("2024-03-15"),
+                price = BigDecimal("2.00"),
+                status = TrnStatus.PROPOSED
+            )
 
         trnService.save(portfolio1, TrnRequest(portfolio1.id, listOf(trnInput1)))
         trnService.save(portfolio2, TrnRequest(portfolio2.id, listOf(trnInput2)))
 
         // When: Fetching all proposed transactions
-        val result = mockMvc
-            .perform(
-                get("$TRNS_ROOT/proposed")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/proposed")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
+                .andReturn()
 
         // Then: Both transactions should be returned
-        val response = objectMapper.readValue(
-            result.response.contentAsString,
-            TrnResponse::class.java
-        )
+        val response =
+            objectMapper.readValue(
+                result.response.contentAsString,
+                TrnResponse::class.java
+            )
         assertThat(response.data).isNotEmpty
         assertThat(response.data.filter { it.status == TrnStatus.PROPOSED }).hasSizeGreaterThanOrEqualTo(2)
     }
@@ -143,32 +148,34 @@ class ProposedTransactionsTest {
         // Given: A portfolio with proposed transactions
         val msft = bcMvcHelper.asset(AssetRequest(msftInput))
 
-        val portfolio = bcMvcHelper.portfolio(
-            PortfolioInput("PROPOSED-COUNT", "Portfolio for Count", currency = USD.code)
-        )
+        val portfolio =
+            bcMvcHelper.portfolio(
+                PortfolioInput("PROPOSED-COUNT", "Portfolio for Count", currency = USD.code)
+            )
 
         // Create PROPOSED transaction
-        val trnInput = TrnInput(
-            CallerRef(batch = "PROPOSED-COUNT", callerId = "1"),
-            msft.id,
-            trnType = TrnType.DIVI,
-            quantity = BigDecimal.TEN,
-            tradeCurrency = USD.code,
-            tradeDate = dateUtils.getFormattedDate("2024-03-10"),
-            price = BigDecimal("1.50"),
-            status = TrnStatus.PROPOSED
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(batch = "PROPOSED-COUNT", callerId = "1"),
+                msft.id,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal.TEN,
+                tradeCurrency = USD.code,
+                tradeDate = dateUtils.getFormattedDate("2024-03-10"),
+                price = BigDecimal("1.50"),
+                status = TrnStatus.PROPOSED
+            )
         trnService.save(portfolio, TrnRequest(portfolio.id, listOf(trnInput)))
 
         // When: Fetching proposed transaction count
-        val result = mockMvc
-            .perform(
-                get("$TRNS_ROOT/proposed/count")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/proposed/count")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
+                .andReturn()
 
         // Then: Count should be at least 1
         val count = objectMapper.readTree(result.response.contentAsString).get("count").asInt()
@@ -178,20 +185,21 @@ class ProposedTransactionsTest {
     @Test
     fun `should return zero count when no proposed transactions exist`() {
         // Given: A new user with no transactions
-        val newUserToken = mockAuthConfig.getUserToken(
-            Constants.systemUser.copy(id = "new-user-proposed", email = "proposed@test.com")
-        )
+        val newUserToken =
+            mockAuthConfig.getUserToken(
+                Constants.systemUser.copy(id = "new-user-proposed", email = "proposed@test.com")
+            )
         RegistrationUtils.registerUser(mockMvc, newUserToken)
 
         // When: Fetching proposed transaction count
-        val result = mockMvc
-            .perform(
-                get("$TRNS_ROOT/proposed/count")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(newUserToken))
-            )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/proposed/count")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(newUserToken))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
+                .andReturn()
 
         // Then: Count should be 0
         val count = objectMapper.readTree(result.response.contentAsString).get("count").asInt()
@@ -203,47 +211,51 @@ class ProposedTransactionsTest {
         // Given: A portfolio with both PROPOSED and SETTLED transactions
         val msft = bcMvcHelper.asset(AssetRequest(msftInput))
 
-        val portfolio = bcMvcHelper.portfolio(
-            PortfolioInput("PROPOSED-FILTER", "Portfolio for Filter", currency = USD.code)
-        )
+        val portfolio =
+            bcMvcHelper.portfolio(
+                PortfolioInput("PROPOSED-FILTER", "Portfolio for Filter", currency = USD.code)
+            )
 
-        val proposedTrn = TrnInput(
-            CallerRef(batch = "FILTER-TEST", callerId = "1"),
-            msft.id,
-            trnType = TrnType.DIVI,
-            quantity = BigDecimal.TEN,
-            tradeCurrency = USD.code,
-            tradeDate = dateUtils.getFormattedDate("2024-03-10"),
-            price = BigDecimal("1.50"),
-            status = TrnStatus.PROPOSED
-        )
-        val settledTrn = TrnInput(
-            CallerRef(batch = "FILTER-TEST", callerId = "2"),
-            msft.id,
-            trnType = TrnType.BUY,
-            quantity = BigDecimal("100"),
-            tradeCurrency = USD.code,
-            tradeDate = dateUtils.getFormattedDate("2024-03-01"),
-            price = BigDecimal("150.00"),
-            status = TrnStatus.SETTLED
-        )
+        val proposedTrn =
+            TrnInput(
+                CallerRef(batch = "FILTER-TEST", callerId = "1"),
+                msft.id,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal.TEN,
+                tradeCurrency = USD.code,
+                tradeDate = dateUtils.getFormattedDate("2024-03-10"),
+                price = BigDecimal("1.50"),
+                status = TrnStatus.PROPOSED
+            )
+        val settledTrn =
+            TrnInput(
+                CallerRef(batch = "FILTER-TEST", callerId = "2"),
+                msft.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("100"),
+                tradeCurrency = USD.code,
+                tradeDate = dateUtils.getFormattedDate("2024-03-01"),
+                price = BigDecimal("150.00"),
+                status = TrnStatus.SETTLED
+            )
 
         trnService.save(portfolio, TrnRequest(portfolio.id, listOf(proposedTrn, settledTrn)))
 
         // When: Fetching proposed transactions
-        val result = mockMvc
-            .perform(
-                get("$TRNS_ROOT/proposed")
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/proposed")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
 
         // Then: Only PROPOSED transactions should be returned
-        val response = objectMapper.readValue(
-            result.response.contentAsString,
-            TrnResponse::class.java
-        )
+        val response =
+            objectMapper.readValue(
+                result.response.contentAsString,
+                TrnResponse::class.java
+            )
         assertThat(response.data.all { it.status == TrnStatus.PROPOSED }).isTrue()
     }
 }

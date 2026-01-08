@@ -568,6 +568,56 @@ class TrnController(
         return TrnResponse(trnService.findByStatus(portfolioId, trnStatus))
     }
 
+    @GetMapping(
+        value = ["/proposed"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get all proposed transactions for current user",
+        description = """
+            Retrieves all PROPOSED transactions across all portfolios owned by the current user.
+            This is useful for showing a unified view of all pending transactions that need review.
+
+            Use this to:
+            * Display all pending transactions in a notification center
+            * Show users what transactions need to be settled
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Proposed transactions retrieved successfully"
+            )
+        ]
+    )
+    fun findProposed(): TrnResponse = TrnResponse(trnService.findProposedForUser())
+
+    @GetMapping(
+        value = ["/proposed/count"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get count of proposed transactions for current user",
+        description = """
+            Returns the count of PROPOSED transactions across all portfolios owned by the current user.
+            This is useful for displaying a badge or notification indicator.
+
+            Use this to:
+            * Display a notification badge count
+            * Quickly check if there are pending transactions
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Count retrieved successfully"
+            )
+        ]
+    )
+    fun countProposed(): Map<String, Long> = mapOf("count" to trnService.countProposedForUser())
+
     @PostMapping(
         value = ["/portfolio/{portfolioId}/settle"],
         produces = [MediaType.APPLICATION_JSON_VALUE],

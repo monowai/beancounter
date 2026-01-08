@@ -124,6 +124,26 @@ class TrnService(
     }
 
     /**
+     * Find all PROPOSED transactions for the current user across all their portfolios.
+     */
+    fun findProposedForUser(): Collection<Trn> {
+        val user = systemUserService.getOrThrow()
+        val results = trnRepository.findByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
+        log.trace("proposed trns: ${results.size} for user: ${user.email}")
+        return postProcess(results.toList())
+    }
+
+    /**
+     * Count all PROPOSED transactions for the current user across all their portfolios.
+     */
+    fun countProposedForUser(): Long {
+        val user = systemUserService.getOrThrow()
+        val count = trnRepository.countByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
+        log.trace("proposed count: $count for user: ${user.email}")
+        return count
+    }
+
+    /**
      * Settle transactions by updating their status from PROPOSED to SETTLED.
      * @param portfolioId Portfolio ID
      * @param trnIds List of transaction IDs to settle

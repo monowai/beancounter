@@ -15,7 +15,9 @@ import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -73,22 +75,27 @@ class AssetService(
 
     fun findOrCreate(assetInput: AssetInput): Asset {
         val localAsset = assetFinder.findLocally(assetInput)
-        if (localAsset == null) {
-            val market = marketService.getMarket(assetInput.market)
-            val eAsset =
-                enrichmentFactory.getEnricher(market).enrich(
-                    id = keyGenUtils.format(UUID.randomUUID()),
-                    market = market,
-                    assetInput = assetInput
-                )
-            if (marketService.canPersist(market)) {
-                return assetFinder.hydrateAsset(assetRepository.save(eAsset))
+        if (localAsset != null) {
+            return localAsset
+        }
+        val market = marketService.getMarket(assetInput.market)
+        val eAsset =
+            enrichmentFactory.getEnricher(market).enrich(
+                id = keyGenUtils.format(UUID.randomUUID()),
+                market = market,
+                assetInput = assetInput
+            )
+        if (marketService.canPersist(market)) {
+            return try {
+                assetFinder.hydrateAsset(assetRepository.save(eAsset))
+            } catch (_: DataIntegrityViolationException) {
+                // Race condition: another request created this asset concurrently
+                log.debug("Asset {} already exists, fetching existing", assetInput.code)
+                assetFinder.findLocally(assetInput)
+                    ?: throw BusinessException("Unable to resolve asset ${assetInput.code}")
             }
         }
-        if (localAsset == null) {
-            throw BusinessException("Unable to resolve asset ${assetInput.code}")
-        }
-        return localAsset
+        throw BusinessException("Unable to resolve asset ${assetInput.code}")
     }
 
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
@@ -247,5 +254,9 @@ class AssetService(
         val hydratedAsset = assetFinder.hydrateAsset(asset)
         val updatedAsset = hydratedAsset.copy(status = status)
         return assetFinder.hydrateAsset(assetRepository.save(updatedAsset))
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(AssetService::class.java)
     }
 }

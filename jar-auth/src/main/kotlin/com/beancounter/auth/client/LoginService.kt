@@ -143,20 +143,26 @@ class LoginService(
 
     /**
      * Simple retry mechanism for JWT expiry.
-     * Catches JWT exceptions, clears cache, gets fresh token, and retries operation.
+     * Catches JWT exceptions and UnauthorizedException, clears cache, gets fresh token, and retries operation.
+     * UnauthorizedException is thrown when the cached M2M token has expired from the security context.
      */
     fun <T> retryOnJwtExpiry(operation: () -> T): T =
         try {
             operation()
-        } catch (jwtException: JwtException) {
-            log.warn("JWT operation failed: ${jwtException.message}, refreshing token and retrying...")
+        } catch (e: Exception) {
+            when (e) {
+                is JwtException, is UnauthorizedException -> {
+                    log.info("JWT operation failed: ${e.message}, refreshing token and retrying...")
 
-            // Clear cache and get fresh token
-            clearTokenCache()
-            self.loginM2m()
+                    // Clear cache and get fresh token
+                    clearTokenCache()
+                    self.loginM2m()
 
-            // Retry the operation
-            operation()
+                    // Retry the operation
+                    operation()
+                }
+                else -> throw e
+            }
         }
 
     /**

@@ -141,4 +141,29 @@ interface TrnRepository : CrudRepository<Trn, String> {
         status: TrnStatus,
         owner: SystemUser
     ): Long
+
+    /**
+     * Find all SETTLED transactions for a portfolio where the cash settlement asset matches
+     * and trade date is on or before the specified date.
+     * This is used for the Cash Ladder feature to show all transactions that
+     * impacted a specific cash position (account).
+     *
+     * Includes:
+     * - Transactions where cashAsset matches (BUY, SELL, DIVI, DEPOSIT, WITHDRAWAL, etc.)
+     * - FX_BUY transactions where asset matches (the purchased currency)
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.portfolio.id = ?1 " +
+            "and (t.cashAsset.id = ?2 OR (t.asset.id = ?2 AND t.trnType = 'FX_BUY')) " +
+            "and t.tradeDate <= ?3 " +
+            "and t.status = ?4 " +
+            "order by t.tradeDate desc"
+    )
+    fun findByPortfolioIdAndCashAssetId(
+        portfolioId: String,
+        cashAssetId: String,
+        asAt: LocalDate,
+        status: TrnStatus
+    ): Collection<Trn>
 }

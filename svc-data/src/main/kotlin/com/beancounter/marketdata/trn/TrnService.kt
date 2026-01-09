@@ -144,6 +144,29 @@ class TrnService(
     }
 
     /**
+     * Get the Cash Ladder for a specific cash asset in a portfolio.
+     * Returns all SETTLED transactions where the cashAsset matches and
+     * tradeDate is on or before today, showing all transactions that
+     * impacted that cash position.
+     */
+    fun getCashLadder(
+        portfolioId: String,
+        cashAssetId: String
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        val today = LocalDate.now()
+        val results =
+            trnRepository.findByPortfolioIdAndCashAssetId(
+                portfolio.id,
+                cashAssetId,
+                today,
+                TrnStatus.SETTLED
+            )
+        log.trace("cash ladder: ${results.size} trns for portfolio: ${portfolio.code}, cashAsset: $cashAssetId")
+        return postProcess(results.toList())
+    }
+
+    /**
      * Settle transactions by updating their status from PROPOSED to SETTLED.
      * @param portfolioId Portfolio ID
      * @param trnIds List of transaction IDs to settle

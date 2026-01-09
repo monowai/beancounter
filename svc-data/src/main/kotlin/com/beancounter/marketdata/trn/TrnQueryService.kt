@@ -18,6 +18,8 @@ class TrnQueryService(
     val trnRepository: TrnRepository,
     val portfolioService: PortfolioService
 ) {
+    private val log = LoggerFactory.getLogger(TrnQueryService::class.java)
+
     /**
      * Trades in a portfolio for the specified asset.
      *
@@ -32,25 +34,26 @@ class TrnQueryService(
         tradeDate: LocalDate
     ): Collection<Trn> {
         val results =
-            trnRepository
-                .findByPortfolioIdAndAssetIdUpTo(
-                    portfolio.id,
-                    assetId,
-                    tradeDate
-                )
-        // log.debug(
-        //     "count: {}, portfolio: {}, asset: {}",
-        //     results.size,
-        //     portfolio.code,
-        //     assetId
-        // )
+            trnRepository.findByPortfolioIdAndAssetIdUpTo(
+                portfolio.id,
+                assetId,
+                tradeDate
+            )
+        log.trace(
+            "count: {}, portfolio: {}, asset: {}",
+            results.size,
+            portfolio.code,
+            assetId
+        )
         return trnService.postProcess(
             results,
             false
         )
     }
 
-    private val typeFilter =
+    private val eventFilter = listOf(TrnType.DIVI, TrnType.SPLIT)
+
+    private val tradeFilter =
         arrayListOf(
             TrnType.BUY,
             TrnType.SELL,
@@ -78,9 +81,16 @@ class TrnQueryService(
         trnResponse(
             portfolio,
             assetId,
-            typeFilter
+            tradeFilter
         )
 
+    /**
+     * Corporate actions
+     *
+     * @param portfolioId fully qualified portfolio the caller is authorized to view
+     * @param assetId   filter by pk
+     * @return Transactions in display order that is friendly for viewing.
+     */
     fun findEvents(
         portfolioId: String,
         assetId: String
@@ -90,26 +100,15 @@ class TrnQueryService(
             assetId
         )
 
-    /**
-     * Corporate actions
-     *
-     * @param portfolio fully qualified portfolio the caller is authorised to view
-     * @param assetId   filter by pk
-     * @return Transactions in display order that is friendly for viewing.
-     */
     fun findEvents(
         portfolio: Portfolio,
         assetId: String
-    ): Collection<Trn> {
-        val typeFilter = ArrayList<TrnType>()
-        typeFilter.add(TrnType.DIVI)
-        typeFilter.add(TrnType.SPLIT)
-        return trnResponse(
+    ): Collection<Trn> =
+        trnResponse(
             portfolio,
             assetId,
-            typeFilter
+            eventFilter
         )
-    }
 
     private fun trnResponse(
         portfolio: Portfolio,
@@ -117,17 +116,13 @@ class TrnQueryService(
         typeFilter: List<TrnType>
     ): Collection<Trn> {
         val results =
-            trnRepository
-                .findByPortfolioIdAndAssetIdAndTrnType(
-                    portfolio.id,
-                    assetId,
-                    typeFilter,
-                    Sort
-                        .by("tradeDate")
-                        .descending()
-                        .and(Sort.by("asset.code"))
-                )
-        log.debug(
+            trnRepository.findByPortfolioIdAndAssetIdAndTrnType(
+                portfolio.id,
+                assetId,
+                typeFilter,
+                Sort.by("tradeDate").descending().and(Sort.by("asset.code"))
+            )
+        log.trace(
             "Found {} for portfolio {} and asset {}",
             results.size,
             portfolio.code,
@@ -137,9 +132,5 @@ class TrnQueryService(
             results,
             true
         )
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(TrnQueryService::class.java)
     }
 }

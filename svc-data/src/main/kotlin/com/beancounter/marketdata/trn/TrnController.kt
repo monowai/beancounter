@@ -654,6 +654,45 @@ class TrnController(
             description = "Request body containing transaction IDs to settle"
         ) @RequestBody request: SettleTransactionsRequest
     ): TrnResponse = TrnResponse(trnService.settleTransactions(portfolioId, request.trnIds))
+
+    @GetMapping(
+        value = ["/{portfolioId}/cash-ladder/{cashAssetId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get cash ladder for a specific cash asset",
+        description = """
+            Retrieves all transactions that impacted a specific cash position (settlement account).
+            This is useful for account reconciliation, showing all buys, sells, deposits, withdrawals
+            and other transactions that affected the cash balance.
+
+            Use this to:
+            * View all transactions settled to a specific cash account
+            * Reconcile cash balances with external statements
+            * Track cash flow for a specific settlement account
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Cash ladder retrieved successfully"
+            ), ApiResponse(
+                responseCode = "404",
+                description = "Portfolio or cash asset not found"
+            )
+        ]
+    )
+    fun getCashLadder(
+        @Parameter(
+            description = "Portfolio identifier",
+            example = "portfolio-123"
+        ) @PathVariable("portfolioId") portfolioId: String,
+        @Parameter(
+            description = "Cash asset identifier",
+            example = "cash-usd-123"
+        ) @PathVariable("cashAssetId") cashAssetId: String
+    ): TrnResponse = TrnResponse(trnService.getCashLadder(portfolioId, cashAssetId))
 }
 
 data class SettleTransactionsRequest(

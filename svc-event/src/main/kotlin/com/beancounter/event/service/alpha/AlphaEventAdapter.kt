@@ -57,9 +57,18 @@ class AlphaEventAdapter(
         )
 
     /**
-     * Calculate the default pay date for a dividend event (recordDate + daysToAdd).
+     * Get the pay date for a dividend event.
+     * Uses the actual payDate from the corporate event if available,
+     * otherwise falls back to recordDate + daysToAdd.
      */
-    fun calculatePayDate(corporateEvent: CorporateEvent): LocalDate = corporateEvent.recordDate.plusDays(daysToAdd)
+    fun calculatePayDate(corporateEvent: CorporateEvent): LocalDate =
+        if (corporateEvent.payDate != corporateEvent.recordDate) {
+            // Use actual payDate from the corporate event when available
+            corporateEvent.payDate
+        } else {
+            // Fall back to default calculation when payDate is not set
+            corporateEvent.recordDate.plusDays(daysToAdd)
+        }
 
     override fun calculate(
         portfolio: Portfolio,

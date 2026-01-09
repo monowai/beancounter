@@ -11,7 +11,11 @@ import jakarta.persistence.Table
 
 /**
  * User preferences for the application.
- * Stores settings like default holdings view, value currency, grouping, and base currency.
+ * Stores settings like default holdings view, value currency, grouping, and currency defaults.
+ *
+ * Currency fields:
+ * - baseCurrencyCode: System base currency for cost tracking and portfolio jurisdiction defaults
+ * - reportingCurrencyCode: Default currency for displaying portfolio values and reports
  */
 @Entity
 @Table
@@ -29,5 +33,6 @@ data class UserPreferences(
     @Enumerated(EnumType.STRING)
     var defaultGroupBy: GroupByPreference = GroupByPreference.ASSET_CLASS,
     var baseCurrencyCode: String = "USD",
+    var reportingCurrencyCode: String = "USD",
     var showWeightedIrr: Boolean = true
 )

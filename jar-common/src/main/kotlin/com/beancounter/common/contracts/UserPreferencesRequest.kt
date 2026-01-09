@@ -14,5 +14,6 @@ data class UserPreferencesRequest(
     val defaultValueIn: ValueInPreference? = null,
     val defaultGroupBy: GroupByPreference? = null,
     val baseCurrencyCode: String? = null,
+    val reportingCurrencyCode: String? = null,
     val showWeightedIrr: Boolean? = null
 )

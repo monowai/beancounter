@@ -9,13 +9,18 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import java.time.LocalDate
 
 /**
  * User of this service that is Authenticated.  SystemUsers can own portfolios.
  */
 @Entity
-@Table
+@Table(
+    uniqueConstraints = [
+        UniqueConstraint(name = "uk_system_user_email", columnNames = ["email"])
+    ]
+)
 data class SystemUser(
     @Id var id: String = KeyGenUtils().id,
     val email: String = id,

@@ -8,6 +8,8 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
+import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 
 /**
@@ -46,6 +48,7 @@ class SystemUserService(
                 "No email. This token cannot be registered for user activities."
             )
         }
+        val email = tokenService.getEmail()
         val subject: String? =
             if (tokenService.isAuth0()) {
                 tokenService.subject
@@ -54,24 +57,29 @@ class SystemUserService(
             } else {
                 null
             }
-        val result =
-            systemUserCache.find(
-                tokenService.getEmail(),
-                subject
-            )
+        val result = systemUserCache.find(email, subject)
         val jwt = tokenService.jwt.token
         return if (result == null) {
-            RegistrationResponse(
-                save(
-                    SystemUser(
-                        email = tokenService.getEmail(),
-                        auth0 = authProviders.getAuth0Id(jwt),
-                        googleId = authProviders.getGoogleId(jwt)
+            try {
+                RegistrationResponse(
+                    save(
+                        SystemUser(
+                            email = email,
+                            auth0 = authProviders.getAuth0Id(jwt),
+                            googleId = authProviders.getGoogleId(jwt)
+                        )
                     )
                 )
-            )
+            } catch (_: DataIntegrityViolationException) {
+                // Race condition - another request created it first
+                log.info("User $email already registered (race condition), fetching existing record")
+                val existing =
+                    systemUserRepository.findByEmail(email).orElseThrow {
+                        IllegalStateException("Failed to get or create user for $email")
+                    }
+                RegistrationResponse(authProviders.capture(existing, jwt))
+            }
         } else {
-            //
             RegistrationResponse(
                 authProviders.capture(
                     result,
@@ -79,6 +87,10 @@ class SystemUserService(
                 )
             )
         }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(SystemUserService::class.java)
     }
 
     fun save(systemUser: SystemUser): SystemUser = systemUserRepository.save(systemUser)

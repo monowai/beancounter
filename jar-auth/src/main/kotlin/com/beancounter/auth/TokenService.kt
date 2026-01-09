@@ -53,14 +53,28 @@ class TokenService(
             return token.token.subject
         }
 
-    fun getEmail(): String = jwt.token?.getClaim(authConfig.claimEmail)!!
+    fun getEmail(): String {
+        // Try custom claim first, then fall back to standard email claim
+        val customEmail = jwt.token?.getClaim<String>(authConfig.claimEmail)
+        if (!customEmail.isNullOrBlank()) {
+            return customEmail
+        }
+        val standardEmail = jwt.token?.getClaim<String>("email")
+        if (!standardEmail.isNullOrBlank()) {
+            return standardEmail
+        }
+        throw IllegalStateException("No email claim found in token")
+    }
 
     fun hasEmail(): Boolean {
-        if (jwt.token?.claims?.containsKey(authConfig.claimEmail)!!) {
-            val email = jwt.token.claims[authConfig.claimEmail] as String
-            return email.isNotBlank()
+        // Check custom claim first
+        val customEmail = jwt.token?.claims?.get(authConfig.claimEmail) as? String
+        if (!customEmail.isNullOrBlank()) {
+            return true
         }
-        return false
+        // Fall back to standard email claim
+        val standardEmail = jwt.token?.claims?.get("email") as? String
+        return !standardEmail.isNullOrBlank()
     }
 
     val isServiceToken: Boolean

@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.UserPreferencesRequest
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.UserPreferences
 import jakarta.transaction.Transactional
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 
 /**
@@ -17,10 +18,18 @@ class UserPreferencesService(
     /**
      * Get or create preferences for the given user.
      * Creates default preferences if none exist.
+     * Handles race conditions where multiple requests try to create simultaneously.
      */
     fun getOrCreate(owner: SystemUser): UserPreferences =
         userPreferencesRepository.findByOwner(owner).orElseGet {
-            userPreferencesRepository.save(UserPreferences(owner = owner))
+            try {
+                userPreferencesRepository.save(UserPreferences(owner = owner))
+            } catch (_: DataIntegrityViolationException) {
+                // Race condition - another request created it first, just fetch it
+                userPreferencesRepository.findByOwner(owner).orElseThrow {
+                    IllegalStateException("Failed to get or create preferences for ${owner.id}")
+                }
+            }
         }
 
     /**
@@ -37,6 +46,7 @@ class UserPreferencesService(
         request.defaultValueIn?.let { preferences.defaultValueIn = it }
         request.defaultGroupBy?.let { preferences.defaultGroupBy = it }
         request.baseCurrencyCode?.let { preferences.baseCurrencyCode = it }
+        request.reportingCurrencyCode?.let { preferences.reportingCurrencyCode = it }
         request.showWeightedIrr?.let { preferences.showWeightedIrr = it }
         return userPreferencesRepository.save(preferences)
     }

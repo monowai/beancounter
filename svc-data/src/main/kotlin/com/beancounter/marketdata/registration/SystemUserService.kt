@@ -99,7 +99,8 @@ class SystemUserService(
 
     fun find(id: String?): SystemUser? {
         if (id == null) return null
-        return systemUserRepository.findByEmail(tokenService.getEmail()).orElse(null)
+        val email = if (tokenService.hasEmail()) tokenService.getEmail() else null
+        return systemUserCache.find(email, id)
     }
 
     fun getActiveUser(): SystemUser? = find(tokenService.subject)

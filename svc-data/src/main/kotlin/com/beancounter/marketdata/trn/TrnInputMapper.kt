@@ -20,7 +20,7 @@ import java.math.BigDecimal
  * Map TrnInput objects to the Trn persistent model.
  */
 @Service
-class TrnAdapter(
+class TrnInputMapper(
     private val assetFinder: AssetFinder,
     var currencyService: CurrencyService,
     var tradeCalculator: TradeCalculator,

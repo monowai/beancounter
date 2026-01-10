@@ -6,7 +6,6 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
-import com.beancounter.marketdata.providers.MarketDataAdapter
 import com.beancounter.marketdata.providers.ProviderArguments
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,7 +19,7 @@ import java.math.BigDecimal
 class AlphaPriceAdapter(
     val alphaConfig: AlphaConfig,
     private val corporateEventEnricher: AlphaCorporateEventEnricher
-) : MarketDataAdapter {
+) {
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int,

@@ -26,7 +26,7 @@ import java.util.function.Consumer
 @Suppress("TooManyFunctions") // TrnService has 13 functions, threshold is 11
 class TrnService(
     private val trnRepository: TrnRepository,
-    private val trnAdapter: TrnAdapter,
+    private val trnInputMapper: TrnInputMapper,
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
     private val assetFinder: AssetFinder,
@@ -64,7 +64,7 @@ class TrnService(
         // Figure out
         val saved =
             trnRepository.saveAll(
-                trnAdapter.convert(
+                trnInputMapper.convert(
                     portfolio,
                     trnRequest
                 )
@@ -312,7 +312,7 @@ class TrnService(
                 trnId
             )
         val trn =
-            trnAdapter.map(
+            trnInputMapper.map(
                 portfolio,
                 trnInput,
                 existing.iterator().next()

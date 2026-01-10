@@ -2,7 +2,6 @@ package com.beancounter.marketdata.providers.marketstack
 
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
-import com.beancounter.marketdata.providers.MarketDataAdapter
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackData
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
@@ -23,7 +22,7 @@ import java.time.LocalDateTime
  *
  */
 @Service
-class MarketStackAdapter : MarketDataAdapter {
+class MarketStackAdapter {
     private val log = LoggerFactory.getLogger(MarketStackAdapter::class.java)
 
     fun toMarketData(

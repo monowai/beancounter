@@ -39,14 +39,14 @@ import java.util.Locale
  */
 @SpringBootTest(
     classes = [
-        TrnAdapter::class,
+        TrnInputMapper::class,
         TradeCalculator::class,
         CashTrnServices::class,
         MarketConfig::class,
         KeyGenUtils::class
     ]
 )
-internal class TrnAdapterTest {
+internal class TrnInputMapperTest {
     @MockitoBean
     private lateinit var portfolioService: PortfolioService
 
@@ -66,7 +66,7 @@ internal class TrnAdapterTest {
     private lateinit var fxService: FxService
 
     @Autowired
-    private lateinit var trnAdapter: TrnAdapter
+    private lateinit var trnInputMapper: TrnInputMapper
 
     val asset = MSFT
     val price: BigDecimal = BigDecimal("10.99")
@@ -145,7 +145,7 @@ internal class TrnAdapterTest {
                 listOf(trnInput)
             )
         val trnResponse =
-            trnAdapter.convert(
+            trnInputMapper.convert(
                 portfolioService.find(portfolioId),
                 trnRequest
             )
@@ -236,7 +236,7 @@ internal class TrnAdapterTest {
                 listOf(trnInput)
             )
         val trnResponse =
-            trnAdapter.convert(
+            trnInputMapper.convert(
                 portfolioService.find(portfolioId),
                 trnRequest
             )
@@ -297,7 +297,7 @@ internal class TrnAdapterTest {
                 listOf(trnInput)
             )
         val trnResponse =
-            trnAdapter.convert(
+            trnInputMapper.convert(
                 portfolioService.find(portfolioId),
                 trnRequest
             )
@@ -353,7 +353,7 @@ internal class TrnAdapterTest {
                 listOf(trnInput)
             )
         val trnResponse =
-            trnAdapter.convert(
+            trnInputMapper.convert(
                 portfolioService.find(portfolioId),
                 trnRequest
             )

@@ -36,7 +36,7 @@ import java.math.BigDecimal
  */
 @SpringBootTest(
     classes = [
-        TrnAdapter::class,
+        TrnInputMapper::class,
         TradeCalculator::class,
         CashTrnServices::class,
         MarketConfig::class,
@@ -60,7 +60,7 @@ class TrnFxDefaultTests {
     private lateinit var currencyService: CurrencyService
 
     @Autowired
-    private lateinit var trnAdapter: TrnAdapter
+    private lateinit var trnInputMapper: TrnInputMapper
 
     private val asset =
         getTestAsset(
@@ -127,7 +127,7 @@ class TrnFxDefaultTests {
                 comments = "Comment"
             )
 
-        val trns = trnAdapter.convert(portfolio, TrnRequest(portfolio.id, listOf(trnInput)))
+        val trns = trnInputMapper.convert(portfolio, TrnRequest(portfolio.id, listOf(trnInput)))
         assertThat(trns.size).isEqualTo(1)
         val trn = trns[0]
         assertThat(trn)

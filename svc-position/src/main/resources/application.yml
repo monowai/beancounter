@@ -3,6 +3,13 @@ server:
   servlet:
     context-path: '/api'
 
+# Portfolio valuation scheduling (disabled by default for local dev)
+# In production (kauri), runs every 10 mins from 5-7 AM SGT after US market close
+schedule:
+  enabled: false
+valuation:
+  schedule: "0 0/10 5-7 * * Tue-Sat"
+
 springdoc:
   use-management-port: true
 

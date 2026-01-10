@@ -56,7 +56,7 @@ class PortfolioController internal constructor(
         summary = "Get all portfolios",
         description = """
             Retrieves all portfolios accessible to the current user.
-            
+
             Use this to:
             * List all available portfolios
             * Get portfolio overview for dashboard
@@ -95,12 +95,35 @@ class PortfolioController internal constructor(
     )
     fun getPortfolios(): PortfoliosResponse = PortfoliosResponse(portfolioService.portfolios())
 
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_SYSTEM + "')")
+    @Operation(
+        summary = "Get all portfolios in the system",
+        description = """
+            Retrieves all portfolios across all users. Requires SYSTEM scope.
+            Used by scheduled jobs for system-wide portfolio valuation.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "All portfolios retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Requires SYSTEM scope"
+            )
+        ]
+    )
+    fun getAllPortfolios(): PortfoliosResponse = PortfoliosResponse(portfolioService.findAll())
+
     @GetMapping("/{id}")
     @Operation(
         summary = "Get portfolio by ID",
         description = """
             Retrieves a specific portfolio by its unique identifier.
-            
+
             Use this to:
             * Get detailed portfolio information
             * Access portfolio metadata and settings
@@ -133,7 +156,7 @@ class PortfolioController internal constructor(
         description = """
             Permanently deletes a portfolio and all its associated data.
             This operation cannot be undone.
-            
+
             Use this to:
             * Remove portfolios that are no longer needed
             * Clean up test or temporary portfolios
@@ -179,7 +202,7 @@ class PortfolioController internal constructor(
         summary = "Get portfolio by code",
         description = """
             Retrieves a portfolio by its code (human-readable identifier).
-            
+
             Use this to:
             * Find portfolios using their code
             * Access portfolios with memorable names
@@ -212,7 +235,7 @@ class PortfolioController internal constructor(
         description = """
             Updates an existing portfolio with new information.
             Only the provided fields will be updated.
-            
+
             Use this to:
             * Modify portfolio settings and metadata
             * Update portfolio names or descriptions
@@ -259,7 +282,7 @@ class PortfolioController internal constructor(
         description = """
             Creates new portfolios.
             This endpoint handles bulk portfolio creation efficiently.
-            
+
             Use this to:
             * Create new investment portfolios
             * Set up multiple portfolios in one request

@@ -20,8 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -44,8 +44,7 @@ class ValuationService
         private val marketValueUpdateProducer: MarketValueUpdateProducer,
         private val classificationClient: ClassificationClient
     ) : Valuation {
-        @Value("kafka.enabled")
-        private lateinit var kafkaEnabled: String
+        private val log = LoggerFactory.getLogger(ValuationService::class.java)
 
         override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
             val trnResponse = trnService.query(trnQuery) // Adhoc query
@@ -220,17 +219,10 @@ class ValuationService
             // Enrich positions with classification data (sector/industry)
             enrichWithClassifications(valuedPositions)
 
-            // Only send market value updates for individual portfolio valuations (not aggregated)
-            if (!skipMarketValueUpdate && DateUtils().isToday(positions.asAt) && !kafkaEnabled.toBoolean()) {
-                val portfolio = valuedPositions.portfolio
-                val portfolioTotals = valuedPositions.totals[Position.In.PORTFOLIO]
-                // If totals are null (all positions sold), send market value of 0
-                val updateTo =
-                    portfolio.setMarketValue(
-                        portfolioTotals?.marketValue ?: BigDecimal.ZERO,
-                        portfolioTotals?.irr ?: BigDecimal.ZERO
-                    )
-                marketValueUpdateProducer.sendMessage(updateTo)
+            // Send market value updates for individual portfolio valuations (not aggregated)
+            // Only update when viewing current positions ("today"), not historical
+            if (!skipMarketValueUpdate && DateUtils().isToday(positions.asAt)) {
+                sendMarketValueUpdate(valuedPositions)
             }
             return PositionResponse(valuedPositions)
         }
@@ -257,5 +249,29 @@ class ValuationService
                     }
                 }
             }
+        }
+
+        /**
+         * Sends market value update to the message broker.
+         * Market value is sent in portfolio.base currency - frontend handles display currency conversion.
+         */
+        private fun sendMarketValueUpdate(valuedPositions: Positions) {
+            val portfolio = valuedPositions.portfolio
+            val baseTotals = valuedPositions.totals[Position.In.BASE]
+
+            // Store market value in portfolio.base currency
+            // Frontend handles conversion to display currency
+            val marketValue = baseTotals?.marketValue ?: BigDecimal.ZERO
+            val irr = baseTotals?.irr ?: BigDecimal.ZERO
+
+            log.info(
+                "Sending MV update: portfolio={}, base={}, marketValue={}",
+                portfolio.code,
+                portfolio.base.code,
+                marketValue
+            )
+
+            val updateTo = portfolio.setMarketValue(marketValue, irr)
+            marketValueUpdateProducer.sendMessage(updateTo)
         }
     }

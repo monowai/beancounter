@@ -59,6 +59,19 @@ class PortfolioServiceClient(
                 .body(PortfoliosResponse::class.java)
                 ?: throw BusinessException("Failed to retrieve portfolios")
 
+    /**
+     * Get all portfolios in the system. Requires SYSTEM scope.
+     * Used by scheduled jobs for system-wide portfolio valuation.
+     */
+    fun getAllPortfolios(bearerToken: String): PortfoliosResponse =
+        restClient
+            .get()
+            .uri("/api/portfolios/all")
+            .header(HttpHeaders.AUTHORIZATION, bearerToken)
+            .retrieve()
+            .body(PortfoliosResponse::class.java)
+            ?: throw BusinessException("Failed to retrieve all portfolios")
+
     fun add(portfoliosRequest: PortfoliosRequest): PortfoliosResponse =
         restClient
             .post()

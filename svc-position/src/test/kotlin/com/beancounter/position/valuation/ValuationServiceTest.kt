@@ -8,7 +8,9 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.MoneyValues
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
@@ -22,15 +24,17 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentCaptor
+import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
+import org.mockito.kotlin.capture
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.test.util.ReflectionTestUtils
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -54,6 +58,9 @@ class ValuationServiceTest {
     @Mock
     private lateinit var classificationClient: ClassificationClient
 
+    @Captor
+    private lateinit var portfolioCaptor: ArgumentCaptor<Portfolio>
+
     private lateinit var valuationService: ValuationService
 
     private val portfolio = TestHelpers.createTestPortfolio("ValuationServiceTest")
@@ -75,8 +82,6 @@ class ValuationServiceTest {
                 marketValueUpdateProducer,
                 classificationClient
             )
-        // Set kafkaEnabled property that would normally be injected by Spring
-        ReflectionTestUtils.setField(valuationService, "kafkaEnabled", "false")
     }
 
     @Test
@@ -119,12 +124,17 @@ class ValuationServiceTest {
         position.quantityValues.purchased = BigDecimal.TEN
         positions.add(position)
 
-        // Set up totals (what happens after successful valuation)
-        val portfolioTotals =
-            Totals(portfolio.currency)
+        // Set up PORTFOLIO totals (in portfolio currency)
+        val portfolioTotals = Totals(portfolio.currency)
         portfolioTotals.marketValue = BigDecimal("10000.00")
         portfolioTotals.irr = BigDecimal("0.15")
         positions.setTotal(Position.In.PORTFOLIO, portfolioTotals)
+
+        // Set up BASE totals (in user's base currency) - this is what gets sent
+        val baseTotals = Totals(portfolio.base)
+        baseTotals.marketValue = BigDecimal("10000.00")
+        baseTotals.irr = BigDecimal("0.15")
+        positions.setTotal(Position.In.BASE, baseTotals)
 
         whenever(positionValuationService.value(any(), any())).thenReturn(positions)
 
@@ -144,7 +154,7 @@ class ValuationServiceTest {
         positions.asAt = DateUtils.TODAY
         val positionResponse = PositionResponse(positions)
 
-        whenever(trnService.query(any<com.beancounter.common.model.Portfolio>(), any<String>()))
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(emptyList()))
         whenever(positionService.build(any(), any())).thenReturn(positionResponse)
 
@@ -159,7 +169,7 @@ class ValuationServiceTest {
     @Test
     fun `getAggregatedPositions returns empty response for empty portfolio list`() {
         // Given - empty portfolio list
-        val portfolios = emptyList<com.beancounter.common.model.Portfolio>()
+        val portfolios = emptyList<Portfolio>()
 
         // When
         val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
@@ -174,7 +184,7 @@ class ValuationServiceTest {
         val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
         val portfolios = listOf(portfolio, portfolio2)
 
-        whenever(trnService.query(any<com.beancounter.common.model.Portfolio>(), any<String>()))
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(emptyList()))
 
         // When
@@ -247,7 +257,7 @@ class ValuationServiceTest {
                 tradeDate = LocalDate.of(2024, 1, 15)
             )
 
-        whenever(trnService.query(any<com.beancounter.common.model.Portfolio>(), any<String>()))
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(listOf(trn)))
 
         val positions = Positions(portfolio)
@@ -399,7 +409,7 @@ class ValuationServiceTest {
         val positions = Positions(portfolio)
         val positionResponse = PositionResponse(positions)
 
-        whenever(trnService.query(any<com.beancounter.common.model.Portfolio>(), any<String>()))
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(emptyList()))
         whenever(positionService.build(any(), any())).thenReturn(positionResponse)
 
@@ -421,5 +431,60 @@ class ValuationServiceTest {
         // Then - should return the same positions without calling valuation service
         assertThat(result.data).isEqualTo(positions)
         verify(positionValuationService, never()).value(any(), any())
+    }
+
+    @Test
+    fun `value should send market value in BASE currency not PORTFOLIO currency`() {
+        // Given - a portfolio with different currency (GBP) and base (USD)
+        // This simulates a user with USD base currency holding a GBP-denominated portfolio
+        val gbpCurrency = Currency("GBP")
+        val usdCurrency = Currency("USD")
+        val multiCurrencyPortfolio =
+            Portfolio(
+                id = "multi-currency-test",
+                code = "MULTI",
+                name = "Multi Currency Portfolio",
+                currency = gbpCurrency, // Portfolio cost currency is GBP
+                base = usdCurrency // User's base currency is USD
+            )
+
+        val positions = Positions(multiCurrencyPortfolio)
+        positions.asAt = DateUtils.TODAY
+
+        val asset = TestHelpers.createTestAsset("HELD_ASSET", "LSE")
+        val position = Position(asset, multiCurrencyPortfolio)
+        position.quantityValues.purchased = BigDecimal.TEN
+        positions.add(position)
+
+        // Set up PORTFOLIO totals (in GBP) with one value
+        val portfolioTotals = Totals(gbpCurrency)
+        portfolioTotals.marketValue = BigDecimal("8000.00") // 8000 GBP
+        portfolioTotals.irr = BigDecimal("0.10")
+        positions.setTotal(Position.In.PORTFOLIO, portfolioTotals)
+
+        // Set up BASE totals (in USD) with a DIFFERENT value (converted at FX rate)
+        val baseTotals = Totals(usdCurrency)
+        baseTotals.marketValue = BigDecimal("10000.00") // 10000 USD (GBP->USD converted)
+        baseTotals.irr = BigDecimal("0.12")
+        positions.setTotal(Position.In.BASE, baseTotals)
+
+        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+
+        // When
+        valuationService.value(positions)
+
+        // Then - the market value update should use BASE currency values (USD), not PORTFOLIO (GBP)
+        verify(marketValueUpdateProducer).sendMessage(capture(portfolioCaptor))
+        val sentPortfolio = portfolioCaptor.value
+
+        // Assert the marketValue sent is from BASE totals (10000 USD), not PORTFOLIO totals (8000 GBP)
+        assertThat(sentPortfolio.marketValue)
+            .describedAs("Market value should be from BASE totals (10000 USD), not PORTFOLIO totals (8000 GBP)")
+            .isEqualTo(BigDecimal("10000.00"))
+
+        // Also verify IRR is from BASE totals
+        assertThat(sentPortfolio.irr)
+            .describedAs("IRR should be from BASE totals")
+            .isEqualTo(BigDecimal("0.12"))
     }
 }

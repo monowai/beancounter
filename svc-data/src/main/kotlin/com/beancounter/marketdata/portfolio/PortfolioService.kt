@@ -70,6 +70,11 @@ class PortfolioService(
     }
 
     /**
+     * Returns all portfolios in the system. Used by scheduled jobs.
+     */
+    fun findAll(): Collection<Portfolio> = portfolioRepository.findAll().toList()
+
+    /**
      * Confirms if the requested portfolio is known. Service side call.
      *
      * @param id pk

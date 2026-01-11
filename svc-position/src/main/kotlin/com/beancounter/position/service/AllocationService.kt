@@ -1,10 +1,15 @@
 package com.beancounter.position.service
 
+import com.beancounter.auth.TokenService
+import com.beancounter.client.FxService
 import com.beancounter.common.contracts.AllocationData
 import com.beancounter.common.contracts.CategoryAllocation
+import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -14,7 +19,9 @@ import java.math.RoundingMode
  * Groups positions by report category and calculates allocation percentages.
  */
 @Service
-class AllocationService {
+class AllocationService(
+    private val tokenService: TokenService
+) {
     /**
      * Calculate allocation breakdown from positions.
      *
@@ -90,7 +97,63 @@ class AllocationService {
             .fold(BigDecimal.ZERO) { acc, pct -> acc + pct }
             .setScale(2, RoundingMode.HALF_UP)
 
+    /**
+     * Convert allocation values to a target currency.
+     *
+     * @param allocation The source allocation data
+     * @param targetCurrency The target currency code (e.g., "NZD")
+     * @param fxService The FX service to fetch rates
+     * @param rateDate The date for FX rate lookup (defaults to today)
+     * @return AllocationData with values converted to target currency
+     */
+    fun convertCurrency(
+        allocation: AllocationData,
+        targetCurrency: String,
+        fxService: FxService,
+        rateDate: String = "today"
+    ): AllocationData {
+        if (allocation.totalValue == BigDecimal.ZERO) {
+            return allocation.copy(currency = targetCurrency)
+        }
+
+        val sourceCurrency = allocation.currency
+        val pair = IsoCurrencyPair(from = sourceCurrency, to = targetCurrency)
+
+        val fxRequest = FxRequest(rateDate = rateDate).add(pair)
+        val fxResponse = fxService.getRates(fxRequest, tokenService.bearerToken)
+        val rate = fxResponse.data.rates[pair]?.rate ?: BigDecimal.ONE
+
+        log.debug(
+            "Converting allocation from {} to {}: rate={}",
+            sourceCurrency,
+            targetCurrency,
+            rate
+        )
+
+        // Convert total value
+        val convertedTotalValue = allocation.totalValue.multiply(rate).setScale(2, RoundingMode.HALF_UP)
+
+        // Convert category market values (percentages stay the same)
+        val convertedBreakdown =
+            allocation.categoryBreakdown.mapValues { (_, categoryAllocation) ->
+                categoryAllocation.copy(
+                    marketValue =
+                        categoryAllocation.marketValue
+                            .multiply(rate)
+                            .setScale(2, RoundingMode.HALF_UP)
+                )
+            }
+
+        return allocation.copy(
+            totalValue = convertedTotalValue,
+            currency = targetCurrency,
+            categoryBreakdown = convertedBreakdown
+        )
+    }
+
     companion object {
+        private val log = LoggerFactory.getLogger(AllocationService::class.java)
+
         // Categories that map to Cash allocation
         val CASH_CATEGORIES =
             setOf(

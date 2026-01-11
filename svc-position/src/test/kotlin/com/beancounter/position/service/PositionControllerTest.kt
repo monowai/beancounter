@@ -1,5 +1,6 @@
 package com.beancounter.position.service
 
+import com.beancounter.client.FxService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
@@ -51,6 +52,9 @@ class PositionControllerTest {
     @Mock
     private lateinit var sectorExposureService: SectorExposureService
 
+    @Mock
+    private lateinit var fxService: FxService
+
     private lateinit var positionController: PositionController
 
     private lateinit var testPortfolio: Portfolio
@@ -62,7 +66,7 @@ class PositionControllerTest {
         testPositionResponse = PositionResponse(TestHelpers.createTestPositions(testPortfolio))
 
         positionController =
-            PositionController(portfolioServiceClient, dateUtils, allocationService, sectorExposureService)
+            PositionController(portfolioServiceClient, dateUtils, allocationService, sectorExposureService, fxService)
         positionController.setValuationService(valuationService)
     }
 

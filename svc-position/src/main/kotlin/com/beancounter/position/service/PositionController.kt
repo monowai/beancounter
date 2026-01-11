@@ -1,6 +1,7 @@
 package com.beancounter.position.service
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.client.FxService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.AllocationResponse
 import com.beancounter.common.contracts.PositionResponse
@@ -49,7 +50,8 @@ class PositionController(
     private val portfolioServiceClient: PortfolioServiceClient,
     private val dateUtils: DateUtils,
     private val allocationService: AllocationService,
-    private val sectorExposureService: SectorExposureService
+    private val sectorExposureService: SectorExposureService,
+    private val fxService: FxService
 ) {
     private lateinit var valuationService: Valuation
 
@@ -316,6 +318,9 @@ class PositionController(
             * Get current asset allocation for retirement planning
             * Determine portfolio balance across asset classes
             * Pre-populate allocation assumptions based on actual holdings
+
+            Optional currency parameter converts totalValue to the target currency
+            (useful when plan expenses are in a different currency than portfolio holdings).
         """
     )
     @ApiResponses(
@@ -342,7 +347,17 @@ class PositionController(
         @RequestParam(
             value = "ids",
             required = false
-        ) ids: String?
+        ) ids: String?,
+        @Parameter(
+            description =
+                "Target currency for totalValue conversion (e.g., NZD, USD). " +
+                    "If not specified, returns values in portfolio currency.",
+            example = "NZD"
+        )
+        @RequestParam(
+            value = "currency",
+            required = false
+        ) targetCurrency: String?
     ): AllocationResponse {
         val allPortfolios = portfolioServiceClient.portfolios.data
         val selectedPortfolios =
@@ -364,9 +379,18 @@ class PositionController(
                 true
             )
 
-        return AllocationResponse(
-            data = allocationService.calculateAllocation(positions.data)
-        )
+        val allocation = allocationService.calculateAllocation(positions.data)
+
+        // If target currency is specified and different from allocation currency, convert
+        if (!targetCurrency.isNullOrBlank() &&
+            !targetCurrency.equals(allocation.currency, ignoreCase = true)
+        ) {
+            return AllocationResponse(
+                data = allocationService.convertCurrency(allocation, targetCurrency, fxService, asAt)
+            )
+        }
+
+        return AllocationResponse(data = allocation)
     }
 
     @GetMapping(

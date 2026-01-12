@@ -25,7 +25,7 @@ class TrnService(
     fun write(trnRequest: TrnRequest): TrnResponse =
         restClient
             .post()
-            .uri("/api/trns")
+            .uri("/trns")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .contentType(MediaType.APPLICATION_JSON)
             .body(trnRequest)
@@ -37,7 +37,7 @@ class TrnService(
     fun query(trustedTrnQuery: TrustedTrnQuery): TrnResponse =
         restClient
             .post()
-            .uri("/api/trns/query")
+            .uri("/trns/query")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .contentType(MediaType.APPLICATION_JSON)
             .body(trustedTrnQuery)
@@ -51,7 +51,7 @@ class TrnService(
     ): TrnResponse =
         restClient
             .get()
-            .uri("/api/trns/portfolio/{portfolioId}?asAt={asAt}", portfolio.id, asAt)
+            .uri("/trns/portfolio/{portfolioId}?asAt={asAt}", portfolio.id, asAt)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
             .body(TrnResponse::class.java)

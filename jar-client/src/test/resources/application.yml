@@ -16,6 +16,6 @@ server:
   port: 0
 
 marketdata:
-  url: http://localhost:${stubrunner.port:10999}
+  url: http://localhost:${stubrunner.port:10999}/api
 
 

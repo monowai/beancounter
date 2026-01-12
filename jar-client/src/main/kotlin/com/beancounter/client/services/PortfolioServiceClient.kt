@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 import java.time.LocalDate
 
 /**
@@ -26,10 +27,10 @@ class PortfolioServiceClient(
         val response =
             restClient
                 .get()
-                .uri("/api/portfolios/code/{code}", portfolioCode)
+                .uri("/portfolios/code/{code}", portfolioCode)
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
-                .body(PortfolioResponse::class.java)
+                .body<PortfolioResponse>()
         return getOrThrow(portfolioCode, response)
     }
 
@@ -42,7 +43,7 @@ class PortfolioServiceClient(
         val response =
             restClient
                 .get()
-                .uri("/api/portfolios/{id}", portfolioId)
+                .uri("/portfolios/{id}", portfolioId)
                 .header(HttpHeaders.AUTHORIZATION, bearerToken)
                 .retrieve()
                 .body(PortfolioResponse::class.java)
@@ -53,7 +54,7 @@ class PortfolioServiceClient(
         get() =
             restClient
                 .get()
-                .uri("/api/portfolios")
+                .uri("/portfolios")
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
                 .body(PortfoliosResponse::class.java)
@@ -66,7 +67,7 @@ class PortfolioServiceClient(
     fun getAllPortfolios(bearerToken: String): PortfoliosResponse =
         restClient
             .get()
-            .uri("/api/portfolios/all")
+            .uri("/portfolios/all")
             .header(HttpHeaders.AUTHORIZATION, bearerToken)
             .retrieve()
             .body(PortfoliosResponse::class.java)
@@ -75,7 +76,7 @@ class PortfolioServiceClient(
     fun add(portfoliosRequest: PortfoliosRequest): PortfoliosResponse =
         restClient
             .post()
-            .uri("/api/portfolios")
+            .uri("/portfolios")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .contentType(MediaType.APPLICATION_JSON)
             .body(portfoliosRequest)
@@ -89,10 +90,10 @@ class PortfolioServiceClient(
     ): PortfoliosResponse =
         restClient
             .get()
-            .uri("/api/portfolios/asset/{assetId}?asAt={tradeDate}", assetId, tradeDate.toString())
+            .uri("/portfolios/asset/{assetId}?asAt={tradeDate}", assetId, tradeDate.toString())
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(PortfoliosResponse::class.java)
+            .body<PortfoliosResponse>()
             ?: throw BusinessException("Failed to get where held")
 
     private fun getOrThrow(

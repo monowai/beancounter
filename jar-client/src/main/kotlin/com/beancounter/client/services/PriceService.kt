@@ -25,7 +25,7 @@ class PriceService(
     ): PriceResponse =
         restClient
             .post()
-            .uri("/api/prices")
+            .uri("/prices")
             .header(HttpHeaders.AUTHORIZATION, token)
             .contentType(MediaType.APPLICATION_JSON)
             .body(priceRequest)
@@ -36,7 +36,7 @@ class PriceService(
     fun getEvents(assetId: String): PriceResponse =
         restClient
             .get()
-            .uri("/api/prices/{assetId}/events", assetId)
+            .uri("/prices/{assetId}/events", assetId)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
             .body(PriceResponse::class.java)

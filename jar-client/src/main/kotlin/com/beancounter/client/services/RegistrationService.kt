@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 
 /**
  * Handles client side registration duties.
@@ -39,11 +40,11 @@ class RegistrationService(
         val openIdResponse =
             restClient
                 .post()
-                .uri("/api/auth")
+                .uri("/auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(loginRequest)
                 .retrieve()
-                .body(OpenIdResponse::class.java)
+                .body<OpenIdResponse>()
                 ?: throw BusinessException("Failed to authenticate")
 
         SecurityContextHolder.getContext().authentication =
@@ -56,7 +57,7 @@ class RegistrationService(
         val response =
             restClient
                 .post()
-                .uri("/api/register")
+                .uri("/register")
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(registrationRequest)
@@ -70,7 +71,7 @@ class RegistrationService(
         val response =
             restClient
                 .get()
-                .uri("/api/me")
+                .uri("/me")
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .retrieve()
                 .body(RegistrationResponse::class.java)

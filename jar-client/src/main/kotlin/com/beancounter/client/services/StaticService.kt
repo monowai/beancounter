@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 import java.util.Locale
 
 /**
@@ -30,20 +31,20 @@ class StaticService(
     override fun getMarkets(): MarketResponse =
         restClient
             .get()
-            .uri("/api/markets")
+            .uri("/markets")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MarketResponse::class.java)
+            .body<MarketResponse>()
             ?: throw BusinessException("Failed to retrieve markets")
 
     val currencies: CurrencyResponse
         get() =
             restClient
                 .get()
-                .uri("/api/currencies")
+                .uri("/currencies")
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
-                .body(CurrencyResponse::class.java)
+                .body<CurrencyResponse>()
                 ?: throw BusinessException("Failed to retrieve currencies")
 
     fun getCurrency(currencyCode: String?): Currency? {
@@ -75,7 +76,7 @@ class StaticService(
         val response =
             restClient
                 .get()
-                .uri("/api/markets/{code}", marketCode.uppercase(Locale.getDefault()))
+                .uri("/markets/{code}", marketCode.uppercase(Locale.getDefault()))
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
                 .body(MarketResponse::class.java)

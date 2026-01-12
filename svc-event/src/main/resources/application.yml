@@ -61,10 +61,10 @@ logging:
     kafka: info
 
 marketdata:
-  url: "http://localhost:9510"
+  url: "http://localhost:9510/api"
 
 position:
-  url: "http://localhost:9500"
+  url: "http://localhost:9500/api"
 
 auth:
   uri: "http://your-auth0-endpoint/"

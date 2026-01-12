@@ -5,7 +5,7 @@ stream:
   enabled: "false"
 
 marketdata:
-  url: http://localhost:${stubrunner.port:0}
+  url: http://localhost:${stubrunner.port:0}/api
 
 logging:
   level:

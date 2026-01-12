@@ -20,6 +20,7 @@ import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 
 /**
  * Client side asset services.
@@ -41,18 +42,18 @@ class MarketDataClient(
     override fun handle(assetRequest: AssetRequest): AssetUpdateResponse? =
         restClient
             .post()
-            .uri("/api/assets")
+            .uri("/assets")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .contentType(MediaType.APPLICATION_JSON)
             .body(assetRequest)
             .retrieve()
-            .body(AssetUpdateResponse::class.java)
+            .body<AssetUpdateResponse>()
 
     @Async("taskScheduler")
     override fun backFillEvents(assetId: String) {
         restClient
             .post()
-            .uri("/api/assets/{id}/events", assetId)
+            .uri("/assets/{id}/events", assetId)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .contentType(MediaType.APPLICATION_JSON)
             .retrieve()
@@ -63,10 +64,10 @@ class MarketDataClient(
         val response =
             restClient
                 .get()
-                .uri("/api/assets/{id}", assetId)
+                .uri("/assets/{id}", assetId)
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
-                .body(AssetResponse::class.java)
+                .body<AssetResponse>()
                 ?: throw NotFoundException("Asset not found: $assetId")
         return response.data
     }
@@ -79,10 +80,10 @@ class MarketDataClient(
         val response =
             restClient
                 .get()
-                .uri("/api/classifications/{assetId}", assetId)
+                .uri("/classifications/{assetId}", assetId)
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
-                .body(AssetClassificationsResponse::class.java)
+                .body<AssetClassificationsResponse>()
         return response?.data ?: emptyList()
     }
 
@@ -94,10 +95,10 @@ class MarketDataClient(
         val response =
             restClient
                 .get()
-                .uri("/api/classifications/{assetId}/exposures", assetId)
+                .uri("/classifications/{assetId}/exposures", assetId)
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
-                .body(AssetExposuresResponse::class.java)
+                .body<AssetExposuresResponse>()
         return response?.data ?: emptyList()
     }
 

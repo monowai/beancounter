@@ -31,7 +31,7 @@ class FxClientService(
         } else {
             restClient
                 .post()
-                .uri("/api/fx")
+                .uri("/fx")
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fxRequest)

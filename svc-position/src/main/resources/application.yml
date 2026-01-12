@@ -47,7 +47,7 @@ otel:
     exporter: none
 
 marketdata:
-  url: "http://localhost:9510"
+  url: "http://localhost:9510/api"
 beancounter:
   irr: 365
   valuation:
@@ -105,7 +105,7 @@ logging:
     correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
   include-application-name: false
   level:
-    root: debug
+    root: info
     javax: error
     sun: error
     io: error

@@ -1,4 +1,4 @@
 # svc-position specific configuration
 # Extends: application-contract-base.yml
 marketdata:
-  url: http://localhost:10993
+  url: http://localhost:10993/api

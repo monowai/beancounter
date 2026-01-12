@@ -15,7 +15,7 @@ import org.springframework.web.client.RestClient
 class RestClientConfig {
     @Bean
     fun bcDataRestClient(
-        @Value("\${marketdata.url:http://localhost:9510}") baseUrl: String
+        @Value($$"${marketdata.url:http://localhost:9510/api}") baseUrl: String
     ): RestClient =
         RestClient
             .builder()

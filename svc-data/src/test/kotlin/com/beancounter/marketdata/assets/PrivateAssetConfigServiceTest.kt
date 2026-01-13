@@ -304,4 +304,101 @@ class PrivateAssetConfigServiceTest {
 
         assertThat(response.data).hasSize(2)
     }
+
+    @Test
+    fun `getTaxableIncome returns rent minus expenses`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("1000"),
+                monthlyManagementFee = BigDecimal("100")
+            )
+
+        val taxableIncome = config.getTaxableIncome()
+
+        // $1000 - $100 = $900
+        assertThat(taxableIncome).isEqualByComparingTo(BigDecimal("900"))
+    }
+
+    @Test
+    fun `getTaxableIncome returns zero when expenses exceed rent`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("500"),
+                monthlyManagementFee = BigDecimal("600")
+            )
+
+        val taxableIncome = config.getTaxableIncome()
+
+        // Cannot be negative - max'd at zero
+        assertThat(taxableIncome).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `getMonthlyIncomeTax deducts tax when deductIncomeTax is true`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("1000"),
+                monthlyManagementFee = BigDecimal("100"),
+                deductIncomeTax = true
+            )
+        val taxRate = BigDecimal("0.20") // 20%
+
+        val tax = config.getMonthlyIncomeTax(taxRate)
+
+        // Taxable = $1000 - $100 = $900, Tax = $900 × 0.20 = $180
+        assertThat(tax).isEqualByComparingTo(BigDecimal("180"))
+    }
+
+    @Test
+    fun `getMonthlyIncomeTax returns zero when deductIncomeTax is false`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("1000"),
+                monthlyManagementFee = BigDecimal("100"),
+                deductIncomeTax = false
+            )
+        val taxRate = BigDecimal("0.20") // 20%
+
+        val tax = config.getMonthlyIncomeTax(taxRate)
+
+        // Flag is false, so no tax deducted
+        assertThat(tax).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `getNetMonthlyIncome deducts tax when flag is true`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("1000"),
+                monthlyManagementFee = BigDecimal("100"),
+                deductIncomeTax = true
+            )
+        val taxRate = BigDecimal("0.20") // 20%
+
+        val netIncome = config.getNetMonthlyIncome(taxRate)
+
+        // Taxable = $900, Tax = $180, Net = $720
+        assertThat(netIncome).isEqualByComparingTo(BigDecimal("720"))
+    }
+
+    @Test
+    fun `getNetMonthlyIncome with zero tax rate equals taxable income`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("1000"),
+                monthlyManagementFee = BigDecimal("100"),
+                deductIncomeTax = true
+            )
+
+        val netIncome = config.getNetMonthlyIncome(BigDecimal.ZERO)
+
+        // No tax, so net = taxable = $900
+        assertThat(netIncome).isEqualByComparingTo(BigDecimal("900"))
+    }
 }

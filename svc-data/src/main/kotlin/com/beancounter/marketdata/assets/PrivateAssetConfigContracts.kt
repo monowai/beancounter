@@ -9,6 +9,8 @@ data class PrivateAssetConfigRequest(
     // Income settings
     val monthlyRentalIncome: BigDecimal? = null,
     val rentalCurrency: String? = null,
+    // Country code for tax jurisdiction (ISO 3166-1 alpha-2, e.g., "NZ", "SG")
+    val countryCode: String? = null,
     // Expense settings - management
     val monthlyManagementFee: BigDecimal? = null,
     val managementFeePercent: BigDecimal? = null,
@@ -17,6 +19,8 @@ data class PrivateAssetConfigRequest(
     val annualPropertyTax: BigDecimal? = null,
     val annualInsurance: BigDecimal? = null,
     val monthlyOtherExpenses: BigDecimal? = null,
+    // Tax settings - when true, deduct income tax using rate from Currency
+    val deductIncomeTax: Boolean? = null,
     // Planning settings
     val isPrimaryResidence: Boolean? = null,
     val liquidationPriority: Int? = null,

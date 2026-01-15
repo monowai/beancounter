@@ -1,21 +1,27 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
+import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.function.Consumer
 
 /**
@@ -30,7 +36,8 @@ class TrnService(
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
     private val assetFinder: AssetFinder,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val fxRateService: FxRateService
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
 
@@ -129,7 +136,7 @@ class TrnService(
     fun findProposedForUser(): Collection<Trn> {
         val user = systemUserService.getOrThrow()
         val results = trnRepository.findByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
-        log.trace("proposed trns: ${results.size} for user: ${user.email}")
+        log.trace("proposed trns: ${results.size}")
         return postProcess(results.toList())
     }
 
@@ -139,7 +146,7 @@ class TrnService(
     fun countProposedForUser(): Long {
         val user = systemUserService.getOrThrow()
         val count = trnRepository.countByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
-        log.trace("proposed count: $count for user: ${user.email}")
+        log.trace("proposed count: $count")
         return count
     }
 
@@ -200,6 +207,138 @@ class TrnService(
         }
         log.info("Settled {} transactions for portfolio {}", settled.size, portfolio.code)
         return postProcess(settled)
+    }
+
+    /**
+     * Get the total investment amount for the current user in a specific month.
+     * Sums all BUY and ADD transactions across all portfolios.
+     *
+     * @param yearMonth The month to calculate (e.g., YearMonth.now() for current month)
+     * @return Total investment amount for the month
+     */
+    fun getMonthlyInvestment(yearMonth: YearMonth): BigDecimal {
+        val user = systemUserService.getOrThrow()
+        val startDate = yearMonth.atDay(1)
+        val endDate = yearMonth.atEndOfMonth()
+        val total =
+            trnRepository.sumInvestmentsByOwnerAndDateRange(
+                user,
+                startDate,
+                endDate,
+                TrnStatus.SETTLED
+            )
+        log.trace("Monthly investment for $yearMonth: $total")
+        return total
+    }
+
+    /**
+     * Get all investment transactions for the current user in a specific month.
+     * Returns individual BUY and ADD transactions across all portfolios.
+     *
+     * @param yearMonth The month to query
+     * @return Collection of investment transactions
+     */
+    fun getMonthlyInvestmentTransactions(yearMonth: YearMonth): Collection<Trn> {
+        val user = systemUserService.getOrThrow()
+        val startDate = yearMonth.atDay(1)
+        val endDate = yearMonth.atEndOfMonth()
+        val results =
+            trnRepository.findInvestmentsByOwnerAndDateRange(
+                user,
+                startDate,
+                endDate,
+                TrnStatus.SETTLED
+            )
+        log.trace("Monthly investment trns: ${results.size} in $yearMonth")
+        return postProcess(results.toList())
+    }
+
+    /**
+     * Get net investment for specific portfolios in a month, converted to target currency.
+     * Calculates: BUY + ADD - SELL with FX conversion.
+     *
+     * @param yearMonth The month to calculate
+     * @param portfolioIds List of portfolio IDs to include (empty = all user's portfolios)
+     * @param targetCurrency Currency code to convert amounts to
+     * @return Net investment amount in target currency
+     */
+    fun getMonthlyInvestmentConverted(
+        yearMonth: YearMonth,
+        portfolioIds: List<String>,
+        targetCurrency: String
+    ): BigDecimal {
+        val startDate = yearMonth.atDay(1)
+        val endDate = yearMonth.atEndOfMonth()
+
+        // Fetch transactions for the specified portfolios
+        val transactions =
+            if (portfolioIds.isEmpty()) {
+                val user = systemUserService.getOrThrow()
+                trnRepository.findInvestmentsByOwnerAndDateRange(
+                    user,
+                    startDate,
+                    endDate,
+                    TrnStatus.SETTLED
+                )
+            } else {
+                trnRepository.findInvestmentsByPortfoliosAndDateRange(
+                    portfolioIds,
+                    startDate,
+                    endDate,
+                    TrnStatus.SETTLED
+                )
+            }
+
+        if (transactions.isEmpty()) {
+            return BigDecimal.ZERO
+        }
+
+        // Collect unique currencies needing conversion
+        val currenciesNeeded =
+            transactions
+                .map { it.tradeCurrency.code }
+                .filter { it != targetCurrency }
+                .distinct()
+
+        // Get FX rates if needed (key is "FROM:TO" format)
+        val fxRates: Map<String, BigDecimal> =
+            if (currenciesNeeded.isNotEmpty()) {
+                val fxRequest = FxRequest(rateDate = "today")
+                currenciesNeeded.forEach { fxRequest.add(IsoCurrencyPair(it, targetCurrency)) }
+                val fxResponse = fxRateService.getRates(fxRequest, "")
+                fxResponse.data.rates.entries.associate { (pair, fxRate) ->
+                    "${pair.from}:${pair.to}" to fxRate.rate
+                }
+            } else {
+                emptyMap()
+            }
+
+        // Sum with conversion
+        var total = BigDecimal.ZERO
+        for (trn in transactions) {
+            val amount = trn.tradeAmount
+            val fromCurrency = trn.tradeCurrency.code
+
+            val convertedAmount =
+                if (fromCurrency == targetCurrency) {
+                    amount
+                } else {
+                    val rateKey = "$fromCurrency:$targetCurrency"
+                    val rate = fxRates[rateKey] ?: BigDecimal.ONE
+                    amount.multiply(rate)
+                }
+
+            // BUY is positive, SELL is negative (ADD excluded - represents transfers)
+            total =
+                when (trn.trnType) {
+                    TrnType.BUY -> total.add(convertedAmount)
+                    TrnType.SELL -> total.subtract(convertedAmount)
+                    else -> total
+                }
+        }
+
+        log.trace("Monthly investment for $yearMonth in $targetCurrency: $total (${transactions.size} trns)")
+        return total
     }
 
     fun purge(portfolioId: String): Long {

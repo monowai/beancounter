@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
+import java.time.YearMonth
 
 /**
  * MVC controller for Transaction related operations.
@@ -618,6 +620,122 @@ class TrnController(
     )
     fun countProposed(): Map<String, Long> = mapOf("count" to trnService.countProposedForUser())
 
+    @GetMapping(
+        value = ["/investments/monthly"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get monthly investment summary",
+        description = """
+            Returns the net amount invested (BUY + ADD - SELL) in a specific month.
+            Optionally scoped to specific portfolios and converted to a target currency.
+
+            Use this to:
+            * Track investment progress against monthly goals
+            * Display investment metrics on dashboard
+            * Monitor contribution patterns
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Monthly investment summary retrieved successfully",
+                content = [
+                    Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        examples = [
+                            ExampleObject(
+                                name = "Monthly Investment",
+                                value = """
+                                {
+                                  "yearMonth": "2024-01",
+                                  "totalInvested": 5000.00,
+                                  "currency": "USD"
+                                }
+                                """
+                            )
+                        ]
+                    )
+                ]
+            )
+        ]
+    )
+    fun getMonthlyInvestment(
+        @Parameter(
+            description = "Year and month in YYYY-MM format. Defaults to current month.",
+            example = "2024-01"
+        ) @RequestParam(required = false) yearMonth: String?,
+        @Parameter(
+            description = "Target currency code for FX conversion. Required for accurate results.",
+            example = "USD"
+        ) @RequestParam(required = false) currency: String?,
+        @Parameter(
+            description = "Comma-separated portfolio IDs to scope. Empty = all user's portfolios.",
+            example = "portfolio-1,portfolio-2"
+        ) @RequestParam(required = false) portfolioIds: String?
+    ): MonthlyInvestmentResponse {
+        val month =
+            if (yearMonth != null) {
+                YearMonth.parse(yearMonth)
+            } else {
+                YearMonth.now()
+            }
+
+        val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+
+        val total =
+            if (currency != null) {
+                trnService.getMonthlyInvestmentConverted(month, portfolioIdList, currency)
+            } else {
+                trnService.getMonthlyInvestment(month)
+            }
+
+        return MonthlyInvestmentResponse(
+            yearMonth = month.toString(),
+            totalInvested = total,
+            currency = currency
+        )
+    }
+
+    @GetMapping(
+        value = ["/investments/monthly/transactions"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get monthly investment transactions for current user",
+        description = """
+            Returns all investment transactions (BUY and ADD) for the current user
+            in a specific month. Defaults to the current month if not specified.
+
+            Use this to:
+            * View individual investment transactions for the month
+            * Provide detailed breakdown of monthly investing activity
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Monthly investment transactions retrieved successfully"
+            )
+        ]
+    )
+    fun getMonthlyInvestmentTransactions(
+        @Parameter(
+            description = "Year and month in YYYY-MM format. Defaults to current month.",
+            example = "2024-01"
+        ) @RequestParam(required = false) yearMonth: String?
+    ): TrnResponse {
+        val month =
+            if (yearMonth != null) {
+                YearMonth.parse(yearMonth)
+            } else {
+                YearMonth.now()
+            }
+        return TrnResponse(trnService.getMonthlyInvestmentTransactions(month))
+    }
+
     @PostMapping(
         value = ["/portfolio/{portfolioId}/settle"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
@@ -697,4 +815,10 @@ class TrnController(
 
 data class SettleTransactionsRequest(
     val trnIds: List<String>
+)
+
+data class MonthlyInvestmentResponse(
+    val yearMonth: String,
+    val totalInvested: BigDecimal,
+    val currency: String? = null
 )

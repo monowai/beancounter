@@ -42,6 +42,7 @@ class ClassificationClient(
                 .uri("/classifications/bulk")
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .body(BulkClassificationRequest(assetIds))
                 .retrieve()
                 .body<BulkClassificationResponse>()

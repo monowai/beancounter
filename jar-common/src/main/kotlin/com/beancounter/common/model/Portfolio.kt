@@ -39,7 +39,7 @@ data class Portfolio(
     )
     val gainOnDay: BigDecimal? = null,
     @JdbcTypeCode(SqlTypes.JSON)
-    val assetClassification: Map<String, BigDecimal> = emptyMap(),
+    val assetClassification: Map<String, BigDecimal>? = null,
     val valuedAt: LocalDate? = null,
     @ManyToOne val currency: Currency = Currency("USD"),
     @ManyToOne val base: Currency = currency,

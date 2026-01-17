@@ -100,7 +100,8 @@ class MarketValue(
                     )
                 )!!
 
-            if (!isCash) {
+            if (!isCash && moneyValues.priceData.previousClose.signum() != 0) {
+                // Only calculate gainOnDay when there's valid previous close data
                 moneyValues.gainOnDay =
                     (close.subtract(moneyValues.priceData.previousClose)).multiply(total)
             }

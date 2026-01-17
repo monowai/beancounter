@@ -1,10 +1,14 @@
 package com.beancounter.common.model
 
 import java.math.BigDecimal
+import java.time.LocalDate
 
 fun Portfolio.setMarketValue(
     marketValue: BigDecimal,
-    irr: BigDecimal
+    irr: BigDecimal,
+    gainOnDay: BigDecimal = BigDecimal.ZERO,
+    assetClassification: Map<String, BigDecimal> = emptyMap(),
+    valuedAt: LocalDate? = null
 ): Portfolio =
     Portfolio(
         id = this.id,
@@ -14,5 +18,8 @@ fun Portfolio.setMarketValue(
         currency = this.currency,
         owner = this.owner,
         marketValue = marketValue,
-        irr = irr
+        irr = irr,
+        gainOnDay = gainOnDay,
+        assetClassification = assetClassification,
+        valuedAt = valuedAt
     )

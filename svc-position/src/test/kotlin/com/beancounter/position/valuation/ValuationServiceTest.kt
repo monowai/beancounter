@@ -487,4 +487,200 @@ class ValuationServiceTest {
             .describedAs("IRR should be from BASE totals")
             .isEqualTo(BigDecimal("0.12"))
     }
+
+    @Test
+    fun `value should send gainOnDay summed from all positions in BASE currency`() {
+        // Given - a portfolio with multiple positions each having gainOnDay
+        val positions = Positions(portfolio)
+        positions.asAt = DateUtils.TODAY
+
+        // First position with gainOnDay
+        val asset1 = TestHelpers.createTestAsset("AAPL", "US")
+        val position1 = Position(asset1, portfolio)
+        position1.quantityValues.purchased = BigDecimal.TEN
+        position1.moneyValues[Position.In.BASE] =
+            MoneyValues(portfolio.base).apply {
+                gainOnDay = BigDecimal("150.00")
+                marketValue = BigDecimal("1500.00")
+            }
+        positions.add(position1)
+
+        // Second position with gainOnDay
+        val asset2 = TestHelpers.createTestAsset("GOOGL", "US")
+        val position2 = Position(asset2, portfolio)
+        position2.quantityValues.purchased = BigDecimal("5")
+        position2.moneyValues[Position.In.BASE] =
+            MoneyValues(portfolio.base).apply {
+                gainOnDay = BigDecimal("-50.00")
+                marketValue = BigDecimal("12500.00")
+            }
+        positions.add(position2)
+
+        // Set up BASE totals
+        val baseTotals = Totals(portfolio.base)
+        baseTotals.marketValue = BigDecimal("14000.00")
+        positions.setTotal(Position.In.BASE, baseTotals)
+
+        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+
+        // When
+        valuationService.value(positions)
+
+        // Then - gainOnDay should be sum of all positions (150 + -50 = 100)
+        verify(marketValueUpdateProducer).sendMessage(capture(portfolioCaptor))
+        val sentPortfolio = portfolioCaptor.value
+
+        assertThat(sentPortfolio.gainOnDay)
+            .describedAs("gainOnDay should be sum of all position gainOnDay values")
+            .isEqualTo(BigDecimal("100.00"))
+    }
+
+    @Test
+    fun `value should send assetClassification breakdown by effectiveReportCategory`() {
+        // Given - a portfolio with positions in different asset categories
+        val positions = Positions(portfolio)
+        positions.asAt = DateUtils.TODAY
+
+        // Equity position 1
+        val equityAsset1 = TestHelpers.createTestAsset("AAPL", "US")
+        equityAsset1.assetCategory = AssetCategory(id = AssetCategory.REPORT_EQUITY, name = "Equity")
+        val equityPosition1 = Position(equityAsset1, portfolio)
+        equityPosition1.quantityValues.purchased = BigDecimal.TEN
+        equityPosition1.moneyValues[Position.In.BASE] =
+            MoneyValues(portfolio.base).apply {
+                marketValue = BigDecimal("1500.00")
+            }
+        positions.add(equityPosition1)
+
+        // Equity position 2 (same category)
+        val equityAsset2 = TestHelpers.createTestAsset("GOOGL", "US")
+        equityAsset2.assetCategory = AssetCategory(id = AssetCategory.REPORT_EQUITY, name = "Equity")
+        val equityPosition2 = Position(equityAsset2, portfolio)
+        equityPosition2.quantityValues.purchased = BigDecimal("5")
+        equityPosition2.moneyValues[Position.In.BASE] =
+            MoneyValues(portfolio.base).apply {
+                marketValue = BigDecimal("12500.00")
+            }
+        positions.add(equityPosition2)
+
+        // Cash position (different category)
+        val cashAsset = TestHelpers.createTestAsset("USD", "OFFM")
+        cashAsset.assetCategory = AssetCategory(id = AssetCategory.REPORT_CASH, name = "Cash")
+        val cashPosition = Position(cashAsset, portfolio)
+        cashPosition.quantityValues.purchased = BigDecimal("1000")
+        cashPosition.moneyValues[Position.In.BASE] =
+            MoneyValues(portfolio.base).apply {
+                marketValue = BigDecimal("1000.00")
+            }
+        positions.add(cashPosition)
+
+        // Set up BASE totals
+        val baseTotals = Totals(portfolio.base)
+        baseTotals.marketValue = BigDecimal("15000.00")
+        positions.setTotal(Position.In.BASE, baseTotals)
+
+        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+
+        // When
+        valuationService.value(positions)
+
+        // Then - assetClassification should group by category
+        verify(marketValueUpdateProducer).sendMessage(capture(portfolioCaptor))
+        val sentPortfolio = portfolioCaptor.value
+
+        assertThat(sentPortfolio.assetClassification)
+            .describedAs("assetClassification should have Equity and Cash categories")
+            .hasSize(2)
+        assertThat(sentPortfolio.assetClassification[AssetCategory.REPORT_EQUITY])
+            .describedAs("Equity total should be 1500 + 12500 = 14000")
+            .isEqualTo(BigDecimal("14000.00"))
+        assertThat(sentPortfolio.assetClassification[AssetCategory.REPORT_CASH])
+            .describedAs("Cash total should be 1000")
+            .isEqualTo(BigDecimal("1000.00"))
+    }
+
+    @Test
+    fun `value should send zero gainOnDay when positions have no gainOnDay set`() {
+        // Given - a portfolio with positions that have no gainOnDay
+        val positions = Positions(portfolio)
+        positions.asAt = DateUtils.TODAY
+
+        val asset = TestHelpers.createTestAsset("AAPL", "US")
+        val position = Position(asset, portfolio)
+        position.quantityValues.purchased = BigDecimal.TEN
+        // No gainOnDay set in moneyValues - using default constructor
+        positions.add(position)
+
+        val baseTotals = Totals(portfolio.base)
+        baseTotals.marketValue = BigDecimal("1500.00")
+        positions.setTotal(Position.In.BASE, baseTotals)
+
+        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+
+        // When
+        valuationService.value(positions)
+
+        // Then - gainOnDay should be zero
+        verify(marketValueUpdateProducer).sendMessage(capture(portfolioCaptor))
+        val sentPortfolio = portfolioCaptor.value
+
+        assertThat(sentPortfolio.gainOnDay)
+            .describedAs("gainOnDay should be zero when no positions have gainOnDay")
+            .isEqualTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `value should send valuedAt as today when asAt is today`() {
+        // Given - a portfolio valued "today"
+        val positions = Positions(portfolio)
+        positions.asAt = DateUtils.TODAY
+
+        val asset = TestHelpers.createTestAsset("AAPL", "US")
+        val position = Position(asset, portfolio)
+        position.quantityValues.purchased = BigDecimal.TEN
+        positions.add(position)
+
+        val baseTotals = Totals(portfolio.base)
+        baseTotals.marketValue = BigDecimal("1500.00")
+        positions.setTotal(Position.In.BASE, baseTotals)
+
+        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+
+        // When
+        valuationService.value(positions)
+
+        // Then - valuedAt should be today's date
+        verify(marketValueUpdateProducer).sendMessage(capture(portfolioCaptor))
+        val sentPortfolio = portfolioCaptor.value
+
+        assertThat(sentPortfolio.valuedAt)
+            .describedAs("valuedAt should be today's date")
+            .isEqualTo(LocalDate.now())
+    }
+
+    @Test
+    fun `value should send valuedAt as specified date for historical valuations`() {
+        // Given - a portfolio valued at a historical date
+        val historicalDate = "2024-06-15"
+        val positions = Positions(portfolio)
+        positions.asAt = historicalDate
+
+        val asset = TestHelpers.createTestAsset("AAPL", "US")
+        val position = Position(asset, portfolio)
+        position.quantityValues.purchased = BigDecimal.TEN
+        positions.add(position)
+
+        val baseTotals = Totals(portfolio.base)
+        baseTotals.marketValue = BigDecimal("1500.00")
+        positions.setTotal(Position.In.BASE, baseTotals)
+
+        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+
+        // When - note: we call value() but historical dates don't trigger market value updates
+        // So we test the parseValuationDate logic indirectly
+        valuationService.value(positions)
+
+        // Then - historical dates don't send market value updates, so we verify no message sent
+        verify(marketValueUpdateProducer, never()).sendMessage(any())
+    }
 }

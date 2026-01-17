@@ -223,7 +223,7 @@ internal class PortfolioControllerTests {
                 token
             ).data
 
-        val (id, _, _, _, _, _, _, owner) = portfolioResponse.iterator().next()
+        val createdPortfolio = portfolioResponse.iterator().next()
         val updateTo =
             PortfolioInput(
                 "UPDATE_TO_THIS",
@@ -237,7 +237,7 @@ internal class PortfolioControllerTests {
                     MockMvcRequestBuilders
                         .patch(
                             "$PORTFOLIO_ROOT/{id}",
-                            id
+                            createdPortfolio.id
                         ).with(csrf())
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .content(objectMapper.writeValueAsBytes(updateTo))
@@ -251,12 +251,12 @@ internal class PortfolioControllerTests {
                     patchResult.response.contentAsString,
                     PortfolioResponse::class.java
                 )
-        assertThat(owner).isNotNull
+        assertThat(createdPortfolio.owner).isNotNull
         // ID and SystemUser are immutable:
         assertThat(data)
             .hasFieldOrPropertyWithValue(
                 P_ID,
-                id
+                createdPortfolio.id
             ).hasFieldOrPropertyWithValue(
                 P_NAME,
                 updateTo.name
@@ -271,7 +271,7 @@ internal class PortfolioControllerTests {
                 updateTo.base
             ).hasFieldOrPropertyWithValue(
                 "owner.id",
-                owner.id
+                createdPortfolio.owner.id
             )
     }
 }

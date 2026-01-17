@@ -6,7 +6,10 @@ import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Portfolio that owns transactions on behalf of a systemUser
@@ -30,6 +33,14 @@ data class Portfolio(
         scale = 6
     )
     val irr: BigDecimal = BigDecimal.ZERO,
+    @Column(
+        precision = 15,
+        scale = 4
+    )
+    val gainOnDay: BigDecimal? = null,
+    @JdbcTypeCode(SqlTypes.JSON)
+    val assetClassification: Map<String, BigDecimal> = emptyMap(),
+    val valuedAt: LocalDate? = null,
     @ManyToOne val currency: Currency = Currency("USD"),
     @ManyToOne val base: Currency = currency,
     @ManyToOne var owner: SystemUser = SystemUser(id)

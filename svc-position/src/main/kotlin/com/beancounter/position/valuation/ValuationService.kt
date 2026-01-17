@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Values requested positions against market prices.
@@ -264,14 +265,56 @@ class ValuationService
             val marketValue = baseTotals?.marketValue ?: BigDecimal.ZERO
             val irr = baseTotals?.irr ?: BigDecimal.ZERO
 
+            // Calculate gain on day from all positions
+            val gainOnDay = calculateGainOnDay(valuedPositions)
+
+            // Calculate asset classification breakdown
+            val assetClassification = calculateAssetClassification(valuedPositions)
+
+            // Get the valuation date
+            val valuedAt = parseValuationDate(valuedPositions.asAt)
+
             log.info(
-                "Sending MV update: portfolio={}, base={}, marketValue={}",
+                "Sending MV update: portfolio={}, base={}, marketValue={}, gainOnDay={}, valuedAt={}",
                 portfolio.code,
                 portfolio.base.code,
-                marketValue
+                marketValue,
+                gainOnDay,
+                valuedAt
             )
 
-            val updateTo = portfolio.setMarketValue(marketValue, irr)
+            val updateTo = portfolio.setMarketValue(marketValue, irr, gainOnDay, assetClassification, valuedAt)
             marketValueUpdateProducer.sendMessage(updateTo)
         }
+
+        /**
+         * Calculate total gain on day by summing gainOnDay from all positions in BASE currency.
+         */
+        private fun calculateGainOnDay(positions: Positions): BigDecimal =
+            positions.positions.values
+                .mapNotNull { it.moneyValues[Position.In.BASE]?.gainOnDay }
+                .fold(BigDecimal.ZERO) { acc, value -> acc.add(value) }
+
+        /**
+         * Calculate asset classification breakdown by grouping positions by effectiveReportCategory
+         * and summing their market values in BASE currency.
+         */
+        private fun calculateAssetClassification(positions: Positions): Map<String, BigDecimal> =
+            positions.positions.values
+                .groupBy { it.asset.effectiveReportCategory }
+                .mapValues { (_, positionsInCategory) ->
+                    positionsInCategory
+                        .mapNotNull { it.moneyValues[Position.In.BASE]?.marketValue }
+                        .fold(BigDecimal.ZERO) { acc, value -> acc.add(value) }
+                }
+
+        /**
+         * Parse the valuation date from asAt string.
+         * Returns today's date if asAt is "today" or null, otherwise parses the date string.
+         */
+        private fun parseValuationDate(asAt: String?): LocalDate =
+            when {
+                asAt.isNullOrBlank() || asAt.equals(DateUtils.TODAY, ignoreCase = true) -> LocalDate.now()
+                else -> LocalDate.parse(asAt)
+            }
     }

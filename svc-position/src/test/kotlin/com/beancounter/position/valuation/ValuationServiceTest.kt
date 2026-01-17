@@ -591,10 +591,10 @@ class ValuationServiceTest {
         assertThat(sentPortfolio.assetClassification)
             .describedAs("assetClassification should have Equity and Cash categories")
             .hasSize(2)
-        assertThat(sentPortfolio.assetClassification[AssetCategory.REPORT_EQUITY])
+        assertThat(sentPortfolio.assetClassification?.get(AssetCategory.REPORT_EQUITY))
             .describedAs("Equity total should be 1500 + 12500 = 14000")
             .isEqualTo(BigDecimal("14000.00"))
-        assertThat(sentPortfolio.assetClassification[AssetCategory.REPORT_CASH])
+        assertThat(sentPortfolio.assetClassification?.get(AssetCategory.REPORT_CASH))
             .describedAs("Cash total should be 1000")
             .isEqualTo(BigDecimal("1000.00"))
     }

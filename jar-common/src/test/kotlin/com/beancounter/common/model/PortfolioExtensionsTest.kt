@@ -60,7 +60,7 @@ class PortfolioExtensionsTest {
 
         // Then - nullable fields should be null
         assertThat(portfolio.gainOnDay).isNull()
-        assertThat(portfolio.assetClassification).isEmpty()
+        assertThat(portfolio.assetClassification).isNull()
         assertThat(portfolio.valuedAt).isNull()
     }
 
@@ -119,9 +119,9 @@ class PortfolioExtensionsTest {
 
         // Then
         assertThat(updated.assetClassification).hasSize(3)
-        assertThat(updated.assetClassification["Equity"]).isEqualTo(BigDecimal("70000.00"))
-        assertThat(updated.assetClassification["Cash"]).isEqualTo(BigDecimal("20000.00"))
-        assertThat(updated.assetClassification["RE"]).isEqualTo(BigDecimal("10000.00"))
+        assertThat(updated.assetClassification?.get("Equity")).isEqualTo(BigDecimal("70000.00"))
+        assertThat(updated.assetClassification?.get("Cash")).isEqualTo(BigDecimal("20000.00"))
+        assertThat(updated.assetClassification?.get("RE")).isEqualTo(BigDecimal("10000.00"))
     }
 
     @Test

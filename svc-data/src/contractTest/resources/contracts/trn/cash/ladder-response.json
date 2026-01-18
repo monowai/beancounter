@@ -84,7 +84,7 @@
         "batch": "CASHLADDER",
         "callerId": "r-6CI0h7Q6eXTy57pEBwGw"
       },
-      "status": "CONFIRMED",
+      "status": "PROPOSED",
       "portfolio": {
         "id": "CASHLADDER",
         "code": "CASHLADDER",
@@ -195,7 +195,7 @@
         "batch": "CASHLADDER",
         "callerId": "LYQm_Hp2RYax7awutCjCzw"
       },
-      "status": "CONFIRMED",
+      "status": "PROPOSED",
       "portfolio": {
         "id": "CASHLADDER",
         "code": "CASHLADDER",
@@ -307,7 +307,7 @@
         "batch": "CASHLADDER",
         "callerId": "GgVuSs25SViGhTmfu8DIHg"
       },
-      "status": "CONFIRMED",
+      "status": "PROPOSED",
       "portfolio": {
         "id": "CASHLADDER",
         "code": "CASHLADDER",

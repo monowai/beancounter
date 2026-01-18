@@ -22,7 +22,7 @@
       "price": 136.34,
       "tradeAmount": 2049.1,
       "tax": 0,
-      "status": "CONFIRMED",
+      "status": "PROPOSED",
       "comments": "",
       "cashAmount": 0
     },
@@ -47,7 +47,7 @@
       "price": 0,
       "tradeAmount": 7.65,
       "tax": 0.0,
-      "status": "CONFIRMED",
+      "status": "PROPOSED",
       "comments": "Dividend of 51.0 cents per share",
       "cashAmount": 7.65
     }

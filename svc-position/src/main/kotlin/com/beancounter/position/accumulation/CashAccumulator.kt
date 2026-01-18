@@ -40,10 +40,14 @@ class CashAccumulator(
             cashPosition.quantityValues.sold = position.quantityValues.sold.add(signedQuantity)
         }
 
+        // For cash transactions (DEPOSIT, WITHDRAWAL), the currency comes from the trade itself
+        // since the asset IS the cash. For other transactions, use cashCurrency.
+        val effectiveCashCurrency = trn.cashCurrency ?: trn.tradeCurrency
+
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.TRADE,
-                trn.cashCurrency!!,
+                effectiveCashCurrency,
                 trn.portfolio,
                 position
             ),
@@ -54,7 +58,7 @@ class CashAccumulator(
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.BASE,
-                trn.cashCurrency!!,
+                effectiveCashCurrency,
                 trn.portfolio,
                 position
             ),
@@ -65,7 +69,7 @@ class CashAccumulator(
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.PORTFOLIO,
-                trn.cashCurrency!!,
+                effectiveCashCurrency,
                 trn.portfolio,
                 position
             ),

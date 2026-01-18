@@ -27,7 +27,12 @@ data class PrivateAssetConfigRequest(
     // Transaction generation settings
     val transactionDayOfMonth: Int? = null,
     val creditAccountId: String? = null,
-    val autoGenerateTransactions: Boolean? = null
+    val autoGenerateTransactions: Boolean? = null,
+    // Pension settings
+    val expectedReturnRate: BigDecimal? = null,
+    val payoutAge: Int? = null,
+    val monthlyPayoutAmount: BigDecimal? = null,
+    val isPension: Boolean? = null
 )
 
 /**

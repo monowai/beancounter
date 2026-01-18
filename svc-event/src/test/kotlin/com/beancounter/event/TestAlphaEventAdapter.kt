@@ -175,7 +175,7 @@ class TestAlphaEventAdapter {
                 TrnType.SPLIT
             ).hasFieldOrPropertyWithValue(
                 "status",
-                TrnStatus.CONFIRMED
+                TrnStatus.PROPOSED
             ).hasFieldOrPropertyWithValue(
                 "tradeDate",
                 onDate

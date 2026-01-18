@@ -7,7 +7,6 @@ package com.beancounter.common.model
  * @since 2019-02-07
  */
 enum class TrnStatus {
-    CONFIRMED,
     PROPOSED,
     SETTLED
 }

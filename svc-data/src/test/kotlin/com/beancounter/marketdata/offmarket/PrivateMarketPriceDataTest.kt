@@ -112,6 +112,50 @@ class PrivateMarketPriceDataTest {
     }
 
     @Test
+    fun pensionAssetHasDefaultPriceOfOne() {
+        val assetResponse =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(
+                        Pair(
+                            NZD.code,
+                            AssetInput.toPension(
+                                currency = NZD,
+                                code = "PENSION-TEST",
+                                name = "My Pension Fund",
+                                owner = owner
+                            )
+                        )
+                    )
+                )
+            )
+        val asset =
+            assetResponse.data
+                .iterator()
+                .next()
+                .value
+
+        // PENSION assets always return price = 1
+        val prices =
+            marketDataService.getPriceResponse(
+                priceRequest =
+                    PriceRequest(
+                        assets =
+                            listOf(
+                                PriceAsset(asset)
+                            )
+                    )
+            )
+
+        assertThat(prices.data).hasSize(1)
+        assertThat(prices.data.iterator().next())
+            .hasFieldOrPropertyWithValue(
+                "close",
+                BigDecimal.ONE
+            )
+    }
+
+    @Test
     fun findClosestPrice() {
         val assetResponse =
             assetService.handle(

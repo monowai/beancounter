@@ -77,7 +77,7 @@
             "tax": 0.00,
             "comments": null,
             "version": "4",
-            "status": "CONFIRMED"
+            "status": "PROPOSED"
         },
         {
             "id": "Mortgage 2",
@@ -156,7 +156,7 @@
             "tax": 0.00,
             "comments": null,
             "version": "4",
-            "status": "CONFIRMED"
+            "status": "PROPOSED"
         },
         {
             "id": "1",
@@ -235,7 +235,7 @@
             "tax": 0.00,
             "comments": null,
             "version": "4",
-            "status": "CONFIRMED"
+            "status": "PROPOSED"
         },
         {
             "id": "2",
@@ -314,7 +314,7 @@
             "tax": 0.00,
             "comments": null,
             "version": "4",
-            "status": "CONFIRMED"
+            "status": "PROPOSED"
         },
         {
             "id": "3",
@@ -393,7 +393,7 @@
             "tax": 0.00,
             "comments": null,
             "version": "4",
-            "status": "CONFIRMED"
+            "status": "PROPOSED"
         }
     ]
 }

@@ -72,5 +72,26 @@ data class AssetInput(
                 category = AssetCategory.ACCOUNT,
                 owner = owner
             )
+
+        /**
+         * Create a user-scoped pension asset (401k, KiwiSaver, superannuation, etc.)
+         */
+        @JvmStatic
+        fun toPension(
+            currency: Currency,
+            code: String,
+            name: String,
+            owner: String,
+            expectedReturnRate: Double? = null
+        ): AssetInput =
+            AssetInput(
+                "PRIVATE",
+                code = code,
+                name = name,
+                currency = currency.code,
+                category = AssetCategory.PENSION,
+                owner = owner,
+                expectedReturnRate = expectedReturnRate
+            )
     }
 }

@@ -119,6 +119,40 @@ internal class CashBehaviourTest {
     }
 
     @Test
+    fun `should accumulate deposit without explicit cashCurrency`() {
+        // Bank account deposits don't need cashCurrency - the currency comes from the asset itself
+        val trn =
+            Trn(
+                trnType = TrnType.DEPOSIT,
+                asset = usdCashBalance,
+                quantity = BigDecimal("5000.00"),
+                // No cashCurrency set - should derive from tradeCurrency
+                portfolio = PortfolioUtils.getPortfolio()
+            )
+        val positions = Positions()
+        val position =
+            accumulator.accumulate(
+                trn,
+                positions
+            )
+        // Verify the quantity was accumulated correctly
+        assertThat(position.quantityValues).hasFieldOrPropertyWithValue(
+            "purchased",
+            BigDecimal("5000.00")
+        )
+        // Verify money values were calculated (no NPE on missing cashCurrency)
+        assertThat(
+            position.getMoneyValues(
+                Position.In.TRADE,
+                Currency(usdCashBalance.priceSymbol!!)
+            )
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            ZERO
+        )
+    }
+
+    @Test
     fun `should accumulate withdrawal correctly`() {
         val trn =
             Trn(

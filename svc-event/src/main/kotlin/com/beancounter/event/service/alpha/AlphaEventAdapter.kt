@@ -128,7 +128,7 @@ class AlphaEventAdapter(
             quantity = corporateEvent.split,
             tradeDate = corporateEvent.recordDate,
             price = corporateEvent.split,
-            status = TrnStatus.CONFIRMED,
+            status = TrnStatus.PROPOSED,
             cashCurrency = currentPosition.asset.market.currency.code
         )
     }

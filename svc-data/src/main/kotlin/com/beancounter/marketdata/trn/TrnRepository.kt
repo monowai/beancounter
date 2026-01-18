@@ -33,6 +33,8 @@ interface TrnRepository : CrudRepository<Trn, String> {
 
     fun deleteByPortfolioId(portfolioId: String): Long
 
+    fun deleteByAssetId(assetId: String): Long
+
     fun findByPortfolioIdAndId(
         portfolioId: String,
         trnId: String

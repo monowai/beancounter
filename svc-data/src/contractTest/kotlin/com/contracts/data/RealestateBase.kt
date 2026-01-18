@@ -288,7 +288,7 @@ class RealestateBase {
                             fees = BigDecimal.ZERO,
                             tax = BigDecimal.ZERO,
                             comments = null,
-                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                            status = com.beancounter.common.model.TrnStatus.PROPOSED
                         ),
                         Trn(
                             id = "Mortgage 2",
@@ -314,7 +314,7 @@ class RealestateBase {
                             fees = BigDecimal.ZERO,
                             tax = BigDecimal.ZERO,
                             comments = null,
-                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                            status = com.beancounter.common.model.TrnStatus.PROPOSED
                         ),
                         Trn(
                             id = "1",
@@ -340,7 +340,7 @@ class RealestateBase {
                             fees = BigDecimal.ZERO,
                             tax = BigDecimal.ZERO,
                             comments = null,
-                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                            status = com.beancounter.common.model.TrnStatus.PROPOSED
                         ),
                         Trn(
                             id = "2",
@@ -366,7 +366,7 @@ class RealestateBase {
                             fees = BigDecimal.ZERO,
                             tax = BigDecimal.ZERO,
                             comments = null,
-                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                            status = com.beancounter.common.model.TrnStatus.PROPOSED
                         ),
                         Trn(
                             id = "3",
@@ -392,7 +392,7 @@ class RealestateBase {
                             fees = BigDecimal.ZERO,
                             tax = BigDecimal.ZERO,
                             comments = null,
-                            status = com.beancounter.common.model.TrnStatus.CONFIRMED
+                            status = com.beancounter.common.model.TrnStatus.PROPOSED
                         )
                     )
                 } else {

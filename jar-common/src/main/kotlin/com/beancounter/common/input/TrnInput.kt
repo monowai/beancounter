@@ -51,7 +51,7 @@ data class TrnInput(
     val tradeAmount: BigDecimal = BigDecimal.ZERO,
     val tax: BigDecimal = BigDecimal.ZERO,
     // End In trade Currency
-    val status: TrnStatus = TrnStatus.CONFIRMED,
+    val status: TrnStatus = TrnStatus.PROPOSED,
     var comments: String? = null,
     val cashAmount: BigDecimal = BigDecimal.ZERO
 )

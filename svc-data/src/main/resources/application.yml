@@ -277,6 +277,8 @@ beancounter:
           name: "Trade Account"
         - id: "POLICY"
           name: "Insurance Policy"
+        - id: "PENSION"
+          name: "Pension"
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: ALPHA

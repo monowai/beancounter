@@ -65,6 +65,15 @@ data class PrivateAssetConfig(
     val creditAccountId: String? = null,
     @Column(name = "auto_generate_transactions")
     val autoGenerateTransactions: Boolean = false,
+    // Pension settings
+    @Column(name = "expected_return_rate", precision = 5, scale = 4)
+    val expectedReturnRate: BigDecimal? = null,
+    @Column(name = "payout_age")
+    val payoutAge: Int? = null,
+    @Column(name = "monthly_payout_amount", precision = 19, scale = 4)
+    val monthlyPayoutAmount: BigDecimal? = null,
+    @Column(name = "is_pension")
+    val isPension: Boolean = false,
     // Timestamps
     @Column(name = "created_date", nullable = false)
     val createdDate: LocalDate = LocalDate.now(),

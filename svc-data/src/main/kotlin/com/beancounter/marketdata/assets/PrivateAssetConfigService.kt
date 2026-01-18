@@ -56,33 +56,34 @@ class PrivateAssetConfigService(
 
         val existing = configRepository.findById(assetId).orElse(null)
         val config =
-            if (existing != null) {
-                // Update existing
-                existing.copy(
-                    monthlyRentalIncome =
-                        if (request.isPrimaryResidence == true) {
-                            BigDecimal.ZERO
-                        } else {
-                            request.monthlyRentalIncome ?: existing.monthlyRentalIncome
-                        },
-                    rentalCurrency = request.rentalCurrency ?: existing.rentalCurrency,
-                    countryCode = request.countryCode?.uppercase() ?: existing.countryCode,
-                    monthlyManagementFee = request.monthlyManagementFee ?: existing.monthlyManagementFee,
-                    managementFeePercent = request.managementFeePercent ?: existing.managementFeePercent,
-                    monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: existing.monthlyBodyCorporateFee,
-                    annualPropertyTax = request.annualPropertyTax ?: existing.annualPropertyTax,
-                    annualInsurance = request.annualInsurance ?: existing.annualInsurance,
-                    monthlyOtherExpenses = request.monthlyOtherExpenses ?: existing.monthlyOtherExpenses,
-                    deductIncomeTax = request.deductIncomeTax ?: existing.deductIncomeTax,
-                    isPrimaryResidence = request.isPrimaryResidence ?: existing.isPrimaryResidence,
-                    liquidationPriority = request.liquidationPriority ?: existing.liquidationPriority,
-                    transactionDayOfMonth = request.transactionDayOfMonth ?: existing.transactionDayOfMonth,
-                    creditAccountId = request.creditAccountId ?: existing.creditAccountId,
-                    autoGenerateTransactions = request.autoGenerateTransactions ?: existing.autoGenerateTransactions,
-                    updatedDate = LocalDate.now()
-                )
-            } else {
-                // Create new
+            existing?.copy(
+                monthlyRentalIncome =
+                    if (request.isPrimaryResidence == true) {
+                        BigDecimal.ZERO
+                    } else {
+                        request.monthlyRentalIncome ?: existing.monthlyRentalIncome
+                    },
+                rentalCurrency = request.rentalCurrency ?: existing.rentalCurrency,
+                countryCode = request.countryCode?.uppercase() ?: existing.countryCode,
+                monthlyManagementFee = request.monthlyManagementFee ?: existing.monthlyManagementFee,
+                managementFeePercent = request.managementFeePercent ?: existing.managementFeePercent,
+                monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: existing.monthlyBodyCorporateFee,
+                annualPropertyTax = request.annualPropertyTax ?: existing.annualPropertyTax,
+                annualInsurance = request.annualInsurance ?: existing.annualInsurance,
+                monthlyOtherExpenses = request.monthlyOtherExpenses ?: existing.monthlyOtherExpenses,
+                deductIncomeTax = request.deductIncomeTax ?: existing.deductIncomeTax,
+                isPrimaryResidence = request.isPrimaryResidence ?: existing.isPrimaryResidence,
+                liquidationPriority = request.liquidationPriority ?: existing.liquidationPriority,
+                transactionDayOfMonth = request.transactionDayOfMonth ?: existing.transactionDayOfMonth,
+                creditAccountId = request.creditAccountId ?: existing.creditAccountId,
+                autoGenerateTransactions = request.autoGenerateTransactions ?: existing.autoGenerateTransactions,
+                expectedReturnRate = request.expectedReturnRate ?: existing.expectedReturnRate,
+                payoutAge = request.payoutAge ?: existing.payoutAge,
+                monthlyPayoutAmount = request.monthlyPayoutAmount ?: existing.monthlyPayoutAmount,
+                isPension = request.isPension ?: existing.isPension,
+                updatedDate = LocalDate.now()
+            )
+                ?: // Create new
                 PrivateAssetConfig(
                     assetId = assetId,
                     monthlyRentalIncome =
@@ -105,10 +106,13 @@ class PrivateAssetConfigService(
                     transactionDayOfMonth = request.transactionDayOfMonth ?: 1,
                     creditAccountId = request.creditAccountId,
                     autoGenerateTransactions = request.autoGenerateTransactions ?: false,
+                    expectedReturnRate = request.expectedReturnRate,
+                    payoutAge = request.payoutAge,
+                    monthlyPayoutAmount = request.monthlyPayoutAmount,
+                    isPension = request.isPension ?: false,
                     createdDate = LocalDate.now(),
                     updatedDate = LocalDate.now()
                 )
-            }
 
         val saved = configRepository.save(config)
         log.info(

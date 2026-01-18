@@ -14,6 +14,7 @@ import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
@@ -39,7 +40,8 @@ class AssetService(
     private val assetFinder: AssetFinder,
     private val systemUserService: SystemUserService,
     private val assetCategoryConfig: AssetCategoryConfig,
-    private val marketDataRepo: MarketDataRepo
+    private val marketDataRepo: MarketDataRepo,
+    private val trnRepository: TrnRepository
 ) : Assets {
     fun enrich(asset: Asset): Asset {
         val enricher = enrichmentFactory.getEnricher(asset.market)
@@ -168,7 +170,7 @@ class AssetService(
 
     /**
      * Delete an asset owned by the current user.
-     * Cascades deletion to associated market data.
+     * Cascades deletion to associated transactions and market data.
      * @throws NotFoundException if asset not found
      * @throws BusinessException if asset not owned by current user
      */
@@ -183,7 +185,9 @@ class AssetService(
         if (asset.systemUser?.id != user.id) {
             throw BusinessException("Asset not owned by current user")
         }
-        // Delete associated market data first
+        // Delete associated transactions first
+        trnRepository.deleteByAssetId(assetId)
+        // Delete associated market data
         marketDataRepo.deleteByAssetId(assetId)
         assetRepository.delete(asset)
     }

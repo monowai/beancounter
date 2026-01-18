@@ -12,6 +12,7 @@ data class AssetCategory(
         const val RE: String = "RE"
         const val ACCOUNT: String = "ACCOUNT"
         const val TRADE: String = "TRADE"
+        const val PENSION: String = "PENSION"
 
         // Report category constants for higher-level grouping
         const val REPORT_CASH: String = "Cash"
@@ -19,6 +20,7 @@ data class AssetCategory(
         const val REPORT_ETF: String = "ETF"
         const val REPORT_MUTUAL_FUND: String = "Mutual Fund"
         const val REPORT_PROPERTY: String = "Property"
+        const val REPORT_PENSION: String = "Pension"
 
         /**
          * Maps a detailed category to a higher-level report category.
@@ -31,6 +33,7 @@ data class AssetCategory(
                 RE, "REAL ESTATE" -> REPORT_PROPERTY
                 "EXCHANGE TRADED FUND", "ETF" -> REPORT_ETF
                 "MUTUAL FUND" -> REPORT_MUTUAL_FUND
+                PENSION -> REPORT_PENSION
                 else -> category // Default: use original category
             }
     }

@@ -535,7 +535,7 @@ class TrnController(
         summary = "Get transactions for portfolio by status",
         description = """
             Retrieves all transactions for a portfolio with a specific status.
-            Valid statuses: PROPOSED, CONFIRMED, SETTLED
+            Valid statuses: PROPOSED, SETTLED
 
             Use this to:
             * View pending/proposed transactions that need review

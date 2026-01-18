@@ -29,8 +29,10 @@ class PrivateMarketDataProvider(
         asset: Asset,
         defaultPrice: BigDecimal
     ): MarketData {
-        // ACCOUNT assets (bank accounts) are treated like cash - always price = 1
-        if (asset.assetCategory.id == AssetCategory.ACCOUNT) {
+        // ACCOUNT and PENSION assets are treated like cash - always price = 1
+        if (asset.assetCategory.id == AssetCategory.ACCOUNT ||
+            asset.assetCategory.id == AssetCategory.PENSION
+        ) {
             return MarketData(
                 asset,
                 priceDate,

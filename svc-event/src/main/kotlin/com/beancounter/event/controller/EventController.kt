@@ -275,6 +275,50 @@ class EventController(
         )
     }
 
+    @PostMapping(
+        value = ["/load/asset/{assetId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Load corporate events for a specific asset",
+        description = """
+            Fetches new corporate events from external data sources for a specific asset.
+            This endpoint:
+
+            * Retrieves corporate events for the specified asset from external sources
+            * Stores the events in the local database
+            * Returns all events for the asset
+            * Does NOT require a portfolio - works directly with asset ID
+
+            Use this when you want to load events for a single asset.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Events loaded and returned"
+            )
+        ]
+    )
+    fun loadAssetEvents(
+        @Parameter(
+            description = "Asset identifier (e.g., AAPL, SGOV)",
+            example = "AAPL"
+        )
+        @PathVariable assetId: String,
+        @Parameter(
+            description = "Date for loading events (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(required = false) asAt: String = DateUtils.TODAY
+    ): CorporateEventResponses {
+        val date = dateUtils.getDate(asAt)
+        eventLoader.loadEventsForAsset(assetId, date)
+        // Return all events for this asset after loading
+        return eventService.getAssetEvents(assetId)
+    }
+
     @GetMapping(
         value = ["/{eventId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]

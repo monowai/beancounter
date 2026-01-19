@@ -1,6 +1,7 @@
 package com.beancounter.auth.model
 
 import com.beancounter.common.model.SystemUser
+import org.springframework.security.oauth2.jwt.Jwt
 
 /**
  * OAUTH related constants
@@ -18,4 +19,12 @@ object AuthConstants {
 
     val authSystem = SystemUser(id = SYSTEM)
     const val SCOPE = "$APP_NAME profile email $ADMIN $USER"
+
+    /**
+     * Check if the JWT represents an admin user.
+     */
+    fun isAdmin(jwt: Jwt): Boolean {
+        val scope = jwt.getClaimAsString("scope") ?: ""
+        return scope.contains(ADMIN)
+    }
 }

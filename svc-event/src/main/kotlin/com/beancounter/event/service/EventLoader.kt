@@ -118,27 +118,41 @@ class EventLoader(
         var eventCount = 0
         if (positionService.includePosition(position)) {
             loginService.setAuthContext(authContext)
-            val events = priceService.getEvents(position.asset.id)
-            val windowStart = date.minusDays(daysToAdd)
-            val windowEnd = date.plusDays(daysToAdd)
-            for (priceResponse in events.data) {
-                val eventDate = priceResponse.priceDate
-                // Check if event falls within the window (date - daysToAdd to date + daysToAdd inclusive)
-                if (!eventDate.isBefore(windowStart) && !eventDate.isAfter(windowEnd)) {
-                    eventCount++
-                    eventService.save(
-                        CorporateEvent(
-                            trnType = if (isSplit(priceResponse)) TrnType.SPLIT else TrnType.DIVI,
-                            recordDate = priceResponse.priceDate,
-                            assetId = position.asset.id,
-                            rate = priceResponse.dividend,
-                            split = priceResponse.split
-                        )
-                    )
-                }
-            }
+            eventCount = loadEventsForAsset(position.asset.id, date)
             if (eventCount != 0) {
                 log.debug("Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}")
+            }
+        }
+        return eventCount
+    }
+
+    /**
+     * Load events for a specific asset from external sources.
+     * This is the core method that fetches events from the price service
+     * and stores them in the database.
+     */
+    fun loadEventsForAsset(
+        assetId: String,
+        date: LocalDate = LocalDate.now()
+    ): Int {
+        var eventCount = 0
+        val events = priceService.getEvents(assetId)
+        val windowStart = date.minusDays(daysToAdd)
+        val windowEnd = date.plusDays(daysToAdd)
+        for (priceResponse in events.data) {
+            val eventDate = priceResponse.priceDate
+            // Check if event falls within the window (date - daysToAdd to date + daysToAdd inclusive)
+            if (!eventDate.isBefore(windowStart) && !eventDate.isAfter(windowEnd)) {
+                eventCount++
+                eventService.save(
+                    CorporateEvent(
+                        trnType = if (isSplit(priceResponse)) TrnType.SPLIT else TrnType.DIVI,
+                        recordDate = priceResponse.priceDate,
+                        assetId = assetId,
+                        rate = priceResponse.dividend,
+                        split = priceResponse.split
+                    )
+                )
             }
         }
         return eventCount

@@ -13,8 +13,5 @@ interface TaxRateRepository : JpaRepository<TaxRate, String> {
 
     fun findAllByOwnerId(ownerId: String): List<TaxRate>
 
-    fun deleteByOwnerIdAndCountryCode(
-        ownerId: String,
-        countryCode: String
-    )
+    fun deleteAllByOwnerId(ownerId: String): Long
 }

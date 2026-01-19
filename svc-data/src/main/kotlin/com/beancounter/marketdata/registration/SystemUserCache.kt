@@ -2,6 +2,7 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.TokenService
 import com.beancounter.common.model.SystemUser
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.util.Optional
@@ -27,5 +28,13 @@ class SystemUserCache(
                 else -> Optional.ofNullable(null)
             }
         return result.orElse(null)
+    }
+
+    @CacheEvict(
+        value = ["system.user"],
+        allEntries = true
+    )
+    fun evictAll() {
+        // Cache eviction handled by annotation
     }
 }

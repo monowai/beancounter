@@ -22,7 +22,7 @@ class PositionGateway(
     ): PositionResponse? =
         positionRestClient
             .post()
-            .uri("/api/query")
+            .uri("/query")
             .header(HttpHeaders.AUTHORIZATION, bearerToken)
             .contentType(MediaType.APPLICATION_JSON)
             .body(trnQuery)
@@ -37,7 +37,7 @@ class PositionGateway(
     ): PositionResponse =
         positionRestClient
             .get()
-            .uri("/api/id/{id}?asAt={asAt}&value={value}", code, asAt, value)
+            .uri("/id/{id}?asAt={asAt}&value={value}", code, asAt, value)
             .header(HttpHeaders.AUTHORIZATION, bearerToken)
             .retrieve()
             .body<PositionResponse>()

@@ -75,7 +75,13 @@ dependencies {
 }
 
 springBoot {
-    buildInfo()
+    buildInfo {
+        properties {
+            additional.set(mapOf(
+                "ci.buildNumber" to (System.getenv("CIRCLE_BUILD_NUM") ?: "local")
+            ))
+        }
+    }
 }
 
 gitProperties {

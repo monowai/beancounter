@@ -65,7 +65,15 @@ class TrnInputMapper(
         val tradeAmount = tradeCalculator.amount(trnInput)
         val tradeCashRate = tradeCalculator.cashFxRate(tradeAmount, trnInput)
 
-        val rawQuantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
+        // COST_ADJUST has no quantity impact - keep it as zero
+        val rawQuantity =
+            if (trnInput.trnType == TrnType.COST_ADJUST) {
+                BigDecimal.ZERO
+            } else if (trnInput.quantity == BigDecimal.ZERO) {
+                tradeAmount
+            } else {
+                trnInput.quantity
+            }
         // Enforce correct sign for cash transactions based on type
         val quantity =
             if (TrnType.isCash(trnInput.trnType)) {

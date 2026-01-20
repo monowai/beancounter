@@ -20,6 +20,7 @@ class TrnTypeTest {
             listOf(
                 "SELL",
                 "BUY",
+                "COST_ADJUST",
                 "SPLIT",
                 "DEPOSIT",
                 "WITHDRAWAL",
@@ -34,12 +35,6 @@ class TrnTypeTest {
             )
         val actualValues = TrnType.entries.map { it.name }
         assertThat(actualValues).containsExactlyInAnyOrderElementsOf(expectedValues)
-    }
-
-    @Test
-    fun `enum count must match expected to detect additions`() {
-        // Update this count when adding new TrnType values.
-        assertThat(TrnType.entries).hasSize(13)
     }
 
     @Test

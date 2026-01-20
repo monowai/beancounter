@@ -30,7 +30,8 @@ import java.util.EnumMap
     CashAccumulator::class,
     SplitBehaviour::class,
     FxBuyBehaviour::class,
-    BalanceBehaviour::class
+    BalanceBehaviour::class,
+    CostAdjustBehaviour::class
 )
 @Service
 class TrnBehaviourFactory(

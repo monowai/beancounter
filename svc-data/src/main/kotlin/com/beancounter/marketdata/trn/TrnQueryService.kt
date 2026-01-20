@@ -62,7 +62,9 @@ class TrnQueryService(
             TrnType.WITHDRAWAL,
             TrnType.FX_BUY,
             TrnType.BALANCE,
-            TrnType.ADD
+            TrnType.ADD,
+            TrnType.REDUCE,
+            TrnType.COST_ADJUST
         )
 
     fun findAssetTrades(

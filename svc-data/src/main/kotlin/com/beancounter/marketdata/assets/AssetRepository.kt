@@ -76,4 +76,19 @@ interface AssetRepository : CrudRepository<Asset, String> {
             "AND a.code IS NOT NULL AND a.code <> ''"
     )
     fun findActiveEquities(): List<Asset>
+
+    /**
+     * Search all assets in the database by code or name (case-insensitive partial match).
+     * Used for local-only asset lookup to find assets without calling external providers.
+     * Returns distinct assets to avoid duplicates when same asset is held in multiple portfolios.
+     */
+    @Query(
+        "SELECT DISTINCT a FROM Asset a WHERE " +
+            "(LOWER(a.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "ORDER BY a.code"
+    )
+    fun searchByCodeOrName(
+        @Param("keyword") keyword: String
+    ): List<Asset>
 }

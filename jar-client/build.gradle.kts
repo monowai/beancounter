@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlinter)
 }
 
-version = "0.1.1-SNAPSHOT"
+version = "0.1.2-SNAPSHOT"
 
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))

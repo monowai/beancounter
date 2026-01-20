@@ -1,0 +1,72 @@
+package com.beancounter.marketdata.broker
+
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Broker
+import com.beancounter.common.model.SystemUser
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.Optional
+
+@Service
+class BrokerService(
+    private val brokerRepository: BrokerRepository
+) {
+    fun findByOwner(owner: SystemUser): List<Broker> = brokerRepository.findByOwner(owner)
+
+    fun findById(
+        id: String,
+        owner: SystemUser
+    ): Optional<Broker> = brokerRepository.findByIdAndOwner(id, owner)
+
+    @Transactional
+    fun create(broker: Broker): Broker {
+        // Check if broker with same name already exists for this owner
+        val existing = brokerRepository.findByNameAndOwner(broker.name, broker.owner)
+        if (existing.isPresent) {
+            throw BusinessException("Broker with name '${broker.name}' already exists")
+        }
+        return brokerRepository.save(broker)
+    }
+
+    @Transactional
+    fun update(
+        id: String,
+        owner: SystemUser,
+        name: String?,
+        accountNumber: String?,
+        notes: String?
+    ): Broker {
+        val broker =
+            brokerRepository
+                .findByIdAndOwner(id, owner)
+                .orElseThrow { BusinessException("Broker not found: $id") }
+
+        // Check if new name conflicts with existing broker
+        if (name != null && name != broker.name) {
+            val existing = brokerRepository.findByNameAndOwner(name, owner)
+            if (existing.isPresent && existing.get().id != id) {
+                throw BusinessException("Broker with name '$name' already exists")
+            }
+        }
+
+        val updated =
+            broker.copy(
+                name = name ?: broker.name,
+                accountNumber = accountNumber ?: broker.accountNumber,
+                notes = notes ?: broker.notes
+            )
+        return brokerRepository.save(updated)
+    }
+
+    @Transactional
+    fun delete(
+        id: String,
+        owner: SystemUser
+    ) {
+        val broker =
+            brokerRepository
+                .findByIdAndOwner(id, owner)
+                .orElseThrow { BusinessException("Broker not found: $id") }
+        brokerRepository.delete(broker)
+    }
+}

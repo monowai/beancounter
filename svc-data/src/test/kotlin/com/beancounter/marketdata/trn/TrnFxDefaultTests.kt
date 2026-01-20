@@ -59,6 +59,9 @@ class TrnFxDefaultTests {
     @MockitoBean
     private lateinit var currencyService: CurrencyService
 
+    @MockitoBean
+    private lateinit var brokerRepository: com.beancounter.marketdata.broker.BrokerRepository
+
     @Autowired
     private lateinit var trnInputMapper: TrnInputMapper
 

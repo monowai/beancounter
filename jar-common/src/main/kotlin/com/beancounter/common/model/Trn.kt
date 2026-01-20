@@ -97,6 +97,8 @@ data class Trn(
     // In trade Currency
     var tax: BigDecimal = BigDecimal.ZERO,
     var comments: String? = null,
+    @ManyToOne
+    var broker: Broker? = null,
     var version: String = VERSION,
     @Enumerated(EnumType.STRING)
     var status: TrnStatus = TrnStatus.SETTLED

@@ -53,5 +53,6 @@ data class TrnInput(
     // End In trade Currency
     val status: TrnStatus = TrnStatus.PROPOSED,
     var comments: String? = null,
-    val cashAmount: BigDecimal = BigDecimal.ZERO
+    val cashAmount: BigDecimal = BigDecimal.ZERO,
+    val brokerId: String? = null
 )

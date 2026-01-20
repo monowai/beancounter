@@ -4,6 +4,7 @@ import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Broker
 import com.beancounter.common.model.CallerRef.Companion.from
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
@@ -12,6 +13,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -26,7 +28,8 @@ class TrnInputMapper(
     var tradeCalculator: TradeCalculator,
     val cashTrnServices: CashTrnServices,
     val fxTransactions: FxTransactions,
-    val keyGenUtils: KeyGenUtils
+    val keyGenUtils: KeyGenUtils,
+    val brokerRepository: BrokerRepository
 ) {
     fun convert(
         portfolio: Portfolio,
@@ -93,6 +96,7 @@ class TrnInputMapper(
                     trnInput.tradeCurrency
                 )
             }
+        val broker = getBroker(trnInput, existing)
         return Trn(
             id = existing?.id ?: keyGenUtils.id,
             trnType = trnInput.trnType,
@@ -114,9 +118,22 @@ class TrnInputMapper(
             settleDate = trnInput.settleDate,
             fees = trnInput.fees,
             tax = trnInput.tax,
-            comments = existing?.comments ?: trnInput.comments,
+            comments = trnInput.comments ?: existing?.comments,
+            broker = broker,
             status = trnInput.status
         )
+    }
+
+    private fun getBroker(
+        trnInput: TrnInput,
+        existing: Trn?
+    ): Broker? {
+        val brokerId = trnInput.brokerId
+        return if (brokerId != null) {
+            brokerRepository.findById(brokerId).orElse(null)
+        } else {
+            existing?.broker
+        }
     }
 
     private fun getAsset(

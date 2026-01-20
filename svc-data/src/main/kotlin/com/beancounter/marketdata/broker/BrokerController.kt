@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.BrokersResponse
 import com.beancounter.common.input.BrokerInput
 import com.beancounter.common.model.Broker
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.TrnService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -15,13 +16,15 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/brokers")
 class BrokerController(
     private val brokerService: BrokerService,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val trnService: TrnService
 ) {
     @GetMapping
     fun getBrokers(): BrokersResponse {
@@ -82,5 +85,30 @@ class BrokerController(
         val owner = systemUserService.getOrThrow()
         brokerService.delete(id, owner)
         return ResponseEntity.noContent().build()
+    }
+
+    /**
+     * Get transaction count for a broker.
+     * Used to check if a broker can be deleted.
+     */
+    @GetMapping("/{id}/transactions/count")
+    fun getTransactionCount(
+        @PathVariable id: String
+    ): ResponseEntity<Map<String, Long>> {
+        val owner = systemUserService.getOrThrow()
+        val count = brokerService.countTransactions(id, owner)
+        return ResponseEntity.ok(mapOf("count" to count))
+    }
+
+    /**
+     * Transfer all transactions from one broker to another.
+     */
+    @PostMapping("/{id}/transfer")
+    fun transferTransactions(
+        @PathVariable id: String,
+        @RequestParam toBrokerId: String
+    ): ResponseEntity<Map<String, Long>> {
+        val count = trnService.transferBroker(id, toBrokerId)
+        return ResponseEntity.ok(mapOf("transferred" to count))
     }
 }

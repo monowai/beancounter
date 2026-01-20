@@ -55,6 +55,9 @@ class PositionControllerTest {
     @Mock
     private lateinit var fxService: FxService
 
+    @Mock
+    private lateinit var brokerPositionService: BrokerPositionService
+
     private lateinit var positionController: PositionController
 
     private lateinit var testPortfolio: Portfolio
@@ -66,7 +69,14 @@ class PositionControllerTest {
         testPositionResponse = PositionResponse(TestHelpers.createTestPositions(testPortfolio))
 
         positionController =
-            PositionController(portfolioServiceClient, dateUtils, allocationService, sectorExposureService, fxService)
+            PositionController(
+                portfolioServiceClient,
+                dateUtils,
+                allocationService,
+                sectorExposureService,
+                fxService,
+                brokerPositionService
+            )
         positionController.setValuationService(valuationService)
     }
 

@@ -56,4 +56,20 @@ class TrnService(
             .retrieve()
             .body(TrnResponse::class.java)
             ?: throw BusinessException("Failed to query portfolio transactions")
+
+    /**
+     * Query transactions for a specific broker as of a given date.
+     * Returns all transaction types needed for position building with split adjustments.
+     */
+    fun queryByBroker(
+        brokerId: String,
+        asAt: String = "today"
+    ): TrnResponse =
+        restClient
+            .get()
+            .uri("/trns/broker/{brokerId}?asAt={asAt}", brokerId, asAt)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(TrnResponse::class.java)
+            ?: throw BusinessException("Failed to query broker transactions")
 }

@@ -811,10 +811,121 @@ class TrnController(
             example = "cash-usd-123"
         ) @PathVariable("cashAssetId") cashAssetId: String
     ): TrnResponse = TrnResponse(trnService.getCashLadder(portfolioId, cashAssetId))
+
+    @GetMapping(
+        value = ["/broker/{brokerId}/holdings"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get holdings by broker for reconciliation",
+        description = """
+            Calculates holdings (quantities) for all assets transacted through a specific broker.
+            This aggregates settled transactions to show net positions per asset.
+
+            Use this to:
+            * Reconcile holdings with broker statements
+            * Verify quantities match broker records
+            * Identify discrepancies between system and broker
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Broker holdings retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Broker not found"
+            )
+        ]
+    )
+    fun getBrokerHoldings(
+        @Parameter(
+            description = "Broker identifier",
+            example = "broker-123"
+        ) @PathVariable("brokerId") brokerId: String
+    ): BrokerHoldingsResponse = trnService.getBrokerHoldings(brokerId)
+
+    @GetMapping(
+        value = ["/broker/{brokerId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get transactions by broker for position building",
+        description = """
+            Retrieves all transactions for a specific broker as of a given date.
+            Includes all transaction types (BUY, SELL, SPLIT, DIVI, etc.) needed
+            for accurate position calculation with split adjustments.
+
+            Used by svc-position to build holdings with correct quantities.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Broker transactions retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Broker not found"
+            )
+        ]
+    )
+    fun getBrokerTransactions(
+        @Parameter(
+            description = "Broker identifier",
+            example = "broker-123"
+        ) @PathVariable("brokerId") brokerId: String,
+        @Parameter(
+            description = "Date to retrieve transactions for (YYYY-MM-DD format)",
+            example = "2024-01-15"
+        ) @RequestParam(required = false) asAt: String = dateUtils.today()
+    ): TrnResponse =
+        TrnResponse(
+            trnService.findForBroker(
+                brokerId,
+                dateUtils.getFormattedDate(asAt)
+            )
+        )
 }
 
 data class SettleTransactionsRequest(
     val trnIds: List<String>
+)
+
+data class BrokerHoldingTransaction(
+    val id: String,
+    val portfolioId: String,
+    val portfolioCode: String,
+    val tradeDate: String,
+    val trnType: String,
+    val quantity: BigDecimal,
+    val price: BigDecimal,
+    val tradeAmount: BigDecimal
+)
+
+data class BrokerPortfolioGroup(
+    val portfolioId: String,
+    val portfolioCode: String,
+    val quantity: BigDecimal,
+    val transactions: List<BrokerHoldingTransaction>
+)
+
+data class BrokerHoldingPosition(
+    val assetId: String,
+    val assetCode: String,
+    val assetName: String?,
+    val market: String,
+    val quantity: BigDecimal,
+    val portfolioGroups: List<BrokerPortfolioGroup>
+)
+
+data class BrokerHoldingsResponse(
+    val brokerId: String,
+    val brokerName: String,
+    val holdings: List<BrokerHoldingPosition>
 )
 
 data class MonthlyInvestmentResponse(

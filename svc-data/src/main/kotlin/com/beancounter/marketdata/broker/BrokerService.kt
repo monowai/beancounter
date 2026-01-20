@@ -3,13 +3,15 @@ package com.beancounter.marketdata.broker
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Broker
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.trn.TrnRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.Optional
 
 @Service
 class BrokerService(
-    private val brokerRepository: BrokerRepository
+    private val brokerRepository: BrokerRepository,
+    private val trnRepository: TrnRepository
 ) {
     fun findByOwner(owner: SystemUser): List<Broker> = brokerRepository.findByOwner(owner)
 
@@ -58,6 +60,20 @@ class BrokerService(
         return brokerRepository.save(updated)
     }
 
+    /**
+     * Count transactions for a broker.
+     * Used to check if a broker can be deleted.
+     */
+    fun countTransactions(
+        id: String,
+        owner: SystemUser
+    ): Long {
+        brokerRepository
+            .findByIdAndOwner(id, owner)
+            .orElseThrow { BusinessException("Broker not found: $id") }
+        return trnRepository.countByBrokerId(id, owner)
+    }
+
     @Transactional
     fun delete(
         id: String,
@@ -67,6 +83,16 @@ class BrokerService(
             brokerRepository
                 .findByIdAndOwner(id, owner)
                 .orElseThrow { BusinessException("Broker not found: $id") }
+
+        // Check for existing transactions
+        val transactionCount = trnRepository.countByBrokerId(id, owner)
+        if (transactionCount > 0) {
+            throw BusinessException(
+                "Cannot delete broker '${broker.name}' - it has $transactionCount transaction(s). " +
+                    "Transfer transactions to another broker first."
+            )
+        }
+
         brokerRepository.delete(broker)
     }
 }

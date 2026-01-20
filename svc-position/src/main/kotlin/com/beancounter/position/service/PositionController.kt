@@ -51,7 +51,8 @@ class PositionController(
     private val dateUtils: DateUtils,
     private val allocationService: AllocationService,
     private val sectorExposureService: SectorExposureService,
-    private val fxService: FxService
+    private val fxService: FxService,
+    private val brokerPositionService: BrokerPositionService
 ) {
     private lateinit var valuationService: Valuation
 
@@ -237,6 +238,59 @@ class PositionController(
         )
         @RequestBody trnQuery: TrustedTrnQuery
     ): PositionResponse = valuationService.build(trnQuery)
+
+    @GetMapping(
+        value = ["/broker/{brokerId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get positions for a specific broker",
+        description = """
+            Retrieves positions for all assets held with a specific broker.
+            Aggregates transactions from all portfolios that use the specified broker.
+            Handles stock splits correctly using the position accumulation logic.
+
+            Use this to:
+            * Reconcile broker statements with portfolio holdings
+            * View all positions held at a specific custodian
+            * Audit broker-level asset quantities
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Broker positions retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Broker not found"
+            )
+        ]
+    )
+    fun brokerPositions(
+        @Parameter(
+            description = "Broker identifier",
+            example = "broker-123"
+        )
+        @PathVariable brokerId: String,
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Whether to include market values in the response",
+            example = "true"
+        )
+        @RequestParam(
+            value = "value",
+            defaultValue = "true"
+        ) value: Boolean
+    ): PositionResponse = brokerPositionService.getPositions(brokerId, asAt, value)
 
     @GetMapping(
         value = ["/aggregated"],

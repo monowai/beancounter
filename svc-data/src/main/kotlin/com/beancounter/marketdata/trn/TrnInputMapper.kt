@@ -52,14 +52,22 @@ class TrnInputMapper(
             trnInput
         )
 
-        val cashAsset = cashTrnServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
+        // Preserve existing cashAsset if no new one is provided (similar to broker handling)
+        val cashAsset =
+            cashTrnServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
+                ?: existing?.cashAsset
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
             cashCurrency =
-                if (cashAsset.priceSymbol == null) {
-                    currencyService.getCode(trnInput.cashCurrency!!)
-                } else {
-                    currencyService.getCode(cashAsset.priceSymbol!!)
+                when {
+                    // Use priceSymbol if available (set when asset is created from cashCurrency)
+                    cashAsset.priceSymbol != null -> currencyService.getCode(cashAsset.priceSymbol!!)
+                    // Use explicitly provided cashCurrency
+                    !trnInput.cashCurrency.isNullOrEmpty() -> currencyService.getCode(trnInput.cashCurrency!!)
+                    // Preserve existing cashCurrency when patching
+                    existing?.cashCurrency != null -> existing.cashCurrency
+                    // Fall back to cashAsset's market currency
+                    else -> cashAsset.market.currency
                 }
         }
         val tradeAmount = tradeCalculator.amount(trnInput)

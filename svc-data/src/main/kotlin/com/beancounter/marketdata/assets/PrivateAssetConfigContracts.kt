@@ -28,10 +28,11 @@ data class PrivateAssetConfigRequest(
     val transactionDayOfMonth: Int? = null,
     val creditAccountId: String? = null,
     val autoGenerateTransactions: Boolean? = null,
-    // Pension settings
+    // Pension/Policy payout settings
     val expectedReturnRate: BigDecimal? = null,
     val payoutAge: Int? = null,
     val monthlyPayoutAmount: BigDecimal? = null,
+    val lumpSumPayoutAmount: BigDecimal? = null,
     val isPension: Boolean? = null
 )
 

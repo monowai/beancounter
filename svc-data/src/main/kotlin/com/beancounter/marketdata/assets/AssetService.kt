@@ -127,7 +127,14 @@ class AssetService(
                         market = market,
                         assetInput = assetInput
                     )
-            assetFinder.hydrateAsset(assetRepository.save(asset))
+            try {
+                assetFinder.hydrateAsset(assetRepository.save(asset))
+            } catch (_: DataIntegrityViolationException) {
+                // Race condition: another request created this asset concurrently
+                log.debug("Asset {} already exists, fetching existing", assetInput.code)
+                assetFinder.findLocally(assetInput)
+                    ?: throw BusinessException("Unable to resolve asset ${assetInput.code}")
+            }
         } else {
             foundAsset
         }

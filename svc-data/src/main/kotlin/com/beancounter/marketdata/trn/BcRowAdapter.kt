@@ -30,7 +30,8 @@ class BcRowAdapter(
 
         val trnType = TrnType.valueOf(trustedTrnImportRequest.row[Columns.Type.ordinal].trim())
         val asset = resolveAsset(trustedTrnImportRequest)
-        val cashAssetId = getCashAssetId(trnType, asset, trustedTrnImportRequest.row)
+        val ownerId = trustedTrnImportRequest.portfolio.owner.id
+        val cashAssetId = getCashAssetId(trnType, asset, trustedTrnImportRequest.row, ownerId)
 
         return createTrnInput(trustedTrnImportRequest, trnType, asset, cashAssetId)
     }
@@ -59,7 +60,8 @@ class BcRowAdapter(
     private fun getCashAssetId(
         trnType: TrnType,
         asset: Asset,
-        row: List<String>
+        row: List<String>,
+        ownerId: String
     ): String? {
         val cashCurrency = row[Columns.CashCurrency.ordinal].trim()
         val cashAccount = row[Columns.CashAccount.ordinal].trim()
@@ -68,7 +70,7 @@ class BcRowAdapter(
             if (TrnType.isCash(trnType)) {
                 asset
             } else {
-                cashTrnServices.getCashAsset(trnType, cashAccount, cashCurrency)
+                cashTrnServices.getCashAsset(trnType, cashAccount, cashCurrency, ownerId)
             }
         return cashAsset?.id
     }

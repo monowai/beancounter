@@ -54,8 +54,12 @@ class TrnInputMapper(
 
         // Preserve existing cashAsset if no new one is provided (similar to broker handling)
         val cashAsset =
-            cashTrnServices.getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
-                ?: existing?.cashAsset
+            cashTrnServices.getCashAsset(
+                trnInput.trnType,
+                trnInput.cashAssetId,
+                trnInput.cashCurrency,
+                portfolio.owner.id
+            ) ?: existing?.cashAsset
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
             cashCurrency =

@@ -47,26 +47,62 @@ class CashTrnServices(
         return BigDecimal.ZERO
     }
 
+    /**
+     * Resolves the cash/settlement asset for a transaction.
+     *
+     * @param trnType The transaction type
+     * @param cashAccountCode Optional code of a specific settlement account (e.g., "SCB-SGD" for a bank account).
+     *                        Can be an asset code or UUID for backward compatibility.
+     * @param cashCurrency Currency code for generic cash balance fallback (e.g., "SGD")
+     * @param ownerId Owner ID for looking up private assets by code
+     * @return The resolved Asset, or null if no cash asset is required
+     */
     fun getCashAsset(
         trnType: TrnType,
-        cashAssetId: String?,
-        cashCurrency: String?
+        cashAccountCode: String?,
+        cashCurrency: String?,
+        ownerId: String? = null
     ): Asset? {
         if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
         }
-        if (cashAssetId.isNullOrEmpty()) {
-            if (cashCurrency.isNullOrEmpty()) {
-                return null // no cash to look up.
+
+        // If a specific cash account code is provided, try to resolve it
+        if (!cashAccountCode.isNullOrEmpty()) {
+            // First, try to find by UUID (backward compatibility)
+            try {
+                val foundById = assetFinder.find(cashAccountCode)
+                // If found by UUID, return it
+                return foundById
+            } catch (_: Exception) {
+                // Not a UUID or not found, continue to try as asset code
             }
-            // Generic Cash Balance
-            return assetService.findOrCreate(
-                AssetInput(
-                    CASH,
-                    cashCurrency
-                )
-            )
+
+            // Try to find as a private asset by code
+            if (!ownerId.isNullOrEmpty()) {
+                val privateAsset =
+                    assetFinder.findLocally(
+                        AssetInput(
+                            market = "PRIVATE",
+                            code = cashAccountCode,
+                            owner = ownerId
+                        )
+                    )
+                if (privateAsset != null) {
+                    return privateAsset
+                }
+            }
         }
-        return assetFinder.find(cashAssetId)
+
+        // Fall back to generic cash balance
+        if (cashCurrency.isNullOrEmpty()) {
+            return null // no cash to look up
+        }
+        return assetService.findOrCreate(
+            AssetInput(
+                CASH,
+                cashCurrency
+            )
+        )
     }
 }

@@ -66,10 +66,12 @@ class CashTransferService(
         val transactions = mutableListOf<Trn>()
 
         // Create WITHDRAWAL transaction (amount sent from source)
+        // Set cashAssetId = fromAsset.id so the cash ladder can track this transaction
         val withdrawalInput =
             TrnInput(
                 callerRef = CallerRef(),
                 assetId = fromAsset.id,
+                cashAssetId = fromAsset.id,
                 trnType = TrnType.WITHDRAWAL,
                 tradeAmount = request.sentAmount,
                 tradeCurrency = fromCurrency,
@@ -91,10 +93,12 @@ class CashTransferService(
         transactions.addAll(withdrawalTrns)
 
         // Create DEPOSIT transaction (amount received at destination)
+        // Set cashAssetId = toAsset.id so the cash ladder can track this transaction
         val depositInput =
             TrnInput(
                 callerRef = CallerRef(),
                 assetId = toAsset.id,
+                cashAssetId = toAsset.id,
                 trnType = TrnType.DEPOSIT,
                 tradeAmount = request.receivedAmount,
                 tradeCurrency = toCurrency,

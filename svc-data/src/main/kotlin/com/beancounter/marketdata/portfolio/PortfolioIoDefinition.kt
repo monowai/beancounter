@@ -17,7 +17,8 @@ class PortfolioIoDefinition {
         Code,
         Name,
         Currency,
-        Base
+        Base,
+        Active
     }
 
     /**
@@ -36,23 +37,33 @@ class PortfolioIoDefinition {
             portfolio.code,
             portfolio.name,
             portfolio.currency.code,
-            portfolio.base.code
+            portfolio.base.code,
+            portfolio.active.toString()
         )
 
     /**
      * Parses a CSV row into a PortfolioInput for import.
-     * @param row Array of column values in order: Code, Name, Currency, Base
+     * @param row Array of column values in order: Code, Name, Currency, Base, Active
      * @return PortfolioInput ready for creation
      */
     fun parse(row: Array<String>): PortfolioInput {
-        require(row.size >= Columns.entries.size) {
-            "Invalid row: expected ${Columns.entries.size} columns, got ${row.size}"
+        // Support older CSV files without Active column
+        val minColumns = Columns.entries.size - 1 // Active is optional for backwards compatibility
+        require(row.size >= minColumns) {
+            "Invalid row: expected at least $minColumns columns, got ${row.size}"
         }
+        val active =
+            if (row.size > Columns.Active.ordinal) {
+                row[Columns.Active.ordinal].trim().lowercase() != "false"
+            } else {
+                true // Default to active if not specified
+            }
         return PortfolioInput(
             code = row[Columns.Code.ordinal].trim(),
             name = row[Columns.Name.ordinal].trim().ifEmpty { row[Columns.Code.ordinal].trim() },
             currency = row[Columns.Currency.ordinal].trim().ifEmpty { "USD" },
-            base = row[Columns.Base.ordinal].trim().ifEmpty { row[Columns.Currency.ordinal].trim() }
+            base = row[Columns.Base.ordinal].trim().ifEmpty { row[Columns.Currency.ordinal].trim() },
+            active = active
         )
     }
 

@@ -111,10 +111,11 @@ class PortfolioBase : ContractVerifierBase() {
             )
             val portfolioCode = "TEST"
 
-            // All Portfolio
+            // All Portfolio (active only by default)
             `when`(
-                portfolioRepository.findByOwner(
+                portfolioRepository.findByOwnerAndActive(
                     systemUser,
+                    true,
                     Sort.by(Sort.Order.asc("code"))
                 )
             ).thenReturn(

@@ -4,6 +4,7 @@
       "id": "TEST",
       "code": "SGD",
       "name": "SGD Balanced",
+      "active": true,
       "marketValue": 0,
       "irr": 0,
       "currency": {

@@ -4,6 +4,7 @@
       "id": "TEST",
       "code": "TEST",
       "name": "NZD Portfolio",
+      "active": true,
       "marketValue": 0,
       "irr": 0,
       "currency": {

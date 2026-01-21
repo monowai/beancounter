@@ -55,24 +55,43 @@ class PortfolioService(
         portfolio: Portfolio
     ): Boolean = systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id
 
-    fun portfolios(): Collection<Portfolio> {
+    /**
+     * Returns portfolios for the current user.
+     * By default, only active portfolios are returned.
+     *
+     * @param includeInactive if true, includes inactive portfolios
+     */
+    fun portfolios(includeInactive: Boolean = false): Collection<Portfolio> {
         val systemUser = systemUserService.getOrThrow()
         val portfolios =
             if (systemUser.id == "beancounter:system") {
-                portfolioRepository.findAll().toList()
+                if (includeInactive) {
+                    portfolioRepository.findAll().toList()
+                } else {
+                    portfolioRepository.findByActive(true).toList()
+                }
             } else {
-                portfolioRepository
-                    .findByOwner(
-                        systemUser
-                    ).toList()
+                if (includeInactive) {
+                    portfolioRepository.findByOwner(systemUser).toList()
+                } else {
+                    portfolioRepository.findByOwnerAndActive(systemUser, true).toList()
+                }
             }
         return portfolios
     }
 
     /**
      * Returns all portfolios in the system. Used by scheduled jobs.
+     * By default, only active portfolios are returned.
+     *
+     * @param includeInactive if true, includes inactive portfolios
      */
-    fun findAll(): Collection<Portfolio> = portfolioRepository.findAll().toList()
+    fun findAll(includeInactive: Boolean = false): Collection<Portfolio> =
+        if (includeInactive) {
+            portfolioRepository.findAll().toList()
+        } else {
+            portfolioRepository.findByActive(true).toList()
+        }
 
     /**
      * Confirms if the requested portfolio is known. Service side call.

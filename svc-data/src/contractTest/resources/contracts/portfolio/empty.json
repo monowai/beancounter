@@ -2,9 +2,10 @@
   "data": {
     "id": "EMPTY",
     "code": "EMPTY",
+    "name": "NZD Portfolio",
+    "active": true,
     "marketValue": 0,
     "irr": 0,
-    "name": "NZD Portfolio",
     "currency": {
       "code": "NZD",
       "name": "Dollar",

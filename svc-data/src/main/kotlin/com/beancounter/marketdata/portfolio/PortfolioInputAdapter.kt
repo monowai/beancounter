@@ -45,6 +45,7 @@ class PortfolioInputAdapter internal constructor(
             keyGenUtils.id,
             portfolioInput.code.uppercase(Locale.getDefault()),
             portfolioInput.name,
+            active = portfolioInput.active,
             currency = currencyService.getCode(portfolioInput.currency),
             base = currencyService.getCode(portfolioInput.base),
             owner = owner
@@ -59,6 +60,7 @@ class PortfolioInputAdapter internal constructor(
             existing.id,
             data.code.uppercase(Locale.getDefault()),
             data.name,
+            active = data.active,
             currency = currencyService.getCode(data.currency),
             base = currencyService.getCode(data.base),
             owner = existing.owner

@@ -84,9 +84,13 @@ class PortfolioExportImportTest {
         val lines = csvContent.lines().filter { it.isNotBlank() }
 
         assertThat(lines).hasSizeGreaterThanOrEqualTo(3) // Header + 2 portfolios
-        assertThat(lines[0]).isEqualTo("Code,Name,Currency,Base")
-        assertThat(lines).anyMatch { it.contains("EXPORT-TEST") && it.contains("Export Test Portfolio") }
-        assertThat(lines).anyMatch { it.contains("EXPORT-NZD") && it.contains("NZD Portfolio") }
+        assertThat(lines[0]).isEqualTo("Code,Name,Currency,Base,Active")
+        assertThat(lines).anyMatch {
+            it.contains("EXPORT-TEST") &&
+                it.contains("Export Test Portfolio") &&
+                it.contains("true")
+        }
+        assertThat(lines).anyMatch { it.contains("EXPORT-NZD") && it.contains("NZD Portfolio") && it.contains("true") }
     }
 
     @Test

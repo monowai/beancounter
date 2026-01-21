@@ -56,6 +56,7 @@ class PortfolioController internal constructor(
         summary = "Get all portfolios",
         description = """
             Retrieves all portfolios accessible to the current user.
+            By default, only active portfolios are returned.
 
             Use this to:
             * List all available portfolios
@@ -81,7 +82,8 @@ class PortfolioController internal constructor(
                                       "id": "portfolio-123",
                                       "code": "MY_PORTFOLIO",
                                       "name": "My Investment Portfolio",
-                                      "currency": "USD"
+                                      "currency": "USD",
+                                      "active": true
                                     }
                                   ]
                                 }
@@ -93,7 +95,16 @@ class PortfolioController internal constructor(
             )
         ]
     )
-    fun getPortfolios(): PortfoliosResponse = PortfoliosResponse(portfolioService.portfolios())
+    fun getPortfolios(
+        @Parameter(
+            description = "Include inactive portfolios in the response",
+            example = "false"
+        )
+        @RequestParam(
+            value = "inactive",
+            defaultValue = "false"
+        ) inactive: Boolean
+    ): PortfoliosResponse = PortfoliosResponse(portfolioService.portfolios(inactive))
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_SYSTEM + "')")
@@ -102,6 +113,7 @@ class PortfolioController internal constructor(
         description = """
             Retrieves all portfolios across all users. Requires SYSTEM scope.
             Used by scheduled jobs for system-wide portfolio valuation.
+            By default, only active portfolios are returned.
         """
     )
     @ApiResponses(
@@ -116,7 +128,16 @@ class PortfolioController internal constructor(
             )
         ]
     )
-    fun getAllPortfolios(): PortfoliosResponse = PortfoliosResponse(portfolioService.findAll())
+    fun getAllPortfolios(
+        @Parameter(
+            description = "Include inactive portfolios in the response",
+            example = "false"
+        )
+        @RequestParam(
+            value = "inactive",
+            defaultValue = "false"
+        ) inactive: Boolean
+    ): PortfoliosResponse = PortfoliosResponse(portfolioService.findAll(inactive))
 
     @GetMapping("/{id}")
     @Operation(

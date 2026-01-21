@@ -23,6 +23,7 @@ data class Portfolio(
     @Id val id: String,
     val code: String = id,
     val name: String = code,
+    val active: Boolean = true,
     @Column(
         precision = 15,
         scale = 6

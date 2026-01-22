@@ -235,6 +235,23 @@ interface TrnRepository : CrudRepository<Trn, String> {
     ): Long
 
     /**
+     * Find all transactions with a specific status and trade date for portfolios owned by the given user.
+     * Used for showing settled transactions on a specific date across all portfolios.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.status = ?1 " +
+            "and t.portfolio.owner = ?2 " +
+            "and t.tradeDate = ?3 " +
+            "order by t.portfolio.code, t.asset.code"
+    )
+    fun findByStatusAndPortfolioOwnerAndTradeDate(
+        status: TrnStatus,
+        owner: SystemUser,
+        tradeDate: LocalDate
+    ): Collection<Trn>
+
+    /**
      * Find all SETTLED transactions for a portfolio where the cash settlement asset matches
      * and trade date is on or before the specified date.
      * This is used for the Cash Ladder feature to show all transactions that

@@ -621,6 +621,41 @@ class TrnController(
     fun countProposed(): Map<String, Long> = mapOf("count" to trnService.countProposedForUser())
 
     @GetMapping(
+        value = ["/settled"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get all settled transactions for current user on a specific date",
+        description = """
+            Retrieves all SETTLED transactions across all portfolios owned by the current user
+            for a specific trade date.
+
+            Use this to:
+            * View settled transactions on a specific date
+            * Review what was executed on a particular trading day
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Settled transactions retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "tradeDate parameter is required"
+            )
+        ]
+    )
+    fun findSettled(
+        @Parameter(
+            description = "Trade date in YYYY-MM-DD format",
+            example = "2026-01-22",
+            required = true
+        ) @RequestParam("tradeDate") tradeDate: java.time.LocalDate
+    ): TrnResponse = TrnResponse(trnService.findSettledForUser(tradeDate))
+
+    @GetMapping(
         value = ["/investments/monthly"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )

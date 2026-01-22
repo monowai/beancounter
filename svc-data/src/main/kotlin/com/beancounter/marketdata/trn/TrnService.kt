@@ -161,15 +161,6 @@ class TrnService(
     }
 
     /**
-     * Count transactions for a broker.
-     * Used to check if a broker can be deleted.
-     */
-    fun countByBroker(brokerId: String): Long {
-        val user = systemUserService.getOrThrow()
-        return trnRepository.countByBrokerId(brokerId, user)
-    }
-
-    /**
      * Transfer all transactions from one broker to another.
      * @param fromBrokerId Source broker ID
      * @param toBrokerId Target broker ID
@@ -232,6 +223,16 @@ class TrnService(
         val count = trnRepository.countByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
         log.trace("proposed count: $count")
         return count
+    }
+
+    /**
+     * Find all SETTLED transactions for the current user on a specific trade date across all their portfolios.
+     */
+    fun findSettledForUser(tradeDate: LocalDate): Collection<Trn> {
+        val user = systemUserService.getOrThrow()
+        val results = trnRepository.findByStatusAndPortfolioOwnerAndTradeDate(TrnStatus.SETTLED, user, tradeDate)
+        log.trace("settled trns on $tradeDate: ${results.size}")
+        return postProcess(results.toList())
     }
 
     /**

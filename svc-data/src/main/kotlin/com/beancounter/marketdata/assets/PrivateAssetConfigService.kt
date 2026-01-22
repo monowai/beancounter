@@ -80,7 +80,7 @@ class PrivateAssetConfigService(
                 expectedReturnRate = request.expectedReturnRate ?: existing.expectedReturnRate,
                 payoutAge = request.payoutAge ?: existing.payoutAge,
                 monthlyPayoutAmount = request.monthlyPayoutAmount ?: existing.monthlyPayoutAmount,
-                lumpSumPayoutAmount = request.lumpSumPayoutAmount ?: existing.lumpSumPayoutAmount,
+                lumpSum = request.lumpSum ?: existing.lumpSum,
                 isPension = request.isPension ?: existing.isPension,
                 updatedDate = LocalDate.now()
             )
@@ -110,7 +110,7 @@ class PrivateAssetConfigService(
                     expectedReturnRate = request.expectedReturnRate,
                     payoutAge = request.payoutAge,
                     monthlyPayoutAmount = request.monthlyPayoutAmount,
-                    lumpSumPayoutAmount = request.lumpSumPayoutAmount,
+                    lumpSum = request.lumpSum ?: false,
                     isPension = request.isPension ?: false,
                     createdDate = LocalDate.now(),
                     updatedDate = LocalDate.now()

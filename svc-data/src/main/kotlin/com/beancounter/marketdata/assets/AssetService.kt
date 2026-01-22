@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.util.UUID
 
 /**
@@ -41,8 +43,13 @@ class AssetService(
     private val systemUserService: SystemUserService,
     private val assetCategoryConfig: AssetCategoryConfig,
     private val marketDataRepo: MarketDataRepo,
-    private val trnRepository: TrnRepository
+    private val trnRepository: TrnRepository,
+    transactionManager: PlatformTransactionManager
 ) : Assets {
+    // New transaction template for recovery lookups after constraint violations
+    private val newTxTemplate = TransactionTemplate(transactionManager).apply {
+        propagationBehavior = org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW
+    }
     fun enrich(asset: Asset): Asset {
         val enricher = enrichmentFactory.getEnricher(asset.market)
         if (enricher.canEnrich(asset)) {
@@ -92,9 +99,11 @@ class AssetService(
                 assetFinder.hydrateAsset(assetRepository.save(eAsset))
             } catch (_: DataIntegrityViolationException) {
                 // Race condition: another request created this asset concurrently
+                // Use new transaction as current one is marked for rollback
                 log.debug("Asset {} already exists, fetching existing", assetInput.code)
-                assetFinder.findLocally(assetInput)
-                    ?: throw BusinessException("Unable to resolve asset ${assetInput.code}")
+                newTxTemplate.execute {
+                    assetFinder.findLocally(assetInput)
+                } ?: throw BusinessException("Unable to resolve asset ${assetInput.code}")
             }
         }
         throw BusinessException("Unable to resolve asset ${assetInput.code}")
@@ -131,9 +140,11 @@ class AssetService(
                 assetFinder.hydrateAsset(assetRepository.save(asset))
             } catch (_: DataIntegrityViolationException) {
                 // Race condition: another request created this asset concurrently
+                // Use new transaction as current one is marked for rollback
                 log.debug("Asset {} already exists, fetching existing", assetInput.code)
-                assetFinder.findLocally(assetInput)
-                    ?: throw BusinessException("Unable to resolve asset ${assetInput.code}")
+                newTxTemplate.execute {
+                    assetFinder.findLocally(assetInput)
+                } ?: throw BusinessException("Unable to resolve asset ${assetInput.code}")
             }
         } else {
             foundAsset

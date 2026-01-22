@@ -69,6 +69,9 @@ logging:
       springframework.scheduling: info
       #springframework.security: error
       hibernate: error
+      # Suppress Hibernate SQL exception logging for constraint violations
+      # (handled in AssetService.create/findOrCreate catch blocks)
+      hibernate.engine.jdbc.spi.SqlExceptionHelper: off
       apache: error
       postgres: error
       postgresql: error

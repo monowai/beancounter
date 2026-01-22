@@ -32,7 +32,7 @@ data class PrivateAssetConfigRequest(
     val expectedReturnRate: BigDecimal? = null,
     val payoutAge: Int? = null,
     val monthlyPayoutAmount: BigDecimal? = null,
-    val lumpSumPayoutAmount: BigDecimal? = null,
+    val lumpSum: Boolean? = null,
     val isPension: Boolean? = null
 )
 

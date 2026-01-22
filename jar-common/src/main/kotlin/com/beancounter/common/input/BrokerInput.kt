@@ -6,5 +6,7 @@ package com.beancounter.common.input
 data class BrokerInput(
     val name: String,
     val accountNumber: String? = null,
-    val notes: String? = null
+    val notes: String? = null,
+    // Map of currency code to settlement account asset ID
+    val settlementAccounts: Map<String, String>? = null
 )

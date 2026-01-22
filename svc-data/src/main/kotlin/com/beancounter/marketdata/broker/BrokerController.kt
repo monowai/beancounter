@@ -1,7 +1,9 @@
 package com.beancounter.marketdata.broker
 
 import com.beancounter.common.contracts.BrokerResponse
+import com.beancounter.common.contracts.BrokerWithAccountsResponse
 import com.beancounter.common.contracts.BrokersResponse
+import com.beancounter.common.contracts.BrokersWithAccountsResponse
 import com.beancounter.common.input.BrokerInput
 import com.beancounter.common.model.Broker
 import com.beancounter.marketdata.registration.SystemUserService
@@ -27,28 +29,44 @@ class BrokerController(
     private val trnService: TrnService
 ) {
     @GetMapping
-    fun getBrokers(): BrokersResponse {
+    fun getBrokers(
+        @RequestParam(defaultValue = "false") includeAccounts: Boolean
+    ): ResponseEntity<*> {
         val owner = systemUserService.getOrThrow()
-        return BrokersResponse(brokerService.findByOwner(owner))
+        return if (includeAccounts) {
+            ResponseEntity.ok(BrokersWithAccountsResponse(brokerService.findByOwnerWithAccounts(owner)))
+        } else {
+            ResponseEntity.ok(BrokersResponse(brokerService.findByOwner(owner)))
+        }
     }
 
     @GetMapping("/{id}")
     fun getBroker(
-        @PathVariable id: String
-    ): ResponseEntity<BrokerResponse> {
+        @PathVariable id: String,
+        @RequestParam(defaultValue = "false") includeAccounts: Boolean
+    ): ResponseEntity<*> {
         val owner = systemUserService.getOrThrow()
-        val broker = brokerService.findById(id, owner)
-        return if (broker.isPresent) {
-            ResponseEntity.ok(BrokerResponse(broker.get()))
+        return if (includeAccounts) {
+            val broker = brokerService.findByIdWithAccounts(id, owner)
+            if (broker.isPresent) {
+                ResponseEntity.ok(BrokerWithAccountsResponse(broker.get()))
+            } else {
+                ResponseEntity.notFound().build<Any>()
+            }
         } else {
-            ResponseEntity.notFound().build()
+            val broker = brokerService.findById(id, owner)
+            if (broker.isPresent) {
+                ResponseEntity.ok(BrokerResponse(broker.get()))
+            } else {
+                ResponseEntity.notFound().build<Any>()
+            }
         }
     }
 
     @PostMapping
     fun createBroker(
         @Valid @RequestBody input: BrokerInput
-    ): ResponseEntity<BrokerResponse> {
+    ): ResponseEntity<BrokerWithAccountsResponse> {
         val owner = systemUserService.getOrThrow()
         val broker =
             Broker(
@@ -57,15 +75,16 @@ class BrokerController(
                 accountNumber = input.accountNumber,
                 notes = input.notes
             )
-        val created = brokerService.create(broker)
-        return ResponseEntity.status(HttpStatus.CREATED).body(BrokerResponse(created))
+        val created = brokerService.create(broker, input.settlementAccounts)
+        val withAccounts = brokerService.findByIdWithAccounts(created.id, owner)
+        return ResponseEntity.status(HttpStatus.CREATED).body(BrokerWithAccountsResponse(withAccounts.get()))
     }
 
     @PatchMapping("/{id}")
     fun updateBroker(
         @PathVariable id: String,
         @RequestBody input: BrokerInput
-    ): ResponseEntity<BrokerResponse> {
+    ): ResponseEntity<BrokerWithAccountsResponse> {
         val owner = systemUserService.getOrThrow()
         val updated =
             brokerService.update(
@@ -73,9 +92,11 @@ class BrokerController(
                 owner = owner,
                 name = input.name,
                 accountNumber = input.accountNumber,
-                notes = input.notes
+                notes = input.notes,
+                settlementAccounts = input.settlementAccounts
             )
-        return ResponseEntity.ok(BrokerResponse(updated))
+        val withAccounts = brokerService.findByIdWithAccounts(updated.id, owner)
+        return ResponseEntity.ok(BrokerWithAccountsResponse(withAccounts.get()))
     }
 
     @DeleteMapping("/{id}")

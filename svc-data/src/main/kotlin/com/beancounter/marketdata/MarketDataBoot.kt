@@ -21,7 +21,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
         "com.beancounter.marketdata"
     ]
 )
-@EntityScan("com.beancounter.common.model", "com.beancounter.marketdata.assets", "com.beancounter.marketdata.tax")
+@EntityScan(
+    "com.beancounter.common.model",
+    "com.beancounter.marketdata.assets",
+    "com.beancounter.marketdata.tax",
+    "com.beancounter.marketdata.broker"
+)
 @EnableWebSecurity
 @EnableConfigurationProperties
 class MarketDataBoot

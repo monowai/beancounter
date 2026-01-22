@@ -47,9 +47,11 @@ class AssetService(
     transactionManager: PlatformTransactionManager
 ) : Assets {
     // New transaction template for recovery lookups after constraint violations
-    private val newTxTemplate = TransactionTemplate(transactionManager).apply {
-        propagationBehavior = org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW
-    }
+    private val newTxTemplate =
+        TransactionTemplate(transactionManager).apply {
+            propagationBehavior = org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW
+        }
+
     fun enrich(asset: Asset): Asset {
         val enricher = enrichmentFactory.getEnricher(asset.market)
         if (enricher.canEnrich(asset)) {

@@ -27,6 +27,13 @@ class Position(
     val moneyValues: MutableMap<In, MoneyValues> = EnumMap(In::class.java)
 
     /**
+     * Tracks quantity held at each broker.
+     * Key is the broker name, value is the quantity held.
+     * Only populated when transactions have broker information.
+     */
+    var held: MutableMap<String, java.math.BigDecimal> = mutableMapOf()
+
+    /**
      * View currencies that cost is tracked in.
      */
     enum class In {

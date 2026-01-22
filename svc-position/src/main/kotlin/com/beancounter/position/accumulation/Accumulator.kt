@@ -85,6 +85,29 @@ class Accumulator(
         if (shouldAddToCashFlows(trn.trnType)) {
             position.periodicCashFlows.add(trn)
         }
+
+        // Track broker holdings - only for trades that affect quantity per broker
+        // SPLIT is asset-level (not broker-specific)
+        // DIVI transactions should be generated per-broker when creating dividend transactions
+        trn.broker?.let { broker ->
+            val brokerKey = broker.name
+            val current = position.held[brokerKey] ?: java.math.BigDecimal.ZERO
+            val delta =
+                when (trn.trnType) {
+                    TrnType.BUY, TrnType.ADD -> trn.quantity
+                    TrnType.SELL, TrnType.REDUCE -> -trn.quantity
+                    else -> java.math.BigDecimal.ZERO
+                }
+            if (delta != java.math.BigDecimal.ZERO) {
+                val newQty = current + delta
+                if (newQty > java.math.BigDecimal.ZERO) {
+                    position.held[brokerKey] = newQty
+                } else {
+                    position.held.remove(brokerKey)
+                }
+            }
+        }
+
         // Note: We do NOT reset dates when sold out - they remain for display purposes.
         // Dates are only reset when re-entering a position (handled in Positions.getOrCreate)
 

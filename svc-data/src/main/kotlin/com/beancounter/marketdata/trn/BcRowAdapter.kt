@@ -91,6 +91,8 @@ class BcRowAdapter(
         val cashCurrency = row[Columns.CashCurrency.ordinal].trim()
         val status = getStatus(row)
 
+        val brokerId = getBrokerId(row)
+
         return TrnInput(
             callerRef =
                 CallerRef(
@@ -111,8 +113,18 @@ class BcRowAdapter(
             fees = fees,
             price = price,
             comments = row[Columns.Comments.ordinal],
-            status = status
+            status = status,
+            brokerId = brokerId
         )
+    }
+
+    private fun getBrokerId(row: List<String>): String? {
+        // Handle backwards compatibility: if broker column doesn't exist or is empty, return null
+        if (row.size <= Columns.Broker.ordinal) {
+            return null
+        }
+        val brokerValue = row[Columns.Broker.ordinal].trim()
+        return brokerValue.ifEmpty { null }
     }
 
     private fun getStatus(row: List<String>): TrnStatus {

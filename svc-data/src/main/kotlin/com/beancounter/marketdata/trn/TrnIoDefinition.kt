@@ -33,7 +33,8 @@ class TrnIoDefinition(
         TradeAmount,
         CashAmount,
         Comments,
-        Status
+        Status,
+        Broker
     }
 
     fun headers(): Array<String> =
@@ -66,6 +67,7 @@ class TrnIoDefinition(
             Pair(Columns.TradeAmount.ordinal, trn.tradeAmount.toString()),
             Pair(Columns.CashAmount.ordinal, trn.cashAmount.toString()),
             Pair(Columns.Comments.ordinal, trn.comments),
-            Pair(Columns.Status.ordinal, trn.status.name)
+            Pair(Columns.Status.ordinal, trn.status.name),
+            Pair(Columns.Broker.ordinal, trn.broker?.id)
         )
 }

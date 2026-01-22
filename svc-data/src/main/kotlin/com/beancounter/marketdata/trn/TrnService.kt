@@ -12,7 +12,9 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.broker.BrokerService
+import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -37,6 +39,8 @@ class TrnService(
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
     private val assetFinder: AssetFinder,
+    private val assetRepository: AssetRepository,
+    private val classificationService: ClassificationService,
     private val systemUserService: SystemUserService,
     private val fxRateService: FxRateService,
     private val brokerService: BrokerService
@@ -673,4 +677,225 @@ class TrnService(
         trnRepository.save(trn)
         return TrnResponse(arrayListOf(trn))
     }
+
+    /**
+     * Get monthly income data for the current user over a rolling period.
+     *
+     * @param months Number of months to include (default 12)
+     * @param endMonth End month (default current month)
+     * @param portfolioIds Optional list of portfolio IDs to filter by
+     * @param groupBy Grouping option: "assetClass", "sector", "currency", or "market"
+     * @return MonthlyIncomeResponse with aggregated income data
+     */
+    fun getMonthlyIncome(
+        months: Int = 12,
+        endMonth: YearMonth = YearMonth.now(),
+        portfolioIds: List<String> = emptyList(),
+        groupBy: String = "assetClass"
+    ): MonthlyIncomeResponse {
+        val startMonth = endMonth.minusMonths((months - 1).toLong())
+        val startDate = startMonth.atDay(1)
+        val endDate = endMonth.atEndOfMonth()
+
+        // Fetch transactions (without full asset hydration)
+        val transactions =
+            if (portfolioIds.isEmpty()) {
+                val user = systemUserService.getOrThrow()
+                trnRepository.findIncomeByOwnerAndDateRange(
+                    user,
+                    startDate,
+                    endDate,
+                    TrnStatus.SETTLED
+                )
+            } else {
+                trnRepository.findIncomeByPortfoliosAndDateRange(
+                    portfolioIds,
+                    startDate,
+                    endDate,
+                    TrnStatus.SETTLED
+                )
+            }
+
+        // Build asset metadata lookup efficiently
+        val assetMetaData = buildAssetMetaData(transactions.toList(), groupBy)
+
+        // Generate all months in range
+        val allMonths = mutableListOf<YearMonth>()
+        var current = startMonth
+        while (!current.isAfter(endMonth)) {
+            allMonths.add(current)
+            current = current.plusMonths(1)
+        }
+
+        // Aggregate by month
+        val monthlyTotals = mutableMapOf<YearMonth, BigDecimal>()
+        allMonths.forEach { monthlyTotals[it] = BigDecimal.ZERO }
+
+        // Generic aggregation structure
+        data class GroupAggregation(
+            val groupKey: String,
+            var totalIncome: BigDecimal = BigDecimal.ZERO,
+            val monthlyData: MutableList<MonthlyIncomeData>,
+            val assetIncomes: MutableMap<String, IncomeContributor> = mutableMapOf()
+        )
+        val groupData = mutableMapOf<String, GroupAggregation>()
+
+        for (trn in transactions) {
+            val trnMonth = YearMonth.from(trn.tradeDate)
+            val amount = trn.tradeAmount
+            val monthIndex = allMonths.indexOf(trnMonth)
+
+            // Update monthly total
+            monthlyTotals[trnMonth] = monthlyTotals.getOrDefault(trnMonth, BigDecimal.ZERO).add(amount)
+
+            val assetId = trn.asset.id
+            val meta = assetMetaData[assetId]
+
+            // Determine group key based on groupBy parameter using metadata
+            val groupKey =
+                when (groupBy) {
+                    "assetClass" -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
+                    "sector" -> meta?.sector?.ifBlank { "Unknown" } ?: "Unknown"
+                    "currency" -> trn.tradeCurrency.code
+                    "market" -> meta?.marketCode ?: "Unknown"
+                    else -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
+                }
+
+            // Update group data
+            val groupAgg =
+                groupData.getOrPut(groupKey) {
+                    GroupAggregation(
+                        groupKey = groupKey,
+                        monthlyData =
+                            allMonths
+                                .map {
+                                    MonthlyIncomeData(
+                                        it.toString(),
+                                        BigDecimal.ZERO
+                                    )
+                                }.toMutableList()
+                    )
+                }
+            groupAgg.totalIncome = groupAgg.totalIncome.add(amount)
+            if (monthIndex >= 0) {
+                val existingData = groupAgg.monthlyData[monthIndex]
+                groupAgg.monthlyData[monthIndex] =
+                    MonthlyIncomeData(existingData.yearMonth, existingData.income.add(amount))
+            }
+            // Track asset contribution within group using metadata
+            val assetContrib =
+                groupAgg.assetIncomes.getOrPut(assetId) {
+                    IncomeContributor(assetId, meta?.code ?: assetId, meta?.name, BigDecimal.ZERO)
+                }
+            assetContrib.totalIncome = assetContrib.totalIncome.add(amount)
+        }
+
+        val totalIncome = monthlyTotals.values.fold(BigDecimal.ZERO) { acc, v -> acc.add(v) }
+        val monthlyDataList = allMonths.map { MonthlyIncomeData(it.toString(), monthlyTotals[it] ?: BigDecimal.ZERO) }
+
+        // Convert aggregations to response format with top 10 contributors
+        val groupIncomeList =
+            groupData.values
+                .map { agg ->
+                    IncomeGroupData(
+                        groupKey = agg.groupKey,
+                        totalIncome = agg.totalIncome,
+                        monthlyData = agg.monthlyData,
+                        topContributors =
+                            agg.assetIncomes.values
+                                .sortedByDescending { it.totalIncome }
+                                .take(10)
+                    )
+                }.sortedByDescending { it.totalIncome }
+
+        return MonthlyIncomeResponse(
+            startMonth = startMonth.toString(),
+            endMonth = endMonth.toString(),
+            totalIncome = totalIncome,
+            groupBy = groupBy,
+            months = monthlyDataList,
+            groups = groupIncomeList
+        )
+    }
+
+    /**
+     * Build a lightweight asset metadata lookup for income reporting.
+     * Fetches only the fields needed for grouping without full asset hydration.
+     */
+    private fun buildAssetMetaData(
+        transactions: List<Trn>,
+        groupBy: String
+    ): Map<String, AssetMetaData> {
+        if (transactions.isEmpty()) return emptyMap()
+
+        // Collect distinct asset IDs
+        val assetIds = transactions.map { it.asset.id }.distinct()
+        log.trace("Building metadata for ${assetIds.size} distinct assets")
+
+        // Fetch basic asset info (category, marketCode, code, name)
+        val assets = assetRepository.findAllById(assetIds).associateBy { it.id }
+
+        // Fetch sector data only if grouping by sector
+        val sectorData =
+            if (groupBy == "sector") {
+                classificationService.getClassificationSummaries(assetIds)
+            } else {
+                emptyMap()
+            }
+
+        // Build metadata map
+        return assetIds.associateWith { assetId ->
+            val asset = assets[assetId]
+            val classification = sectorData[assetId]
+            AssetMetaData(
+                assetId = assetId,
+                code = asset?.code ?: assetId,
+                name = asset?.name,
+                category = asset?.category ?: "Unknown",
+                marketCode = asset?.marketCode ?: "Unknown",
+                sector = classification?.sector
+            )
+        }
+    }
 }
+
+/**
+ * Lightweight asset metadata for income reporting.
+ * Contains only the fields needed for grouping and display.
+ */
+data class AssetMetaData(
+    val assetId: String,
+    val code: String,
+    val name: String?,
+    val category: String,
+    val marketCode: String,
+    val sector: String?
+)
+
+data class MonthlyIncomeResponse(
+    val startMonth: String,
+    val endMonth: String,
+    val totalIncome: BigDecimal,
+    val groupBy: String,
+    val months: List<MonthlyIncomeData>,
+    val groups: List<IncomeGroupData>
+)
+
+data class MonthlyIncomeData(
+    val yearMonth: String,
+    val income: BigDecimal
+)
+
+data class IncomeContributor(
+    val assetId: String,
+    val assetCode: String,
+    val assetName: String?,
+    var totalIncome: BigDecimal
+)
+
+data class IncomeGroupData(
+    val groupKey: String,
+    val totalIncome: BigDecimal,
+    val monthlyData: List<MonthlyIncomeData>,
+    val topContributors: List<IncomeContributor>
+)

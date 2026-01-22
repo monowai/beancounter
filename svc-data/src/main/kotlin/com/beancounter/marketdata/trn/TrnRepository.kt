@@ -367,4 +367,44 @@ interface TrnRepository : CrudRepository<Trn, String> {
         brokerId: String,
         owner: SystemUser
     ): Collection<Trn>
+
+    /**
+     * Find income transactions (DIVI) for a user within a date range.
+     * Used for monthly income reports.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.portfolio.owner = ?1 " +
+            "and t.trnType = 'DIVI' " +
+            "and t.tradeDate >= ?2 " +
+            "and t.tradeDate <= ?3 " +
+            "and t.status = ?4 " +
+            "order by t.tradeDate desc"
+    )
+    fun findIncomeByOwnerAndDateRange(
+        owner: SystemUser,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        status: TrnStatus
+    ): Collection<Trn>
+
+    /**
+     * Find income transactions (DIVI) for specific portfolios within a date range.
+     * Used for monthly income reports scoped to specific portfolios.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.portfolio.id in ?1 " +
+            "and t.trnType = 'DIVI' " +
+            "and t.tradeDate >= ?2 " +
+            "and t.tradeDate <= ?3 " +
+            "and t.status = ?4 " +
+            "order by t.tradeDate desc"
+    )
+    fun findIncomeByPortfoliosAndDateRange(
+        portfolioIds: List<String>,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        status: TrnStatus
+    ): Collection<Trn>
 }

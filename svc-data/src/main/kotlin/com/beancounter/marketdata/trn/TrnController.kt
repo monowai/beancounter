@@ -771,6 +771,94 @@ class TrnController(
         return TrnResponse(trnService.getMonthlyInvestmentTransactions(month))
     }
 
+    @GetMapping(
+        value = ["/income/monthly"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get monthly income report",
+        description = """
+            Returns income (dividends) aggregated by month over a rolling period.
+            Can be grouped by asset or category, and optionally scoped to specific portfolios.
+
+            Use this to:
+            * View monthly income trends
+            * Analyze income by asset class, sector, currency, or market
+            * Track dividend income over time
+            * Click through to see top 10 contributors per group
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Monthly income report retrieved successfully",
+                content = [
+                    Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        examples = [
+                            ExampleObject(
+                                name = "Monthly Income",
+                                value = """
+                                {
+                                  "startMonth": "2024-01",
+                                  "endMonth": "2024-12",
+                                  "totalIncome": 5000.00,
+                                  "groupBy": "assetClass",
+                                  "months": [
+                                    {"yearMonth": "2024-01", "income": 400.00},
+                                    {"yearMonth": "2024-02", "income": 450.00}
+                                  ],
+                                  "groups": [
+                                    {
+                                      "groupKey": "Equity",
+                                      "totalIncome": 1200.00,
+                                      "monthlyData": [
+                                        {"yearMonth": "2024-01", "income": 100.00}
+                                      ],
+                                      "topContributors": [
+                                        {"assetId": "abc123", "assetCode": "AAPL", "assetName": "Apple Inc.", "totalIncome": 500.00},
+                                        {"assetId": "def456", "assetCode": "MSFT", "assetName": "Microsoft Corp", "totalIncome": 400.00}
+                                      ]
+                                    }
+                                  ]
+                                }
+                                """
+                            )
+                        ]
+                    )
+                ]
+            )
+        ]
+    )
+    fun getMonthlyIncome(
+        @Parameter(
+            description = "Number of months to include. Defaults to 12.",
+            example = "12"
+        ) @RequestParam(required = false, defaultValue = "12") months: Int,
+        @Parameter(
+            description = "End month in YYYY-MM format. Defaults to current month.",
+            example = "2024-12"
+        ) @RequestParam(required = false) endMonth: String?,
+        @Parameter(
+            description = "Comma-separated portfolio IDs to scope. Empty = all user's portfolios.",
+            example = "portfolio-1,portfolio-2"
+        ) @RequestParam(required = false) portfolioIds: String?,
+        @Parameter(
+            description = "Grouping option: 'assetClass', 'sector', 'currency', or 'market'. Defaults to 'assetClass'.",
+            example = "assetClass"
+        ) @RequestParam(required = false, defaultValue = "assetClass") groupBy: String
+    ): MonthlyIncomeResponse {
+        val end =
+            if (endMonth != null) {
+                YearMonth.parse(endMonth)
+            } else {
+                YearMonth.now()
+            }
+        val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+        return trnService.getMonthlyIncome(months, end, portfolioIdList, groupBy)
+    }
+
     @PostMapping(
         value = ["/portfolio/{portfolioId}/settle"],
         produces = [MediaType.APPLICATION_JSON_VALUE],

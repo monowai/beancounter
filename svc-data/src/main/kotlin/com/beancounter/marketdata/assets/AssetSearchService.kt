@@ -3,8 +3,14 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.model.Asset
+import com.beancounter.marketdata.assets.figi.FigiConfig
+import com.beancounter.marketdata.assets.figi.FigiFilterRequest
+import com.beancounter.marketdata.assets.figi.FigiGateway
+import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
+import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
+import com.beancounter.marketdata.providers.marketstack.MarketStackGateway
 import com.beancounter.marketdata.registration.SystemUserService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -12,19 +18,41 @@ import org.springframework.stereotype.Service
 
 /**
  * Service for searching assets by keyword.
- * Supports searching private/custom assets and public assets via AlphaVantage.
+ * Supports searching private/custom assets and public assets via AlphaVantage or MarketStack.
  */
 @Service
 class AssetSearchService(
     private val assetRepository: AssetRepository,
     private val alphaProxy: AlphaProxy,
     private val alphaConfig: AlphaConfig,
+    private val marketStackGateway: MarketStackGateway,
+    private val marketStackConfig: MarketStackConfig,
+    private val figiGateway: FigiGateway,
+    private val figiConfig: FigiConfig,
+    private val marketService: MarketService,
     private val systemUserService: SystemUserService
 ) {
     private val log = LoggerFactory.getLogger(AssetSearchService::class.java)
 
-    @Value("\${beancounter.market.providers.alpha.key:demo}")
-    private val apiKey: String = "demo"
+    @Value($$"${beancounter.market.providers.alpha.key:demo}")
+    private val alphaApiKey: String = "demo"
+
+    // Markets that use MarketStack for search (configured via mstack.markets)
+    private val marketStackMarkets: Set<String> by lazy {
+        marketStackConfig.markets
+            ?.split(",")
+            ?.map { it.trim().uppercase() }
+            ?.toSet() ?: emptySet()
+    }
+
+    // MarketStack V2 exchange MIC codes for the tickers search endpoint
+    // The mstack alias stores the V2 price suffix (e.g., "SI"), but the
+    // exchange tickers endpoint needs the MIC code (e.g., "XSES")
+    private val marketStackMicCodes =
+        mapOf(
+            "SGX" to "XSES",
+            "NZX" to "XNZE"
+        )
 
     /**
      * Search for assets by keyword.
@@ -84,7 +112,121 @@ class AssetSearchService(
         return AssetSearchResponse(results)
     }
 
+    // Markets that use FIGI for search (configured via figi.search.markets)
+    private val figiSearchMarkets: Set<String> by lazy {
+        figiConfig.getSearchMarkets()
+    }
+
     private fun searchPublicAssets(
+        keyword: String,
+        market: String?
+    ): AssetSearchResponse {
+        // Use FIGI for markets configured in figi.search.markets
+        if (market != null && figiSearchMarkets.contains(market.uppercase())) {
+            return searchFigiAssets(keyword, market)
+        }
+
+        // Use MarketStack for markets configured in mstack.markets (but not FIGI)
+        if (market != null && marketStackMarkets.contains(market.uppercase())) {
+            return searchMarketStackAssets(keyword, market)
+        }
+
+        // Default to AlphaVantage for other markets
+        return searchAlphaVantageAssets(keyword, market)
+    }
+
+    private fun searchFigiAssets(
+        keyword: String,
+        market: String
+    ): AssetSearchResponse {
+        return try {
+            val resolvedMarket = marketService.getMarket(market)
+            val exchCode =
+                FigiConfig.getExchCode(market.uppercase())
+                    ?: throw IllegalStateException("No FIGI exchange code for market $market")
+
+            val response =
+                figiGateway.filter(
+                    FigiFilterRequest(
+                        query = keyword,
+                        exchCode = exchCode
+                    ),
+                    figiConfig.apiKey
+                )
+
+            val results =
+                response.data.map { result ->
+                    AssetSearchResult(
+                        symbol = result.ticker ?: keyword,
+                        name = result.name ?: "",
+                        type = result.securityType2 ?: "Equity",
+                        region = market,
+                        currency = resolvedMarket.currency?.code,
+                        market = market
+                    )
+                }
+
+            AssetSearchResponse(results)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.error("Error searching FIGI for assets: ${e.message}", e)
+            // Fall back to MarketStack if available
+            if (marketStackMarkets.contains(market.uppercase())) {
+                return searchMarketStackAssets(keyword, market)
+            }
+            AssetSearchResponse(emptyList())
+        }
+    }
+
+    private fun searchMarketStackAssets(
+        keyword: String,
+        market: String
+    ): AssetSearchResponse {
+        return try {
+            val resolvedMarket = marketService.getMarket(market)
+            val exchangeMic =
+                marketStackMicCodes[market.uppercase()]
+                    ?: throw IllegalStateException("No MarketStack MIC code for market $market")
+
+            val response =
+                marketStackGateway.searchTickers(
+                    exchangeMic = exchangeMic,
+                    searchTerm = keyword,
+                    apiKey = marketStackConfig.apiKey
+                )
+
+            if (response.error != null) {
+                log.warn("MarketStack search error: ${response.error}")
+                return AssetSearchResponse(emptyList())
+            }
+
+            val results =
+                response.data?.tickers?.map { ticker ->
+                    // Extract the asset code from symbol (e.g., "D05.SI" -> "D05")
+                    val assetCode = ticker.symbol.substringBefore(".")
+                    AssetSearchResult(
+                        symbol = assetCode,
+                        name = ticker.name,
+                        type = "Equity",
+                        region = market,
+                        currency = resolvedMarket.currency?.code,
+                        market = market
+                    )
+                } ?: emptyList()
+
+            AssetSearchResponse(results)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.error("Error searching MarketStack for assets: ${e.message}", e)
+            AssetSearchResponse(emptyList())
+        }
+    }
+
+    private fun searchAlphaVantageAssets(
         keyword: String,
         market: String?
     ): AssetSearchResponse =
@@ -96,7 +238,7 @@ class AssetSearchService(
                     alphaConfig.translateSymbol(keyword)
                 }
 
-            val result = alphaProxy.search(searchSymbol, apiKey)
+            val result = alphaProxy.search(searchSymbol, alphaApiKey)
             val response =
                 alphaConfig.getObjectMapper().readValue(
                     result,
@@ -112,7 +254,7 @@ class AssetSearchService(
             e: Exception
         ) {
             // Return empty results on any search failure
-            log.error("Error searching for assets: ${e.message}", e)
+            log.error("Error searching AlphaVantage for assets: ${e.message}", e)
             AssetSearchResponse(emptyList())
         }
 

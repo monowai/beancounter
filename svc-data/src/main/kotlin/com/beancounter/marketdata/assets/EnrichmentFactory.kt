@@ -23,12 +23,14 @@ class EnrichmentFactory(
     fun setEnrichers(
         figiEnricher: AssetEnricher,
         alphaEnricher: AssetEnricher,
-        privateMarketEnricher: PrivateMarketEnricher
+        privateMarketEnricher: PrivateMarketEnricher,
+        marketStackEnricher: AssetEnricher
     ) {
         register(defaultEnricher)
         register(alphaEnricher)
         register(figiEnricher)
         register(privateMarketEnricher)
+        register(marketStackEnricher)
         log.info("Registered ${enrichers.keys.size} Asset Enrichers.  Default: $defEnricher")
     }
 

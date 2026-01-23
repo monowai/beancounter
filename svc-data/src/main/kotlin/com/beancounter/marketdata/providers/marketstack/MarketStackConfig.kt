@@ -58,6 +58,10 @@ class MarketStackConfig(
         )
 
     override fun getPriceCode(asset: Asset): String {
+        // Use priceSymbol if set (e.g., "D05.SI" for FIGI ticker "DBS")
+        if (!asset.priceSymbol.isNullOrEmpty()) {
+            return asset.priceSymbol!!
+        }
         val marketCode = translateMarketCode(asset.market)
         return if (!marketCode.isNullOrEmpty()) {
             asset.code + "." + marketCode

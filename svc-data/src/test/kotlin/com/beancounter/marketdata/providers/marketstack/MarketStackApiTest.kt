@@ -3,13 +3,14 @@ package com.beancounter.marketdata.providers.marketstack
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
-import com.beancounter.marketdata.Constants.Companion.AMP
-import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.NZX
+import com.beancounter.marketdata.Constants.Companion.SGX
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.providers.marketstack.MarketStackResponseTest.Companion.CONTRACTS
 import com.beancounter.marketdata.providers.marketstack.MarketStackService.Companion.ID
@@ -201,13 +202,14 @@ internal class MarketStackApiTest {
     }
 
     @Test
-    fun `asx market is correctly resolved and appended so Asset Price returns`() {
-        val inputs = listOf(PriceAsset(AMP))
+    fun `nzx market is correctly resolved and appended so Asset Price returns`() {
+        val fph = getTestAsset(NZX, "FPH")
+        val inputs = listOf(PriceAsset(fph))
         mockResponse(
             inputs,
             priceDate,
             true,
-            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file
+            ClassPathResource("$CONTRACTS/${fph.code}-${NZX.code}.json").file
         )
         val prices =
             marketStackService.getMarketData(
@@ -221,7 +223,33 @@ internal class MarketStackApiTest {
             prices.first()
         ).hasFieldOrPropertyWithValue(
             closeField,
-            BigDecimal("1.335")
+            BigDecimal("34.5")
+        )
+    }
+
+    @Test
+    fun `sgx market is correctly resolved and appended so Asset Price returns`() {
+        val d05 = getTestAsset(SGX, "D05")
+        val inputs = listOf(PriceAsset(d05))
+        mockResponse(
+            inputs,
+            priceDate,
+            true,
+            ClassPathResource("$CONTRACTS/${d05.code}-${SGX.code}.json").file
+        )
+        val prices =
+            marketStackService.getMarketData(
+                PriceRequest(
+                    priceDate,
+                    inputs
+                )
+            )
+        assertThat(prices).hasSize(inputs.size)
+        assertThat(
+            prices.first()
+        ).hasFieldOrPropertyWithValue(
+            closeField,
+            BigDecimal("43.27")
         )
     }
 
@@ -259,16 +287,12 @@ internal class MarketStackApiTest {
                         ignoreCase = true
                     )
                 ) {
-                    // Horrible hack to support MarketStack contract mocking ASX/AX
+                    // Map market codes to MarketStack V2 suffixes
                     suffix = "." +
-                        if (market.code.equals(
-                                ASX.code,
-                                ignoreCase = true
-                            )
-                        ) {
-                            "XASX"
-                        } else {
-                            market.code
+                        when {
+                            market.code.equals(NZX.code, ignoreCase = true) -> "NZ"
+                            market.code.equals(SGX.code, ignoreCase = true) -> "SI"
+                            else -> market.code
                         }
                 }
                 if (assetArg != null) {
@@ -285,7 +309,7 @@ internal class MarketStackApiTest {
                 WireMock
                     .get(
                         WireMock.urlEqualTo(
-                            "/v1/eod/$asAt?symbols=$assetArg&access_key=demo"
+                            "/v2/eod/$asAt?symbols=$assetArg&access_key=demo"
                         )
                     ).willReturn(
                         WireMock

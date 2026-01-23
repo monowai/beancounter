@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.marketstack
 
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
+import com.beancounter.marketdata.providers.marketstack.model.MarketStackTickerResponse
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -21,8 +22,33 @@ class MarketStackGateway(
     ): MarketStackResponse =
         restClient
             .get()
-            .uri("/v1/eod/{date}?symbols={assets}&access_key={apiKey}", date, assetId, apiKey)
+            .uri("/v2/eod/{date}?symbols={assets}&access_key={apiKey}", date, assetId, apiKey)
             .retrieve()
             .body<MarketStackResponse>()
             ?: MarketStackResponse(emptyList(), null)
+
+    /**
+     * Search for tickers on a specific exchange.
+     * @param exchangeMic The MIC code of the exchange (e.g., "XSES" for SGX)
+     * @param searchTerm The search keyword
+     * @param apiKey MarketStack API key
+     * @param limit Maximum number of results
+     */
+    fun searchTickers(
+        exchangeMic: String,
+        searchTerm: String,
+        apiKey: String = "demo",
+        limit: Int = 20
+    ): MarketStackTickerResponse =
+        restClient
+            .get()
+            .uri(
+                "/v2/exchanges/{mic}/tickers?search={search}&access_key={apiKey}&limit={limit}",
+                exchangeMic,
+                searchTerm,
+                apiKey,
+                limit
+            ).retrieve()
+            .body<MarketStackTickerResponse>()
+            ?: MarketStackTickerResponse()
 }

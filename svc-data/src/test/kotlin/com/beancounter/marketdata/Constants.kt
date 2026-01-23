@@ -72,6 +72,11 @@ class Constants {
                 "NZX",
                 NZD.code
             )
+        val SGX =
+            Market(
+                "SGX",
+                SGD.code
+            )
         val systemUser =
             SystemUser(
                 "auth0|user",

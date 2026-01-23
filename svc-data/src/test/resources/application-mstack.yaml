@@ -6,7 +6,7 @@ beancounter:
         markets: NZX
       mstack:
         url: http://localhost:${wiremock.server.port}
-        markets: NASDAQ,AMEX,NYSE,ASX
+        markets: NASDAQ,AMEX,NYSE,NZX,SGX
       #      FX:
       #        url: http://localhost:7777
       mock:

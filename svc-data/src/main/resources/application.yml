@@ -359,6 +359,7 @@ beancounter:
         name: "New Zealand Exchange"
         timezoneId: "Pacific/Auckland"
         currencyId: "NZD"
+        enricher: "MSTACK"
         aliases:
           mstack: "NZ"
           alpha: "NZ"
@@ -368,7 +369,9 @@ beancounter:
         name: "Singapore Exchange"
         currencyId: "SGD"
         timezoneId: "Asia/Singapore"
+        enricher: "MSTACK"
         aliases:
+          mstack: "SI"
           FIGI: "SG"
 
       - code: "LON"
@@ -395,7 +398,7 @@ beancounter:
       mstack:
         url: https://api.marketstack.com
         batchSize: 10
-        markets: "ASX"
+        markets: "NZX,SGX"
 
       private:
         batchSize: 1
@@ -404,6 +407,13 @@ beancounter:
       morningstar:
         batchSize: 1
         markets: "MUTF"
+
+      # OpenFIGI - free, unlimited, Bloomberg-based
+      figi:
+        enabled: true
+        # Markets that use FIGI for asset search (returns user-friendly tickers)
+        search:
+          markets: "NZX,SGX"
 
       # Frankfurter FX rates - free, unlimited, ECB-based
       frankfurter:

@@ -1,0 +1,27 @@
+{
+  "pagination": {
+    "limit": 100,
+    "offset": 0,
+    "count": 1,
+    "total": 1
+  },
+  "data": [
+    {
+      "open": 43.05,
+      "high": 43.45,
+      "low": 42.90,
+      "close": 43.27,
+      "volume": 3456789.0,
+      "adj_high": null,
+      "adj_low": null,
+      "adj_close": 43.27,
+      "adj_open": null,
+      "adj_volume": null,
+      "split_factor": 1.0,
+      "dividend": 0.0,
+      "symbol": "D05.SI",
+      "exchange": "XSES",
+      "date": "2019-11-15T00:00:00+0000"
+    }
+  ]
+}

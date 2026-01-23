@@ -1,0 +1,27 @@
+{
+  "pagination": {
+    "limit": 100,
+    "offset": 0,
+    "count": 1,
+    "total": 1
+  },
+  "data": [
+    {
+      "open": 34.20,
+      "high": 34.75,
+      "low": 34.10,
+      "close": 34.50,
+      "volume": 1254321.0,
+      "adj_high": null,
+      "adj_low": null,
+      "adj_close": 34.50,
+      "adj_open": null,
+      "adj_volume": null,
+      "split_factor": 1.0,
+      "dividend": 0.0,
+      "symbol": "FPH.NZ",
+      "exchange": "XNZE",
+      "date": "2019-11-15T00:00:00+0000"
+    }
+  ]
+}

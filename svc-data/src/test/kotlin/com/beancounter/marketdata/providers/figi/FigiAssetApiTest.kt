@@ -315,7 +315,7 @@ class FigiAssetApiTest {
                 )
             stubFor(
                 WireMock
-                    .post(WireMock.urlEqualTo("/v2/mapping"))
+                    .post(WireMock.urlEqualTo("/v3/mapping"))
                     .withRequestBody(
                         WireMock.equalToJson(objectMapper.writeValueAsString(searchCollection))
                     ).withHeader(

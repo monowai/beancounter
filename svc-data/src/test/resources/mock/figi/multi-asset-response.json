@@ -7,11 +7,9 @@
         "ticker": "IBM",
         "exchCode": "US",
         "compositeFIGI": "BBG000BLNNH6",
-        "uniqueID": "EQ0010080100001000",
         "securityType": "Common Stock",
         "marketSector": "Equity",
         "shareClassFIGI": "BBG001S5S399",
-        "uniqueIDFutOpt": null,
         "securityType2": "Common Stock",
         "securityDescription": "IBM"
       }
@@ -25,11 +23,9 @@
         "ticker": "OHI",
         "exchCode": "US",
         "compositeFIGI": "BBG000BGBTC2",
-        "uniqueID": "EQ0011522300001000",
         "securityType": "REIT",
         "marketSector": "Equity",
         "shareClassFIGI": "BBG001S736L1",
-        "uniqueIDFutOpt": null,
         "securityType2": "REIT",
         "securityDescription": "OHI"
       }

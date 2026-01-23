@@ -15,7 +15,7 @@ class FigiGateway(
     private val restClient: RestClient
 ) {
     /**
-     * Enrichment lookup - exact ticker match using /v2/mapping.
+     * Enrichment lookup - exact ticker match using /v3/mapping.
      */
     fun search(
         searchBody: Collection<FigiSearch>,
@@ -23,7 +23,7 @@ class FigiGateway(
     ): Collection<FigiResponse> =
         restClient
             .post()
-            .uri("/v2/mapping")
+            .uri("/v3/mapping")
             .header("X-OPENFIGI-APIKEY", apiKey)
             .contentType(MediaType.APPLICATION_JSON)
             .body(searchBody)

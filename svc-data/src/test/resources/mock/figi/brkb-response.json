@@ -7,11 +7,9 @@
         "ticker": "BRK/B",
         "exchCode": "US",
         "compositeFIGI": "BBG000DWG505",
-        "uniqueID": "EQ0010019300003000",
         "securityType": "Common Stock",
         "marketSector": "Equity",
         "shareClassFIGI": "BBG001S90346",
-        "uniqueIDFutOpt": null,
         "securityType2": "Common Stock",
         "securityDescription": "BRK/B"
       }

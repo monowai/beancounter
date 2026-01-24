@@ -161,7 +161,7 @@ class AssetSearchService(
                         name = result.name ?: "",
                         type = result.securityType2 ?: "Equity",
                         region = market,
-                        currency = resolvedMarket.currency?.code,
+                        currency = resolvedMarket.currency.code,
                         market = market
                     )
                 }
@@ -211,7 +211,7 @@ class AssetSearchService(
                         name = ticker.name,
                         type = "Equity",
                         region = market,
-                        currency = resolvedMarket.currency?.code,
+                        currency = resolvedMarket.currency.code,
                         market = market
                     )
                 } ?: emptyList()
@@ -285,7 +285,7 @@ class AssetSearchService(
             name = asset.name ?: displayCode,
             type = asset.category,
             region = asset.marketCode,
-            currency = asset.priceSymbol ?: asset.market.currency?.code,
+            currency = asset.priceSymbol ?: asset.market.currency.code,
             market = asset.marketCode,
             assetId = asset.id
         )

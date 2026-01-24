@@ -33,6 +33,8 @@ data class PrivateAssetConfigRequest(
     val payoutAge: Int? = null,
     val monthlyPayoutAmount: BigDecimal? = null,
     val lumpSum: Boolean? = null,
+    // Regular contribution amount (e.g., pension contributions, insurance premiums)
+    val monthlyContribution: BigDecimal? = null,
     val isPension: Boolean? = null
 )
 

@@ -54,6 +54,13 @@ class PrivateAssetConfigService(
     ): PrivateAssetConfigResponse {
         verifyAssetOwnership(assetId)
 
+        log.info(
+            "Saving config for asset: $assetId - " +
+                "request.isPension=${request.isPension}, " +
+                "request.payoutAge=${request.payoutAge}, " +
+                "request.lumpSum=${request.lumpSum}"
+        )
+
         val existing = configRepository.findById(assetId).orElse(null)
         val config =
             existing?.copy(
@@ -81,6 +88,7 @@ class PrivateAssetConfigService(
                 payoutAge = request.payoutAge ?: existing.payoutAge,
                 monthlyPayoutAmount = request.monthlyPayoutAmount ?: existing.monthlyPayoutAmount,
                 lumpSum = request.lumpSum ?: existing.lumpSum,
+                monthlyContribution = request.monthlyContribution ?: existing.monthlyContribution,
                 isPension = request.isPension ?: existing.isPension,
                 updatedDate = LocalDate.now()
             )
@@ -111,6 +119,7 @@ class PrivateAssetConfigService(
                     payoutAge = request.payoutAge,
                     monthlyPayoutAmount = request.monthlyPayoutAmount,
                     lumpSum = request.lumpSum ?: false,
+                    monthlyContribution = request.monthlyContribution,
                     isPension = request.isPension ?: false,
                     createdDate = LocalDate.now(),
                     updatedDate = LocalDate.now()
@@ -120,7 +129,10 @@ class PrivateAssetConfigService(
         log.info(
             "Saved config for asset: $assetId, " +
                 "rental: ${saved.monthlyRentalIncome} ${saved.rentalCurrency}, " +
-                "mgmtFee: ${saved.monthlyManagementFee}"
+                "mgmtFee: ${saved.monthlyManagementFee}, " +
+                "isPension: ${saved.isPension}, " +
+                "payoutAge: ${saved.payoutAge}, " +
+                "lumpSum: ${saved.lumpSum}"
         )
         return PrivateAssetConfigResponse(saved)
     }

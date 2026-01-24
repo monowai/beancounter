@@ -74,6 +74,9 @@ data class PrivateAssetConfig(
     val monthlyPayoutAmount: BigDecimal? = null,
     @Column(name = "lump_sum")
     val lumpSum: Boolean = false,
+    // Regular contribution amount (e.g., pension contributions, insurance premiums)
+    @Column(name = "monthly_contribution", precision = 19, scale = 4)
+    val monthlyContribution: BigDecimal? = null,
     @Column(name = "is_pension")
     val isPension: Boolean = false,
     // Timestamps

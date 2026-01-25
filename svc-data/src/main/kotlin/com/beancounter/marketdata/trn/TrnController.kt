@@ -971,6 +971,47 @@ class TrnController(
     ): BrokerHoldingsResponse = trnService.getBrokerHoldings(brokerId)
 
     @GetMapping(
+        value = ["/portfolio/{portfolioId}/model/{modelId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get transactions by model for a portfolio",
+        description = """
+            Retrieves all transactions for a portfolio that belong to a specific rebalance model.
+
+            Use this to:
+            * Track positions attributable to a specific investment model
+            * Calculate model-level holdings for rebalancing
+            * View transaction history for a model
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Model transactions retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Portfolio not found"
+            )
+        ]
+    )
+    fun findByModel(
+        @Parameter(
+            description = "Portfolio identifier",
+            example = "portfolio-123"
+        ) @PathVariable("portfolioId") portfolioId: String,
+        @Parameter(
+            description = "Model identifier",
+            example = "model-123"
+        ) @PathVariable("modelId") modelId: String
+    ): TrnResponse =
+        TrnResponse(
+            trnService.findByPortfolioAndModel(portfolioId, modelId)
+        )
+
+    @GetMapping(
         value = ["/broker/{brokerId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )

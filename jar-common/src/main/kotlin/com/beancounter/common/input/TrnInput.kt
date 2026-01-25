@@ -54,5 +54,6 @@ data class TrnInput(
     val status: TrnStatus = TrnStatus.PROPOSED,
     var comments: String? = null,
     val cashAmount: BigDecimal = BigDecimal.ZERO,
-    val brokerId: String? = null
+    val brokerId: String? = null,
+    val modelId: String? = null
 )

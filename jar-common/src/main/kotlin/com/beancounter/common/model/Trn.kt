@@ -101,7 +101,9 @@ data class Trn(
     var broker: Broker? = null,
     var version: String = VERSION,
     @Enumerated(EnumType.STRING)
-    var status: TrnStatus = TrnStatus.SETTLED
+    var status: TrnStatus = TrnStatus.SETTLED,
+    @Column(name = "model_id", length = 36)
+    var modelId: String? = null
 ) {
     companion object {
         const val VERSION: String = "4"

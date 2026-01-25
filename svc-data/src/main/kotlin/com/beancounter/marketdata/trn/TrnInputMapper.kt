@@ -140,7 +140,8 @@ class TrnInputMapper(
             tax = trnInput.tax,
             comments = trnInput.comments ?: existing?.comments,
             broker = broker,
-            status = trnInput.status
+            status = trnInput.status,
+            modelId = trnInput.modelId ?: existing?.modelId
         )
     }
 

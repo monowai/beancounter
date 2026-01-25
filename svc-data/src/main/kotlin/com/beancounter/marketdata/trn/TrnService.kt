@@ -559,6 +559,54 @@ class TrnService(
         return total
     }
 
+    /**
+     * Find all transactions for a portfolio that belong to a specific rebalance model.
+     * Used for model-level position tracking.
+     *
+     * @param portfolioId Portfolio ID
+     * @param modelId Model ID to filter by
+     * @return Transactions for the specified model
+     */
+    fun findByPortfolioAndModel(
+        portfolioId: String,
+        modelId: String
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        val results =
+            trnRepository.findByPortfolioIdAndModelId(
+                portfolio.id,
+                modelId,
+                TrnStatus.SETTLED
+            )
+        log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, model: $modelId")
+        return postProcess(results.toList())
+    }
+
+    /**
+     * Find all transactions for multiple portfolios that belong to a specific rebalance model.
+     * Used for aggregated model-level position tracking.
+     *
+     * @param portfolioIds List of Portfolio IDs
+     * @param modelId Model ID to filter by
+     * @return Transactions for the specified model across all portfolios
+     */
+    fun findByPortfoliosAndModel(
+        portfolioIds: List<String>,
+        modelId: String
+    ): Collection<Trn> {
+        // Verify all portfolios exist and user has access
+        portfolioIds.forEach { portfolioService.find(it) }
+
+        val results =
+            trnRepository.findByPortfolioIdsAndModelId(
+                portfolioIds,
+                modelId,
+                TrnStatus.SETTLED
+            )
+        log.trace("trns: ${results.size}, portfolios: ${portfolioIds.size}, model: $modelId")
+        return postProcess(results.toList())
+    }
+
     fun purge(portfolioId: String): Long {
         val portfolio = portfolioService.find(portfolioId)
         return purge(portfolio)

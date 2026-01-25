@@ -407,4 +407,38 @@ interface TrnRepository : CrudRepository<Trn, String> {
         endDate: LocalDate,
         status: TrnStatus
     ): Collection<Trn>
+
+    /**
+     * Find all transactions for a portfolio that belong to a specific rebalance model.
+     * Used for model-level position tracking to show only quantities attributable to a model.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.portfolio.id = ?1 " +
+            "and t.modelId = ?2 " +
+            "and t.status = ?3 " +
+            "order by t.tradeDate asc"
+    )
+    fun findByPortfolioIdAndModelId(
+        portfolioId: String,
+        modelId: String,
+        status: TrnStatus
+    ): Collection<Trn>
+
+    /**
+     * Find all transactions for multiple portfolios that belong to a specific rebalance model.
+     * Used for aggregated model-level position tracking across portfolios.
+     */
+    @Query(
+        "select t from Trn t " +
+            "where t.portfolio.id in ?1 " +
+            "and t.modelId = ?2 " +
+            "and t.status = ?3 " +
+            "order by t.tradeDate asc"
+    )
+    fun findByPortfolioIdsAndModelId(
+        portfolioIds: List<String>,
+        modelId: String,
+        status: TrnStatus
+    ): Collection<Trn>
 }

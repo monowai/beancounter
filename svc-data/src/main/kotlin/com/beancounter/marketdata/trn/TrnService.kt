@@ -560,6 +560,112 @@ class TrnService(
     }
 
     /**
+     * Get transaction summary for a rolling N-week window.
+     * Returns total purchases, total sales, and net investment with FX conversion.
+     *
+     * @param weeks Number of weeks to include in the summary
+     * @param targetCurrency Currency code to convert amounts to
+     * @return TransactionSummary with purchases, sales, net investment, and period dates
+     */
+    fun getTransactionSummary(
+        weeks: Int,
+        targetCurrency: String
+    ): TransactionSummary {
+        val endDate = LocalDate.now()
+        val startDate = endDate.minusWeeks(weeks.toLong())
+
+        val user = systemUserService.getOrThrow()
+        val transactions =
+            trnRepository.findInvestmentsByOwnerAndDateRange(
+                user,
+                startDate,
+                endDate,
+                TrnStatus.SETTLED
+            )
+
+        if (transactions.isEmpty()) {
+            return TransactionSummary(
+                totalPurchases = BigDecimal.ZERO,
+                totalSales = BigDecimal.ZERO,
+                netInvestment = BigDecimal.ZERO,
+                periodStart = startDate,
+                periodEnd = endDate,
+                currency = targetCurrency
+            )
+        }
+
+        // Collect unique currencies needing conversion
+        val currenciesNeeded =
+            transactions
+                .map { it.tradeCurrency.code }
+                .filter { it != targetCurrency }
+                .distinct()
+
+        // Get FX rates if needed (key is "FROM:TO" format)
+        val fxRates: Map<String, BigDecimal> =
+            if (currenciesNeeded.isNotEmpty()) {
+                val fxRequest = FxRequest(rateDate = "today")
+                currenciesNeeded.forEach { fxRequest.add(IsoCurrencyPair(it, targetCurrency)) }
+                val fxResponse = fxRateService.getRates(fxRequest, "")
+                fxResponse.data.rates.entries.associate { (pair, fxRate) ->
+                    "${pair.from}:${pair.to}" to fxRate.rate
+                }
+            } else {
+                emptyMap()
+            }
+
+        // Sum purchases and sales separately with conversion
+        var totalPurchases = BigDecimal.ZERO
+        var totalSales = BigDecimal.ZERO
+
+        for (trn in transactions) {
+            val amount = trn.tradeAmount
+            val fromCurrency = trn.tradeCurrency.code
+
+            val convertedAmount =
+                if (fromCurrency == targetCurrency) {
+                    amount
+                } else {
+                    val rateKey = "$fromCurrency:$targetCurrency"
+                    val rate = fxRates[rateKey] ?: BigDecimal.ONE
+                    amount.multiply(rate)
+                }
+
+            when (trn.trnType) {
+                TrnType.BUY -> {
+                    totalPurchases = totalPurchases.add(convertedAmount)
+                }
+                TrnType.SELL -> {
+                    totalSales = totalSales.add(convertedAmount)
+                }
+                else -> { // ignore other types
+                }
+            }
+        }
+
+        val netInvestment = totalPurchases.subtract(totalSales)
+
+        log.trace(
+            "Transaction summary for {} weeks in {}: purchases={}, sales={}, net={} ({} trns)",
+            weeks,
+            targetCurrency,
+            totalPurchases,
+            totalSales,
+            netInvestment,
+            transactions.size
+        )
+
+        return TransactionSummary(
+            totalPurchases = totalPurchases,
+            totalSales = totalSales,
+            netInvestment = netInvestment,
+            periodStart = startDate,
+            periodEnd = endDate,
+            currency = targetCurrency
+        )
+    }
+
+    /**
      * Find all transactions for a portfolio that belong to a specific rebalance model.
      * Used for model-level position tracking.
      *
@@ -579,31 +685,6 @@ class TrnService(
                 TrnStatus.SETTLED
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, model: $modelId")
-        return postProcess(results.toList())
-    }
-
-    /**
-     * Find all transactions for multiple portfolios that belong to a specific rebalance model.
-     * Used for aggregated model-level position tracking.
-     *
-     * @param portfolioIds List of Portfolio IDs
-     * @param modelId Model ID to filter by
-     * @return Transactions for the specified model across all portfolios
-     */
-    fun findByPortfoliosAndModel(
-        portfolioIds: List<String>,
-        modelId: String
-    ): Collection<Trn> {
-        // Verify all portfolios exist and user has access
-        portfolioIds.forEach { portfolioService.find(it) }
-
-        val results =
-            trnRepository.findByPortfolioIdsAndModelId(
-                portfolioIds,
-                modelId,
-                TrnStatus.SETTLED
-            )
-        log.trace("trns: ${results.size}, portfolios: ${portfolioIds.size}, model: $modelId")
         return postProcess(results.toList())
     }
 
@@ -786,6 +867,7 @@ class TrnService(
             val monthlyData: MutableList<MonthlyIncomeData>,
             val assetIncomes: MutableMap<String, IncomeContributor> = mutableMapOf()
         )
+
         val groupData = mutableMapOf<String, GroupAggregation>()
 
         for (trn in transactions) {

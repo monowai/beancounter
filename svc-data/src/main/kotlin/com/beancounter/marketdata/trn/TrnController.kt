@@ -656,6 +656,66 @@ class TrnController(
     ): TrnResponse = TrnResponse(trnService.findSettledForUser(tradeDate))
 
     @GetMapping(
+        value = ["/summary"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get transaction summary for rolling window",
+        description = """
+            Returns total purchases, total sales, and net investment for a rolling N-week window.
+            All amounts are converted to the specified target currency.
+
+            Use this to:
+            * Track investment activity against monthly targets
+            * Monitor actual vs planned investment
+            * Display investment metrics on independence dashboards
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Transaction summary retrieved successfully",
+                content = [
+                    Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        examples = [
+                            ExampleObject(
+                                name = "Transaction Summary",
+                                value = """
+                                {
+                                  "data": {
+                                    "totalPurchases": 5000.00,
+                                    "totalSales": 1500.00,
+                                    "netInvestment": 3500.00,
+                                    "periodStart": "2024-12-28",
+                                    "periodEnd": "2024-01-25",
+                                    "currency": "NZD"
+                                  }
+                                }
+                                """
+                            )
+                        ]
+                    )
+                ]
+            )
+        ]
+    )
+    fun getTransactionSummary(
+        @Parameter(
+            description = "Number of weeks to include in the summary. Defaults to 4.",
+            example = "4"
+        ) @RequestParam(required = false, defaultValue = "4") weeks: Int,
+        @Parameter(
+            description = "Target currency code for FX conversion. Required.",
+            example = "NZD"
+        ) @RequestParam(required = true) currency: String
+    ): TransactionSummaryResponse =
+        TransactionSummaryResponse(
+            trnService.getTransactionSummary(weeks, currency)
+        )
+
+    @GetMapping(
         value = ["/investments/monthly"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
@@ -1096,4 +1156,24 @@ data class MonthlyInvestmentResponse(
     val yearMonth: String,
     val totalInvested: BigDecimal,
     val currency: String? = null
+)
+
+/**
+ * Transaction summary for a rolling time period.
+ * Used for tracking investment activity against targets.
+ */
+data class TransactionSummary(
+    val totalPurchases: BigDecimal,
+    val totalSales: BigDecimal,
+    val netInvestment: BigDecimal,
+    val periodStart: java.time.LocalDate,
+    val periodEnd: java.time.LocalDate,
+    val currency: String
+)
+
+/**
+ * Response wrapper for transaction summary.
+ */
+data class TransactionSummaryResponse(
+    val data: TransactionSummary
 )

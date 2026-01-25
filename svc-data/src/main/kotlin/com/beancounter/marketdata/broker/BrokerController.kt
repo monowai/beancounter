@@ -7,7 +7,7 @@ import com.beancounter.common.contracts.BrokersWithAccountsResponse
 import com.beancounter.common.input.BrokerInput
 import com.beancounter.common.model.Broker
 import com.beancounter.marketdata.registration.SystemUserService
-import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.trn.TrnBrokerService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 class BrokerController(
     private val brokerService: BrokerService,
     private val systemUserService: SystemUserService,
-    private val trnService: TrnService
+    private val trnBrokerService: TrnBrokerService
 ) {
     @GetMapping
     fun getBrokers(
@@ -129,7 +129,7 @@ class BrokerController(
         @PathVariable id: String,
         @RequestParam toBrokerId: String
     ): ResponseEntity<Map<String, Long>> {
-        val count = trnService.transferBroker(id, toBrokerId)
+        val count = trnBrokerService.transferBroker(id, toBrokerId)
         return ResponseEntity.ok(mapOf("transferred" to count))
     }
 }

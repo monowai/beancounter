@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.math.BigDecimal
 import java.time.YearMonth
 
 /**
@@ -49,6 +48,8 @@ import java.time.YearMonth
 class TrnController(
     var trnService: TrnService,
     var trnQueryService: TrnQueryService,
+    var trnBrokerService: TrnBrokerService,
+    var trnAnalysisService: TrnAnalysisService,
     var dateUtils: DateUtils,
     var trnIoDefinition: TrnIoDefinition
 ) {
@@ -712,7 +713,7 @@ class TrnController(
         ) @RequestParam(required = true) currency: String
     ): TransactionSummaryResponse =
         TransactionSummaryResponse(
-            trnService.getTransactionSummary(weeks, currency)
+            trnAnalysisService.getTransactionSummary(weeks, currency)
         )
 
     @GetMapping(
@@ -781,9 +782,9 @@ class TrnController(
 
         val total =
             if (currency != null) {
-                trnService.getMonthlyInvestmentConverted(month, portfolioIdList, currency)
+                trnAnalysisService.getMonthlyInvestmentConverted(month, portfolioIdList, currency)
             } else {
-                trnService.getMonthlyInvestment(month)
+                trnAnalysisService.getMonthlyInvestment(month)
             }
 
         return MonthlyInvestmentResponse(
@@ -828,7 +829,7 @@ class TrnController(
             } else {
                 YearMonth.now()
             }
-        return TrnResponse(trnService.getMonthlyInvestmentTransactions(month))
+        return TrnResponse(trnAnalysisService.getMonthlyInvestmentTransactions(month))
     }
 
     @GetMapping(
@@ -916,7 +917,7 @@ class TrnController(
                 YearMonth.now()
             }
         val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
-        return trnService.getMonthlyIncome(months, end, portfolioIdList, groupBy)
+        return trnAnalysisService.getMonthlyIncome(months, end, portfolioIdList, groupBy)
     }
 
     @PostMapping(
@@ -1028,7 +1029,7 @@ class TrnController(
             description = "Broker identifier",
             example = "broker-123"
         ) @PathVariable("brokerId") brokerId: String
-    ): BrokerHoldingsResponse = trnService.getBrokerHoldings(brokerId)
+    ): BrokerHoldingsResponse = trnBrokerService.getBrokerHoldings(brokerId)
 
     @GetMapping(
         value = ["/portfolio/{portfolioId}/model/{modelId}"],
@@ -1108,72 +1109,9 @@ class TrnController(
         ) @RequestParam(required = false) asAt: String = dateUtils.today()
     ): TrnResponse =
         TrnResponse(
-            trnService.findForBroker(
+            trnBrokerService.findForBroker(
                 brokerId,
                 dateUtils.getFormattedDate(asAt)
             )
         )
 }
-
-data class SettleTransactionsRequest(
-    val trnIds: List<String>
-)
-
-data class BrokerHoldingTransaction(
-    val id: String,
-    val portfolioId: String,
-    val portfolioCode: String,
-    val tradeDate: String,
-    val trnType: String,
-    val quantity: BigDecimal,
-    val price: BigDecimal,
-    val tradeAmount: BigDecimal
-)
-
-data class BrokerPortfolioGroup(
-    val portfolioId: String,
-    val portfolioCode: String,
-    val quantity: BigDecimal,
-    val transactions: List<BrokerHoldingTransaction>
-)
-
-data class BrokerHoldingPosition(
-    val assetId: String,
-    val assetCode: String,
-    val assetName: String?,
-    val market: String,
-    val quantity: BigDecimal,
-    val portfolioGroups: List<BrokerPortfolioGroup>
-)
-
-data class BrokerHoldingsResponse(
-    val brokerId: String,
-    val brokerName: String,
-    val holdings: List<BrokerHoldingPosition>
-)
-
-data class MonthlyInvestmentResponse(
-    val yearMonth: String,
-    val totalInvested: BigDecimal,
-    val currency: String? = null
-)
-
-/**
- * Transaction summary for a rolling time period.
- * Used for tracking investment activity against targets.
- */
-data class TransactionSummary(
-    val totalPurchases: BigDecimal,
-    val totalSales: BigDecimal,
-    val netInvestment: BigDecimal,
-    val periodStart: java.time.LocalDate,
-    val periodEnd: java.time.LocalDate,
-    val currency: String
-)
-
-/**
- * Response wrapper for transaction summary.
- */
-data class TransactionSummaryResponse(
-    val data: TransactionSummary
-)

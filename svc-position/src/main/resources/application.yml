@@ -58,6 +58,8 @@ auth:
   audience: "auth0-audience"
   enabled: true
   email: "${auth.audience}/claims/email"
+  client-id: "not-set"
+  client-secret: "not-set"
 
 spring:
   application:
@@ -67,6 +69,18 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${auth.uri}
+      registration:
+        custom:
+          client-id: ${auth.client-id:not-set}
+          client-secret: ${auth.client-secret}
+          scope:
+            - openid
+            - profile
+            - email
+            - beancounter
+            - beancounter:user
+            - beancounter:system
+          authorization-grant-type: client_credentials
   cloud:
     stream:
       # Switch between kafka and rabbit using environment variable:

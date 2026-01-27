@@ -21,5 +21,6 @@ fun Portfolio.setMarketValue(
         irr = irr,
         gainOnDay = gainOnDay,
         assetClassification = assetClassification,
-        valuedAt = valuedAt
+        valuedAt = valuedAt,
+        lastUpdated = this.lastUpdated
     )

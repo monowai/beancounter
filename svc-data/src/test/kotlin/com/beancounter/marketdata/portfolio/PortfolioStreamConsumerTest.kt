@@ -1,9 +1,11 @@
 package com.beancounter.marketdata.portfolio
 
 import com.beancounter.common.model.Portfolio
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.math.BigDecimal
 
 /**
@@ -12,9 +14,9 @@ import java.math.BigDecimal
  */
 class PortfolioStreamConsumerTest {
     @Test
-    fun `portfolioConsumer should call portfolioService maintain`() {
+    fun `portfolioConsumer should call portfolioService maintain with lastUpdated set`() {
         // Given
-        val portfolioService = mock(PortfolioService::class.java)
+        val portfolioService = mock<PortfolioService>()
         val consumer = PortfolioStreamConsumer(portfolioService)
 
         val portfolio =
@@ -29,7 +31,14 @@ class PortfolioStreamConsumerTest {
         // When
         consumer.portfolioConsumer().accept(portfolio)
 
-        // Then
-        verify(portfolioService).maintain(portfolio)
+        // Then - verify maintain is called with a portfolio that has lastUpdated set
+        val captor = argumentCaptor<Portfolio>()
+        verify(portfolioService).maintain(captor.capture())
+
+        val savedPortfolio = captor.firstValue
+        assertThat(savedPortfolio.id).isEqualTo(portfolio.id)
+        assertThat(savedPortfolio.code).isEqualTo(portfolio.code)
+        assertThat(savedPortfolio.name).isEqualTo(portfolio.name)
+        assertThat(savedPortfolio.lastUpdated).isNotNull()
     }
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 
 /**
@@ -42,6 +43,7 @@ data class Portfolio(
     @JdbcTypeCode(SqlTypes.JSON)
     val assetClassification: Map<String, BigDecimal>? = null,
     val valuedAt: LocalDate? = null,
+    val lastUpdated: Instant? = null,
     @ManyToOne val currency: Currency = Currency("USD"),
     @ManyToOne val base: Currency = currency,
     @ManyToOne var owner: SystemUser = SystemUser(id)

@@ -4,6 +4,7 @@ import com.beancounter.common.model.Portfolio
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.time.Instant
 import java.util.function.Consumer
 
 /**
@@ -20,6 +21,7 @@ class PortfolioStreamConsumer(
     fun portfolioConsumer(): Consumer<Portfolio> =
         Consumer { portfolio ->
             log.trace("Received portfolio update: {}", portfolio.code)
-            portfolioService.maintain(portfolio)
+            val updatedPortfolio = portfolio.copy(lastUpdated = Instant.now())
+            portfolioService.maintain(updatedPortfolio)
         }
 }

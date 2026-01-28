@@ -12,6 +12,7 @@ data class MoneyValues(
     val currency: Currency
 ) {
     var dividends: BigDecimal = BigDecimal.ZERO
+    var expenses: BigDecimal = BigDecimal.ZERO
 
     // Cost in Currency terms
     var costValue: BigDecimal = BigDecimal.ZERO

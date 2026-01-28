@@ -20,7 +20,8 @@ enum class TrnType {
     INCOME, // +ve Cash Impact (interest, salary, etc.)
     DEDUCTION, // -ve Cash Impact (fees, charges, etc.)
     REDUCE, // Same as sell but does not impact cash.
-    COST_ADJUST // Adjusts cost basis only. No quantity or cash impact.
+    COST_ADJUST, // Adjusts cost basis only. No quantity or cash impact.
+    EXPENSE // -ve Cash Impact for asset-related expenses (maintenance, taxes, etc.)
     ;
 
     companion object {
@@ -36,7 +37,8 @@ enum class TrnType {
                 BUY,
                 WITHDRAWAL,
                 FX_BUY,
-                DEDUCTION
+                DEDUCTION,
+                EXPENSE
             )
 
         @JvmStatic

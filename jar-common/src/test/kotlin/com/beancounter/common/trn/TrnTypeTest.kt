@@ -31,7 +31,8 @@ class TrnTypeTest {
                 "ADD",
                 "INCOME",
                 "DEDUCTION",
-                "REDUCE"
+                "REDUCE",
+                "EXPENSE"
             )
         val actualValues = TrnType.entries.map { it.name }
         assertThat(actualValues).containsExactlyInAnyOrderElementsOf(expectedValues)
@@ -50,6 +51,7 @@ class TrnTypeTest {
         assertThat(TrnType.isCashDebited(TrnType.WITHDRAWAL)).isTrue()
         assertThat(TrnType.isCashDebited(TrnType.FX_BUY)).isTrue()
         assertThat(TrnType.isCashDebited(TrnType.DEDUCTION)).isTrue()
+        assertThat(TrnType.isCashDebited(TrnType.EXPENSE)).isTrue()
 
         // No cash impact
         assertThat(TrnType.isCashImpacted(TrnType.SPLIT)).isFalse()

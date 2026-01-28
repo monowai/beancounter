@@ -27,6 +27,7 @@ import java.util.EnumMap
     IncomeBehaviour::class,
     DeductionBehaviour::class,
     DividendBehaviour::class,
+    ExpenseBehaviour::class,
     CashAccumulator::class,
     SplitBehaviour::class,
     FxBuyBehaviour::class,

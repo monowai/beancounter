@@ -64,7 +64,10 @@ class TrnQueryService(
             TrnType.BALANCE,
             TrnType.ADD,
             TrnType.REDUCE,
-            TrnType.COST_ADJUST
+            TrnType.COST_ADJUST,
+            TrnType.EXPENSE,
+            TrnType.INCOME,
+            TrnType.DEDUCTION
         )
 
     fun findAssetTrades(

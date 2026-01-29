@@ -17,12 +17,12 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.time.LocalDate
 
 /**
- * Tests for PortfolioValuationSchedule to verify stale portfolio filtering.
+ * Tests for PortfolioValuationSchedule to verify all portfolios are valued.
  */
 @ExtendWith(MockitoExtension::class)
 class PortfolioValuationScheduleTest {
@@ -49,64 +49,27 @@ class PortfolioValuationScheduleTest {
                 portfolioServiceClient,
                 valuationService,
                 dateUtils,
-                "0 0 7 * * *",
-                24 // stale hours
+                "0 0 7 * * *"
             )
         schedule.setLoginService(loginService)
     }
 
     @Test
-    fun `should value portfolio that has never been valued`() {
-        // Given - portfolio with null valuedAt
-        val portfolio = createPortfolio("PORT1", null)
-        setupMocks(listOf(portfolio))
+    fun `should value all portfolios`() {
+        // Given - multiple portfolios
+        val portfolio1 = createPortfolio("PORT1")
+        val portfolio2 = createPortfolio("PORT2")
+        val portfolio3 = createPortfolio("PORT3")
+        setupMocks(listOf(portfolio1, portfolio2, portfolio3))
 
         // When
-        schedule.valueStalePortfolios()
+        schedule.valuePortfolios()
 
-        // Then - should value the portfolio
-        verify(valuationService).getPositions(eq(portfolio), eq(DateUtils.TODAY), eq(true))
-    }
-
-    @Test
-    fun `should value portfolio valued more than 24 hours ago`() {
-        // Given - portfolio valued 2 days ago
-        val portfolio = createPortfolio("PORT1", LocalDate.now().minusDays(2))
-        setupMocks(listOf(portfolio))
-
-        // When
-        schedule.valueStalePortfolios()
-
-        // Then - should value the portfolio
-        verify(valuationService).getPositions(eq(portfolio), eq(DateUtils.TODAY), eq(true))
-    }
-
-    @Test
-    fun `should skip portfolio valued today`() {
-        // Given - portfolio valued today
-        val portfolio = createPortfolio("PORT1", LocalDate.now())
-        setupMocks(listOf(portfolio))
-
-        // When
-        schedule.valueStalePortfolios()
-
-        // Then - should not value the portfolio
-        verify(valuationService, never()).getPositions(any(), any(), any())
-    }
-
-    @Test
-    fun `should only value stale portfolios when mix of fresh and stale`() {
-        // Given - one fresh, one stale
-        val freshPortfolio = createPortfolio("FRESH", LocalDate.now())
-        val stalePortfolio = createPortfolio("STALE", LocalDate.now().minusDays(2))
-        setupMocks(listOf(freshPortfolio, stalePortfolio))
-
-        // When
-        schedule.valueStalePortfolios()
-
-        // Then - should only value the stale portfolio
-        verify(valuationService).getPositions(eq(stalePortfolio), eq(DateUtils.TODAY), eq(true))
-        verify(valuationService, never()).getPositions(eq(freshPortfolio), any(), any())
+        // Then - should value all portfolios
+        verify(valuationService).getPositions(eq(portfolio1), eq(DateUtils.TODAY), eq(true))
+        verify(valuationService).getPositions(eq(portfolio2), eq(DateUtils.TODAY), eq(true))
+        verify(valuationService).getPositions(eq(portfolio3), eq(DateUtils.TODAY), eq(true))
+        verify(valuationService, times(3)).getPositions(any(), any(), any())
     }
 
     @Test
@@ -115,7 +78,7 @@ class PortfolioValuationScheduleTest {
         setupMocks(emptyList())
 
         // When
-        schedule.valueStalePortfolios()
+        schedule.valuePortfolios()
 
         // Then - should not call valuationService
         verify(valuationService, never()).getPositions(any(), any(), any())
@@ -129,29 +92,24 @@ class PortfolioValuationScheduleTest {
                 portfolioServiceClient,
                 valuationService,
                 dateUtils,
-                "0 0 7 * * *",
-                24
+                "0 0 7 * * *"
             )
         // Don't set login service
 
         // When
-        scheduleNoLogin.valueStalePortfolios()
+        scheduleNoLogin.valuePortfolios()
 
         // Then - should not attempt to get portfolios
         verify(portfolioServiceClient, never()).getAllPortfolios(any())
     }
 
-    private fun createPortfolio(
-        code: String,
-        valuedAt: LocalDate?
-    ): Portfolio =
+    private fun createPortfolio(code: String): Portfolio =
         Portfolio(
             id = code,
             code = code,
             name = "$code Portfolio",
             currency = Currency("USD"),
-            base = Currency("USD"),
-            valuedAt = valuedAt
+            base = Currency("USD")
         )
 
     private fun setupMocks(portfolios: List<Portfolio>) {

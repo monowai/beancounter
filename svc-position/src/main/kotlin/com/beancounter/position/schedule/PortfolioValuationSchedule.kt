@@ -2,7 +2,6 @@ package com.beancounter.position.schedule
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.PortfolioServiceClient
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.valuation.Valuation
 import io.sentry.spring.jakarta.tracing.SentryTransaction
@@ -12,15 +11,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * Scheduled task to value portfolios that haven't been valued recently.
- * This keeps the portfolio marketValue updated with current prices.
+ * Scheduled task to value all portfolios with current market prices.
  *
  * Runs on schedule (default: every 10 min, 5-7 AM Tue-Sat) and values
- * portfolios that haven't been valued in the last 24 hours.
+ * all portfolios to ensure they have up-to-date market valuations.
  *
  * For each portfolio valued:
  * 1. Fetches latest prices for all assets
@@ -37,8 +34,7 @@ class PortfolioValuationSchedule(
     private val portfolioServiceClient: PortfolioServiceClient,
     private val valuationService: Valuation,
     private val dateUtils: DateUtils,
-    @Value("\${valuation.schedule:0 0/10 5-7 * * Tue-Sat}") private val schedule: String,
-    @Value("\${valuation.stale.hours:24}") private val staleHours: Long = 24
+    @Value("\${valuation.schedule:0 0/10 5-7 * * Tue-Sat}") private val schedule: String
 ) {
     private var loginService: LoginService? = null
     private val log = LoggerFactory.getLogger(PortfolioValuationSchedule::class.java)
@@ -56,12 +52,12 @@ class PortfolioValuationSchedule(
         )
     }
 
-    @SentryTransaction(operation = "scheduled", name = "PortfolioValuationSchedule.valueStalePortfolios")
+    @SentryTransaction(operation = "scheduled", name = "PortfolioValuationSchedule.valuePortfolios")
     @Scheduled(
         cron = "\${valuation.schedule:0 0/10 5-7 * * Tue-Sat}",
         zone = "#{@scheduleZone}"
     )
-    fun valueStalePortfolios() {
+    fun valuePortfolios() {
         val currentLoginService = loginService
         if (currentLoginService == null) {
             log.warn("LoginService not available, skipping portfolio valuation")
@@ -87,24 +83,12 @@ class PortfolioValuationSchedule(
                 return@retryOnJwtExpiry
             }
 
-            // Filter to only portfolios that need valuation (not valued in last 24 hours)
-            val stalePortfolios = allPortfolios.filter { needsValuation(it) }
-
-            if (stalePortfolios.isEmpty()) {
-                log.info("All {} portfolios are up to date", allPortfolios.size)
-                return@retryOnJwtExpiry
-            }
-
-            log.info(
-                "Found {} stale portfolios out of {} total",
-                stalePortfolios.size,
-                allPortfolios.size
-            )
+            log.info("Valuing {} portfolios", allPortfolios.size)
 
             var successCount = 0
             var errorCount = 0
 
-            for (portfolio in stalePortfolios) {
+            for (portfolio in allPortfolios) {
                 try {
                     valuationService.getPositions(
                         portfolio,
@@ -113,10 +97,9 @@ class PortfolioValuationSchedule(
                     )
                     successCount++
                     log.debug(
-                        "Valued portfolio: {} ({}) - last valued: {}",
+                        "Valued portfolio: {} ({})",
                         portfolio.code,
-                        portfolio.id,
-                        portfolio.valuedAt
+                        portfolio.id
                     )
                 } catch (e: Exception) {
                     errorCount++
@@ -135,17 +118,5 @@ class PortfolioValuationSchedule(
                 errorCount
             )
         }
-    }
-
-    /**
-     * Determines if a portfolio needs valuation based on when it was last valued.
-     * A portfolio needs valuation if:
-     * - It has never been valued (valuedAt is null)
-     * - It was valued more than [staleHours] ago (default 24 hours)
-     */
-    private fun needsValuation(portfolio: Portfolio): Boolean {
-        val valuedAt = portfolio.valuedAt ?: return true
-        val staleDate = LocalDate.now(dateUtils.zoneId).minusDays(staleHours / 24)
-        return valuedAt.isBefore(staleDate)
     }
 }

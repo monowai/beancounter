@@ -43,7 +43,8 @@ class ValuationService
         private val trnService: TrnService,
         private val positionService: PositionService,
         private val marketValueUpdateProducer: MarketValueUpdateProducer,
-        private val classificationClient: ClassificationClient
+        private val classificationClient: ClassificationClient,
+        private val dateUtils: DateUtils
     ) : Valuation {
         private val log = LoggerFactory.getLogger(ValuationService::class.java)
 
@@ -222,7 +223,7 @@ class ValuationService
 
             // Send market value updates for individual portfolio valuations (not aggregated)
             // Only update when viewing current positions ("today"), not historical
-            if (!skipMarketValueUpdate && DateUtils().isToday(positions.asAt)) {
+            if (!skipMarketValueUpdate && dateUtils.isToday(positions.asAt)) {
                 sendMarketValueUpdate(valuedPositions)
             }
             return PositionResponse(valuedPositions)
@@ -313,8 +314,5 @@ class ValuationService
          * Returns today's date if asAt is "today" or null, otherwise parses the date string.
          */
         private fun parseValuationDate(asAt: String?): LocalDate =
-            when {
-                asAt.isNullOrBlank() || asAt.equals(DateUtils.TODAY, ignoreCase = true) -> LocalDate.now()
-                else -> LocalDate.parse(asAt)
-            }
+            dateUtils.getDate(asAt ?: DateUtils.TODAY)
     }

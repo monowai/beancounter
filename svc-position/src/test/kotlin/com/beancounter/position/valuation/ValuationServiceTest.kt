@@ -63,6 +63,7 @@ class ValuationServiceTest {
 
     private lateinit var valuationService: ValuationService
 
+    private val dateUtils = DateUtils()
     private val portfolio = TestHelpers.createTestPortfolio("ValuationServiceTest")
 
     @BeforeEach
@@ -80,7 +81,8 @@ class ValuationServiceTest {
                 trnService,
                 positionService,
                 marketValueUpdateProducer,
-                classificationClient
+                classificationClient,
+                dateUtils
             )
     }
 
@@ -655,7 +657,7 @@ class ValuationServiceTest {
 
         assertThat(sentPortfolio.valuedAt)
             .describedAs("valuedAt should be today's date")
-            .isEqualTo(LocalDate.now())
+            .isEqualTo(dateUtils.getDate())
     }
 
     @Test

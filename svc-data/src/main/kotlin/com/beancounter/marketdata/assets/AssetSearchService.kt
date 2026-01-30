@@ -155,16 +155,20 @@ class AssetSearchService(
                 )
 
             val results =
-                response.data.map { result ->
-                    AssetSearchResult(
-                        symbol = result.ticker ?: keyword,
-                        name = result.name ?: "",
-                        type = result.securityType2 ?: "Equity",
-                        region = market,
-                        currency = resolvedMarket.currency.code,
-                        market = market
-                    )
-                }
+                response.data
+                    .filter { result ->
+                        val type = result.securityType2?.uppercase()
+                        type != null && ALLOWED_SECURITY_TYPES.contains(type)
+                    }.map { result ->
+                        AssetSearchResult(
+                            symbol = result.ticker ?: keyword,
+                            name = result.name ?: "",
+                            type = result.securityType2 ?: "Equity",
+                            region = market,
+                            currency = resolvedMarket.currency.code,
+                            market = market
+                        )
+                    }
 
             AssetSearchResponse(results)
         } catch (
@@ -178,6 +182,16 @@ class AssetSearchService(
             }
             AssetSearchResponse(emptyList())
         }
+    }
+
+    companion object {
+        private val ALLOWED_SECURITY_TYPES =
+            setOf(
+                "COMMON STOCK",
+                "REIT",
+                "DEPOSITARY RECEIPT",
+                "MUTUAL FUND"
+            )
     }
 
     private fun searchMarketStackAssets(

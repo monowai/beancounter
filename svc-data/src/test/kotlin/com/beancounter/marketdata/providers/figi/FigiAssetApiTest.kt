@@ -13,6 +13,7 @@ import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.P_CODE
 import com.beancounter.marketdata.Constants.Companion.P_NAME
 import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.assets.AssetSearchService
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
@@ -73,6 +74,9 @@ class FigiAssetApiTest {
     private lateinit var enrichmentFactory: EnrichmentFactory
 
     @Autowired
+    private lateinit var assetSearchService: AssetSearchService
+
+    @Autowired
     private lateinit var assetService: AssetService
 
     @Autowired
@@ -121,6 +125,39 @@ class FigiAssetApiTest {
                 P_NAME,
                 "OMEGA HEALTHCARE INVESTORS"
             ).isNotNull
+    }
+
+    @Test
+    fun is_SearchReturnsReitsAndStocks() {
+        // Stub the /v3/filter endpoint with mixed security types
+        val filterResponse =
+            ClassPathResource("mock/figi/filter-mixed-response.json").file.readText()
+        stubFor(
+            WireMock
+                .post(WireMock.urlEqualTo("/v3/filter"))
+                .withHeader(
+                    "X-OPENFIGI-APIKEY",
+                    WireMock.matching("demoxx")
+                ).willReturn(
+                    WireMock
+                        .aResponse()
+                        .withHeader(
+                            HttpHeaders.CONTENT_TYPE,
+                            MediaType.APPLICATION_JSON_VALUE
+                        ).withBody(filterResponse)
+                        .withStatus(200)
+                )
+        )
+
+        val results = assetSearchService.search("omega", "US")
+        assertThat(results.data)
+            .isNotEmpty
+            .extracting("symbol")
+            .contains("OHI", "MSFT")
+        // Preferred Stock should be filtered out
+        assertThat(results.data)
+            .extracting("symbol")
+            .doesNotContain("FAKE")
     }
 
     @Test

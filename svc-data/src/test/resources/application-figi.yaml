@@ -6,3 +6,5 @@ beancounter:
       figi:
         url: http://localhost:${wiremock.server.port}
         key: demoxx
+        search:
+          markets: US,NZX,SGX

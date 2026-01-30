@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "figi": "BBG000BPH459",
+      "name": "MICROSOFT CORP",
+      "ticker": "MSFT",
+      "exchCode": "US",
+      "compositeFIGI": "BBG000BPH459",
+      "securityType": "Common Stock",
+      "marketSector": "Equity",
+      "securityType2": "Common Stock",
+      "securityDescription": "MSFT"
+    },
+    {
+      "figi": "BBG000BGBTC2",
+      "name": "OMEGA HEALTHCARE INVESTORS",
+      "ticker": "OHI",
+      "exchCode": "US",
+      "compositeFIGI": "BBG000BGBTC2",
+      "securityType": "REIT",
+      "marketSector": "Equity",
+      "securityType2": "REIT",
+      "securityDescription": "OHI"
+    },
+    {
+      "figi": "BBG000FAKE01",
+      "name": "SOME PREFERRED STOCK",
+      "ticker": "FAKE",
+      "exchCode": "US",
+      "compositeFIGI": "BBG000FAKE01",
+      "securityType": "Preferred Stock",
+      "marketSector": "Equity",
+      "securityType2": "Preferred Stock",
+      "securityDescription": "FAKE"
+    }
+  ],
+  "total": 3
+}

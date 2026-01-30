@@ -372,7 +372,7 @@ beancounter:
         enricher: "MSTACK"
         aliases:
           mstack: "SI"
-          FIGI: "SG"
+          FIGI: "SP"
 
       - code: "LON"
         name: "London Stock Exchange"
@@ -382,6 +382,7 @@ beancounter:
         multiplier: 0.01
         aliases:
           mstack: "XLON"
+          FIGI: "LN"
 
       - code: "MUTF"
         name: "Mutual Funds"

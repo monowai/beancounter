@@ -150,7 +150,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: system.user, asset.prices, asset.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
+    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true
@@ -359,7 +359,7 @@ beancounter:
         name: "New Zealand Exchange"
         timezoneId: "Pacific/Auckland"
         currencyId: "NZD"
-        enricher: "MSTACK"
+        enricher: "FIGI"
         aliases:
           mstack: "NZ"
           alpha: "NZ"
@@ -369,7 +369,7 @@ beancounter:
         name: "Singapore Exchange"
         currencyId: "SGD"
         timezoneId: "Asia/Singapore"
-        enricher: "MSTACK"
+        enricher: "FIGI"
         aliases:
           mstack: "SI"
           FIGI: "SP"

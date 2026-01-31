@@ -73,6 +73,7 @@ class AssetSearchService(
         return when {
             market.equals("PRIVATE", ignoreCase = true) -> searchPrivateAssets(keyword)
             market.equals("LOCAL", ignoreCase = true) -> searchLocalAssets(keyword)
+            market.equals("FIGI", ignoreCase = true) -> searchFigiGlobal(keyword)
             market != null -> searchPublicAssets(keyword, market)
             else -> searchPublicAssets(keyword, null)
         }
@@ -183,6 +184,44 @@ class AssetSearchService(
             AssetSearchResponse(emptyList())
         }
     }
+
+    /**
+     * Search FIGI globally without exchange restriction.
+     * Maps FIGI exchange codes back to BC market codes.
+     */
+    private fun searchFigiGlobal(keyword: String): AssetSearchResponse =
+        try {
+            val response =
+                figiGateway.filter(
+                    FigiFilterRequest(query = keyword),
+                    figiConfig.apiKey
+                )
+
+            val results =
+                response.data
+                    .filter { result ->
+                        val type = result.securityType2?.uppercase()
+                        type != null && ALLOWED_SECURITY_TYPES.contains(type)
+                    }.map { result ->
+                        val market = result.exchCode?.let { FigiConfig.getMarketCode(it) }
+                        AssetSearchResult(
+                            symbol = result.ticker ?: keyword,
+                            name = result.name ?: "",
+                            type = result.securityType2 ?: "Equity",
+                            region = market ?: result.exchCode,
+                            currency = null,
+                            market = market ?: result.exchCode
+                        )
+                    }
+
+            AssetSearchResponse(results)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.error("Error searching FIGI globally: ${e.message}", e)
+            AssetSearchResponse(emptyList())
+        }
 
     companion object {
         private val ALLOWED_SECURITY_TYPES =

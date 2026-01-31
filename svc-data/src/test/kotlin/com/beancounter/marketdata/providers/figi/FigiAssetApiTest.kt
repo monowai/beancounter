@@ -161,6 +161,39 @@ class FigiAssetApiTest {
     }
 
     @Test
+    fun is_GlobalFigiSearchReturnsMultiExchangeResults() {
+        // Stub the /v3/filter endpoint with results from multiple exchanges
+        val filterResponse =
+            ClassPathResource("mock/figi/filter-global-response.json").file.readText()
+        stubFor(
+            WireMock
+                .post(WireMock.urlEqualTo("/v3/filter"))
+                .withHeader(
+                    "X-OPENFIGI-APIKEY",
+                    WireMock.matching("demoxx")
+                ).willReturn(
+                    WireMock
+                        .aResponse()
+                        .withHeader(
+                            HttpHeaders.CONTENT_TYPE,
+                            MediaType.APPLICATION_JSON_VALUE
+                        ).withBody(filterResponse)
+                        .withStatus(200)
+                )
+        )
+
+        val results = assetSearchService.search("vector", "FIGI")
+        assertThat(results.data).isNotEmpty
+        // Should contain results from different exchanges
+        assertThat(results.data).extracting("symbol").contains("VCT", "MSFT")
+        // Should map FIGI exchange codes to BC market codes
+        val vct = results.data.first { it.symbol == "VCT" }
+        assertThat(vct.market).isEqualTo("NZX")
+        val msft = results.data.first { it.symbol == "MSFT" }
+        assertThat(msft.market).isEqualTo("US")
+    }
+
+    @Test
     fun is_MutualFundFound() {
         val asset =
             figiProxy.find(

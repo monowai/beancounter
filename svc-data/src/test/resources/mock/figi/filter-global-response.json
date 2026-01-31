@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "figi": "BBG000BPH459",
+      "name": "MICROSOFT CORP",
+      "ticker": "MSFT",
+      "exchCode": "US",
+      "compositeFIGI": "BBG000BPH459",
+      "securityType": "Common Stock",
+      "marketSector": "Equity",
+      "securityType2": "Common Stock",
+      "securityDescription": "MSFT"
+    },
+    {
+      "figi": "BBG000VCT001",
+      "name": "VECTOR LTD",
+      "ticker": "VCT",
+      "exchCode": "NZ",
+      "compositeFIGI": "BBG000VCT001",
+      "securityType": "Common Stock",
+      "marketSector": "Equity",
+      "securityType2": "Common Stock",
+      "securityDescription": "VCT"
+    }
+  ],
+  "total": 2
+}

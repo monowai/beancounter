@@ -46,8 +46,19 @@ class FigiConfig {
             )
 
         /**
+         * Reverse mapping: FIGI exchange code to BC market code.
+         */
+        val REVERSE_EXCHANGE_CODES: Map<String, String> =
+            EXCHANGE_CODES.entries.associate { (market, figi) -> figi to market }
+
+        /**
          * Get FIGI exchange code for a BC market code.
          */
         fun getExchCode(marketCode: String): String? = EXCHANGE_CODES[marketCode.uppercase()]
+
+        /**
+         * Get BC market code for a FIGI exchange code.
+         */
+        fun getMarketCode(figiExchCode: String): String? = REVERSE_EXCHANGE_CODES[figiExchCode.uppercase()]
     }
 }

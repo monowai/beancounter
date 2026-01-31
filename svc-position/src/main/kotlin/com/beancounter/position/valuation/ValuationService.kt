@@ -313,6 +313,5 @@ class ValuationService
          * Parse the valuation date from asAt string.
          * Returns today's date if asAt is "today" or null, otherwise parses the date string.
          */
-        private fun parseValuationDate(asAt: String?): LocalDate =
-            dateUtils.getDate(asAt ?: DateUtils.TODAY)
+        private fun parseValuationDate(asAt: String?): LocalDate = dateUtils.getDate(asAt ?: DateUtils.TODAY)
     }

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -439,6 +440,39 @@ class EventController(
         )
         @PathVariable assetId: String
     ): CorporateEventResponses = eventService.getAssetEvents(assetId)
+
+    @DeleteMapping(
+        value = ["/asset/{assetId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Delete all corporate events for a specific asset",
+        description = """
+            Deletes all stored corporate events for a specific asset.
+            Use this to clean up incorrect events (e.g., wrong-company data from symbol collisions).
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Events deleted successfully"
+            )
+        ]
+    )
+    fun deleteAssetEvents(
+        @Parameter(
+            description = "Asset identifier",
+            example = "GNE-NZX"
+        )
+        @PathVariable assetId: String
+    ): Map<String, Any> {
+        val count = eventService.deleteForAsset(assetId)
+        return mapOf(
+            "assetId" to assetId,
+            "deleted" to count
+        )
+    }
 
     @GetMapping(
         value = ["/events/{assetId}"],

@@ -80,6 +80,8 @@ class MarketStackAdapter {
             marketData.high = marketStackData.high
             marketData.low = marketStackData.low
             marketData.volume = marketStackData.volume
+            marketData.dividend = marketStackData.dividend
+            marketData.split = marketStackData.splitFactor
             return marketData
         }
     }

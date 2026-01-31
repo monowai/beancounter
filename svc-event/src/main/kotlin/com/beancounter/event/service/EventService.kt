@@ -161,6 +161,16 @@ class EventService(
     fun getScheduledEvents(start: LocalDate): CorporateEventResponses =
         CorporateEventResponses(eventRepository.findByStartDate(start))
 
+    fun deleteForAsset(assetId: String): Int {
+        val events = forAsset(assetId)
+        if (events.isEmpty()) {
+            return 0
+        }
+        eventRepository.deleteAll(events)
+        log.info("Deleted {} events for asset {}", events.size, assetId)
+        return events.size
+    }
+
     fun find(
         assetIds: Collection<String>,
         recordDate: LocalDate

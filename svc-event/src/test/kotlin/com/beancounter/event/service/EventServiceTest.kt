@@ -314,6 +314,39 @@ class EventServiceTest {
     }
 
     @Test
+    fun `should delete all events for an asset`() {
+        // Given
+        val assetId = "GNE-NZX"
+        val events =
+            listOf(
+                testCorporateEvent.copy(id = "event-1", assetId = assetId),
+                testCorporateEvent.copy(id = "event-2", assetId = assetId)
+            )
+        whenever(eventRepository.findByAssetIdOrderByPayDateDesc(assetId)).thenReturn(events)
+
+        // When
+        val count = eventService.deleteForAsset(assetId)
+
+        // Then
+        assertThat(count).isEqualTo(2)
+        verify(eventRepository).findByAssetIdOrderByPayDateDesc(assetId)
+        verify(eventRepository).deleteAll(events)
+    }
+
+    @Test
+    fun `should return zero when deleting events for asset with no events`() {
+        // Given
+        val assetId = "NO-EVENTS"
+        whenever(eventRepository.findByAssetIdOrderByPayDateDesc(assetId)).thenReturn(emptyList())
+
+        // When
+        val count = eventService.deleteForAsset(assetId)
+
+        // Then
+        assertThat(count).isEqualTo(0)
+    }
+
+    @Test
     fun `should process event with override pay date for multiple portfolios`() {
         // Given
         val eventId = "multi-portfolio-event"

@@ -3,7 +3,7 @@ beancounter:
   market:
     providers:
       alpha:
-        markets: NZX
+        markets:
       mstack:
         url: http://localhost:${wiremock.server.port}
         markets: NASDAQ,AMEX,NYSE,NZX,SGX

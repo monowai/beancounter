@@ -30,7 +30,7 @@ class AlphaEventServiceTest {
         val privateAsset = Asset(id = "test-id", code = "2xstJu-9QzaiX_Ou1U2Ssw.DBS-DIGI", market = privateMarket)
 
         // And: Alpha only supports US markets
-        `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON,NZX")
+        `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON")
 
         // When: Getting events for the private asset
         val result = alphaEventService.getEvents(privateAsset)
@@ -49,7 +49,7 @@ class AlphaEventServiceTest {
         val cashAsset = Asset(id = "usd-id", code = "USD", market = cashMarket)
 
         // And: Alpha only supports stock markets
-        `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON,NZX")
+        `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON")
 
         // When: Getting events for the cash asset
         val result = alphaEventService.getEvents(cashAsset)
@@ -59,6 +59,25 @@ class AlphaEventServiceTest {
 
         // And: Should NOT call the Alpha gateway
         verify(alphaGateway, never()).getAdjusted(cashAsset.code, "")
+    }
+
+    @Test
+    fun `should return empty response for NZX market assets`() {
+        // Given: An NZX asset (NZX not in Alpha's supported markets)
+        val nzxMarket = Market("NZX")
+        val nzxAsset = Asset(id = "gne-id", code = "GNE", market = nzxMarket)
+
+        // And: Alpha does not include NZX in its supported markets
+        `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON")
+
+        // When: Getting events for the NZX asset
+        val result = alphaEventService.getEvents(nzxAsset)
+
+        // Then: Should return empty response
+        assertThat(result.data).isEmpty()
+
+        // And: Should NOT call the Alpha gateway (prevents wrong-company data)
+        verify(alphaGateway, never()).getAdjusted(nzxAsset.code, "")
     }
 
     @Test

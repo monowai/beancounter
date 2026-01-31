@@ -4,7 +4,7 @@ beancounter:
     providers:
       alpha:
         url: http://localhost:${wiremock.server.port}
-        markets: NASDAQ,AMEX,NYSE,ASX,NZX,LON
+        markets: NASDAQ,AMEX,NYSE,ASX,LON
       mock:
         markets: MOCK
       mstack:

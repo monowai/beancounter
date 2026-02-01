@@ -56,7 +56,7 @@ class AssetSearchService(
 
     /**
      * Search for assets by keyword.
-     * @param keyword The search term (asset code or partial code)
+     * @param keyword The search term (asset code, name, or partial match)
      * @param market Optional market code.
      *               - "PRIVATE": searches user's custom assets only
      *               - "LOCAL": searches all assets in the database (no external API calls)
@@ -86,7 +86,7 @@ class AssetSearchService(
             return AssetSearchResponse(emptyList())
         }
 
-        val assets = assetRepository.searchByUserAndCode(user.id, keyword)
+        val assets = assetRepository.searchByUserAndCodeOrName(user.id, keyword)
         val results = assets.map { toSearchResult(it) }
         return AssetSearchResponse(results)
     }

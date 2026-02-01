@@ -46,13 +46,14 @@ interface AssetRepository : CrudRepository<Asset, String> {
     fun findBySystemUserId(systemUserId: String): List<Asset>
 
     /**
-     * Search user's assets by code (case-insensitive partial match).
+     * Search user's assets by code or name (case-insensitive partial match).
      */
     @Query(
         "SELECT a FROM Asset a WHERE a.systemUser.id = :userId " +
-            "AND LOWER(a.code) LIKE LOWER(CONCAT('%', :keyword, '%'))"
+            "AND (LOWER(a.code) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%')))"
     )
-    fun searchByUserAndCode(
+    fun searchByUserAndCodeOrName(
         @Param("userId") userId: String,
         @Param("keyword") keyword: String
     ): List<Asset>

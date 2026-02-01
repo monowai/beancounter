@@ -253,6 +253,44 @@ internal class MarketStackApiTest {
         )
     }
 
+    @Test
+    fun `backFill returns historical prices with dividend data`() {
+        val gne = getTestAsset(NZX, "GNE")
+        val jsonFile = ClassPathResource("$CONTRACTS/GNE-NZX-history.json").file
+
+        stubFor(
+            WireMock
+                .get(
+                    WireMock.urlPathEqualTo("/v2/eod")
+                ).withQueryParam("symbols", WireMock.equalTo("GNE.NZ"))
+                .withQueryParam("access_key", WireMock.equalTo("demo"))
+                .withQueryParam("date_from", WireMock.matching("\\d{4}-\\d{2}-\\d{2}"))
+                .withQueryParam("date_to", WireMock.matching("\\d{4}-\\d{2}-\\d{2}"))
+                .willReturn(
+                    WireMock
+                        .aResponse()
+                        .withHeader(
+                            HttpHeaders.CONTENT_TYPE,
+                            MediaType.APPLICATION_JSON_VALUE
+                        ).withBody(jsonFile.readText())
+                        .withStatus(200)
+                )
+        )
+
+        val result = marketStackService.backFill(gne)
+
+        assertThat(result.data)
+            .isNotEmpty
+            .hasSize(2) // zero-close record filtered out
+
+        val prices = result.data.toList()
+        val dividendRecord = prices.find { it.dividend.compareTo(BigDecimal.ZERO) != 0 }
+        assertThat(dividendRecord).isNotNull
+        assertThat(dividendRecord!!.dividend).isEqualByComparingTo(BigDecimal("0.0717"))
+        assertThat(dividendRecord.close).isEqualByComparingTo(BigDecimal("2.50"))
+        assertThat(dividendRecord.source).isEqualTo(ID)
+    }
+
     /**
      * Constants for MarketStack.
      **/

@@ -23,19 +23,19 @@ import java.time.LocalDate
 class MarketStackConfig(
     val marketService: MarketService
 ) : DataProviderConfig {
-    @Value("\${beancounter.market.providers.mstack.batchSize:2}")
+    @Value($$"${beancounter.market.providers.mstack.batchSize:2}")
     var assetsPerRequest = 2
 
     // For testing purposes - allows us to set up a static base date for which Market Prices Dates
     // can be reliably computed from.
-    @Value("\${beancounter.market.providers.mstack.date:#{null}}")
+    @Value($$"${beancounter.market.providers.mstack.date:#{null}}")
     var date: String? = null
         get() = if (field == null) dateUtils.today() else field
 
-    @Value("\${beancounter.market.providers.mstack.markets}")
+    @Value($$"${beancounter.market.providers.mstack.markets}")
     var markets: String? = null
 
-    @Value("\${beancounter.market.providers.mstack.key:demo}")
+    @Value($$"${beancounter.market.providers.mstack.key:demo}")
     lateinit var apiKey: String
 
     final var dateUtils = DateUtils()

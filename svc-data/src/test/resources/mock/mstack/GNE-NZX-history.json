@@ -1,0 +1,61 @@
+{
+  "pagination": {
+    "limit": 1000,
+    "offset": 0,
+    "count": 3,
+    "total": 3
+  },
+  "data": [
+    {
+      "open": 2.45,
+      "high": 2.55,
+      "low": 2.40,
+      "close": 2.50,
+      "volume": 500000,
+      "adj_high": null,
+      "adj_low": null,
+      "adj_close": 2.50,
+      "adj_open": null,
+      "adj_volume": null,
+      "split_factor": 1.0,
+      "dividend": 0.0717,
+      "symbol": "GNE.NZ",
+      "exchange": "XNZE",
+      "date": "2024-09-24T00:00:00+0000"
+    },
+    {
+      "open": 2.60,
+      "high": 2.65,
+      "low": 2.55,
+      "close": 2.62,
+      "volume": 350000,
+      "adj_high": null,
+      "adj_low": null,
+      "adj_close": 2.62,
+      "adj_open": null,
+      "adj_volume": null,
+      "split_factor": 1.0,
+      "dividend": 0.0,
+      "symbol": "GNE.NZ",
+      "exchange": "XNZE",
+      "date": "2024-09-25T00:00:00+0000"
+    },
+    {
+      "open": 0.0,
+      "high": 0.0,
+      "low": 0.0,
+      "close": 0.0,
+      "volume": 0,
+      "adj_high": null,
+      "adj_low": null,
+      "adj_close": 0.0,
+      "adj_open": null,
+      "adj_volume": null,
+      "split_factor": 1.0,
+      "dividend": 0.0,
+      "symbol": "GNE.NZ",
+      "exchange": "XNZE",
+      "date": "2024-09-26T00:00:00+0000"
+    }
+  ]
+}

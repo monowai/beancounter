@@ -26,6 +26,7 @@ class MarketStackService(
     private val marketStackProxy: MarketStackProxy,
     private val marketStackConfig: MarketStackConfig,
     private val marketStackAdapter: MarketStackAdapter,
+    private val marketStackGateway: MarketStackGateway,
     private val dateUtils: DateUtils
 ) : MarketDataPriceProvider {
     private val log = LoggerFactory.getLogger(MarketStackService::class.java)
@@ -106,7 +107,19 @@ class MarketStackService(
             priceRequest.date
         )
 
-    override fun backFill(asset: Asset): PriceResponse = PriceResponse()
+    override fun backFill(asset: Asset): PriceResponse {
+        val symbol = marketStackConfig.getPriceCode(asset)
+        val dateTo = dateUtils.today()
+        val dateFrom = LocalDate.parse(dateTo).minusYears(2).toString()
+        val response =
+            marketStackGateway.getHistory(
+                symbol,
+                dateFrom,
+                dateTo,
+                marketStackConfig.apiKey
+            )
+        return PriceResponse(marketStackAdapter.toMarketData(asset, response))
+    }
 
     override fun isApiSupported(): Boolean = true
 

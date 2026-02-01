@@ -86,6 +86,32 @@ class MarketStackAdapter {
         }
     }
 
+    fun toMarketData(
+        asset: Asset,
+        response: MarketStackResponse
+    ): Collection<MarketData> {
+        val results: MutableCollection<MarketData> = mutableListOf()
+        response.data.forEach { data ->
+            if (data.close.compareTo(BigDecimal.ZERO) != 0) {
+                val marketData =
+                    MarketData(
+                        asset = asset,
+                        priceDate = data.date.toLocalDate(),
+                        close = data.close,
+                        open = data.open,
+                        source = MarketStackService.ID
+                    )
+                marketData.high = data.high
+                marketData.low = data.low
+                marketData.volume = data.volume
+                marketData.dividend = data.dividend
+                marketData.split = data.splitFactor
+                results.add(marketData)
+            }
+        }
+        return results
+    }
+
     fun getMsDefault(
         asset: String,
         exchange: String,

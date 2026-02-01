@@ -175,6 +175,61 @@ class MarketStackAdapterTest {
         assertThat(isSplit(marketData)).isFalse()
     }
 
+    @Test
+    fun `toMarketData maps history response for a single asset`() {
+        val gne = Asset("GNE", market = NZX)
+
+        val dividendDay =
+            MarketStackData(
+                date = LocalDateTime.of(2024, 9, 24, 0, 0),
+                close = BigDecimal("2.50"),
+                open = BigDecimal("2.45"),
+                high = BigDecimal("2.55"),
+                low = BigDecimal("2.40"),
+                volume = 500000,
+                dividend = BigDecimal("0.0717"),
+                symbol = "GNE.NZ",
+                exchange = "XNZE"
+            )
+        val normalDay =
+            MarketStackData(
+                date = LocalDateTime.of(2024, 9, 25, 0, 0),
+                close = BigDecimal("2.62"),
+                open = BigDecimal("2.60"),
+                high = BigDecimal("2.65"),
+                low = BigDecimal("2.55"),
+                volume = 350000,
+                symbol = "GNE.NZ",
+                exchange = "XNZE"
+            )
+        val zeroCloseDay =
+            MarketStackData(
+                date = LocalDateTime.of(2024, 9, 26, 0, 0),
+                close = BigDecimal.ZERO,
+                symbol = "GNE.NZ",
+                exchange = "XNZE"
+            )
+
+        val response = MarketStackResponse(data = listOf(dividendDay, normalDay, zeroCloseDay))
+
+        val result = marketStackAdapter.toMarketData(gne, response)
+
+        assertThat(result).hasSize(2)
+        val results = result.toList()
+
+        // Dividend day
+        assertThat(results[0].asset).isEqualTo(gne)
+        assertThat(results[0].close).isEqualByComparingTo(BigDecimal("2.50"))
+        assertThat(results[0].dividend).isEqualByComparingTo(BigDecimal("0.0717"))
+        assertThat(results[0].source).isEqualTo(MarketStackService.ID)
+        assertThat(isDividend(results[0])).isTrue()
+
+        // Normal day
+        assertThat(results[1].close).isEqualByComparingTo(BigDecimal("2.62"))
+        assertThat(isDividend(results[1])).isFalse()
+        assertThat(isSplit(results[1])).isFalse()
+    }
+
     private fun createMarketStackData(symbol: String): MarketStackData =
         MarketStackData(
             date = LocalDateTime.now(),

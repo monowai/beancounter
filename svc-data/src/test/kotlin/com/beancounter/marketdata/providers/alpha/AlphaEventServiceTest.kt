@@ -4,6 +4,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.providers.MarketDataRepo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -20,8 +21,10 @@ class AlphaEventServiceTest {
     private val alphaGateway = mock(AlphaGateway::class.java)
     private val alphaConfig = mock(AlphaConfig::class.java)
     private val assetService = mock(AssetService::class.java)
+    private val marketDataRepo = mock(MarketDataRepo::class.java)
 
-    private val alphaEventService = AlphaEventService(assetFinder, alphaGateway, alphaConfig, assetService)
+    private val alphaEventService =
+        AlphaEventService(assetFinder, alphaGateway, alphaConfig, assetService, marketDataRepo)
 
     @Test
     fun `should return empty response for PRIVATE market assets`() {
@@ -62,7 +65,7 @@ class AlphaEventServiceTest {
     }
 
     @Test
-    fun `should return empty response for NZX market assets`() {
+    fun `should query stored prices for NZX market assets`() {
         // Given: An NZX asset (NZX not in Alpha's supported markets)
         val nzxMarket = Market("NZX")
         val nzxAsset = Asset(id = "gne-id", code = "GNE", market = nzxMarket)
@@ -71,12 +74,12 @@ class AlphaEventServiceTest {
         `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON")
 
         // When: Getting events for the NZX asset
-        val result = alphaEventService.getEvents(nzxAsset)
+        alphaEventService.getEvents(nzxAsset)
 
-        // Then: Should return empty response
-        assertThat(result.data).isEmpty()
+        // Then: Should query stored prices from the database
+        verify(marketDataRepo).findEventsByAssetId(nzxAsset.id)
 
-        // And: Should NOT call the Alpha gateway (prevents wrong-company data)
+        // And: Should NOT call the Alpha gateway
         verify(alphaGateway, never()).getAdjusted(nzxAsset.code, "")
     }
 

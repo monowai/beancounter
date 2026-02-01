@@ -7,6 +7,7 @@ import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.providers.MarketDataRepo
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -23,7 +24,8 @@ class AlphaEventService(
     private val assetFinder: AssetFinder,
     val alphaGateway: AlphaGateway,
     val alphaConfig: AlphaConfig,
-    val assetService: AssetService
+    val assetService: AssetService,
+    private val marketDataRepo: MarketDataRepo
 ) {
     @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
@@ -41,8 +43,8 @@ class AlphaEventService(
     fun getEvents(asset: Asset): PriceResponse {
         // Only fetch events for markets supported by Alpha Vantage
         if (!isMarketSupported(asset.market.code)) {
-            log.debug("Market {} not supported for events, skipping asset {}", asset.market.code, asset.code)
-            return PriceResponse()
+            log.debug("Market {} not supported by Alpha, checking stored prices for {}", asset.market.code, asset.code)
+            return PriceResponse(marketDataRepo.findEventsByAssetId(asset.id))
         }
         val json =
             alphaGateway.getAdjusted(

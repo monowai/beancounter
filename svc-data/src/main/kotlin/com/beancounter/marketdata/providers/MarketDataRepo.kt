@@ -48,6 +48,16 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
     ): Long
 
     /**
+     * Find stored prices that represent corporate events (dividend or split).
+     */
+    @Query(
+        "SELECT md FROM MarketData md WHERE md.asset.id = :assetId AND (md.dividend > 0 OR md.split <> 1)"
+    )
+    fun findEventsByAssetId(
+        @Param("assetId") assetId: String
+    ): List<MarketData>
+
+    /**
      * Delete all market data for a specific asset.
      * Used when cascading asset deletion.
      */

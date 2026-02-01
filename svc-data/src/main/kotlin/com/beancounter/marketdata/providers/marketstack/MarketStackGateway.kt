@@ -27,6 +27,26 @@ class MarketStackGateway(
             .body<MarketStackResponse>()
             ?: MarketStackResponse(emptyList(), null)
 
+    fun getHistory(
+        symbol: String,
+        dateFrom: String,
+        dateTo: String,
+        apiKey: String = "demo",
+        limit: Int = 1000
+    ): MarketStackResponse =
+        restClient
+            .get()
+            .uri(
+                "/v2/eod?symbols={symbol}&date_from={dateFrom}&date_to={dateTo}&access_key={apiKey}&limit={limit}",
+                symbol,
+                dateFrom,
+                dateTo,
+                apiKey,
+                limit
+            ).retrieve()
+            .body<MarketStackResponse>()
+            ?: MarketStackResponse(emptyList(), null)
+
     /**
      * Search for tickers on a specific exchange.
      * @param exchangeMic The MIC code of the exchange (e.g., "XSES" for SGX)

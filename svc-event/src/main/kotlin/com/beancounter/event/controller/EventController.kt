@@ -1,6 +1,7 @@
 package com.beancounter.event.controller
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.config.EventControllerConfig
 import com.beancounter.event.contract.CorporateEventResponse
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -473,6 +475,34 @@ class EventController(
             "deleted" to count
         )
     }
+
+    @PostMapping(
+        value = ["/events"],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+        summary = "Create a corporate event",
+        description = """
+            Creates a new corporate event (dividend, split) directly.
+            The event is saved idempotently - if an event already exists for the same
+            asset and record date, the existing event is returned.
+
+            Use this for manually backfilling historical events from external data sources.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "201",
+                description = "Event created or already exists"
+            )
+        ]
+    )
+    fun createEvent(
+        @RequestBody event: CorporateEvent
+    ): CorporateEventResponse = CorporateEventResponse(eventService.save(event))
 
     @GetMapping(
         value = ["/events/{assetId}"],

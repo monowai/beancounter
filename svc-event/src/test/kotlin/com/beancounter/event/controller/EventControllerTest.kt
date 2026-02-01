@@ -157,6 +157,63 @@ internal class EventControllerTest {
     }
 
     @Test
+    fun is_EventCreatedViaPostEndpoint() {
+        val event =
+            CorporateEvent(
+                trnType = TrnType.DIVI,
+                source = "NZX",
+                assetId = "test-asset-123",
+                recordDate = dateUtils.getFormattedDate("2023-09-21"),
+                rate = BigDecimal("0.0880"),
+                payDate = dateUtils.getFormattedDate("2023-10-06")
+            )
+
+        val mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/events")
+                        .content(objectMapper.writeValueAsString(event))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isCreated)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+
+        val response =
+            objectMapper.readValue(
+                mvcResult.response.contentAsString,
+                CorporateEventResponse::class.java
+            )
+        response.shouldNotBeNull()
+        assertThat(response.data.id).isNotNull()
+        assertThat(response.data.assetId).isEqualTo("test-asset-123")
+        assertThat(response.data.rate).isEqualByComparingTo(BigDecimal("0.0880"))
+        assertThat(response.data.source).isEqualTo("NZX")
+        assertThat(response.data.recordDate).isEqualTo(dateUtils.getFormattedDate("2023-09-21"))
+        assertThat(response.data.payDate).isEqualTo(dateUtils.getFormattedDate("2023-10-06"))
+
+        // Verify idempotency - posting the same event again returns the same ID
+        val secondResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/events")
+                        .content(objectMapper.writeValueAsString(event))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isCreated)
+                .andReturn()
+
+        val secondResponse =
+            objectMapper.readValue(
+                secondResult.response.contentAsString,
+                CorporateEventResponse::class.java
+            )
+        assertThat(secondResponse.data.id).isEqualTo(response.data.id)
+    }
+
+    @Test
     fun is_ServiceBasedDividendCreateAndFindOk() {
         val event =
             CorporateEvent(

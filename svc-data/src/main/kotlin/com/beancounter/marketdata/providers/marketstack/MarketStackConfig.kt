@@ -77,5 +77,17 @@ class MarketStackConfig(
      */
     companion object {
         const val DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ"
+
+        // MarketStack V2 exchange MIC codes for the tickers search endpoint.
+        // The mstack alias stores the V2 price suffix (e.g., "SI"), but the
+        // exchange tickers endpoint needs the MIC code (e.g., "XSES").
+        private val micCodes =
+            mapOf(
+                "SGX" to "XSES",
+                "NZX" to "XNZE",
+                "ASX" to "XASX"
+            )
+
+        fun getMicCode(market: String): String? = micCodes[market.uppercase()]
     }
 }

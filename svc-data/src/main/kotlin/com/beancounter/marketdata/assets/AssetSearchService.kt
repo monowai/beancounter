@@ -45,22 +45,14 @@ class AssetSearchService(
             ?.toSet() ?: emptySet()
     }
 
-    // MarketStack V2 exchange MIC codes for the tickers search endpoint
-    // The mstack alias stores the V2 price suffix (e.g., "SI"), but the
-    // exchange tickers endpoint needs the MIC code (e.g., "XSES")
-    private val marketStackMicCodes =
-        mapOf(
-            "SGX" to "XSES",
-            "NZX" to "XNZE"
-        )
-
     /**
      * Search for assets by keyword.
      * @param keyword The search term (asset code, name, or partial match)
      * @param market Optional market code.
      *               - "PRIVATE": searches user's custom assets only
-     *               - "LOCAL": searches all assets in the database (no external API calls)
-     *               - Other values: uses AlphaVantage SYMBOL_SEARCH
+     *               - "FIGI": searches FIGI globally (expand/force external search)
+     *               - null/blank: searches local database only (code + name matching)
+     *               - Other values: searches local database (filtered by market) + external provider, merged
      */
     fun search(
         keyword: String,
@@ -72,11 +64,35 @@ class AssetSearchService(
 
         return when {
             market.equals("PRIVATE", ignoreCase = true) -> searchPrivateAssets(keyword)
-            market.equals("LOCAL", ignoreCase = true) -> searchLocalAssets(keyword)
             market.equals("FIGI", ignoreCase = true) -> searchFigiGlobal(keyword)
-            market != null -> searchPublicAssets(keyword, market)
-            else -> searchPublicAssets(keyword, null)
+            market.isNullOrBlank() -> searchLocalAssets(keyword)
+            else -> searchMarketAssets(keyword, market)
         }
+    }
+
+    /**
+     * Search for assets in a specific market.
+     * Combines local database results (code + name matching) with external provider results,
+     * deduplicating by symbol.
+     */
+    private fun searchMarketAssets(
+        keyword: String,
+        market: String
+    ): AssetSearchResponse {
+        val localResults = searchLocalAssets(keyword)
+        val filtered =
+            localResults.data.filter {
+                it.market.equals(market, ignoreCase = true)
+            }
+
+        val externalResults = searchPublicAssets(keyword, market)
+        val localSymbols = filtered.map { it.symbol.uppercase() }.toSet()
+        val newFromExternal =
+            externalResults.data.filter {
+                !localSymbols.contains(it.symbol.uppercase())
+            }
+
+        return AssetSearchResponse(filtered + newFromExternal)
     }
 
     private fun searchPrivateAssets(keyword: String): AssetSearchResponse {
@@ -240,7 +256,7 @@ class AssetSearchService(
         return try {
             val resolvedMarket = marketService.getMarket(market)
             val exchangeMic =
-                marketStackMicCodes[market.uppercase()]
+                MarketStackConfig.getMicCode(market)
                     ?: throw IllegalStateException("No MarketStack MIC code for market $market")
 
             val response =
@@ -333,12 +349,24 @@ class AssetSearchService(
             } else {
                 asset.code
             }
+        // market is @Transient so resolve currency from MarketService
+        val currency =
+            asset.priceSymbol
+                ?: try {
+                    marketService.getMarket(asset.marketCode).currency.code
+                } catch (
+                    @Suppress("TooGenericExceptionCaught")
+                    e: Exception
+                ) {
+                    log.warn("Could not resolve currency for market ${asset.marketCode}: ${e.message}")
+                    null
+                }
         return AssetSearchResult(
             symbol = displayCode,
             name = asset.name ?: displayCode,
             type = asset.category,
             region = asset.marketCode,
-            currency = asset.priceSymbol ?: asset.market.currency.code,
+            currency = currency,
             market = asset.marketCode,
             assetId = asset.id
         )

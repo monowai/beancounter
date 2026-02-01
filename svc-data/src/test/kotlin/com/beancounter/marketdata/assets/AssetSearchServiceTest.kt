@@ -78,6 +78,31 @@ class AssetSearchServiceTest {
         assertThat(results.data).isEmpty()
     }
 
+    @Test
+    fun `search handles asset with null priceSymbol resolving currency from market`() {
+        // market is @Transient so JPA won't populate it on read.
+        // When priceSymbol is also null, currency should be resolved via MarketService.
+        val market = Market("PRIVATE")
+        assetRepository.save(
+            Asset(
+                id = "local-nps-test",
+                code = "${user.id}.NOPRICE",
+                name = "No PriceSymbol Asset",
+                market = market,
+                marketCode = "PRIVATE",
+                priceSymbol = null,
+                category = "Equity",
+                systemUser = user
+            )
+        )
+
+        // Null market searches local DB
+        val results = assetSearchService.search("NOPRICE", null)
+
+        assertThat(results.data).isNotEmpty
+        assertThat(results.data.first().symbol).isEqualTo("NOPRICE")
+    }
+
     private fun createPrivateAsset(
         code: String,
         name: String

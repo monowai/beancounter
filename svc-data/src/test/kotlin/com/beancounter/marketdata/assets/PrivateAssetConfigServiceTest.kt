@@ -15,6 +15,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.Optional
 
 class PrivateAssetConfigServiceTest {
@@ -400,5 +401,250 @@ class PrivateAssetConfigServiceTest {
 
         // No tax, so net = taxable = $900
         assertThat(netIncome).isEqualByComparingTo(BigDecimal("900"))
+    }
+
+    // ============ Composite Policy Asset Tests ============
+
+    @Test
+    fun `saveConfig creates composite config with sub-accounts`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                policyType = PolicyType.CPF,
+                lockedUntilDate = LocalDate.of(2040, 1, 1),
+                isPension = true,
+                subAccounts =
+                    listOf(
+                        SubAccountRequest(
+                            code = "OA",
+                            displayName = "Ordinary Account",
+                            balance = BigDecimal("50000"),
+                            expectedReturnRate = BigDecimal("0.0250"),
+                            liquid = true
+                        ),
+                        SubAccountRequest(
+                            code = "SA",
+                            displayName = "Special Account",
+                            balance = BigDecimal("30000"),
+                            expectedReturnRate = BigDecimal("0.0400"),
+                            liquid = true
+                        ),
+                        SubAccountRequest(
+                            code = "MA",
+                            displayName = "Medisave Account",
+                            balance = BigDecimal("20000"),
+                            expectedReturnRate = BigDecimal("0.0400"),
+                            liquid = false
+                        )
+                    )
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.policyType).isEqualTo(PolicyType.CPF)
+        assertThat(response.data.lockedUntilDate).isEqualTo(LocalDate.of(2040, 1, 1))
+        assertThat(response.data.isComposite()).isTrue()
+        assertThat(response.data.subAccounts).hasSize(3)
+        assertThat(response.data.subAccounts.map { it.code }).containsExactly("OA", "SA", "MA")
+        // MA is not liquid
+        assertThat(
+            response.data.subAccounts
+                .first { it.code == "MA" }
+                .liquid
+        ).isFalse()
+    }
+
+    @Test
+    fun `saveConfig rejects duplicate sub-account codes`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                policyType = PolicyType.CPF,
+                subAccounts =
+                    listOf(
+                        SubAccountRequest(code = "OA", balance = BigDecimal("1000")),
+                        SubAccountRequest(code = "oa", balance = BigDecimal("2000"))
+                    )
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+
+        assertThatThrownBy {
+            configService.saveConfig(assetId, request)
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("Duplicate sub-account codes")
+    }
+
+    @Test
+    fun `saveConfig updates existing composite config sub-accounts`() {
+        val asset = createTestAsset()
+        val existing =
+            PrivateAssetConfig(
+                assetId = assetId,
+                policyType = PolicyType.CPF,
+                subAccounts =
+                    mutableListOf(
+                        PrivateAssetSubAccount(
+                            assetId = assetId,
+                            code = "OA",
+                            displayName = "Ordinary Account",
+                            balance = BigDecimal("50000"),
+                            liquid = true
+                        ),
+                        PrivateAssetSubAccount(
+                            assetId = assetId,
+                            code = "SA",
+                            displayName = "Special Account",
+                            balance = BigDecimal("30000"),
+                            liquid = true
+                        )
+                    )
+            )
+        // Update: change OA balance, remove SA, add MA
+        val request =
+            PrivateAssetConfigRequest(
+                subAccounts =
+                    listOf(
+                        SubAccountRequest(
+                            code = "OA",
+                            displayName = "Ordinary Account",
+                            balance = BigDecimal("55000"),
+                            liquid = true
+                        ),
+                        SubAccountRequest(
+                            code = "MA",
+                            displayName = "Medisave Account",
+                            balance = BigDecimal("20000"),
+                            liquid = false
+                        )
+                    )
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(existing))
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.subAccounts).hasSize(2)
+        assertThat(response.data.subAccounts.map { it.code }).containsExactly("OA", "MA")
+        assertThat(
+            response.data.subAccounts
+                .first { it.code == "OA" }
+                .balance
+        ).isEqualByComparingTo(BigDecimal("55000"))
+    }
+
+    @Test
+    fun `saveConfig preserves existing fields when no sub-accounts in request`() {
+        val asset = createTestAsset()
+        val existing =
+            PrivateAssetConfig(
+                assetId = assetId,
+                policyType = PolicyType.CPF,
+                lockedUntilDate = LocalDate.of(2040, 1, 1),
+                subAccounts =
+                    mutableListOf(
+                        PrivateAssetSubAccount(
+                            assetId = assetId,
+                            code = "OA",
+                            balance = BigDecimal("50000")
+                        )
+                    )
+            )
+        // Update only payoutAge, don't touch sub-accounts
+        val request = PrivateAssetConfigRequest(payoutAge = 65)
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(existing))
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        // Sub-accounts untouched when not in request
+        assertThat(response.data.policyType).isEqualTo(PolicyType.CPF)
+        assertThat(response.data.lockedUntilDate).isEqualTo(LocalDate.of(2040, 1, 1))
+        assertThat(response.data.payoutAge).isEqualTo(65)
+        assertThat(response.data.subAccounts).hasSize(1)
+    }
+
+    @Test
+    fun `isComposite returns false for simple config`() {
+        val config = PrivateAssetConfig(assetId = assetId)
+        assertThat(config.isComposite()).isFalse()
+    }
+
+    @Test
+    fun `isComposite returns true when sub-accounts present`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                subAccounts =
+                    mutableListOf(
+                        PrivateAssetSubAccount(
+                            assetId = assetId,
+                            code = "OA",
+                            balance = BigDecimal("1000")
+                        )
+                    )
+            )
+        assertThat(config.isComposite()).isTrue()
+    }
+
+    @Test
+    fun `existing simple config backward compatibility`() {
+        val config =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("2000"),
+                isPension = true,
+                expectedReturnRate = BigDecimal("0.05")
+            )
+
+        // Composite fields default to null/empty
+        assertThat(config.policyType).isNull()
+        assertThat(config.lockedUntilDate).isNull()
+        assertThat(config.subAccounts).isEmpty()
+        assertThat(config.isComposite()).isFalse()
+
+        // Existing calculations still work
+        assertThat(config.getNetMonthlyIncome()).isEqualByComparingTo(BigDecimal("2000"))
+    }
+
+    @Test
+    fun `sub-account codes normalised to uppercase`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                policyType = PolicyType.GENERIC,
+                subAccounts =
+                    listOf(
+                        SubAccountRequest(
+                            code = "fund-a",
+                            balance = BigDecimal("10000")
+                        )
+                    )
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(
+            response.data.subAccounts
+                .first()
+                .code
+        ).isEqualTo("FUND-A")
     }
 }

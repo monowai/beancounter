@@ -74,10 +74,10 @@ data class AssetInput(
             )
 
         /**
-         * Create a user-scoped pension asset (401k, KiwiSaver, superannuation, etc.)
+         * Create a user-scoped retirement fund asset (pension, CPF, ILP, etc.)
          */
         @JvmStatic
-        fun toPension(
+        fun toPolicy(
             currency: Currency,
             code: String,
             name: String,
@@ -89,7 +89,7 @@ data class AssetInput(
                 code = code,
                 name = name,
                 currency = currency.code,
-                category = AssetCategory.PENSION,
+                category = AssetCategory.POLICY,
                 owner = owner,
                 expectedReturnRate = expectedReturnRate
             )

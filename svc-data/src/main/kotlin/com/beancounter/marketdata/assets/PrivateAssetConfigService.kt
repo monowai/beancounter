@@ -58,40 +58,50 @@ class PrivateAssetConfigService(
             "Saving config for asset: $assetId - " +
                 "request.isPension=${request.isPension}, " +
                 "request.payoutAge=${request.payoutAge}, " +
-                "request.lumpSum=${request.lumpSum}"
+                "request.lumpSum=${request.lumpSum}, " +
+                "request.policyType=${request.policyType}"
         )
+
+        validateSubAccountCodes(request.subAccounts)
 
         val existing = configRepository.findById(assetId).orElse(null)
         val config =
-            existing?.copy(
-                monthlyRentalIncome =
-                    if (request.isPrimaryResidence == true) {
-                        BigDecimal.ZERO
-                    } else {
-                        request.monthlyRentalIncome ?: existing.monthlyRentalIncome
-                    },
-                rentalCurrency = request.rentalCurrency ?: existing.rentalCurrency,
-                countryCode = request.countryCode?.uppercase() ?: existing.countryCode,
-                monthlyManagementFee = request.monthlyManagementFee ?: existing.monthlyManagementFee,
-                managementFeePercent = request.managementFeePercent ?: existing.managementFeePercent,
-                monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: existing.monthlyBodyCorporateFee,
-                annualPropertyTax = request.annualPropertyTax ?: existing.annualPropertyTax,
-                annualInsurance = request.annualInsurance ?: existing.annualInsurance,
-                monthlyOtherExpenses = request.monthlyOtherExpenses ?: existing.monthlyOtherExpenses,
-                deductIncomeTax = request.deductIncomeTax ?: existing.deductIncomeTax,
-                isPrimaryResidence = request.isPrimaryResidence ?: existing.isPrimaryResidence,
-                liquidationPriority = request.liquidationPriority ?: existing.liquidationPriority,
-                transactionDayOfMonth = request.transactionDayOfMonth ?: existing.transactionDayOfMonth,
-                creditAccountId = request.creditAccountId ?: existing.creditAccountId,
-                autoGenerateTransactions = request.autoGenerateTransactions ?: existing.autoGenerateTransactions,
-                expectedReturnRate = request.expectedReturnRate ?: existing.expectedReturnRate,
-                payoutAge = request.payoutAge ?: existing.payoutAge,
-                monthlyPayoutAmount = request.monthlyPayoutAmount ?: existing.monthlyPayoutAmount,
-                lumpSum = request.lumpSum ?: existing.lumpSum,
-                monthlyContribution = request.monthlyContribution ?: existing.monthlyContribution,
-                isPension = request.isPension ?: existing.isPension,
-                updatedDate = LocalDate.now()
-            )
+            existing?.let { ex ->
+                val updated =
+                    ex.copy(
+                        monthlyRentalIncome =
+                            if (request.isPrimaryResidence == true) {
+                                BigDecimal.ZERO
+                            } else {
+                                request.monthlyRentalIncome ?: ex.monthlyRentalIncome
+                            },
+                        rentalCurrency = request.rentalCurrency ?: ex.rentalCurrency,
+                        countryCode = request.countryCode?.uppercase() ?: ex.countryCode,
+                        monthlyManagementFee = request.monthlyManagementFee ?: ex.monthlyManagementFee,
+                        managementFeePercent = request.managementFeePercent ?: ex.managementFeePercent,
+                        monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: ex.monthlyBodyCorporateFee,
+                        annualPropertyTax = request.annualPropertyTax ?: ex.annualPropertyTax,
+                        annualInsurance = request.annualInsurance ?: ex.annualInsurance,
+                        monthlyOtherExpenses = request.monthlyOtherExpenses ?: ex.monthlyOtherExpenses,
+                        deductIncomeTax = request.deductIncomeTax ?: ex.deductIncomeTax,
+                        isPrimaryResidence = request.isPrimaryResidence ?: ex.isPrimaryResidence,
+                        liquidationPriority = request.liquidationPriority ?: ex.liquidationPriority,
+                        transactionDayOfMonth = request.transactionDayOfMonth ?: ex.transactionDayOfMonth,
+                        creditAccountId = request.creditAccountId ?: ex.creditAccountId,
+                        autoGenerateTransactions = request.autoGenerateTransactions ?: ex.autoGenerateTransactions,
+                        expectedReturnRate = request.expectedReturnRate ?: ex.expectedReturnRate,
+                        payoutAge = request.payoutAge ?: ex.payoutAge,
+                        monthlyPayoutAmount = request.monthlyPayoutAmount ?: ex.monthlyPayoutAmount,
+                        lumpSum = request.lumpSum ?: ex.lumpSum,
+                        monthlyContribution = request.monthlyContribution ?: ex.monthlyContribution,
+                        isPension = request.isPension ?: ex.isPension,
+                        policyType = request.policyType ?: ex.policyType,
+                        lockedUntilDate = request.lockedUntilDate ?: ex.lockedUntilDate,
+                        updatedDate = LocalDate.now()
+                    )
+                mergeSubAccounts(updated, assetId, request.subAccounts)
+                updated
+            }
                 ?: // Create new
                 PrivateAssetConfig(
                     assetId = assetId,
@@ -121,6 +131,9 @@ class PrivateAssetConfigService(
                     lumpSum = request.lumpSum ?: false,
                     monthlyContribution = request.monthlyContribution,
                     isPension = request.isPension ?: false,
+                    policyType = request.policyType,
+                    lockedUntilDate = request.lockedUntilDate,
+                    subAccounts = toSubAccountEntities(assetId, request.subAccounts),
                     createdDate = LocalDate.now(),
                     updatedDate = LocalDate.now()
                 )
@@ -132,9 +145,85 @@ class PrivateAssetConfigService(
                 "mgmtFee: ${saved.monthlyManagementFee}, " +
                 "isPension: ${saved.isPension}, " +
                 "payoutAge: ${saved.payoutAge}, " +
-                "lumpSum: ${saved.lumpSum}"
+                "lumpSum: ${saved.lumpSum}, " +
+                "policyType: ${saved.policyType}, " +
+                "subAccounts: ${saved.subAccounts.size}"
         )
         return PrivateAssetConfigResponse(saved)
+    }
+
+    /**
+     * Validate that sub-account codes are unique within the request.
+     */
+    private fun validateSubAccountCodes(subAccounts: List<SubAccountRequest>?) {
+        if (subAccounts.isNullOrEmpty()) return
+        val codes = subAccounts.map { it.code.uppercase() }
+        val duplicates = codes.groupBy { it }.filter { it.value.size > 1 }.keys
+        if (duplicates.isNotEmpty()) {
+            throw BusinessException("Duplicate sub-account codes: ${duplicates.joinToString()}")
+        }
+    }
+
+    /**
+     * Merge sub-accounts from the request into the existing config.
+     * Uses orphanRemoval to delete sub-accounts not in the request.
+     */
+    private fun mergeSubAccounts(
+        config: PrivateAssetConfig,
+        assetId: String,
+        requestSubAccounts: List<SubAccountRequest>?
+    ) {
+        if (requestSubAccounts == null) return
+
+        val existingByCode = config.subAccounts.associateBy { it.code.uppercase() }
+        val updatedSubAccounts =
+            requestSubAccounts.map { req ->
+                val code = req.code.uppercase()
+                val existing = existingByCode[code]
+                if (existing != null) {
+                    existing.copy(
+                        displayName = req.displayName,
+                        balance = req.balance,
+                        expectedReturnRate = req.expectedReturnRate,
+                        feeRate = req.feeRate,
+                        liquid = req.liquid
+                    )
+                } else {
+                    PrivateAssetSubAccount(
+                        assetId = assetId,
+                        code = code,
+                        displayName = req.displayName,
+                        balance = req.balance,
+                        expectedReturnRate = req.expectedReturnRate,
+                        feeRate = req.feeRate,
+                        liquid = req.liquid
+                    )
+                }
+            }
+        config.subAccounts.clear()
+        config.subAccounts.addAll(updatedSubAccounts)
+    }
+
+    /**
+     * Convert sub-account requests to entities for new configs.
+     */
+    private fun toSubAccountEntities(
+        assetId: String,
+        subAccounts: List<SubAccountRequest>?
+    ): MutableList<PrivateAssetSubAccount> {
+        if (subAccounts.isNullOrEmpty()) return mutableListOf()
+        return subAccounts
+            .map { req ->
+                PrivateAssetSubAccount(
+                    assetId = assetId,
+                    code = req.code.uppercase(),
+                    displayName = req.displayName,
+                    balance = req.balance,
+                    expectedReturnRate = req.expectedReturnRate,
+                    feeRate = req.feeRate,
+                    liquid = req.liquid
+                )
+            }.toMutableList()
     }
 
     /**

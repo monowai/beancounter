@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.assets
 
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Request to create or update a private asset configuration.
@@ -35,7 +36,23 @@ data class PrivateAssetConfigRequest(
     val lumpSum: Boolean? = null,
     // Regular contribution amount (e.g., pension contributions, insurance premiums)
     val monthlyContribution: BigDecimal? = null,
-    val isPension: Boolean? = null
+    val isPension: Boolean? = null,
+    // Composite policy support
+    val policyType: PolicyType? = null,
+    val lockedUntilDate: LocalDate? = null,
+    val subAccounts: List<SubAccountRequest>? = null
+)
+
+/**
+ * Request to create or update a sub-account within a composite policy asset.
+ */
+data class SubAccountRequest(
+    val code: String,
+    val displayName: String? = null,
+    val balance: BigDecimal = BigDecimal.ZERO,
+    val expectedReturnRate: BigDecimal? = null,
+    val feeRate: BigDecimal? = null,
+    val liquid: Boolean = true
 )
 
 /**

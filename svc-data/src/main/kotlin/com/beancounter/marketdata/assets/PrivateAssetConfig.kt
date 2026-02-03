@@ -1,8 +1,14 @@
 package com.beancounter.marketdata.assets
 
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -79,6 +85,19 @@ data class PrivateAssetConfig(
     val monthlyContribution: BigDecimal? = null,
     @Column(name = "is_pension")
     val isPension: Boolean = false,
+    // Composite policy support
+    @Enumerated(EnumType.STRING)
+    @Column(name = "policy_type", length = 20)
+    val policyType: PolicyType? = null,
+    @Column(name = "locked_until_date")
+    val lockedUntilDate: LocalDate? = null,
+    @OneToMany(
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.EAGER
+    )
+    @JoinColumn(name = "asset_id", referencedColumnName = "asset_id")
+    val subAccounts: MutableList<PrivateAssetSubAccount> = mutableListOf(),
     // Timestamps
     @Column(name = "created_date", nullable = false)
     val createdDate: LocalDate = LocalDate.now(),
@@ -88,6 +107,12 @@ data class PrivateAssetConfig(
     companion object {
         private val TWELVE = BigDecimal(12)
     }
+
+    /**
+     * A composite asset has sub-accounts (e.g. CPF, ILP).
+     * Simple assets have no sub-accounts and use the existing single-bucket model.
+     */
+    fun isComposite(): Boolean = subAccounts.isNotEmpty()
 
     /**
      * Calculate taxable income (rental minus all deductible expenses).

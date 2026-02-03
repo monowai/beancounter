@@ -119,7 +119,7 @@ class PrivateMarketPriceDataTest {
                     mapOf(
                         Pair(
                             NZD.code,
-                            AssetInput.toPension(
+                            AssetInput.toPolicy(
                                 currency = NZD,
                                 code = "PENSION-TEST",
                                 name = "My Pension Fund",
@@ -135,7 +135,7 @@ class PrivateMarketPriceDataTest {
                 .next()
                 .value
 
-        // PENSION assets always return price = 1
+        // POLICY assets always return price = 1
         val prices =
             marketDataService.getPriceResponse(
                 priceRequest =

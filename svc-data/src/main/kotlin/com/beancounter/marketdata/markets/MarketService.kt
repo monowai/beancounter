@@ -100,7 +100,7 @@ class MarketService
             return market
         }
 
-        override fun getMarkets(): MarketResponse = MarketResponse(getMarketMap().values)
+        override fun getMarkets(): MarketResponse = MarketResponse(getMarketMap().values.filter { it.active })
 
         fun canPersist(market: Market): Boolean {
             // Don't persist Mock market assets

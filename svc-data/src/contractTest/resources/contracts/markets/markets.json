@@ -1,40 +1,22 @@
 {
   "data": [
     {
-      "code": "NASDAQ",
+      "code": "PRIVATE",
+      "currency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "UTC"
+    },
+    {
+      "code": "US",
       "currency": {
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"
       },
       "timezone": "US/Eastern"
-    },
-    {
-      "code": "AMEX",
-      "currency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "timezone": "US/Eastern"
-    },
-    {
-      "code": "LON",
-      "currency": {
-        "code": "GBP",
-        "name": "Pound",
-        "symbol": "£"
-      },
-      "timezone": "Europe/London"
-    },
-    {
-      "code": "SGX",
-      "currency": {
-        "code": "SGD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "timezone": "Asia/Singapore"
     },
     {
       "code": "ASX",
@@ -46,15 +28,6 @@
       "timezone": "Australia/Sydney"
     },
     {
-      "code": "NYSE",
-      "currency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "timezone": "US/Eastern"
-    },
-    {
       "code": "NZX",
       "currency": {
         "code": "NZD",
@@ -64,13 +37,31 @@
       "timezone": "Pacific/Auckland"
     },
     {
-      "code": "CASH",
+      "code": "SGX",
       "currency": {
-        "code": "USD",
+        "code": "SGD",
         "name": "Dollar",
         "symbol": "$"
       },
-      "timezone": "UTC"
+      "timezone": "Asia/Singapore"
+    },
+    {
+      "code": "LON",
+      "currency": {
+        "code": "GBP",
+        "name": "Pound",
+        "symbol": "£"
+      },
+      "timezone": "Europe/London"
+    },
+    {
+      "code": "MUTF",
+      "currency": {
+        "code": "GBP",
+        "name": "Pound",
+        "symbol": "£"
+      },
+      "timezone": "Europe/London"
     }
   ]
 }

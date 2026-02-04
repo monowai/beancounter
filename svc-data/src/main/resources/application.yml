@@ -307,6 +307,7 @@ beancounter:
         timezoneId: "UTC"
         enricher: "DEFAULT"
         type: "Internal"
+        active: false
 
       - code: "PRIVATE"
         name: "Private Assets"
@@ -320,6 +321,7 @@ beancounter:
         name: "NASDAQ"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        active: false
         aliases:
           SHARESIGHT: "NAS"
           FIGI: "US"
@@ -328,6 +330,7 @@ beancounter:
         name: "New York Stock Exchange"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        active: false
         aliases:
           SHARESIGHT: "NYS"
           FIGI: "US"
@@ -336,6 +339,7 @@ beancounter:
         name: "American Stock Exchange"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        active: false
         aliases:
           FIGI: "US"
 

@@ -32,7 +32,7 @@ class FigiGateway(
             ?: emptyList()
 
     /**
-     * Keyword search using /v3/filter endpoint.
+     * Keyword search using /v3/search endpoint.
      * Supports partial name/ticker matching.
      */
     fun filter(
@@ -41,7 +41,7 @@ class FigiGateway(
     ): FigiFilterResponse =
         restClient
             .post()
-            .uri("/v3/filter")
+            .uri("/v3/search")
             .header("X-OPENFIGI-APIKEY", apiKey)
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)

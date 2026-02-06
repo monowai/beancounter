@@ -101,10 +101,9 @@ class FigiProxy internal constructor(
         val figiMarket = market.aliases[FIGI]!!
         val figiSearch =
             FigiSearch(
-                figiCode,
-                figiMarket,
-                EQUITY,
-                true
+                idValue = figiCode,
+                exchCode = figiMarket,
+                securityType2 = EQUITY
             )
         return Triple(
             figiCode,

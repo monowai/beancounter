@@ -129,12 +129,12 @@ class FigiAssetApiTest {
 
     @Test
     fun is_SearchReturnsReitsAndStocks() {
-        // Stub the /v3/filter endpoint with mixed security types
+        // Stub the /v3/search endpoint with mixed security types
         val filterResponse =
             ClassPathResource("mock/figi/filter-mixed-response.json").file.readText()
         stubFor(
             WireMock
-                .post(WireMock.urlEqualTo("/v3/filter"))
+                .post(WireMock.urlEqualTo("/v3/search"))
                 .withHeader(
                     "X-OPENFIGI-APIKEY",
                     WireMock.matching("demoxx")
@@ -162,12 +162,12 @@ class FigiAssetApiTest {
 
     @Test
     fun is_GlobalFigiSearchReturnsMultiExchangeResults() {
-        // Stub the /v3/filter endpoint with results from multiple exchanges
+        // Stub the /v3/search endpoint with results from multiple exchanges
         val filterResponse =
             ClassPathResource("mock/figi/filter-global-response.json").file.readText()
         stubFor(
             WireMock
-                .post(WireMock.urlEqualTo("/v3/filter"))
+                .post(WireMock.urlEqualTo("/v3/search"))
                 .withHeader(
                     "X-OPENFIGI-APIKEY",
                     WireMock.matching("demoxx")
@@ -371,10 +371,9 @@ class FigiAssetApiTest {
         ) {
             val search =
                 FigiSearch(
-                    code,
-                    "US",
-                    securityType,
-                    true
+                    idValue = code,
+                    exchCode = "US",
+                    securityType2 = securityType
                 )
             val searchCollection: MutableCollection<FigiSearch> = ArrayList()
             searchCollection.add(search)

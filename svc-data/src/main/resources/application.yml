@@ -75,7 +75,7 @@ logging:
       apache: error
       postgres: error
       postgresql: error
-
+      flywaydb: info
 auth:
   uri: "https://your-auth0-endpoint"
   audience: "auth0-audience"
@@ -206,6 +206,13 @@ resilience4j:
         limitRefreshPeriod: 60s
         timeoutDuration: 60s
         eventConsumerBufferSize: 200
+      # OpenFIGI: Free, ~250 requests/min anonymous, higher with API key
+      figi:
+        registerHealthIndicator: false
+        limitForPeriod: 100
+        limitRefreshPeriod: 60s
+        timeoutDuration: 30s
+        eventConsumerBufferSize: 200
 
   circuitbreaker:
     configs:
@@ -282,7 +289,7 @@ beancounter:
           name: "Retirement Fund"
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
-  enricher: ALPHA
+  enricher: FIGI
   calendar:
     values:
       - day: "25"
@@ -347,6 +354,8 @@ beancounter:
         name: "US Market"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        aliases:
+          FIGI: "US"
 
       - code: "ASX"
         name: "Australian Securities Exchange"
@@ -415,8 +424,9 @@ beancounter:
       figi:
         enabled: true
         # Markets that use FIGI for asset search (returns user-friendly tickers)
+        # US markets use FIGI for best coverage of NYSE/NASDAQ equities
         search:
-          markets: "NZX,SGX"
+          markets: "US,NZX,SGX"
 
       # Frankfurter FX rates - free, unlimited, ECB-based
       frankfurter:

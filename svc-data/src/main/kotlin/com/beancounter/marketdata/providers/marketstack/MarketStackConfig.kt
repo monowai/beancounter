@@ -83,6 +83,9 @@ class MarketStackConfig(
         // exchange tickers endpoint needs the MIC code (e.g., "XSES").
         private val micCodes =
             mapOf(
+                "US" to "XNAS",
+                "NASDAQ" to "XNAS",
+                "NYSE" to "XNYS",
                 "SGX" to "XSES",
                 "NZX" to "XNZE",
                 "ASX" to "XASX"

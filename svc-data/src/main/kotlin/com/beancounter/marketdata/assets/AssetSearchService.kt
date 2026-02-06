@@ -3,9 +3,11 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.figi.FigiConfig
 import com.beancounter.marketdata.assets.figi.FigiFilterRequest
 import com.beancounter.marketdata.assets.figi.FigiGateway
+import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
@@ -109,7 +111,7 @@ class AssetSearchService(
 
     /**
      * Search all assets in the local database by code or name.
-     * Does not call external providers - only searches existing assets.
+     * Falls back to FIGI global search when local results are empty.
      * De-duplicates by code, preferring US market when duplicates exist.
      */
     private fun searchLocalAssets(keyword: String): AssetSearchResponse {
@@ -126,6 +128,13 @@ class AssetSearchService(
                     } ?: variants.first()
                 }
         val results = deduped.take(50).map { toLocalSearchResult(it) }
+
+        // Fall back to FIGI global search when local results are empty
+        if (results.isEmpty() && figiConfig.enabled) {
+            log.debug("No local results for '{}', falling back to FIGI global search", keyword)
+            return searchFigiGlobal(keyword)
+        }
+
         return AssetSearchResponse(results)
     }
 
@@ -162,6 +171,14 @@ class AssetSearchService(
                 FigiConfig.getExchCode(market.uppercase())
                     ?: throw IllegalStateException("No FIGI exchange code for market $market")
 
+            // First try exact ticker lookup via /v3/mapping
+            val tickerResults = searchFigiByTicker(keyword, exchCode, resolvedMarket, market)
+            if (tickerResults.isNotEmpty()) {
+                log.debug("FIGI ticker lookup for '{}' found {} results", keyword, tickerResults.size)
+                return AssetSearchResponse(tickerResults)
+            }
+
+            // Fall back to filter search for name-based matching
             val response =
                 figiGateway.filter(
                     FigiFilterRequest(
@@ -171,11 +188,27 @@ class AssetSearchService(
                     figiConfig.apiKey
                 )
 
+            log.debug(
+                "FIGI filter search for '{}' on {} returned {} results",
+                keyword,
+                market,
+                response.data.size
+            )
+
             val results =
                 response.data
                     .filter { result ->
                         val type = result.securityType2?.uppercase()
-                        type != null && ALLOWED_SECURITY_TYPES.contains(type)
+                        val allowed = type != null && ALLOWED_SECURITY_TYPES.contains(type)
+                        if (!allowed && result.ticker != null) {
+                            log.debug(
+                                "Filtered out {} ({}) - securityType2: {}",
+                                result.ticker,
+                                result.name,
+                                result.securityType2
+                            )
+                        }
+                        allowed
                     }.map { result ->
                         AssetSearchResult(
                             symbol = result.ticker ?: keyword,
@@ -187,6 +220,7 @@ class AssetSearchService(
                         )
                     }
 
+            log.debug("FIGI filter search for '{}' returning {} filtered results", keyword, results.size)
             AssetSearchResponse(results)
         } catch (
             @Suppress("TooGenericExceptionCaught")
@@ -237,6 +271,51 @@ class AssetSearchService(
         ) {
             log.error("Error searching FIGI globally: ${e.message}", e)
             AssetSearchResponse(emptyList())
+        }
+
+    /**
+     * Try exact ticker lookup via FIGI /v3/mapping endpoint.
+     * Returns empty list if no match found.
+     */
+    private fun searchFigiByTicker(
+        ticker: String,
+        exchCode: String,
+        resolvedMarket: Market,
+        marketCode: String
+    ): List<AssetSearchResult> =
+        try {
+            val searchRequest =
+                FigiSearch(
+                    idValue = ticker.uppercase(),
+                    exchCode = exchCode
+                )
+            val responses = figiGateway.search(listOf(searchRequest), figiConfig.apiKey)
+            val response = responses.firstOrNull()
+
+            if (response?.error != null || response?.data.isNullOrEmpty()) {
+                emptyList()
+            } else {
+                response.data!!
+                    .filter { asset ->
+                        val type = asset.securityType2.uppercase()
+                        ALLOWED_SECURITY_TYPES.contains(type)
+                    }.map { asset ->
+                        AssetSearchResult(
+                            symbol = asset.ticker,
+                            name = asset.name,
+                            type = asset.securityType2,
+                            region = marketCode,
+                            currency = resolvedMarket.currency.code,
+                            market = marketCode
+                        )
+                    }
+            }
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug("FIGI ticker lookup failed for '{}': {}", ticker, e.message)
+            emptyList()
         }
 
     companion object {

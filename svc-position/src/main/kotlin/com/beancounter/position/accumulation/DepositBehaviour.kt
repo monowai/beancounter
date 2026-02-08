@@ -5,6 +5,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 
 /**
  * Logic to accumulate a buy transaction into a position.
@@ -28,11 +29,18 @@ class DepositBehaviour(
                 positions
             )
         val quantity = if (TrnType.isCash(trn.trnType)) trn.quantity else trn.cashAmount
-        return cashAccumulator.accumulate(
+        val result = cashAccumulator.accumulate(
             cashPosition,
             position,
             quantity,
             trn
         )
+        if (!trn.subAccounts.isNullOrEmpty()) {
+            trn.subAccounts!!.forEach { (code, amount) ->
+                position.subAccounts[code] =
+                    (position.subAccounts[code] ?: BigDecimal.ZERO).add(amount)
+            }
+        }
+        return result
     }
 }

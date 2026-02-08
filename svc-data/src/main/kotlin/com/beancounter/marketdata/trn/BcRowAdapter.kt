@@ -13,7 +13,10 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.trn.TrnIoDefinition.Columns
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -23,7 +26,8 @@ import java.time.LocalDate
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,
     val cashTrnServices: CashTrnServices,
-    val dateUtils: DateUtils = DateUtils()
+    val dateUtils: DateUtils = DateUtils(),
+    val objectMapper: ObjectMapper = ObjectMapper()
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         validateTradeDate(trustedTrnImportRequest.row[Columns.Date.ordinal].trim())
@@ -114,7 +118,8 @@ class BcRowAdapter(
             price = price,
             comments = row[Columns.Comments.ordinal],
             status = status,
-            brokerId = brokerId
+            brokerId = brokerId,
+            subAccounts = getSubAccounts(row)
         )
     }
 
@@ -125,6 +130,17 @@ class BcRowAdapter(
         }
         val brokerValue = row[Columns.Broker.ordinal].trim()
         return brokerValue.ifEmpty { null }
+    }
+
+    private fun getSubAccounts(row: List<String>): Map<String, BigDecimal>? {
+        if (row.size <= Columns.SubAccounts.ordinal) {
+            return null
+        }
+        val value = row[Columns.SubAccounts.ordinal].trim()
+        if (value.isEmpty()) {
+            return null
+        }
+        return objectMapper.readValue(value, object : TypeReference<Map<String, BigDecimal>>() {})
     }
 
     private fun getStatus(row: List<String>): TrnStatus {

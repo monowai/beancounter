@@ -33,6 +33,8 @@ class Position(
      */
     var held: MutableMap<String, java.math.BigDecimal> = mutableMapOf()
 
+    var subAccounts: MutableMap<String, java.math.BigDecimal> = mutableMapOf()
+
     /**
      * View currencies that cost is tracked in.
      */

@@ -55,5 +55,6 @@ data class TrnInput(
     var comments: String? = null,
     val cashAmount: BigDecimal = BigDecimal.ZERO,
     val brokerId: String? = null,
-    val modelId: String? = null
+    val modelId: String? = null,
+    val subAccounts: Map<String, BigDecimal>? = null
 )

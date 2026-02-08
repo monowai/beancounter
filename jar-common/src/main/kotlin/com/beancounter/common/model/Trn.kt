@@ -16,6 +16,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
@@ -103,7 +105,9 @@ data class Trn(
     @Enumerated(EnumType.STRING)
     var status: TrnStatus = TrnStatus.SETTLED,
     @Column(name = "model_id", length = 36)
-    var modelId: String? = null
+    var modelId: String? = null,
+    @JdbcTypeCode(SqlTypes.JSON)
+    var subAccounts: Map<String, BigDecimal>? = null
 ) {
     companion object {
         const val VERSION: String = "4"

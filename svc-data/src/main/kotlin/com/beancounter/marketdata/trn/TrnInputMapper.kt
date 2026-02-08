@@ -141,7 +141,8 @@ class TrnInputMapper(
             comments = trnInput.comments ?: existing?.comments,
             broker = broker,
             status = trnInput.status,
-            modelId = trnInput.modelId ?: existing?.modelId
+            modelId = trnInput.modelId ?: existing?.modelId,
+            subAccounts = trnInput.subAccounts ?: existing?.subAccounts
         )
     }
 

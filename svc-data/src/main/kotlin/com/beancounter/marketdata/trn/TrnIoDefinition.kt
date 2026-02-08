@@ -2,6 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.DateUtils
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 
 /**
@@ -9,7 +10,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class TrnIoDefinition(
-    val dateUtils: DateUtils
+    val dateUtils: DateUtils,
+    val objectMapper: ObjectMapper = ObjectMapper()
 ) {
     /**
      * TRN columns that will be read when importing a delimited file.
@@ -34,7 +36,8 @@ class TrnIoDefinition(
         CashAmount,
         Comments,
         Status,
-        Broker
+        Broker,
+        SubAccounts
     }
 
     fun headers(): Array<String> =
@@ -68,6 +71,10 @@ class TrnIoDefinition(
             Pair(Columns.CashAmount.ordinal, trn.cashAmount.toString()),
             Pair(Columns.Comments.ordinal, trn.comments),
             Pair(Columns.Status.ordinal, trn.status.name),
-            Pair(Columns.Broker.ordinal, trn.broker?.id)
+            Pair(Columns.Broker.ordinal, trn.broker?.id),
+            Pair(
+                Columns.SubAccounts.ordinal,
+                trn.subAccounts?.let { objectMapper.writeValueAsString(it) }
+            )
         )
 }

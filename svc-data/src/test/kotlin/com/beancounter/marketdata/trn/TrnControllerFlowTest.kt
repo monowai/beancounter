@@ -82,6 +82,9 @@ class TrnControllerFlowTest(
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
+    @Autowired
+    private lateinit var defaultEnricher: DefaultEnricher
+
     private lateinit var token: Jwt
     private lateinit var bcMvcHelper: BcMvcHelper
     private lateinit var msft: Asset
@@ -95,7 +98,7 @@ class TrnControllerFlowTest(
     fun configure() {
         assertThat(figiProxy).isNotNull
         assertThat(fxTransactions).isNotNull
-        enrichmentFactory.register(DefaultEnricher())
+        enrichmentFactory.register(defaultEnricher)
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper =
             BcMvcHelper(

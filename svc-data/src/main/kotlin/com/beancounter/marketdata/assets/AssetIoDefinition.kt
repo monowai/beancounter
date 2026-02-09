@@ -38,7 +38,7 @@ class AssetIoDefinition {
             displayCode,
             asset.name,
             asset.assetCategory.id,
-            asset.priceSymbol ?: asset.market.currency.code
+            asset.accountingType?.currency?.code ?: asset.market.currency.code
         )
     }
 

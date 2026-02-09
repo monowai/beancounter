@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.AccountingType
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
@@ -10,6 +11,7 @@ import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.figi.FigiEnricher
+import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaEnricher
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
@@ -18,6 +20,7 @@ import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
 
 /**
  * Test suite for asset enrichment functionality to ensure proper asset data enhancement.
@@ -40,10 +43,13 @@ class EnrichmentTest {
     private val testKeyGenId = "UniqueId"
     private val testSystemUserId = "sysUserId"
 
+    private val accountingTypeService = Mockito.mock(AccountingTypeService::class.java)
+    private val currencyService = Mockito.mock(CurrencyService::class.java)
+
     @Test
     fun `should enrich asset with FIGI data when asset name is null`() {
         // Given a FIGI enricher and an asset without a name
-        val enricher: AssetEnricher = FigiEnricher(DefaultEnricher())
+        val enricher: AssetEnricher = FigiEnricher(DefaultEnricher(accountingTypeService, currencyService))
         val asset =
             Asset(
                 code = testAssetCode,
@@ -76,8 +82,10 @@ class EnrichmentTest {
                     dateUtils = dateUtils,
                     PreviousClosePriceDate(dateUtils)
                 ),
-                DefaultEnricher(),
-                alphaProxy
+                DefaultEnricher(accountingTypeService, currencyService),
+                alphaProxy,
+                accountingTypeService,
+                currencyService
             )
         val asset =
             Asset(
@@ -106,11 +114,15 @@ class EnrichmentTest {
         val privateMarket = Market(PrivateMarketDataProvider.ID)
         val keyGenUtils = Mockito.mock(KeyGenUtils::class.java)
         val systemUserService = Mockito.mock(SystemUserService::class.java)
-        val enricher: AssetEnricher = PrivateMarketEnricher(systemUserService)
+        val enricher: AssetEnricher = PrivateMarketEnricher(systemUserService, accountingTypeService, currencyService)
 
         // And mocked dependencies
         Mockito.`when`(systemUserService.getOrThrow()).thenReturn(SystemUser(testSystemUserId))
         Mockito.`when`(keyGenUtils.id).thenReturn(testKeyGenId)
+        Mockito.`when`(currencyService.getCode("USD")).thenReturn(USD)
+        Mockito
+            .`when`(accountingTypeService.getOrCreate(any(), any(), any(), any()))
+            .thenReturn(AccountingType(id = "test", category = "RE", currency = USD))
 
         val asset =
             Asset(

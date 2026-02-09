@@ -63,6 +63,9 @@ class RebalanceTrnTest {
     private lateinit var enrichmentFactory: EnrichmentFactory
 
     @Autowired
+    private lateinit var defaultEnricher: DefaultEnricher
+
+    @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
     private lateinit var token: Jwt
@@ -70,7 +73,7 @@ class RebalanceTrnTest {
 
     @BeforeEach
     fun configure() {
-        enrichmentFactory.register(DefaultEnricher())
+        enrichmentFactory.register(defaultEnricher)
         assertThat(currencyService.currencies()).isNotEmpty
 
         token = mockAuthConfig.getUserToken(Constants.systemUser)

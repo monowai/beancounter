@@ -142,14 +142,14 @@ class AssetExportImportTest {
         assertThat(wiseAsset)
             .isNotNull
             .hasFieldOrPropertyWithValue("name", "Wise Account")
-            .hasFieldOrPropertyWithValue("priceSymbol", "USD")
+            .hasFieldOrPropertyWithValue("accountingType.currency.code", "USD")
         assertThat(wiseAsset?.assetCategory?.id).isEqualTo("ACCOUNT")
 
         val propAsset = response.data["IMPORT-PROP"]
         assertThat(propAsset)
             .isNotNull
             .hasFieldOrPropertyWithValue("name", "My Property")
-            .hasFieldOrPropertyWithValue("priceSymbol", "NZD")
+            .hasFieldOrPropertyWithValue("accountingType.currency.code", "NZD")
         assertThat(propAsset?.assetCategory?.id).isEqualTo("RE")
     }
 

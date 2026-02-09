@@ -47,8 +47,11 @@ internal class AssetControllerTest {
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
-    fun setup(enrichmentFactory: EnrichmentFactory) {
-        enrichmentFactory.register(DefaultEnricher())
+    fun setup(
+        enrichmentFactory: EnrichmentFactory,
+        defaultEnricher: DefaultEnricher
+    ) {
+        enrichmentFactory.register(defaultEnricher)
     }
 
     @Test

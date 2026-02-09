@@ -67,7 +67,7 @@ class CashAssetTests {
                 "name",
                 cashInput.name
             ).hasFieldOrPropertyWithValue(
-                "priceSymbol",
+                "accountingType.currency.code",
                 NZD.code
             )
     }

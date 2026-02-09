@@ -60,7 +60,7 @@ data class Trn(
     var price: BigDecimal? = null,
     var tradeAmount: BigDecimal = quantity,
     @ManyToOne
-    val tradeCurrency: Currency = asset.market.currency,
+    val tradeCurrency: Currency = asset.accountingType?.currency ?: asset.market.currency,
     @ManyToOne
     var cashAsset: Asset? = null,
     // Currency of cash settlement asset

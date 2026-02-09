@@ -59,7 +59,13 @@ class TrnIoDefinition(
             Pair(Columns.Code.ordinal, trn.asset.code),
             Pair(Columns.Name.ordinal, trn.asset.name),
             Pair(Columns.CashAccount.ordinal, trn.cashAsset?.id),
-            Pair(Columns.CashCurrency.ordinal, trn.cashAsset?.priceSymbol),
+            Pair(
+                Columns.CashCurrency.ordinal,
+                trn.cashAsset
+                    ?.accountingType
+                    ?.currency
+                    ?.code
+            ),
             Pair(Columns.Date.ordinal, trn.tradeDate.toString()),
             Pair(Columns.Quantity.ordinal, trn.quantity.toString()),
             Pair(Columns.BaseRate.ordinal, trn.tradeBaseRate.toString()),

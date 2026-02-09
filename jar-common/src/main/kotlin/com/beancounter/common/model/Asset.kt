@@ -30,9 +30,15 @@ data class Asset(
     var priceSymbol: String? = null,
     @JsonIgnore var category: String = "Equity",
     /**
+     * Accounting type combining category, currency, and settlement metadata.
+     * This is the canonical source for trade currency - replaces the priceSymbol workaround
+     * for CASH/PRIVATE markets.
+     */
+    @ManyToOne(optional = true)
+    var accountingType: AccountingType? = null,
+    /**
      * Higher-level category for reporting/grouping purposes.
      * If null, falls back to mapping from [category] using [AssetCategory.toReportCategory].
-     * This allows backward compatibility - existing assets work without migration.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var reportCategory: String? = null,
@@ -45,24 +51,12 @@ data class Asset(
     @Enumerated(EnumType.STRING)
     val status: Status = Status.Active,
     var version: String = "1",
-    /**
-     * Sector classification (e.g., "Information Technology", "Health Care").
-     * Transient - populated during valuation from classification service.
-     */
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var sector: String? = null,
-    /**
-     * Industry classification (e.g., "Software", "Biotechnology").
-     * Transient - populated during valuation from classification service.
-     */
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var industry: String? = null,
-    /**
-     * Expected annual return rate for this asset (as decimal, e.g., 0.03 for 3%).
-     * Used in retirement projections. If null, defaults to 0.03 (3%).
-     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var expectedReturnRate: Double? = null
 ) {

@@ -3,38 +3,46 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
 import java.util.Locale
 
 /**
- * Fallback enrichment behaviour that creates asset objets based on the input.
+ * Fallback enrichment behaviour that creates asset objects based on the input.
  *
  * There are no external dependencies for this Enricher.
  */
 @Service
-class DefaultEnricher : AssetEnricher {
+class DefaultEnricher(
+    private val accountingTypeService: AccountingTypeService,
+    private val currencyService: CurrencyService
+) : AssetEnricher {
     override fun enrich(
         id: String,
         market: Market,
         assetInput: AssetInput
-    ): Asset =
-        Asset(
+    ): Asset {
+        val currencyCode = assetInput.currency ?: market.currencyId
+        val currency = currencyService.getCode(currencyCode)
+        val accountingType =
+            accountingTypeService.getOrCreate(
+                category = assetInput.category,
+                currency = currency
+            )
+        return Asset(
             code = assetInput.code.uppercase(Locale.getDefault()),
             id = id,
             name =
-                if (assetInput.name != null) {
-                    assetInput.name!!.replace(
-                        "\"",
-                        ""
-                    )
-                } else {
-                    null
-                },
+                assetInput.name?.replace(
+                    "\"",
+                    ""
+                ),
             market = market,
             marketCode = market.code,
-            priceSymbol = assetInput.currency,
-            category = assetInput.category
+            category = assetInput.category,
+            accountingType = accountingType
         )
+    }
 
     override fun canEnrich(asset: Asset): Boolean = true
 

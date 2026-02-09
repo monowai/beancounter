@@ -64,14 +64,12 @@ class TrnInputMapper(
         if (cashAsset != null) {
             cashCurrency =
                 when {
-                    // Use priceSymbol if available (set when asset is created from cashCurrency)
-                    cashAsset.priceSymbol != null -> currencyService.getCode(cashAsset.priceSymbol!!)
                     // Use explicitly provided cashCurrency
                     !trnInput.cashCurrency.isNullOrEmpty() -> currencyService.getCode(trnInput.cashCurrency!!)
                     // Preserve existing cashCurrency when patching
                     existing?.cashCurrency != null -> existing.cashCurrency
-                    // Fall back to cashAsset's market currency
-                    else -> cashAsset.market.currency
+                    // Use the cash asset's class currency
+                    else -> cashAsset.accountingType?.currency ?: cashAsset.market.currency
                 }
         }
         val tradeAmount = tradeCalculator.amount(trnInput)
@@ -105,12 +103,7 @@ class TrnInputMapper(
         val asset = getAsset(trnInput, existing)
         val tradeCurrency =
             if (trnInput.tradeCurrency.isEmpty()) {
-                // For CASH/PRIVATE markets, use priceSymbol which stores the currency
-                // For other markets, use the market's default currency
-                when (asset.market.code) {
-                    "CASH", "PRIVATE" -> currencyService.getCode(asset.priceSymbol ?: asset.market.currency.code)
-                    else -> asset.market.currency
-                }
+                asset.accountingType?.currency ?: asset.market.currency
             } else {
                 currencyService.getCode(
                     trnInput.tradeCurrency

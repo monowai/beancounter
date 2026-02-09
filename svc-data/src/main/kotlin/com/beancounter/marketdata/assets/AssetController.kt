@@ -56,6 +56,7 @@ import org.springframework.web.multipart.MultipartFile
 )
 class AssetController(
     private val assetService: AssetService,
+    private val ownedAssetService: OwnedAssetService,
     private val priceRefresh: PriceRefresh,
     private val assetFinder: AssetFinder,
     private val assetIoDefinition: AssetIoDefinition,
@@ -311,7 +312,7 @@ class AssetController(
             )
         ]
     )
-    fun getAllMyAssets(): AssetUpdateResponse = assetService.findByOwner()
+    fun getAllMyAssets(): AssetUpdateResponse = ownedAssetService.findByOwner()
 
     @GetMapping(
         value = ["/me/{category}"],
@@ -336,7 +337,7 @@ class AssetController(
     fun getMyAssets(
         @Parameter(description = "Asset category to filter by", example = "ACCOUNT")
         @PathVariable category: String
-    ): AssetUpdateResponse = assetService.findByOwnerAndCategory(category)
+    ): AssetUpdateResponse = ownedAssetService.findByOwnerAndCategory(category)
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -413,7 +414,7 @@ class AssetController(
     fun deleteMyAsset(
         @Parameter(description = "Asset ID to delete", example = "abc123")
         @PathVariable assetId: String
-    ) = assetService.deleteOwnedAsset(assetId)
+    ) = ownedAssetService.deleteOwnedAsset(assetId)
 
     @PatchMapping(
         value = ["/me/{assetId}"],
@@ -424,7 +425,7 @@ class AssetController(
         description = """
             Updates an asset owned by the authenticated user.
             Only assets with a systemUser matching the current user can be updated.
-            Allows updating name and currency (priceSymbol).
+            Allows updating name and currency.
         """
     )
     @ApiResponses(
@@ -442,7 +443,7 @@ class AssetController(
         @Parameter(description = "Asset ID to update", example = "abc123")
         @PathVariable assetId: String,
         @RequestBody assetInput: AssetInput
-    ): AssetResponse = AssetResponse(assetService.updateOwnedAsset(assetId, assetInput))
+    ): AssetResponse = AssetResponse(ownedAssetService.updateOwnedAsset(assetId, assetInput))
 
     @GetMapping(
         value = ["/me/export"],
@@ -469,7 +470,7 @@ class AssetController(
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"assets.csv\""
         )
-        val assets = assetService.findByOwner().data.values
+        val assets = ownedAssetService.findByOwner().data.values
 
         val csvWriter =
             CSVWriterBuilder(response.writer)
@@ -512,7 +513,7 @@ class AssetController(
         @Parameter(description = "CSV file containing assets to import")
         @RequestParam("file") file: MultipartFile
     ): AssetUpdateResponse {
-        val owner = assetService.getCurrentOwnerId()
+        val owner = ownedAssetService.getCurrentOwnerId()
         val assetInputs = mutableMapOf<String, AssetInput>()
 
         val csvParser = CSVParserBuilder().withSeparator(',').build()

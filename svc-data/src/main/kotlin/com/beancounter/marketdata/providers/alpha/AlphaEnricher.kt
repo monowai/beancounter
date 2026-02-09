@@ -6,8 +6,10 @@ import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
+import com.beancounter.marketdata.currency.CurrencyService
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
@@ -21,7 +23,9 @@ import java.util.Locale
 class AlphaEnricher(
     private val alphaConfig: AlphaConfig,
     private val defaultEnricher: DefaultEnricher,
-    private val alphaProxy: AlphaProxy
+    private val alphaProxy: AlphaProxy,
+    private val accountingTypeService: AccountingTypeService,
+    private val currencyService: CurrencyService
 ) : AssetEnricher {
     private val objectMapper = alphaConfig.getObjectMapper()
 
@@ -61,6 +65,12 @@ class AlphaEnricher(
                 assetInput
             )
         } else {
+            val currency = currencyService.getCode(market.currencyId)
+            val accountingType =
+                accountingTypeService.getOrCreate(
+                    category = assetResult.type,
+                    currency = currency
+                )
             Asset(
                 assetInput.code.uppercase(Locale.getDefault()),
                 id,
@@ -68,7 +78,8 @@ class AlphaEnricher(
                 market = market,
                 marketCode = market.code,
                 priceSymbol = assetResult.symbol,
-                category = assetResult.type
+                category = assetResult.type,
+                accountingType = accountingType
             )
         }
     }

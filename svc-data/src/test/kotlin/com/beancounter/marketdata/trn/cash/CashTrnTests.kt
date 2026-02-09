@@ -73,6 +73,9 @@ class CashTrnTests {
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
+
+    @Autowired
+    private lateinit var defaultEnricher: DefaultEnricher
     private val fiveK = BigDecimal("5000.00")
     private val propTradeAmount = "tradeAmount"
     private val propCashAmount = "cashAmount"
@@ -87,7 +90,7 @@ class CashTrnTests {
             )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
-        enrichmentFactory.register(DefaultEnricher())
+        enrichmentFactory.register(defaultEnricher)
         Mockito
             .`when`(
                 fxClientService.getRates(

@@ -63,6 +63,9 @@ class PriceScheduleTest {
     private lateinit var priceSchedule: PriceSchedule
 
     @Autowired
+    private lateinit var defaultEnricher: DefaultEnricher
+
+    @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
     private lateinit var token: Jwt
@@ -88,7 +91,7 @@ class PriceScheduleTest {
         Mockito
             .`when`(
                 enrichmentFactory.getEnricher(asxMarket)
-            ).thenReturn(DefaultEnricher())
+            ).thenReturn(defaultEnricher)
 
         val assetInput =
             AssetInput(

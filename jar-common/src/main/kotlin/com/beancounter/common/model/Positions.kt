@@ -34,25 +34,11 @@ class Positions(
 ) {
     companion object {
         const val DEFAULT_AS_AT = "today"
-        private const val CASH_MARKET = "CASH"
-        private const val PRIVATE_MARKET = "PRIVATE"
 
         /**
-         * Get the appropriate trade currency for an asset.
-         * - For CASH/PRIVATE markets: use priceSymbol which stores the currency
-         * - For other markets: use the market's default currency
+         * Get the trade currency for an asset from its AccountingType.
          */
-        fun getTradeCurrency(asset: Asset): Currency =
-            when (asset.market.code) {
-                CASH_MARKET, PRIVATE_MARKET -> {
-                    if (asset.priceSymbol != null) {
-                        Currency(asset.priceSymbol!!)
-                    } else {
-                        asset.market.currency
-                    }
-                }
-                else -> asset.market.currency
-            }
+        fun getTradeCurrency(asset: Asset): Currency = asset.accountingType?.currency ?: asset.market.currency
     }
 
     @JsonIgnore

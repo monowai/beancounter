@@ -7,6 +7,8 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
@@ -22,6 +24,7 @@ import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
+import com.beancounter.marketdata.assets.OwnedAssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.fx.FxRateService
@@ -29,6 +32,7 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -62,6 +66,9 @@ class BankAccountAssetTest {
     private lateinit var assetService: AssetService
 
     @Autowired
+    private lateinit var ownedAssetService: OwnedAssetService
+
+    @Autowired
     private lateinit var trnService: TrnService
 
     @Autowired
@@ -85,9 +92,12 @@ class BankAccountAssetTest {
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
+    @Autowired
+    private lateinit var defaultEnricher: DefaultEnricher
+
     @BeforeEach
     fun configure() {
-        enrichmentFactory.register(DefaultEnricher())
+        enrichmentFactory.register(defaultEnricher)
         `when`(fxClientService.getRates(any(), any()))
             .thenReturn(FxResponse(FxPairResults()))
     }
@@ -142,7 +152,7 @@ class BankAccountAssetTest {
             .isNotNull
             .hasFieldOrPropertyWithValue("assetCategory", category)
             .hasFieldOrPropertyWithValue("name", "My USD Savings Account")
-            .hasFieldOrPropertyWithValue("priceSymbol", USD.code)
+            .hasFieldOrPropertyWithValue("accountingType.currency.code", USD.code)
             .hasFieldOrPropertyWithValue("systemUser", sysUser)
 
         // Create mortgage account
@@ -158,7 +168,7 @@ class BankAccountAssetTest {
             .isNotNull
             .hasFieldOrPropertyWithValue("assetCategory", category)
             .hasFieldOrPropertyWithValue("name", "Kiwibank Mortgage")
-            .hasFieldOrPropertyWithValue("priceSymbol", NZD.code)
+            .hasFieldOrPropertyWithValue("accountingType.currency.code", NZD.code)
             .hasFieldOrPropertyWithValue("systemUser", sysUser)
 
         // Verify idempotent creation - same user, same code returns same asset
@@ -172,7 +182,7 @@ class BankAccountAssetTest {
             .isEqualTo(mortgageAsset)
 
         // Verify findByOwnerAndCategory returns user's accounts
-        val myAccounts = assetService.findByOwnerAndCategory(AssetCategory.ACCOUNT)
+        val myAccounts = ownedAssetService.findByOwnerAndCategory(AssetCategory.ACCOUNT)
         assertThat(myAccounts.data)
             .hasSize(2)
             .containsKey("USD-SAVINGS")
@@ -225,12 +235,159 @@ class BankAccountAssetTest {
         assertThat(trnRepository.findById(savedTrn.id)).isPresent
 
         // Delete the asset - should cascade delete the transaction
-        assetService.deleteOwnedAsset(createdAsset.id)
+        ownedAssetService.deleteOwnedAsset(createdAsset.id)
 
         // Verify asset is deleted
         assertThat(assetFinder.findLocally(deleteTestAccount)).isNull()
 
         // Verify transaction is also deleted
         assertThat(trnRepository.findById(savedTrn.id)).isEmpty
+    }
+
+    @Test
+    fun isFindByOwnerReturningAllCategories() {
+        val sysUser = SystemUser(id = "find-owner-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+
+        // Create assets in different categories
+        val account =
+            AssetInput.toAccount(
+                currency = USD,
+                code = "OWNER-SAVINGS",
+                name = "Owner Savings",
+                owner = sysUser.id
+            )
+        val reAsset =
+            AssetInput.toRealEstate(
+                currency = NZD,
+                code = "OWNER-HOUSE",
+                name = "Owner House",
+                owner = sysUser.id
+            )
+        assetService.handle(
+            AssetRequest(
+                mapOf("savings" to account, "house" to reAsset)
+            )
+        )
+
+        // findByOwner returns all categories
+        val allAssets = ownedAssetService.findByOwner()
+        assertThat(allAssets.data)
+            .containsKey("OWNER-SAVINGS")
+            .containsKey("OWNER-HOUSE")
+
+        // findByOwnerAndCategory filters correctly
+        val accountsOnly = ownedAssetService.findByOwnerAndCategory(AssetCategory.ACCOUNT)
+        assertThat(accountsOnly.data)
+            .containsKey("OWNER-SAVINGS")
+            .doesNotContainKey("OWNER-HOUSE")
+
+        val reOnly = ownedAssetService.findByOwnerAndCategory(AssetCategory.RE)
+        assertThat(reOnly.data)
+            .containsKey("OWNER-HOUSE")
+            .doesNotContainKey("OWNER-SAVINGS")
+    }
+
+    @Test
+    fun isUpdateOwnedAssetChangingFields() {
+        val sysUser = SystemUser(id = "update-test-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+
+        val original =
+            AssetInput.toAccount(
+                currency = USD,
+                code = "UPDATE-ACCT",
+                name = "Original Name",
+                owner = sysUser.id
+            )
+        val response = assetService.handle(AssetRequest(mapOf("update" to original)))
+        val createdAsset = response.data["update"]!!
+
+        // Update name and currency
+        val updateInput =
+            AssetInput(
+                market = "PRIVATE",
+                code = "UPDATE-ACCT",
+                name = "Updated Name",
+                currency = NZD.code,
+                category = AssetCategory.ACCOUNT,
+                owner = sysUser.id
+            )
+        val updated = ownedAssetService.updateOwnedAsset(createdAsset.id, updateInput)
+        assertThat(updated)
+            .hasFieldOrPropertyWithValue("name", "Updated Name")
+            .hasFieldOrPropertyWithValue("accountingType.currency.code", NZD.code)
+    }
+
+    @Test
+    fun isDeleteOwnedAssetRejectedForWrongUser() {
+        val owner = SystemUser(id = "asset-owner")
+        mockAuthConfig.login(owner, this.systemUserService)
+
+        val account =
+            AssetInput.toAccount(
+                currency = USD,
+                code = "WRONG-USER-DELETE",
+                name = "Owner's Asset",
+                owner = owner.id
+            )
+        val response = assetService.handle(AssetRequest(mapOf("test" to account)))
+        val asset = response.data["test"]!!
+
+        // Switch to different user
+        val otherUser = SystemUser(id = "other-user")
+        mockAuthConfig.login(otherUser, this.systemUserService)
+
+        assertThatThrownBy { ownedAssetService.deleteOwnedAsset(asset.id) }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("not owned")
+    }
+
+    @Test
+    fun isUpdateOwnedAssetRejectedForWrongUser() {
+        val owner = SystemUser(id = "update-owner")
+        mockAuthConfig.login(owner, this.systemUserService)
+
+        val account =
+            AssetInput.toAccount(
+                currency = USD,
+                code = "WRONG-USER-UPDATE",
+                name = "Owner's Asset",
+                owner = owner.id
+            )
+        val response = assetService.handle(AssetRequest(mapOf("test" to account)))
+        val asset = response.data["test"]!!
+
+        // Switch to different user
+        val otherUser = SystemUser(id = "update-other-user")
+        mockAuthConfig.login(otherUser, this.systemUserService)
+
+        val updateInput =
+            AssetInput(
+                market = "PRIVATE",
+                code = "WRONG-USER-UPDATE",
+                name = "Hacked Name",
+                category = AssetCategory.ACCOUNT
+            )
+        assertThatThrownBy { ownedAssetService.updateOwnedAsset(asset.id, updateInput) }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("not owned")
+    }
+
+    @Test
+    fun isDeleteNonExistentAssetThrowingNotFound() {
+        val sysUser = SystemUser(id = "not-found-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+
+        assertThatThrownBy { ownedAssetService.deleteOwnedAsset("non-existent-id") }
+            .isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun isGetCurrentOwnerIdReturningUserId() {
+        val sysUser = SystemUser(id = "owner-id-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+
+        assertThat(ownedAssetService.getCurrentOwnerId()).isEqualTo(sysUser.id)
     }
 }

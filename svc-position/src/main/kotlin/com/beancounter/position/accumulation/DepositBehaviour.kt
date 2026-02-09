@@ -29,12 +29,13 @@ class DepositBehaviour(
                 positions
             )
         val quantity = if (TrnType.isCash(trn.trnType)) trn.quantity else trn.cashAmount
-        val result = cashAccumulator.accumulate(
-            cashPosition,
-            position,
-            quantity,
-            trn
-        )
+        val result =
+            cashAccumulator.accumulate(
+                cashPosition,
+                position,
+                quantity,
+                trn
+            )
         if (!trn.subAccounts.isNullOrEmpty()) {
             trn.subAccounts!!.forEach { (code, amount) ->
                 position.subAccounts[code] =

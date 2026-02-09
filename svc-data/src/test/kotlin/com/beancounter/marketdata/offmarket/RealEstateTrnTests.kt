@@ -69,6 +69,9 @@ class RealEstateTrnTests {
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
+
+    @Autowired
+    private lateinit var defaultEnricher: DefaultEnricher
     val tenK = BigDecimal("10000.00")
     private val pTradeAmount = "tradeAmount"
     private val pCashAmount = "cashAmount"
@@ -83,7 +86,7 @@ class RealEstateTrnTests {
             )
 
         assertThat(figiProxy).isNotNull
-        enrichmentFactory.register(DefaultEnricher())
+        enrichmentFactory.register(defaultEnricher)
         Mockito
             .`when`(
                 fxClientService.getRates(

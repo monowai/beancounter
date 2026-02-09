@@ -103,7 +103,7 @@ class RealEstateAssetTest {
                 "name",
                 reInput.name
             ).hasFieldOrPropertyWithValue(
-                "priceSymbol",
+                "accountingType.currency.code",
                 NZD.code
             ).hasFieldOrPropertyWithValue(
                 "systemUser",

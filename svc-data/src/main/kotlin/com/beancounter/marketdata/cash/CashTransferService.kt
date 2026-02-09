@@ -136,14 +136,6 @@ class CashTransferService(
         return CashTransferResponse(transactions)
     }
 
-    /**
-     * Get the currency code for a cash asset.
-     * For CASH/PRIVATE markets, use priceSymbol which stores the currency.
-     * For other markets, use the market's currency.
-     */
     private fun getCashAssetCurrency(asset: com.beancounter.common.model.Asset): String =
-        when (asset.marketCode) {
-            CASH, "PRIVATE" -> asset.priceSymbol ?: asset.market.currency.code
-            else -> asset.market.currency.code
-        }
+        asset.accountingType?.currency?.code ?: asset.market.currency.code
 }

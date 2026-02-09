@@ -73,6 +73,9 @@ class CashLadderTest {
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
+    @Autowired
+    private lateinit var defaultEnricher: DefaultEnricher
+
     private lateinit var bcMvcHelper: BcMvcHelper
 
     @BeforeEach
@@ -85,7 +88,7 @@ class CashLadderTest {
             )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
-        enrichmentFactory.register(DefaultEnricher())
+        enrichmentFactory.register(defaultEnricher)
         Mockito
             .`when`(
                 fxClientService.getRates(

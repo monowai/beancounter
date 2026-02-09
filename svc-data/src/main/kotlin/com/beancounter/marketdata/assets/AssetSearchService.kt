@@ -414,7 +414,7 @@ class AssetSearchService(
             name = asset.name ?: displayCode,
             type = asset.category,
             region = "PRIVATE",
-            currency = asset.priceSymbol,
+            currency = asset.accountingType?.currency?.code,
             market = "PRIVATE",
             assetId = asset.id
         )
@@ -430,7 +430,7 @@ class AssetSearchService(
             }
         // market is @Transient so resolve currency from MarketService
         val currency =
-            asset.priceSymbol
+            asset.accountingType?.currency?.code
                 ?: try {
                     marketService.getMarket(asset.marketCode).currency.code
                 } catch (

@@ -3,8 +3,10 @@ package com.beancounter.marketdata.providers.marketstack
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
+import com.beancounter.marketdata.currency.CurrencyService
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -19,7 +21,9 @@ import java.util.Locale
 class MarketStackEnricher(
     private val marketStackGateway: MarketStackGateway,
     private val marketStackConfig: MarketStackConfig,
-    private val defaultEnricher: DefaultEnricher
+    private val defaultEnricher: DefaultEnricher,
+    private val accountingTypeService: AccountingTypeService,
+    private val currencyService: CurrencyService
 ) : AssetEnricher {
     private val log = LoggerFactory.getLogger(MarketStackEnricher::class.java)
 
@@ -61,13 +65,17 @@ class MarketStackEnricher(
                 val marketAlias = market.getAlias(MarketStackService.ID)
                 val priceSymbol =
                     if (!marketAlias.isNullOrEmpty()) {
-                        // Extract base code and append market alias
                         val baseCode = ticker.symbol.substringBefore(".")
                         "$baseCode.$marketAlias"
                     } else {
                         ticker.symbol
                     }
-
+                val currency = currencyService.getCode(market.currencyId)
+                val accountingType =
+                    accountingTypeService.getOrCreate(
+                        category = "Equity",
+                        currency = currency
+                    )
                 Asset(
                     code = assetInput.code.uppercase(Locale.getDefault()),
                     id = id,
@@ -75,7 +83,8 @@ class MarketStackEnricher(
                     market = market,
                     marketCode = market.code,
                     priceSymbol = priceSymbol,
-                    category = "Equity"
+                    category = "Equity",
+                    accountingType = accountingType
                 )
             } else {
                 log.debug("No MarketStack ticker found for ${assetInput.code} on ${market.code}")

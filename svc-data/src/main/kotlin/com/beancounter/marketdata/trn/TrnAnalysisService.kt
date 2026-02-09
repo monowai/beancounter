@@ -218,7 +218,7 @@ class TrnAnalysisService(
      * @param months Number of months to include (default 12)
      * @param endMonth End month (default current month)
      * @param portfolioIds Optional list of portfolio IDs to filter by
-     * @param groupBy Grouping option: "assetClass", "sector", "currency", or "market"
+     * @param groupBy Grouping option: "assetClass" (public API name for AccountingType category), "sector", "currency", or "market"
      * @return MonthlyIncomeResponse with aggregated income data
      */
     fun getMonthlyIncome(

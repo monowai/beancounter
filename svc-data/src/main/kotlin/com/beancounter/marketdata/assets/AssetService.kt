@@ -11,10 +11,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.registration.SystemUserService
-import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
@@ -33,17 +30,12 @@ import java.util.UUID
     MarketDataService::class
 )
 @Transactional
-@Suppress("TooManyFunctions") // AssetService has 12 functions, threshold is 11
 class AssetService(
     private val enrichmentFactory: EnrichmentFactory,
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
     private val keyGenUtils: KeyGenUtils,
     private val assetFinder: AssetFinder,
-    private val systemUserService: SystemUserService,
-    private val assetCategoryConfig: AssetCategoryConfig,
-    private val marketDataRepo: MarketDataRepo,
-    private val trnRepository: TrnRepository,
     transactionManager: PlatformTransactionManager
 ) : Assets {
     // New transaction template for recovery lookups after constraint violations
@@ -62,10 +54,11 @@ class AssetService(
                     AssetInput(
                         asset.market.code,
                         asset.code,
-                        category = asset.category.uppercase()
+                        category = asset.category.uppercase(),
+                        currency = asset.accountingType?.currency?.code ?: asset.market.currency.code
                     )
                 )
-            assetRepository.save(enriched) // Hmm, not sure the Repo should be here
+            assetRepository.save(enriched)
             return enriched
         }
         return asset
@@ -152,114 +145,6 @@ class AssetService(
             foundAsset
         }
     }
-
-    /**
-     * Find all assets owned by the current user with a specific category.
-     */
-    fun findByOwnerAndCategory(category: String): AssetUpdateResponse {
-        val user =
-            systemUserService.getActiveUser()
-                ?: return AssetUpdateResponse(emptyMap())
-        val assets = assetRepository.findBySystemUserIdAndCategory(user.id, category.uppercase())
-        return AssetUpdateResponse(
-            assets.associate { getDisplayCode(it.code) to assetFinder.hydrateAsset(it) }
-        )
-    }
-
-    /**
-     * Find all assets owned by the current user (all categories).
-     */
-    fun findByOwner(): AssetUpdateResponse {
-        val user =
-            systemUserService.getActiveUser()
-                ?: return AssetUpdateResponse(emptyMap())
-        val assets = assetRepository.findBySystemUserId(user.id)
-        return AssetUpdateResponse(
-            assets.associate { getDisplayCode(it.code) to assetFinder.hydrateAsset(it) }
-        )
-    }
-
-    /**
-     * Extract the display code from a full asset code, stripping the owner prefix.
-     * e.g., "userId.WISE" -> "WISE"
-     */
-    private fun getDisplayCode(code: String): String {
-        val dotIndex = code.lastIndexOf(".")
-        return if (dotIndex >= 0) code.substring(dotIndex + 1) else code
-    }
-
-    /**
-     * Delete an asset owned by the current user.
-     * Cascades deletion to associated transactions and market data.
-     * @throws NotFoundException if asset not found
-     * @throws BusinessException if asset not owned by current user
-     */
-    fun deleteOwnedAsset(assetId: String) {
-        val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
-        val asset =
-            assetRepository.findById(assetId).orElseThrow {
-                NotFoundException("Asset not found: $assetId")
-            }
-        if (asset.systemUser?.id != user.id) {
-            throw BusinessException("Asset not owned by current user")
-        }
-        // Delete associated transactions first
-        trnRepository.deleteByAssetId(assetId)
-        // Delete associated market data
-        marketDataRepo.deleteByAssetId(assetId)
-        assetRepository.delete(asset)
-    }
-
-    /**
-     * Update an asset owned by the current user.
-     * Allows updating code, name, currency (priceSymbol), and category.
-     * @throws NotFoundException if asset not found
-     * @throws BusinessException if asset not owned by current user
-     */
-    fun updateOwnedAsset(
-        assetId: String,
-        assetInput: AssetInput
-    ): Asset {
-        val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
-        val asset =
-            assetRepository.findById(assetId).orElseThrow {
-                NotFoundException("Asset not found: $assetId")
-            }
-        if (asset.systemUser?.id != user.id) {
-            throw BusinessException("Asset not owned by current user")
-        }
-        // Update allowed fields
-        if (assetInput.code.isNotBlank()) {
-            // Preserve user prefix when updating code
-            val newCode = "${user.id}.${assetInput.code.uppercase()}"
-            asset.code = newCode
-        }
-        assetInput.name?.let { asset.name = it }
-        assetInput.currency?.let { asset.priceSymbol = it }
-        // Update category if provided and different from default
-        if (assetInput.category.isNotBlank() && assetInput.category != "Equity") {
-            val newCategory = assetCategoryConfig.get(assetInput.category.uppercase())
-            if (newCategory != null) {
-                asset.assetCategory = newCategory
-                asset.category = newCategory.id
-            }
-        }
-        // Update expected return rate for retirement projections
-        assetInput.expectedReturnRate?.let { asset.expectedReturnRate = it }
-        return assetFinder.hydrateAsset(assetRepository.save(asset))
-    }
-
-    /**
-     * Get the current user's ID for asset ownership.
-     * @throws BusinessException if user not authenticated
-     */
-    fun getCurrentOwnerId(): String =
-        systemUserService.getActiveUser()?.id
-            ?: throw BusinessException("User not authenticated")
 
     /**
      * Update the status of an asset.

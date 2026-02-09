@@ -79,6 +79,15 @@ class MarketDataPriceProcessor(
                 val existingPrices = getExistingPrices(provider, assets, priceDate)
 
                 val (foundInDb, remainingAssets) = processExistingPrices(existingPrices, assets)
+                if (remainingAssets.isNotEmpty() && provider.isApiSupported()) {
+                    log.trace(
+                        "Cache miss for {} of {} assets on {} via {} - requesting from API",
+                        remainingAssets.size,
+                        assets.size,
+                        priceDate,
+                        provider.getId()
+                    )
+                }
                 val newPrices = getNewPricesFromProvider(remainingAssets, priceDate, provider, priceRequest)
 
                 results
@@ -201,7 +210,7 @@ class MarketDataPriceProcessor(
             }
 
         if (fallbackPrices.isNotEmpty()) {
-            log.info(
+            log.trace(
                 "Market closed on {} - using {} fallback prices from previous trading day",
                 priceDate,
                 fallbackPrices.size

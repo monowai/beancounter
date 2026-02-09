@@ -185,13 +185,13 @@ spring:
 resilience4j:
   ratelimiter:
     instances:
-      # AlphaVantage: Free tier = 25/day, Standard = 5/min, Premium = 75/min
+      # AlphaVantage: Premium = 75/min
       # Spread requests evenly to avoid burst-prevention at AWS/NASDAQ/NYSE
-      # Local dev: 1 per 12s (5/min). Production: 1 per 800ms (75/min, no bursting)
+      # 1 per 800ms (75/min, no bursting) - aligned with kauri.yaml
       alphaVantage:
         registerHealthIndicator: false
         limitForPeriod: 1
-        limitRefreshPeriod: 12s
+        limitRefreshPeriod: 800ms
         timeoutDuration: 120s
         eventConsumerBufferSize: 200
       morningstar:

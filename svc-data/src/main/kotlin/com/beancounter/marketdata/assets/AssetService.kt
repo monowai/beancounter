@@ -105,7 +105,19 @@ class AssetService(
     }
 
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
-        val assets = assetRepository.findAllById(priceRequest.assets.map { it.assetId })
+        val assetIds = priceRequest.assets.map { it.assetId }
+        val assets = assetRepository.findAllById(assetIds)
+        val resolvedCount =
+            priceRequest.assets.count { priceAsset ->
+                assets.find { it.id == priceAsset.assetId } != null
+            }
+        if (resolvedCount < assetIds.size) {
+            log.warn(
+                "Resolved {} of {} assets from database",
+                resolvedCount,
+                assetIds.size
+            )
+        }
         val resolvedAssets =
             priceRequest.assets.map { priceAsset ->
                 val asset = assets.find { it.id == priceAsset.assetId }

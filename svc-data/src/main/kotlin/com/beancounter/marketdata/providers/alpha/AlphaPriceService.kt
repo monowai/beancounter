@@ -13,6 +13,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -66,15 +67,17 @@ class AlphaPriceService(
         val requests = mutableMapOf<Int, Deferred<String>>()
 
         runBlocking {
-            for (batchId in providerArguments.batch.keys) {
-                requests[batchId] =
-                    async(Dispatchers.IO) {
-                        if (priceRequest.currentMode) {
-                            alphaProxy.getCurrent(providerArguments.batch[batchId]!!, apiKey)
-                        } else {
-                            alphaProxy.getHistoric(providerArguments.batch[batchId]!!, apiKey)
+            supervisorScope {
+                for (batchId in providerArguments.batch.keys) {
+                    requests[batchId] =
+                        async(Dispatchers.IO) {
+                            if (priceRequest.currentMode) {
+                                alphaProxy.getCurrent(providerArguments.batch[batchId]!!, apiKey)
+                            } else {
+                                alphaProxy.getHistoric(providerArguments.batch[batchId]!!, apiKey)
+                            }
                         }
-                    }
+                }
             }
         }
 
@@ -88,6 +91,7 @@ class AlphaPriceService(
         requests: MutableMap<Int, Deferred<String>>
     ): Collection<MarketData> {
         val results = mutableListOf<MarketData>()
+        var failed = 0
 
         while (requests.isNotEmpty()) {
             val completedBatches =
@@ -96,14 +100,26 @@ class AlphaPriceService(
                 }
 
             completedBatches.forEach { (batchId, requestDeferred) ->
-                results.addAll(
-                    alphaPriceAdapter[providerArguments, batchId, requestDeferred.await()]
-                )
-
-                log.trace("Processed batch ${requests.remove(batchId)}")
+                requests.remove(batchId)
+                try {
+                    results.addAll(
+                        alphaPriceAdapter[providerArguments, batchId, requestDeferred.await()]
+                    )
+                } catch (e: Exception) {
+                    failed++
+                    log.warn("Batch {} failed: {}", batchId, e.message)
+                }
             }
         }
 
+        if (failed > 0) {
+            log.warn(
+                "Retrieved {} of {} prices ({} failed)",
+                results.size,
+                results.size + failed,
+                failed
+            )
+        }
         return results
     }
 

@@ -78,6 +78,8 @@ interface AssetRepository : CrudRepository<Asset, String> {
     )
     fun findActiveEquities(): List<Asset>
 
+    fun countByAccountingTypeId(id: String): Long
+
     /**
      * Search all assets in the database by code or name (case-insensitive partial match).
      * Used for local-only asset lookup to find assets without calling external providers.

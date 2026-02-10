@@ -64,8 +64,11 @@ class TrnTypeTest {
     fun `cash transaction types are identified correctly`() {
         assertThat(TrnType.isCash(TrnType.DEPOSIT)).isTrue()
         assertThat(TrnType.isCash(TrnType.WITHDRAWAL)).isTrue()
-        assertThat(TrnType.isCash(TrnType.INCOME)).isTrue()
         assertThat(TrnType.isCash(TrnType.DEDUCTION)).isTrue()
+
+        // Asset-related types that impact cash but aren't pure cash transactions
+        assertThat(TrnType.isCash(TrnType.INCOME)).isFalse()
+        assertThat(TrnType.isCash(TrnType.EXPENSE)).isFalse()
 
         // Non-cash transactions
         assertThat(TrnType.isCash(TrnType.BUY)).isFalse()

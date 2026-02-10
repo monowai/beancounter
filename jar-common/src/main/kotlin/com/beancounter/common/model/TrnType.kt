@@ -56,7 +56,6 @@ enum class TrnType {
             (
                 trnType == DEPOSIT ||
                     trnType == WITHDRAWAL ||
-                    trnType == INCOME ||
                     trnType == DEDUCTION
             )
 

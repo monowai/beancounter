@@ -107,7 +107,9 @@ data class Trn(
     @Column(name = "model_id", length = 36)
     var modelId: String? = null,
     @JdbcTypeCode(SqlTypes.JSON)
-    var subAccounts: Map<String, BigDecimal>? = null
+    var subAccounts: Map<String, BigDecimal>? = null,
+    @ManyToOne
+    var createdBy: SystemUser? = null
 ) {
     companion object {
         const val VERSION: String = "4"

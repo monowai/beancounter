@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
@@ -27,7 +28,8 @@ class PortfolioService(
     private val portfolioRepository: PortfolioRepository,
     private val trnRepository: TrnRepository,
     private val systemUserService: SystemUserService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
+    private val portfolioShareRepository: PortfolioShareRepository
 ) {
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = systemUserService.getOrThrow()
@@ -53,7 +55,13 @@ class PortfolioService(
     fun isViewable(
         systemUser: SystemUser,
         portfolio: Portfolio
-    ): Boolean = systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id
+    ): Boolean {
+        if (systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id) {
+            return true
+        }
+        val share = portfolioShareRepository.findByPortfolioAndSharedWith(portfolio, systemUser)
+        return share.isPresent && share.get().status == ShareStatus.ACTIVE
+    }
 
     /**
      * Returns portfolios for the current user.

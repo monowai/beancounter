@@ -103,6 +103,8 @@ class SystemUserService(
         return systemUserCache.find(email, id)
     }
 
+    fun findByEmail(email: String): SystemUser? = systemUserRepository.findByEmail(email).orElse(null)
+
     fun getActiveUser(): SystemUser? = find(tokenService.subject)
 
     fun getOrThrow(): SystemUser {

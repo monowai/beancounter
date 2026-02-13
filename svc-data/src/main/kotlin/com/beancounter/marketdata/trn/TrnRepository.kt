@@ -5,8 +5,10 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.query.Param
 import java.time.LocalDate
 import java.util.Optional
 
@@ -34,6 +36,12 @@ interface TrnRepository : CrudRepository<Trn, String> {
     fun deleteByPortfolioId(portfolioId: String): Long
 
     fun deleteByAssetId(assetId: String): Long
+
+    @Modifying
+    @Query("UPDATE Trn t SET t.cashAsset = null WHERE t.cashAsset.id = :assetId")
+    fun clearCashAssetReferences(
+        @Param("assetId") assetId: String
+    ): Int
 
     /**
      * Find settled trade transactions for a specific broker across all portfolios owned by the user.

@@ -5,6 +5,10 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
+import com.beancounter.marketdata.classification.AssetClassificationRepository
+import com.beancounter.marketdata.classification.AssetExposureRepository
+import com.beancounter.marketdata.classification.AssetHoldingRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.registration.SystemUserService
@@ -26,7 +30,12 @@ class OwnedAssetService(
     private val accountingTypeService: AccountingTypeService,
     private val currencyService: CurrencyService,
     private val marketDataRepo: MarketDataRepo,
-    private val trnRepository: TrnRepository
+    private val trnRepository: TrnRepository,
+    private val assetClassificationRepository: AssetClassificationRepository,
+    private val assetExposureRepository: AssetExposureRepository,
+    private val assetHoldingRepository: AssetHoldingRepository,
+    private val privateAssetConfigRepository: PrivateAssetConfigRepository,
+    private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository
 ) {
     /**
      * Find all assets owned by the current user with a specific category.
@@ -80,10 +89,15 @@ class OwnedAssetService(
         if (asset.systemUser?.id != user.id) {
             throw BusinessException("Asset not owned by current user")
         }
-        // Delete associated transactions first
+        // Delete in FK dependency order
+        trnRepository.clearCashAssetReferences(assetId)
         trnRepository.deleteByAssetId(assetId)
-        // Delete associated market data
         marketDataRepo.deleteByAssetId(assetId)
+        assetClassificationRepository.deleteByAssetId(assetId)
+        assetExposureRepository.deleteByAssetId(assetId)
+        assetHoldingRepository.deleteByAssetId(assetId)
+        brokerSettlementAccountRepository.deleteByAccountId(assetId)
+        privateAssetConfigRepository.deleteById(assetId)
         assetRepository.delete(asset)
     }
 

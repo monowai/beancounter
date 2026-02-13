@@ -13,4 +13,8 @@ interface BrokerSettlementAccountRepository : JpaRepository<BrokerSettlementAcco
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM BrokerSettlementAccount b WHERE b.broker.id = :brokerId")
     fun deleteByBrokerId(brokerId: String)
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM BrokerSettlementAccount b WHERE b.account.id = :accountId")
+    fun deleteByAccountId(accountId: String)
 }

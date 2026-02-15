@@ -370,7 +370,7 @@ beancounter:
         name: "New Zealand Exchange"
         timezoneId: "Pacific/Auckland"
         currencyId: "NZD"
-        enricher: "FIGI"
+        enricher: "FIGI,MSTACK"
         aliases:
           mstack: "NZ"
           alpha: "NZ"
@@ -380,7 +380,7 @@ beancounter:
         name: "Singapore Exchange"
         currencyId: "SGD"
         timezoneId: "Asia/Singapore"
-        enricher: "FIGI"
+        enricher: "FIGI,MSTACK"
         aliases:
           mstack: "SI"
           FIGI: "SP"

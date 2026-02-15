@@ -39,12 +39,13 @@ class EnrichmentFactory(
     }
 
     fun getEnricher(market: Market): AssetEnricher {
-        var enricher = market.enricher
-        if (enricher == null) {
-            enricher = defEnricher
+        val enricherConfig = (market.enricher ?: defEnricher).uppercase(Locale.getDefault())
+        val parts = enricherConfig.split(",").map { it.trim() }
+        if (parts.size == 1) {
+            return enrichers[parts[0]]!!
         }
-
-        return enrichers[enricher.uppercase(Locale.getDefault())]!!
+        val chain = parts.mapNotNull { enrichers[it] }
+        return ChainedEnricher(chain, defaultEnricher)
     }
 
     companion object {

@@ -121,7 +121,7 @@ class AlphaEnricher(
         return match == currencyId
     }
 
-    override fun canEnrich(asset: Asset): Boolean = asset.name == null
+    override fun canEnrich(asset: Asset): Boolean = asset.name.isNullOrBlank()
 
     override fun id(): String = "ALPHA"
 }

@@ -100,7 +100,7 @@ class MarketStackEnricher(
     }
 
     override fun canEnrich(asset: Asset): Boolean =
-        asset.name == null && marketStackMicCodes.containsKey(asset.market.code.uppercase())
+        asset.name.isNullOrBlank() && marketStackMicCodes.containsKey(asset.market.code.uppercase())
 
     override fun id(): String = ID
 

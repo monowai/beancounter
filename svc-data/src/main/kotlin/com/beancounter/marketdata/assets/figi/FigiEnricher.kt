@@ -38,7 +38,7 @@ class FigiEnricher(
             assetInput
         )
 
-    override fun canEnrich(asset: Asset): Boolean = asset.name == null
+    override fun canEnrich(asset: Asset): Boolean = asset.name.isNullOrBlank()
 
     override fun id(): String = "FIGI"
 }

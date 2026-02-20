@@ -62,7 +62,7 @@ class PriceController(
         description = """
             Retrieves current market price information for an asset using market and asset codes.
             Format: Market:Asset (e.g., NYSE:MSFT)
-            
+
             Use this to:
             * Get current prices for assets by market and ticker
             * Retrieve price data for display or calculations
@@ -104,24 +104,27 @@ class PriceController(
         ]
     )
     fun getPrice(
-        @Parameter(
+        @PathVariable @Parameter(
             description = "Market code (e.g., NYSE, NASDAQ, ASX)",
             example = "NYSE"
-        )
-        @PathVariable("marketCode") marketCode: String,
-        @Parameter(
+        ) marketCode: String,
+        @PathVariable @Parameter(
             description = "Asset ticker code",
             example = "MSFT"
+        ) assetCode: String,
+        @Parameter(
+            description = "Price date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
         )
-        @PathVariable("assetCode") assetCode: String
-    ): PriceResponse = marketDataService.getPriceResponse(marketCode, assetCode)
+        @RequestParam(required = false) asAt: String = TODAY
+    ): PriceResponse = marketDataService.getPriceResponse(marketCode, assetCode, asAt)
 
     @GetMapping(value = ["/{assetId}"])
     @Operation(
         summary = "Get price by asset ID",
         description = """
             Retrieves current market price information for an asset using its internal ID.
-            
+
             Use this to:
             * Get prices for assets using their internal identifier
             * Retrieve price data for known assets
@@ -159,7 +162,7 @@ class PriceController(
         summary = "Get corporate events for asset",
         description = """
             Retrieves corporate events (dividends, splits, etc.) for a specific asset.
-            
+
             Use this to:
             * View dividend history and corporate actions
             * Track event impact on asset prices
@@ -192,7 +195,7 @@ class PriceController(
         description = """
             Writes a custom price for an asset (off-market pricing).
             This is useful for private assets or custom valuations.
-            
+
             Use this to:
             * Set custom prices for private assets
             * Override market prices with custom valuations
@@ -234,7 +237,7 @@ class PriceController(
         description = """
             Retrieves prices for multiple assets in a single request.
             This endpoint handles bulk price retrieval efficiently.
-            
+
             Use this to:
             * Get prices for multiple assets at once
             * Retrieve portfolio price data
@@ -312,7 +315,7 @@ class PriceController(
         description = """
             Initiates a backfill of corporate events for a specific asset.
             This is an asynchronous operation that processes historical events.
-            
+
             Use this to:
             * Populate missing corporate event data
             * Refresh event history for an asset

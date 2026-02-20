@@ -202,6 +202,87 @@ internal class PriceControllerTests
                 )
         }
 
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
+        fun is_HistoricalPriceReturnedForAsAt() {
+            val historicalDate = "2024-01-15"
+            val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)
+            val historicalPriceDate =
+                marketDataProvider.getDate(
+                    asset.market,
+                    PriceRequest(
+                        date = historicalDate,
+                        assets = listOf(PriceAsset(asset)),
+                        currentMode = false
+                    )
+                )
+            val historicalPrice = BigDecimal("888.88")
+            `when`(
+                marketDataRepo.findByAssetIdAndPriceDate(
+                    asset.id,
+                    historicalPriceDate
+                )
+            ).thenReturn(
+                Optional.of(
+                    MarketData(
+                        asset,
+                        close = historicalPrice,
+                        open = historicalPrice,
+                        priceDate = historicalPriceDate
+                    )
+                )
+            )
+            `when`(
+                marketDataRepo.findByAssetInAndPriceDate(
+                    listOf(asset),
+                    historicalPriceDate
+                )
+            ).thenReturn(
+                listOf(
+                    MarketData(
+                        asset,
+                        close = historicalPrice,
+                        open = historicalPrice,
+                        priceDate = historicalPriceDate
+                    )
+                )
+            )
+
+            val json =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .get(
+                                "/prices/{marketId}/{assetId}",
+                                asset.market.code,
+                                asset.code
+                            ).param("asAt", historicalDate)
+                            .with(
+                                SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                            ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(
+                        MockMvcResultMatchers.status().isOk
+                    ).andExpect(
+                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andReturn()
+                    .response.contentAsString
+            val (data) = objectMapper.readValue<PriceResponse>(json)
+            assertThat(data).isNotNull.hasSize(1)
+            val marketData = data.iterator().next()
+            assertThat(marketData)
+                .hasFieldOrPropertyWithValue(
+                    "close",
+                    historicalPrice
+                ).hasFieldOrPropertyWithValue(
+                    "priceDate",
+                    historicalPriceDate
+                )
+        }
+
         private val assetCode = "assetCode"
 
         @Test

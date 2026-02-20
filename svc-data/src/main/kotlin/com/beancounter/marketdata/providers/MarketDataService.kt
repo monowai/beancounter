@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import org.springframework.context.annotation.Import
@@ -32,11 +33,12 @@ class MarketDataService(
 
     fun getPriceResponse(
         market: String,
-        assetCode: String
+        assetCode: String,
+        date: String = TODAY
     ): PriceResponse {
         val asset = getAssetLocally(market, assetCode)
         return if (asset != null) {
-            getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
+            getPriceResponse(PriceRequest(date = date, assets = listOf(PriceAsset(asset))))
         } else {
             PriceResponse(emptyList())
         }

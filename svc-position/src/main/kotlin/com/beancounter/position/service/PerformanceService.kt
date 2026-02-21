@@ -60,16 +60,23 @@ class PerformanceService(
         portfolio: Portfolio,
         months: Int = 12
     ): PerformanceResponse {
+        val endDate = dateUtils.date
+        val startDate = endDate.minusMonths(months.toLong())
+
         // Check cache BEFORE fetching transactions to skip all HTTP calls on hit
         val cached = tryLoadFromCache(portfolio.id)
         if (cached != null) {
-            log.debug("Cache HIT: portfolio={}, snapshots={}", portfolio.code, cached.size)
-            return buildResponseFromCache(portfolio, cached)
+            val filtered = cached.filter { !it.valuationDate.isBefore(startDate) }
+            log.debug(
+                "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
+                portfolio.code,
+                filtered.size,
+                cached.size
+            )
+            return buildResponseFromCache(portfolio, filtered)
         }
 
         val token = tokenService.bearerToken
-        val endDate = dateUtils.date
-        val startDate = endDate.minusMonths(months.toLong())
 
         val transactions = fetchAndSortTransactions(portfolio)
         if (transactions.isEmpty()) return emptyResponse(portfolio)

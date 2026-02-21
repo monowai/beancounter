@@ -134,6 +134,68 @@ class PerformanceServiceCacheTest {
     }
 
     @Test
+    fun `cache hit filters snapshots to requested months window`() {
+        whenever(cacheService.isAvailable()).thenReturn(true)
+
+        // Cache has 12 months of data
+        val now = LocalDate.now()
+        val cachedSnapshots =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(12),
+                    marketValue = BigDecimal("10000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(6),
+                    marketValue = BigDecimal("12000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(3),
+                    marketValue = BigDecimal("13000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(1),
+                    marketValue = BigDecimal("14000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now,
+                    marketValue = BigDecimal("15000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            )
+        whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
+            .thenReturn(cachedSnapshots)
+
+        // Request only 3 months — should filter out older snapshots
+        val result = performanceService.calculate(portfolio, 3)
+
+        assertThat(result.data.series).isNotEmpty()
+        // Should only include snapshots within 3 months of today
+        val dates = result.data.series.map { it.date }
+        val threeMonthsAgo = now.minusMonths(3)
+        assertThat(dates).allSatisfy { date ->
+            assertThat(date).isAfterOrEqualTo(threeMonthsAgo)
+        }
+        // The 12-month and 6-month snapshots should be excluded
+        assertThat(dates).doesNotContain(now.minusMonths(12))
+        assertThat(dates).doesNotContain(now.minusMonths(6))
+    }
+
+    @Test
     fun `cache miss stores results`() {
         val buyDate = LocalDate.now().minusMonths(6)
         val buyTrn =

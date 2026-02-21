@@ -2,11 +2,11 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.3.10"
 kotlinter = "5.1.1"
 detekt = "1.23.8"
-spring-boot = "3.5.9"
-spring-cloud = "2025.0.0"
+spring-boot = "3.5.11"
+spring-cloud = "2025.0.1"
 spring-cloud-contract = "4.3.1"
 spring-data-bom = "2025.0.3"
 spring-kafka = "3.3.8"

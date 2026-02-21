@@ -17,7 +17,7 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         date: LocalDate?
     ): Optional<MarketData>
 
-    fun findTop1ByAssetAndPriceDateLessThanEqual(
+    fun findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
         asset: Asset,
         priceDate: LocalDate
     ): Optional<MarketData>
@@ -37,6 +37,14 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
     fun findByAssetInAndPriceDate(
         @Param("assets") assets: Collection<Asset>,
         @Param("priceDate") priceDate: LocalDate
+    ): List<MarketData>
+
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate IN :dates"
+    )
+    fun findByAssetInAndPriceDateIn(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("dates") dates: Collection<LocalDate>
     ): List<MarketData>
 
     /**

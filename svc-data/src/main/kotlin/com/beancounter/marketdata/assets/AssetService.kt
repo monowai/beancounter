@@ -3,6 +3,7 @@ package com.beancounter.marketdata.assets
 import com.beancounter.client.Assets
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
@@ -103,6 +104,23 @@ class AssetService(
         }
         throw BusinessException("Unable to resolve asset ${assetInput.code}")
     }
+
+    fun resolveAsset(priceAsset: PriceAsset): Asset? =
+        try {
+            if (priceAsset.assetId.isNotBlank()) {
+                assetFinder.find(priceAsset.assetId)
+            } else {
+                assetFinder.findLocally(AssetInput(priceAsset.market, priceAsset.code))
+            }
+        } catch (_: Exception) {
+            log.warn(
+                "Could not resolve asset: market={}, code={}, id={}",
+                priceAsset.market,
+                priceAsset.code,
+                priceAsset.assetId
+            )
+            null
+        }
 
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
         val assetIds = priceRequest.assets.map { it.assetId }

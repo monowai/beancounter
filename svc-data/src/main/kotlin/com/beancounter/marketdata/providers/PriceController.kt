@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.contracts.BulkPriceRequest
+import com.beancounter.common.contracts.BulkPriceResponse
 import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
@@ -304,6 +306,19 @@ class PriceController(
             assetId,
             asAt
         )
+
+    @PostMapping("/bulk")
+    @Operation(
+        summary = "Get prices for multiple assets across multiple dates",
+        description = """
+            Retrieves prices for multiple assets across multiple dates in a single call.
+            DB-only — does not trigger external provider calls.
+            For dates without exact matches (weekends/holidays), returns the nearest prior price.
+        """
+    )
+    fun getBulkPrices(
+        @RequestBody bulkPriceRequest: BulkPriceRequest
+    ): BulkPriceResponse = marketDataService.getBulkAssetPrices(bulkPriceRequest)
 
     @PostMapping(
         value = ["/{assetId}/events"],

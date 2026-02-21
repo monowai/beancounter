@@ -226,6 +226,51 @@ class PriceService(
     }
 
     /**
+     * Get market data for multiple assets across multiple dates (DB-only, no provider calls).
+     * For dates without exact matches (weekends/holidays), falls back to the nearest prior price.
+     * Returns a map keyed by date string.
+     */
+    @Transactional
+    fun getBulkMarketData(
+        assets: Collection<Asset>,
+        dates: Collection<LocalDate>
+    ): Map<String, List<MarketData>> {
+        if (assets.isEmpty() || dates.isEmpty()) return emptyMap()
+
+        // Single query for all exact matches
+        val exactMatches = marketDataRepo.findByAssetInAndPriceDateIn(assets, dates)
+        val exactByDateAsset =
+            exactMatches.groupBy { it.priceDate }.mapValues { (_, mds) ->
+                mds.associateBy { it.asset.id }
+            }
+
+        val result = mutableMapOf<String, List<MarketData>>()
+        for (date in dates) {
+            val exactForDate = exactByDateAsset[date] ?: emptyMap()
+            val mdList = mutableListOf<MarketData>()
+
+            for (asset in assets) {
+                val exact = exactForDate[asset.id]
+                if (exact != null) {
+                    mdList.add(exact)
+                } else {
+                    // Fallback: nearest price on or before this date
+                    val nearest =
+                        marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
+                            asset,
+                            date
+                        )
+                    if (nearest.isPresent) {
+                        mdList.add(nearest.get())
+                    }
+                }
+            }
+            result[date.toString()] = mdList
+        }
+        return result
+    }
+
+    /**
      * Get market data for assets on a specific date (exact match only).
      */
     @Transactional
@@ -248,7 +293,7 @@ class PriceService(
         date: LocalDate
     ): MarketData? =
         marketDataRepo
-            .findTop1ByAssetAndPriceDateLessThanEqual(asset, date)
+            .findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(asset, date)
             .orElse(null)
 
     /**

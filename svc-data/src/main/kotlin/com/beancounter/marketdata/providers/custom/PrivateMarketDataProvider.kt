@@ -41,7 +41,7 @@ class PrivateMarketDataProvider(
         }
 
         val closest =
-            marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
                 asset,
                 priceDate
             )

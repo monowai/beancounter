@@ -1,6 +1,8 @@
 package com.beancounter.client.services
 
 import com.beancounter.client.FxService
+import com.beancounter.common.contracts.BulkFxRequest
+import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
@@ -38,5 +40,23 @@ class FxClientService(
                 .retrieve()
                 .body<FxResponse>()
                 ?: throw BusinessException("Failed to get FX rates")
+        }
+
+    override fun getBulkRates(
+        request: BulkFxRequest,
+        token: String
+    ): BulkFxResponse =
+        if (request.pairs.isEmpty()) {
+            BulkFxResponse()
+        } else {
+            restClient
+                .post()
+                .uri("/fx/bulk")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body<BulkFxResponse>()
+                ?: throw BusinessException("Failed to get bulk FX rates")
         }
 }

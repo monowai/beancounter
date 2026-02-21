@@ -112,6 +112,21 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     ): FxRate?
 
     /**
+     * Finds all FX rates within a date range (inclusive), regardless of provider.
+     * Used for bulk FX pre-fetch in performance calculations.
+     */
+    @Query(
+        """
+        select f from FxRate f
+        where f.date >= :startDate and f.date <= :endDate
+        """
+    )
+    fun findByDateBetween(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<FxRate>
+
+    /**
      * Finds historical FX rates from the base currency to a target currency.
      * Used for triangulation when charting cross rates.
      *

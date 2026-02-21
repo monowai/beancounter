@@ -1,10 +1,13 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.contracts.BulkPriceRequest
+import com.beancounter.common.contracts.BulkPriceResponse
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
@@ -25,7 +28,9 @@ class MarketDataService(
     private val assetFinder: AssetFinder,
     private val backfillService: MarketDataBackfillService,
     private val utilityService: MarketDataUtilityService,
-    private val priceProcessor: MarketDataPriceProcessor
+    private val priceProcessor: MarketDataPriceProcessor,
+    private val priceService: PriceService,
+    private val dateUtils: DateUtils
 ) {
     fun backFill(assetId: String) {
         backfillService.backFill(assetId)
@@ -53,6 +58,16 @@ class MarketDataService(
     fun getAssetPrices(priceRequest: PriceRequest): PriceResponse {
         val withResolvedAssets = assetService.resolveAssets(priceRequest)
         return getPriceResponse(withResolvedAssets)
+    }
+
+    @Transactional(readOnly = true)
+    fun getBulkAssetPrices(bulkPriceRequest: BulkPriceRequest): BulkPriceResponse {
+        val resolvedAssets =
+            bulkPriceRequest.assets.mapNotNull { priceAsset ->
+                assetService.resolveAsset(priceAsset)
+            }
+        val dates = bulkPriceRequest.dates.map { dateUtils.getFormattedDate(it) }
+        return BulkPriceResponse(priceService.getBulkMarketData(resolvedAssets, dates))
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.beancounter.client
 
+import com.beancounter.common.contracts.BulkFxRequest
+import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 
@@ -11,4 +13,9 @@ interface FxService {
         fxRequest: FxRequest,
         token: String = ""
     ): FxResponse
+
+    fun getBulkRates(
+        request: BulkFxRequest,
+        token: String = ""
+    ): BulkFxResponse = throw UnsupportedOperationException("Bulk FX not supported")
 }

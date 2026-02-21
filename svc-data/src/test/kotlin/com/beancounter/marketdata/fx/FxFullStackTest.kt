@@ -257,6 +257,14 @@ internal class FxFullStackTest {
     }
 
     @Test
+    fun `should cap future dates to latest available`() {
+        val ecbDate = EcbDate(dateUtils)
+        val futureDate = dateUtils.date.plusDays(7).toString()
+        val result = ecbDate.getValidDate(futureDate)
+        assertThat(result).isEqualTo(dateUtils.date.minusDays(1).toString())
+    }
+
+    @Test
     fun `should throw error for invalid currencies`() {
         val date = "2019-08-27"
         val from = "ANC"

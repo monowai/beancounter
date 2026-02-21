@@ -2,6 +2,8 @@ package com.beancounter.marketdata.fx
 
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.contracts.BulkFxRequest
+import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,6 +44,11 @@ class FxController
                 fxRequest,
                 tokenService.bearerToken
             )
+
+        @PostMapping("/bulk")
+        fun getBulkRates(
+            @RequestBody bulkFxRequest: BulkFxRequest
+        ): BulkFxResponse = fxRateService.getBulkRates(bulkFxRequest)
 
         /**
          * Get available FX rate provider IDs for comparison.

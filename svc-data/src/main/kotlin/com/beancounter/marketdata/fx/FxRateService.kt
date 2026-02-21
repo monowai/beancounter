@@ -1,6 +1,9 @@
 package com.beancounter.marketdata.fx
 
 import com.beancounter.client.FxService
+import com.beancounter.common.contracts.BulkFxRequest
+import com.beancounter.common.contracts.BulkFxResponse
+import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.SystemException
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import java.time.LocalDate
 
 /**
  * Server side implementation to obtain FXRates from a source that can be
@@ -120,6 +124,74 @@ class FxRateService(
                 mappedRates
             )
         )
+    }
+
+    /**
+     * Get FX rates for multiple dates in a single call (DB-only, no provider calls).
+     * Only dates that already have cached rates are returned; dates with no prior
+     * cached data are skipped entirely. When a date within the range has no exact
+     * match, `lastKnownRates` (the most recent prior cached date) provides the fallback.
+     */
+    @Transactional
+    fun getBulkRates(request: BulkFxRequest): BulkFxResponse {
+        if (request.pairs.isEmpty()) return BulkFxResponse()
+
+        val startDate = dateUtils.getDate(request.startDate)
+        val endDate = dateUtils.getDate(request.endDate)
+
+        // Single query for all rates in the date range
+        val allRates = fxRateRepository.findByDateBetween(startDate, endDate)
+
+        // Also fetch the base currency rate (USD->USD = 1.0)
+        val baseCurrency = currencyService.currencyConfig.baseCurrency
+        val baseRate = fxRateRepository.findBaseRate(baseCurrency)
+
+        // Group rates by date
+        val ratesByDate = allRates.groupBy { it.date }
+
+        // Collect all unique dates we need rates for
+        val allDates = collectUniqueDates(startDate, endDate, ratesByDate.keys)
+
+        val result = mutableMapOf<String, FxPairResults>()
+        var lastKnownRates: Map<String, FxRate>? = null
+
+        for (date in allDates) {
+            val ratesForDate = ratesByDate[date]
+            val mappedRates =
+                if (ratesForDate != null) {
+                    val mapped = ratesForDate.associateBy { it.to.code }.toMutableMap()
+                    if (baseRate != null) mapped.putIfAbsent(baseCurrency.code, baseRate)
+                    lastKnownRates = mapped
+                    mapped
+                } else {
+                    // Fall back to nearest prior date
+                    lastKnownRates ?: continue
+                }
+
+            try {
+                result[date.toString()] =
+                    FxRateCalculator.compute(
+                        date.toString(),
+                        request.pairs,
+                        mappedRates
+                    )
+            } catch (e: IllegalArgumentException) {
+                log.warn("Missing FX rate data for {} on {}: {}", request.pairs, date, e.message)
+            }
+        }
+
+        return BulkFxResponse(result)
+    }
+
+    private fun collectUniqueDates(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        cachedDates: Set<LocalDate>
+    ): List<LocalDate> {
+        // Return all dates from the cached set within range, sorted
+        return cachedDates
+            .filter { !it.isBefore(startDate) && !it.isAfter(endDate) }
+            .sorted()
     }
 
     /**

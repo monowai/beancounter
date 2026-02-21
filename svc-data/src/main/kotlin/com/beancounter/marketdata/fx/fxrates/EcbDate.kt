@@ -23,6 +23,9 @@ class EcbDate(
         val requestedDate = dateUtils.getDate(tradeDate)
         return if (requestedDate.isBefore(earliestDate())) {
             EARLIEST
+        } else if (requestedDate.isAfter(dateUtils.date)) {
+            // Future dates are not available; use latest available (yesterday)
+            dateUtils.date.minusDays(1).toString()
         } else {
             tradeDate
         }

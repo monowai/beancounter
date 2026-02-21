@@ -48,6 +48,11 @@ dependencies {
     implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation(libs.spring.ai.starter.mcp.server.webmvc)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.postgresql)
+    implementation(libs.flyway.core)
+    runtimeOnly(libs.flyway.postgresql)
+    runtimeOnly("com.h2database:h2")
     
     compileOnly(libs.spring.boot.configuration.processor)
     contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")

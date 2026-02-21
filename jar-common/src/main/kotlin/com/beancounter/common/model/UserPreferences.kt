@@ -34,5 +34,6 @@ data class UserPreferences(
     var defaultGroupBy: GroupByPreference = GroupByPreference.ASSET_CLASS,
     var baseCurrencyCode: String = "USD",
     var reportingCurrencyCode: String = "USD",
-    var showWeightedIrr: Boolean = true
+    var showWeightedIrr: Boolean = true,
+    var enableTwr: Boolean = false
 )

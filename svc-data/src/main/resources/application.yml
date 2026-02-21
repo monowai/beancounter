@@ -121,6 +121,10 @@ spring:
         corporateEvent-out-0:
           destination: bc-ca-event-dev
           content-type: application/json
+        # Performance Cache Invalidation Producer (StreamBridge)
+        cacheInvalidation-out-0:
+          destination: bc-perf-invalidate-dev
+          content-type: application/json
       # Kafka-specific configuration (when default-binder=kafka)
       kafka:
         binder:

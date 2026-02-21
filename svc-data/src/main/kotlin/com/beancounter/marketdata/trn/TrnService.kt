@@ -9,6 +9,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
@@ -32,7 +33,8 @@ class TrnService(
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
     private val assetFinder: AssetFinder,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val cacheInvalidationProducer: CacheInvalidationProducer
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
 
@@ -75,6 +77,10 @@ class TrnService(
             log.trace(
                 "Wrote ${results.size}/${trnRequest.data.size} transactions for ${portfolio.code}"
             )
+        }
+        val earliestDate = results.minOfOrNull { it.tradeDate }
+        if (earliestDate != null) {
+            cacheInvalidationProducer.sendTransactionEvent(portfolio.id, earliestDate)
         }
         return results
     }
@@ -195,6 +201,10 @@ class TrnService(
             }
         }
         log.info("Settled {} transactions for portfolio {}", settled.size, portfolio.code)
+        val earliestSettled = settled.minOfOrNull { it.tradeDate }
+        if (earliestSettled != null) {
+            cacheInvalidationProducer.sendTransactionEvent(portfolio.id, earliestSettled)
+        }
         return postProcess(settled)
     }
 
@@ -226,7 +236,9 @@ class TrnService(
      */
     fun purge(portfolio: Portfolio): Long {
         log.debug("Purging transactions for {}", portfolio.code)
-        return trnRepository.deleteByPortfolioId(portfolio.id)
+        val count = trnRepository.deleteByPortfolioId(portfolio.id)
+        cacheInvalidationProducer.sendTransactionEvent(portfolio.id, LocalDate.MIN)
+        return count
     }
 
     fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
@@ -250,6 +262,7 @@ class TrnService(
         if (portfolioService.canView(result.portfolio)) {
             trnRepository.delete(result)
             deleted.add(result)
+            cacheInvalidationProducer.sendTransactionEvent(result.portfolio.id, result.tradeDate)
         }
         return deleted.map { it.id }
     }
@@ -276,6 +289,7 @@ class TrnService(
                 existing.iterator().next()
             )
         trnRepository.save(trn)
+        cacheInvalidationProducer.sendTransactionEvent(portfolio.id, trn.tradeDate)
         return TrnResponse(arrayListOf(trn))
     }
 

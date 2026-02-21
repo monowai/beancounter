@@ -8,6 +8,7 @@ import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.TestEnvironmentUtils
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import jakarta.transaction.Transactional
@@ -29,10 +30,16 @@ class PriceService(
 ) {
     private val log = LoggerFactory.getLogger(PriceService::class.java)
     private var eventProducer: EventProducer? = null
+    private var cacheInvalidationProducer: CacheInvalidationProducer? = null
 
     @Autowired(required = false)
     fun setEventWriter(eventProducer: EventProducer?) {
         this.eventProducer = eventProducer
+    }
+
+    @Autowired(required = false)
+    fun setCacheInvalidationProducer(producer: CacheInvalidationProducer?) {
+        this.cacheInvalidationProducer = producer
     }
 
     private fun getAsset(assetId: String): Asset {
@@ -116,7 +123,10 @@ class PriceService(
         return if (createSet.isEmpty()) {
             createSet
         } else {
-            marketDataRepo.saveAll(createSet)
+            val saved = marketDataRepo.saveAll(createSet)
+            val dates = createSet.map { it.priceDate }.distinct()
+            dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
+            saved
         }
     }
 

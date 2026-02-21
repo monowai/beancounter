@@ -48,6 +48,7 @@ class UserPreferencesService(
         request.baseCurrencyCode?.let { preferences.baseCurrencyCode = it }
         request.reportingCurrencyCode?.let { preferences.reportingCurrencyCode = it }
         request.showWeightedIrr?.let { preferences.showWeightedIrr = it }
+        request.enableTwr?.let { preferences.enableTwr = it }
         return userPreferencesRepository.save(preferences)
     }
 }

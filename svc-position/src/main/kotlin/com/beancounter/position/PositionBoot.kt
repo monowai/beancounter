@@ -2,7 +2,6 @@ package com.beancounter.position
 
 import com.beancounter.client.config.ClientConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.runApplication
 
 /**
@@ -10,7 +9,6 @@ import org.springframework.boot.runApplication
  */
 @SpringBootApplication(
     scanBasePackageClasses = [ClientConfig::class],
-    exclude = [DataSourceAutoConfiguration::class],
     scanBasePackages = [
         "com.beancounter.position",
         "com.beancounter.auth",

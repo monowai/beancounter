@@ -17,6 +17,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.accumulation.Accumulator
+import com.beancounter.position.cache.NoOpPerformanceCacheService
 import com.beancounter.position.irr.TwrCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset
@@ -83,7 +84,8 @@ class PerformanceServiceTest {
                 fxRateService = fxRateService,
                 twrCalculator = twrCalculator,
                 dateUtils = dateUtils,
-                tokenService = tokenService
+                tokenService = tokenService,
+                cacheService = NoOpPerformanceCacheService()
             )
     }
 

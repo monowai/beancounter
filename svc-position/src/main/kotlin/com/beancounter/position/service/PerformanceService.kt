@@ -22,6 +22,8 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
+import com.beancounter.position.cache.CachedSnapshot
+import com.beancounter.position.cache.PerformanceCacheService
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.irr.ValuationSnapshot
 import org.slf4j.LoggerFactory
@@ -51,12 +53,20 @@ class PerformanceService(
     private val twrCalculator: TwrCalculator,
     private val dateUtils: DateUtils,
     private val tokenService: TokenService,
+    private val cacheService: PerformanceCacheService,
     private val cashUtils: CashUtils = CashUtils()
 ) {
     fun calculate(
         portfolio: Portfolio,
         months: Int = 12
     ): PerformanceResponse {
+        // Check cache BEFORE fetching transactions to skip all HTTP calls on hit
+        val cached = tryLoadFromCache(portfolio.id)
+        if (cached != null) {
+            log.debug("Cache HIT: portfolio={}, snapshots={}", portfolio.code, cached.size)
+            return buildResponseFromCache(portfolio, cached)
+        }
+
         val token = tokenService.bearerToken
         val endDate = dateUtils.date
         val startDate = endDate.minusMonths(months.toLong())
@@ -66,6 +76,8 @@ class PerformanceService(
 
         val valuationDates = determineValuationDates(transactions, startDate, endDate)
         if (valuationDates.isEmpty()) return emptyResponse(portfolio)
+
+        log.debug("Cache MISS: portfolio={}, dates={}", portfolio.code, valuationDates.size)
 
         // Collect all unique non-cash assets and currency pairs from transactions
         val allAssets = collectAssets(transactions)
@@ -83,6 +95,9 @@ class PerformanceService(
                 priceCache,
                 fxCache
             )
+
+        // Store computed snapshots in cache
+        tryCacheSnapshots(portfolio.id, snapshots, netContributions, cumulativeDividends)
 
         return buildResponse(portfolio, snapshots, netContributions, cumulativeDividends)
     }
@@ -412,6 +427,58 @@ class PerformanceService(
 
     private fun emptyResponse(portfolio: Portfolio): PerformanceResponse =
         PerformanceResponse(PerformanceData(portfolio.currency, emptyList()))
+
+    private fun tryLoadFromCache(portfolioId: String): List<CachedSnapshot>? {
+        if (!cacheService.isAvailable()) return null
+        return try {
+            val cached = cacheService.findAllSnapshots(portfolioId)
+            cached.ifEmpty { null }
+        } catch (e: Exception) {
+            log.warn("Cache lookup failed, proceeding without cache: {}", e.message)
+            null
+        }
+    }
+
+    private fun tryCacheSnapshots(
+        portfolioId: String,
+        snapshots: List<ValuationSnapshot>,
+        netContributions: List<BigDecimal>,
+        cumulativeDividends: List<BigDecimal>
+    ) {
+        try {
+            if (!cacheService.isAvailable()) return
+            val toStore =
+                snapshots.mapIndexed { index, snapshot ->
+                    CachedSnapshot(
+                        valuationDate = snapshot.date,
+                        marketValue = snapshot.marketValue,
+                        externalCashFlow = snapshot.externalCashFlow,
+                        netContributions = netContributions.getOrElse(index) { BigDecimal.ZERO },
+                        cumulativeDividends = cumulativeDividends.getOrElse(index) { BigDecimal.ZERO }
+                    )
+                }
+            cacheService.storeSnapshots(portfolioId, toStore)
+        } catch (e: Exception) {
+            log.warn("Cache store failed, computation unaffected: {}", e.message)
+        }
+    }
+
+    private fun buildResponseFromCache(
+        portfolio: Portfolio,
+        cached: List<CachedSnapshot>
+    ): PerformanceResponse {
+        val snapshots =
+            cached.map {
+                ValuationSnapshot(
+                    date = it.valuationDate,
+                    marketValue = it.marketValue,
+                    externalCashFlow = it.externalCashFlow
+                )
+            }
+        val netContributions = cached.map { it.netContributions }
+        val cumulativeDividends = cached.map { it.cumulativeDividends }
+        return buildResponse(portfolio, snapshots, netContributions, cumulativeDividends)
+    }
 
     private fun generateMonthlyDates(
         startDate: LocalDate,

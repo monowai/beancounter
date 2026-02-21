@@ -11,11 +11,13 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.FxRateCalculator
 import com.beancounter.common.utils.PreviousClosePriceDate
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
 import com.beancounter.marketdata.markets.MarketService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.MathContext
@@ -36,6 +38,12 @@ class FxRateService(
 ) : FxService {
     private val log = LoggerFactory.getLogger(FxRateService::class.java)
     private val dateUtils = DateUtils()
+    private var cacheInvalidationProducer: CacheInvalidationProducer? = null
+
+    @Autowired(required = false)
+    fun setCacheInvalidationProducer(producer: CacheInvalidationProducer?) {
+        this.cacheInvalidationProducer = producer
+    }
 
     /**
      * Get base currency rate (e.g., USD->USD = 1.0).
@@ -104,6 +112,7 @@ class FxRateService(
             rates = fxProviderService.getRates(dateString, fxRequest.provider).toMutableList()
             if (rates.isNotEmpty()) {
                 fxRateRepository.saveAll(rates)
+                cacheInvalidationProducer?.sendFxEvent(dateToFind)
             }
             // Add in the base rate of 1 for USD
             rates.add(baseCurrencyFxRate(fxRequest.provider))

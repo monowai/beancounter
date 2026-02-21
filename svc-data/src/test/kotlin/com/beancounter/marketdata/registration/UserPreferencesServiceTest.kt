@@ -54,6 +54,7 @@ class UserPreferencesServiceTest {
             .hasFieldOrPropertyWithValue("defaultGroupBy", GroupByPreference.ASSET_CLASS)
             .hasFieldOrPropertyWithValue("baseCurrencyCode", "USD")
             .hasFieldOrPropertyWithValue("showWeightedIrr", true)
+            .hasFieldOrPropertyWithValue("enableTwr", false)
         assertThat(preferences.owner.id).isEqualTo(user.id)
 
         // Verify preferences are now persisted
@@ -225,6 +226,23 @@ class UserPreferencesServiceTest {
         val updated = userPreferencesService.update(user, request)
 
         assertThat(updated.showWeightedIrr).isFalse()
+        // Other preferences unchanged
+        assertThat(updated.defaultHoldingsView).isEqualTo(defaultView)
+    }
+
+    @Test
+    fun `should update enableTwr preference`() {
+        val user = createAndAuthenticateUser("prefs-test-13@email.com")
+
+        // Default should be false
+        val initial = userPreferencesService.getOrCreate(user)
+        assertThat(initial.enableTwr).isFalse()
+
+        // Update to true
+        val request = UserPreferencesRequest(enableTwr = true)
+        val updated = userPreferencesService.update(user, request)
+
+        assertThat(updated.enableTwr).isTrue()
         // Other preferences unchanged
         assertThat(updated.defaultHoldingsView).isEqualTo(defaultView)
     }

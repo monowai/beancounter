@@ -1,0 +1,1 @@
+ALTER TABLE user_preferences ADD COLUMN enable_twr BOOLEAN NOT NULL DEFAULT FALSE;

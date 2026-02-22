@@ -23,7 +23,8 @@ class AlphaPriceAdapter(
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int,
-        response: String?
+        response: String?,
+        currentMode: Boolean = true
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         try {
@@ -34,7 +35,8 @@ class AlphaPriceAdapter(
                     asset,
                     response,
                     results,
-                    providerArguments
+                    providerArguments,
+                    currentMode
                 )
             }
         } catch (e: IOException) {
@@ -47,7 +49,8 @@ class AlphaPriceAdapter(
         asset: Asset?,
         response: String?,
         results: MutableCollection<MarketData>,
-        providerArguments: ProviderArguments
+        providerArguments: ProviderArguments,
+        currentMode: Boolean
     ) {
         if (isMdResponse(
                 asset,
@@ -58,7 +61,8 @@ class AlphaPriceAdapter(
                 response,
                 asset,
                 results,
-                providerArguments
+                providerArguments,
+                currentMode
             )
         } else {
             results.add(
@@ -74,7 +78,8 @@ class AlphaPriceAdapter(
         response: String?,
         asset: Asset?,
         results: MutableCollection<MarketData>,
-        providerArguments: ProviderArguments
+        providerArguments: ProviderArguments,
+        currentMode: Boolean
     ) {
         val priceResponse =
             alphaConfig.getObjectMapper().readValue(
@@ -88,9 +93,11 @@ class AlphaPriceAdapter(
                     asset.market,
                     marketData
                 )
-                // Enrich with corporate events (splits/dividends) from adjusted time series
-                // This handles the case where Global Quote doesn't include split data
-                corporateEventEnricher.enrich(marketData)
+                // Enrich with corporate events (splits/dividends) from adjusted time series.
+                // Only for current-mode requests; historical backfill doesn't need enrichment.
+                if (currentMode) {
+                    corporateEventEnricher.enrich(marketData)
+                }
                 log.trace(
                     "Valued {} ",
                     asset.name

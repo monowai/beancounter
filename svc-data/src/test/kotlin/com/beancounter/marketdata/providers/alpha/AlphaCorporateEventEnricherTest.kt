@@ -4,10 +4,14 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.providers.ProviderArguments
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -263,5 +267,52 @@ class AlphaCorporateEventEnricherTest {
 
         // And: change should be correct (no adjustment needed since GLOBAL_QUOTE handles it)
         assertThat(enrichedData.change).isEqualByComparingTo(BigDecimal("0.50"))
+    }
+
+    @Test
+    fun `adapter should skip enrichment for historical requests`() {
+        // Given: An AlphaPriceAdapter with a mock enricher and real AlphaConfig ObjectMapper
+        val mockEnricher = mock(AlphaCorporateEventEnricher::class.java)
+        val config = AlphaConfig()
+        val adapter = AlphaPriceAdapter(config, mockEnricher)
+
+        val providerArguments = mock(ProviderArguments::class.java)
+        `when`(providerArguments.getAssets(0)).thenReturn(listOf("SLK"))
+        `when`(providerArguments.getAsset("SLK")).thenReturn(asset)
+
+        // Valid Alpha Global Quote JSON
+        val json =
+            """{"Global Quote":{"01. symbol":"SLK","02. open":"99.00","03. high":"101.00","04. low":"98.00","05. price":"100.00","06. volume":"1000000","07. latest trading day":"2025-12-05","08. previous close":"99.50","09. change":"0.50","10. change percent":"0.50%"}}"""
+
+        // When: Processing with currentMode=false (historical backfill)
+        val results = adapter[providerArguments, 0, json, false]
+
+        // Then: Enricher should NOT be called
+        verify(mockEnricher, never()).enrich(any())
+        assertThat(results).hasSize(1)
+    }
+
+    @Test
+    fun `adapter should enrich for current-mode requests`() {
+        // Given: Same setup but currentMode=true
+        val mockEnricher = mock(AlphaCorporateEventEnricher::class.java)
+        val config = AlphaConfig()
+        val adapter = AlphaPriceAdapter(config, mockEnricher)
+
+        val providerArguments = mock(ProviderArguments::class.java)
+        `when`(providerArguments.getAssets(0)).thenReturn(listOf("SLK"))
+        `when`(providerArguments.getAsset("SLK")).thenReturn(asset)
+
+        val json =
+            """{"Global Quote":{"01. symbol":"SLK","02. open":"99.00","03. high":"101.00","04. low":"98.00","05. price":"100.00","06. volume":"1000000","07. latest trading day":"2025-12-05","08. previous close":"99.50","09. change":"0.50","10. change percent":"0.50%"}}"""
+
+        `when`(mockEnricher.enrich(any())).thenAnswer { it.arguments[0] }
+
+        // When: Processing with currentMode=true
+        val results = adapter[providerArguments, 0, json, true]
+
+        // Then: Enricher SHOULD be called
+        verify(mockEnricher).enrich(any())
+        assertThat(results).hasSize(1)
     }
 }

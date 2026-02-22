@@ -82,13 +82,14 @@ class AlphaPriceService(
         }
 
         return runBlocking {
-            getMarketData(providerArguments, requests)
+            getMarketData(providerArguments, requests, priceRequest.currentMode)
         }
     }
 
     private suspend fun getMarketData(
         providerArguments: ProviderArguments,
-        requests: MutableMap<Int, Deferred<String>>
+        requests: MutableMap<Int, Deferred<String>>,
+        currentMode: Boolean
     ): Collection<MarketData> {
         val results = mutableListOf<MarketData>()
         var failed = 0
@@ -99,11 +100,11 @@ class AlphaPriceService(
                     requestDeferred.isCompleted
                 }
 
-            completedBatches.forEach { (batchId, requestDeferred) ->
-                requests.remove(batchId)
+            completedBatches.keys.forEach { batchId ->
+                val requestDeferred = requests.remove(batchId)!!
                 try {
                     results.addAll(
-                        alphaPriceAdapter[providerArguments, batchId, requestDeferred.await()]
+                        alphaPriceAdapter[providerArguments, batchId, requestDeferred.await(), currentMode]
                     )
                 } catch (e: Exception) {
                     failed++

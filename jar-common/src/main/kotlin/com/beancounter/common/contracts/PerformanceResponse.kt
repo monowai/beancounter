@@ -23,7 +23,11 @@ data class PerformanceDataPoint(
 
 data class PerformanceData(
     val currency: Currency,
-    val series: List<PerformanceDataPoint> = emptyList()
+    val series: List<PerformanceDataPoint> = emptyList(),
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    val firstTradeDate: LocalDate? = null
 )
 
 data class PerformanceResponse(

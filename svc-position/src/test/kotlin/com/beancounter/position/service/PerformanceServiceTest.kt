@@ -90,7 +90,7 @@ class PerformanceServiceTest {
     }
 
     @Test
-    fun `empty transactions returns empty response`() {
+    fun `empty transactions returns empty response with null firstTradeDate`() {
         whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
             .thenReturn(TrnResponse())
 
@@ -98,6 +98,7 @@ class PerformanceServiceTest {
 
         assertThat(result.data.series).isEmpty()
         assertThat(result.data.currency.code).isEqualTo("USD")
+        assertThat(result.data.firstTradeDate).isNull()
     }
 
     @Test
@@ -247,6 +248,51 @@ class PerformanceServiceTest {
         val firstPoint = result.data.series.first()
         assertThat(firstPoint.cumulativeDividends.toDouble())
             .isCloseTo(0.0, Offset.offset(0.01))
+    }
+
+    @Test
+    fun `firstTradeDate matches earliest transaction date`() {
+        val earlyDate = LocalDate.now().minusMonths(6)
+        val laterDate = LocalDate.now().minusMonths(3)
+
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = testAsset,
+                tradeDate = earlyDate,
+                quantity = BigDecimal("100"),
+                price = BigDecimal("150"),
+                tradeAmount = BigDecimal("15000"),
+                cashAmount = BigDecimal("-15000")
+            )
+        val diviTrn =
+            Trn(
+                trnType = TrnType.DIVI,
+                asset = testAsset,
+                tradeDate = laterDate,
+                tradeAmount = BigDecimal("500"),
+                cashAmount = BigDecimal("500")
+            )
+
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn, diviTrn)))
+
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                positions.getOrCreate(testAsset)
+            }
+
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(emptyMap()))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+
+        val result = performanceService.calculate(portfolio, 12)
+
+        assertThat(result.data.firstTradeDate).isEqualTo(earlyDate)
     }
 
     @Test

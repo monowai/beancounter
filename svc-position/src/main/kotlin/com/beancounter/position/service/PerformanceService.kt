@@ -66,20 +66,31 @@ class PerformanceService(
         // Check cache BEFORE fetching transactions to skip all HTTP calls on hit
         val cached = tryLoadFromCache(portfolio.id)
         if (cached != null) {
-            val filtered = cached.filter { !it.valuationDate.isBefore(startDate) }
+            val earliestCached = cached.minOf { it.valuationDate }
+            if (!earliestCached.isAfter(startDate)) {
+                val filtered = cached.filter { !it.valuationDate.isBefore(startDate) }
+                log.debug(
+                    "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
+                    portfolio.code,
+                    filtered.size,
+                    cached.size
+                )
+                return buildResponseFromCache(portfolio, filtered)
+            }
             log.debug(
-                "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
+                "Cache PARTIAL: portfolio={}, cached from {} but requested from {}, recomputing",
                 portfolio.code,
-                filtered.size,
-                cached.size
+                earliestCached,
+                startDate
             )
-            return buildResponseFromCache(portfolio, filtered)
         }
 
         val token = tokenService.bearerToken
 
         val transactions = fetchAndSortTransactions(portfolio)
         if (transactions.isEmpty()) return emptyResponse(portfolio)
+
+        val firstTradeDate = transactions.firstOrNull()?.tradeDate
 
         val valuationDates = determineValuationDates(transactions, startDate, endDate)
         if (valuationDates.isEmpty()) return emptyResponse(portfolio)
@@ -106,7 +117,7 @@ class PerformanceService(
         // Store computed snapshots in cache
         tryCacheSnapshots(portfolio.id, snapshots, netContributions, cumulativeDividends)
 
-        return buildResponse(portfolio, snapshots, netContributions, cumulativeDividends)
+        return buildResponse(portfolio, snapshots, netContributions, cumulativeDividends, firstTradeDate)
     }
 
     private fun collectAssets(transactions: List<Trn>): List<PriceAsset> =
@@ -409,7 +420,8 @@ class PerformanceService(
         portfolio: Portfolio,
         snapshots: List<ValuationSnapshot>,
         netContributions: List<BigDecimal>,
-        cumulativeDividends: List<BigDecimal>
+        cumulativeDividends: List<BigDecimal>,
+        firstTradeDate: LocalDate? = null
     ): PerformanceResponse {
         val series = twrCalculator.calculateSeries(snapshots)
         val dataPoints =
@@ -429,7 +441,7 @@ class PerformanceService(
                 )
             }
 
-        return PerformanceResponse(PerformanceData(portfolio.currency, dataPoints))
+        return PerformanceResponse(PerformanceData(portfolio.currency, dataPoints, firstTradeDate))
     }
 
     private fun emptyResponse(portfolio: Portfolio): PerformanceResponse =

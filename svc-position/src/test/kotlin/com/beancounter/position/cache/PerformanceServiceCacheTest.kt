@@ -103,10 +103,17 @@ class PerformanceServiceCacheTest {
     fun `cache hit skips transaction, price and FX calls`() {
         whenever(cacheService.isAvailable()).thenReturn(true)
 
-        // Return cached snapshots — no transaction fetch needed
+        // Return cached snapshots covering the full 12-month window
         whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
             .thenReturn(
                 listOf(
+                    CachedSnapshot(
+                        valuationDate = LocalDate.now().minusMonths(12),
+                        marketValue = BigDecimal("14000"),
+                        externalCashFlow = BigDecimal.ZERO,
+                        netContributions = BigDecimal.ZERO,
+                        cumulativeDividends = BigDecimal.ZERO
+                    ),
                     CachedSnapshot(
                         valuationDate = LocalDate.now().minusMonths(6),
                         marketValue = BigDecimal("15000"),
@@ -131,6 +138,36 @@ class PerformanceServiceCacheTest {
         verify(trnService, never()).query(any<Portfolio>(), any())
         verify(priceService, never()).getBulkPrices(any(), any())
         verify(fxRateService, never()).getBulkRates(any(), any())
+    }
+
+    @Test
+    fun `cache hit returns null firstTradeDate`() {
+        whenever(cacheService.isAvailable()).thenReturn(true)
+
+        whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
+            .thenReturn(
+                listOf(
+                    CachedSnapshot(
+                        valuationDate = LocalDate.now().minusMonths(12),
+                        marketValue = BigDecimal("14000"),
+                        externalCashFlow = BigDecimal.ZERO,
+                        netContributions = BigDecimal.ZERO,
+                        cumulativeDividends = BigDecimal.ZERO
+                    ),
+                    CachedSnapshot(
+                        valuationDate = LocalDate.now(),
+                        marketValue = BigDecimal("16000"),
+                        externalCashFlow = BigDecimal.ZERO,
+                        netContributions = BigDecimal.ZERO,
+                        cumulativeDividends = BigDecimal.ZERO
+                    )
+                )
+            )
+
+        val result = performanceService.calculate(portfolio, 12)
+
+        assertThat(result.data.series).isNotEmpty()
+        assertThat(result.data.firstTradeDate).isNull()
     }
 
     @Test
@@ -193,6 +230,61 @@ class PerformanceServiceCacheTest {
         // The 12-month and 6-month snapshots should be excluded
         assertThat(dates).doesNotContain(now.minusMonths(12))
         assertThat(dates).doesNotContain(now.minusMonths(6))
+    }
+
+    @Test
+    fun `cache with insufficient history triggers recomputation`() {
+        whenever(cacheService.isAvailable()).thenReturn(true)
+
+        // Cache only has 3 months of snapshots
+        val now = LocalDate.now()
+        val cachedSnapshots =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(3),
+                    marketValue = BigDecimal("13000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now,
+                    marketValue = BigDecimal("15000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            )
+        whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
+            .thenReturn(cachedSnapshots)
+
+        // Request 24 months — cache doesn't cover this window, should recompute
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = testAsset,
+                tradeDate = now.minusMonths(18),
+                quantity = BigDecimal("100"),
+                tradeAmount = BigDecimal("15000")
+            )
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn)))
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                positions.getOrCreate(testAsset)
+            }
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(emptyMap()))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+
+        performanceService.calculate(portfolio, 24)
+
+        // Cache didn't cover the full window, so transactions should have been fetched
+        verify(trnService).query(any<Portfolio>(), any())
     }
 
     @Test

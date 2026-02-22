@@ -8,12 +8,14 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
+import com.beancounter.position.cache.PerformanceCacheService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -25,6 +27,9 @@ class PerformanceControllerTest {
 
     @Mock
     private lateinit var performanceService: PerformanceService
+
+    @Mock
+    private lateinit var performanceCacheService: PerformanceCacheService
 
     private lateinit var controller: PerformanceController
 
@@ -40,7 +45,7 @@ class PerformanceControllerTest {
 
     @BeforeEach
     fun setup() {
-        controller = PerformanceController(portfolioServiceClient, performanceService)
+        controller = PerformanceController(portfolioServiceClient, performanceService, performanceCacheService)
     }
 
     @Test
@@ -85,5 +90,16 @@ class PerformanceControllerTest {
 
         assertThat(result.data.currency.code).isEqualTo("GBP")
         assertThat(result.data.series).isEmpty()
+    }
+
+    @Test
+    fun `resetCache invalidates portfolio and returns ok`() {
+        whenever(portfolioServiceClient.getPortfolioByCode("TEST")).thenReturn(portfolio)
+
+        val result = controller.resetCache("TEST")
+
+        verify(performanceCacheService).invalidatePortfolio("test-pf")
+        assertThat(result["status"]).isEqualTo("ok")
+        assertThat(result["portfolio"]).isEqualTo("TEST")
     }
 }

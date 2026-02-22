@@ -49,7 +49,8 @@ class PriceController(
     private val priceRefresh: PriceRefresh,
     private val eventService: AlphaEventService,
     private val priceService: PriceService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
+    private val portfolioPriceBackfillService: PortfolioPriceBackfillService
 ) {
     /**
      * Market:Asset i.e. NYSE:MSFT.
@@ -356,4 +357,21 @@ class PriceController(
         )
         @PathVariable assetId: String
     ) = marketDataService.backFill(assetId)
+
+    @PostMapping("/backfill/{code}")
+    @Operation(
+        summary = "Backfill prices for a portfolio's historical dates",
+        description = """
+            Pre-populates the price database for all assets in a portfolio across
+            monthly intervals and external cash flow dates. This ensures subsequent
+            performance calculations are fast.
+        """
+    )
+    fun backfillPortfolio(
+        @Parameter(
+            description = "Portfolio code",
+            example = "USV"
+        )
+        @PathVariable code: String
+    ): Map<String, Any> = portfolioPriceBackfillService.backfill(code)
 }

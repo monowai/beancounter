@@ -321,11 +321,19 @@ class PerformanceService(
         for (pos in nonCashPositions) {
             val key = "${pos.asset.market.code}:${pos.asset.code}"
             val marketData = priceMap[key]
-            if (marketData == null) {
-                log.warn("No price data for {} on {}, skipping position", key, dateStr)
-                continue
-            }
-            val price = marketData.close
+            val price =
+                if (marketData != null) {
+                    marketData.close
+                } else {
+                    // Fall back to average cost when no market price is available
+                    val avgCost = pos.moneyValues[Position.In.TRADE]?.averageCost ?: BigDecimal.ZERO
+                    if (avgCost.signum() == 0) {
+                        log.warn("No price or cost basis for {} on {}, skipping", key, dateStr)
+                        continue
+                    }
+                    log.debug("No market price for {} on {}, using cost price {}", key, dateStr, avgCost)
+                    avgCost
+                }
 
             val tradeCcy = pos.moneyValues[Position.In.TRADE]?.currency ?: pos.asset.market.currency
             val rate =

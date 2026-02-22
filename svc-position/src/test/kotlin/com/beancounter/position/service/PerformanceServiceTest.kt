@@ -11,6 +11,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Position
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -293,6 +294,50 @@ class PerformanceServiceTest {
         val result = performanceService.calculate(portfolio, 12)
 
         assertThat(result.data.firstTradeDate).isEqualTo(earlyDate)
+    }
+
+    @Test
+    fun `uses average cost as price when no market price available`() {
+        val buyDate = LocalDate.now().minusMonths(6)
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = testAsset,
+                tradeDate = buyDate,
+                quantity = BigDecimal("100"),
+                price = BigDecimal("150"),
+                tradeAmount = BigDecimal("15000"),
+                cashAmount = BigDecimal("-15000")
+            )
+
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn)))
+
+        // Mock accumulator to create a position with quantity AND averageCost
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                val pos = positions.getOrCreate(testAsset)
+                pos.quantityValues.purchased = BigDecimal("100")
+                pos.moneyValues[Position.In.TRADE]!!.averageCost = BigDecimal("150")
+                pos
+            }
+
+        // No market prices available
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(emptyMap()))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+
+        val result = performanceService.calculate(portfolio, 12)
+
+        assertThat(result.data.series).isNotEmpty
+        // With fallback to cost, market value should be 100 * 150 = 15000
+        val lastPoint = result.data.series.last()
+        assertThat(lastPoint.marketValue.toDouble())
+            .isCloseTo(15000.0, Offset.offset(0.01))
     }
 
     @Test

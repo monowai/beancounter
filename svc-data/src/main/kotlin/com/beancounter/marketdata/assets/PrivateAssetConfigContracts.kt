@@ -40,6 +40,9 @@ data class PrivateAssetConfigRequest(
     // Composite policy support
     val policyType: PolicyType? = null,
     val lockedUntilDate: LocalDate? = null,
+    // CPF-specific settings
+    val cpfLifePlan: String? = null,
+    val cpfPayoutStartAge: Int? = null,
     val subAccounts: List<SubAccountRequest>? = null
 )
 

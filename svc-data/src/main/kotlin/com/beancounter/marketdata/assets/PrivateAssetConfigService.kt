@@ -97,6 +97,8 @@ class PrivateAssetConfigService(
                         isPension = request.isPension ?: ex.isPension,
                         policyType = request.policyType ?: ex.policyType,
                         lockedUntilDate = request.lockedUntilDate ?: ex.lockedUntilDate,
+                        cpfLifePlan = request.cpfLifePlan ?: ex.cpfLifePlan,
+                        cpfPayoutStartAge = request.cpfPayoutStartAge ?: ex.cpfPayoutStartAge,
                         updatedDate = LocalDate.now()
                     )
                 mergeSubAccounts(updated, assetId, request.subAccounts)
@@ -133,6 +135,8 @@ class PrivateAssetConfigService(
                     isPension = request.isPension ?: false,
                     policyType = request.policyType,
                     lockedUntilDate = request.lockedUntilDate,
+                    cpfLifePlan = request.cpfLifePlan,
+                    cpfPayoutStartAge = request.cpfPayoutStartAge,
                     subAccounts = toSubAccountEntities(assetId, request.subAccounts),
                     createdDate = LocalDate.now(),
                     updatedDate = LocalDate.now()

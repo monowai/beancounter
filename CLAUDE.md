@@ -176,6 +176,15 @@ To switch from RabbitMQ to Kafka:
 - **Production**: Uses RabbitMQ binder
 - **Testing**: Uses `spring-cloud-stream-test-binder` for broker-agnostic unit tests
 
+## Market Data Architecture
+
+- `MarketDataPriceProcessor.getPriceResponse()` is the main price fetch entry point — checks DB first, then calls provider APIs for missing prices
+- Price lookups are provider-agnostic: queries match by `(asset_id, priceDate)` regardless of source
+- `MdFactory.resolveProvider()` iterates providers in map order: Cash → MarketStack → Alpha → Private → Morningstar
+- Default provider config (application.yml): Alpha handles `US,NASDAQ,AMEX,NYSE,LON`; MarketStack handles `NZX,SGX`
+- `AlphaCorporateEventEnricher` calls AlphaVantage API per asset — only meaningful for current-mode prices, not historical backfill
+- `AssetCategory` constructor requires both `id` and `name` parameters (e.g., `AssetCategory("cash", "Cash")`)
+
 ## Local Service Ports
 
 | Service      | API Port | Management Port | OpenAPI Specs                            |

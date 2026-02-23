@@ -91,6 +91,11 @@ data class PrivateAssetConfig(
     val policyType: PolicyType? = null,
     @Column(name = "locked_until_date")
     val lockedUntilDate: LocalDate? = null,
+    // CPF-specific settings (only relevant when policyType = CPF)
+    @Column(name = "cpf_life_plan", length = 20)
+    val cpfLifePlan: String? = null,
+    @Column(name = "cpf_payout_start_age")
+    val cpfPayoutStartAge: Int? = null,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,

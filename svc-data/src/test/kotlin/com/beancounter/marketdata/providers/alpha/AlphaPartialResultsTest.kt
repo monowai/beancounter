@@ -78,9 +78,9 @@ class AlphaPartialResultsTest {
         // Adapter returns MarketData for successful batches
         val md1 = MarketData(asset = asset1)
         val md2 = MarketData(asset = asset2)
-        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(0), eq(validJson)))
+        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(0), eq(validJson), eq(true)))
             .thenReturn(listOf(md1))
-        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(1), eq(validJson)))
+        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(1), eq(validJson), eq(true)))
             .thenReturn(listOf(md2))
 
         val results = service.getMarketData(priceRequest(asset1, asset2, asset3))
@@ -111,9 +111,9 @@ class AlphaPartialResultsTest {
 
         val md1 = MarketData(asset = asset1)
         val md2 = MarketData(asset = asset2)
-        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(0), eq(validJson)))
+        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(0), eq(validJson), eq(true)))
             .thenReturn(listOf(md1))
-        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(1), eq(validJson)))
+        whenever(alphaPriceAdapter.get(any<ProviderArguments>(), eq(1), eq(validJson), eq(true)))
             .thenReturn(listOf(md2))
 
         val results = service.getMarketData(priceRequest(asset1, asset2))

@@ -5,6 +5,8 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
@@ -262,6 +264,62 @@ class BcRowAdapterTest {
         val result = bcRowAdapter.transform(trustedTrnImportRequest)
         assertThat(result).isNotNull()
         assertThat(result.trnType).isEqualTo(TrnType.SELL)
+    }
+
+    @Test
+    fun `INCOME on private account should settle to same account`() {
+        val privateMarket = Market("PRIVATE")
+        val privateCash =
+            Asset(
+                code = "e2e-test.SGD-SAVINGS",
+                id = "sgd-savings-id",
+                name = "SGD Savings Account",
+                market = privateMarket,
+                category = AssetCategory.ACCOUNT,
+                assetCategory = AssetCategory(AssetCategory.ACCOUNT, "Account")
+            )
+
+        lenient()
+            .`when`(
+                ais.resolveAsset(
+                    AssetInput(
+                        "PRIVATE",
+                        "SGD-SAVINGS",
+                        name = "",
+                        owner = portfolio.owner.id
+                    )
+                )
+            ).thenReturn(privateCash)
+
+        // CSV: INCOME on PRIVATE asset, empty CashAccount
+        // Columns: Batch,CallerId,Type,Market,Code,Name,CashAccount,CashCurrency,Date,Quantity,BaseRate,TradeCurrency,Price,Fees,PortfolioRate,TradeAmount,CashAmount,Comments
+        val values =
+            listOf(
+                "20250115", // Batch
+                "", // CallerId
+                "INCOME", // Type
+                "PRIVATE", // Market
+                "SGD-SAVINGS", // Code
+                "", // Name
+                "", // CashAccount (empty — should auto-resolve to asset)
+                "SGD", // CashCurrency
+                "2025-01-15", // Date
+                "1", // Quantity
+                "", // BaseRate
+                "SGD", // TradeCurrency
+                "150", // Price
+                "0", // Fees
+                "", // PortfolioRate
+                "", // TradeAmount
+                "150", // CashAmount
+                "Interest" // Comments
+            )
+
+        val result = bcRowAdapter.transform(trustedTrnImportRequest(values))
+
+        assertThat(result.trnType).isEqualTo(TrnType.INCOME)
+        // Cash should settle to the private account itself, not a generic SGD Balance
+        assertThat(result.cashAssetId).isEqualTo(privateCash.id)
     }
 
     private fun trustedTrnImportRequest(values: List<String>): TrustedTrnImportRequest =

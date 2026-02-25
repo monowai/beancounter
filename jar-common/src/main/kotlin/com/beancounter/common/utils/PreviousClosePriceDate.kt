@@ -50,7 +50,7 @@ class PreviousClosePriceDate(
             )
         } else {
             // Just account for work days
-            log.debug("Returning last working day relative to requested date")
+            log.trace("Returning last working day relative to requested date")
             getPriceDate(
                 utcRequestDateTime,
                 0

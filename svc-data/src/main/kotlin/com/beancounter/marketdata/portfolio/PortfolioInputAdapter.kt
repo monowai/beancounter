@@ -37,7 +37,7 @@ class PortfolioInputAdapter internal constructor(
         owner: SystemUser,
         portfolioInput: PortfolioInput
     ): Portfolio {
-        log.debug(
+        log.trace(
             "Creating for {}",
             owner.id
         )

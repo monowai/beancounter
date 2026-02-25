@@ -10,6 +10,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.trn.TrnIoDefinition.Columns
@@ -26,6 +27,7 @@ import java.time.LocalDate
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,
     val cashTrnServices: CashTrnServices,
+    val cashUtils: CashUtils = CashUtils(),
     val dateUtils: DateUtils = DateUtils(),
     val objectMapper: ObjectMapper = ObjectMapper()
 ) : RowAdapter {
@@ -72,6 +74,9 @@ class BcRowAdapter(
 
         val cashAsset: Asset? =
             if (TrnType.isCash(trnType)) {
+                asset
+            } else if (cashAccount.isEmpty() && cashUtils.isCash(asset)) {
+                // Asset is a bank/trade account — settle to itself
                 asset
             } else {
                 cashTrnServices.getCashAsset(trnType, cashAccount, cashCurrency, ownerId)

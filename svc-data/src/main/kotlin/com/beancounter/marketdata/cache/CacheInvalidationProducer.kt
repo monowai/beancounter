@@ -50,7 +50,7 @@ class CacheInvalidationProducer(
         if (!streamEnabled) return
         try {
             streamBridge.send(BINDING, event)
-            log.debug("Cache invalidation sent: {}", event)
+            log.trace("Cache invalidation sent: {}", event)
         } catch (e: Exception) {
             log.error("Failed to send cache invalidation event: {}", e.message)
         }

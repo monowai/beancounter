@@ -83,12 +83,10 @@ class AssetStatusTest {
         // Deactivate one asset
         assetService.updateStatus(assets.data["INACTIVE"]!!.id, Status.Inactive)
 
-        // Verify only active asset is returned - use stream within transaction
-        assetFinder.findActiveAssetsForPricing().use { stream ->
-            val codes = stream.map { it.code }.toList()
-            assertThat(codes).contains("ACTIVE")
-            assertThat(codes).doesNotContain("INACTIVE")
-        }
+        // Verify only active asset is returned
+        val codes = assetFinder.findActiveAssetsForPricing().map { it.code }
+        assertThat(codes).contains("ACTIVE")
+        assertThat(codes).doesNotContain("INACTIVE")
     }
 
     @Test
@@ -120,13 +118,11 @@ class AssetStatusTest {
             )
         )
 
-        // Verify empty code asset is excluded - use stream within transaction
-        assetFinder.findActiveAssetsForPricing().use { stream ->
-            val assets = stream.toList()
-            val ids = assets.map { it.id }
-            assertThat(ids).doesNotContain(emptyCodeAsset.id)
-            assertThat(assets.any { it.code == "NORMAL" }).isTrue()
-        }
+        // Verify empty code asset is excluded
+        val activeAssets = assetFinder.findActiveAssetsForPricing()
+        val ids = activeAssets.map { it.id }
+        assertThat(ids).doesNotContain(emptyCodeAsset.id)
+        assertThat(activeAssets.any { it.code == "NORMAL" }).isTrue()
     }
 
     @Test
@@ -161,12 +157,10 @@ class AssetStatusTest {
             )
         )
 
-        // Verify private asset is excluded - use stream within transaction
-        assetFinder.findActiveAssetsForPricing().use { stream ->
-            val assets = stream.toList()
-            val ids = assets.map { it.id }
-            assertThat(ids).doesNotContain(privateAsset.id)
-            assertThat(assets.any { it.code == "TRADEABLE" }).isTrue()
-        }
+        // Verify private asset is excluded
+        val pricingAssets = assetFinder.findActiveAssetsForPricing()
+        val pricingIds = pricingAssets.map { it.id }
+        assertThat(pricingIds).doesNotContain(privateAsset.id)
+        assertThat(pricingAssets.any { it.code == "TRADEABLE" }).isTrue()
     }
 }

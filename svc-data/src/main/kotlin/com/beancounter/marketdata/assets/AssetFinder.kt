@@ -9,7 +9,6 @@ import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.Locale
-import java.util.stream.Stream
 
 /**
  * Handles asset finding operations with built-in hydration.
@@ -88,9 +87,9 @@ class AssetFinder(
      * Find all active assets for pricing.
      * Excludes inactive assets and those with empty codes.
      *
-     * @return stream of active assets suitable for price refresh
+     * @return list of active assets suitable for price refresh
      */
-    fun findActiveAssetsForPricing(): Stream<Asset> = assetRepository.findActiveAssetsForPricing()
+    fun findActiveAssetsForPricing(): List<Asset> = assetRepository.findActiveAssetsForPricing().use { it.toList() }
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetFinder::class.java)

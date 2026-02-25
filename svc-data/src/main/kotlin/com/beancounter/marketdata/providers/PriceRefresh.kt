@@ -8,7 +8,6 @@ import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetFinder
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -33,7 +32,6 @@ class PriceRefresh(
      * This method is idempotent - running multiple times will only fetch
      * prices for assets that failed in previous runs.
      */
-    @Transactional(readOnly = true)
     fun updatePrices(): Int {
         val priceDate = dateUtils.getFormattedDate()
         log.info(
@@ -48,42 +46,44 @@ class PriceRefresh(
         val fetched = AtomicInteger()
         val failed = AtomicInteger()
 
+        // Assets are collected upfront so no long-running DB transaction
+        // wraps the price-fetch loop.  Without this, a single fetch failure
+        // could mark the transaction rollback-only and discard ALL saved prices.
         val assets = assetFinder.findActiveAssetsForPricing()
-        assets.use { assetStream ->
-            for (asset in assetStream) {
-                totalAssets.getAndIncrement()
-                val hydratedAsset = assetFinder.hydrateAsset(asset)
 
-                // Skip if we already have today's price
-                if (hasTodaysPrice(hydratedAsset)) {
-                    skipped.getAndIncrement()
-                    continue
-                }
+        for (asset in assets) {
+            totalAssets.getAndIncrement()
+            val hydratedAsset = assetFinder.hydrateAsset(asset)
 
-                // Fetch price for this asset
-                try {
-                    val priceRequest = PriceRequest.of(hydratedAsset, TODAY)
-                    val response = marketDataService.getPriceResponse(priceRequest)
+            // Skip if we already have today's price
+            if (hasTodaysPrice(hydratedAsset)) {
+                skipped.getAndIncrement()
+                continue
+            }
 
-                    if (response.data.isNotEmpty() &&
-                        response.data
-                            .first()
-                            .close
-                            .signum() > 0
-                    ) {
-                        fetched.getAndIncrement()
-                    } else {
-                        failed.getAndIncrement()
-                        log.debug("No valid price returned for {}", hydratedAsset.code)
-                    }
-                } catch (
-                    @Suppress("TooGenericExceptionCaught")
-                    e: Exception
+            // Fetch price for this asset
+            try {
+                val priceRequest = PriceRequest.of(hydratedAsset, TODAY)
+                val response = marketDataService.getPriceResponse(priceRequest)
+
+                if (response.data.isNotEmpty() &&
+                    response.data
+                        .first()
+                        .close
+                        .signum() > 0
                 ) {
-                    // Continue processing other assets even if one fails
+                    fetched.getAndIncrement()
+                } else {
                     failed.getAndIncrement()
-                    log.warn("Failed to fetch price for {}: {}", hydratedAsset.code, e.message)
+                    log.debug("No valid price returned for {}", hydratedAsset.code)
                 }
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception
+            ) {
+                // Continue processing other assets even if one fails
+                failed.getAndIncrement()
+                log.warn("Failed to fetch price for {}: {}", hydratedAsset.code, e.message)
             }
         }
 

@@ -54,11 +54,7 @@ class AssetIngestService internal constructor(
         val response =
             marketDataClient.handle(assetRequest)
                 ?: throw BusinessException(
-                    String.format(
-                        "No response returned for %s:%s",
-                        assetInput.code,
-                        assetInput.market
-                    )
+                    "No response returned for ${assetInput.code}:${assetInput.market}"
                 )
         return response.data.values
             .iterator()

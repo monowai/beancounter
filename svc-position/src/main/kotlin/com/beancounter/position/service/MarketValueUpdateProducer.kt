@@ -20,8 +20,10 @@ class MarketValueUpdateProducer(
                     .withPayload(payload)
                     .setHeader(KafkaHeaders.KEY, payload.id)
                     .build()
-            streamBridge.send("portfolioMarketValue-out-0", message)
-        } catch (e: Exception) {
+            if (!streamBridge.send("portfolioMarketValue-out-0", message)) {
+                log.error("StreamBridge returned false for portfolio market value update: {}", payload.code)
+            }
+        } catch (e: RuntimeException) {
             log.error("Failed to send market value update for portfolio {}: {}", payload.code, e.message)
         }
     }

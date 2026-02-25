@@ -88,121 +88,12 @@ internal class ShareSightAdapterTest {
 
     @Test
     fun `should set assets into transaction`() {
-        var row: MutableList<String> = mutableListOf()
-        row.add(
-            ShareSightTradeAdapter.ID,
-            "1"
-        )
-        row.add(
-            ShareSightTradeAdapter.MARKET,
-            ASX.code
-        )
-        row.add(
-            ShareSightTradeAdapter.CODE,
-            "BHP"
-        )
-        row.add(
-            ShareSightTradeAdapter.NAME,
-            "Test Asset"
-        )
-        row.add(
-            ShareSightTradeAdapter.TYPE,
-            "buy"
-        )
-        row.add(
-            ShareSightTradeAdapter.DATE,
-            "21/01/2019"
-        )
-        row.add(
-            ShareSightTradeAdapter.QUANTITY,
-            "10"
-        )
-        row.add(
-            ShareSightTradeAdapter.PRICE,
-            "12.23"
-        )
-        row.add(
-            ShareSightTradeAdapter.BROKERAGE,
-            "12.99"
-        )
-        row.add(
-            ShareSightTradeAdapter.CURRENCY,
-            "AUD"
-        )
-        row.add(
-            ShareSightTradeAdapter.FX_RATE,
-            "99.99"
-        )
-        row.add(
-            ShareSightTradeAdapter.VALUE,
-            "2097.85"
-        )
-        val rows: MutableList<List<String>> = ArrayList()
-        rows.add(row)
-        row = ArrayList()
-        row.add(
-            ShareSightTradeAdapter.ID,
-            "2"
-        )
-        row.add(
-            ShareSightTradeAdapter.MARKET,
-            "NASDAQ"
-        )
-        row.add(
-            ShareSightTradeAdapter.CODE,
-            "MSFT"
-        )
-        row.add(
-            ShareSightTradeAdapter.NAME,
-            "Microsoft"
-        )
-        row.add(
-            ShareSightTradeAdapter.TYPE,
-            "buy"
-        )
-        row.add(
-            ShareSightTradeAdapter.DATE,
-            "21/01/2019"
-        )
-        row.add(
-            ShareSightTradeAdapter.QUANTITY,
-            "10"
-        )
-        row.add(
-            ShareSightTradeAdapter.PRICE,
-            "12.23"
-        )
-        row.add(
-            ShareSightTradeAdapter.BROKERAGE,
-            "12.99"
-        )
-        row.add(
-            ShareSightTradeAdapter.CURRENCY,
-            "USD"
-        )
-        row.add(
-            ShareSightTradeAdapter.FX_RATE,
-            "99.99"
-        )
-        row.add(
-            ShareSightTradeAdapter.VALUE,
-            "2097.85"
-        )
-        rows.add(row)
-        val trnInputs: MutableCollection<TrnInput> = ArrayList()
-        val portfolio = getPortfolio()
-        for (columnValues in rows) {
-            val trustedTrnImportRequest =
-                TrustedTrnImportRequest(
-                    portfolio,
-                    ImportFormat.SHARESIGHT,
-                    row = columnValues
-                )
-            trnInputs.add(
-                shareSightRowProcessor
-                    .transform(trustedTrnImportRequest)
+        val rows =
+            listOf(
+                buildTradeRow("1", ASX.code, "BHP", "Test Asset", "AUD"),
+                buildTradeRow("2", "NASDAQ", "MSFT", "Microsoft", "USD")
             )
-        }
+        val trnInputs = transformRows(rows)
         assertThat(trnInputs).hasSize(2)
         for (trn in trnInputs) {
             assertThat(trn)
@@ -213,6 +104,42 @@ internal class ShareSightAdapterTest {
                 .hasFieldOrProperty("tradeCurrency")
                 .hasFieldOrProperty("trnType")
                 .hasFieldOrProperty("tradeDate")
+        }
+    }
+
+    private fun buildTradeRow(
+        id: String,
+        market: String,
+        code: String,
+        name: String,
+        currency: String
+    ): List<String> {
+        val row: MutableList<String> = mutableListOf()
+        row.add(ShareSightTradeAdapter.ID, id)
+        row.add(ShareSightTradeAdapter.MARKET, market)
+        row.add(ShareSightTradeAdapter.CODE, code)
+        row.add(ShareSightTradeAdapter.NAME, name)
+        row.add(ShareSightTradeAdapter.TYPE, "buy")
+        row.add(ShareSightTradeAdapter.DATE, "21/01/2019")
+        row.add(ShareSightTradeAdapter.QUANTITY, "10")
+        row.add(ShareSightTradeAdapter.PRICE, "12.23")
+        row.add(ShareSightTradeAdapter.BROKERAGE, "12.99")
+        row.add(ShareSightTradeAdapter.CURRENCY, currency)
+        row.add(ShareSightTradeAdapter.FX_RATE, "99.99")
+        row.add(ShareSightTradeAdapter.VALUE, "2097.85")
+        return row
+    }
+
+    private fun transformRows(rows: List<List<String>>): List<TrnInput> {
+        val portfolio = getPortfolio()
+        return rows.map { columnValues ->
+            shareSightRowProcessor.transform(
+                TrustedTrnImportRequest(
+                    portfolio,
+                    ImportFormat.SHARESIGHT,
+                    row = columnValues
+                )
+            )
         }
     }
 }

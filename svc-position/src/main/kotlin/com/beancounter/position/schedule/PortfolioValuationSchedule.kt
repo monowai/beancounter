@@ -101,13 +101,13 @@ class PortfolioValuationSchedule(
                         portfolio.code,
                         portfolio.id
                     )
-                } catch (e: Exception) {
+                } catch (e: RuntimeException) {
                     errorCount++
                     log.error(
-                        "Failed to value portfolio: {} ({}): {}",
+                        "Failed to value portfolio: {} ({})",
                         portfolio.code,
                         portfolio.id,
-                        e.message
+                        e
                     )
                 }
             }

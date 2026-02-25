@@ -35,7 +35,7 @@ data class ValuationSnapshot(
 @Service
 class TwrCalculator {
     companion object {
-        private val SCALE = 10
+        private const val SCALE = 10
         private val MC = MathContext(15, RoundingMode.HALF_UP)
         private val ONE_THOUSAND = BigDecimal("1000")
     }

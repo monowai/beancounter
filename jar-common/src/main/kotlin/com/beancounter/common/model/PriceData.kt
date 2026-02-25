@@ -74,11 +74,9 @@ data class PriceData(
                     mktData.volume
                 )
 
-            if (MathUtils.hasValidRate(rate) &&
-                rate != BigDecimal.ONE &&
-                numberUtils.isSet(result.previousClose) &&
-                numberUtils.isSet(result.close)
-            ) {
+            val hasValidConversionRate = MathUtils.hasValidRate(rate) && rate != BigDecimal.ONE
+            val hasPriceData = numberUtils.isSet(mktData.previousClose) && numberUtils.isSet(mktData.close)
+            if (hasValidConversionRate && hasPriceData) {
                 // For currency conversion, we need to convert the change amount
                 // but keep the changePercent the same (percentage doesn't change with currency)
                 result.change = multiplyAbs(money = mktData.change, rate = rate)

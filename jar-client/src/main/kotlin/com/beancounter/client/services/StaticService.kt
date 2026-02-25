@@ -61,12 +61,7 @@ class StaticService(
                 return currency
             }
         }
-        throw BusinessException(
-            String.format(
-                "Unable to resolve the currency %s",
-                currencyCode
-            )
-        )
+        throw BusinessException("Unable to resolve the currency $currencyCode")
     }
 
     @Cacheable("market")

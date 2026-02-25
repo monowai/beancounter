@@ -11,6 +11,12 @@ import java.time.Month
  */
 @Service
 class MarketHolidays {
+    companion object {
+        private const val JUNETEENTH_DAY = 19
+        private const val JUNETEENTH_FIRST_YEAR = 2021
+        private const val CHRISTMAS_DAY = 25
+    }
+
     /**
      * Check if the given date is a US market holiday.
      */
@@ -31,11 +37,11 @@ class MarketHolidays {
         ) {
             Month.JANUARY if day == 1 -> true
             // Juneteenth - June 19 (since 2021)
-            Month.JUNE if day == 19 && date.year >= 2021 -> true
+            Month.JUNE if day == JUNETEENTH_DAY && date.year >= JUNETEENTH_FIRST_YEAR -> true
             // Independence Day - July 4
             Month.JULY if day == 4 -> true
             // Christmas Day - December 25
-            Month.DECEMBER if day == 25 -> true
+            Month.DECEMBER if day == CHRISTMAS_DAY -> true
             else -> false
         }
     }

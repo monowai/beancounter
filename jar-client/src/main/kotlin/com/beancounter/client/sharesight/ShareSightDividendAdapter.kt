@@ -118,12 +118,7 @@ class ShareSightDividendAdapter(
         }
         val values = Splitter.on(CharMatcher.anyOf(".:-")).trimResults().splitToList(input)
         if (values.isEmpty() || values[0] == input) {
-            throw BusinessException(
-                String.format(
-                    "Unable to parse %s",
-                    input
-                )
-            )
+            throw BusinessException("Unable to parse $input")
         }
         return values
     }

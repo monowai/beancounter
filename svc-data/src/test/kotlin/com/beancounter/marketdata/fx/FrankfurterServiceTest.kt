@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.springframework.web.client.RestClientException
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -84,7 +85,7 @@ class FrankfurterServiceTest {
                 any(),
                 any()
             )
-        ).thenThrow(RuntimeException("Connection failed"))
+        ).thenThrow(RestClientException("Connection failed"))
 
         val service = FrankfurterService(frankfurterGateway, currencyService, dateUtils)
         val rates = service.getRates("2024-01-15")

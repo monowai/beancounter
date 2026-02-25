@@ -157,11 +157,7 @@ internal class TestAsset {
     private fun fromKey(key: String): Asset {
         val marketAsset = key.split(":").toTypedArray()
         if (marketAsset.size != 2) {
-            throw BusinessException(
-                String.format(
-                    "Unable to parse the key $key"
-                )
-            )
+            throw BusinessException("Unable to parse the key $key")
         }
         return getTestAsset(
             Market(marketAsset[1]),

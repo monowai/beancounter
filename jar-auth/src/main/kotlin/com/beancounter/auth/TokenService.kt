@@ -63,7 +63,7 @@ class TokenService(
         if (!standardEmail.isNullOrBlank()) {
             return standardEmail
         }
-        throw IllegalStateException("No email claim found in token")
+        error("No email claim found in token")
     }
 
     fun hasEmail(): Boolean {

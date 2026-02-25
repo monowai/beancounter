@@ -6,6 +6,7 @@ import com.beancounter.marketdata.currency.CurrencyService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 
 /**
  * Frankfurter (frankfurter.dev) FX rate provider - free, unlimited, ECB-based rates.
@@ -47,7 +48,7 @@ class FrankfurterService
                     log.warn("Frankfurter returned null response for date {}", asAt)
                     emptyList()
                 }
-            } catch (e: Exception) {
+            } catch (e: RestClientException) {
                 log.warn("Frankfurter FX rate fetch failed for {}: {}", asAt, e.message)
                 emptyList()
             }

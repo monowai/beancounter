@@ -106,7 +106,7 @@ class AlphaPriceService(
                     results.addAll(
                         alphaPriceAdapter[providerArguments, batchId, requestDeferred.await(), currentMode]
                     )
-                } catch (e: Exception) {
+                } catch (e: RuntimeException) {
                     failed++
                     log.warn("Batch {} failed: {}", batchId, e.message)
                 }

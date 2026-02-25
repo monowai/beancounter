@@ -152,15 +152,15 @@ class ValuationAdminController(
                     portfolio.id,
                     portfolio.valuedAt
                 )
-            } catch (e: Exception) {
+            } catch (e: RuntimeException) {
                 errorCount++
-                val errorMsg = "${portfolio.code}: ${e.message}"
+                val errorMsg = "${portfolio.code}: ${e.message ?: e::class.simpleName}"
                 errors.add(errorMsg)
                 log.error(
-                    "Failed to value portfolio: {} ({}): {}",
+                    "Failed to value portfolio: {} ({})",
                     portfolio.code,
                     portfolio.id,
-                    e.message
+                    e
                 )
             }
         }

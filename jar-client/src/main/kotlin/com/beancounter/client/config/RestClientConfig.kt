@@ -22,10 +22,15 @@ class RestClientConfig {
             .baseUrl(baseUrl)
             .requestFactory(
                 SimpleClientHttpRequestFactory().apply {
-                    setConnectTimeout(5000)
-                    setReadTimeout(30000)
+                    setConnectTimeout(CONNECT_TIMEOUT_MS)
+                    setReadTimeout(READ_TIMEOUT_MS)
                 }
             ).requestInterceptor(SentryTracingInterceptor())
             .defaultStatusHandler(RestClientErrorHandler())
             .build()
+
+    companion object {
+        private const val CONNECT_TIMEOUT_MS = 5000
+        private const val READ_TIMEOUT_MS = 30000
+    }
 }

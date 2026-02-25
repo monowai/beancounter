@@ -21,6 +21,11 @@ import java.nio.charset.StandardCharsets
 class RestClientErrorHandler : ResponseErrorHandler {
     private val log = LoggerFactory.getLogger(RestClientErrorHandler::class.java)
 
+    companion object {
+        private const val CLIENT_ERROR_MAX = 499
+        private const val SERVER_ERROR_MAX = 599
+    }
+
     override fun hasError(response: ClientHttpResponse): Boolean = response.statusCode.isError
 
     override fun handleError(
@@ -45,8 +50,8 @@ class RestClientErrorHandler : ResponseErrorHandler {
             HttpStatus.UNAUTHORIZED.value() -> UnauthorizedException(reason)
             HttpStatus.FORBIDDEN.value() -> ForbiddenException(reason)
             HttpStatus.NOT_FOUND.value() -> NotFoundException(reason)
-            in HttpStatus.BAD_REQUEST.value()..499 -> BusinessException(reason)
-            in HttpStatus.INTERNAL_SERVER_ERROR.value()..599 -> SystemException(reason)
+            in HttpStatus.BAD_REQUEST.value()..CLIENT_ERROR_MAX -> BusinessException(reason)
+            in HttpStatus.INTERNAL_SERVER_ERROR.value()..SERVER_ERROR_MAX -> SystemException(reason)
             else -> SystemException("HTTP $statusCode: $reason")
         }
     }

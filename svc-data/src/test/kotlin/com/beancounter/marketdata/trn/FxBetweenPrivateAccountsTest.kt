@@ -107,7 +107,10 @@ class FxBetweenPrivateAccountsTest {
                 )
             ).thenReturn(scbUsdAccount)
 
-        // CSV row format: Batch,CallerId,Type,Market,Code,Name,CashAccount,CashCurrency,Date,Quantity,BaseRate,TradeCurrency,Price,Fees,PortfolioRate,TradeAmount,CashAmount,Comments,Status
+        // CSV row format:
+        // Batch,CallerId,Type,Market,Code,Name,CashAccount,CashCurrency,
+        // Date,Quantity,BaseRate,TradeCurrency,Price,Fees,PortfolioRate,
+        // TradeAmount,CashAmount,Comments,Status
         val csvRow =
             listOf(
                 "20260121", // Batch

@@ -292,7 +292,6 @@ class BcRowAdapterTest {
             ).thenReturn(privateCash)
 
         // CSV: INCOME on PRIVATE asset, empty CashAccount
-        // Columns: Batch,CallerId,Type,Market,Code,Name,CashAccount,CashCurrency,Date,Quantity,BaseRate,TradeCurrency,Price,Fees,PortfolioRate,TradeAmount,CashAmount,Comments
         val values =
             listOf(
                 "20250115", // Batch

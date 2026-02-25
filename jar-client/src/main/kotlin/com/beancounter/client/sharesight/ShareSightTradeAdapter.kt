@@ -89,7 +89,7 @@ class ShareSightTradeAdapter(
     private fun validateAndParseTrnType(row: List<String>): TrnType {
         val ttype = row[TYPE]
         if (ttype.equals("", ignoreCase = true)) {
-            throw BusinessException(String.format("Unsupported type %s", row[TYPE]))
+            throw BusinessException("Unsupported type ${row[TYPE]}")
         }
         return TrnType.valueOf(ttype.uppercase(Locale.getDefault()))
     }

@@ -102,26 +102,28 @@ class ResourceShareService(
     fun acceptShare(shareId: String): ResourceShare {
         val currentUser = systemUserService.getOrThrow()
         val share = findShareOrThrow(shareId)
-
-        when (share.status) {
-            ShareStatus.PENDING_CLIENT_INVITE -> {
-                if (share.sharedWith.id != currentUser.id) {
-                    throw NotFoundException("Share not found: $shareId")
-                }
-            }
-            ShareStatus.PENDING_ADVISER_REQUEST -> {
-                if (share.targetUser?.id != currentUser.id) {
-                    throw NotFoundException("Share not found: $shareId")
-                }
-            }
-            else -> {
-                throw BusinessException("Share is not pending: $shareId")
-            }
-        }
-
+        validateShareAcceptance(share, currentUser, shareId)
         share.status = ShareStatus.ACTIVE
         share.acceptedAt = Instant.now()
         return resourceShareRepository.save(share)
+    }
+
+    private fun validateShareAcceptance(
+        share: ResourceShare,
+        currentUser: SystemUser,
+        shareId: String
+    ) {
+        val authorised =
+            when (share.status) {
+                ShareStatus.PENDING_CLIENT_INVITE -> share.sharedWith.id == currentUser.id
+                ShareStatus.PENDING_ADVISER_REQUEST ->
+                    (share.targetUser ?: throw BusinessException("Share $shareId has no target user"))
+                        .id == currentUser.id
+                else -> throw BusinessException("Share is not pending: $shareId")
+            }
+        if (!authorised) {
+            throw NotFoundException("Share not found: $shareId")
+        }
     }
 
     /**

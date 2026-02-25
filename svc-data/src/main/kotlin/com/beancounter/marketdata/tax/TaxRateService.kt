@@ -23,6 +23,10 @@ class TaxRateService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    companion object {
+        private const val PERCENTAGE_MULTIPLIER = 100
+    }
+
     /**
      * Get all tax rates for the current user.
      */
@@ -97,7 +101,11 @@ class TaxRateService(
             }
 
         val saved = taxRateRepository.save(taxRate)
-        log.info("Saved tax rate for country {}: {}%", normalizedCode, request.rate.multiply(BigDecimal(100)))
+        log.info(
+            "Saved tax rate for country {}: {}%",
+            normalizedCode,
+            request.rate.multiply(BigDecimal(PERCENTAGE_MULTIPLIER))
+        )
         return TaxRateResponse(saved.toDto())
     }
 

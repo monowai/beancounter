@@ -102,30 +102,25 @@ internal object JwtUtil {
             "Unable to resolve the Configuration with the provided Issuer of \"$issuer\""
         for (uri in uris) {
             try {
-                val request = RequestEntity.get(uri).build()
-                val response =
-                    rest.exchange(
-                        request,
-                        STRING_OBJECT_MAP
-                    )
-                val configuration =
-                    response.body ?: throw SystemException("Unable to obtain JWT Config")
+                val configuration = fetchConfiguration(uri) ?: continue
                 Assert.isTrue(
                     configuration["jwks_uri"] != null,
                     "The public JWK set URI must not be null"
                 )
                 return configuration
+            } catch (_: HttpClientErrorException) {
+                // 4xx — endpoint not found at this path, try the next URI
             } catch (ex: RestClientException) {
-                if (!(ex is HttpClientErrorException && ex.statusCode.is4xxClientError)) {
-                    throw IllegalArgumentException(
-                        errorMessage,
-                        ex
-                    )
-                }
-                // else try another endpoint
+                throw SystemException(errorMessage, ex)
             }
         }
-        throw IllegalArgumentException(errorMessage)
+        throw SystemException(errorMessage)
+    }
+
+    private fun fetchConfiguration(uri: URI): Map<String, Any>? {
+        val request = RequestEntity.get(uri).build()
+        val response = rest.exchange(request, STRING_OBJECT_MAP)
+        return response.body
     }
 
     private fun oidc(issuer: URI): URI {

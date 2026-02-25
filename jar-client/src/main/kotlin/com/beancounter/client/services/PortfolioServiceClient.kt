@@ -101,12 +101,7 @@ class PortfolioServiceClient(
         response: PortfolioResponse?
     ): Portfolio {
         if (response?.data == null) {
-            throw BusinessException(
-                String.format(
-                    "Unable to find portfolio %s",
-                    portfolioCode
-                )
-            )
+            throw BusinessException("Unable to find portfolio $portfolioCode")
         }
         return response.data
     }

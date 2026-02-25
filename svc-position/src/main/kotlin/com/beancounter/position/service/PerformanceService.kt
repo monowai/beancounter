@@ -460,7 +460,7 @@ class PerformanceService(
         return try {
             val cached = cacheService.findAllSnapshots(portfolioId)
             cached.ifEmpty { null }
-        } catch (e: Exception) {
+        } catch (e: RuntimeException) {
             log.warn("Cache lookup failed, proceeding without cache: {}", e.message)
             null
         }
@@ -485,7 +485,7 @@ class PerformanceService(
                     )
                 }
             cacheService.storeSnapshots(portfolioId, toStore)
-        } catch (e: Exception) {
+        } catch (e: RuntimeException) {
             log.warn("Cache store failed, computation unaffected: {}", e.message)
         }
     }

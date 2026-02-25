@@ -7,6 +7,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 
 /**
  * exchangeratesapi.io service implementation to obtain FX rates.
@@ -48,7 +49,7 @@ class EcbService
                     log.warn("ExchangeRatesAPI returned null response for date {}", asAt)
                     emptyList()
                 }
-            } catch (e: Exception) {
+            } catch (e: RestClientException) {
                 log.error("ExchangeRatesAPI FX rate fetch failed for {}: {}", asAt, e.message, e)
                 emptyList()
             }

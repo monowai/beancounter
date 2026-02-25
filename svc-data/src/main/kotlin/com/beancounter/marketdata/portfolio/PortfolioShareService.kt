@@ -12,7 +12,6 @@ import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -38,17 +37,8 @@ class PortfolioShareService(
 
         return request.portfolioIds.map { portfolioId ->
             val portfolio = portfolioService.find(portfolioId)
-            if (portfolio.owner.id != client.id) {
-                throw BusinessException("You can only share portfolios you own")
-            }
-
-            val existing = portfolioShareRepository.findByPortfolioAndSharedWith(portfolio, adviser)
-            if (existing.isPresent) {
-                val share = existing.get()
-                if (share.status == ShareStatus.ACTIVE || share.status == ShareStatus.PENDING_CLIENT_INVITE) {
-                    throw BusinessException("Portfolio ${portfolio.code} is already shared with this user")
-                }
-            }
+            validateOwnership(portfolio, client)
+            validateNotAlreadyShared(portfolio, adviser)
 
             portfolioShareRepository.save(
                 PortfolioShare(
@@ -59,6 +49,28 @@ class PortfolioShareService(
                     createdBy = client
                 )
             )
+        }
+    }
+
+    private fun validateOwnership(
+        portfolio: Portfolio,
+        client: SystemUser
+    ) {
+        if (portfolio.owner.id != client.id) {
+            throw BusinessException("You can only share portfolios you own")
+        }
+    }
+
+    private fun validateNotAlreadyShared(
+        portfolio: Portfolio,
+        adviser: SystemUser
+    ) {
+        val existing = portfolioShareRepository.findByPortfolioAndSharedWith(portfolio, adviser)
+        if (existing.isPresent) {
+            val share = existing.get()
+            if (share.status == ShareStatus.ACTIVE || share.status == ShareStatus.PENDING_CLIENT_INVITE) {
+                throw BusinessException("Portfolio ${portfolio.code} is already shared with this user")
+            }
         }
     }
 
@@ -99,26 +111,33 @@ class PortfolioShareService(
     fun acceptShare(shareId: String): PortfolioShare {
         val currentUser = systemUserService.getOrThrow()
         val share = findShareOrThrow(shareId)
-
-        when (share.status) {
-            ShareStatus.PENDING_CLIENT_INVITE -> {
-                if (share.sharedWith.id != currentUser.id) {
-                    throw NotFoundException("Share not found: $shareId")
-                }
-            }
-            ShareStatus.PENDING_ADVISER_REQUEST -> {
-                if (share.targetUser?.id != currentUser.id) {
-                    throw NotFoundException("Share not found: $shareId")
-                }
-            }
-            else -> {
-                throw BusinessException("Share is not pending: $shareId")
-            }
-        }
-
+        validateShareAcceptance(share, currentUser, shareId)
         share.status = ShareStatus.ACTIVE
         share.acceptedAt = Instant.now()
         return portfolioShareRepository.save(share)
+    }
+
+    private fun validateShareAcceptance(
+        share: PortfolioShare,
+        currentUser: SystemUser,
+        shareId: String
+    ) {
+        val authorised =
+            when (share.status) {
+                ShareStatus.PENDING_CLIENT_INVITE -> {
+                    share.sharedWith.id == currentUser.id
+                }
+                ShareStatus.PENDING_ADVISER_REQUEST -> {
+                    (share.targetUser ?: throw BusinessException("Share $shareId has no target user"))
+                        .id == currentUser.id
+                }
+                else -> {
+                    throw BusinessException("Share is not pending: $shareId")
+                }
+            }
+        if (!authorised) {
+            throw NotFoundException("Share not found: $shareId")
+        }
     }
 
     /**
@@ -196,17 +215,6 @@ class PortfolioShareService(
             ).toList()
     }
 
-    /**
-     * Check if a user has an active share for a portfolio.
-     */
-    fun hasActiveShare(
-        portfolio: Portfolio,
-        user: SystemUser
-    ): Boolean {
-        val share = portfolioShareRepository.findByPortfolioAndSharedWith(portfolio, user)
-        return share.isPresent && share.get().status == ShareStatus.ACTIVE
-    }
-
     private fun findShareOrThrow(shareId: String): PortfolioShare =
         portfolioShareRepository.findById(shareId).orElseThrow {
             NotFoundException("Share not found: $shareId")
@@ -251,8 +259,6 @@ class PortfolioShareService(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(PortfolioShareService::class.java)
-
         /**
          * Mask an email address: m***h@gmail.com
          */

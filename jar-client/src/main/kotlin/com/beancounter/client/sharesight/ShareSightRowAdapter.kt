@@ -25,11 +25,7 @@ class ShareSightRowAdapter : RowAdapter {
             return trnAdapter.from(trustedTrnImportRequest)
         }
         throw BusinessException(
-            String.format(
-                "Unable to transform %s using ",
-                trustedTrnImportRequest.toString(),
-                trnAdapter.javaClass.name
-            )
+            "Unable to transform $trustedTrnImportRequest using ${trnAdapter.javaClass.name}"
         )
     }
 }

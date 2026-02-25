@@ -27,7 +27,7 @@ class CacheInvalidationConsumer(
                         cacheService.invalidateOnDate(event.fromDate)
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: RuntimeException) {
                 log.error("Failed to process cache invalidation event: {}", e.message)
             }
         }

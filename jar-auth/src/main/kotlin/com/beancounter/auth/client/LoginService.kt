@@ -76,7 +76,8 @@ class LoginService(
     fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
         if ("not-set" == secretIn) {
             log.error(
-                "M2M login failed: client secret is 'not-set'. Check AUTH_CLIENT_SECRET or SPRING_SECURITY_OAUTH2_REGISTRATION_CUSTOM_CLIENT_SECRET env vars"
+                "M2M login failed: client secret is 'not-set'. " +
+                    "Check AUTH_CLIENT_SECRET or SPRING_SECURITY_OAUTH2_REGISTRATION_CUSTOM_CLIENT_SECRET env vars"
             )
             throw UnauthorizedException("Client Secret is not set")
         }
@@ -116,8 +117,8 @@ class LoginService(
             return response.body
                 ?: throw UnauthorizedException("Empty response from Auth0")
         } catch (e: RestClientException) {
-            log.error("Auth0 token request failed: ${e.message}")
-            throw UnauthorizedException("Authentication failed: ${e.message}")
+            log.error("Auth0 token request failed: {}", e.message, e)
+            throw UnauthorizedException("Authentication failed: ${e.message}", e)
         }
     }
 
@@ -149,20 +150,16 @@ class LoginService(
     fun <T> retryOnJwtExpiry(operation: () -> T): T =
         try {
             operation()
-        } catch (e: Exception) {
-            when (e) {
-                is JwtException, is UnauthorizedException -> {
-                    log.info("JWT operation failed: ${e.message}, refreshing token and retrying...")
-
-                    // Clear cache and get fresh token
-                    clearTokenCache()
-                    self.loginM2m()
-
-                    // Retry the operation
-                    operation()
-                }
-                else -> throw e
-            }
+        } catch (e: JwtException) {
+            log.info("JWT expired: ${e.message}, refreshing token and retrying...")
+            self.clearTokenCache()
+            self.loginM2m()
+            operation()
+        } catch (e: UnauthorizedException) {
+            log.info("Unauthorized: ${e.message}, refreshing token and retrying...")
+            self.clearTokenCache()
+            self.loginM2m()
+            operation()
         }
 
     /**

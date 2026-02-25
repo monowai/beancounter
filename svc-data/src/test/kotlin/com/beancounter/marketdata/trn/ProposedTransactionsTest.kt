@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -52,6 +53,9 @@ class ProposedTransactionsTest {
 
     @MockitoBean
     private lateinit var figiProxy: FigiProxy
+
+    @MockitoBean
+    private lateinit var fxTransactions: FxTransactions
 
     @Autowired
     private lateinit var mockMvc: MockMvc

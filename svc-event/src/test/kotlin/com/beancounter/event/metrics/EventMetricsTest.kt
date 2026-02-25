@@ -183,9 +183,9 @@ class EventMetricsTest {
         // When/Then
         try {
             eventMetrics.timeEventProcessing {
-                throw RuntimeException("test exception")
+                throw IllegalStateException("test exception")
             }
-        } catch (e: RuntimeException) {
+        } catch (e: IllegalStateException) {
             assertThat(e.message).isEqualTo("test exception")
         }
 

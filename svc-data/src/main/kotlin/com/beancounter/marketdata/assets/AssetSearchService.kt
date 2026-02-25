@@ -169,7 +169,7 @@ class AssetSearchService(
             val resolvedMarket = marketService.getMarket(market)
             val exchCode =
                 FigiConfig.getExchCode(market.uppercase())
-                    ?: throw IllegalStateException("No FIGI exchange code for market $market")
+                    ?: error("No FIGI exchange code for market $market")
 
             // First try exact ticker lookup via /v3/mapping
             val tickerResults = searchFigiByTicker(keyword, exchCode, resolvedMarket, market)
@@ -336,7 +336,7 @@ class AssetSearchService(
             val resolvedMarket = marketService.getMarket(market)
             val exchangeMic =
                 MarketStackConfig.getMicCode(market)
-                    ?: throw IllegalStateException("No MarketStack MIC code for market $market")
+                    ?: error("No MarketStack MIC code for market $market")
 
             val response =
                 marketStackGateway.searchTickers(

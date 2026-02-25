@@ -281,8 +281,7 @@ class AlphaCorporateEventEnricherTest {
         `when`(providerArguments.getAsset("SLK")).thenReturn(asset)
 
         // Valid Alpha Global Quote JSON
-        val json =
-            """{"Global Quote":{"01. symbol":"SLK","02. open":"99.00","03. high":"101.00","04. low":"98.00","05. price":"100.00","06. volume":"1000000","07. latest trading day":"2025-12-05","08. previous close":"99.50","09. change":"0.50","10. change percent":"0.50%"}}"""
+        val json = globalQuoteJson()
 
         // When: Processing with currentMode=false (historical backfill)
         val results = adapter[providerArguments, 0, json, false]
@@ -303,8 +302,7 @@ class AlphaCorporateEventEnricherTest {
         `when`(providerArguments.getAssets(0)).thenReturn(listOf("SLK"))
         `when`(providerArguments.getAsset("SLK")).thenReturn(asset)
 
-        val json =
-            """{"Global Quote":{"01. symbol":"SLK","02. open":"99.00","03. high":"101.00","04. low":"98.00","05. price":"100.00","06. volume":"1000000","07. latest trading day":"2025-12-05","08. previous close":"99.50","09. change":"0.50","10. change percent":"0.50%"}}"""
+        val json = globalQuoteJson()
 
         `when`(mockEnricher.enrich(any())).thenAnswer { it.arguments[0] }
 
@@ -315,4 +313,17 @@ class AlphaCorporateEventEnricherTest {
         verify(mockEnricher).enrich(any())
         assertThat(results).hasSize(1)
     }
+
+    private fun globalQuoteJson(): String =
+        """{"Global Quote":{""" +
+            """"01. symbol":"SLK",""" +
+            """"02. open":"99.00",""" +
+            """"03. high":"101.00",""" +
+            """"04. low":"98.00",""" +
+            """"05. price":"100.00",""" +
+            """"06. volume":"1000000",""" +
+            """"07. latest trading day":"2025-12-05",""" +
+            """"08. previous close":"99.50",""" +
+            """"09. change":"0.50",""" +
+            """"10. change percent":"0.50%"}}"""
 }

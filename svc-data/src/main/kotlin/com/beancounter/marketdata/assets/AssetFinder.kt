@@ -81,7 +81,8 @@ class AssetFinder(
      * @param marketCode the market code to search for
      * @return list of assets for the given market
      */
-    fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
+    fun findByMarketCode(marketCode: String): List<Asset> =
+        assetRepository.findByMarketCode(marketCode).map { hydrateAsset(it) }
 
     /**
      * Find all active assets for pricing.

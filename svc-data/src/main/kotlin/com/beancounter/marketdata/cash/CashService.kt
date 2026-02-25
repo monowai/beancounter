@@ -7,14 +7,14 @@ import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import jakarta.transaction.Transactional
-import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Service
 
 const val CASH = "CASH"
 
 /**
  * Cash Management Services.
  */
-@Configuration
+@Service
 @Transactional
 class CashService(
     private val assetFinder: AssetFinder,

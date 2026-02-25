@@ -112,6 +112,30 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     ): FxRate?
 
     /**
+     * Finds the most recent set of rates before a given date.
+     * Used as a fallback when external providers are unavailable.
+     * Excludes base rates stored at 1900-01-01.
+     */
+    @Query(
+        """
+        select f from FxRate f
+        where f.date = (
+            select max(f2.date) from FxRate f2
+            where f2.date < :date and f2.date > :earlyDate
+        )
+        """
+    )
+    fun findMostRecentBefore(
+        date: LocalDate,
+        earlyDate: LocalDate =
+            LocalDate.of(
+                1900,
+                1,
+                2
+            )
+    ): List<FxRate>
+
+    /**
      * Finds all FX rates within a date range (inclusive), regardless of provider.
      * Used for bulk FX pre-fetch in performance calculations.
      */

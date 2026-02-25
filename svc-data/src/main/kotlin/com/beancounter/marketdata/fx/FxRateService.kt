@@ -113,16 +113,27 @@ class FxRateService(
             if (rates.isNotEmpty()) {
                 fxRateRepository.saveAll(rates)
                 cacheInvalidationProducer?.sendFxEvent(dateToFind)
+                // Add in the base rate of 1 for USD
+                rates.add(baseCurrencyFxRate(fxRequest.provider))
             }
-            // Add in the base rate of 1 for USD
-            rates.add(baseCurrencyFxRate(fxRequest.provider))
         }
 
         if (rates.isEmpty()) {
-            val effectiveProvider = fxRequest.provider ?: fxProviderService.getDefaultProviderId()
-            throw SystemException(
-                "No rates found from $effectiveProvider for $dateToFind (requested=${fxRequest.rateDate})"
-            )
+            // Both providers failed — try most recent cached rates
+            rates = fxRateRepository.findMostRecentBefore(dateToFind).toMutableList()
+            if (rates.isNotEmpty()) {
+                log.warn(
+                    "Using cached rates from {} for {} (providers unavailable)",
+                    rates.first().date,
+                    dateToFind
+                )
+                rates.add(baseCurrencyFxRate(fxRequest.provider))
+            } else {
+                val effectiveProvider = fxRequest.provider ?: fxProviderService.getDefaultProviderId()
+                throw SystemException(
+                    "No rates found from $effectiveProvider for $dateToFind (requested=${fxRequest.rateDate})"
+                )
+            }
         }
 
         val mappedRates = rates.associateBy { it.to.code }.toMutableMap()

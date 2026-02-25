@@ -3,4 +3,3 @@ ignore:
   - svc-data/src/main/kotlin/com/beancounter/marketdata/MarketDataBoot.*
   - svc-event/src/main/kotlin/com/beancounter/event/EventBoot.*
   - jar-shell/src/main/kotlin/kotlin/com/beancounter/shell/BeanCounterShell.*
-  - jar-auth/src/main/kotlin/com/beancounter/auth/JwtUtil.*

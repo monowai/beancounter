@@ -19,6 +19,19 @@ class PositionMcpServer(
 ) {
     private val log = LoggerFactory.getLogger(PositionMcpServer::class.java)
 
+    companion object {
+        const val KEY_MARKET_VALUE = "marketValue"
+        const val KEY_CURRENCY = "currency"
+        const val KEY_CODE = "code"
+        const val KEY_ID = "id"
+        const val KEY_NAME = "name"
+        const val KEY_PURCHASES = "purchases"
+        const val KEY_SALES = "sales"
+        const val KEY_GAIN = "gain"
+        const val KEY_INCOME = "income"
+        const val KEY_IRR = "irr"
+    }
+
     /**
      * Get portfolio positions by portfolio object with valuation
      */
@@ -73,7 +86,7 @@ class PositionMcpServer(
             "portfolioId" to portfolio.id,
             "portfolioCode" to portfolio.code,
             "portfolioName" to portfolio.name,
-            "currency" to portfolio.currency.code,
+            KEY_CURRENCY to portfolio.currency.code,
             "baseCurrency" to portfolio.base.code,
             "asAt" to valuationDate,
             "totalPositions" to positions.positions.size,
@@ -82,39 +95,15 @@ class PositionMcpServer(
                 mapOf(
                     "base" to
                         positions.totals[com.beancounter.common.model.Position.In.BASE]?.let { totals ->
-                            mapOf(
-                                "marketValue" to totals.marketValue,
-                                "purchases" to totals.purchases,
-                                "sales" to totals.sales,
-                                "gain" to totals.gain,
-                                "income" to totals.income,
-                                "irr" to totals.irr,
-                                "currency" to totals.currency.code
-                            )
+                            totalsToMap(totals)
                         },
                     "portfolio" to
                         positions.totals[com.beancounter.common.model.Position.In.PORTFOLIO]?.let { totals ->
-                            mapOf(
-                                "marketValue" to totals.marketValue,
-                                "purchases" to totals.purchases,
-                                "sales" to totals.sales,
-                                "gain" to totals.gain,
-                                "income" to totals.income,
-                                "irr" to totals.irr,
-                                "currency" to totals.currency.code
-                            )
+                            totalsToMap(totals)
                         },
                     "trade" to
                         positions.totals[com.beancounter.common.model.Position.In.TRADE]?.let { totals ->
-                            mapOf(
-                                "marketValue" to totals.marketValue,
-                                "purchases" to totals.purchases,
-                                "sales" to totals.sales,
-                                "gain" to totals.gain,
-                                "income" to totals.income,
-                                "irr" to totals.irr,
-                                "currency" to totals.currency.code
-                            )
+                            totalsToMap(totals)
                         }
                 )
         )
@@ -134,10 +123,10 @@ class PositionMcpServer(
         return mapOf(
             "portfolio" to
                 mapOf(
-                    "id" to portfolio.id,
-                    "code" to portfolio.code,
-                    "name" to portfolio.name,
-                    "currency" to portfolio.currency.code,
+                    KEY_ID to portfolio.id,
+                    KEY_CODE to portfolio.code,
+                    KEY_NAME to portfolio.name,
+                    KEY_CURRENCY to portfolio.currency.code,
                     "baseCurrency" to portfolio.base.code
                 ),
             "asAt" to valuationDate,
@@ -152,9 +141,9 @@ class PositionMcpServer(
                     mapOf(
                         "asset" to
                             mapOf(
-                                "id" to position.asset.id,
-                                "code" to position.asset.code,
-                                "name" to position.asset.name,
+                                KEY_ID to position.asset.id,
+                                KEY_CODE to position.asset.code,
+                                KEY_NAME to position.asset.name,
                                 "market" to position.asset.market.code,
                                 "category" to position.asset.category
                             ),
@@ -167,42 +156,46 @@ class PositionMcpServer(
                         "moneyValues" to
                             mapOf(
                                 "base" to
-                                    position
-                                        .getMoneyValues(
+                                    moneyValuesToMap(
+                                        position.getMoneyValues(
                                             com.beancounter.common.model.Position.In.BASE,
                                             portfolio.base
-                                        ).let { mv ->
-                                            mapOf(
-                                                "costValue" to mv.costValue,
-                                                "marketValue" to mv.marketValue,
-                                                "unrealisedGain" to mv.unrealisedGain,
-                                                "realisedGain" to mv.realisedGain,
-                                                "totalGain" to mv.totalGain,
-                                                "dividends" to mv.dividends,
-                                                "currency" to mv.currency.code
-                                            )
-                                        },
+                                        )
+                                    ),
                                 "portfolio" to
-                                    position
-                                        .getMoneyValues(
+                                    moneyValuesToMap(
+                                        position.getMoneyValues(
                                             com.beancounter.common.model.Position.In.PORTFOLIO,
                                             portfolio.currency
-                                        ).let { mv ->
-                                            mapOf(
-                                                "costValue" to mv.costValue,
-                                                "marketValue" to mv.marketValue,
-                                                "unrealisedGain" to mv.unrealisedGain,
-                                                "realisedGain" to mv.realisedGain,
-                                                "totalGain" to mv.totalGain,
-                                                "dividends" to mv.dividends,
-                                                "currency" to mv.currency.code
-                                            )
-                                        }
+                                        )
+                                    )
                             )
                     )
                 }
         )
     }
+
+    private fun totalsToMap(totals: com.beancounter.common.model.Totals): Map<String, Any?> =
+        mapOf(
+            KEY_MARKET_VALUE to totals.marketValue,
+            KEY_PURCHASES to totals.purchases,
+            KEY_SALES to totals.sales,
+            KEY_GAIN to totals.gain,
+            KEY_INCOME to totals.income,
+            KEY_IRR to totals.irr,
+            KEY_CURRENCY to totals.currency.code
+        )
+
+    private fun moneyValuesToMap(mv: com.beancounter.common.model.MoneyValues): Map<String, Any?> =
+        mapOf(
+            "costValue" to mv.costValue,
+            KEY_MARKET_VALUE to mv.marketValue,
+            "unrealisedGain" to mv.unrealisedGain,
+            "realisedGain" to mv.realisedGain,
+            "totalGain" to mv.totalGain,
+            "dividends" to mv.dividends,
+            KEY_CURRENCY to mv.currency.code
+        )
 
     /**
      * Get all available MCP tools/functions exposed by this service

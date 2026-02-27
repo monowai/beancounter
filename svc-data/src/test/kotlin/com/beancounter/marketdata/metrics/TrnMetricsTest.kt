@@ -7,6 +7,23 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class TrnMetricsTest {
+    companion object {
+        const val METRIC_TRN_EVENTS_RECEIVED = "beancounter.trn.events.received"
+        const val METRIC_TRN_RECEIVED_BY_TYPE = "beancounter.trn.received.by_type"
+        const val METRIC_TRN_WRITTEN = "beancounter.trn.written"
+        const val METRIC_TRN_WRITTEN_BY_TYPE = "beancounter.trn.written.by_type"
+        const val METRIC_TRN_DUPLICATES = "beancounter.trn.duplicates"
+        const val METRIC_TRN_DUPLICATES_BY_TYPE = "beancounter.trn.duplicates.by_type"
+        const val METRIC_TRN_DUPLICATES_WITHIN_DAYS = "beancounter.trn.duplicates.within_days"
+        const val METRIC_TRN_IGNORED = "beancounter.trn.ignored"
+        const val METRIC_TRN_IGNORED_BY_REASON = "beancounter.trn.ignored.by_reason"
+        const val METRIC_TRN_IMPORT_TIME = "beancounter.trn.import.time"
+        const val METRIC_EVENTS_PUBLISHED = "beancounter.price.corporate_events.published"
+        const val METRIC_EVENTS_PUBLISHED_BY_TYPE = "beancounter.price.corporate_events.published.by_type"
+        const val TAG_TYPE = "type"
+        const val TAG_DAYS = "days"
+    }
+
     private lateinit var meterRegistry: MeterRegistry
     private lateinit var trnMetrics: TrnMetrics
 
@@ -22,9 +39,9 @@ class TrnMetricsTest {
         trnMetrics.recordTrnEventReceived("DIVI")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.events.received").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_EVENTS_RECEIVED).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.received.by_type", "type", "DIVI").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_RECEIVED_BY_TYPE, TAG_TYPE, "DIVI").count())
             .isEqualTo(1.0)
     }
 
@@ -34,9 +51,9 @@ class TrnMetricsTest {
         trnMetrics.recordTrnEventReceived("SPLIT")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.events.received").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_EVENTS_RECEIVED).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.received.by_type", "type", "SPLIT").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_RECEIVED_BY_TYPE, TAG_TYPE, "SPLIT").count())
             .isEqualTo(1.0)
     }
 
@@ -46,9 +63,9 @@ class TrnMetricsTest {
         trnMetrics.recordTrnEventReceived("BUY")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.events.received").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_EVENTS_RECEIVED).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.received.by_type", "type", "BUY").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_RECEIVED_BY_TYPE, TAG_TYPE, "BUY").count())
             .isEqualTo(1.0)
     }
 
@@ -58,9 +75,9 @@ class TrnMetricsTest {
         trnMetrics.recordTrnWritten("DIVI", 3)
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.written").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_WRITTEN).count())
             .isEqualTo(3.0)
-        assertThat(meterRegistry.counter("beancounter.trn.written.by_type", "type", "DIVI").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_WRITTEN_BY_TYPE, TAG_TYPE, "DIVI").count())
             .isEqualTo(3.0)
     }
 
@@ -70,9 +87,9 @@ class TrnMetricsTest {
         trnMetrics.recordTrnWritten("DIVI")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.written").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_WRITTEN).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.written.by_type", "type", "DIVI").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_WRITTEN_BY_TYPE, TAG_TYPE, "DIVI").count())
             .isEqualTo(1.0)
     }
 
@@ -83,9 +100,9 @@ class TrnMetricsTest {
         trnMetrics.recordTrnWritten("DIVI", 3)
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.written").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_WRITTEN).count())
             .isEqualTo(5.0)
-        assertThat(meterRegistry.counter("beancounter.trn.written.by_type", "type", "DIVI").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_WRITTEN_BY_TYPE, TAG_TYPE, "DIVI").count())
             .isEqualTo(5.0)
     }
 
@@ -95,11 +112,11 @@ class TrnMetricsTest {
         trnMetrics.recordDuplicateDetected("DIVI", withinDays = 5)
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates.by_type", "type", "DIVI").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES_BY_TYPE, TAG_TYPE, "DIVI").count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates.within_days", "days", "5").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES_WITHIN_DAYS, TAG_DAYS, "5").count())
             .isEqualTo(1.0)
     }
 
@@ -109,9 +126,9 @@ class TrnMetricsTest {
         trnMetrics.recordDuplicateDetected("DIVI", withinDays = null)
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates.by_type", "type", "DIVI").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES_BY_TYPE, TAG_TYPE, "DIVI").count())
             .isEqualTo(1.0)
     }
 
@@ -124,13 +141,13 @@ class TrnMetricsTest {
         trnMetrics.recordDuplicateDetected("DIVI", withinDays = 5)
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES).count())
             .isEqualTo(4.0)
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates.within_days", "days", "0").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES_WITHIN_DAYS, TAG_DAYS, "0").count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates.within_days", "days", "5").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES_WITHIN_DAYS, TAG_DAYS, "5").count())
             .isEqualTo(2.0)
-        assertThat(meterRegistry.counter("beancounter.trn.duplicates.within_days", "days", "20").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_DUPLICATES_WITHIN_DAYS, TAG_DAYS, "20").count())
             .isEqualTo(1.0)
     }
 
@@ -140,12 +157,12 @@ class TrnMetricsTest {
         trnMetrics.recordTrnIgnored("portfolio_verification_failed")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.ignored").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_IGNORED).count())
             .isEqualTo(1.0)
         assertThat(
             meterRegistry
                 .counter(
-                    "beancounter.trn.ignored.by_reason",
+                    METRIC_TRN_IGNORED_BY_REASON,
                     "reason",
                     "portfolio_verification_failed"
                 ).count()
@@ -160,17 +177,17 @@ class TrnMetricsTest {
         trnMetrics.recordTrnIgnored("portfolio_verification_failed")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.trn.ignored").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_IGNORED).count())
             .isEqualTo(3.0)
         assertThat(
             meterRegistry
                 .counter(
-                    "beancounter.trn.ignored.by_reason",
+                    METRIC_TRN_IGNORED_BY_REASON,
                     "reason",
                     "portfolio_verification_failed"
                 ).count()
         ).isEqualTo(2.0)
-        assertThat(meterRegistry.counter("beancounter.trn.ignored.by_reason", "reason", "invalid_asset").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_IGNORED_BY_REASON, "reason", "invalid_asset").count())
             .isEqualTo(1.0)
     }
 
@@ -213,12 +230,12 @@ class TrnMetricsTest {
         trnMetrics.recordCorporateEventPublished("DIVI")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.price.corporate_events.published").count())
+        assertThat(meterRegistry.counter(METRIC_EVENTS_PUBLISHED).count())
             .isEqualTo(1.0)
         assertThat(
             meterRegistry
                 .counter(
-                    "beancounter.price.corporate_events.published.by_type",
+                    METRIC_EVENTS_PUBLISHED_BY_TYPE,
                     "type",
                     "DIVI"
                 ).count()
@@ -233,12 +250,12 @@ class TrnMetricsTest {
         trnMetrics.recordCorporateEventPublished("DIVI")
 
         // Then
-        assertThat(meterRegistry.counter("beancounter.price.corporate_events.published").count())
+        assertThat(meterRegistry.counter(METRIC_EVENTS_PUBLISHED).count())
             .isEqualTo(3.0)
         assertThat(
             meterRegistry
                 .counter(
-                    "beancounter.price.corporate_events.published.by_type",
+                    METRIC_EVENTS_PUBLISHED_BY_TYPE,
                     "type",
                     "DIVI"
                 ).count()
@@ -246,7 +263,7 @@ class TrnMetricsTest {
         assertThat(
             meterRegistry
                 .counter(
-                    "beancounter.price.corporate_events.published.by_type",
+                    METRIC_EVENTS_PUBLISHED_BY_TYPE,
                     "type",
                     "SPLIT"
                 ).count()
@@ -264,7 +281,7 @@ class TrnMetricsTest {
 
         // Then
         assertThat(result).isEqualTo("completed")
-        val timer = meterRegistry.timer("beancounter.trn.import.time")
+        val timer = meterRegistry.timer(METRIC_TRN_IMPORT_TIME)
         assertThat(timer.count()).isEqualTo(1)
         assertThat(timer.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS)).isGreaterThan(5.0)
     }
@@ -275,7 +292,7 @@ class TrnMetricsTest {
         trnMetrics.recordImportTime(150L)
 
         // Then
-        val timer = meterRegistry.timer("beancounter.trn.import.time")
+        val timer = meterRegistry.timer(METRIC_TRN_IMPORT_TIME)
         assertThat(timer.count()).isEqualTo(1)
         assertThat(timer.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS)).isEqualTo(150.0)
     }
@@ -293,7 +310,7 @@ class TrnMetricsTest {
         }
 
         // Timer should still record the attempt
-        val timer = meterRegistry.timer("beancounter.trn.import.time")
+        val timer = meterRegistry.timer(METRIC_TRN_IMPORT_TIME)
         assertThat(timer.count()).isEqualTo(1)
     }
 
@@ -308,11 +325,11 @@ class TrnMetricsTest {
         // Then
         assertThat(meterRegistry.counter("beancounter.price.dividends.detected").count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.price.corporate_events.published").count())
+        assertThat(meterRegistry.counter(METRIC_EVENTS_PUBLISHED).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.events.received").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_EVENTS_RECEIVED).count())
             .isEqualTo(1.0)
-        assertThat(meterRegistry.counter("beancounter.trn.written").count())
+        assertThat(meterRegistry.counter(METRIC_TRN_WRITTEN).count())
             .isEqualTo(2.0)
     }
 }

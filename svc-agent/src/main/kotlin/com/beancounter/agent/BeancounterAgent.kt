@@ -41,6 +41,12 @@ class BeancounterAgent(
 ) {
     private val log = LoggerFactory.getLogger(BeancounterAgent::class.java)
 
+    companion object {
+        const val PARAM_PORTFOLIO_CODE = "portfolioCode"
+        const val DATE_TODAY = "today"
+        const val KEY_DATA = "data"
+    }
+
     /**
      * Process a natural language query and return structured results
      */
@@ -87,7 +93,7 @@ class BeancounterAgent(
      */
     fun analyzePortfolio(
         portfolioId: String,
-        date: String = "today"
+        date: String = DATE_TODAY
     ): PortfolioAnalysis {
         log.info("Analyzing portfolio: {} as of {}", portfolioId, date)
 
@@ -138,7 +144,7 @@ class BeancounterAgent(
                 val result =
                     when (action.type) {
                         ActionType.GET_PORTFOLIO -> {
-                            val portfolioCode = action.parameters["portfolioCode"] as? String
+                            val portfolioCode = action.parameters[PARAM_PORTFOLIO_CODE] as? String
                             val portfolioId =
                                 if (portfolioCode != null) {
                                     resolvePortfolioCodeToId(portfolioCode)
@@ -181,7 +187,7 @@ class BeancounterAgent(
                                 (action.parameters["date"] as? String)?.let { resolveDateString(it) }
                             )
                         ActionType.LOAD_EVENTS -> {
-                            val portfolioCode = action.parameters["portfolioCode"] as? String
+                            val portfolioCode = action.parameters[PARAM_PORTFOLIO_CODE] as? String
                             val portfolioId =
                                 if (portfolioCode != null) {
                                     resolvePortfolioCodeToId(portfolioCode)
@@ -195,7 +201,7 @@ class BeancounterAgent(
                             )
                         }
                         ActionType.BACKFILL_EVENTS -> {
-                            val portfolioCode = action.parameters["portfolioCode"] as? String
+                            val portfolioCode = action.parameters[PARAM_PORTFOLIO_CODE] as? String
                             val portfolioId =
                                 if (portfolioCode != null) {
                                     resolvePortfolioCodeToId(portfolioCode)
@@ -231,22 +237,25 @@ class BeancounterAgent(
                         ActionType.VERIFY_CONNECTIVITY -> verifyServiceConnectivity()
                         ActionType.GET_LARGEST_HOLDINGS ->
                             getLargestHoldings(
-                                action.parameters["portfolioCode"] as String
+                                action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
-                        ActionType.GET_POSITION_NEWS -> getPositionNews(action.parameters["portfolioCode"] as String)
-                        ActionType.GET_TOP_MOVERS -> getTopMovers(action.parameters["portfolioCode"] as String)
+                        ActionType.GET_POSITION_NEWS ->
+                            getPositionNews(
+                                action.parameters[PARAM_PORTFOLIO_CODE] as String
+                            )
+                        ActionType.GET_TOP_MOVERS -> getTopMovers(action.parameters[PARAM_PORTFOLIO_CODE] as String)
                         ActionType.ANALYZE_PORTFOLIO_PERFORMANCE ->
                             analyzePortfolioPerformance(
-                                action.parameters["portfolioCode"] as String
+                                action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
                         ActionType.GENERATE_LLM_ANALYSIS -> generateLlmAnalysis(action.parameters)
                         ActionType.GET_CORPORATE_ACTIONS ->
                             getCorporateActions(
-                                action.parameters["portfolioCode"] as String
+                                action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
                         ActionType.GET_UPCOMING_EVENTS ->
                             getUpcomingEvents(
-                                action.parameters["portfolioCode"] as String
+                                action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
                         ActionType.GET_MARKET_EVENTS -> getMarketEvents()
                     }
@@ -359,7 +368,7 @@ class BeancounterAgent(
         positions.data.positions.values.forEach { position ->
             try {
                 val assetEvents = getAssetEvents(position.asset.id)
-                val eventsData = assetEvents["data"] as? List<*> ?: emptyList<Any>()
+                val eventsData = assetEvents[KEY_DATA] as? List<*> ?: emptyList<Any>()
                 eventsData.forEach { event ->
                     if (event is Map<*, *>) {
                         allEvents.add(event as Map<String, Any>)
@@ -370,7 +379,7 @@ class BeancounterAgent(
             }
         }
 
-        return mapOf("data" to allEvents)
+        return mapOf(KEY_DATA to allEvents)
     }
 
     fun loadEventsForPortfolio(
@@ -426,7 +435,7 @@ class BeancounterAgent(
         // Get all positions for the portfolio
         val portfolio =
             Portfolio(id = portfolioId)
-        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString(DATE_TODAY))
 
         // Sort by market value and return (the response generation will handle the top 5)
         return positions
@@ -441,13 +450,13 @@ class BeancounterAgent(
         val portfolioId = resolvePortfolioCodeToId(portfolioCode)
         if (portfolioId == null) {
             log.warn("Could not resolve portfolio code: {}", portfolioCode)
-            return mapOf("data" to emptyList<Any>())
+            return mapOf(KEY_DATA to emptyList<Any>())
         }
 
         // Get positions first
         val portfolio =
             Portfolio(id = portfolioId)
-        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString(DATE_TODAY))
 
         // Get events for each position
         val allEvents = mutableListOf<Map<String, Any>>()
@@ -456,7 +465,7 @@ class BeancounterAgent(
             try {
                 val events = eventMcpClient.getAssetEvents(position.asset.id)
                 if (events is Map<*, *>) {
-                    val eventsList = events["data"] as? List<Map<String, Any>>
+                    val eventsList = events[KEY_DATA] as? List<Map<String, Any>>
                     eventsList?.forEach { event ->
                         val eventMap = event as Map<String, Any?>
                         val enrichedEvent = mutableMapOf<String, Any>()
@@ -475,7 +484,7 @@ class BeancounterAgent(
             }
         }
 
-        return mapOf("data" to allEvents)
+        return mapOf(KEY_DATA to allEvents)
     }
 
     /**
@@ -493,7 +502,7 @@ class BeancounterAgent(
         // Get all positions for the portfolio
         val portfolio =
             Portfolio(id = portfolioId)
-        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString(DATE_TODAY))
 
         // Filter positions that have price change data and sort by change
         val positionsWithChange =
@@ -527,7 +536,7 @@ class BeancounterAgent(
         // Get all positions for the portfolio
         val portfolio =
             Portfolio(id = portfolioId)
-        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString(DATE_TODAY))
 
         // Return all positions for performance analysis
         return positions
@@ -555,7 +564,7 @@ class BeancounterAgent(
             "analysis" to analysis,
             "query" to query,
             "analysisType" to analysisType,
-            "data" to portfolioData
+            KEY_DATA to portfolioData
         )
     }
 
@@ -568,13 +577,13 @@ class BeancounterAgent(
         val portfolioId = resolvePortfolioCodeToId(portfolioCode)
         if (portfolioId == null) {
             log.warn("Could not resolve portfolio code: {}", portfolioCode)
-            return mapOf("data" to emptyList<Any>())
+            return mapOf(KEY_DATA to emptyList<Any>())
         }
 
         // Get positions first
         val portfolio =
             Portfolio(id = portfolioId)
-        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString(DATE_TODAY))
 
         // Get corporate actions for each position
         val allCorporateActions = mutableListOf<Map<String, Any>>()
@@ -583,7 +592,7 @@ class BeancounterAgent(
             try {
                 val events = eventMcpClient.getAssetEvents(position.asset.id)
                 if (events is Map<*, *>) {
-                    val eventsList = events["data"] as? List<Map<String, Any>>
+                    val eventsList = events[KEY_DATA] as? List<Map<String, Any>>
                     eventsList?.forEach { event ->
                         val eventMap = event as Map<String, Any?>
                         val eventType = eventMap["type"] as? String
@@ -615,7 +624,7 @@ class BeancounterAgent(
                 it["date"] as? String ?: "0000-00-00"
             }
 
-        return mapOf("data" to sortedActions)
+        return mapOf(KEY_DATA to sortedActions)
     }
 
     /**
@@ -633,7 +642,7 @@ class BeancounterAgent(
         // Get portfolio events
         val portfolio =
             Portfolio(id = portfolioId)
-        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString("today"))
+        val positions = positionMcpClient.getPortfolioPositions(portfolio, resolveDateString(DATE_TODAY))
 
         val upcomingPortfolioEvents = mutableListOf<Map<String, Any>>()
         val today = LocalDate.now()
@@ -643,7 +652,7 @@ class BeancounterAgent(
             try {
                 val events = eventMcpClient.getAssetEvents(position.asset.id)
                 if (events is Map<*, *>) {
-                    val eventsList = events["data"] as? List<Map<String, Any>>
+                    val eventsList = events[KEY_DATA] as? List<Map<String, Any>>
                     eventsList?.forEach { event ->
                         val eventMap = event as Map<String, Any?>
                         val eventDate = eventMap["date"] as? String
@@ -734,7 +743,7 @@ class BeancounterAgent(
                 )
             )
 
-        return mapOf("data" to marketEvents)
+        return mapOf(KEY_DATA to marketEvents)
     }
 
     fun getAiStatus(): Map<String, Any> =

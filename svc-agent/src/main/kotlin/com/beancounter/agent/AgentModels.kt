@@ -125,6 +125,15 @@ interface LlmService {
 class SimpleLlmService : LlmService {
     private val log = LoggerFactory.getLogger(SimpleLlmService::class.java)
 
+    companion object {
+        const val DEFAULT_PORTFOLIO = "default"
+        const val PARAM_PORTFOLIO_CODE = "portfolioCode"
+        const val PARAM_DATE = "date"
+        const val PARAM_PORTFOLIO = "portfolio"
+        const val DATE_TODAY = "today"
+        const val KEY_DATA = "data"
+    }
+
     override fun analyzeQuery(
         query: String,
         context: Map<String, Any>
@@ -137,26 +146,26 @@ class SimpleLlmService : LlmService {
         // Simple keyword-based analysis
         when {
             lowerQuery.contains("corporate") && lowerQuery.contains("action") -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_corporate_actions",
                         type = ActionType.GET_CORPORATE_ACTIONS,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get corporate actions for portfolio positions"
                     )
                 )
             }
 
             lowerQuery.contains("upcoming") && (lowerQuery.contains("event") || lowerQuery.contains("action")) -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_upcoming_events",
                         type = ActionType.GET_UPCOMING_EVENTS,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get upcoming events for portfolio and market"
                     )
                 )
@@ -174,13 +183,13 @@ class SimpleLlmService : LlmService {
             }
 
             lowerQuery.contains("largest") && (lowerQuery.contains("holding") || lowerQuery.contains("position")) -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_largest_holdings",
                         type = ActionType.GET_LARGEST_HOLDINGS,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get largest holdings in portfolio"
                     )
                 )
@@ -196,78 +205,78 @@ class SimpleLlmService : LlmService {
                         lowerQuery.contains("position") ||
                         lowerQuery.contains("portfolio")
                 ) -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_position_news",
                         type = ActionType.GET_POSITION_NEWS,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get news for portfolio positions"
                     )
                 )
             }
 
             lowerQuery.contains("latest") && lowerQuery.contains("news") -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_position_news",
                         type = ActionType.GET_POSITION_NEWS,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get latest news for portfolio positions"
                     )
                 )
             }
 
             lowerQuery.contains("recent") && lowerQuery.contains("news") -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_position_news",
                         type = ActionType.GET_POSITION_NEWS,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get recent news for portfolio positions"
                     )
                 )
             }
 
             lowerQuery.contains("top") && (lowerQuery.contains("mover") || lowerQuery.contains("performer")) -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_top_movers",
                         type = ActionType.GET_TOP_MOVERS,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get top movers in portfolio"
                     )
                 )
             }
 
             lowerQuery.contains("performance") && lowerQuery.contains("portfolio") -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "analyze_portfolio_performance",
                         type = ActionType.ANALYZE_PORTFOLIO_PERFORMANCE,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Analyze portfolio performance"
                     )
                 )
             }
 
             lowerQuery.contains("portfolio") && (lowerQuery.contains("analysis") || lowerQuery.contains("analyze")) -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "get_portfolio",
                         type = ActionType.GET_PORTFOLIO,
-                        parameters = mapOf("portfolioCode" to portfolioCode),
+                        parameters = mapOf(PARAM_PORTFOLIO_CODE to portfolioCode),
                         description = "Get portfolio information"
                     )
                 )
@@ -277,8 +286,8 @@ class SimpleLlmService : LlmService {
                         type = ActionType.GET_POSITIONS,
                         parameters =
                             mapOf(
-                                "portfolio" to "placeholder", // Will be replaced with actual portfolio
-                                "date" to "today"
+                                PARAM_PORTFOLIO to "placeholder", // Will be replaced with actual portfolio
+                                PARAM_DATE to DATE_TODAY
                             ),
                         description = "Get portfolio positions"
                     )
@@ -314,7 +323,7 @@ class SimpleLlmService : LlmService {
                             parameters =
                                 mapOf(
                                     "assetCode" to assetCode, // Using asset code instead of UUID
-                                    "date" to "today"
+                                    PARAM_DATE to DATE_TODAY
                                 ),
                             description = "Get market data for $assetCode"
                         )
@@ -333,16 +342,16 @@ class SimpleLlmService : LlmService {
             }
 
             lowerQuery.contains("events") && lowerQuery.contains("load") -> {
-                val portfolioCode = extractPortfolioCode(query) ?: "default"
-                entities["portfolioCode"] = portfolioCode
+                val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
+                entities[PARAM_PORTFOLIO_CODE] = portfolioCode
                 actions.add(
                     AgentAction(
                         id = "load_events",
                         type = ActionType.LOAD_EVENTS,
                         parameters =
                             mapOf(
-                                "portfolioCode" to portfolioCode,
-                                "fromDate" to "today"
+                                PARAM_PORTFOLIO_CODE to portfolioCode,
+                                "fromDate" to DATE_TODAY
                             ),
                         description = "Load corporate events for portfolio"
                     )
@@ -392,7 +401,7 @@ class SimpleLlmService : LlmService {
                             mapOf(
                                 "fromCurrency" to (currencies?.first ?: "USD"),
                                 "toCurrency" to (currencies?.second ?: "EUR"),
-                                "date" to "today"
+                                PARAM_DATE to DATE_TODAY
                             ),
                         description =
                             "Get FX rates between ${currencies?.first ?: "USD"} " +
@@ -952,7 +961,7 @@ class SimpleLlmService : LlmService {
             appendLine()
 
             if (eventsData?.isNotEmpty() == true) {
-                val events = eventsData["data"] as? List<Map<String, Any>>
+                val events = eventsData[KEY_DATA] as? List<Map<String, Any>>
 
                 if (events?.isNotEmpty() == true) {
                     appendLine("| Asset | Event Type | Date | Description |")
@@ -1200,7 +1209,7 @@ class SimpleLlmService : LlmService {
             appendLine()
 
             if (eventsData?.isNotEmpty() == true) {
-                val events = eventsData["data"] as? List<Map<String, Any>>
+                val events = eventsData[KEY_DATA] as? List<Map<String, Any>>
 
                 if (events?.isNotEmpty() == true) {
                     // Group events by type
@@ -1337,7 +1346,7 @@ class SimpleLlmService : LlmService {
             appendLine()
 
             if (eventsData?.isNotEmpty() == true) {
-                val events = eventsData["data"] as? List<Map<String, Any>>
+                val events = eventsData[KEY_DATA] as? List<Map<String, Any>>
 
                 if (events?.isNotEmpty() == true) {
                     // Group by category

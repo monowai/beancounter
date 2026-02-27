@@ -45,14 +45,14 @@ internal class AccountingTypeControllerTest {
                         .with(csrf())
                         .contentType(APPLICATION_JSON)
                         .content(
-                            """{"category":"EQUITY","currency":"USD","boardLot":100,"settlementDays":2}"""
+                            """{"category":"WARRANT","currency":"USD","boardLot":100,"settlementDays":2}"""
                         )
                 ).andExpect(status().isOk)
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn()
 
         val created = objectMapper.readValue<AccountingTypeResponse>(result.response.contentAsString)
-        assertThat(created.data.category).isEqualTo("EQUITY")
+        assertThat(created.data.category).isEqualTo("WARRANT")
         assertThat(created.data.currency.code).isEqualTo("USD")
         assertThat(created.data.boardLot).isEqualTo(100)
         assertThat(created.data.settlementDays).isEqualTo(2)

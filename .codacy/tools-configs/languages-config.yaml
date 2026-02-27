@@ -1,0 +1,17 @@
+tools:
+    - name: lizard
+      languages: [Java, Kotlin]
+      extensions: [.java, .kt, .kts]
+      files: []
+    - name: pmd
+      languages: [Java, SQL, XML]
+      extensions: [.java, .pom, .sql, .wsdl, .xml, .xsl]
+      files: []
+    - name: semgrep
+      languages: [Dockerfile, Java, Kotlin, SQL, Shell, YAML]
+      extensions: [.bash, .dockerfile, .java, .kt, .kts, .sh, .sql, .yaml, .yml]
+      files: []
+    - name: trivy
+      languages: [Dockerfile, JSON, Java, XML, YAML]
+      extensions: [.dockerfile, .java, .json, .pom, .wsdl, .xml, .xsl, .yaml, .yml]
+      files: [Dockerfile, gradle.lockfile, pom.xml]

@@ -22,6 +22,13 @@ import java.util.Optional
  * Tests the core business logic with mocked repositories.
  */
 class ClassificationServiceTest {
+    companion object {
+        const val STD_ID = "std-1"
+        const val STD_KEY_USER = "USER"
+        const val STD_NAME_USER = "User Classification"
+        const val CODE_TECH_SECTOR = "TECH_SECTOR"
+    }
+
     private lateinit var standardRepository: ClassificationStandardRepository
     private lateinit var itemRepository: ClassificationItemRepository
     private lateinit var classificationRepository: AssetClassificationRepository
@@ -62,7 +69,7 @@ class ClassificationServiceTest {
     fun `getOrCreateStandard returns existing standard`() {
         val existingStandard =
             ClassificationStandard(
-                id = "std-1",
+                id = STD_ID,
                 key = "ALPHA",
                 name = "AlphaVantage",
                 version = "1.0",
@@ -97,13 +104,13 @@ class ClassificationServiceTest {
     fun `getOrCreateItem creates item with name and calculates code`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
-                key = "USER",
-                name = "User Classification"
+                id = STD_ID,
+                key = STD_KEY_USER,
+                name = STD_NAME_USER
             )
         whenever(
             itemRepository.findByStandardIdAndLevelAndCode(
-                "std-1",
+                STD_ID,
                 ClassificationLevel.SECTOR,
                 "MULTI_SECTOR"
             )
@@ -126,14 +133,14 @@ class ClassificationServiceTest {
     fun `getOrCreateItem normalizes rawCode for sectors`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
+                id = STD_ID,
                 key = "ALPHA",
                 name = "Alpha Classification"
             )
         // "TECHNOLOGY" normalizes to "Information Technology" -> code "INFORMATION_TECHNOLOGY"
         whenever(
             itemRepository.findByStandardIdAndLevelAndCode(
-                "std-1",
+                STD_ID,
                 ClassificationLevel.SECTOR,
                 "INFORMATION_TECHNOLOGY"
             )
@@ -155,23 +162,23 @@ class ClassificationServiceTest {
     fun `getOrCreateItem returns existing item when found`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
-                key = "USER",
-                name = "User Classification"
+                id = STD_ID,
+                key = STD_KEY_USER,
+                name = STD_NAME_USER
             )
         val existingItem =
             ClassificationItem(
                 id = "item-1",
                 standard = standard,
                 level = ClassificationLevel.SECTOR,
-                code = "TECH_SECTOR",
+                code = CODE_TECH_SECTOR,
                 name = "Tech Sector"
             )
         whenever(
             itemRepository.findByStandardIdAndLevelAndCode(
-                "std-1",
+                STD_ID,
                 ClassificationLevel.SECTOR,
-                "TECH_SECTOR"
+                CODE_TECH_SECTOR
             )
         ).thenReturn(Optional.of(existingItem))
 
@@ -190,23 +197,23 @@ class ClassificationServiceTest {
     fun `getOrCreateItem updates name if it differs`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
-                key = "USER",
-                name = "User Classification"
+                id = STD_ID,
+                key = STD_KEY_USER,
+                name = STD_NAME_USER
             )
         val existingItem =
             ClassificationItem(
                 id = "item-1",
                 standard = standard,
                 level = ClassificationLevel.SECTOR,
-                code = "TECH_SECTOR",
+                code = CODE_TECH_SECTOR,
                 name = "Old Tech Sector"
             )
         whenever(
             itemRepository.findByStandardIdAndLevelAndCode(
-                "std-1",
+                STD_ID,
                 ClassificationLevel.SECTOR,
-                "TECH_SECTOR"
+                CODE_TECH_SECTOR
             )
         ).thenReturn(Optional.of(existingItem))
         whenever(itemRepository.save(any())).thenAnswer { it.arguments[0] }
@@ -226,9 +233,9 @@ class ClassificationServiceTest {
     fun `getOrCreateItem throws when neither name nor rawCode provided`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
-                key = "USER",
-                name = "User Classification"
+                id = STD_ID,
+                key = STD_KEY_USER,
+                name = STD_NAME_USER
             )
 
         assertThatThrownBy {
@@ -244,13 +251,13 @@ class ClassificationServiceTest {
     fun `getOrCreateItem uses rawCode directly for non-sector levels`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
+                id = STD_ID,
                 key = "ALPHA",
                 name = "Alpha Classification"
             )
         whenever(
             itemRepository.findByStandardIdAndLevelAndCode(
-                "std-1",
+                STD_ID,
                 ClassificationLevel.INDUSTRY,
                 "CONSUMER_ELECTRONICS"
             )
@@ -283,15 +290,15 @@ class ClassificationServiceTest {
     fun `deleteSector returns zero when sector not found`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
-                key = "USER",
-                name = "User Classification"
+                id = STD_ID,
+                key = STD_KEY_USER,
+                name = STD_NAME_USER
             )
         whenever(standardRepository.findByKey(ClassificationService.STANDARD_USER))
             .thenReturn(Optional.of(standard))
         whenever(
             itemRepository.findByStandardIdAndLevelAndCode(
-                "std-1",
+                STD_ID,
                 ClassificationLevel.SECTOR,
                 "NONEXISTENT"
             )
@@ -306,9 +313,9 @@ class ClassificationServiceTest {
     fun `deleteSector removes sector and returns affected count`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
-                key = "USER",
-                name = "User Classification"
+                id = STD_ID,
+                key = STD_KEY_USER,
+                name = STD_NAME_USER
             )
         val sectorItem =
             ClassificationItem(
@@ -323,7 +330,7 @@ class ClassificationServiceTest {
             .thenReturn(Optional.of(standard))
         whenever(
             itemRepository.findByStandardIdAndLevelAndCode(
-                "std-1",
+                STD_ID,
                 ClassificationLevel.SECTOR,
                 "CUSTOM_SECTOR"
             )
@@ -343,7 +350,7 @@ class ClassificationServiceTest {
     fun `getAllSectors returns sorted list`() {
         val standard =
             ClassificationStandard(
-                id = "std-1",
+                id = STD_ID,
                 key = "ALPHA",
                 name = "Alpha"
             )

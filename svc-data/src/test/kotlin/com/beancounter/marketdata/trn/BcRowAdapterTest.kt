@@ -32,6 +32,13 @@ import org.mockito.junit.jupiter.MockitoExtension
  */
 @ExtendWith(MockitoExtension::class)
 class BcRowAdapterTest {
+    companion object {
+        const val BATCH_USX = "USX"
+        const val CALLER_ID = "Kt-1jW3x1g"
+        const val ASSET_NAME = "Caredx"
+        const val TRADE_DATE = "2021-08-11"
+    }
+
     @Mock
     private lateinit var assetFinder: AssetFinder
 
@@ -67,7 +74,7 @@ class BcRowAdapterTest {
                     AssetInput(
                         NASDAQ.code,
                         assetCode,
-                        "Caredx",
+                        ASSET_NAME,
                         owner = portfolio.owner.id
                     )
                 )
@@ -130,15 +137,15 @@ class BcRowAdapterTest {
     fun `should handle trimmed CSV input values`() {
         val values =
             listOf(
-                "USX",
-                "Kt-1jW3x1g",
+                BATCH_USX,
+                CALLER_ID,
                 "BUY",
                 "NASDAQ",
                 assetCode,
-                "Caredx",
+                ASSET_NAME,
                 "USD",
                 "USD",
-                "2021-08-11",
+                TRADE_DATE,
                 "200.000000",
                 "1.000000",
                 "USD",
@@ -164,15 +171,15 @@ class BcRowAdapterTest {
     fun `should handle missing asset gracefully`() {
         val values =
             listOf(
-                "USX",
-                "Kt-1jW3x1g",
+                BATCH_USX,
+                CALLER_ID,
                 "BUY",
                 "NASDAQ",
                 "INVALID",
-                "Caredx",
+                ASSET_NAME,
                 "USD",
                 "USD",
-                "2021-08-11",
+                TRADE_DATE,
                 "200.000000",
                 "1.000000",
                 "USD",
@@ -191,7 +198,7 @@ class BcRowAdapterTest {
                     AssetInput(
                         NASDAQ.code,
                         "INVALID",
-                        "Caredx",
+                        ASSET_NAME,
                         owner = portfolio.owner.id
                     )
                 )
@@ -208,12 +215,12 @@ class BcRowAdapterTest {
     fun `should validate trade date format`() {
         val values =
             listOf(
-                "USX",
-                "Kt-1jW3x1g",
+                BATCH_USX,
+                CALLER_ID,
                 "BUY",
                 "NASDAQ",
                 assetCode,
-                "Caredx",
+                ASSET_NAME,
                 "USD",
                 "USD",
                 "invalid-date",
@@ -239,15 +246,15 @@ class BcRowAdapterTest {
     fun `should handle different transaction types`() {
         val values =
             listOf(
-                "USX",
-                "Kt-1jW3x1g",
+                BATCH_USX,
+                CALLER_ID,
                 "SELL",
                 "NASDAQ",
                 assetCode,
-                "Caredx",
+                ASSET_NAME,
                 "USD",
                 "USD",
-                "2021-08-11",
+                TRADE_DATE,
                 "200.000000",
                 "1.000000",
                 "USD",

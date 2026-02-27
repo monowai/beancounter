@@ -22,6 +22,9 @@ repositories {
     maven { url = uri("https://plugins.gradle.org/m2/") }
 }
 
+val agentModule = "svc-agent"
+val githubRepoUrl = "https://github.com/monowai/beancounter"
+
 // Shared configuration for all subprojects
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
@@ -35,7 +38,7 @@ subprojects {
     // - Generic exception handling for graceful degradation
     // - Verbose string manipulation for context building
     apply(plugin = "org.jmailen.kotlinter")
-    if (name != "svc-agent") {
+    if (name != agentModule) {
         apply(plugin = "io.gitlab.arturbosch.detekt") // Direct plugin ID needed in subprojects block
     }
 
@@ -186,7 +189,7 @@ subprojects {
         group = "verification"
         description = "Run Detekt static analysis on all projects (excluding svc-agent)"
 
-        dependsOn(subprojects.filter { it.name != "svc-agent" }.map { it.tasks.named("detekt") })
+        dependsOn(subprojects.filter { it.name != agentModule }.map { it.tasks.named("detekt") })
 
         doLast {
             println("✅ Detekt analysis completed for all projects!")
@@ -198,7 +201,7 @@ subprojects {
         group = "verification"
         description = "Run Detekt with auto-correction on all projects (excluding svc-agent)"
 
-        dependsOn(subprojects.filter { it.name != "svc-agent" }.map { it.tasks.named("detektMain") })
+        dependsOn(subprojects.filter { it.name != agentModule }.map { it.tasks.named("detektMain") })
 
         doLast {
             println("✅ Detekt auto-correction completed for all projects!")
@@ -212,14 +215,14 @@ subprojects {
     }
 
     // For svc-agent: Keep formatting available but disable linting
-    if (name == "svc-agent") {
+    if (name == agentModule) {
         tasks.named("lintKotlin") {
             enabled = false
         }
     }
 
     // Detekt configuration (only for modules that have detekt applied)
-    if (name != "svc-agent") {
+    if (name != agentModule) {
         detekt {
             config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
             buildUponDefaultConfig = true
@@ -255,7 +258,7 @@ subprojects {
                     pom {
                         name.set(project.name)
                         description.set("Beancounter ${project.name} library")
-                        url.set("https://github.com/monowai/beancounter")
+                        url.set(githubRepoUrl)
 
                         licenses {
                             license {
@@ -274,7 +277,7 @@ subprojects {
                         scm {
                             connection.set("scm:git:git://github.com/monowai/beancounter.git")
                             developerConnection.set("scm:git:ssh://github.com/monowai/beancounter.git")
-                            url.set("https://github.com/monowai/beancounter")
+                            url.set(githubRepoUrl)
                         }
                     }
                 }
@@ -299,6 +302,10 @@ subprojects {
 // Root project configuration
 group = "com.beancounter"
 version = "0.0.1-SNAPSHOT"
+
+val mavenLocalBc = File(System.getProperty("user.home") + "/.m2/repository/org/beancounter")
+val svcDataStubsPath = "svc-data/0.1.1/svc-data-0.1.1-stubs.jar"
+val svcPositionStubsPath = "svc-position/0.1.1/svc-position-0.1.1-stubs.jar"
 
 // Root project tasks with proper dependency order
 tasks.register("buildAll") {
@@ -387,9 +394,8 @@ tasks.register("buildCore") {
 // Verify stubs are available before building
 tasks.register("verifyStubsForBuild") {
     doLast {
-        val mavenLocal = File(System.getProperty("user.home") + "/.m2/repository/org/beancounter")
-        val svcDataStubs = File(mavenLocal, "svc-data/0.1.1/svc-data-0.1.1-stubs.jar")
-        val svcPositionStubs = File(mavenLocal, "svc-position/0.1.1/svc-position-0.1.1-stubs.jar")
+        val svcDataStubs = File(mavenLocalBc, svcDataStubsPath)
+        val svcPositionStubs = File(mavenLocalBc, svcPositionStubsPath)
 
         if (!svcDataStubs.exists() || !svcPositionStubs.exists()) {
             println("📦 Contract stubs missing!")
@@ -441,9 +447,8 @@ tasks.register("buildAllWithStubs") {
 // Verify stubs are available before testing
 tasks.register("verifyStubsForTest") {
     doLast {
-        val mavenLocal = File(System.getProperty("user.home") + "/.m2/repository/org/beancounter")
-        val svcDataStubs = File(mavenLocal, "svc-data/0.1.1/svc-data-0.1.1-stubs.jar")
-        val svcPositionStubs = File(mavenLocal, "svc-position/0.1.1/svc-position-0.1.1-stubs.jar")
+        val svcDataStubs = File(mavenLocalBc, svcDataStubsPath)
+        val svcPositionStubs = File(mavenLocalBc, svcPositionStubsPath)
 
         if (!svcDataStubs.exists() || !svcPositionStubs.exists()) {
             println("📦 Contract stubs missing!")
@@ -476,9 +481,8 @@ tasks.register("verifyStubs") {
     doLast {
         println("Verifying contract stubs are available...")
 
-        val mavenLocal = File(System.getProperty("user.home") + "/.m2/repository/org/beancounter")
-        val svcDataStubs = File(mavenLocal, "svc-data/0.1.1/svc-data-0.1.1-stubs.jar")
-        val svcPositionStubs = File(mavenLocal, "svc-position/0.1.1/svc-position-0.1.1-stubs.jar")
+        val svcDataStubs = File(mavenLocalBc, svcDataStubsPath)
+        val svcPositionStubs = File(mavenLocalBc, svcPositionStubsPath)
 
         if (!svcDataStubs.exists()) {
             throw GradleException("svc-data stubs not found. Run 'publishStubs' first.")

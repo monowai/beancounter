@@ -8,8 +8,6 @@ import java.util.Date
 
 private const val SCOPE = "scope"
 
-private const val PERMISSIONS = "permissions"
-
 private const val ALG = "alg"
 
 private const val NONE = "none"
@@ -53,17 +51,15 @@ class TokenUtils(
                 authConfig.claimEmail,
                 systemUser.email
             ).claim(
-                PERMISSIONS,
-                mutableListOf(
-                    AuthConstants.APP_NAME,
-                    AuthConstants.USER
-                )
-            ).claim(
                 SCOPE,
-                AuthConstants.SCOPE
+                "${AuthConstants.APP_NAME} ${AuthConstants.USER} ${AuthConstants.ADMIN}"
             ).expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
 
+    /**
+     * M2M (client-credentials) token matching real Auth0 structure.
+     * Real M2M tokens have beancounter:system in scope alongside other roles.
+     */
     fun getSystemToken(systemUser: SystemUser): Jwt =
         Jwt
             .withTokenValue(systemUser.id)
@@ -71,16 +67,9 @@ class TokenUtils(
                 ALG,
                 NONE
             ).subject(systemUser.id)
-            // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
             .claim(
-                PERMISSIONS,
-                mutableListOf(
-                    AuthConstants.APP_NAME,
-                    AuthConstants.SYSTEM
-                )
-            ).claim(
                 SCOPE,
-                AuthConstants.SCOPE
+                "${AuthConstants.APP_NAME} ${AuthConstants.SYSTEM} ${AuthConstants.ADMIN}"
             ).expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
 
@@ -91,13 +80,9 @@ class TokenUtils(
                 ALG,
                 NONE
             ).subject(systemUser.id)
-            // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
             .claim(
-                PERMISSIONS,
-                mutableListOf(AuthConstants.APP_NAME)
-            ).claim(
                 SCOPE,
-                AuthConstants.SCOPE
+                AuthConstants.APP_NAME
             ).expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
 }

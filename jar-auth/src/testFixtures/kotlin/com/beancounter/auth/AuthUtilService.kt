@@ -46,10 +46,7 @@ class AuthUtilService(
         return jwt
     }
 
-    fun authenticateM2M(
-        systemUser: SystemUser,
-        authProvider: AuthProvider = AuthProvider.ID
-    ): JwtAuthenticationToken {
+    fun authenticateM2M(systemUser: SystemUser): JwtAuthenticationToken {
         val jwt =
             JwtAuthenticationToken(
                 tokenUtils.getSystemToken(systemUser)
@@ -60,10 +57,7 @@ class AuthUtilService(
         )
     }
 
-    fun authenticateNoRoles(
-        systemUser: SystemUser,
-        authProvider: AuthProvider = AuthProvider.ID
-    ): JwtAuthenticationToken {
+    fun authenticateNoRoles(systemUser: SystemUser): JwtAuthenticationToken {
         val jwt =
             JwtAuthenticationToken(
                 tokenUtils.getNoRolesToken(systemUser)

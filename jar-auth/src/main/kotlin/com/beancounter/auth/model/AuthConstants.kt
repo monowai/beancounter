@@ -18,7 +18,6 @@ object AuthConstants {
     const val SCOPE_ADMIN = "SCOPE_$ADMIN"
 
     val authSystem = SystemUser(id = SYSTEM)
-    const val SCOPE = "$APP_NAME profile email $ADMIN $USER"
 
     /**
      * Check if the JWT represents an admin user.

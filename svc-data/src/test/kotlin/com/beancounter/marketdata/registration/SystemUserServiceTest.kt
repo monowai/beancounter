@@ -205,8 +205,7 @@ class SystemUserServiceTest {
                 auth0 = GOOGLE_ID
             )
         authUtilService.authenticateM2M(
-            systemUser,
-            AuthUtilService.AuthProvider.AUTH0
+            systemUser
         )
         assertThrows(BusinessException::class.java) {
             systemUserService.register()

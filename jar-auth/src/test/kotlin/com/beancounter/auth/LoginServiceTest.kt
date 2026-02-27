@@ -73,8 +73,7 @@ class LoginServiceTest {
     @Test
     fun `should identify service token correctly`() {
         authUtilService.authenticateM2M(
-            SystemUser(email = ""),
-            AuthUtilService.AuthProvider.AUTH0
+            SystemUser(email = "")
         )
         assertTrue(tokenService.isServiceToken)
     }

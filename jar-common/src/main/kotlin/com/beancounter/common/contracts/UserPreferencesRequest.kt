@@ -2,6 +2,7 @@ package com.beancounter.common.contracts
 
 import com.beancounter.common.model.GroupByPreference
 import com.beancounter.common.model.HoldingsView
+import com.beancounter.common.model.MilestoneMode
 import com.beancounter.common.model.ValueInPreference
 
 /**
@@ -16,5 +17,6 @@ data class UserPreferencesRequest(
     val baseCurrencyCode: String? = null,
     val reportingCurrencyCode: String? = null,
     val showWeightedIrr: Boolean? = null,
-    val enableTwr: Boolean? = null
+    val enableTwr: Boolean? = null,
+    val milestoneMode: MilestoneMode? = null
 )

@@ -1,6 +1,7 @@
 package com.beancounter.common.model
 
 import com.beancounter.common.utils.KeyGenUtils
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -35,5 +36,8 @@ data class UserPreferences(
     var baseCurrencyCode: String = "USD",
     var reportingCurrencyCode: String = "USD",
     var showWeightedIrr: Boolean = true,
-    var enableTwr: Boolean = false
+    var enableTwr: Boolean = false,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "milestone_mode")
+    var milestoneMode: MilestoneMode = MilestoneMode.ACTIVE
 )

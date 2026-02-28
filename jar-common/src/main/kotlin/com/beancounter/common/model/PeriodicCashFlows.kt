@@ -19,14 +19,16 @@ class PeriodicCashFlows {
                 if (it.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
                     it.cashAmount.toDouble()
                 } else {
-                    BigDecimal.ZERO.minus(it.tradeAmount)
+                    BigDecimal.ZERO.minus(it.tradeAmount).toDouble()
                 }
-            cashFlows.add(
-                CashFlow(
-                    amount.toDouble(),
-                    it.tradeDate
+            if (amount != 0.0) {
+                cashFlows.add(
+                    CashFlow(
+                        amount,
+                        it.tradeDate
+                    )
                 )
-            )
+            }
         }
     }
 

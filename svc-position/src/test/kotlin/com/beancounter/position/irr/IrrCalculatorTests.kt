@@ -132,24 +132,27 @@ class IrrCalculatorTests {
     }
 
     @Test
-    fun testCalculateIRR_NoMarketOrCostValue() {
+    fun `zero cost and zero market value produces no cash flows and zero IRR`() {
+        // Both cost and market value are zero — no cash flows are generated
         testCalculateIRR(
             listOf(
                 START_DATE to 0.0,
                 "2024-01-05" to 0.0
             ),
-            0.0 // Not sure if this is correct
+            0.0
         )
     }
 
     @Test
-    fun testCalculateIRR_NoMarketValue() {
+    fun `cost with zero terminal value leaves only cost cash flow and returns zero IRR`() {
+        // Cost -1000 with a zero terminal value — the zero cash flow is not added,
+        // leaving a single cash flow which cannot produce an IRR
         testCalculateIRR(
             listOf(
                 START_DATE to initialCost,
                 "2024-01-05" to 0.0
             ),
-            -1.0 // Not sure if this is correct
+            0.0
         )
     }
 

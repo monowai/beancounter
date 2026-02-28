@@ -119,6 +119,24 @@ class PeriodicCashFlowsTests {
     }
 
     @Test
+    fun `zero amount transaction does not produce a cash flow`() {
+        val periodicCashFlows = PeriodicCashFlows()
+        periodicCashFlows.add(
+            Trn(
+                asset =
+                    AssetUtils.getTestAsset(
+                        Constants.US,
+                        "CODE"
+                    ),
+                trnType = TrnType.BUY,
+                tradeAmount = BigDecimal.ZERO,
+                cashAmount = BigDecimal.ZERO
+            )
+        )
+        assertThat(periodicCashFlows.cashFlows).isEmpty()
+    }
+
+    @Test
     fun `cash-flowFromTrn when no cashEffect`() {
         val periodicCashFlows = PeriodicCashFlows()
         periodicCashFlows.add(

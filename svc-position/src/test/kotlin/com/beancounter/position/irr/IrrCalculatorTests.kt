@@ -154,7 +154,8 @@ class IrrCalculatorTests {
     }
 
     @Test
-    fun testCalculateIRR_NoCost() {
+    fun `zero cost position returns zero IRR assuming market value equals cost`() {
+        // No cost basis (e.g. CPF retirement account) — IRR is 0% by design
         testCalculateIRR(
             listOf(
                 START_DATE to 0.0,

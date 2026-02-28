@@ -138,21 +138,31 @@ logging:
   level:
     root: info
     javax: error
+    java: error
     sun: error
     io: error
     #io.github.resilience4j: debug
     netflix: error
     jdk: error
     okhttp3: error
+
     com:
       netfix: error
       beancounter: debug
       zaxxer: error
     org:
       springframework: error
+      springframework.web: error
+      springframework.boot.actuate: error
       hibernate: error
       apache: error
       postgres: error
+      postgresql: error
+      flywaydb: error
+
+    reactor: error
+    com.rabbitmq: error
+
 
 # Resilience4j configuration for svc-position
 # Retry and circuit breaker for calls to bc-data service

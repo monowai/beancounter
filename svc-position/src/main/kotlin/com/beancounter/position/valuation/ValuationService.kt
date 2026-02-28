@@ -275,7 +275,7 @@ class ValuationService
             // Get the valuation date
             val valuedAt = parseValuationDate(valuedPositions.asAt)
 
-            log.info(
+            log.trace(
                 "Sending MV update: portfolio={}, base={}, marketValue={}, gainOnDay={}, valuedAt={}",
                 portfolio.code,
                 portfolio.base.code,

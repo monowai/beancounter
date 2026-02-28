@@ -89,8 +89,9 @@ class IrrCalculator(
         val lastCashFlow = sortedCashFlows.last()
 
         if (firstCashFlow.amount == 0.0) {
-            log.warn(
-                "Unable to calculate XIRR. First cash flow: ${firstCashFlow.amount}, last cash flow: ${lastCashFlow.amount}"
+            log.debug(
+                "No cost basis — assuming market value equals cost (IRR = 0%). Last cash flow: {}",
+                lastCashFlow.amount
             )
             return 0.0
         }

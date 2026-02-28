@@ -17,7 +17,7 @@ class JpaPerformanceCacheService(
 
     override fun findAllSnapshots(portfolioId: String): List<CachedSnapshot> {
         val entities = repository.findByPortfolioIdOrderByValuationDate(portfolioId)
-        log.debug("Cache lookup all: portfolio={}, found={}", portfolioId, entities.size)
+        log.trace("Cache lookup all: portfolio={}, found={}", portfolioId, entities.size)
         return entities.map { it.toCachedSnapshot() }
     }
 
@@ -26,7 +26,7 @@ class JpaPerformanceCacheService(
         dates: List<LocalDate>
     ): List<CachedSnapshot> {
         val entities = repository.findByPortfolioIdAndValuationDateIn(portfolioId, dates)
-        log.debug("Cache lookup: portfolio={}, requested={}, found={}", portfolioId, dates.size, entities.size)
+        log.trace("Cache lookup: portfolio={}, requested={}, found={}", portfolioId, dates.size, entities.size)
         return entities.map { it.toCachedSnapshot() }
     }
 
@@ -50,7 +50,7 @@ class JpaPerformanceCacheService(
                 )
             }
         repository.saveAll(entities)
-        log.debug("Cache store: portfolio={}, snapshots={}", portfolioId, snapshots.size)
+        log.trace("Cache store: portfolio={}, snapshots={}", portfolioId, snapshots.size)
     }
 
     @Transactional
@@ -59,19 +59,19 @@ class JpaPerformanceCacheService(
         fromDate: LocalDate
     ) {
         repository.deleteByPortfolioIdAndValuationDateGreaterThanEqual(portfolioId, fromDate)
-        log.debug("Cache invalidate: portfolio={}, from={}", portfolioId, fromDate)
+        log.trace("Cache invalidate: portfolio={}, from={}", portfolioId, fromDate)
     }
 
     @Transactional
     override fun invalidateOnDate(date: LocalDate) {
         repository.deleteByValuationDate(date)
-        log.debug("Cache invalidate: date={}", date)
+        log.trace("Cache invalidate: date={}", date)
     }
 
     @Transactional
     override fun invalidatePortfolio(portfolioId: String) {
         repository.deleteByPortfolioId(portfolioId)
-        log.debug("Cache invalidate: portfolio={}", portfolioId)
+        log.trace("Cache invalidate: portfolio={}", portfolioId)
     }
 
     override fun isAvailable(): Boolean = true

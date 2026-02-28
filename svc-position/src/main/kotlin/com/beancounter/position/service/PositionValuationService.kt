@@ -82,7 +82,7 @@ class PositionValuationService(
                 tradeCurrency
             )
         } else {
-            logger.info(
+            logger.debug(
                 "No prices found on date {} - calculating gains from realized values only",
                 positions.asAt
             )
@@ -102,7 +102,7 @@ class PositionValuationService(
         pfTotals.irr = irr
         tradeTotals.irr = irr
 
-        logger.debug(
+        logger.trace(
             "Completed valuation of {} positions.",
             positions.positions.size
         )

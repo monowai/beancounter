@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.contracts.PositionMoveRequest
+import com.beancounter.common.contracts.PositionMoveResponse
 import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -49,7 +51,8 @@ import org.springframework.web.bind.annotation.RestController
 class TrnController(
     var trnService: TrnService,
     var trnQueryService: TrnQueryService,
-    var dateUtils: DateUtils
+    var dateUtils: DateUtils,
+    var positionMoveService: PositionMoveService
 ) {
     @GetMapping(
         value = ["/portfolio/{portfolioId}"],
@@ -710,4 +713,26 @@ class TrnController(
         TrnResponse(
             trnService.findByPortfolioAndModel(portfolioId, modelId)
         )
+
+    @PostMapping(
+        value = ["/move"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(summary = "Move position transactions to another portfolio")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Position moved successfully"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Portfolio or asset not found"
+            )
+        ]
+    )
+    fun movePosition(
+        @RequestBody request: PositionMoveRequest
+    ): PositionMoveResponse = positionMoveService.movePosition(request)
 }

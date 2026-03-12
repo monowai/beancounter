@@ -80,6 +80,17 @@ interface TrnRepository :
     ): Collection<Trn>
 
     @Query(
+        "select t from Trn t " +
+            "where t.portfolio.id = ?1 " +
+            "and t.asset.id = ?2 " +
+            "order by t.tradeDate asc"
+    )
+    fun findByPortfolioIdAndAssetId(
+        portfolioId: String,
+        assetId: String
+    ): Collection<Trn>
+
+    @Query(
         "select t from Trn t  " +
             "where t.portfolio.id =?1  " +
             "and t.asset.id =?2 " +

@@ -18,6 +18,7 @@
     <logger name="org.apache.kafka.clients" level="error"/>
     <logger name="kafka" level="error"/>
     <logger name="ch.qos" level="error"/>
+    <logger name="io.modelcontextprotocol" level="error"/>
     <logger name="reactor" level="error"/>
     <logger name="wiremock" level="error"/>
     <logger name="wiremock.org.eclipse" level="error"/>

@@ -15,6 +15,7 @@
     <logger name="org.hibernate" level="fatal"/>
     <logger name="org.apache" level="error"/>
     <logger name="org.apache.kafka.clients" level="error"/>
+    <logger name="io.modelcontextprotocol" level="error"/>
     <logger name="kafka" level="error"/>
     <logger name="wiremock" level="trace"/>
     <logger name="wiremock.org.eclipse" level="error"/>

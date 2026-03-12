@@ -17,11 +17,11 @@ import jakarta.persistence.UniqueConstraint
 import java.math.BigDecimal
 import java.time.LocalDate
 
-@Entity
-@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["assetId", "recordDate"])])
 /**
  * Representation of a Corporate Action or Event.
  */
+@Entity
+@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["assetId", "recordDate"])])
 data class CorporateEvent(
     @Id val id: String? = null,
     @Enumerated(EnumType.STRING)

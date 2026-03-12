@@ -20,11 +20,9 @@ class CurrencyResolver {
             Position.In.TRADE -> {
                 tradeCurrency
             }
-
             Position.In.PORTFOLIO -> {
                 portfolio.currency
             }
-
             else -> {
                 portfolio.base
             }

@@ -154,12 +154,15 @@ class BeancounterAgent(
                                 }
                             getPortfolio(portfolioId)
                         }
-                        ActionType.GET_PORTFOLIOS -> getPortfolios()
-                        ActionType.GET_POSITIONS ->
+                        ActionType.GET_PORTFOLIOS -> {
+                            getPortfolios()
+                        }
+                        ActionType.GET_POSITIONS -> {
                             getPortfolioPositions(
                                 action.parameters["portfolio"] as Portfolio,
                                 resolveDateString(action.parameters["date"] as String)
                             )
+                        }
                         ActionType.GET_EVENTS -> {
                             val assetCode = action.parameters["assetCode"] as? String
                             val assetId =
@@ -180,12 +183,13 @@ class BeancounterAgent(
                                 }
                             getMarketData(assetId, resolveDateString(action.parameters["date"] as String))
                         }
-                        ActionType.GET_FX_RATES ->
+                        ActionType.GET_FX_RATES -> {
                             getFxRates(
                                 action.parameters["fromCurrency"] as String,
                                 action.parameters["toCurrency"] as String,
                                 (action.parameters["date"] as? String)?.let { resolveDateString(it) }
                             )
+                        }
                         ActionType.LOAD_EVENTS -> {
                             val portfolioCode = action.parameters[PARAM_PORTFOLIO_CODE] as? String
                             val portfolioId =
@@ -215,49 +219,73 @@ class BeancounterAgent(
                                 (action.parameters["toDate"] as? String)?.let { resolveDateString(it) }
                             )
                         }
-                        ActionType.GET_MARKETS -> getMarkets()
-                        ActionType.GET_CURRENCIES -> getCurrencies()
-                        ActionType.QUERY_POSITIONS -> queryPositions(action.parameters["query"] as TrustedTrnQuery)
-                        ActionType.BUILD_POSITIONS ->
+                        ActionType.GET_MARKETS -> {
+                            getMarkets()
+                        }
+                        ActionType.GET_CURRENCIES -> {
+                            getCurrencies()
+                        }
+                        ActionType.QUERY_POSITIONS -> {
+                            queryPositions(action.parameters["query"] as TrustedTrnQuery)
+                        }
+                        ActionType.BUILD_POSITIONS -> {
                             buildPositions(
                                 action.parameters["portfolio"] as Portfolio,
                                 resolveDateString(action.parameters["date"] as String)
                             )
-                        ActionType.VALUE_POSITIONS -> valuePositions(action.parameters["positions"] as PositionResponse)
-                        ActionType.GET_METRICS ->
+                        }
+                        ActionType.VALUE_POSITIONS -> {
+                            valuePositions(action.parameters["positions"] as PositionResponse)
+                        }
+                        ActionType.GET_METRICS -> {
                             getPortfolioMetrics(
                                 action.parameters["portfolio"] as Portfolio,
                                 resolveDateString(action.parameters["date"] as String)
                             )
-                        ActionType.GET_BREAKDOWN ->
+                        }
+                        ActionType.GET_BREAKDOWN -> {
                             getPositionBreakdown(
                                 action.parameters["portfolio"] as Portfolio,
                                 resolveDateString(action.parameters["date"] as String)
                             )
-                        ActionType.VERIFY_CONNECTIVITY -> verifyServiceConnectivity()
-                        ActionType.GET_LARGEST_HOLDINGS ->
+                        }
+                        ActionType.VERIFY_CONNECTIVITY -> {
+                            verifyServiceConnectivity()
+                        }
+                        ActionType.GET_LARGEST_HOLDINGS -> {
                             getLargestHoldings(
                                 action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
-                        ActionType.GET_POSITION_NEWS ->
+                        }
+                        ActionType.GET_POSITION_NEWS -> {
                             getPositionNews(
                                 action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
-                        ActionType.GET_TOP_MOVERS -> getTopMovers(action.parameters[PARAM_PORTFOLIO_CODE] as String)
-                        ActionType.ANALYZE_PORTFOLIO_PERFORMANCE ->
+                        }
+                        ActionType.GET_TOP_MOVERS -> {
+                            getTopMovers(action.parameters[PARAM_PORTFOLIO_CODE] as String)
+                        }
+                        ActionType.ANALYZE_PORTFOLIO_PERFORMANCE -> {
                             analyzePortfolioPerformance(
                                 action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
-                        ActionType.GENERATE_LLM_ANALYSIS -> generateLlmAnalysis(action.parameters)
-                        ActionType.GET_CORPORATE_ACTIONS ->
+                        }
+                        ActionType.GENERATE_LLM_ANALYSIS -> {
+                            generateLlmAnalysis(action.parameters)
+                        }
+                        ActionType.GET_CORPORATE_ACTIONS -> {
                             getCorporateActions(
                                 action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
-                        ActionType.GET_UPCOMING_EVENTS ->
+                        }
+                        ActionType.GET_UPCOMING_EVENTS -> {
                             getUpcomingEvents(
                                 action.parameters[PARAM_PORTFOLIO_CODE] as String
                             )
-                        ActionType.GET_MARKET_EVENTS -> getMarketEvents()
+                        }
+                        ActionType.GET_MARKET_EVENTS -> {
+                            getMarketEvents()
+                        }
                     }
                 results[action.id] = result
             } catch (e: Exception) {

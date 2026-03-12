@@ -4,6 +4,9 @@ import com.beancounter.auth.client.ClientPasswordConfig
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 
+/**
+ * Configures mock OAuth behaviour for unit testing.
+ */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 @TestPropertySource(
@@ -19,7 +22,4 @@ import org.springframework.test.context.TestPropertySource
     AuthConfig::class,
     ClientPasswordConfig::class
 )
-/**
- * Configures mock OAuth behaviour for unit testing.
- */
 annotation class AutoConfigureMockAuth

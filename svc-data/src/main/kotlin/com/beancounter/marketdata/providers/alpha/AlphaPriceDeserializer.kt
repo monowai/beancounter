@@ -56,17 +56,23 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         val source = p.codec.readTree<JsonNode>(p)
 
         return when {
-            source.has(TIME_SERIES_DAILY) -> handleTimeSeries(source)
-            source.has(GLOBAL_QUOTE) -> handleGlobal(source)
+            source.has(TIME_SERIES_DAILY) -> {
+                handleTimeSeries(source)
+            }
+            source.has(GLOBAL_QUOTE) -> {
+                handleGlobal(source)
+            }
             source.has("Information") || source.has("Note") || source.has("Error Message") -> {
                 // AlphaVantage error response (rate limit, invalid key, etc.)
                 // Return empty response - let caller handle gracefully
                 log.warn("AlphaVantage API error: {}", source.toString().take(ERROR_MESSAGE_MAX_LENGTH))
                 PriceResponse(emptyList())
             }
-            else -> throw BusinessException(
-                "Unable to handle AlphaVantage response: ${source.toString().take(ERROR_MESSAGE_MAX_LENGTH)}"
-            )
+            else -> {
+                throw BusinessException(
+                    "Unable to handle AlphaVantage response: ${source.toString().take(ERROR_MESSAGE_MAX_LENGTH)}"
+                )
+            }
         }
     }
 

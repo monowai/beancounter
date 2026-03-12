@@ -157,7 +157,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("upcoming") && (lowerQuery.contains("event") || lowerQuery.contains("action")) -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -170,7 +169,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("market") && lowerQuery.contains("event") -> {
                 actions.add(
                     AgentAction(
@@ -181,7 +179,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("largest") && (lowerQuery.contains("holding") || lowerQuery.contains("position")) -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -194,7 +191,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains(
                 "news"
             ) &&
@@ -216,7 +212,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("latest") && lowerQuery.contains("news") -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -229,7 +224,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("recent") && lowerQuery.contains("news") -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -242,7 +236,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("top") && (lowerQuery.contains("mover") || lowerQuery.contains("performer")) -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -255,7 +248,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("performance") && lowerQuery.contains("portfolio") -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -268,7 +260,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("portfolio") && (lowerQuery.contains("analysis") || lowerQuery.contains("analyze")) -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -293,7 +284,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("market") && lowerQuery.contains("overview") -> {
                 actions.add(
                     AgentAction(
@@ -312,7 +302,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("market") && lowerQuery.contains("data") -> {
                 val assetCode = extractAssetCode(query)
                 if (assetCode != null) {
@@ -340,7 +329,6 @@ class SimpleLlmService : LlmService {
                     )
                 }
             }
-
             lowerQuery.contains("events") && lowerQuery.contains("load") -> {
                 val portfolioCode = extractPortfolioCode(query) ?: DEFAULT_PORTFOLIO
                 entities[PARAM_PORTFOLIO_CODE] = portfolioCode
@@ -357,7 +345,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("list") && lowerQuery.contains("portfolio") -> {
                 actions.add(
                     AgentAction(
@@ -368,7 +355,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             lowerQuery.contains("connectivity") ||
                 (
                     lowerQuery.contains("service") &&
@@ -389,7 +375,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             (lowerQuery.contains("fx") || lowerQuery.contains("exchange") || lowerQuery.contains("currency")) &&
                 (lowerQuery.contains("rate") || lowerQuery.contains("rates")) -> {
                 val currencies = extractCurrencies(query)
@@ -409,7 +394,6 @@ class SimpleLlmService : LlmService {
                     )
                 )
             }
-
             else -> {
                 // Default action - get all portfolios
                 actions.add(

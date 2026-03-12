@@ -216,9 +216,7 @@ subprojects {
 
     // For svc-agent: Keep formatting available but disable linting
     if (name == agentModule) {
-        tasks.named("lintKotlin") {
-            enabled = false
-        }
+        tasks.findByName("lintKotlin")?.enabled = false
     }
 
     // Detekt configuration (only for modules that have detekt applied)
@@ -237,8 +235,8 @@ subprojects {
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
         // Common test dependencies
-        testImplementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.4"))
-        testImplementation("org.assertj:assertj-core:3.27.3")
+        testImplementation(platform("org.springframework.boot:spring-boot-dependencies:${rootProject.libs.versions.spring.boot.get()}"))
+        testImplementation(rootProject.libs.assertj)
     }
 
     // Publishing configuration for library modules (jar-common, jar-auth, jar-client)

@@ -148,7 +148,7 @@ internal class MarketStackApiTest {
         // If an invalid asset, then we have a ZERO price
         mdResult.forEach { marketData ->
             when (marketData.asset) {
-                MSFT ->
+                MSFT -> {
                     assertThat(marketData)
                         .hasFieldOrProperty(priceDateField)
                         .hasFieldOrPropertyWithValue(
@@ -158,8 +158,8 @@ internal class MarketStackApiTest {
                             sourceField,
                             ID
                         )
-
-                AAPL ->
+                }
+                AAPL -> {
                     assertThat(marketData)
                         .hasFieldOrProperty(priceDateField)
                         .hasFieldOrPropertyWithValue(
@@ -172,6 +172,7 @@ internal class MarketStackApiTest {
                             sourceField,
                             ID
                         )
+                }
             }
         }
     }

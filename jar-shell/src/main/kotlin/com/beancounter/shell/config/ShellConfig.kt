@@ -9,10 +9,10 @@ import com.beancounter.shell.commands.ShellPrompt
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
-@Configuration
 /**
  * Helper class to import necessary shell based dependencies.
  */
+@Configuration
 @Import(
     EnvConfig::class,
     UtilConfig::class,

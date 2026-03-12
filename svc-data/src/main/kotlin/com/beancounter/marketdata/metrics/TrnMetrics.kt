@@ -97,15 +97,20 @@ class TrnMetrics(
     fun recordTrnEventReceived(trnType: String) {
         trnEventsReceived.increment()
         when (trnType) {
-            "DIVI" -> dividendTrnReceived.increment()
-            "SPLIT" -> splitTrnReceived.increment()
-            else ->
+            "DIVI" -> {
+                dividendTrnReceived.increment()
+            }
+            "SPLIT" -> {
+                splitTrnReceived.increment()
+            }
+            else -> {
                 Counter
                     .builder("beancounter.trn.received.by_type")
                     .description("Transactions received by type")
                     .tag("type", trnType)
                     .register(meterRegistry)
                     .increment()
+            }
         }
     }
 

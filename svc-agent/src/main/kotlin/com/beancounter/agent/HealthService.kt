@@ -150,7 +150,7 @@ class HealthService(
                         error = null
                     )
                 }
-                else ->
+                else -> {
                     ServiceStatus(
                         name = serviceInfo.name,
                         status = "UNKNOWN",
@@ -158,6 +158,7 @@ class HealthService(
                         lastChecked = LocalDateTime.now(),
                         error = "Unknown service"
                     )
+                }
             }
         } catch (e: Exception) {
             val (status, errorMessage) =

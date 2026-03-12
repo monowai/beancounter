@@ -9,10 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.Locale
 
-@Service
 /**
  * Abstract ingestion capabilities.
  */
+@Service
 abstract class AbstractIngester : Ingester {
     private val writers: MutableMap<String, TrnWriter> = HashMap()
     private lateinit var portfolioService: PortfolioServiceClient

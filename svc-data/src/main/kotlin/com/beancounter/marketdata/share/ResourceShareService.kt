@@ -115,11 +115,16 @@ class ResourceShareService(
     ) {
         val authorised =
             when (share.status) {
-                ShareStatus.PENDING_CLIENT_INVITE -> share.sharedWith.id == currentUser.id
-                ShareStatus.PENDING_ADVISER_REQUEST ->
+                ShareStatus.PENDING_CLIENT_INVITE -> {
+                    share.sharedWith.id == currentUser.id
+                }
+                ShareStatus.PENDING_ADVISER_REQUEST -> {
                     (share.targetUser ?: throw BusinessException("Share $shareId has no target user"))
                         .id == currentUser.id
-                else -> throw BusinessException("Share is not pending: $shareId")
+                }
+                else -> {
+                    throw BusinessException("Share is not pending: $shareId")
+                }
             }
         if (!authorised) {
             throw NotFoundException("Share not found: $shareId")

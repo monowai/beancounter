@@ -89,6 +89,7 @@ subprojects {
         // Test optimizations
         maxParallelForks = 1
         forkEvery = 100L
+        maxHeapSize = "1g"
         timeout.set(Duration.ofMinutes(8))
 
         // Test logging

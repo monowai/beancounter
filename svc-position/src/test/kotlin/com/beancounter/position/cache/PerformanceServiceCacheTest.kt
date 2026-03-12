@@ -18,7 +18,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.service.PerformanceService
-import org.springframework.dao.DataAccessResourceFailureException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -31,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
+import org.springframework.dao.DataAccessResourceFailureException
 import java.math.BigDecimal
 import java.time.LocalDate
 

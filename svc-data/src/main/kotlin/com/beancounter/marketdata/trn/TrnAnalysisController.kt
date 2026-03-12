@@ -30,7 +30,9 @@ import java.time.YearMonth
 )
 @Tag(
     name = "Transaction Analysis",
-    description = "Analysis and reporting operations for transactions including summaries, monthly investments, and income"
+    description =
+        "Analysis and reporting operations for transactions " +
+            "including summaries, monthly investments, and income"
 )
 class TrnAnalysisController(
     var trnAnalysisService: TrnAnalysisService

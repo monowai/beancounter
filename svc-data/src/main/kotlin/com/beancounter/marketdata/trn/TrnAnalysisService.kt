@@ -231,104 +231,116 @@ class TrnAnalysisService(
         val startDate = startMonth.atDay(1)
         val endDate = endMonth.atEndOfMonth()
 
-        // Fetch transactions (without full asset hydration)
-        val transactions =
-            if (portfolioIds.isEmpty()) {
-                val user = systemUserService.getOrThrow()
-                trnRepository.findIncomeByOwnerAndDateRange(
-                    user,
-                    startDate,
-                    endDate,
-                    TrnStatus.SETTLED
-                )
-            } else {
-                trnRepository.findIncomeByPortfoliosAndDateRange(
-                    portfolioIds,
-                    startDate,
-                    endDate,
-                    TrnStatus.SETTLED
-                )
-            }
-
-        // Build asset metadata lookup efficiently
+        val transactions = fetchIncomeTransactions(portfolioIds, startDate, endDate)
         val assetMetaData = buildAssetMetaData(transactions.toList(), groupBy)
+        val allMonths = generateMonthRange(startMonth, endMonth)
 
-        // Generate all months in range
-        val allMonths = mutableListOf<YearMonth>()
-        var current = startMonth
-        while (!current.isAfter(endMonth)) {
-            allMonths.add(current)
-            current = current.plusMonths(1)
-        }
-
-        // Aggregate by month
         val monthlyTotals = mutableMapOf<YearMonth, BigDecimal>()
         allMonths.forEach { monthlyTotals[it] = BigDecimal.ZERO }
 
-        // Generic aggregation structure
-        data class GroupAggregation(
-            val groupKey: String,
-            var totalIncome: BigDecimal = BigDecimal.ZERO,
-            val monthlyData: MutableList<MonthlyIncomeData>,
-            val assetIncomes: MutableMap<String, IncomeContributor> = mutableMapOf()
-        )
-
         val groupData = mutableMapOf<String, GroupAggregation>()
-
         for (trn in transactions) {
-            val trnMonth = YearMonth.from(trn.tradeDate)
-            val amount = trn.tradeAmount
-            val monthIndex = allMonths.indexOf(trnMonth)
-
-            // Update monthly total
-            monthlyTotals[trnMonth] = monthlyTotals.getOrDefault(trnMonth, BigDecimal.ZERO).add(amount)
-
-            val assetId = trn.asset.id
-            val meta = assetMetaData[assetId]
-
-            // Determine group key based on groupBy parameter using metadata
-            val groupKey =
-                when (groupBy) {
-                    "assetClass" -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
-                    "sector" -> meta?.sector?.ifBlank { "Unknown" } ?: "Unknown"
-                    "currency" -> trn.tradeCurrency.code
-                    "market" -> meta?.marketCode ?: "Unknown"
-                    else -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
-                }
-
-            // Update group data
-            val groupAgg =
-                groupData.getOrPut(groupKey) {
-                    GroupAggregation(
-                        groupKey = groupKey,
-                        monthlyData =
-                            allMonths
-                                .map {
-                                    MonthlyIncomeData(
-                                        it.toString(),
-                                        BigDecimal.ZERO
-                                    )
-                                }.toMutableList()
-                    )
-                }
-            groupAgg.totalIncome = groupAgg.totalIncome.add(amount)
-            if (monthIndex >= 0) {
-                val existingData = groupAgg.monthlyData[monthIndex]
-                groupAgg.monthlyData[monthIndex] =
-                    MonthlyIncomeData(existingData.yearMonth, existingData.income.add(amount))
-            }
-            // Track asset contribution within group using metadata
-            val assetContrib =
-                groupAgg.assetIncomes.getOrPut(assetId) {
-                    IncomeContributor(assetId, meta?.code ?: assetId, meta?.name, BigDecimal.ZERO)
-                }
-            assetContrib.totalIncome = assetContrib.totalIncome.add(amount)
+            aggregateTransaction(trn, allMonths, monthlyTotals, groupBy, assetMetaData, groupData)
         }
 
+        return buildIncomeResponse(startMonth, endMonth, groupBy, allMonths, monthlyTotals, groupData)
+    }
+
+    private fun fetchIncomeTransactions(
+        portfolioIds: List<String>,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Iterable<Trn> =
+        if (portfolioIds.isEmpty()) {
+            val user = systemUserService.getOrThrow()
+            trnRepository.findIncomeByOwnerAndDateRange(user, startDate, endDate, TrnStatus.SETTLED)
+        } else {
+            trnRepository.findIncomeByPortfoliosAndDateRange(portfolioIds, startDate, endDate, TrnStatus.SETTLED)
+        }
+
+    private fun generateMonthRange(
+        startMonth: YearMonth,
+        endMonth: YearMonth
+    ): List<YearMonth> {
+        val months = mutableListOf<YearMonth>()
+        var current = startMonth
+        while (!current.isAfter(endMonth)) {
+            months.add(current)
+            current = current.plusMonths(1)
+        }
+        return months
+    }
+
+    private data class GroupAggregation(
+        val groupKey: String,
+        var totalIncome: BigDecimal = BigDecimal.ZERO,
+        val monthlyData: MutableList<MonthlyIncomeData>,
+        val assetIncomes: MutableMap<String, IncomeContributor> = mutableMapOf()
+    )
+
+    private fun resolveGroupKey(
+        groupBy: String,
+        meta: AssetMetaData?,
+        trn: Trn
+    ): String =
+        when (groupBy) {
+            "assetClass" -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
+            "sector" -> meta?.sector?.ifBlank { "Unknown" } ?: "Unknown"
+            "currency" -> trn.tradeCurrency.code
+            "market" -> meta?.marketCode ?: "Unknown"
+            else -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
+        }
+
+    private fun aggregateTransaction(
+        trn: Trn,
+        allMonths: List<YearMonth>,
+        monthlyTotals: MutableMap<YearMonth, BigDecimal>,
+        groupBy: String,
+        assetMetaData: Map<String, AssetMetaData>,
+        groupData: MutableMap<String, GroupAggregation>
+    ) {
+        val trnMonth = YearMonth.from(trn.tradeDate)
+        val amount = trn.tradeAmount
+        val monthIndex = allMonths.indexOf(trnMonth)
+
+        monthlyTotals[trnMonth] = monthlyTotals.getOrDefault(trnMonth, BigDecimal.ZERO).add(amount)
+
+        val assetId = trn.asset.id
+        val meta = assetMetaData[assetId]
+        val groupKey = resolveGroupKey(groupBy, meta, trn)
+
+        val groupAgg =
+            groupData.getOrPut(groupKey) {
+                GroupAggregation(
+                    groupKey = groupKey,
+                    monthlyData = allMonths.map { MonthlyIncomeData(it.toString(), BigDecimal.ZERO) }.toMutableList()
+                )
+            }
+        groupAgg.totalIncome = groupAgg.totalIncome.add(amount)
+        if (monthIndex >= 0) {
+            val existingData = groupAgg.monthlyData[monthIndex]
+            groupAgg.monthlyData[monthIndex] =
+                MonthlyIncomeData(existingData.yearMonth, existingData.income.add(amount))
+        }
+
+        val assetContrib =
+            groupAgg.assetIncomes.getOrPut(assetId) {
+                IncomeContributor(assetId, meta?.code ?: assetId, meta?.name, BigDecimal.ZERO)
+            }
+        assetContrib.totalIncome = assetContrib.totalIncome.add(amount)
+    }
+
+    private fun buildIncomeResponse(
+        startMonth: YearMonth,
+        endMonth: YearMonth,
+        groupBy: String,
+        allMonths: List<YearMonth>,
+        monthlyTotals: Map<YearMonth, BigDecimal>,
+        groupData: Map<String, GroupAggregation>
+    ): MonthlyIncomeResponse {
         val totalIncome = monthlyTotals.values.fold(BigDecimal.ZERO) { acc, v -> acc.add(v) }
         val monthlyDataList = allMonths.map { MonthlyIncomeData(it.toString(), monthlyTotals[it] ?: BigDecimal.ZERO) }
 
-        // Convert aggregations to response format with top 10 contributors
         val groupIncomeList =
             groupData.values
                 .map { agg ->

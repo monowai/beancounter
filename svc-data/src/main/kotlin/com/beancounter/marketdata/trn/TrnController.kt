@@ -7,7 +7,6 @@ import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
-import com.opencsv.CSVWriterBuilder
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -15,8 +14,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -29,11 +26,15 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.time.YearMonth
 
 /**
- * MVC controller for Transaction related operations.
- * Provides endpoints for managing financial transactions including trades, dividends, and other corporate actions.
+ * Core CRUD controller for transaction operations.
+ * Provides endpoints for creating, reading, updating, and deleting transactions,
+ * as well as querying by portfolio, asset, status, and model.
+ *
+ * @see TrnAnalysisController for analysis and reporting endpoints
+ * @see TrnExportController for CSV export endpoints
+ * @see TrnBrokerController for broker-related endpoints
  */
 @RestController
 @RequestMapping("/trns")
@@ -48,10 +49,7 @@ import java.time.YearMonth
 class TrnController(
     var trnService: TrnService,
     var trnQueryService: TrnQueryService,
-    var trnBrokerService: TrnBrokerService,
-    var trnAnalysisService: TrnAnalysisService,
-    var dateUtils: DateUtils,
-    var trnIoDefinition: TrnIoDefinition
+    var dateUtils: DateUtils
 ) {
     @GetMapping(
         value = ["/portfolio/{portfolioId}"],
@@ -98,7 +96,8 @@ class TrnController(
                         ]
                     )
                 ]
-            ), ApiResponse(
+            ),
+            ApiResponse(
                 responseCode = "404",
                 description = "Portfolio not found"
             )
@@ -467,67 +466,6 @@ class TrnController(
             )
         )
 
-    @GetMapping(value = ["/portfolio/{portfolioId}/export"])
-    @Operation(
-        summary = "Export portfolio transactions to CSV",
-        description = """
-            Exports all transactions for a portfolio to CSV format.
-            The file will be downloaded with the portfolio ID as the filename.
-
-            Use this to:
-            * Export transaction data for external analysis
-            * Create backup files of transaction history
-            * Generate reports for compliance or auditing
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "CSV file generated and downloaded successfully",
-                content = [
-                    Content(
-                        mediaType = "text/csv"
-                    )
-                ]
-            ), ApiResponse(
-                responseCode = "404",
-                description = "Portfolio not found"
-            )
-        ]
-    )
-    fun export(
-        response: HttpServletResponse,
-        @Parameter(
-            description = "Portfolio identifier to export",
-            example = "portfolio-123"
-        ) @PathVariable("portfolioId") portfolioId: String
-    ) {
-        response.contentType = MediaType.TEXT_PLAIN_VALUE
-        response.setHeader(
-            HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"$portfolioId.csv\""
-        )
-        val trnResponse =
-            trnService.findForPortfolio(
-                portfolioId,
-                dateUtils.date
-            )
-
-        val csvWriter = CSVWriterBuilder(response.writer).withSeparator(',').build()
-        csvWriter.writeNext(
-            trnIoDefinition.headers(),
-            false
-        )
-        for (datum in trnResponse) {
-            csvWriter.writeNext(
-                trnIoDefinition.export(datum),
-                false
-            )
-        }
-        csvWriter.close()
-    }
-
     @GetMapping(
         value = ["/portfolio/{portfolioId}/status/{status}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
@@ -656,270 +594,6 @@ class TrnController(
         ) @RequestParam("tradeDate") tradeDate: java.time.LocalDate
     ): TrnResponse = TrnResponse(trnService.findSettledForUser(tradeDate))
 
-    @GetMapping(
-        value = ["/summary"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @Operation(
-        summary = "Get transaction summary for rolling window",
-        description = """
-            Returns total purchases, total sales, and net investment for a rolling N-week window.
-            All amounts are converted to the specified target currency.
-
-            Use this to:
-            * Track investment activity against monthly targets
-            * Monitor actual vs planned investment
-            * Display investment metrics on independence dashboards
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Transaction summary retrieved successfully",
-                content = [
-                    Content(
-                        mediaType = MediaType.APPLICATION_JSON_VALUE,
-                        examples = [
-                            ExampleObject(
-                                name = "Transaction Summary",
-                                value = """
-                                {
-                                  "data": {
-                                    "totalPurchases": 5000.00,
-                                    "totalSales": 1500.00,
-                                    "netInvestment": 3500.00,
-                                    "periodStart": "2024-12-28",
-                                    "periodEnd": "2024-01-25",
-                                    "currency": "NZD"
-                                  }
-                                }
-                                """
-                            )
-                        ]
-                    )
-                ]
-            )
-        ]
-    )
-    fun getTransactionSummary(
-        @Parameter(
-            description = "Number of weeks to include in the summary. Defaults to 4.",
-            example = "4"
-        ) @RequestParam(required = false, defaultValue = "4") weeks: Int,
-        @Parameter(
-            description = "Target currency code for FX conversion. Required.",
-            example = "NZD"
-        ) @RequestParam(required = true) currency: String
-    ): TransactionSummaryResponse =
-        TransactionSummaryResponse(
-            trnAnalysisService.getTransactionSummary(weeks, currency)
-        )
-
-    @GetMapping(
-        value = ["/investments/monthly"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @Operation(
-        summary = "Get monthly investment summary",
-        description = """
-            Returns the net amount invested (BUY + ADD - SELL) in a specific month.
-            Optionally scoped to specific portfolios and converted to a target currency.
-
-            Use this to:
-            * Track investment progress against monthly goals
-            * Display investment metrics on dashboard
-            * Monitor contribution patterns
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Monthly investment summary retrieved successfully",
-                content = [
-                    Content(
-                        mediaType = MediaType.APPLICATION_JSON_VALUE,
-                        examples = [
-                            ExampleObject(
-                                name = "Monthly Investment",
-                                value = """
-                                {
-                                  "yearMonth": "2024-01",
-                                  "totalInvested": 5000.00,
-                                  "currency": "USD"
-                                }
-                                """
-                            )
-                        ]
-                    )
-                ]
-            )
-        ]
-    )
-    fun getMonthlyInvestment(
-        @Parameter(
-            description = "Year and month in YYYY-MM format. Defaults to current month.",
-            example = "2024-01"
-        ) @RequestParam(required = false) yearMonth: String?,
-        @Parameter(
-            description = "Target currency code for FX conversion. Required for accurate results.",
-            example = "USD"
-        ) @RequestParam(required = false) currency: String?,
-        @Parameter(
-            description = "Comma-separated portfolio IDs to scope. Empty = all user's portfolios.",
-            example = "portfolio-1,portfolio-2"
-        ) @RequestParam(required = false) portfolioIds: String?
-    ): MonthlyInvestmentResponse {
-        val month =
-            if (yearMonth != null) {
-                YearMonth.parse(yearMonth)
-            } else {
-                YearMonth.now()
-            }
-
-        val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
-
-        val total =
-            if (currency != null) {
-                trnAnalysisService.getMonthlyInvestmentConverted(month, portfolioIdList, currency)
-            } else {
-                trnAnalysisService.getMonthlyInvestment(month)
-            }
-
-        return MonthlyInvestmentResponse(
-            yearMonth = month.toString(),
-            totalInvested = total,
-            currency = currency
-        )
-    }
-
-    @GetMapping(
-        value = ["/investments/monthly/transactions"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @Operation(
-        summary = "Get monthly investment transactions for current user",
-        description = """
-            Returns all investment transactions (BUY and ADD) for the current user
-            in a specific month. Defaults to the current month if not specified.
-
-            Use this to:
-            * View individual investment transactions for the month
-            * Provide detailed breakdown of monthly investing activity
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Monthly investment transactions retrieved successfully"
-            )
-        ]
-    )
-    fun getMonthlyInvestmentTransactions(
-        @Parameter(
-            description = "Year and month in YYYY-MM format. Defaults to current month.",
-            example = "2024-01"
-        ) @RequestParam(required = false) yearMonth: String?
-    ): TrnResponse {
-        val month =
-            if (yearMonth != null) {
-                YearMonth.parse(yearMonth)
-            } else {
-                YearMonth.now()
-            }
-        return TrnResponse(trnAnalysisService.getMonthlyInvestmentTransactions(month))
-    }
-
-    @GetMapping(
-        value = ["/income/monthly"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @Operation(
-        summary = "Get monthly income report",
-        description = """
-            Returns income (dividends) aggregated by month over a rolling period.
-            Can be grouped by asset or category, and optionally scoped to specific portfolios.
-
-            Use this to:
-            * View monthly income trends
-            * Analyze income by asset class, sector, currency, or market
-            * Track dividend income over time
-            * Click through to see top 10 contributors per group
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Monthly income report retrieved successfully",
-                content = [
-                    Content(
-                        mediaType = MediaType.APPLICATION_JSON_VALUE,
-                        examples = [
-                            ExampleObject(
-                                name = "Monthly Income",
-                                value = """
-                                {
-                                  "startMonth": "2024-01",
-                                  "endMonth": "2024-12",
-                                  "totalIncome": 5000.00,
-                                  "groupBy": "assetClass",
-                                  "months": [
-                                    {"yearMonth": "2024-01", "income": 400.00},
-                                    {"yearMonth": "2024-02", "income": 450.00}
-                                  ],
-                                  "groups": [
-                                    {
-                                      "groupKey": "Equity",
-                                      "totalIncome": 1200.00,
-                                      "monthlyData": [
-                                        {"yearMonth": "2024-01", "income": 100.00}
-                                      ],
-                                      "topContributors": [
-                                        {"assetId": "abc123", "assetCode": "AAPL", "assetName": "Apple Inc.", "totalIncome": 500.00},
-                                        {"assetId": "def456", "assetCode": "MSFT", "assetName": "Microsoft Corp", "totalIncome": 400.00}
-                                      ]
-                                    }
-                                  ]
-                                }
-                                """
-                            )
-                        ]
-                    )
-                ]
-            )
-        ]
-    )
-    fun getMonthlyIncome(
-        @Parameter(
-            description = "Number of months to include. Defaults to 12.",
-            example = "12"
-        ) @RequestParam(required = false, defaultValue = "12") months: Int,
-        @Parameter(
-            description = "End month in YYYY-MM format. Defaults to current month.",
-            example = "2024-12"
-        ) @RequestParam(required = false) endMonth: String?,
-        @Parameter(
-            description = "Comma-separated portfolio IDs to scope. Empty = all user's portfolios.",
-            example = "portfolio-1,portfolio-2"
-        ) @RequestParam(required = false) portfolioIds: String?,
-        @Parameter(
-            description = "Grouping option: 'assetClass', 'sector', 'currency', or 'market'. Defaults to 'assetClass'.",
-            example = "assetClass"
-        ) @RequestParam(required = false, defaultValue = "assetClass") groupBy: String
-    ): MonthlyIncomeResponse {
-        val end =
-            if (endMonth != null) {
-                YearMonth.parse(endMonth)
-            } else {
-                YearMonth.now()
-            }
-        val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
-        return trnAnalysisService.getMonthlyIncome(months, end, portfolioIdList, groupBy)
-    }
-
     @PostMapping(
         value = ["/portfolio/{portfolioId}/settle"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
@@ -997,41 +671,6 @@ class TrnController(
     ): TrnResponse = TrnResponse(trnService.getCashLadder(portfolioId, cashAssetId))
 
     @GetMapping(
-        value = ["/broker/{brokerId}/holdings"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @Operation(
-        summary = "Get holdings by broker for reconciliation",
-        description = """
-            Calculates holdings (quantities) for all assets transacted through a specific broker.
-            This aggregates settled transactions to show net positions per asset.
-
-            Use this to:
-            * Reconcile holdings with broker statements
-            * Verify quantities match broker records
-            * Identify discrepancies between system and broker
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Broker holdings retrieved successfully"
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Broker not found"
-            )
-        ]
-    )
-    fun getBrokerHoldings(
-        @Parameter(
-            description = "Broker identifier",
-            example = "broker-123"
-        ) @PathVariable("brokerId") brokerId: String
-    ): BrokerHoldingsResponse = trnBrokerService.getBrokerHoldings(brokerId)
-
-    @GetMapping(
         value = ["/portfolio/{portfolioId}/model/{modelId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
@@ -1070,48 +709,5 @@ class TrnController(
     ): TrnResponse =
         TrnResponse(
             trnService.findByPortfolioAndModel(portfolioId, modelId)
-        )
-
-    @GetMapping(
-        value = ["/broker/{brokerId}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @Operation(
-        summary = "Get transactions by broker for position building",
-        description = """
-            Retrieves all transactions for a specific broker as of a given date.
-            Includes all transaction types (BUY, SELL, SPLIT, DIVI, etc.) needed
-            for accurate position calculation with split adjustments.
-
-            Used by svc-position to build holdings with correct quantities.
-        """
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Broker transactions retrieved successfully"
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Broker not found"
-            )
-        ]
-    )
-    fun getBrokerTransactions(
-        @Parameter(
-            description = "Broker identifier",
-            example = "broker-123"
-        ) @PathVariable("brokerId") brokerId: String,
-        @Parameter(
-            description = "Date to retrieve transactions for (YYYY-MM-DD format)",
-            example = "2024-01-15"
-        ) @RequestParam(required = false) asAt: String = dateUtils.today()
-    ): TrnResponse =
-        TrnResponse(
-            trnBrokerService.findForBroker(
-                brokerId,
-                dateUtils.getFormattedDate(asAt)
-            )
         )
 }

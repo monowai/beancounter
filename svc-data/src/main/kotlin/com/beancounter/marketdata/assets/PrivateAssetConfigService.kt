@@ -53,7 +53,26 @@ class PrivateAssetConfigService(
         request: PrivateAssetConfigRequest
     ): PrivateAssetConfigResponse {
         verifyAssetOwnership(assetId)
+        logSaveRequest(assetId, request)
+        validateSubAccountCodes(request.subAccounts)
 
+        val existing = configRepository.findById(assetId).orElse(null)
+        val config =
+            if (existing != null) {
+                updateExistingConfig(existing, assetId, request)
+            } else {
+                createNewConfig(assetId, request)
+            }
+
+        val saved = configRepository.save(config)
+        logSavedConfig(assetId, saved)
+        return PrivateAssetConfigResponse(saved)
+    }
+
+    private fun logSaveRequest(
+        assetId: String,
+        request: PrivateAssetConfigRequest
+    ) {
         log.info(
             "Saving config for asset: $assetId - " +
                 "request.isPension=${request.isPension}, " +
@@ -61,88 +80,12 @@ class PrivateAssetConfigService(
                 "request.lumpSum=${request.lumpSum}, " +
                 "request.policyType=${request.policyType}"
         )
+    }
 
-        validateSubAccountCodes(request.subAccounts)
-
-        val existing = configRepository.findById(assetId).orElse(null)
-        val config =
-            existing?.let { ex ->
-                val updated =
-                    ex.copy(
-                        monthlyRentalIncome =
-                            if (request.isPrimaryResidence == true) {
-                                BigDecimal.ZERO
-                            } else {
-                                request.monthlyRentalIncome ?: ex.monthlyRentalIncome
-                            },
-                        rentalCurrency = request.rentalCurrency ?: ex.rentalCurrency,
-                        countryCode = request.countryCode?.uppercase() ?: ex.countryCode,
-                        monthlyManagementFee = request.monthlyManagementFee ?: ex.monthlyManagementFee,
-                        managementFeePercent = request.managementFeePercent ?: ex.managementFeePercent,
-                        monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: ex.monthlyBodyCorporateFee,
-                        annualPropertyTax = request.annualPropertyTax ?: ex.annualPropertyTax,
-                        annualInsurance = request.annualInsurance ?: ex.annualInsurance,
-                        monthlyOtherExpenses = request.monthlyOtherExpenses ?: ex.monthlyOtherExpenses,
-                        deductIncomeTax = request.deductIncomeTax ?: ex.deductIncomeTax,
-                        isPrimaryResidence = request.isPrimaryResidence ?: ex.isPrimaryResidence,
-                        liquidationPriority = request.liquidationPriority ?: ex.liquidationPriority,
-                        transactionDayOfMonth = request.transactionDayOfMonth ?: ex.transactionDayOfMonth,
-                        creditAccountId = request.creditAccountId ?: ex.creditAccountId,
-                        autoGenerateTransactions = request.autoGenerateTransactions ?: ex.autoGenerateTransactions,
-                        expectedReturnRate = request.expectedReturnRate ?: ex.expectedReturnRate,
-                        payoutAge = request.payoutAge ?: ex.payoutAge,
-                        monthlyPayoutAmount = request.monthlyPayoutAmount ?: ex.monthlyPayoutAmount,
-                        lumpSum = request.lumpSum ?: ex.lumpSum,
-                        monthlyContribution = request.monthlyContribution ?: ex.monthlyContribution,
-                        isPension = request.isPension ?: ex.isPension,
-                        policyType = request.policyType ?: ex.policyType,
-                        lockedUntilDate = request.lockedUntilDate ?: ex.lockedUntilDate,
-                        cpfLifePlan = request.cpfLifePlan ?: ex.cpfLifePlan,
-                        cpfPayoutStartAge = request.cpfPayoutStartAge ?: ex.cpfPayoutStartAge,
-                        updatedDate = LocalDate.now()
-                    )
-                mergeSubAccounts(updated, assetId, request.subAccounts)
-                updated
-            }
-                ?: // Create new
-                PrivateAssetConfig(
-                    assetId = assetId,
-                    monthlyRentalIncome =
-                        if (request.isPrimaryResidence == true) {
-                            BigDecimal.ZERO
-                        } else {
-                            request.monthlyRentalIncome ?: BigDecimal.ZERO
-                        },
-                    rentalCurrency = request.rentalCurrency ?: "NZD",
-                    countryCode = request.countryCode?.uppercase() ?: "NZ",
-                    monthlyManagementFee = request.monthlyManagementFee ?: BigDecimal.ZERO,
-                    managementFeePercent = request.managementFeePercent ?: BigDecimal.ZERO,
-                    monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: BigDecimal.ZERO,
-                    annualPropertyTax = request.annualPropertyTax ?: BigDecimal.ZERO,
-                    annualInsurance = request.annualInsurance ?: BigDecimal.ZERO,
-                    monthlyOtherExpenses = request.monthlyOtherExpenses ?: BigDecimal.ZERO,
-                    deductIncomeTax = request.deductIncomeTax ?: false,
-                    isPrimaryResidence = request.isPrimaryResidence ?: false,
-                    liquidationPriority = request.liquidationPriority ?: 100,
-                    transactionDayOfMonth = request.transactionDayOfMonth ?: 1,
-                    creditAccountId = request.creditAccountId,
-                    autoGenerateTransactions = request.autoGenerateTransactions ?: false,
-                    expectedReturnRate = request.expectedReturnRate,
-                    payoutAge = request.payoutAge,
-                    monthlyPayoutAmount = request.monthlyPayoutAmount,
-                    lumpSum = request.lumpSum ?: false,
-                    monthlyContribution = request.monthlyContribution,
-                    isPension = request.isPension ?: false,
-                    policyType = request.policyType,
-                    lockedUntilDate = request.lockedUntilDate,
-                    cpfLifePlan = request.cpfLifePlan,
-                    cpfPayoutStartAge = request.cpfPayoutStartAge,
-                    subAccounts = toSubAccountEntities(assetId, request.subAccounts),
-                    createdDate = LocalDate.now(),
-                    updatedDate = LocalDate.now()
-                )
-
-        val saved = configRepository.save(config)
+    private fun logSavedConfig(
+        assetId: String,
+        saved: PrivateAssetConfig
+    ) {
         log.info(
             "Saved config for asset: $assetId, " +
                 "rental: ${saved.monthlyRentalIncome} ${saved.rentalCurrency}, " +
@@ -153,8 +96,126 @@ class PrivateAssetConfigService(
                 "policyType: ${saved.policyType}, " +
                 "subAccounts: ${saved.subAccounts.size}"
         )
-        return PrivateAssetConfigResponse(saved)
     }
+
+    /**
+     * Resolve the monthly rental income from the request,
+     * zeroing it out when the asset is marked as a primary residence.
+     */
+    private fun resolveRentalIncome(
+        request: PrivateAssetConfigRequest,
+        fallback: BigDecimal
+    ): BigDecimal =
+        if (request.isPrimaryResidence == true) {
+            BigDecimal.ZERO
+        } else {
+            request.monthlyRentalIncome ?: fallback
+        }
+
+    /**
+     * Update an existing config by merging request values with current values.
+     */
+    private fun updateExistingConfig(
+        existing: PrivateAssetConfig,
+        assetId: String,
+        request: PrivateAssetConfigRequest
+    ): PrivateAssetConfig {
+        val updated =
+            existing
+                .copy(
+                    monthlyRentalIncome = resolveRentalIncome(request, existing.monthlyRentalIncome),
+                    rentalCurrency = request.rentalCurrency ?: existing.rentalCurrency,
+                    countryCode = request.countryCode?.uppercase() ?: existing.countryCode,
+                    updatedDate = LocalDate.now()
+                ).mergeExpenses(request)
+                .mergePropertyFlags(request)
+                .mergeTransactionSettings(request)
+                .mergePensionSettings(request)
+                .mergeCpfSettings(request)
+        mergeSubAccounts(updated, assetId, request.subAccounts)
+        return updated
+    }
+
+    private fun PrivateAssetConfig.mergeExpenses(request: PrivateAssetConfigRequest) =
+        copy(
+            monthlyManagementFee = request.monthlyManagementFee ?: monthlyManagementFee,
+            managementFeePercent = request.managementFeePercent ?: managementFeePercent,
+            monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: monthlyBodyCorporateFee,
+            annualPropertyTax = request.annualPropertyTax ?: annualPropertyTax,
+            annualInsurance = request.annualInsurance ?: annualInsurance,
+            monthlyOtherExpenses = request.monthlyOtherExpenses ?: monthlyOtherExpenses
+        )
+
+    private fun PrivateAssetConfig.mergePropertyFlags(request: PrivateAssetConfigRequest) =
+        copy(
+            deductIncomeTax = request.deductIncomeTax ?: deductIncomeTax,
+            isPrimaryResidence = request.isPrimaryResidence ?: isPrimaryResidence,
+            liquidationPriority = request.liquidationPriority ?: liquidationPriority
+        )
+
+    private fun PrivateAssetConfig.mergeTransactionSettings(request: PrivateAssetConfigRequest) =
+        copy(
+            transactionDayOfMonth = request.transactionDayOfMonth ?: transactionDayOfMonth,
+            creditAccountId = request.creditAccountId ?: creditAccountId,
+            autoGenerateTransactions = request.autoGenerateTransactions ?: autoGenerateTransactions,
+            expectedReturnRate = request.expectedReturnRate ?: expectedReturnRate
+        )
+
+    private fun PrivateAssetConfig.mergePensionSettings(request: PrivateAssetConfigRequest) =
+        copy(
+            payoutAge = request.payoutAge ?: payoutAge,
+            monthlyPayoutAmount = request.monthlyPayoutAmount ?: monthlyPayoutAmount,
+            lumpSum = request.lumpSum ?: lumpSum,
+            monthlyContribution = request.monthlyContribution ?: monthlyContribution,
+            isPension = request.isPension ?: isPension,
+            policyType = request.policyType ?: policyType,
+            lockedUntilDate = request.lockedUntilDate ?: lockedUntilDate
+        )
+
+    private fun PrivateAssetConfig.mergeCpfSettings(request: PrivateAssetConfigRequest) =
+        copy(
+            cpfLifePlan = request.cpfLifePlan ?: cpfLifePlan,
+            cpfPayoutStartAge = request.cpfPayoutStartAge ?: cpfPayoutStartAge
+        )
+
+    /**
+     * Create a new config with request values and sensible defaults.
+     */
+    private fun createNewConfig(
+        assetId: String,
+        request: PrivateAssetConfigRequest
+    ): PrivateAssetConfig =
+        PrivateAssetConfig(
+            assetId = assetId,
+            monthlyRentalIncome = resolveRentalIncome(request, BigDecimal.ZERO),
+            rentalCurrency = request.rentalCurrency ?: "NZD",
+            countryCode = request.countryCode?.uppercase() ?: "NZ",
+            monthlyManagementFee = request.monthlyManagementFee ?: BigDecimal.ZERO,
+            managementFeePercent = request.managementFeePercent ?: BigDecimal.ZERO,
+            monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: BigDecimal.ZERO,
+            annualPropertyTax = request.annualPropertyTax ?: BigDecimal.ZERO,
+            annualInsurance = request.annualInsurance ?: BigDecimal.ZERO,
+            monthlyOtherExpenses = request.monthlyOtherExpenses ?: BigDecimal.ZERO,
+            deductIncomeTax = request.deductIncomeTax ?: false,
+            isPrimaryResidence = request.isPrimaryResidence ?: false,
+            liquidationPriority = request.liquidationPriority ?: 100,
+            transactionDayOfMonth = request.transactionDayOfMonth ?: 1,
+            creditAccountId = request.creditAccountId,
+            autoGenerateTransactions = request.autoGenerateTransactions ?: false,
+            expectedReturnRate = request.expectedReturnRate,
+            payoutAge = request.payoutAge,
+            monthlyPayoutAmount = request.monthlyPayoutAmount,
+            lumpSum = request.lumpSum ?: false,
+            monthlyContribution = request.monthlyContribution,
+            isPension = request.isPension ?: false,
+            policyType = request.policyType,
+            lockedUntilDate = request.lockedUntilDate,
+            cpfLifePlan = request.cpfLifePlan,
+            cpfPayoutStartAge = request.cpfPayoutStartAge,
+            subAccounts = toSubAccountEntities(assetId, request.subAccounts),
+            createdDate = LocalDate.now(),
+            updatedDate = LocalDate.now()
+        )
 
     /**
      * Validate that sub-account codes are unique within the request.

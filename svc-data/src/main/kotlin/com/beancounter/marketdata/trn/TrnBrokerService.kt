@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
@@ -99,6 +100,22 @@ class TrnBrokerService(
         return count
     }
 
+    private data class PortfolioTrns(
+        val portfolioId: String,
+        val portfolioCode: String,
+        val transactions: MutableList<Trn> = mutableListOf(),
+        var quantity: BigDecimal = BigDecimal.ZERO
+    )
+
+    private data class AssetAggregation(
+        val assetId: String,
+        val assetCode: String,
+        val assetName: String?,
+        val market: String,
+        var quantity: BigDecimal = BigDecimal.ZERO,
+        val portfolioMap: MutableMap<String, PortfolioTrns> = mutableMapOf()
+    )
+
     /**
      * Get aggregated holdings for a specific broker for reconciliation.
      * Calculates net quantities by asset based on settled transactions.
@@ -106,48 +123,45 @@ class TrnBrokerService(
      */
     fun getBrokerHoldings(brokerId: String): BrokerHoldingsResponse {
         val user = systemUserService.getOrThrow()
-        val isNoBroker = brokerId == NO_BROKER
 
-        val (brokerIdResult, brokerName, transactions) =
-            if (isNoBroker) {
-                Triple(
-                    NO_BROKER,
-                    "No Broker",
-                    trnRepository.findWithNoBroker(user, TrnStatus.SETTLED)
-                )
-            } else {
-                val broker =
-                    brokerService.findById(brokerId, user).orElseThrow {
-                        NotFoundException("Broker not found: $brokerId")
-                    }
-                Triple(
-                    broker.id,
-                    broker.name,
-                    trnRepository.findByBrokerIdAndOwner(brokerId, user, TrnStatus.SETTLED)
-                )
-            }
-
+        val (brokerIdResult, brokerName, transactions) = resolveBrokerTransactions(brokerId, user)
         log.trace("Found ${transactions.size} transactions for broker: $brokerName")
 
-        // Group transactions by asset, then by portfolio
-        data class PortfolioTrns(
-            val portfolioId: String,
-            val portfolioCode: String,
-            val transactions: MutableList<Trn> = mutableListOf(),
-            var quantity: BigDecimal = BigDecimal.ZERO
-        )
+        val assetMap = aggregateByAsset(transactions)
+        val holdings = buildHoldingPositions(assetMap)
 
-        data class AssetAggregation(
-            val assetId: String,
-            val assetCode: String,
-            val assetName: String?,
-            val market: String,
-            var quantity: BigDecimal = BigDecimal.ZERO,
-            val portfolioMap: MutableMap<String, PortfolioTrns> = mutableMapOf()
+        log.debug("Broker holdings for $brokerName: ${holdings.size} positions")
+        return BrokerHoldingsResponse(
+            brokerId = brokerIdResult,
+            brokerName = brokerName,
+            holdings = holdings
         )
+    }
 
+    private fun resolveBrokerTransactions(
+        brokerId: String,
+        user: SystemUser
+    ): Triple<String, String, Collection<Trn>> =
+        if (brokerId == NO_BROKER) {
+            Triple(
+                NO_BROKER,
+                "No Broker",
+                trnRepository.findWithNoBroker(user, TrnStatus.SETTLED)
+            )
+        } else {
+            val broker =
+                brokerService.findById(brokerId, user).orElseThrow {
+                    NotFoundException("Broker not found: $brokerId")
+                }
+            Triple(
+                broker.id,
+                broker.name,
+                trnRepository.findByBrokerIdAndOwner(brokerId, user, TrnStatus.SETTLED)
+            )
+        }
+
+    private fun aggregateByAsset(transactions: Collection<Trn>): Map<String, AssetAggregation> {
         val assetMap = mutableMapOf<String, AssetAggregation>()
-
         for (trn in transactions) {
             val asset = trn.asset
             val agg =
@@ -168,7 +182,6 @@ class TrnBrokerService(
                     )
                 }
 
-            // Accumulate quantity based on transaction type
             val quantityDelta =
                 when (trn.trnType) {
                     TrnType.BUY, TrnType.ADD -> trn.quantity
@@ -179,54 +192,49 @@ class TrnBrokerService(
             portfolioTrns.quantity = portfolioTrns.quantity.add(quantityDelta)
             portfolioTrns.transactions.add(trn)
         }
-
-        // Filter out positions with zero quantity and convert to response DTOs
-        val holdings =
-            assetMap.values
-                .filter { it.quantity.compareTo(BigDecimal.ZERO) != 0 }
-                .sortedBy { it.assetCode }
-                .map { agg ->
-                    BrokerHoldingPosition(
-                        assetId = agg.assetId,
-                        assetCode = agg.assetCode,
-                        assetName = agg.assetName,
-                        market = agg.market,
-                        quantity = agg.quantity,
-                        portfolioGroups =
-                            agg.portfolioMap.values
-                                .sortedBy { it.portfolioCode }
-                                .map { pg ->
-                                    BrokerPortfolioGroup(
-                                        portfolioId = pg.portfolioId,
-                                        portfolioCode = pg.portfolioCode,
-                                        quantity = pg.quantity,
-                                        transactions =
-                                            pg.transactions
-                                                .sortedBy { it.tradeDate }
-                                                .map { trn ->
-                                                    BrokerHoldingTransaction(
-                                                        id = trn.id,
-                                                        portfolioId = trn.portfolio.id,
-                                                        portfolioCode = trn.portfolio.code,
-                                                        tradeDate = trn.tradeDate.toString(),
-                                                        trnType = trn.trnType.name,
-                                                        quantity = trn.quantity,
-                                                        price = trn.price ?: BigDecimal.ZERO,
-                                                        tradeAmount = trn.tradeAmount
-                                                    )
-                                                }
-                                    )
-                                }
-                    )
-                }
-
-        log.debug("Broker holdings for $brokerName: ${holdings.size} positions")
-        return BrokerHoldingsResponse(
-            brokerId = brokerIdResult,
-            brokerName = brokerName,
-            holdings = holdings
-        )
+        return assetMap
     }
+
+    private fun buildHoldingPositions(assetMap: Map<String, AssetAggregation>): List<BrokerHoldingPosition> =
+        assetMap.values
+            .filter { it.quantity.compareTo(BigDecimal.ZERO) != 0 }
+            .sortedBy { it.assetCode }
+            .map { agg ->
+                BrokerHoldingPosition(
+                    assetId = agg.assetId,
+                    assetCode = agg.assetCode,
+                    assetName = agg.assetName,
+                    market = agg.market,
+                    quantity = agg.quantity,
+                    portfolioGroups = buildPortfolioGroups(agg.portfolioMap.values)
+                )
+            }
+
+    private fun buildPortfolioGroups(portfolios: Collection<PortfolioTrns>): List<BrokerPortfolioGroup> =
+        portfolios
+            .sortedBy { it.portfolioCode }
+            .map { pg ->
+                BrokerPortfolioGroup(
+                    portfolioId = pg.portfolioId,
+                    portfolioCode = pg.portfolioCode,
+                    quantity = pg.quantity,
+                    transactions =
+                        pg.transactions
+                            .sortedBy { it.tradeDate }
+                            .map { trn ->
+                                BrokerHoldingTransaction(
+                                    id = trn.id,
+                                    portfolioId = trn.portfolio.id,
+                                    portfolioCode = trn.portfolio.code,
+                                    tradeDate = trn.tradeDate.toString(),
+                                    trnType = trn.trnType.name,
+                                    quantity = trn.quantity,
+                                    price = trn.price ?: BigDecimal.ZERO,
+                                    tradeAmount = trn.tradeAmount
+                                )
+                            }
+                )
+            }
 
     /**
      * Post-process transactions with asset hydration and version migration.

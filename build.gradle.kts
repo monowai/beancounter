@@ -236,7 +236,9 @@ subprojects {
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
         // Common test dependencies
-        testImplementation(platform("org.springframework.boot:spring-boot-dependencies:${rootProject.libs.versions.spring.boot.get()}"))
+        testImplementation(
+            platform("org.springframework.boot:spring-boot-dependencies:${rootProject.libs.versions.spring.boot.get()}")
+        )
         testImplementation(rootProject.libs.assertj)
     }
 

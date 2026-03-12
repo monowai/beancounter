@@ -2,9 +2,9 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
+import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.US
 import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -18,7 +18,7 @@ import java.time.LocalDate
 class AlphaPriceDeserializerTest {
     private val deserializer = AlphaPriceDeserializer()
     private val asset = getTestAsset(US, "DPZ")
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = BcJson.objectMapper
 
     @Test
     fun `should correctly deserialize change and changePercent from API response`() {

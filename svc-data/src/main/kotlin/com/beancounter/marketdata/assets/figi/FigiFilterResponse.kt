@@ -1,11 +1,8 @@
 package com.beancounter.marketdata.assets.figi
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-
 /**
  * Response from OpenFIGI /v3/search endpoint.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class FigiFilterResponse(
     val data: List<FigiFilterResult> = emptyList(),
     val next: String? = null
@@ -14,7 +11,6 @@ data class FigiFilterResponse(
 /**
  * Individual result from FIGI search.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class FigiFilterResult(
     val figi: String? = null,
     val name: String? = null,

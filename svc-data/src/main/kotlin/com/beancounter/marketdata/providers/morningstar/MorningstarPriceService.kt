@@ -5,8 +5,8 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,7 +24,7 @@ class MorningstarPriceService(
     private val morningstarConfig: MorningstarConfig
 ) : MarketDataPriceProvider {
     private lateinit var morningstarProxy: MorningstarProxy
-    private val objectMapper = jacksonObjectMapper()
+    private val objectMapper = BcJson.objectMapper
 
     companion object {
         const val ID = "MORNINGSTAR"

@@ -1,13 +1,11 @@
 package com.beancounter.marketdata.providers.alpha
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * Response DTO for AlphaVantage OVERVIEW endpoint.
  * Contains company sector and industry information.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class AlphaOverviewResponse(
     @JsonProperty("Symbol")
     val symbol: String? = null,
@@ -31,7 +29,6 @@ data class AlphaOverviewResponse(
  * Response DTO for AlphaVantage ETF_PROFILE endpoint.
  * Contains sector allocations and holdings.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class AlphaEtfProfileResponse(
     val sectors: List<AlphaEtfSector>? = null,
     val holdings: List<AlphaEtfHolding>? = null,
@@ -44,7 +41,6 @@ data class AlphaEtfProfileResponse(
 /**
  * Sector allocation within an ETF.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class AlphaEtfSector(
     val sector: String,
     val weight: String
@@ -53,7 +49,6 @@ data class AlphaEtfSector(
 /**
  * Individual holding within an ETF.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class AlphaEtfHolding(
     val symbol: String? = null,
     val description: String? = null,

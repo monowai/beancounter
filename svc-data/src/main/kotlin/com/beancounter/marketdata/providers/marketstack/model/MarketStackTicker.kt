@@ -1,12 +1,10 @@
 package com.beancounter.marketdata.providers.marketstack.model
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * Represents a ticker from MarketStack's exchange tickers endpoint.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class MarketStackTicker(
     val name: String,
     val symbol: String,
@@ -19,7 +17,6 @@ data class MarketStackTicker(
 /**
  * Exchange data containing tickers from MarketStack's exchange tickers endpoint.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class MarketStackExchangeData(
     val name: String? = null,
     val acronym: String? = null,
@@ -30,7 +27,6 @@ data class MarketStackExchangeData(
 /**
  * Response from MarketStack's exchange tickers endpoint.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class MarketStackTickerResponse(
     val data: MarketStackExchangeData? = null,
     val error: MarketStackError? = null

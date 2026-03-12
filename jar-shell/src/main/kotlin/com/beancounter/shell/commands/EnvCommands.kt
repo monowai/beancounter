@@ -1,8 +1,8 @@
 package com.beancounter.shell.commands
 
 import com.beancounter.client.services.ActuatorService
+import com.beancounter.common.utils.BcJson
 import com.beancounter.shell.config.EnvConfig
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import java.nio.file.FileSystems
@@ -28,8 +28,7 @@ class EnvCommands(
 
     @ShellMethod("Shell configuration")
     fun env(): String =
-        ObjectMapper()
-            .writerWithDefaultPrettyPrinter()
+        BcJson.writer
             .writeValueAsString(
                 mapOf(
                     Pair(

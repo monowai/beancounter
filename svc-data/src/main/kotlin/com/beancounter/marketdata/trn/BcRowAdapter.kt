@@ -10,6 +10,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
@@ -29,7 +30,7 @@ class BcRowAdapter(
     val cashTrnServices: CashTrnServices,
     val cashUtils: CashUtils = CashUtils(),
     val dateUtils: DateUtils = DateUtils(),
-    val objectMapper: ObjectMapper = ObjectMapper()
+    val objectMapper: ObjectMapper = BcJson.objectMapper
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         validateTradeDate(trustedTrnImportRequest.row[Columns.Date.ordinal].trim())

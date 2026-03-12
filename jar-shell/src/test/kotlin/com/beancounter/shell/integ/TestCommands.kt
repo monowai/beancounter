@@ -12,7 +12,6 @@ import com.beancounter.shell.commands.EnvCommands
 import com.beancounter.shell.commands.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -122,7 +121,7 @@ class TestCommands {
         val typeRef: TypeReference<HashMap<String, String>> =
             object : TypeReference<HashMap<String, String>>() {}
         val configMap: HashMap<String, String> =
-            ObjectMapper().readValue(
+            objectMapper.readValue(
                 config,
                 typeRef
             )

@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.common.model.Trn
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service
 @Service
 class TrnIoDefinition(
     val dateUtils: DateUtils,
-    val objectMapper: ObjectMapper = ObjectMapper()
+    val objectMapper: ObjectMapper = BcJson.objectMapper
 ) {
     /**
      * TRN columns that will be read when importing a delimited file.

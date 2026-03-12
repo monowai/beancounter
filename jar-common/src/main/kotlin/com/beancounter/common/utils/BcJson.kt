@@ -1,5 +1,6 @@
 package com.beancounter.common.utils
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectWriter
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -15,6 +16,7 @@ class BcJson {
             ObjectMapper()
                 .registerKotlinModule()
                 .registerModule(JavaTimeModule())
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
         @JvmStatic
         val writer: ObjectWriter = objectMapper.writerWithDefaultPrettyPrinter()

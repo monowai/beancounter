@@ -2,11 +2,11 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
+import com.beancounter.common.utils.BcJson
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.IOException
 
 /**
@@ -50,6 +50,6 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
 
     companion object {
         const val BEST_MATCHES = "bestMatches"
-        private val mapper = ObjectMapper()
+        private val mapper = BcJson.objectMapper
     }
 }

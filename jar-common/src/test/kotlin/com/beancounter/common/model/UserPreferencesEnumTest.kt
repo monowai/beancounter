@@ -1,8 +1,7 @@
 package com.beancounter.common.model
 
 import com.beancounter.common.contracts.UserPreferencesRequest
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.beancounter.common.utils.BcJson
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -13,7 +12,7 @@ import org.junit.jupiter.api.Test
  * Frontend sends these exact string values - changing them would break the API.
  */
 class UserPreferencesEnumTest {
-    private val objectMapper = ObjectMapper().registerKotlinModule()
+    private val objectMapper = BcJson.objectMapper
 
     @Test
     fun `ValueInPreference enum values match frontend expectations`() {

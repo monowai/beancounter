@@ -8,6 +8,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.providers.DataProviderConfig
 import com.fasterxml.jackson.core.Version
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -33,7 +34,10 @@ class AlphaConfig(
     var markets: String? = null
 
     companion object {
-        private val alphaMapper: ObjectMapper = ObjectMapper().registerKotlinModule()
+        private val alphaMapper: ObjectMapper =
+            ObjectMapper()
+                .registerKotlinModule()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     }
 
     init {

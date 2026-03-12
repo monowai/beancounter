@@ -122,23 +122,30 @@ class PortfolioShareService(
         currentUser: SystemUser,
         shareId: String
     ) {
-        val authorised =
-            when (share.status) {
-                ShareStatus.PENDING_CLIENT_INVITE -> {
-                    share.sharedWith.id == currentUser.id
-                }
-                ShareStatus.PENDING_ADVISER_REQUEST -> {
-                    (share.targetUser ?: throw BusinessException("Share $shareId has no target user"))
-                        .id == currentUser.id
-                }
-                else -> {
-                    throw BusinessException("Share is not pending: $shareId")
-                }
-            }
-        if (!authorised) {
+        if (!isAuthorisedToAccept(share, currentUser, shareId)) {
             throw NotFoundException("Share not found: $shareId")
         }
     }
+
+    private fun isAuthorisedToAccept(
+        share: PortfolioShare,
+        currentUser: SystemUser,
+        shareId: String
+    ): Boolean =
+        when (share.status) {
+            ShareStatus.PENDING_CLIENT_INVITE -> {
+                share.sharedWith.id == currentUser.id
+            }
+            ShareStatus.PENDING_ADVISER_REQUEST -> {
+                val target =
+                    share.targetUser
+                        ?: throw BusinessException("Share $shareId has no target user")
+                target.id == currentUser.id
+            }
+            else -> {
+                throw BusinessException("Share is not pending: $shareId")
+            }
+        }
 
     /**
      * Either party can revoke a share.

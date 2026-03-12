@@ -4,6 +4,7 @@ import com.beancounter.common.model.Portfolio
 import org.slf4j.LoggerFactory
 import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.kafka.support.KafkaHeaders
+import org.springframework.messaging.MessagingException
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 
@@ -23,7 +24,7 @@ class MarketValueUpdateProducer(
             if (!streamBridge.send("portfolioMarketValue-out-0", message)) {
                 log.error("StreamBridge returned false for portfolio market value update: {}", payload.code)
             }
-        } catch (e: RuntimeException) {
+        } catch (e: MessagingException) {
             log.error("Failed to send market value update for portfolio {}: {}", payload.code, e.message)
         }
     }

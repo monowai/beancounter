@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.CacheInvalidationEvent
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.stream.function.StreamBridge
+import org.springframework.messaging.MessagingException
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -51,7 +52,7 @@ class CacheInvalidationProducer(
         try {
             streamBridge.send(BINDING, event)
             log.trace("Cache invalidation sent: {}", event)
-        } catch (e: RuntimeException) {
+        } catch (e: MessagingException) {
             log.error("Failed to send cache invalidation event: {}", e.message)
         }
     }

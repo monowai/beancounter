@@ -82,7 +82,7 @@ class MilestoneService(
             )
         } catch (_: DataIntegrityViolationException) {
             explorerActionRepository.findByOwner(owner).firstOrNull { it.actionId == actionId }
-                ?: throw IllegalStateException("Failed to record explorer action $actionId for ${owner.id}")
+                ?: error("Failed to record explorer action $actionId for ${owner.id}")
         }
 
     fun getMilestoneMode(owner: SystemUser): MilestoneMode = userPreferencesService.getOrCreate(owner).milestoneMode

@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.CacheInvalidationEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.dao.DataAccessException
 import java.util.function.Consumer
 
 @Configuration
@@ -27,7 +28,7 @@ class CacheInvalidationConsumer(
                         cacheService.invalidateOnDate(event.fromDate)
                     }
                 }
-            } catch (e: RuntimeException) {
+            } catch (e: DataAccessException) {
                 log.error("Failed to process cache invalidation event: {}", e.message)
             }
         }

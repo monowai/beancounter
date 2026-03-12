@@ -2,13 +2,16 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
+import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import jakarta.annotation.PostConstruct
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -18,6 +21,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.io.IOException
 
 /**
  * Facade. AlphaAdvantage - www.alphavantage.co.
@@ -106,9 +110,18 @@ class AlphaPriceService(
                     results.addAll(
                         alphaPriceAdapter[providerArguments, batchId, requestDeferred.await(), currentMode]
                     )
-                } catch (e: RuntimeException) {
+                } catch (e: IOException) {
                     failed++
                     log.warn("Batch {} failed: {}", batchId, e.message)
+                } catch (e: SystemException) {
+                    failed++
+                    log.warn("Batch {} failed: {}", batchId, e.message)
+                } catch (e: RequestNotPermitted) {
+                    failed++
+                    log.warn("Batch {} rate-limited: {}", batchId, e.message)
+                } catch (e: CancellationException) {
+                    failed++
+                    log.warn("Batch {} cancelled: {}", batchId, e.message)
                 }
             }
         }

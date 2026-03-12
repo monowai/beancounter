@@ -2,6 +2,7 @@ package com.beancounter.position.schedule
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.valuation.Valuation
 import io.sentry.spring.jakarta.tracing.SentryTransaction
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import java.time.LocalDateTime
 
 /**
@@ -101,7 +103,15 @@ class PortfolioValuationSchedule(
                         portfolio.code,
                         portfolio.id
                     )
-                } catch (e: RuntimeException) {
+                } catch (e: RestClientException) {
+                    errorCount++
+                    log.error(
+                        "Failed to value portfolio: {} ({})",
+                        portfolio.code,
+                        portfolio.id,
+                        e
+                    )
+                } catch (e: BusinessException) {
                     errorCount++
                     log.error(
                         "Failed to value portfolio: {} ({})",

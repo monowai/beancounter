@@ -2,6 +2,7 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import io.swagger.v3.oas.annotations.Operation
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.client.RestClientException
 import java.time.LocalDate
 
 /**
@@ -152,7 +154,17 @@ class ValuationAdminController(
                     portfolio.id,
                     portfolio.valuedAt
                 )
-            } catch (e: RuntimeException) {
+            } catch (e: RestClientException) {
+                errorCount++
+                val errorMsg = "${portfolio.code}: ${e.message ?: e::class.simpleName}"
+                errors.add(errorMsg)
+                log.error(
+                    "Failed to value portfolio: {} ({})",
+                    portfolio.code,
+                    portfolio.id,
+                    e
+                )
+            } catch (e: BusinessException) {
                 errorCount++
                 val errorMsg = "${portfolio.code}: ${e.message ?: e::class.simpleName}"
                 errors.add(errorMsg)

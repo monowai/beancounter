@@ -18,6 +18,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.service.PerformanceService
+import org.springframework.dao.DataAccessResourceFailureException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -336,7 +337,7 @@ class PerformanceServiceCacheTest {
         whenever(cacheService.isAvailable()).thenReturn(true)
         // Cache lookup throws exception
         whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
-            .thenThrow(RuntimeException("DB connection failed"))
+            .thenThrow(DataAccessResourceFailureException("DB connection failed"))
         whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
             .thenReturn(TrnResponse(listOf(buyTrn)))
 

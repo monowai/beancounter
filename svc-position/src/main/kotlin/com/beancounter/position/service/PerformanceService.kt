@@ -27,6 +27,7 @@ import com.beancounter.position.cache.PerformanceCacheService
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.irr.ValuationSnapshot
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataAccessException
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -460,7 +461,7 @@ class PerformanceService(
         return try {
             val cached = cacheService.findAllSnapshots(portfolioId)
             cached.ifEmpty { null }
-        } catch (e: RuntimeException) {
+        } catch (e: DataAccessException) {
             log.warn("Cache lookup failed, proceeding without cache: {}", e.message)
             null
         }
@@ -485,7 +486,7 @@ class PerformanceService(
                     )
                 }
             cacheService.storeSnapshots(portfolioId, toStore)
-        } catch (e: RuntimeException) {
+        } catch (e: DataAccessException) {
             log.warn("Cache store failed, computation unaffected: {}", e.message)
         }
     }

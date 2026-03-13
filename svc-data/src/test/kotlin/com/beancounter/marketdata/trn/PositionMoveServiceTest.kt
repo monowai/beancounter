@@ -144,23 +144,25 @@ class PositionMoveServiceTest {
         verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
         verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
 
-        // BUY debits cash (negative cashAmount), so source gets DEPOSIT to reverse
+        // BUY debited cash (negative cashAmount). Moving it removes the debit from source
+        // (source cash rises), so WITHDRAW from source to compensate.
         val sourceRequest = requestCaptor.firstValue
         assertThat(sourceRequest.data).hasSize(1)
-        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
         assertThat(sourceRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("5000"))
 
-        // Target gets WITHDRAWAL to replicate the debit
+        // Target gains the debit (target cash falls), so DEPOSIT into target to compensate.
         val targetRequest = requestCaptor.secondValue
         assertThat(targetRequest.data).hasSize(1)
-        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
         assertThat(targetRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("5000"))
     }
 
     @Test
     fun `should consolidate multiple transactions to net amount per cash asset`() {
         // 2 BUYs ($5000 each = -$10000 cash) and 1 SELL ($3000 = +$3000 cash)
-        // Net = -$7000, so source gets DEPOSIT $7000, target gets WITHDRAWAL $7000
+        // Net = -$7000. Moving removes debits from source (cash rises) → WITHDRAWAL $7000
+        // Target gains debits (cash falls) → DEPOSIT $7000
         val buy1 = createBuyTransaction("trn-1", sourcePortfolio)
         val buy2 = createBuyTransaction("trn-2", sourcePortfolio)
         val sell = createSellTransaction("trn-3", sourcePortfolio)
@@ -185,16 +187,16 @@ class PositionMoveServiceTest {
         verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
         verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
 
-        // Net is -$7000, so source gets single DEPOSIT
+        // Net is -$7000, source cash rises → single WITHDRAWAL
         val sourceRequest = requestCaptor.firstValue
         assertThat(sourceRequest.data).hasSize(1)
-        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
         assertThat(sourceRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("7000"))
 
-        // Target gets single WITHDRAWAL
+        // Target cash falls → single DEPOSIT
         val targetRequest = requestCaptor.secondValue
         assertThat(targetRequest.data).hasSize(1)
-        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
         assertThat(targetRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("7000"))
     }
 
@@ -220,13 +222,14 @@ class PositionMoveServiceTest {
         verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
         verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
 
-        // SELL credits cash (positive cashAmount), so source gets WITHDRAWAL to reverse
+        // SELL credited cash (positive cashAmount). Moving removes credit from source
+        // (source cash falls) → DEPOSIT to compensate.
         val sourceRequest = requestCaptor.firstValue
-        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
 
-        // Target gets DEPOSIT to replicate the credit
+        // Target gains credit (target cash rises) → WITHDRAWAL to compensate.
         val targetRequest = requestCaptor.secondValue
-        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
     }
 
     @Test

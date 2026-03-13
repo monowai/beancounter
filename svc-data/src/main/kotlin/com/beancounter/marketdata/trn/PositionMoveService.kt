@@ -126,11 +126,14 @@ class PositionMoveService(
                     "Position move: ${trn.asset.code} from ${sourcePortfolio.code} to ${targetPortfolio.code}"
                 val tradeCurrency = trn.cashCurrency?.code ?: trn.tradeCurrency.code
 
+                // Moving a transaction removes its cash impact from source and adds it to target.
+                // Net < 0 means debits moved out → source cash rises → WITHDRAW to compensate.
+                // Net > 0 means credits moved out → source cash falls → DEPOSIT to compensate.
                 val (sourceType, targetType) =
                     if (netAmount < BigDecimal.ZERO) {
-                        TrnType.DEPOSIT to TrnType.WITHDRAWAL
-                    } else {
                         TrnType.WITHDRAWAL to TrnType.DEPOSIT
+                    } else {
+                        TrnType.DEPOSIT to TrnType.WITHDRAWAL
                     }
                 sourceInputs.add(
                     createCashInput(cashAssetId, sourceType, netAmount.abs(), tradeCurrency, comment)

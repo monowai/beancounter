@@ -14,7 +14,7 @@ orbs:
 executors:
   java-build:
     environment:
-      _JAVA_OPTIONS: "-Xms512m -Xmx2g"
+      _JAVA_OPTIONS: "-Xms512m -Xmx1536m"
       GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
       STACK_VER: << pipeline.number >>
     docker:

@@ -155,7 +155,7 @@ class PriceService(
                 marketData.changePercent =
                     marketData.change.divide(previousClose, 6, java.math.RoundingMode.HALF_UP)
             }
-            log.debug(
+            log.trace(
                 "Calculated previousClose for {} on {}: {} -> change={}, changePercent={}",
                 marketData.asset.code,
                 marketData.priceDate,

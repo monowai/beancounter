@@ -104,16 +104,33 @@ class PositionMoveService(
         val netByCashAsset = mutableMapOf<String, BigDecimal>()
         val sampleTrnByCashAsset = mutableMapOf<String, Trn>()
 
-        transactions
-            .filter { TrnType.isCashImpacted(it.trnType) }
-            .filter { it.cashAsset != null }
-            .filter { it.cashAmount.compareTo(BigDecimal.ZERO) != 0 }
-            .forEach { trn ->
+        transactions.forEach { trn ->
+            val cashImpacted = TrnType.isCashImpacted(trn.trnType)
+            val hasCashAsset = trn.cashAsset != null
+            val hasNonZeroCash = trn.cashAmount.compareTo(BigDecimal.ZERO) != 0
+            if (cashImpacted && hasCashAsset && hasNonZeroCash) {
                 val cashAssetId = trn.cashAsset!!.id
                 netByCashAsset[cashAssetId] =
                     (netByCashAsset[cashAssetId] ?: BigDecimal.ZERO).add(trn.cashAmount)
                 sampleTrnByCashAsset[cashAssetId] = trn
+                log.debug(
+                    "Compensating: {} {} cashAsset={} cashAmount={}",
+                    trn.trnType,
+                    trn.id,
+                    trn.cashAsset!!.code,
+                    trn.cashAmount
+                )
+            } else {
+                log.debug(
+                    "Skipping: {} {} cashImpacted={} hasCashAsset={} cashAmount={}",
+                    trn.trnType,
+                    trn.id,
+                    cashImpacted,
+                    hasCashAsset,
+                    trn.cashAmount
+                )
             }
+        }
 
         val sourceInputs = mutableListOf<TrnInput>()
         val targetInputs = mutableListOf<TrnInput>()
@@ -135,6 +152,14 @@ class PositionMoveService(
                     } else {
                         TrnType.DEPOSIT to TrnType.WITHDRAWAL
                     }
+                log.info(
+                    "Compensating cashAsset={}: net={} → source={} target={} amount={}",
+                    trn.cashAsset!!.code,
+                    netAmount,
+                    sourceType,
+                    targetType,
+                    netAmount.abs()
+                )
                 sourceInputs.add(
                     createCashInput(cashAssetId, sourceType, netAmount.abs(), tradeCurrency, comment)
                 )

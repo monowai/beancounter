@@ -3,6 +3,7 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,19 +21,37 @@ import java.time.LocalDate
 class PrivateAssetConfigService(
     private val configRepository: PrivateAssetConfigRepository,
     private val assetRepository: AssetRepository,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val trnRepository: TrnRepository,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
      * Get all configs for assets owned by the current user.
+     *
+     * @param excludePortfolioIds If provided, configs for assets that have transactions
+     *   in any of the specified portfolios will be excluded from the results.
      */
-    fun getMyConfigs(): PrivateAssetConfigsResponse {
+    fun getMyConfigs(excludePortfolioIds: Set<String>? = null): PrivateAssetConfigsResponse {
         val user =
             systemUserService.getActiveUser()
                 ?: return PrivateAssetConfigsResponse(emptyList())
-        val configs = configRepository.findByUserId(user.id)
-        return PrivateAssetConfigsResponse(configs)
+        var configs = configRepository.findByUserId(user.id)
+
+        if (!excludePortfolioIds.isNullOrEmpty()) {
+            val excludedAssetIds =
+                trnRepository.findDistinctAssetIdsByPortfolioIds(excludePortfolioIds).toSet()
+            configs = configs.filter { it.assetId !in excludedAssetIds }
+        }
+
+        // Resolve asset names
+        val assetNames =
+            configs.associate { config ->
+                val asset = assetRepository.findById(config.assetId).orElse(null)
+                config.assetId to (asset?.name ?: config.assetId)
+            }
+
+        return PrivateAssetConfigsResponse(configs, assetNames)
     }
 
     /**

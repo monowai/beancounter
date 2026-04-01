@@ -6,6 +6,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -22,6 +23,7 @@ class PrivateAssetConfigServiceTest {
     private lateinit var configRepository: PrivateAssetConfigRepository
     private lateinit var assetRepository: AssetRepository
     private lateinit var systemUserService: SystemUserService
+    private lateinit var trnRepository: TrnRepository
     private lateinit var configService: PrivateAssetConfigService
 
     private val userId = "user-123"
@@ -34,11 +36,13 @@ class PrivateAssetConfigServiceTest {
         configRepository = mock()
         assetRepository = mock()
         systemUserService = mock()
+        trnRepository = mock()
         configService =
             PrivateAssetConfigService(
                 configRepository,
                 assetRepository,
-                systemUserService
+                systemUserService,
+                trnRepository,
             )
     }
 
@@ -53,7 +57,7 @@ class PrivateAssetConfigServiceTest {
         )
 
     @Test
-    fun `getMyConfigs returns configs for current user`() {
+    fun `getMyConfigs returns configs for current user with asset names`() {
         val configs =
             listOf(
                 PrivateAssetConfig(
@@ -68,12 +72,86 @@ class PrivateAssetConfigServiceTest {
                 )
             )
 
+        val asset1 =
+            Asset(
+                id = "asset-1",
+                code = "PROP-1",
+                name = "Auckland Apartment",
+                market = privateMarket,
+                category = "RE"
+            )
+        val asset2 =
+            Asset(
+                id = "asset-2",
+                code = "PROP-2",
+                name = "Singapore Condo",
+                market = privateMarket,
+                category = "RE"
+            )
+
         whenever(systemUserService.getActiveUser()).thenReturn(user)
         whenever(configRepository.findByUserId(userId)).thenReturn(configs)
+        whenever(assetRepository.findById("asset-1")).thenReturn(Optional.of(asset1))
+        whenever(assetRepository.findById("asset-2")).thenReturn(Optional.of(asset2))
 
         val response = configService.getMyConfigs()
 
         assertThat(response.data).hasSize(2)
+        assertThat(response.assetNames).hasSize(2)
+        assertThat(response.assetNames["asset-1"]).isEqualTo("Auckland Apartment")
+        assertThat(response.assetNames["asset-2"]).isEqualTo("Singapore Condo")
+    }
+
+    @Test
+    fun `getMyConfigs filters out assets belonging to excluded portfolios`() {
+        val configs =
+            listOf(
+                PrivateAssetConfig(
+                    assetId = "asset-1",
+                    monthlyRentalIncome = BigDecimal("1500"),
+                    rentalCurrency = "NZD"
+                ),
+                PrivateAssetConfig(
+                    assetId = "asset-2",
+                    monthlyRentalIncome = BigDecimal("2000"),
+                    rentalCurrency = "SGD"
+                ),
+                PrivateAssetConfig(
+                    assetId = "asset-3",
+                    monthlyRentalIncome = BigDecimal("3000"),
+                    rentalCurrency = "USD"
+                )
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(configRepository.findByUserId(userId)).thenReturn(configs)
+        whenever(trnRepository.findDistinctAssetIdsByPortfolioIds(setOf("portfolio-x")))
+            .thenReturn(listOf("asset-2"))
+        whenever(assetRepository.findById(any<String>())).thenReturn(Optional.empty())
+
+        val response = configService.getMyConfigs(setOf("portfolio-x"))
+
+        assertThat(response.data).hasSize(2)
+        assertThat(response.data.map { it.assetId }).containsExactly("asset-1", "asset-3")
+        assertThat(response.assetNames).hasSize(2)
+    }
+
+    @Test
+    fun `getMyConfigs returns all configs when excludePortfolioIds is null`() {
+        val configs =
+            listOf(
+                PrivateAssetConfig(assetId = "asset-1"),
+                PrivateAssetConfig(assetId = "asset-2")
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(configRepository.findByUserId(userId)).thenReturn(configs)
+        whenever(assetRepository.findById(any<String>())).thenReturn(Optional.empty())
+
+        val response = configService.getMyConfigs(null)
+
+        assertThat(response.data).hasSize(2)
+        assertThat(response.assetNames).hasSize(2)
     }
 
     @Test

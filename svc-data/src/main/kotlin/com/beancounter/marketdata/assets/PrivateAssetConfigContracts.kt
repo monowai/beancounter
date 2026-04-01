@@ -69,5 +69,6 @@ data class PrivateAssetConfigResponse(
  * Response wrapper for multiple private asset configurations.
  */
 data class PrivateAssetConfigsResponse(
-    val data: Collection<PrivateAssetConfig>
+    val data: Collection<PrivateAssetConfig>,
+    val assetNames: Map<String, String> = emptyMap(),
 )

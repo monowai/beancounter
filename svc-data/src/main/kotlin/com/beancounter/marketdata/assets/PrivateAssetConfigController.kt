@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -48,7 +49,13 @@ class PrivateAssetConfigController(
             ApiResponse(responseCode = "200", description = "Configs retrieved successfully")
         ]
     )
-    fun getMyConfigs(): PrivateAssetConfigsResponse = configService.getMyConfigs()
+    fun getMyConfigs(
+        @Parameter(
+            description = "Comma-separated portfolio IDs to exclude assets from",
+            example = "portfolio-1,portfolio-2"
+        )
+        @RequestParam(required = false) excludePortfolios: String? = null
+    ): PrivateAssetConfigsResponse = configService.getMyConfigs(excludePortfolios?.split(",")?.toSet())
 
     @GetMapping(
         value = ["/{assetId}"],

@@ -228,6 +228,16 @@ interface TrnRepository :
     ): Collection<Trn>
 
     /**
+     * Find distinct asset IDs across the given portfolio IDs.
+     * Used to identify which assets belong to specific portfolios for filtering.
+     */
+    @Query(
+        "select distinct t.asset.id from Trn t " +
+            "where t.portfolio.id in (?1)"
+    )
+    fun findDistinctAssetIdsByPortfolioIds(portfolioIds: Collection<String>): Collection<String>
+
+    /**
      * Find all transactions for multiple portfolios that belong to a specific rebalance model.
      * Used for aggregated model-level position tracking across portfolios.
      */

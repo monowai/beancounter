@@ -60,7 +60,7 @@ class PriceService(
                 date
             )
 
-        // For private market assets with a provided price, allow create or update
+        // For private market assets with a provided price, allow to create or update
         if (asset.market.code == PrivateMarketDataProvider.ID && closePrice != BigDecimal.ZERO) {
             return handlePrivateMarketPrice(asset, closePrice, date, existing)
         }
@@ -177,7 +177,7 @@ class PriceService(
      * Zero or negative prices indicate provider issues and are rejected.
      */
     private fun isValidPrice(marketData: MarketData): Boolean {
-        val isValid = marketData.close.compareTo(BigDecimal.ZERO) > 0
+        val isValid = marketData.close > BigDecimal.ZERO
         if (!isValid) {
             log.warn(
                 "Rejecting invalid price for {} on {}: close={} (must be > 0)",

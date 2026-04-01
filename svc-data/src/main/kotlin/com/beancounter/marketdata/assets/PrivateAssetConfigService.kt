@@ -22,7 +22,7 @@ class PrivateAssetConfigService(
     private val configRepository: PrivateAssetConfigRepository,
     private val assetRepository: AssetRepository,
     private val systemUserService: SystemUserService,
-    private val trnRepository: TrnRepository,
+    private val trnRepository: TrnRepository
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

@@ -3,12 +3,20 @@ package com.beancounter.marketdata.broker
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
 /**
  * Repository for broker settlement account mappings.
  */
 interface BrokerSettlementAccountRepository : JpaRepository<BrokerSettlementAccount, String> {
-    fun findByBrokerId(brokerId: String): List<BrokerSettlementAccount>
+    @Query(
+        "SELECT b FROM BrokerSettlementAccount b " +
+            "JOIN FETCH b.broker JOIN FETCH b.account " +
+            "WHERE b.broker.id = :brokerId"
+    )
+    fun findByBrokerId(
+        @Param("brokerId") brokerId: String
+    ): List<BrokerSettlementAccount>
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM BrokerSettlementAccount b WHERE b.broker.id = :brokerId")

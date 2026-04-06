@@ -14,7 +14,6 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.function.Consumer
@@ -101,8 +100,7 @@ class TrnService(
             trnRepository.findByPortfolioId(
                 portfolio.id,
                 tradeDate,
-                TrnStatus.SETTLED,
-                Sort.by("tradeDate").and(Sort.by("asset.code"))
+                TrnStatus.SETTLED
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)

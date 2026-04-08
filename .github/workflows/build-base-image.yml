@@ -61,7 +61,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:21-jre-alpine-sentry${{ steps.sentry.outputs.version }}-${{ steps.prep.outputs.platform_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:25-jre-alpine-sentry${{ steps.sentry.outputs.version }}-${{ steps.prep.outputs.platform_tag }}
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,scope=${{ matrix.platform }},mode=max
           provenance: false
@@ -90,7 +90,7 @@ jobs:
       - name: Create and push manifest
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
-          TAG="21-jre-alpine-sentry${{ steps.sentry.outputs.version }}"
+          TAG="25-jre-alpine-sentry${{ steps.sentry.outputs.version }}"
 
           # Create manifest for versioned tag
           docker manifest create ${IMAGE}:${TAG} \
@@ -110,6 +110,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Multi-arch Images (amd64 + arm64):**" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:21-jre-alpine-sentry${{ steps.sentry.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:25-jre-alpine-sentry${{ steps.sentry.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

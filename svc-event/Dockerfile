@@ -1,4 +1,4 @@
-FROM ghcr.io/monowai/eclipse-temurin:21-jre-alpine-sentry8.13.3
+FROM ghcr.io/monowai/eclipse-temurin:25-jre-alpine-sentry8.37.1
 
 #docker build . -t monowai/bc-event
 ARG JAR_FILE=build/libs/svc-event-0.1.1.jar

@@ -1,7 +1,7 @@
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 # Sentry OpenTelemetry Agent Configuration
-ENV SENTRY_VERSION=8.13.3
+ENV SENTRY_VERSION=8.37.1
 ENV SENTRY_AUTO_INIT="false"
 ENV SENTRY_ENABLED="true"
 ENV SENTRY_ENVIRONMENT="production"

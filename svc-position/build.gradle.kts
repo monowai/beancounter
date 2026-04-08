@@ -47,7 +47,6 @@ dependencies {
     implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation("org.apache.commons:commons-math3:3.6.1")
-    implementation(libs.spring.ai.starter.mcp.server.webmvc)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.postgresql)
     implementation(libs.flyway.core)

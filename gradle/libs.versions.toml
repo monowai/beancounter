@@ -18,7 +18,7 @@ sentry = "8.34.1"
 postgres = "42.7.10"
 guava = "33.5.0-jre"
 servlet-api = "6.1.0"
-spring-ai = "1.0.2"
+spring-ai = "1.1.2"
 flyway = "11.20.0"
 
 [libraries]
@@ -67,7 +67,6 @@ kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", versio
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai" }
-spring-ai-starter-mcp-server-webmvc = { module = "org.springframework.ai:spring-ai-starter-mcp-server-webmvc", version.ref = "spring-ai" }
 spring-ai-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai", version.ref = "spring-ai" }
 spring-ai-ollama = { module = "org.springframework.ai:spring-ai-starter-model-ollama", version.ref = "spring-ai" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }

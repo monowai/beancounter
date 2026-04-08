@@ -1,198 +1,120 @@
 # Beancounter AI Agent Service
 
-The Beancounter AI Agent Service provides an intelligent interface for portfolio and market analysis
-through natural language processing and orchestration of the MCP (Model Context Protocol) servers.
-
-## Overview
-
-This service acts as a central AI agent that can:
-
-- Process natural language queries about portfolios and markets
-- Orchestrate communication with Data, Event, and Position MCP servers
-- Provide comprehensive portfolio analysis
-- Generate market overviews
-- Load and backfill corporate events
-- Support LLM integration for advanced AI capabilities
+Natural-language interface to the Beancounter portfolio platform. The agent
+exposes a single query endpoint backed by Spring AI's `@Tool` function calling:
+the LLM chooses which Beancounter REST API to call, executes it via a
+dependency-injected tool bean, and composes a response.
 
 ## Architecture
 
-The agent service communicates with three MCP servers:
+```
+                ┌──────────────┐
+                │   chat.html  │  static UI, served from classpath
+                └──────┬───────┘
+                       │  POST agent/query
+                       ▼
+┌──────────────────────────────────────────────────┐
+│                 svc-agent                        │
+│   AgentController ─▶ ChatClient (Spring AI)      │
+│                           │                      │
+│                           ▼                      │
+│   @Tool beans: PortfolioTools · PositionTools    │
+│                EventTools · MarketTools          │
+└──────────┬────────────────┬──────────────┬───────┘
+           │                │              │
+           ▼                ▼              ▼
+      svc-data         svc-position    svc-event
+   (portfolios,       (positions,    (corporate
+    assets, FX,        valuations)    events)
+    markets, ccy)
+```
 
-- **Data Service** (Port 9510): Market data, assets, portfolios, transactions, FX rates
-- **Event Service** (Port 9520): Corporate events, event loading, backfilling
-- **Position Service** (Port 9500): Portfolio positions, valuations, metrics
+There is no custom protocol between the agent and the three services — the
+tool beans call the standard REST APIs via `jar-client` (for svc-data) and
+thin local RestClients (for svc-position and svc-event). The LLM's tool
+selection replaces the hand-rolled action dispatcher the previous version had.
 
-## API Endpoints
+## Endpoints
 
-### Natural Language Processing
+All agent paths are served relative to whatever `server.servlet.context-path`
+you configure (default `/`). Do not bake the context path into URLs — the UI
+and downstream clients use relative paths.
 
-- `POST /api/agent/query` - Process natural language queries
-
-### Portfolio Analysis
-
-- `GET /api/agent/portfolio/{portfolioId}/analysis` - Get comprehensive portfolio analysis
-- `POST /api/agent/portfolio/{portfolioId}/events/load` - Load events for portfolio
-- `POST /api/agent/portfolio/{portfolioId}/events/backfill` - Backfill events for portfolio
-
-### Market Overview
-
-- `GET /api/agent/market/overview` - Get market overview with key metrics
-
-### Capabilities
-
-- `GET /api/agent/capabilities` - Get agent capabilities and supported queries
+| Method | Path            | Auth | Purpose                                                                |
+|--------|-----------------|------|------------------------------------------------------------------------|
+| GET    | `/`             | none | Redirects to `chat.html`                                               |
+| GET    | `chat.html`     | none | Static chat UI                                                         |
+| GET    | `agent/health`  | none | Traffic-light status for bc-data / bc-position / bc-event and the LLM |
+| POST   | `agent/query`   | JWT  | Natural-language query → LLM-driven tool-calling                       |
 
 ## Configuration
 
-The service is configured via `application.yml`:
+`application.yml` points the agent at the three downstream services. URLs
+should include whatever context path those services use (they default to
+`/api`), but the agent's own context path is a deployment-time decision and
+should not be assumed by any client.
 
 ```yaml
-server:
-    port: 9530
-    servlet:
-        context-path: '/api'
-
-# MCP Service URLs
-mcp:
-    services:
-        data:
-            url: "http://localhost:9510"
-        event:
-            url: "http://localhost:9520"
-        position:
-            url: "http://localhost:9500"
-
-# Agent Configuration
-agent:
-    llm:
-        provider: "simple" # simple, openai, anthropic, etc.
-        timeout: 30000
-        max-retries: 3
-    mcp:
-        timeout: 10000
-        max-retries: 3
+marketdata:
+    url: "http://localhost:9510/api"
+    actuator:
+        url: "http://localhost:9511/actuator/health"
+position:
+    url: "http://localhost:9500/api"
+    actuator:
+        url: "http://localhost:9501/actuator/health"
+event:
+    url: "http://localhost:9520/api"
+    actuator:
+        url: "http://localhost:9521/actuator/health"
 ```
 
-## Example Usage
+LLM configuration is profile-scoped:
 
-### Natural Language Query
+* `--spring.profiles.active=ollama` — Ollama (local, free). See
+  `application-ollama.yaml`.
+* `--spring.profiles.active=openai` — OpenAI. Set `OPENAI_API_KEY`.
+
+If neither profile is active the agent starts with no `ChatClient` bean and
+`/agent/query` returns `503`; `/agent/health` still works and reports
+`llmAvailable: false`.
+
+## Example
 
 ```bash
-curl -X POST http://localhost:9530/api/agent/query \
+curl -X POST http://localhost:9530/agent/query \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $BC_TOKEN" \
-  -d '{"query": "Show me my portfolio analysis for portfolio MAIN"}'
+  -d '{"query": "What are the largest positions in my NZD portfolio?"}'
 ```
 
-### AI-Enhanced Financial Analysis
+The LLM will typically:
 
-Test the AI-enhanced FX rates analysis:
-
-```bash
-curl -X POST http://localhost:9530/api/agent/query \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $BC_TOKEN" \
-  -d '{"query": "USD to NZD Exchange rate factors"}'
-```
-
-Check AI service status:
-
-```bash
-curl http://localhost:9530/api/agent/debug/ai-status
-```
-
-### Portfolio Analysis
-
-```bash
-curl http://localhost:9530/api/agent/portfolio/portfolio-123/analysis?date=today
-```
-
-### Market Overview
-
-```bash
-curl http://localhost:9530/api/agent/market/overview
-```
-
-## Supported Queries
-
-The agent supports various natural language queries including:
-
-- "Show me my portfolio analysis"
-- "What's the market overview?"
-- "Load events for my portfolio"
-- "Get current positions"
-- "What are the FX rates?"
+1. Call `getPortfolioByCode("NZD")` to resolve the code.
+2. Call `getPositionsByCode("NZD")` to fetch holdings.
+3. Sort the response by market value and reply in markdown.
 
 ## Development
 
-### Building
-
-```bash
-./gradlew :svc-agent:build
-```
-
-### Running
-
-Default mode:
-
-```bash
-./gradlew :svc-agent:bootRun
-```
-
-With Ollama AI (requires Ollama running):
-
 ```bash
 ./gradlew :svc-agent:bootRun --args='--spring.profiles.active=ollama'
-```
-
-With OpenAI:
-
-```bash
-./gradlew :svc-agent:bootRun --args='--spring.profiles.active=openai'
-```
-
-### Testing
-
-```bash
 ./gradlew :svc-agent:test
+./gradlew :svc-agent:formatKotlin :svc-agent:lintKotlin
 ```
 
-## Dependencies
+Ollama locally:
 
-- Spring Boot 3.5.4
-- Spring AI 1.0.1 (MCP Server)
-- Kotlin 2.2.10
-- Jackson for JSON processing
-- Resilience4j for circuit breaking
-- Spring Security for authentication
+```bash
+brew services start ollama
+ollama pull llama3:8b
+```
 
 ## Docker
 
-The service includes a Dockerfile for containerized deployment:
-
 ```bash
-docker build -t monowai/bc-agent .
-docker run -p 9530:9530 monowai/bc-agent
+./gradlew :svc-agent:bootBuildImage
+docker run -p 9530:9530 -p 9531:9531 monowai/bc-agent
 ```
 
-## Health Checks
-
-The service provides health check endpoints:
-
-- `GET /api/actuator/health` - Application health
-- `GET /api/actuator/info` - Application information
-
-## Monitoring
-
-The service integrates with:
-
-- Spring Boot Actuator for metrics
-- Sentry for error tracking
-- JaCoCo for code coverage
-- Detekt for code quality
-
-## Ollama
-
-```bash
- brew services start ollama
-```
+The container health probe hits the management port (`9531/actuator/health`),
+which is independent of the main server's context path.

@@ -5,7 +5,6 @@ import com.beancounter.auth.TokenService
 import com.beancounter.auth.server.NoAuthSecurityConfig
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
-import com.beancounter.marketdata.mcp.DataMcpServer
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.CashTrnServices
 import io.restassured.RestAssured
@@ -51,9 +50,6 @@ class ContractVerifierBase {
 
     @MockitoBean
     internal lateinit var mockCashTrnServices: CashTrnServices
-
-    @MockitoBean
-    internal lateinit var dataMcpServer: DataMcpServer
 
     @BeforeEach
     fun mock() {

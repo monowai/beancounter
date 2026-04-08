@@ -63,8 +63,7 @@ dependencies {
     implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation("com.opencsv:opencsv:5.11.1")
-    implementation(libs.spring.ai.starter.mcp.server.webmvc)
-    
+
     compileOnly(libs.spring.boot.configuration.processor)
     contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")
     contractTestRuntimeOnly("org.junit.platform:junit-platform-launcher")

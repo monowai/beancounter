@@ -1,17 +1,15 @@
 package com.beancounter.agent
 
-import jakarta.annotation.PostConstruct
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.stereotype.Component
 
 /**
- * Beancounter AI Agent Application
+ * Beancounter AI Agent.
  *
- * This service provides an AI agent that can communicate with the MCP servers
- * (Data, Event, Position) and support LLM capabilities for natural language
- * portfolio and market analysis.
+ * Exposes a natural-language query endpoint backed by Spring AI's [@Tool] function
+ * calling. Tool methods invoke the standard Beancounter REST APIs (svc-data via
+ * jar-client, svc-position and svc-event via local thin clients) — no custom
+ * protocol layer.
  */
 @SpringBootApplication(
     scanBasePackages = ["com.beancounter"],
@@ -21,19 +19,6 @@ import org.springframework.stereotype.Component
     ]
 )
 class AgentApplication
-
-/**
- * Configuration to enable SecurityContext propagation to child threads.
- * This ensures JWT tokens are properly forwarded from Spring MVC request threads
- * to RestClient threads when making MCP service calls.
- */
-@Component
-class SecurityContextConfiguration {
-    @PostConstruct
-    fun configureSecurityContext() {
-        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL)
-    }
-}
 
 fun main(args: Array<String>) {
     runApplication<AgentApplication>(args = args)

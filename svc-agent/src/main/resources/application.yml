@@ -1,7 +1,7 @@
 server:
   port: 9530
   servlet:
-    context-path: '/api'
+    context-path: '/'
   shutdown: graceful
 
 sentry:
@@ -11,11 +11,11 @@ sentry:
   debug: false
 
 marketdata:
-  url: "http://localhost:9510"
+  url: "http://localhost:9510/api"
 event:
-  url: "http://localhost:9520"
+  url: "http://localhost:9520/api"
 position:
-  url: "http://localhost:9500"
+  url: "http://localhost:9500/api"
 
 springdoc:
   use-management-port: true
@@ -111,30 +111,6 @@ spring:
 
   # Default: No AI configuration (Spring AI will not create any beans without config)
   # AI configuration is provided by specific profiles (ollama, openai)
-
-# Service URLs for MCP communication
-mcp:
-  services:
-    data:
-      url: "http://localhost:9510"
-    event:
-      url: "http://localhost:9520"
-    position:
-      url: "http://localhost:9500"
-
-# Agent Configuration
-agent:
-  llm:
-    provider: "ollama" # simple, openai, anthropic, etc.
-    timeout: 30000
-    max-retries: 3
-  mcp:
-    timeout: 10000
-    max-retries: 3
-    circuit-breaker:
-      enabled: true
-      failure-threshold: 5
-      recovery-timeout: 30000
 
 # Security Configuration
 auth:

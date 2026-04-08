@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beancounter AI Agent Chat</title>
+    <!-- Markdown rendering: marked for parsing, DOMPurify for XSS sanitation.
+         Pinned versions to avoid drift; served from jsdelivr's immutable CDN. -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -417,6 +421,112 @@
             font-size: 13px;
             color: #d63384;
         }
+
+        /* Markdown content inside agent messages (rendered by marked.js).
+           Scope everything under .response-content so it doesn't bleed into
+           the chat chrome. */
+        .response-content h1,
+        .response-content h2,
+        .response-content h3,
+        .response-content h4,
+        .response-content h5,
+        .response-content h6 {
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #1f2328;
+        }
+        .response-content h1 { font-size: 20px; border-bottom: 1px solid #e9ecef; padding-bottom: 6px; }
+        .response-content h2 { font-size: 18px; border-bottom: 1px solid #e9ecef; padding-bottom: 4px; }
+        .response-content h3 { font-size: 16px; }
+        .response-content h4 { font-size: 14px; }
+        .response-content h5,
+        .response-content h6 { font-size: 13px; color: #57606a; }
+
+        .response-content p {
+            margin: 8px 0;
+        }
+
+        .response-content ul,
+        .response-content ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+        .response-content li {
+            margin: 3px 0;
+        }
+        .response-content li > ul,
+        .response-content li > ol {
+            margin: 2px 0;
+        }
+
+        .response-content blockquote {
+            margin: 8px 0;
+            padding: 4px 12px;
+            border-left: 3px solid #d0d7de;
+            color: #57606a;
+            background: #f6f8fa;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .response-content hr {
+            border: 0;
+            border-top: 1px solid #d0d7de;
+            margin: 14px 0;
+        }
+
+        .response-content table {
+            border-collapse: collapse;
+            margin: 10px 0;
+            width: 100%;
+            font-size: 13px;
+        }
+        .response-content th,
+        .response-content td {
+            border: 1px solid #d0d7de;
+            padding: 6px 10px;
+            text-align: left;
+        }
+        .response-content th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        .response-content tr:nth-child(even) td {
+            background: #f9fafb;
+        }
+
+        .response-content pre {
+            background: #f6f8fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        .response-content pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .response-content code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            color: #d63384;
+        }
+
+        .response-content a {
+            color: #0969da;
+            text-decoration: none;
+        }
+        .response-content a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -505,6 +615,32 @@
     const sendButton = document.getElementById('sendButton');
     const loading = document.getElementById('loading');
 
+    // Configure marked once: enable GFM (tables, strikethrough, task lists),
+    // treat newlines inside a paragraph as <br> (matches chat UX expectations),
+    // and disable mangle/headerIds which aren't needed in a chat transcript.
+    if (window.marked && typeof marked.setOptions === 'function') {
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+            mangle: false,
+            headerIds: false
+        });
+    }
+
+    // Sanitize any generated HTML through DOMPurify before inserting into the
+    // DOM. `setHtmlSafe` is used everywhere that HTML needs to be injected —
+    // never call .innerHTML directly on untrusted content.
+    function setHtmlSafe(element, html) {
+        const clean = window.DOMPurify
+            ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] })
+            : html;
+        // DOMPurify returns a sanitized string; parse it into a fragment and
+        // append, so we don't need to touch innerHTML directly.
+        const template = document.createElement('template');
+        template.innerHTML = clean;
+        element.replaceChildren(template.content);
+    }
+
     function addMessage(content, isUser = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message ' + (isUser ? 'user' : 'agent');
@@ -513,9 +649,14 @@
         contentDiv.className = 'message-content';
 
         if (typeof content === 'string') {
-            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+            // User message — treat as plain text (don't let angle brackets
+            // in a query become HTML). Preserve intentional line breaks.
+            const textNode = document.createElement('div');
+            textNode.textContent = content;
+            textNode.style.whiteSpace = 'pre-wrap';
+            contentDiv.appendChild(textNode);
         } else {
-            contentDiv.innerHTML = formatResponse(content);
+            setHtmlSafe(contentDiv, formatResponse(content));
         }
 
         const metaDiv = document.createElement('div');
@@ -581,20 +722,21 @@
         return html;
     }
 
+    // Render Markdown → HTML via marked.js. Sanitization happens later in
+    // setHtmlSafe() so the raw HTML returned here is never inserted directly.
+    // Falls back to a text-escaped representation if marked failed to load
+    // (e.g. CDN blocked), so the user still sees their answer.
     function formatMarkdown(text) {
-        return text
-                // Bold text **bold**
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                // Italic text *italic*
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                // Code blocks ```code```
-                .replace(/```([\s\S]*?)```/g, '<pre class="code-block">$1</pre>')
-                // Inline code `code`
-                .replace(/`(.*?)`/g, '<code class="inline-code">$1</code>')
-                // Links [text](url)
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                // Line breaks
-                .replace(/\n/g, '<br>');
+        if (text == null) return '';
+        if (window.marked && typeof marked.parse === 'function') {
+            return marked.parse(String(text));
+        }
+        // Fallback: escape and preserve line breaks.
+        const escaped = String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return '<pre class="code-block">' + escaped + '</pre>';
     }
 
     function showLoading() {
@@ -612,24 +754,50 @@
     function showError(message) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'message error-message';
-        errorDiv.innerHTML =
-                '<div class="message-content">' +
-                '<div class="error-icon">⚠️</div>' +
-                '<div class="error-text">' +
-                '<strong>Error:</strong> ' + message +
-                '<br><br>' +
-                '<small>' +
-                '💡 <strong>Common solutions:</strong><br>' +
-                '• Check if all services are running (Data, Event, Position)<br>' +
-                '• Verify your authentication token is valid<br>' +
-                '• Try a simpler query like "list my portfolios"<br>' +
-                '• Check the browser console for more details' +
-                '</small>' +
-                '</div>' +
-                '</div>' +
-                '<div class="message-meta">' +
-                'System • ' + new Date().toLocaleTimeString() +
-                '</div>';
+
+        const content = document.createElement('div');
+        content.className = 'message-content';
+
+        const icon = document.createElement('div');
+        icon.className = 'error-icon';
+        icon.textContent = '⚠️';
+        content.appendChild(icon);
+
+        const text = document.createElement('div');
+        text.className = 'error-text';
+
+        const strong = document.createElement('strong');
+        strong.textContent = 'Error: ';
+        text.appendChild(strong);
+        text.appendChild(document.createTextNode(message));
+        text.appendChild(document.createElement('br'));
+        text.appendChild(document.createElement('br'));
+
+        const small = document.createElement('small');
+        // Static help text — safe to build via a small helper.
+        const tips = [
+            'Check if all services are running (Data, Event, Position)',
+            'Verify your authentication token is valid',
+            'Try a simpler query like "list my portfolios"',
+            'Check the browser console for more details'
+        ];
+        const tipsLabel = document.createElement('strong');
+        tipsLabel.textContent = '💡 Common solutions:';
+        small.appendChild(tipsLabel);
+        small.appendChild(document.createElement('br'));
+        tips.forEach(function (t, i) {
+            small.appendChild(document.createTextNode('• ' + t));
+            if (i < tips.length - 1) small.appendChild(document.createElement('br'));
+        });
+        text.appendChild(small);
+        content.appendChild(text);
+        errorDiv.appendChild(content);
+
+        const meta = document.createElement('div');
+        meta.className = 'message-meta';
+        meta.textContent = 'System • ' + new Date().toLocaleTimeString();
+        errorDiv.appendChild(meta);
+
         chatContainer.appendChild(errorDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }

@@ -57,7 +57,7 @@ class AgentController(
                 .body(
                     AgentResponse(
                         query = request.query,
-                        response = "No LLM is configured. Set the 'ollama' or 'openai' Spring profile.",
+                        response = "No LLM is configured. Set the 'ollama', 'openai', or 'anthropic' Spring profile.",
                         timestamp = Instant.now().toString(),
                         error = "no-llm"
                     )

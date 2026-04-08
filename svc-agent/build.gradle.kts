@@ -47,6 +47,7 @@ dependencies {
     // Spring AI for LLM integration
     implementation(libs.spring.ai.openai)
     implementation(libs.spring.ai.ollama)
+    implementation(libs.spring.ai.anthropic)
     // Note: Agent is an MCP client, not an MCP server
     
     compileOnly(libs.spring.boot.configuration.processor)

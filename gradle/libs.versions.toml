@@ -69,6 +69,7 @@ guava = { module = "com.google.guava:guava", version.ref = "guava" }
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai" }
 spring-ai-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai", version.ref = "spring-ai" }
 spring-ai-ollama = { module = "org.springframework.ai:spring-ai-starter-model-ollama", version.ref = "spring-ai" }
+spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-starter-model-anthropic", version.ref = "spring-ai" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 

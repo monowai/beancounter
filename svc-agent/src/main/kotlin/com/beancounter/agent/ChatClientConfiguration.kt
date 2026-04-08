@@ -4,7 +4,10 @@ import com.beancounter.agent.tools.EventTools
 import com.beancounter.agent.tools.MarketTools
 import com.beancounter.agent.tools.PortfolioTools
 import com.beancounter.agent.tools.PositionTools
+import com.beancounter.agent.tools.RebalanceTools
+import com.beancounter.agent.tools.RetireTools
 import org.slf4j.LoggerFactory
+import org.springframework.ai.anthropic.AnthropicChatModel
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.ollama.OllamaChatModel
@@ -40,10 +43,12 @@ class ChatClientConfiguration {
         portfolioTools: PortfolioTools,
         positionTools: PositionTools,
         eventTools: EventTools,
-        marketTools: MarketTools
+        marketTools: MarketTools,
+        retireTools: RetireTools,
+        rebalanceTools: RebalanceTools
     ): ChatClient {
         log.info("Building Ollama ChatClient ({})", chatModel.javaClass.simpleName)
-        return build(chatModel, portfolioTools, positionTools, eventTools, marketTools)
+        return build(chatModel, portfolioTools, positionTools, eventTools, marketTools, retireTools, rebalanceTools)
     }
 
     @Bean("chatClient")
@@ -53,10 +58,27 @@ class ChatClientConfiguration {
         portfolioTools: PortfolioTools,
         positionTools: PositionTools,
         eventTools: EventTools,
-        marketTools: MarketTools
+        marketTools: MarketTools,
+        retireTools: RetireTools,
+        rebalanceTools: RebalanceTools
     ): ChatClient {
         log.info("Building OpenAI ChatClient ({})", chatModel.javaClass.simpleName)
-        return build(chatModel, portfolioTools, positionTools, eventTools, marketTools)
+        return build(chatModel, portfolioTools, positionTools, eventTools, marketTools, retireTools, rebalanceTools)
+    }
+
+    @Bean("chatClient")
+    @Profile("anthropic")
+    fun anthropicChatClient(
+        chatModel: AnthropicChatModel,
+        portfolioTools: PortfolioTools,
+        positionTools: PositionTools,
+        eventTools: EventTools,
+        marketTools: MarketTools,
+        retireTools: RetireTools,
+        rebalanceTools: RebalanceTools
+    ): ChatClient {
+        log.info("Building Anthropic ChatClient ({})", chatModel.javaClass.simpleName)
+        return build(chatModel, portfolioTools, positionTools, eventTools, marketTools, retireTools, rebalanceTools)
     }
 
     private fun build(
@@ -64,27 +86,46 @@ class ChatClientConfiguration {
         portfolioTools: PortfolioTools,
         positionTools: PositionTools,
         eventTools: EventTools,
-        marketTools: MarketTools
+        marketTools: MarketTools,
+        retireTools: RetireTools,
+        rebalanceTools: RebalanceTools
     ): ChatClient =
         ChatClient
             .builder(model)
             .defaultSystem(SYSTEM_PROMPT)
-            .defaultTools(portfolioTools, positionTools, eventTools, marketTools)
-            .build()
+            .defaultTools(
+                portfolioTools,
+                positionTools,
+                eventTools,
+                marketTools,
+                retireTools,
+                rebalanceTools
+            ).build()
 
     companion object {
         private val SYSTEM_PROMPT =
             """
             You are the Beancounter portfolio assistant. Use the provided tools to answer
-            questions about portfolios, positions, valuations, FX rates, markets, currencies
-            and corporate events. Always look up data through tools rather than guessing.
+            questions about portfolios, positions, valuations, FX rates, markets, currencies,
+            corporate events, retirement plans and portfolio rebalancing models. Always look
+            up data through tools rather than guessing.
 
             Users identify portfolios by short codes (e.g. "TYLER", "NZD", "MAIN"). Every
             tool that touches a portfolio takes a portfolio code directly — never ask the
             user for an id, and never invent one. If a portfolio code is not found, ask
             the user to check the spelling or call listPortfolios to show what's available.
 
-            Reply in clear markdown.
+            Retirement plans and rebalance models/plans are identified by opaque ids, not
+            codes. When the user mentions their "plan" or "model" by name, call
+            listRetirementPlans or listRebalanceModels first to find the matching id, then
+            drill into the specifics. Never invent an id.
+
+            The retirement and rebalance tools are READ-ONLY — you cannot create, update,
+            approve or delete plans or models. If the user asks for a mutation, tell them
+            to use the Beancounter UI.
+
+            Reply in clear markdown. Prefer tables for positions, holdings, expenses and
+            rebalance weights.
             """.trimIndent()
     }
 }

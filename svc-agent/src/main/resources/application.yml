@@ -16,6 +16,10 @@ event:
   url: "http://localhost:9520/api"
 position:
   url: "http://localhost:9500/api"
+retire:
+  url: "http://localhost:9540/api"
+rebalance:
+  url: "http://localhost:9550/api"
 
 springdoc:
   use-management-port: true

@@ -20,7 +20,9 @@ import org.springframework.web.client.RestClient
 class ServiceHealthChecker(
     @Value($$"${marketdata.actuator.url:http://localhost:9511/actuator/health}") private val dataHealth: String,
     @Value($$"${position.actuator.url:http://localhost:9501/actuator/health}") private val positionHealth: String,
-    @Value($$"${event.actuator.url:http://localhost:9521/actuator/health}") private val eventHealth: String
+    @Value($$"${event.actuator.url:http://localhost:9521/actuator/health}") private val eventHealth: String,
+    @Value($$"${retire.actuator.url:http://localhost:9541/actuator/health}") private val retireHealth: String,
+    @Value($$"${rebalance.actuator.url:http://localhost:9551/actuator/health}") private val rebalanceHealth: String
 ) {
     private val log = LoggerFactory.getLogger(ServiceHealthChecker::class.java)
 
@@ -40,6 +42,8 @@ class ServiceHealthChecker(
                 probe("bc-data", dataHealth),
                 probe("bc-position", positionHealth),
                 probe("bc-event", eventHealth),
+                probe("bc-retire", retireHealth),
+                probe("bc-rebalance", rebalanceHealth),
                 ServiceStatus(
                     name = "llm",
                     status = if (llmAvailable) "UP" else "DOWN",

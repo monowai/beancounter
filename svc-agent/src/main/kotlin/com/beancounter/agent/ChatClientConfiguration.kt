@@ -71,8 +71,17 @@ class ChatClientConfiguration {
         return build(chatModel, portfolioTools, positionTools, eventTools, marketTools, retireTools, rebalanceTools)
     }
 
+    /**
+     * Anthropic is the **default** ChatClient — created whenever neither
+     * `ollama` nor `openai` is in the active profile list. This matches the
+     * agent's `application.yml` defaults (`spring.ai.model.chat: anthropic`)
+     * so a developer running with just the `kauri` (or no) profile gets a
+     * working Claude-backed agent without having to remember to also add
+     * `,anthropic` to `SPRING_PROFILES_ACTIVE`. Activating `ollama` or
+     * `openai` explicitly disables this fallback.
+     */
     @Bean("chatClient")
-    @Profile("anthropic")
+    @Profile("!ollama & !openai")
     fun anthropicChatClient(
         chatModel: AnthropicChatModel,
         portfolioTools: PortfolioTools,
@@ -82,7 +91,7 @@ class ChatClientConfiguration {
         retireTools: RetireTools,
         rebalanceTools: RebalanceTools
     ): ChatClient {
-        log.info("Building Anthropic ChatClient ({}) with prompt caching enabled", chatModel.javaClass.simpleName)
+        log.info("Building Anthropic ChatClient ({}) with prompt caching enabled (default)", chatModel.javaClass.simpleName)
 
         // Enable Anthropic prompt caching for the static prefix (system
         // prompt + tool definitions) so the multi-iteration tool-calling
@@ -286,6 +295,18 @@ class ChatClientConfiguration {
               pick between alternative scenarios without deleting the
               unused one — the inactive plan is excluded, the active
               one isn't.
+            - `compositeNarrative` — a user-authored free-text
+              description of the **overarching goal of the composite
+              plan** that applies across ALL phases. This lets the user
+              capture shared context once ("Working in Singapore until
+              50, then moving to Thailand for semi-retirement, then full
+              retirement in NZ at 65") instead of repeating it in every
+              individual plan's `narrative`. **Always read the composite
+              narrative** when answering any composite question — it
+              captures the user's overarching intent and often explains
+              constraints or transitions that aren't encoded anywhere
+              else. Treat it as shared context that applies on top of
+              each individual plan's own narrative.
 
             ### Rule 0: prefetch settings on every retirement question
 

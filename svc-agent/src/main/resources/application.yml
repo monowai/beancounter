@@ -10,6 +10,7 @@ sentry:
   traces-sample-rate: 1
   debug: false
 
+
 marketdata:
   url: "http://localhost:9510/api"
 event:
@@ -112,9 +113,27 @@ spring:
         jwt:
           issuer-uri: ${beancounter.auth.uri}
           audience: ${beancounter.auth.audience}
+  ai:
+    # Dummy OpenAI + Ollama config to prevent autoconfiguration errors
+    # (mirrors the pattern in application-ollama.yaml / application-openai.yaml)
+    openai:
+      api-key: "dummy-key-to-prevent-errors"
+    ollama:
+      base-url: "http://undefined:11434"
+    anthropic:
+      api-key: "${ANTHROPIC_API_KEY:}"
+      base-url: "${ANTHROPIC_BASE_URL:https://api.anthropic.com}"
+      chat:
+        options:
+          # Claude Haiku 4.5 — fast, cheap, strong tool-calling. Override via
+          # ANTHROPIC_MODEL if you want Sonnet (claude-sonnet-4-6) or Opus
+          # (claude-opus-4-6).
+          model: "${ANTHROPIC_MODEL:claude-haiku-4-5-20251001}"
+          temperature: 0.2
+          max-tokens: 4096
 
-  # Default: No AI configuration (Spring AI will not create any beans without config)
-  # AI configuration is provided by specific profiles (ollama, openai)
+    model:
+      chat: anthropic
 
 # Security Configuration
 auth:

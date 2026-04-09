@@ -153,9 +153,13 @@ class RetireTools(
                 "lifeExpectancy (planning horizon upper bound), " +
                 "compositeDisplayCurrency (preferred output currency), " +
                 "compositePhases (the user's pre-configured composite phase list, " +
-                "already parsed into {planId, fromAge, toAge} objects), and " +
+                "already parsed into {planId, fromAge, toAge} objects), " +
                 "compositeExcludedPlanIds (plans the user has parked out of the " +
-                "composite — the inactive one of an alternative-scenario pair). " +
+                "composite — the inactive one of an alternative-scenario pair), " +
+                "and compositeNarrative (a free-form user-authored description of " +
+                "the overarching composite-plan goal that applies across ALL " +
+                "phases — read it when answering any composite question for " +
+                "shared cross-plan context). " +
                 "CALL THIS FIRST on ANY retirement question — not just composite " +
                 "ones. It is the user-level context that every individual plan " +
                 "relies on. A single-plan FI progress question needs currentAge " +

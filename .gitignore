@@ -9,8 +9,9 @@
 !.secrets/*.secret
 !.secrets/public-keys/
 
-# Local-only Spring profile that holds Anthropic credentials — never commit
+# Local-only Spring profiles — never commit
 svc-agent/src/main/resources/application-anthropic.yaml
+svc-agent/src/main/resources/application-kauri.yaml
 .gitsecret/keys/random_seed
 .gitsecret/keys/pubring.kbx~
 **/application-local.y*ml

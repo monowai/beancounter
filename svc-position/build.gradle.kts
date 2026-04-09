@@ -44,7 +44,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(libs.resilience4j.spring.boot3)
     implementation(libs.spring.cloud.stream)
-    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation(libs.spring.boot.starter.data.jpa)

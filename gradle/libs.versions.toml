@@ -9,7 +9,6 @@ spring-boot = "3.5.13"
 spring-cloud = "2025.0.2"
 spring-cloud-contract = "4.3.1"
 spring-data-bom = "2025.0.8"
-spring-kafka = "3.3.11"
 spring-security = "6.5.9"
 spring-doc = "2.8.15"
 jackson = "2.21.1"
@@ -35,10 +34,7 @@ resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "
 resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.3.0" }
 resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version = "2.3.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
-spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
-spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test", version.ref = "spring-kafka" }
 spring-cloud-stream = { module = "org.springframework.cloud:spring-cloud-stream" }
-spring-cloud-stream-binder-kafka = { module = "org.springframework.cloud:spring-cloud-stream-binder-kafka" }
 spring-cloud-stream-binder-rabbit = { module = "org.springframework.cloud:spring-cloud-stream-binder-rabbit" }
 spring-cloud-stream-test-binder = { module = "org.springframework.cloud:spring-cloud-stream-test-binder" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }

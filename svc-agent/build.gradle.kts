@@ -43,7 +43,6 @@ dependencies {
     implementation(libs.jackson.kotlin)
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(libs.resilience4j.spring.boot3)
-    implementation(libs.spring.kafka)
     // Spring AI for LLM integration
     implementation(libs.spring.ai.openai)
     implementation(libs.spring.ai.ollama)
@@ -58,7 +57,6 @@ dependencies {
     }
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation(libs.spring.kafka.test)
     testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
 }

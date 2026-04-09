@@ -60,6 +60,18 @@ subprojects {
                 because("Align all Sentry dependencies to avoid mixed versions warning")
             }
         }
+        // Force-pin transitive dependencies that have known CVEs but are
+        // pulled in indirectly (so we can't bump them at the declaration site).
+        // Review periodically — when the upstream BOM catches up, the force()
+        // entry can be removed.
+        resolutionStrategy {
+            force(
+                // CVE-2025-48924 — uncontrolled recursion / DoS
+                "org.apache.commons:commons-lang3:3.18.0",
+                // CVE-2025-48734 — unsafe reflection (test/contract tooling)
+                "commons-beanutils:commons-beanutils:1.11.0"
+            )
+        }
     }
 
     // JVM configuration

@@ -24,7 +24,6 @@ dependencies {
     implementation(libs.jackson.kotlin)
     implementation("org.springframework:spring-web")
     implementation(libs.spring.boot.starter.data.jpa)
-    implementation(libs.spring.kafka)
     implementation(libs.commons.io)
     implementation(libs.guava)
 
@@ -38,7 +37,6 @@ dependencies {
     testImplementation(libs.servlet.api)
     testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    testImplementation(libs.spring.kafka)
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation(libs.assertj)
     testImplementation(libs.guava)

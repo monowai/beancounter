@@ -392,7 +392,13 @@ jobs:
           monitor-on-build: true
           severity-threshold: low
           target-file: build.gradle.kts
-          additional-arguments: --all-sub-projects
+          # --configuration-matching restricts the scan to the production
+          # runtime classpath only. Without it, Snyk also scans every Gradle
+          # test/contract configuration, surfacing CVEs in test-only deps
+          # like spring-cloud-contract-stub-runner that never reach a
+          # deployed artifact. Maven and npm exclude test scope by default;
+          # Gradle is the odd one out.
+          additional-arguments: --all-sub-projects --configuration-matching=^runtimeClasspath$
 
   publish-jars:
     executor: java-build

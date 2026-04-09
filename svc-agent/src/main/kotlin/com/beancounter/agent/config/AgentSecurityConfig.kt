@@ -32,7 +32,14 @@ class AgentSecurityConfig {
                 auth.requestMatchers("/", "/chat.html", "/login.html", "/favicon.ico").permitAll()
                 auth.requestMatchers("/agent/health").permitAll()
                 auth.requestMatchers("/agent/**").authenticated()
-            }.csrf { csrf ->
+            }
+            // deepcode ignore DisablesCSRFProtection: bc-agent is a
+            // stateless JWT-bearer REST API. CSRF defends against form
+            // submissions riding on cookie auth — every request here must
+            // carry an `Authorization: Bearer` header that an HTML form
+            // cannot set. Spring's official guidance is to disable CSRF
+            // for stateless REST APIs.
+            .csrf { csrf ->
                 csrf.disable()
             }.oauth2ResourceServer { oauth2 ->
                 oauth2.jwt(Customizer.withDefaults())

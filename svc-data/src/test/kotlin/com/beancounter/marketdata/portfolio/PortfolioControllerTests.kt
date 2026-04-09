@@ -206,7 +206,11 @@ internal class PortfolioControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
-        assertThat(mvcResult.response.contentAsString).isEqualTo("deleted $id")
+        // deletePortfolio now returns JSON `{"deleted": "<id>"}` rather than
+        // an interpolated string body, to eliminate the reflected-XSS vector
+        // Snyk flagged on the original String return.
+        assertThat(mvcResult.response.contentAsString)
+            .isEqualTo("""{"deleted":"$id"}""")
     }
 
     @Test

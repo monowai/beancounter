@@ -13,7 +13,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.cloud.stream.function.StreamBridge
-import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.Message
 
 /**
@@ -21,7 +20,6 @@ import org.springframework.messaging.Message
  *
  * This class tests:
  * - Portfolio message publishing via StreamBridge
- * - Message key handling
  * - StreamBridge interaction
  * - Message payload handling
  *
@@ -59,40 +57,6 @@ class MarketValueUpdateProducerTest {
     }
 
     @Test
-    fun `should use portfolio ID as message key`() {
-        // Given
-        val portfolioId = "custom-portfolio-id"
-        val customPortfolio = TestHelpers.createTestPortfolio(portfolioId)
-
-        // When
-        marketValueUpdateProducer.sendMessage(customPortfolio)
-
-        // Then
-        verify(streamBridge).send(
-            eq("portfolioMarketValue-out-0"),
-            ArgumentMatchers.argThat<Message<Portfolio>> { message ->
-                message.payload == customPortfolio &&
-                    message.headers[KafkaHeaders.KEY] == portfolioId
-            }
-        )
-    }
-
-    @Test
-    fun `should set Kafka message key header`() {
-        // When
-        marketValueUpdateProducer.sendMessage(testPortfolio)
-
-        // Then
-        verify(streamBridge).send(
-            eq("portfolioMarketValue-out-0"),
-            ArgumentMatchers.argThat<Message<Portfolio>> { message ->
-                message.headers.containsKey(KafkaHeaders.KEY) &&
-                    message.headers[KafkaHeaders.KEY] == testPortfolio.id
-            }
-        )
-    }
-
-    @Test
     fun `should handle different portfolio types`() {
         // Given
         val differentPortfolio = TestHelpers.createTestPortfolio("different-portfolio", "EUR")
@@ -104,8 +68,7 @@ class MarketValueUpdateProducerTest {
         verify(streamBridge).send(
             eq("portfolioMarketValue-out-0"),
             ArgumentMatchers.argThat<Message<Portfolio>> { message ->
-                message.payload == differentPortfolio &&
-                    message.headers[KafkaHeaders.KEY] == differentPortfolio.id
+                message.payload == differentPortfolio
             }
         )
     }

@@ -60,7 +60,6 @@ dependencies {
     implementation(libs.flyway.core)
     runtimeOnly(libs.flyway.postgresql)
     implementation(libs.spring.cloud.stream)
-    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation("com.opencsv:opencsv:5.11.1")
 
@@ -76,7 +75,6 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation(libs.spring.cloud.stream.test.binder)
-    testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.junit.platform:junit-platform-suite-api")
     testImplementation("org.junit.platform:junit-platform-suite-engine")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

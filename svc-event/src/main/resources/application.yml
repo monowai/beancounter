@@ -58,7 +58,6 @@ logging:
       apache: error
       postgres: error
       postgresql: error
-    kafka: info
 
 marketdata:
   url: "http://localhost:9510/api"
@@ -79,9 +78,6 @@ auth:
     proactive-refresh-seconds: 172800
 
 spring:
-  kafka:
-    admin:
-      auto-create: false
   application:
     name: bc-event
   cache:
@@ -141,10 +137,6 @@ spring:
         transactionEvent-out-0:
           destination: bc-trn-event-dev
           content-type: application/json
-      # Kafka-specific configuration (when default-binder=kafka)
-      kafka:
-        binder:
-          brokers: kafka:9092
       # RabbitMQ-specific configuration (when default-binder=rabbit)
       rabbit:
         binder:

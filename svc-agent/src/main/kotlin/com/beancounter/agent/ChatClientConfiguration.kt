@@ -12,8 +12,8 @@ import org.springframework.ai.anthropic.AnthropicChatOptions
 import org.springframework.ai.anthropic.api.AnthropicCacheOptions
 import org.springframework.ai.anthropic.api.AnthropicCacheStrategy
 import org.springframework.ai.anthropic.api.AnthropicCacheTtl
-import org.springframework.ai.chat.messages.MessageType
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.messages.MessageType
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.ollama.OllamaChatModel
 import org.springframework.ai.openai.OpenAiChatModel

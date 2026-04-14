@@ -26,10 +26,22 @@ class EventScheduleConfig(
 
     @Bean
     fun eventsSchedule(
-        @Value("\${events.schedule:0 0/15 6-9 * * Tue-Sat}") schedule: String
+        @Value($$"${events.schedule:0 0/15 6-9 * * Tue-Sat}") schedule: String
     ): String {
         log.info(
             "EVENT_SCHEDULE: {}, ZONE: {}",
+            schedule,
+            dateUtils.zoneId.id
+        )
+        return schedule
+    }
+
+    @Bean
+    fun loadEventsSchedule(
+        @Value($$"${events.load.schedule:0 0 7 * * Tue-Sat}") schedule: String
+    ): String {
+        log.info(
+            "EVENT_LOAD_SCHEDULE: {}, ZONE: {}",
             schedule,
             dateUtils.zoneId.id
         )

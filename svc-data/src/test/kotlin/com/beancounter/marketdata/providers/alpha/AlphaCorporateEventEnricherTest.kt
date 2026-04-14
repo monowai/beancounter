@@ -145,23 +145,23 @@ class AlphaCorporateEventEnricherTest {
     }
 
     @Test
-    fun `should not modify MarketData when event exists for different date`() {
+    fun `should match event within 1-day window when no exact match exists`() {
         // Given: A Global Quote MarketData for today
         val globalQuoteMarketData =
             MarketData(
                 asset = asset,
                 priceDate = priceDate,
                 close = BigDecimal("100.00"),
-                previousClose = BigDecimal("200.00"), // Would be wrong if there was a split today
+                previousClose = BigDecimal("200.00"),
                 change = BigDecimal("-100.00"),
                 source = "ALPHA"
             )
 
-        // And: A split exists but for a different date (yesterday)
+        // And: A split exists for yesterday (within +/-1 day window)
         val yesterdayEvent =
             MarketData(
                 asset = asset,
-                priceDate = priceDate.minusDays(1), // Different date
+                priceDate = priceDate.minusDays(1),
                 close = BigDecimal("100.00"),
                 split = BigDecimal("2.0"),
                 dividend = BigDecimal.ZERO
@@ -173,10 +173,78 @@ class AlphaCorporateEventEnricherTest {
         // When: Enriching the Global Quote data
         val enrichedData = enricher.enrich(globalQuoteMarketData)
 
-        // Then: Values should remain unchanged (no event for the same date)
-        assertThat(enrichedData.previousClose).isEqualByComparingTo(BigDecimal("200.00"))
-        assertThat(enrichedData.change).isEqualByComparingTo(BigDecimal("-100.00"))
+        // Then: The split should be enriched from the adjacent-day event
+        assertThat(enrichedData.split).isEqualByComparingTo(BigDecimal("2.0"))
+    }
+
+    @Test
+    fun `should not match event outside 1-day window`() {
+        // Given: A Global Quote MarketData for today
+        val globalQuoteMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate,
+                close = BigDecimal("100.00"),
+                previousClose = BigDecimal("200.00"),
+                change = BigDecimal("-100.00"),
+                source = "ALPHA"
+            )
+
+        // And: A split exists but 2 days ago (outside the +/-1 day window)
+        val twoDaysAgoEvent =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate.minusDays(2),
+                close = BigDecimal("100.00"),
+                split = BigDecimal("2.0"),
+                dividend = BigDecimal.ZERO
+            )
+        `when`(alphaEventService.getEvents(asset)).thenReturn(
+            PriceResponse(listOf(twoDaysAgoEvent))
+        )
+
+        // When: Enriching the Global Quote data
+        val enrichedData = enricher.enrich(globalQuoteMarketData)
+
+        // Then: Values should remain unchanged (event is outside window)
         assertThat(enrichedData.split).isEqualTo(BigDecimal.ONE)
+    }
+
+    @Test
+    fun `should prefer exact date match over adjacent day`() {
+        // Given: A Global Quote MarketData for today
+        val globalQuoteMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate,
+                close = BigDecimal("100.00"),
+                source = "ALPHA"
+            )
+
+        // And: Both an exact-date dividend and an adjacent-day dividend exist
+        val yesterdayEvent =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate.minusDays(1),
+                close = BigDecimal("100.00"),
+                dividend = BigDecimal("0.25")
+            )
+        val exactDateEvent =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate,
+                close = BigDecimal("100.00"),
+                dividend = BigDecimal("0.50")
+            )
+        `when`(alphaEventService.getEvents(asset)).thenReturn(
+            PriceResponse(listOf(yesterdayEvent, exactDateEvent))
+        )
+
+        // When: Enriching the Global Quote data
+        val enrichedData = enricher.enrich(globalQuoteMarketData)
+
+        // Then: The exact-date event's dividend should be used, not yesterday's
+        assertThat(enrichedData.dividend).isEqualByComparingTo(BigDecimal("0.50"))
     }
 
     @Test

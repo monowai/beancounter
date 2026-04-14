@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service
 @Service
 class EventSchedule(
     private val eventService: EventService,
+    private val eventLoader: EventLoader,
     private val dateUtils: DateUtils
 ) {
     private var loginService: LoginService? = null
@@ -58,6 +59,26 @@ class EventSchedule(
             } else {
                 log.info("Successfully processed {} corporate events", events.size)
             }
+        }
+    }
+
+    @SentryTransaction(operation = "scheduled", name = "EventSchedule.loadNewEvents")
+    @Scheduled(
+        cron = "#{@loadEventsSchedule}",
+        zone = "#{@scheduleZone}"
+    )
+    fun loadNewEvents() {
+        val currentLoginService = loginService
+        if (currentLoginService == null) {
+            log.warn("LoginService not available, skipping event loading")
+            return
+        }
+
+        currentLoginService.retryOnJwtExpiry {
+            currentLoginService.setAuthContext(currentLoginService.loginM2m())
+            log.info("Scheduled event load starting")
+            eventLoader.loadEvents(dateUtils.today())
+            log.info("Scheduled event load complete")
         }
     }
 }

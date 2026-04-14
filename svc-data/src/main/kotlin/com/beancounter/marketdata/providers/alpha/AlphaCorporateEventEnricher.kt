@@ -5,6 +5,8 @@ import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 
 /**
  * Enriches Global Quote MarketData with corporate event data (splits/dividends)
@@ -33,8 +35,13 @@ class AlphaCorporateEventEnricher(
         try {
             val events = alphaEventService.getEvents(marketData.asset)
 
-            // Find event for the same date
-            val eventForDate = events.data.find { it.priceDate.isEqual(marketData.priceDate) }
+            // Prefer exact date match; fall back to +/-1 day to handle
+            // edge cases where Global Quote and TIME_SERIES dates are slightly offset
+            val eventForDate =
+                events.data.find { it.priceDate.isEqual(marketData.priceDate) }
+                    ?: events.data.find {
+                        abs(ChronoUnit.DAYS.between(it.priceDate, marketData.priceDate)) == 1L
+                    }
 
             if (eventForDate == null) {
                 log.trace("No corporate event found for {} on {}", marketData.asset.code, marketData.priceDate)

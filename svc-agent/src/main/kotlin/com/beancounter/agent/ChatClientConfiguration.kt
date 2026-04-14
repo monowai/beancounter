@@ -2,6 +2,7 @@ package com.beancounter.agent
 
 import com.beancounter.agent.tools.EventTools
 import com.beancounter.agent.tools.MarketTools
+import com.beancounter.agent.tools.NewsTools
 import com.beancounter.agent.tools.PortfolioTools
 import com.beancounter.agent.tools.PositionTools
 import com.beancounter.agent.tools.RebalanceTools
@@ -50,10 +51,20 @@ class ChatClientConfiguration {
         eventTools: EventTools,
         marketTools: MarketTools,
         retireTools: RetireTools,
-        rebalanceTools: RebalanceTools
+        rebalanceTools: RebalanceTools,
+        newsTools: NewsTools
     ): ChatClient {
         log.info("Building Ollama ChatClient ({})", chatModel.javaClass.simpleName)
-        return build(chatModel, portfolioTools, positionTools, eventTools, marketTools, retireTools, rebalanceTools)
+        return build(
+            chatModel,
+            portfolioTools,
+            positionTools,
+            eventTools,
+            marketTools,
+            retireTools,
+            rebalanceTools,
+            newsTools
+        )
     }
 
     @Bean("chatClient")
@@ -65,10 +76,20 @@ class ChatClientConfiguration {
         eventTools: EventTools,
         marketTools: MarketTools,
         retireTools: RetireTools,
-        rebalanceTools: RebalanceTools
+        rebalanceTools: RebalanceTools,
+        newsTools: NewsTools
     ): ChatClient {
         log.info("Building OpenAI ChatClient ({})", chatModel.javaClass.simpleName)
-        return build(chatModel, portfolioTools, positionTools, eventTools, marketTools, retireTools, rebalanceTools)
+        return build(
+            chatModel,
+            portfolioTools,
+            positionTools,
+            eventTools,
+            marketTools,
+            retireTools,
+            rebalanceTools,
+            newsTools
+        )
     }
 
     /**
@@ -89,9 +110,13 @@ class ChatClientConfiguration {
         eventTools: EventTools,
         marketTools: MarketTools,
         retireTools: RetireTools,
-        rebalanceTools: RebalanceTools
+        rebalanceTools: RebalanceTools,
+        newsTools: NewsTools
     ): ChatClient {
-        log.info("Building Anthropic ChatClient ({}) with prompt caching enabled (default)", chatModel.javaClass.simpleName)
+        log.info(
+            "Building Anthropic ChatClient ({}) with prompt caching enabled (default)",
+            chatModel.javaClass.simpleName
+        )
 
         // Enable Anthropic prompt caching for the static prefix (system
         // prompt + tool definitions) so the multi-iteration tool-calling
@@ -128,7 +153,8 @@ class ChatClientConfiguration {
                 eventTools,
                 marketTools,
                 retireTools,
-                rebalanceTools
+                rebalanceTools,
+                newsTools
             ).build()
     }
 
@@ -139,7 +165,8 @@ class ChatClientConfiguration {
         eventTools: EventTools,
         marketTools: MarketTools,
         retireTools: RetireTools,
-        rebalanceTools: RebalanceTools
+        rebalanceTools: RebalanceTools,
+        newsTools: NewsTools
     ): ChatClient =
         ChatClient
             .builder(model)
@@ -150,7 +177,8 @@ class ChatClientConfiguration {
                 eventTools,
                 marketTools,
                 retireTools,
-                rebalanceTools
+                rebalanceTools,
+                newsTools
             ).build()
 
     companion object {
@@ -161,6 +189,18 @@ class ChatClientConfiguration {
             # Beancounter Assistant
 
             Answer from tool calls, never guesses. If a tool fails, say so.
+
+            ## Page context
+
+            User messages may begin with `[Page context: ...]` indicating
+            which page of the Holdsworth UI the user is currently viewing.
+            Use this to infer intent without asking clarifying questions:
+            - If the context mentions a specific portfolio (e.g., page=Holdings,
+              description mentions portfolio code), use that portfolio directly.
+            - If on the Holdings page, "this portfolio" means the one being viewed.
+            - If on Independence, assume composite plan questions.
+            - If on Proposed Transactions, focus on pending dividends/events.
+            - Never ask "which portfolio?" when the context already tells you.
 
             **Default to composite.** When the user asks about independence,
             retirement, FI progress, projections, scenarios, or Monte Carlo
@@ -193,6 +233,12 @@ class ChatClientConfiguration {
             - **bc-rebalance** — investment models & target allocations.
               `listRebalanceModels`, `getRebalanceModel`, `listRebalancePlans`,
               `getApprovedRebalancePlan`, `getRebalancePlan`. Read-only.
+            - **news** — financial news & sentiment via Alpha Vantage.
+              `getNews(tickers, topics?)`. Returns headlines, summaries, and
+              per-ticker sentiment (Bullish/Bearish/Neutral). Use when users
+              ask about news, what's happening with assets, or market sentiment.
+              For portfolio-level news, first get positions to find the tickers,
+              then call getNews with those tickers.
 
             Data flows: bc-data (transactions) → bc-position (holdings) →
             bc-event (corporate actions) ↔ bc-data. bc-retire and bc-rebalance
@@ -261,6 +307,7 @@ class ChatClientConfiguration {
             Step 1 (omitted below to save space).
 
             - Portfolio: `getPortfolio(code)` → `getPositions(code)`.
+            - Portfolio news: `getPositions(code)` → extract tickers → `getNews(tickers)`.
             - Events: `getAssetEvents(ticker)` or `loadPortfolioEvents(code)`.
             - FX: `getFxRate(from, to)` then multiply.
             - FI progress: `listRetirementPlans` → primary →
@@ -278,11 +325,27 @@ class ChatClientConfiguration {
 
             ## Output
 
-            - GitHub-flavored markdown. **Tables** for tabular data.
+            - GitHub-flavored markdown.
             - Round: percentages 1dp, money 2dp, always show currency.
             - Summarise before dumping large result sets.
             - Include plan `country` + paraphrased `narrative` in plan
               summaries.
+            - **Chat-first formatting**: responses render in a narrow chat
+              panel (~380px). Prefer bullet lists and short paragraphs over
+              wide tables. If a table is essential, use at most 2–3 narrow
+              columns. Never dump raw tool output as a table.
+            - **Don't repeat what's on screen**: when page context tells you
+              the user is already viewing data (e.g., holdings, allocations),
+              provide *insight and analysis* rather than re-listing the same
+              data. Highlight outliers, trends, or actionable observations.
+
+            ## Closed positions
+
+            When retrieving or discussing positions, **exclude closed positions**
+            (quantity = 0) by default. Only include them if the user explicitly
+            asks about closed positions, sold holdings, or historical trades.
+            This applies to portfolio summaries, allocation breakdowns, news
+            lookups, and any analysis that starts from position data.
 
             ## Never
 

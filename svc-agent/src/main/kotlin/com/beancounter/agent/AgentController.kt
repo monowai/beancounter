@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.HtmlUtils
 import java.time.Instant
 
 /**
@@ -51,12 +52,13 @@ class AgentController(
     fun query(
         @RequestBody request: AgentQuery
     ): ResponseEntity<AgentResponse> {
+        val safeQuery = HtmlUtils.htmlEscape(request.query)
         if (chatClient == null) {
             return ResponseEntity
                 .status(503)
                 .body(
                     AgentResponse(
-                        query = request.query,
+                        query = safeQuery,
                         response = "No LLM is configured. Set the 'ollama', 'openai', or 'anthropic' Spring profile.",
                         timestamp = Instant.now().toString(),
                         error = "no-llm"
@@ -65,15 +67,16 @@ class AgentController(
         }
 
         return try {
+            val userMessage = buildUserMessage(request)
             val content =
                 chatClient
                     .prompt()
-                    .user(request.query)
+                    .user(userMessage)
                     .call()
                     .content() ?: "(empty response)"
             ResponseEntity.ok(
                 AgentResponse(
-                    query = request.query,
+                    query = safeQuery,
                     response = content,
                     timestamp = Instant.now().toString()
                 )
@@ -84,18 +87,26 @@ class AgentController(
                 .status(500)
                 .body(
                     AgentResponse(
-                        query = request.query,
-                        response = "The agent failed to process the request: ${e.message}",
+                        query = safeQuery,
+                        response = "The agent failed to process the request.",
                         timestamp = Instant.now().toString(),
-                        error = e.message
+                        error = "agent-error"
                     )
                 )
         }
     }
+
+    private fun buildUserMessage(request: AgentQuery): String {
+        val ctx = request.context
+        if (ctx.isNullOrEmpty()) return request.query
+        val contextLine = ctx.entries.joinToString(", ") { "${it.key}: ${it.value}" }
+        return "[Page context: $contextLine]\n\n${request.query}"
+    }
 }
 
 data class AgentQuery(
-    val query: String
+    val query: String,
+    val context: Map<String, Any>? = null
 )
 
 data class AgentResponse(

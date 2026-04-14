@@ -98,6 +98,6 @@ class AgentControllerTest {
         val response = controller(chatClient = client).query(AgentQuery("anything"))
 
         assertThat(response.statusCode.value()).isEqualTo(500)
-        assertThat(response.body?.error).isEqualTo("model exploded")
+        assertThat(response.body?.error).isEqualTo("agent-error")
     }
 }

@@ -11,18 +11,16 @@ import org.springframework.web.client.RestClient
  * depends on. Returns a structured health response that the chat UI renders
  * as a traffic light.
  *
- * The downstream services expose management endpoints on dedicated ports
- * (9511/9501/9521 in local dev) with an unauthenticated `/actuator/health`
- * endpoint, so this probe can run on page load before the user has pasted a
- * bearer token.
+ * Uses BC_*_ACTUATOR env vars from the shared Helm configmap (bc-common).
+ * In local dev, falls back to localhost ports.
  */
 @Service
 class ServiceHealthChecker(
-    @Value($$"${marketdata.actuator.url:http://localhost:9511/actuator/health}") private val dataHealth: String,
-    @Value($$"${position.actuator.url:http://localhost:9501/actuator/health}") private val positionHealth: String,
-    @Value($$"${event.actuator.url:http://localhost:9521/actuator/health}") private val eventHealth: String,
-    @Value($$"${retire.actuator.url:http://localhost:9541/actuator/health}") private val retireHealth: String,
-    @Value($$"${rebalance.actuator.url:http://localhost:9551/actuator/health}") private val rebalanceHealth: String
+    @Value($$"${BC_DATA_ACTUATOR:http://localhost:9511}") private val dataActuator: String,
+    @Value($$"${BC_POSITION_ACTUATOR:http://localhost:9501}") private val positionActuator: String,
+    @Value($$"${BC_EVENT_ACTUATOR:http://localhost:9521}") private val eventActuator: String,
+    @Value($$"${BC_RETIRE_ACTUATOR:http://localhost:9541}") private val retireActuator: String,
+    @Value($$"${BC_REBALANCE_ACTUATOR:http://localhost:9551}") private val rebalanceActuator: String
 ) {
     private val log = LoggerFactory.getLogger(ServiceHealthChecker::class.java)
 
@@ -39,11 +37,11 @@ class ServiceHealthChecker(
     fun check(llmAvailable: Boolean): AgentHealthResponse {
         val services =
             listOf(
-                probe("bc-data", dataHealth),
-                probe("bc-position", positionHealth),
-                probe("bc-event", eventHealth),
-                probe("bc-retire", retireHealth),
-                probe("bc-rebalance", rebalanceHealth),
+                probe("bc-data", "$dataActuator/actuator/health"),
+                probe("bc-position", "$positionActuator/actuator/health"),
+                probe("bc-event", "$eventActuator/actuator/health"),
+                probe("bc-retire", "$retireActuator/actuator/health"),
+                probe("bc-rebalance", "$rebalanceActuator/actuator/health"),
                 ServiceStatus(
                     name = "llm",
                     status = if (llmAvailable) "UP" else "DOWN",

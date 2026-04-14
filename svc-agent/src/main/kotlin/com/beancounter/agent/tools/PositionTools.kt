@@ -27,7 +27,16 @@ class PositionTools(
     companion object {
         const val POSITIONS_DESC =
             "Get the positions and valuations for a portfolio identified by its code. " +
-                "Returns each holding with quantity, cost, market value, gain/loss and currency. " +
-                "Use this for 'show my holdings', 'what are my largest positions', 'analyze my portfolio', etc."
+                "Each position includes quantity, cost basis, market value, gain/loss, " +
+                "and two return metrics: " +
+                "ROI (simple return = marketValue / costBasis, expressed as a ratio — " +
+                "1.25 means +25% total return, 0.85 means −15%) and " +
+                "XIRR (annualised money-weighted internal rate of return that accounts " +
+                "for the timing and size of each cash flow — buys, sells, dividends — " +
+                "making it the most accurate performance measure for positions held over " +
+                "varying periods. Expressed as a decimal, e.g. 0.12 = 12% p.a.). " +
+                "When the user asks about 'returns', 'performance', or 'how well is X doing', " +
+                "prefer XIRR for time-weighted comparison across holdings, and ROI for a " +
+                "quick total-return snapshot. Always show both when discussing performance."
     }
 }

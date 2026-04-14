@@ -62,6 +62,10 @@ jobs:
             echo "📦 Phase 4: Building svc-event..."
             ./gradlew :svc-event:build --parallel
 
+            # Phase 5: svc-agent (needs jar-client, jar-auth, jar-common)
+            echo "📦 Phase 5: Building svc-agent..."
+            ./gradlew :svc-agent:build --parallel
+
             echo "✅ Build completed!"
 
       # Upload coverage for all projects
@@ -79,6 +83,8 @@ jobs:
           file: ./svc-position/build/reports/jacoco/test/jacocoTestReport.xml
       - codecov/upload:
           file: ./svc-event/build/reports/jacoco/test/jacocoTestReport.xml
+      - codecov/upload:
+          file: ./svc-agent/build/reports/jacoco/test/jacocoTestReport.xml
 
       # Save build cache for faster subsequent builds
       - run:
@@ -114,6 +120,7 @@ jobs:
             cp -r ~/project/svc-data/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-data artifacts"
             cp -r ~/project/svc-position/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-position artifacts"
             cp -r ~/project/svc-event/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-event artifacts"
+            cp -r ~/project/svc-agent/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-agent artifacts"
       - store_artifacts:
           path: ~/artifacts/services
           destination: services
@@ -150,6 +157,7 @@ jobs:
             cp -r ~/project/svc-data/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-data artifacts"
             cp -r ~/project/svc-position/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-position artifacts"
             cp -r ~/project/svc-event/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-event artifacts"
+            cp -r ~/project/svc-agent/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-agent artifacts"
 
             echo "📋 Workspace artifacts prepared:"
             ls -la ~/workspace-artifacts/build-artifacts/
@@ -379,6 +387,61 @@ jobs:
 
             echo "✅ bc-event image built and pushed successfully"
 
+  package-agent:
+    executor: java-build
+    environment:
+      IMAGE_NAME: bc-agent
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
+      - restore_cache:
+          keys:
+            - v3-build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle.kts" }}
+      - attach_workspace:
+          at: ~/workspace
+      - setup_remote_docker
+      - run:
+          name: Setup Docker Buildx and Registry Login
+          command: |
+            echo "🐳 Setting up Docker buildx and logging into registry..."
+
+            # Install QEMU for multi-platform builds
+            docker run --rm --privileged tonistiigi/binfmt --install all
+
+            # Create and use a new builder instance
+            docker buildx create --name multiarch-builder --use || true
+            docker buildx inspect --bootstrap
+
+            # Login to GitHub Container Registry
+            echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+
+            echo "✅ Docker buildx setup complete"
+      - run:
+          name: Build and Push BC-AGENT
+          command: |
+            echo "📦 Building and pushing bc-agent Docker image..."
+
+            # Copy built artifacts to expected locations
+            echo "📋 Copying built artifacts from workspace..."
+            mkdir -p ~/project/svc-agent/build/libs/
+            cp ~/workspace/build-artifacts/svc-agent-*.jar ~/project/svc-agent/build/libs/ 2>/dev/null || echo "No svc-agent JAR found in workspace"
+
+            # Verify JAR file exists
+            echo "🔍 Checking for JAR file:"
+            ls -la ~/project/svc-agent/build/libs/ || echo "No build/libs directory"
+
+            # Build and push multi-platform image
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --tag "ghcr.io/monowai/bc-agent:latest" \
+              --tag "ghcr.io/monowai/bc-agent:${STACK_VER}" \
+              ~/project/svc-agent/
+
+            echo "✅ bc-agent image built and pushed successfully"
+
   # Security scanning - runs only on master to save time on feature branches
   security-scan:
     executor: java-build
@@ -468,6 +531,14 @@ workflows:
           requires:
             - build-and-test
       - package-event:
+          filters:
+            branches:
+              only:
+                - master
+                - /^deploy\/.*/
+          requires:
+            - build-and-test
+      - package-agent:
           filters:
             branches:
               only:

@@ -111,8 +111,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${beancounter.auth.uri}
-          audience: ${beancounter.auth.audience}
+          issuer-uri: ${auth.uri}
+          audience: ${auth.audience}
   ai:
     # Dummy OpenAI + Ollama config to prevent autoconfiguration errors
     # (mirrors the pattern in application-ollama.yaml / application-openai.yaml)
@@ -135,15 +135,11 @@ spring:
     model:
       chat: anthropic
 
-# Security Configuration
+# Security Configuration - uses same auth.* properties as all other services
+# Helm sets AUTH_URI and AUTH_AUDIENCE via spring.auth template
 auth:
-  web: true  # Disable auth for testing
-  #audience: "test-audience"
-  email: "email"
-
-beancounter:
-  auth:
-    uri: "${AUTH0_DOMAIN:https://your-domain.auth0.com/}"
-    audience: "${AUTH0_AUDIENCE:your-api-identifier}"
-    enabled: true
-    email: "${AUTH0_EMAIL_CLAIM:email}"
+  uri: "https://your-auth0-endpoint"
+  audience: "auth0-audience"
+  enabled: true
+  email: "${auth.audience}/claims/email"
+  web: true

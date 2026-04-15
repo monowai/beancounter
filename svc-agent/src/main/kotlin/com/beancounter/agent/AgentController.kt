@@ -2,6 +2,7 @@ package com.beancounter.agent
 
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
+import com.beancounter.agent.tools.ToolSelector
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
@@ -29,7 +30,8 @@ import java.time.Instant
 @Tag(name = "Agent", description = "Natural-language Beancounter assistant")
 class AgentController(
     @Autowired(required = false) private val chatClient: ChatClient?,
-    private val healthChecker: ServiceHealthChecker
+    private val healthChecker: ServiceHealthChecker,
+    private val toolSelector: ToolSelector
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -68,10 +70,12 @@ class AgentController(
 
         return try {
             val userMessage = buildUserMessage(request)
+            val tools = toolSelector.selectTools(request.context)
             val content =
                 chatClient
                     .prompt()
                     .user(userMessage)
+                    .tools(*tools)
                     .call()
                     .content() ?: "(empty response)"
             ResponseEntity.ok(

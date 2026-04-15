@@ -1,12 +1,5 @@
 package com.beancounter.agent
 
-import com.beancounter.agent.tools.EventTools
-import com.beancounter.agent.tools.MarketTools
-import com.beancounter.agent.tools.NewsTools
-import com.beancounter.agent.tools.PortfolioTools
-import com.beancounter.agent.tools.PositionTools
-import com.beancounter.agent.tools.RebalanceTools
-import com.beancounter.agent.tools.RetireTools
 import org.slf4j.LoggerFactory
 import org.springframework.ai.anthropic.AnthropicChatModel
 import org.springframework.ai.anthropic.AnthropicChatOptions
@@ -44,52 +37,16 @@ class ChatClientConfiguration {
 
     @Bean("chatClient")
     @Profile("ollama")
-    fun ollamaChatClient(
-        chatModel: OllamaChatModel,
-        portfolioTools: PortfolioTools,
-        positionTools: PositionTools,
-        eventTools: EventTools,
-        marketTools: MarketTools,
-        retireTools: RetireTools,
-        rebalanceTools: RebalanceTools,
-        newsTools: NewsTools
-    ): ChatClient {
+    fun ollamaChatClient(chatModel: OllamaChatModel): ChatClient {
         log.info("Building Ollama ChatClient ({})", chatModel.javaClass.simpleName)
-        return build(
-            chatModel,
-            portfolioTools,
-            positionTools,
-            eventTools,
-            marketTools,
-            retireTools,
-            rebalanceTools,
-            newsTools
-        )
+        return build(chatModel)
     }
 
     @Bean("chatClient")
     @Profile("openai")
-    fun openAiChatClient(
-        chatModel: OpenAiChatModel,
-        portfolioTools: PortfolioTools,
-        positionTools: PositionTools,
-        eventTools: EventTools,
-        marketTools: MarketTools,
-        retireTools: RetireTools,
-        rebalanceTools: RebalanceTools,
-        newsTools: NewsTools
-    ): ChatClient {
+    fun openAiChatClient(chatModel: OpenAiChatModel): ChatClient {
         log.info("Building OpenAI ChatClient ({})", chatModel.javaClass.simpleName)
-        return build(
-            chatModel,
-            portfolioTools,
-            positionTools,
-            eventTools,
-            marketTools,
-            retireTools,
-            rebalanceTools,
-            newsTools
-        )
+        return build(chatModel)
     }
 
     /**
@@ -103,16 +60,7 @@ class ChatClientConfiguration {
      */
     @Bean("chatClient")
     @Profile("!ollama & !openai")
-    fun anthropicChatClient(
-        chatModel: AnthropicChatModel,
-        portfolioTools: PortfolioTools,
-        positionTools: PositionTools,
-        eventTools: EventTools,
-        marketTools: MarketTools,
-        retireTools: RetireTools,
-        rebalanceTools: RebalanceTools,
-        newsTools: NewsTools
-    ): ChatClient {
+    fun anthropicChatClient(chatModel: AnthropicChatModel): ChatClient {
         log.info(
             "Building Anthropic ChatClient ({}) with prompt caching enabled (default)",
             chatModel.javaClass.simpleName
@@ -147,39 +95,14 @@ class ChatClientConfiguration {
             .builder(chatModel)
             .defaultOptions(anthropicOptions)
             .defaultSystem(SYSTEM_PROMPT)
-            .defaultTools(
-                portfolioTools,
-                positionTools,
-                eventTools,
-                marketTools,
-                retireTools,
-                rebalanceTools,
-                newsTools
-            ).build()
+            .build()
     }
 
-    private fun build(
-        model: ChatModel,
-        portfolioTools: PortfolioTools,
-        positionTools: PositionTools,
-        eventTools: EventTools,
-        marketTools: MarketTools,
-        retireTools: RetireTools,
-        rebalanceTools: RebalanceTools,
-        newsTools: NewsTools
-    ): ChatClient =
+    private fun build(model: ChatModel): ChatClient =
         ChatClient
             .builder(model)
             .defaultSystem(SYSTEM_PROMPT)
-            .defaultTools(
-                portfolioTools,
-                positionTools,
-                eventTools,
-                marketTools,
-                retireTools,
-                rebalanceTools,
-                newsTools
-            ).build()
+            .build()
 
     companion object {
         // The agent's mental model of the Beancounter platform.

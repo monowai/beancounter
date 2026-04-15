@@ -3,9 +3,11 @@ package com.beancounter.agent
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
+import com.beancounter.agent.tools.ToolSelector
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -27,10 +29,15 @@ class AgentControllerTest {
             services = listOf(ServiceStatus(name = "llm", status = "UP"))
         )
 
+    private val toolSelector =
+        mock<ToolSelector> {
+            on { selectTools(anyOrNull()) } doReturn arrayOf()
+        }
+
     private fun controller(
         chatClient: ChatClient? = null,
         healthChecker: ServiceHealthChecker = stubChecker()
-    ): AgentController = AgentController(chatClient, healthChecker)
+    ): AgentController = AgentController(chatClient, healthChecker, toolSelector)
 
     private fun stubChecker(): ServiceHealthChecker =
         mock<ServiceHealthChecker> {
@@ -76,12 +83,16 @@ class AgentControllerTest {
 
     @Test
     fun `query returns the LLM content for a configured chatClient`() {
-        val request = mock<ChatClient.ChatClientRequestSpec>()
-        val responseSpec = mock<ChatClient.CallResponseSpec>()
+        // RETURNS_SELF handles the fluent builder chain (user(), tools())
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val callResponse = mock<ChatClient.CallResponseSpec>()
         val client = mock<ChatClient> { on { prompt() } doReturn request }
-        whenever(request.user("hello")).thenReturn(request)
-        whenever(request.call()).thenReturn(responseSpec)
-        whenever(responseSpec.content()).thenReturn("hi from the model")
+        // call() breaks out of the RETURNS_SELF chain
+        whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.content()).thenReturn("hi from the model")
 
         val response = controller(chatClient = client).query(AgentQuery("hello"))
 

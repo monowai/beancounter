@@ -19,23 +19,27 @@ class AlphaVantageNewsClient(
 ) {
     fun getNewsSentiment(
         tickers: String,
+        market: String? = null,
         topics: String? = null
-    ): Map<String, Any> =
-        if (topics.isNullOrBlank()) {
-            restClient
-                .get()
-                .uri("/news?tickers={tickers}", tickers)
-                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
-                .retrieve()
-                .body(MAP_TYPE) ?: emptyMap()
-        } else {
-            restClient
-                .get()
-                .uri("/news?tickers={tickers}&topics={topics}", tickers, topics)
-                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
-                .retrieve()
-                .body(MAP_TYPE) ?: emptyMap()
+    ): Map<String, Any> {
+        val params = mutableMapOf<String, String>("tickers" to tickers)
+        val queryParts = mutableListOf("tickers={tickers}")
+        if (!market.isNullOrBlank()) {
+            params["market"] = market
+            queryParts.add("market={market}")
         }
+        if (!topics.isNullOrBlank()) {
+            params["topics"] = topics
+            queryParts.add("topics={topics}")
+        }
+        val uri = "/news?" + queryParts.joinToString("&")
+        return restClient
+            .get()
+            .uri(uri, params)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(MAP_TYPE) ?: emptyMap()
+    }
 
     companion object {
         private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}

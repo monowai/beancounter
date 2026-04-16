@@ -3,9 +3,13 @@ package com.beancounter.agent.tools
 import org.springframework.stereotype.Service
 
 /**
- * Selects relevant tools based on page context to minimize
- * token usage. Core tools are always included; domain-specific
- * tools are added based on the user's current page.
+ * Picks the tool set for a page/domain. Each narrow domain (News, etc.)
+ * ships only its own tools; broader pages get a Wealth baseline plus a
+ * domain add-on. This keeps the tool-schema portion of the prompt small
+ * per call — the LLM sees only what it needs.
+ *
+ * Domain routing here mirrors [com.beancounter.agent.SystemPromptSelector]
+ * so the prompt and the tools always agree.
  */
 @Service
 class ToolSelector(
@@ -17,30 +21,56 @@ class ToolSelector(
     private val retireTools: RetireTools,
     private val rebalanceTools: RebalanceTools
 ) {
-    private val coreTools: List<Any> by lazy {
-        listOf(portfolioTools, positionTools, marketTools, newsTools)
+    /** Wealth baseline — portfolios, positions, markets/FX. */
+    private val wealthTools: List<Any> by lazy {
+        listOf(portfolioTools, positionTools, marketTools)
     }
 
     fun selectTools(context: Map<String, Any>?): Array<Any> {
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
-        val tools = coreTools.toMutableList()
 
-        when {
-            page.contains("independence") || page.contains("retire") -> {
-                tools.add(retireTools)
+        return when {
+            // News & Sentiment — focused lookup, nothing else.
+            page.contains("news") && page.contains("sentiment") -> {
+                arrayOf(newsTools)
             }
+            // Independence — wealth + retirement planning.
+            page.contains("independence") ||
+                page.contains("retire") ||
+                page.contains("fi") -> {
+                (wealthTools + retireTools).toTypedArray()
+            }
+            // Rebalance — wealth + rebalance models/plans.
             page.contains("rebalanc") -> {
-                tools.add(rebalanceTools)
+                (wealthTools + rebalanceTools).toTypedArray()
             }
-            page.contains("proposed") || page.contains("event") -> {
-                tools.add(eventTools)
+            // Asset — wealth + corporate events. Users on trade/event pages
+            // may also want news on a specific ticker, so keep newsTools.
+            page.contains("event") ||
+                page.contains("proposed") ||
+                page.contains("dividend") ||
+                page.contains("trade") ||
+                page.contains("trn") -> {
+                (wealthTools + eventTools + newsTools).toTypedArray()
             }
-            page.isEmpty() -> {
-                // No context — include everything
-                tools.addAll(listOf(eventTools, retireTools, rebalanceTools))
+            // Wealth — portfolios/holdings. Keep newsTools for
+            // "what's happening with my holdings" style questions.
+            page.contains("holding") ||
+                page.contains("portfolio") ||
+                page.contains("wealth") ||
+                page.contains("position") -> {
+                (wealthTools + newsTools).toTypedArray()
+            }
+            // Unknown / no context — ship everything so the LLM can route.
+            else -> {
+                (
+                    wealthTools +
+                        newsTools +
+                        eventTools +
+                        retireTools +
+                        rebalanceTools
+                ).toTypedArray()
             }
         }
-
-        return tools.toTypedArray()
     }
 }

@@ -1,7 +1,6 @@
 package com.beancounter.agent.tools
 
 import com.beancounter.agent.client.PositionClient
-import com.beancounter.common.contracts.PositionResponse
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Service
@@ -13,30 +12,39 @@ import org.springframework.stereotype.Service
  * intentionally NOT exposed as separate tools — the LLM can sort and filter
  * the position list itself once it has the data. Keeping the tool surface
  * narrow reduces prompt-token cost and tool-selection errors.
+ *
+ * Responses are scrubbed of absolute monetary amounts: only ratios (weight,
+ * XIRR, ROI, change %, yield %) and public price data reach the LLM.
+ * See [ResponseScrubber].
  */
 @Service
 class PositionTools(
-    private val positionClient: PositionClient
+    private val positionClient: PositionClient,
+    private val scrubber: ResponseScrubber
 ) {
     @Tool(description = POSITIONS_DESC)
     fun getPositions(
         @ToolParam(description = "Portfolio code as the user types it, e.g. 'TYLER'") portfolioCode: String,
         @ToolParam(description = "Valuation date YYYY-MM-DD or 'today'") asAt: String = "today"
-    ): PositionResponse = positionClient.getPositionsByCode(portfolioCode, asAt, includeValues = true)
+    ): ScrubbedPositionResponse =
+        scrubber.scrub(positionClient.getPositionsByCode(portfolioCode, asAt, includeValues = true))
 
     companion object {
         const val POSITIONS_DESC =
-            "Get the positions and valuations for a portfolio identified by its code. " +
-                "Each position includes quantity, cost basis, market value, gain/loss, " +
-                "and two return metrics: " +
-                "ROI (simple return = marketValue / costBasis, expressed as a ratio — " +
-                "1.25 means +25% total return, 0.85 means −15%) and " +
-                "XIRR (annualised money-weighted internal rate of return that accounts " +
-                "for the timing and size of each cash flow — buys, sells, dividends — " +
-                "making it the most accurate performance measure for positions held over " +
-                "varying periods. Expressed as a decimal, e.g. 0.12 = 12% p.a.). " +
-                "When the user asks about 'returns', 'performance', or 'how well is X doing', " +
-                "prefer XIRR for time-weighted comparison across holdings, and ROI for a " +
-                "quick total-return snapshot. Always show both when discussing performance."
+            "Get the positions for a portfolio identified by its code. " +
+                "Each position is expressed in privacy-preserving ratios — no absolute " +
+                "dollar amounts are returned. Fields per position: " +
+                "`weight` (portfolio weight as decimal, e.g. 0.125 = 12.5%), " +
+                "`xirr` (annualised money-weighted return, 0.12 = 12% p.a. — most " +
+                "accurate measure for holdings over varying periods), " +
+                "`roi` (total-return ratio, 1.25 = +25%, 0.85 = −15%), " +
+                "`changePercent` (today's price move, decimal), " +
+                "`yieldPercent` (dividends / market value, decimal), " +
+                "`priceClose`, `priceDate` (public market data), " +
+                "`closed` (true if quantity is zero). " +
+                "Prefer `xirr` for time-weighted performance comparison across " +
+                "holdings; use `roi` for a total-return snapshot. Show both as " +
+                "percentages when discussing performance. Never invent or request " +
+                "dollar amounts — they are not available."
     }
 }

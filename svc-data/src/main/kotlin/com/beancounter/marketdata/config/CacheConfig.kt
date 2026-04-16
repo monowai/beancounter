@@ -36,7 +36,8 @@ class CacheConfig {
         val caches =
             DEFAULT_CACHES.map { name ->
                 ConcurrentMapCache(name)
-            } + CaffeineCache("alpha.asset.event", Duration.ofMinutes(10), 200)
+            } + CaffeineCache("alpha.asset.event", Duration.ofMinutes(10), 200) +
+                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100)
 
         return SimpleCacheManager().apply {
             setCaches(caches)

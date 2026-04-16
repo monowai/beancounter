@@ -61,6 +61,7 @@ logging:
       netfix: error
       beancounter: debug
       zaxxer: error
+      github.victools: error
     org:
       springframework: error
       hibernate: error

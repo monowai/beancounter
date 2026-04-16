@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,7 +32,8 @@ import java.time.Instant
 class AgentController(
     @Autowired(required = false) private val chatClient: ChatClient?,
     private val healthChecker: ServiceHealthChecker,
-    private val toolSelector: ToolSelector
+    private val toolSelector: ToolSelector,
+    private val systemPromptSelector: SystemPromptSelector
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -71,13 +73,22 @@ class AgentController(
         return try {
             val userMessage = buildUserMessage(request)
             val tools = toolSelector.selectTools(request.context)
-            val content =
+            val systemPrompt = systemPromptSelector.selectFor(request.context)
+            val startMs = System.currentTimeMillis()
+            val callResponse =
                 chatClient
                     .prompt()
+                    .system(systemPrompt)
                     .user(userMessage)
                     .tools(*tools)
                     .call()
-                    .content() ?: "(empty response)"
+
+            val chatResponse = callResponse.chatResponse()
+            val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: "(empty response)"
+            val elapsedMs = System.currentTimeMillis() - startMs
+
+            logLlmInteraction(userMessage, tools, chatResponse, content, elapsedMs)
+
             ResponseEntity.ok(
                 AgentResponse(
                     query = safeQuery,
@@ -98,6 +109,33 @@ class AgentController(
                     )
                 )
         }
+    }
+
+    private fun logLlmInteraction(
+        userMessage: String,
+        tools: Array<Any>,
+        chatResponse: ChatResponse?,
+        content: String,
+        elapsedMs: Long
+    ) {
+        if (!log.isDebugEnabled) return
+        val meta = chatResponse?.metadata
+        val usage = meta?.usage
+        val promptPreview = userMessage.take(120).replace("\n", " ")
+        val toolNames = tools.map { it.javaClass.simpleName }
+        log.debug(
+            "LLM call: model={}, prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
+                "tools={} {}, response_chars={}, elapsed_ms={}, prompt_preview=\"{}\"",
+            meta?.model ?: "unknown",
+            usage?.promptTokens ?: 0,
+            usage?.completionTokens ?: 0,
+            usage?.totalTokens ?: 0,
+            tools.size,
+            toolNames,
+            content.length,
+            elapsedMs,
+            promptPreview
+        )
     }
 
     private fun buildUserMessage(request: AgentQuery): String {

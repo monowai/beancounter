@@ -31,7 +31,9 @@ class AlphaNewsController(
     fun getNews(
         @Parameter(description = "Comma-separated ticker symbols", example = "AAPL,MSFT")
         @RequestParam tickers: String,
+        @Parameter(description = "Market code for non-US exchanges (e.g. NZX, ASX, LON)", required = false)
+        @RequestParam(required = false) market: String? = null,
         @Parameter(description = "Optional topic filter", required = false)
         @RequestParam(required = false) topics: String? = null
-    ): Map<String, Any> = newsService.getNewsSentiment(tickers, topics)
+    ): Map<String, Any> = newsService.getNewsSentiment(tickers, market, topics)
 }

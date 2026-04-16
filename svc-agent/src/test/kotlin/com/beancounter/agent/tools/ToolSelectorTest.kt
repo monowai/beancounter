@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 
 /**
- * Verify that ToolSelector includes the correct tool groups
- * based on page context.
+ * Verify that ToolSelector picks the right tools per domain.
  */
 class ToolSelectorTest {
     private val portfolioTools = mock<PortfolioTools>()
@@ -29,36 +28,64 @@ class ToolSelectorTest {
         )
 
     @Test
-    fun `core tools always included`() {
+    fun `news sentiment page only ships news tools`() {
+        val tools = selector.selectTools(mapOf("page" to "News & Sentiment"))
+        assertThat(tools).containsExactly(newsTools)
+    }
+
+    @Test
+    fun `wealth pages ship portfolio, position, market, and news tools`() {
         val tools = selector.selectTools(mapOf("page" to "Holdings"))
-        assertThat(tools).contains(portfolioTools, positionTools, marketTools, newsTools)
+        assertThat(tools).containsExactlyInAnyOrder(
+            portfolioTools,
+            positionTools,
+            marketTools,
+            newsTools
+        )
+        assertThat(tools).doesNotContain(retireTools, rebalanceTools, eventTools)
     }
 
     @Test
-    fun `independence page includes retire tools`() {
+    fun `independence page ships wealth baseline plus retire tools`() {
         val tools = selector.selectTools(mapOf("page" to "Independence Planning"))
-        assertThat(tools).contains(retireTools)
-        assertThat(tools).doesNotContain(rebalanceTools)
+        assertThat(tools).containsExactlyInAnyOrder(
+            portfolioTools,
+            positionTools,
+            marketTools,
+            retireTools
+        )
+        assertThat(tools).doesNotContain(rebalanceTools, eventTools, newsTools)
     }
 
     @Test
-    fun `rebalance page includes rebalance tools`() {
+    fun `rebalance page ships wealth baseline plus rebalance tools`() {
         val tools = selector.selectTools(mapOf("page" to "Rebalancing"))
-        assertThat(tools).contains(rebalanceTools)
-        assertThat(tools).doesNotContain(retireTools)
+        assertThat(tools).containsExactlyInAnyOrder(
+            portfolioTools,
+            positionTools,
+            marketTools,
+            rebalanceTools
+        )
+        assertThat(tools).doesNotContain(retireTools, eventTools, newsTools)
     }
 
     @Test
-    fun `proposed page includes event tools`() {
+    fun `asset pages ship wealth baseline plus event and news tools`() {
         val tools = selector.selectTools(mapOf("page" to "Proposed Transactions"))
-        assertThat(tools).contains(eventTools)
+        assertThat(tools).containsExactlyInAnyOrder(
+            portfolioTools,
+            positionTools,
+            marketTools,
+            eventTools,
+            newsTools
+        )
         assertThat(tools).doesNotContain(retireTools, rebalanceTools)
     }
 
     @Test
-    fun `no context includes all tools`() {
+    fun `no context ships every tool`() {
         val tools = selector.selectTools(null)
-        assertThat(tools).contains(
+        assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
             marketTools,
@@ -70,7 +97,7 @@ class ToolSelectorTest {
     }
 
     @Test
-    fun `empty context includes all tools`() {
+    fun `empty context ships every tool`() {
         val tools = selector.selectTools(emptyMap())
         assertThat(tools).contains(eventTools, retireTools, rebalanceTools)
     }

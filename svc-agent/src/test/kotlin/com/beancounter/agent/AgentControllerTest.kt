@@ -34,10 +34,15 @@ class AgentControllerTest {
             on { selectTools(anyOrNull()) } doReturn arrayOf()
         }
 
+    private val systemPromptSelector =
+        mock<SystemPromptSelector> {
+            on { selectFor(anyOrNull()) } doReturn "test-system-prompt"
+        }
+
     private fun controller(
         chatClient: ChatClient? = null,
         healthChecker: ServiceHealthChecker = stubChecker()
-    ): AgentController = AgentController(chatClient, healthChecker, toolSelector)
+    ): AgentController = AgentController(chatClient, healthChecker, toolSelector, systemPromptSelector)
 
     private fun stubChecker(): ServiceHealthChecker =
         mock<ServiceHealthChecker> {
@@ -92,6 +97,7 @@ class AgentControllerTest {
         val client = mock<ChatClient> { on { prompt() } doReturn request }
         // call() breaks out of the RETURNS_SELF chain
         whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.chatResponse()).thenReturn(null)
         whenever(callResponse.content()).thenReturn("hi from the model")
 
         val response = controller(chatClient = client).query(AgentQuery("hello"))

@@ -8,13 +8,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
+import java.math.BigDecimal
 
 /**
- * Sanity check that the [@Tool]-bearing methods on [PortfolioTools] forward to
- * the underlying [PortfolioServiceClient]. The Spring AI tool dispatcher is not
- * exercised here — that's an end-to-end concern. We only verify the Kotlin
- * delegation does what its description claims.
+ * Sanity check that [PortfolioTools] delegates to [PortfolioServiceClient]
+ * and scrubs the response — no dollar values reach the LLM.
  */
 class PortfolioToolsTest {
     private val nzd = Currency("NZD")
@@ -25,31 +23,46 @@ class PortfolioToolsTest {
             code = "MY_PFOLIO",
             name = "Sample",
             currency = nzd,
-            base = usd
+            base = usd,
+            marketValue = BigDecimal("123456.78"),
+            irr = BigDecimal("0.12")
         )
 
+    private val scrubber = ResponseScrubber()
+
     @Test
-    fun `listPortfolios delegates to the client`() {
-        val expected = PortfoliosResponse(listOf(sample))
-        val client = mock<PortfolioServiceClient> { on { portfolios } doReturn expected }
-        val tools = PortfolioTools(client)
+    fun `listPortfolios returns scrubbed portfolios with no dollar balances`() {
+        val client =
+            mock<PortfolioServiceClient> {
+                on { portfolios } doReturn PortfoliosResponse(listOf(sample))
+            }
+        val tools = PortfolioTools(client, scrubber)
 
         val result = tools.listPortfolios()
 
-        assertThat(result).isSameAs(expected)
-        verify(client).portfolios
+        assertThat(result).hasSize(1)
+        val only = result.first()
+        assertThat(only.code).isEqualTo("MY_PFOLIO")
+        assertThat(only.name).isEqualTo("Sample")
+        assertThat(only.currency).isEqualTo("NZD")
+        assertThat(only.baseCurrency).isEqualTo("USD")
+        assertThat(only.irr).isEqualTo(0.12)
+        // The shape has no marketValue/gainOnDay/id fields — compile-time guarantee.
     }
 
     @Test
-    fun `getPortfolio delegates to the client by code`() {
+    fun `getPortfolio returns a scrubbed portfolio with IRR as a ratio`() {
         val client =
             mock<PortfolioServiceClient> {
                 on { getPortfolioByCode("MY_PFOLIO") } doReturn sample
             }
-        val tools = PortfolioTools(client)
+        val tools = PortfolioTools(client, scrubber)
 
         val result = tools.getPortfolio("MY_PFOLIO")
 
-        assertThat(result).isSameAs(sample)
+        assertThat(result.code).isEqualTo("MY_PFOLIO")
+        assertThat(result.irr).isEqualTo(0.12)
+        assertThat(result.currency).isEqualTo("NZD")
+        assertThat(result.baseCurrency).isEqualTo("USD")
     }
 }

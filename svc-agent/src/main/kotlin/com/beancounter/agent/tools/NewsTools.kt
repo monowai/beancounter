@@ -1,6 +1,7 @@
 package com.beancounter.agent.tools
 
 import com.beancounter.agent.clients.AlphaVantageNewsClient
+import org.slf4j.LoggerFactory
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Service
@@ -12,21 +13,26 @@ import org.springframework.stereotype.Service
 class NewsTools(
     private val newsClient: AlphaVantageNewsClient
 ) {
+    private val log = LoggerFactory.getLogger(NewsTools::class.java)
+
     @Tool(description = NEWS_DESC)
     fun getNews(
         @ToolParam(description = TICKERS_DESC) tickers: String,
         @ToolParam(description = MARKET_DESC, required = false) market: String? = null,
         @ToolParam(description = TOPICS_DESC, required = false) topics: String? = null
     ): Map<String, Any> {
+        log.debug("getNews called: tickers={}, market={}, topics={}", tickers, market, topics)
         val raw = newsClient.getNewsSentiment(tickers, market, topics)
         val feed = raw["feed"] as? List<*>
         return if (raw.isEmpty() || feed.isNullOrEmpty()) {
+            log.debug("getNews: no_coverage for tickers={}, market={}", tickers, market)
             mapOf(
                 "status" to "no_coverage",
                 "tickers" to tickers,
                 "message" to NO_COVERAGE_MESSAGE
             )
         } else {
+            log.debug("getNews: {} articles returned for tickers={}", feed.size, tickers)
             raw
         }
     }

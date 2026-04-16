@@ -3,6 +3,8 @@ package com.beancounter.marketdata.providers.alpha
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -10,7 +12,8 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 
 /**
- * Verify market-aware ticker formatting in AlphaNewsService.
+ * Verify non-US short-circuit and ranking/trimming behaviour in
+ * [AlphaNewsService].
  */
 class AlphaNewsServiceTest {
     private val objectMapper = ObjectMapper()
@@ -20,16 +23,7 @@ class AlphaNewsServiceTest {
             markets = "NASDAQ,NYSE,ASX,NZX,LON"
         }
 
-    @Test
-    fun `US tickers call gateway without suffix`() {
-        val gateway = mock<AlphaGateway>()
-        whenever(gateway.getNewsSentiment(eq("AAPL"), eq("demo"), eq(null), eq(10)))
-            .thenReturn("""{"feed":[]}""")
-        val service = createService(gateway)
-
-        service.getNewsSentiment("AAPL", "NASDAQ")
-        verify(gateway).getNewsSentiment(eq("AAPL"), eq("demo"), eq(null), eq(10))
-    }
+    private val props = NewsProperties()
 
     @Test
     fun `NZX market short-circuits to empty without calling gateway`() {
@@ -54,43 +48,186 @@ class AlphaNewsServiceTest {
     }
 
     @Test
-    fun `LON market short-circuits to empty without calling gateway`() {
+    fun `US ticker calls gateway with configured provider limit and a time_from`() {
         val gateway = mock<AlphaGateway>()
-        val service = createService(gateway)
+        whenever(
+            gateway.getNewsSentiment(
+                eq("AAPL"),
+                eq("demo"),
+                eq(null),
+                eq(props.providerLimit),
+                any()
+            )
+        ).thenReturn("""{"feed":[]}""")
 
-        val result = service.getNewsSentiment("HSBA", "LON")
+        val service = createService(gateway)
+        service.getNewsSentiment("AAPL", "NASDAQ")
+
+        verify(gateway).getNewsSentiment(
+            eq("AAPL"),
+            eq("demo"),
+            eq(null),
+            eq(props.providerLimit),
+            any()
+        )
+    }
+
+    @Test
+    fun `high-relevance article survives ranking and is projected to a compact shape`() {
+        val raw =
+            """
+            {
+              "feed": [
+                {
+                  "title": "Apple beats earnings",
+                  "summary": "Apple reported record Q4 earnings.",
+                  "source": "Bloomberg",
+                  "time_published": "20260416T120000",
+                  "banner_image": "http://example.com/img.jpg",
+                  "authors": ["Jane Doe"],
+                  "url": "http://example.com/1",
+                  "overall_sentiment_score": 0.4,
+                  "overall_sentiment_label": "Bullish",
+                  "ticker_sentiment": [
+                    {
+                      "ticker": "AAPL",
+                      "relevance_score": "0.85",
+                      "ticker_sentiment_score": "0.42",
+                      "ticker_sentiment_label": "Bullish"
+                    }
+                  ]
+                }
+              ]
+            }
+            """.trimIndent()
+        val gateway = mock<AlphaGateway>()
+        whenever(gateway.getNewsSentiment(any(), any(), anyOrNull(), any(), anyOrNull())).thenReturn(raw)
+
+        val result = createService(gateway).getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed).hasSize(1)
+        val article = feed.first()
+        assertThat(article["title"]).isEqualTo("Apple beats earnings")
+        assertThat(article["source"]).isEqualTo("Bloomberg")
+        assertThat(article["relevance"]).isEqualTo(0.85)
+        assertThat(article["tickerSentimentLabel"]).isEqualTo("Bullish")
+        assertThat(article["tickerSentimentScore"]).isEqualTo(0.42)
+        // Stripped fields are not present — saves tool_result tokens.
+        assertThat(article).doesNotContainKeys(
+            "banner_image",
+            "authors",
+            "url",
+            "topics",
+            "ticker_sentiment"
+        )
+    }
+
+    @Test
+    fun `low-relevance articles are dropped under the threshold`() {
+        val raw =
+            """
+            {
+              "feed": [
+                {
+                  "title": "Tangential mention",
+                  "summary": "...",
+                  "source": "X",
+                  "time_published": "20260416T120000",
+                  "ticker_sentiment": [
+                    { "ticker": "AAPL", "relevance_score": "0.05",
+                      "ticker_sentiment_score": "0.0",
+                      "ticker_sentiment_label": "Neutral" }
+                  ]
+                }
+              ]
+            }
+            """.trimIndent()
+        val gateway = mock<AlphaGateway>()
+        whenever(gateway.getNewsSentiment(any(), any(), anyOrNull(), any(), anyOrNull())).thenReturn(raw)
+
+        val result = createService(gateway).getNewsSentiment("AAPL")
 
         assertThat(result).isEmpty()
-        verifyNoInteractions(gateway)
     }
 
     @Test
-    fun `null market calls gateway with tickers unchanged`() {
+    fun `ranking takes top N by relevance and breaks ties on sentiment magnitude`() {
         val gateway = mock<AlphaGateway>()
-        whenever(gateway.getNewsSentiment(eq("AAPL"), eq("demo"), eq(null), eq(10)))
-            .thenReturn("""{"feed":[]}""")
-        val service = createService(gateway)
+        whenever(gateway.getNewsSentiment(any(), any(), anyOrNull(), any(), anyOrNull()))
+            .thenReturn(feedFor(relevances = listOf(0.5, 0.9, 0.7, 0.8, 0.6, 0.95, 0.4)))
 
-        service.getNewsSentiment("AAPL")
-        verify(gateway).getNewsSentiment(eq("AAPL"), eq("demo"), eq(null), eq(10))
+        val limited = props.copy(maxArticles = 3)
+        val service =
+            AlphaNewsService(gateway, alphaConfig, objectMapper, limited)
+                .apply { writeApiKey(this) }
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        val relevances = feed.map { it["relevance"] as Double }
+        assertThat(relevances).containsExactly(0.95, 0.9, 0.8)
     }
 
     @Test
-    fun `NYSE market calls gateway as US market`() {
+    fun `articles mentioning only other tickers are filtered out`() {
+        val raw =
+            """
+            {
+              "feed": [
+                {
+                  "title": "All about MSFT",
+                  "summary": "...",
+                  "source": "X",
+                  "time_published": "20260416T120000",
+                  "ticker_sentiment": [
+                    { "ticker": "MSFT", "relevance_score": "0.9",
+                      "ticker_sentiment_score": "0.5",
+                      "ticker_sentiment_label": "Bullish" }
+                  ]
+                }
+              ]
+            }
+            """.trimIndent()
         val gateway = mock<AlphaGateway>()
-        whenever(gateway.getNewsSentiment(eq("GE"), eq("demo"), eq(null), eq(10)))
-            .thenReturn("""{"feed":[]}""")
-        val service = createService(gateway)
+        whenever(gateway.getNewsSentiment(any(), any(), anyOrNull(), any(), anyOrNull())).thenReturn(raw)
 
-        service.getNewsSentiment("GE", "NYSE")
-        verify(gateway).getNewsSentiment(eq("GE"), eq("demo"), eq(null), eq(10))
+        val result = createService(gateway).getNewsSentiment("AAPL")
+
+        assertThat(result).isEmpty()
+    }
+
+    private fun feedFor(relevances: List<Double>): String {
+        val articles =
+            relevances.mapIndexed { i, r ->
+                """
+                {
+                  "title": "Article $i",
+                  "summary": "...",
+                  "source": "X",
+                  "time_published": "20260416T120000",
+                  "ticker_sentiment": [
+                    { "ticker": "AAPL", "relevance_score": "$r",
+                      "ticker_sentiment_score": "0.1",
+                      "ticker_sentiment_label": "Neutral" }
+                  ]
+                }
+                """.trimIndent()
+            }
+        return """{"feed":[${articles.joinToString(",")}]}"""
     }
 
     private fun createService(gateway: AlphaGateway): AlphaNewsService {
-        val service = AlphaNewsService(gateway, alphaConfig, objectMapper)
+        val service = AlphaNewsService(gateway, alphaConfig, objectMapper, props)
+        writeApiKey(service)
+        return service
+    }
+
+    private fun writeApiKey(service: AlphaNewsService) {
         val field = AlphaNewsService::class.java.getDeclaredField("apiKey")
         field.isAccessible = true
         field.set(service, "demo")
-        return service
     }
 }

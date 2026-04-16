@@ -406,6 +406,19 @@ beancounter:
         url: https://www.alphavantage.co
         batchSize: 1
         markets: "US,NASDAQ,AMEX,NYSE,LON"
+        news:
+          # Minimum per-ticker relevance_score (0.0-1.0) to keep an article.
+          # Raise to narrow to only strongly-on-topic news; lower to be
+          # more permissive with tangentially-related articles.
+          relevance-threshold: 0.3
+          # Top-N articles returned after ranking. Keep small — each article
+          # becomes tool_result tokens on the LLM's second inference call.
+          max-articles: 5
+          # Recency window in business days (skips weekends).
+          business-days-back: 5
+          # How many articles to request from Alpha Vantage before ranking.
+          # Larger pool means stronger ranking at no LLM cost.
+          provider-limit: 50
 
       mstack:
         url: https://api.marketstack.com

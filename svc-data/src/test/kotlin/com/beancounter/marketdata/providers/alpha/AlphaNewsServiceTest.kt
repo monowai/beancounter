@@ -199,17 +199,20 @@ class AlphaNewsServiceTest {
         assertThat(result).isEmpty()
     }
 
-    private fun feedFor(relevances: List<Double>): String {
+    private fun feedFor(
+        ticker: String = "AAPL",
+        relevances: List<Double>
+    ): String {
         val articles =
             relevances.mapIndexed { i, r ->
                 """
                 {
-                  "title": "Article $i",
+                  "title": "Article $i about $ticker",
                   "summary": "...",
                   "source": "X",
                   "time_published": "20260416T120000",
                   "ticker_sentiment": [
-                    { "ticker": "AAPL", "relevance_score": "$r",
+                    { "ticker": "$ticker", "relevance_score": "$r",
                       "ticker_sentiment_score": "0.1",
                       "ticker_sentiment_label": "Neutral" }
                   ]
@@ -217,6 +220,41 @@ class AlphaNewsServiceTest {
                 """.trimIndent()
             }
         return """{"feed":[${articles.joinToString(",")}]}"""
+    }
+
+    @Test
+    fun `invalid ticker names like company names are stripped before calling AV`() {
+        val gateway = mock<AlphaGateway>()
+        // Only ASML should reach the gateway after sanitisation strips COHERENT (>6 chars)
+        whenever(gateway.getNewsSentiment(eq("ASML"), any(), anyOrNull(), any(), anyOrNull()))
+            .thenReturn(feedFor("ASML", listOf(0.9)))
+        val service = createService(gateway)
+
+        val result = service.getNewsSentiment("ASML,COHERENT")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as? List<*>
+        assertThat(feed).hasSize(1)
+    }
+
+    @Test
+    fun `falls back to per-ticker when batch returns empty`() {
+        val gateway = mock<AlphaGateway>()
+        // Batch call returns empty (simulating AV rejecting the batch)
+        whenever(gateway.getNewsSentiment(eq("COHR,ASML"), any(), anyOrNull(), any(), anyOrNull()))
+            .thenReturn("""{"feed":[]}""")
+        // Individual calls succeed
+        whenever(gateway.getNewsSentiment(eq("COHR"), any(), anyOrNull(), any(), anyOrNull()))
+            .thenReturn(feedFor("COHR", listOf(0.8)))
+        whenever(gateway.getNewsSentiment(eq("ASML"), any(), anyOrNull(), any(), anyOrNull()))
+            .thenReturn(feedFor("ASML", listOf(0.9)))
+        val service = createService(gateway)
+
+        val result = service.getNewsSentiment("COHR,ASML")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as? List<*>
+        assertThat(feed).hasSize(2)
     }
 
     private fun createService(gateway: AlphaGateway): AlphaNewsService {

@@ -50,6 +50,37 @@ class AlphaNewsService(
         if (!market.isNullOrBlank() && !alphaConfig.isNullMarket(market)) {
             return emptyMap()
         }
+        val validTickers = sanitiseTickers(tickers)
+        if (validTickers.isEmpty()) return emptyMap()
+
+        val result = fetchAndTrim(validTickers.joinToString(","), topics)
+        if (result.isNotEmpty()) return result
+
+        // AV returns empty for the entire batch when any ticker is
+        // unrecognised. Fall back to querying each ticker individually
+        // and merge the ranked results.
+        if (validTickers.size > 1) {
+            log.debug("Batch returned empty — falling back to per-ticker queries for {}", validTickers)
+            return fetchPerTicker(validTickers, topics)
+        }
+        return emptyMap()
+    }
+
+    /**
+     * Strip values that aren't plausible ticker symbols. AV rejects the
+     * entire request if any ticker is invalid, so one bad value (e.g. a
+     * company name the LLM slipped in) poisons the whole batch.
+     */
+    private fun sanitiseTickers(tickers: String): List<String> =
+        tickers
+            .split(",")
+            .map { it.trim().uppercase() }
+            .filter { it.length in 1..6 && it.matches(TICKER_PATTERN) }
+
+    private fun fetchAndTrim(
+        tickers: String,
+        topics: String?
+    ): Map<String, Any> {
         val timeFrom =
             businessDaysAgo(newsProperties.businessDaysBack)
                 .atTime(LocalTime.MIDNIGHT)
@@ -65,9 +96,36 @@ class AlphaNewsService(
         if (json.isBlank() || json.contains("Error Message")) {
             return emptyMap()
         }
-
         val raw = parse(json) ?: return emptyMap()
         return trim(raw, tickerSet(tickers))
+    }
+
+    private fun fetchPerTicker(
+        tickers: List<String>,
+        topics: String?
+    ): Map<String, Any> {
+        val allArticles = mutableListOf<Map<String, Any>>()
+        for (ticker in tickers) {
+            val result = fetchAndTrim(ticker, topics)
+
+            @Suppress("UNCHECKED_CAST")
+            val feed = result["feed"] as? List<Map<String, Any>>
+            if (feed != null) allArticles.addAll(feed)
+        }
+        if (allArticles.isEmpty()) return emptyMap()
+
+        // Re-rank the merged set and take the top N.
+        val ranked =
+            allArticles
+                .sortedWith(
+                    compareByDescending<Map<String, Any>> {
+                        (it["relevance"] as? Number)?.toDouble() ?: 0.0
+                    }.thenByDescending {
+                        abs((it["tickerSentimentScore"] as? Number)?.toDouble() ?: 0.0)
+                    }
+                ).take(newsProperties.maxArticles)
+
+        return mapOf("feed" to ranked, "count" to ranked.size)
     }
 
     private fun parse(json: String): Map<String, Any>? =
@@ -174,5 +232,8 @@ class AlphaNewsService(
     companion object {
         // AV's time_from format is YYYYMMDDTHHMM, no colon.
         private val AV_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmm")
+
+        // Plausible ticker: 1–6 uppercase alphanumeric chars, optionally with a dot suffix.
+        private val TICKER_PATTERN = Regex("[A-Z0-9]+(\\.[A-Z0-9]+)?")
     }
 }

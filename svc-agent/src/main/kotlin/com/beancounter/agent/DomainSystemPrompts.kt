@@ -108,6 +108,9 @@ object DomainSystemPrompts {
 
         - Portfolio summary: `getPortfolio(code)` → `getPositions(code)`.
           Report weights, returns, and top movers — never dollar balances.
+        - **Biggest movers**: sort by `changePercent` in both directions —
+          show the largest positive *and* largest negative moves. A big
+          drop is just as noteworthy as a big gain.
         - FX: `getFxRate(from, to)` is available but only for currency-pair
           questions; do not use it to reconstruct dollar holdings.
 

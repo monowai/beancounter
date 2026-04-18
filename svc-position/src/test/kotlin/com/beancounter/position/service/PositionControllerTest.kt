@@ -209,7 +209,7 @@ class PositionControllerTest {
             .thenReturn(testPositionResponse)
 
         // When
-        val result = positionController.aggregated(valuationDate, true, null)
+        val result = positionController.aggregated(valuationDate, true, null, null)
 
         // Then
         assertThat(result).isNotNull()
@@ -228,7 +228,7 @@ class PositionControllerTest {
             .thenReturn(testPositionResponse)
 
         // When
-        val result = positionController.aggregated(DateUtils.TODAY, true, null)
+        val result = positionController.aggregated(DateUtils.TODAY, true, null, null)
 
         // Then
         assertThat(result).isNotNull()
@@ -247,11 +247,51 @@ class PositionControllerTest {
             .thenReturn(emptyPositionResponse)
 
         // When
-        val result = positionController.aggregated(valuationDate, true, null)
+        val result = positionController.aggregated(valuationDate, true, null, null)
 
         // Then
         assertThat(result).isNotNull()
         assertThat(result.data.positions).isEmpty()
+    }
+
+    @Test
+    fun `should convert aggregated positions to target currency when supplied`() {
+        // Given
+        val valuationDate = "2024-01-15"
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
+
+        whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
+        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, valuationDate, true))
+            .thenReturn(testPositionResponse)
+
+        // When
+        val result = positionController.aggregated(valuationDate, true, null, "SGD")
+
+        // Then
+        assertThat(result).isNotNull()
+        verify(allocationService).convertPositionsToCurrency(
+            testPositionResponse.data,
+            "SGD",
+            valuationDate
+        )
+    }
+
+    @Test
+    fun `should skip currency conversion when value is false`() {
+        // Given
+        val valuationDate = "2024-01-15"
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
+
+        whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
+        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, valuationDate, false))
+            .thenReturn(testPositionResponse)
+
+        // When - value=false means no valuations, so no conversion applicable
+        positionController.aggregated(valuationDate, false, null, "SGD")
+
+        // Then
+        verify(allocationService, org.mockito.kotlin.never())
+            .convertPositionsToCurrency(any(), any(), any())
     }
 
     @Test
@@ -273,7 +313,7 @@ class PositionControllerTest {
             .thenReturn(testPositionResponse)
 
         // When - only request the test portfolio by its code
-        val result = positionController.aggregated(valuationDate, true, testPortfolio.code)
+        val result = positionController.aggregated(valuationDate, true, testPortfolio.code, null)
 
         // Then
         assertThat(result).isNotNull()

@@ -6,7 +6,9 @@ import com.beancounter.common.contracts.AllocationData
 import com.beancounter.common.contracts.CategoryAllocation
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
+import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import org.slf4j.LoggerFactory
@@ -20,7 +22,8 @@ import java.math.RoundingMode
  */
 @Service
 class AllocationService(
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val fxService: FxService
 ) {
     /**
      * Calculate allocation breakdown from positions.
@@ -149,6 +152,95 @@ class AllocationService(
             currency = targetCurrency,
             categoryBreakdown = convertedBreakdown
         )
+    }
+
+    /**
+     * Convert aggregated positions' PORTFOLIO view to a target currency.
+     *
+     * Aggregated positions share a single context portfolio currency (see
+     * ValuationService.getAggregatedPositions), so one FX rate is applied
+     * across every position's Position.In.PORTFOLIO money values and to the
+     * PORTFOLIO totals. TRADE and BASE views are untouched.
+     *
+     * @param positions aggregated positions to convert
+     * @param targetCurrencyCode target ISO currency code (e.g., "SGD")
+     * @param rateDate FX rate lookup date
+     * @return the same Positions instance with PORTFOLIO view in target currency
+     */
+    fun convertPositionsToCurrency(
+        positions: Positions,
+        targetCurrencyCode: String,
+        rateDate: String = "today"
+    ): Positions {
+        if (!positions.hasPositions()) return positions
+
+        val currentTotals = positions.totals[Position.In.PORTFOLIO] ?: return positions
+        val sourceCurrency = currentTotals.currency
+        if (sourceCurrency.code.equals(targetCurrencyCode, ignoreCase = true)) {
+            return positions
+        }
+
+        val pair = IsoCurrencyPair(from = sourceCurrency.code, to = targetCurrencyCode.uppercase())
+        val fxRequest = FxRequest(rateDate = rateDate).add(pair)
+        val fxResponse = fxService.getRates(fxRequest, tokenService.bearerToken)
+        val rate = fxResponse.data.rates[pair]?.rate
+        if (rate == null) {
+            log.warn(
+                "FX rate not found for {}:{}; returning positions unchanged",
+                sourceCurrency.code,
+                targetCurrencyCode
+            )
+            return positions
+        }
+
+        val targetCurrency = Currency(targetCurrencyCode.uppercase())
+
+        for (position in positions.positions.values) {
+            val original = position.moneyValues[Position.In.PORTFOLIO] ?: continue
+            position.moneyValues[Position.In.PORTFOLIO] =
+                convertMoneyValues(original, targetCurrency, rate)
+        }
+
+        positions.totals[Position.In.PORTFOLIO] =
+            currentTotals.copy(
+                currency = targetCurrency,
+                marketValue = currentTotals.marketValue.multiply(rate),
+                purchases = currentTotals.purchases.multiply(rate),
+                sales = currentTotals.sales.multiply(rate),
+                cash = currentTotals.cash.multiply(rate),
+                income = currentTotals.income.multiply(rate),
+                gain = currentTotals.gain.multiply(rate)
+                // irr is a percentage, not converted
+            )
+
+        return positions
+    }
+
+    private fun convertMoneyValues(
+        original: MoneyValues,
+        targetCurrency: Currency,
+        rate: BigDecimal
+    ): MoneyValues {
+        val converted = MoneyValues(targetCurrency)
+        converted.dividends = original.dividends.multiply(rate)
+        converted.expenses = original.expenses.multiply(rate)
+        converted.costValue = original.costValue.multiply(rate)
+        converted.costBasis = original.costBasis.multiply(rate)
+        converted.fees = original.fees.multiply(rate)
+        converted.purchases = original.purchases.multiply(rate)
+        converted.sales = original.sales.multiply(rate)
+        converted.marketValue = original.marketValue.multiply(rate)
+        converted.averageCost = original.averageCost.multiply(rate)
+        converted.realisedGain = original.realisedGain.multiply(rate)
+        converted.unrealisedGain = original.unrealisedGain.multiply(rate)
+        converted.totalGain = original.totalGain.multiply(rate)
+        converted.gainOnDay = original.gainOnDay.multiply(rate)
+        // Ratios/percentages stay put; priceData describes the asset, not an amount.
+        converted.weight = original.weight
+        converted.irr = original.irr
+        converted.roi = original.roi
+        converted.priceData = original.priceData
+        return converted
     }
 
     companion object {

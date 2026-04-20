@@ -77,6 +77,11 @@ class TokenService(
         return !standardEmail.isNullOrBlank()
     }
 
+    fun getSystemUserId(): String? {
+        val value = jwt.token?.getClaim<String>(authConfig.claimSystemUserId)
+        return if (value.isNullOrBlank()) null else value
+    }
+
     val isServiceToken: Boolean
         get() {
             val scope = jwt.token.getClaimAsString("scope") ?: ""

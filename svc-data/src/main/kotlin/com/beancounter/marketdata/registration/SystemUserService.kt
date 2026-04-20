@@ -103,6 +103,24 @@ class SystemUserService(
         return systemUserCache.find(email, id)
     }
 
+    fun findByExternal(
+        sub: String?,
+        email: String?
+    ): SystemUser? {
+        if (!email.isNullOrBlank()) {
+            val byEmail = systemUserRepository.findByEmail(email).orElse(null)
+            if (byEmail != null) return byEmail
+        }
+        if (!sub.isNullOrBlank()) {
+            return when {
+                sub.startsWith("auth0") -> systemUserRepository.findByAuth0(sub).orElse(null)
+                sub.startsWith("goog") -> systemUserRepository.findByGoogleId(sub).orElse(null)
+                else -> null
+            }
+        }
+        return null
+    }
+
     fun findByEmail(email: String): SystemUser? = systemUserRepository.findByEmail(email).orElse(null)
 
     fun getActiveUser(): SystemUser? = find(tokenService.subject)

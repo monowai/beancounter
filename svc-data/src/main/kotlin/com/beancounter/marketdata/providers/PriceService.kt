@@ -1,5 +1,7 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.contracts.PriceHistoryResponse
+import com.beancounter.common.contracts.PricePoint
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
@@ -292,6 +294,25 @@ class PriceService(
             assets,
             date
         )
+
+    /**
+     * Get the price history for an asset between two dates.
+     * Returns the hydrated asset plus a chronological list of prices
+     * (no repeated asset per row).
+     */
+    @Transactional
+    fun getPriceHistory(
+        assetId: String,
+        from: LocalDate,
+        to: LocalDate
+    ): PriceHistoryResponse {
+        val asset = assetFinder.find(assetId)
+        val prices =
+            marketDataRepo
+                .findPriceHistory(assetId, from, to)
+                .map(PricePoint::from)
+        return PriceHistoryResponse(asset = asset, prices = prices)
+    }
 
     /**
      * Get the most recent market data for an asset on or before the given date.

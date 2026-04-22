@@ -391,7 +391,7 @@ class PortfolioController internal constructor(
         )
         @RequestParam(required = false) asAt: String = dateUtils.today()
     ): PortfoliosResponse =
-        portfolioService.findWhereHeld(
+        portfolioService.findWhereHeldForCaller(
             assetId,
             dateUtils.getFormattedDate(asAt)
         )

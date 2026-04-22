@@ -5,6 +5,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceAsset
+import com.beancounter.common.contracts.PriceHistoryResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
@@ -429,6 +430,56 @@ internal class PriceControllerTests
                 "close",
                 privateMarketPrice.closePrice
             )
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
+        fun is_PriceHistoryReturnedForDateRange() {
+            val from = LocalDate.of(2024, 1, 1)
+            val to = LocalDate.of(2024, 1, 3)
+            val history =
+                listOf(
+                    MarketData(asset, close = BigDecimal("10.00"), priceDate = from),
+                    MarketData(asset, close = BigDecimal("11.00"), priceDate = from.plusDays(1)),
+                    MarketData(asset, close = BigDecimal("12.00"), priceDate = to)
+                )
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(
+                marketDataRepo.findPriceHistory(
+                    asset.id,
+                    from,
+                    to
+                )
+            ).thenReturn(history)
+
+            val json =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .get("/prices/{assetId}/history", asset.id)
+                            .param("from", from.toString())
+                            .param("to", to.toString())
+                            .with(
+                                SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                            ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(
+                        MockMvcResultMatchers.status().isOk
+                    ).andExpect(
+                        MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andReturn()
+                    .response.contentAsString
+            val response = objectMapper.readValue<PriceHistoryResponse>(json)
+            assertThat(response.asset.id).isEqualTo(asset.id)
+            assertThat(response.prices).hasSize(3)
+            val list = response.prices.toList()
+            assertThat(list[0].priceDate).isEqualTo(from)
+            assertThat(list[0].close).isEqualByComparingTo(BigDecimal("10.00"))
+            assertThat(list[2].priceDate).isEqualTo(to)
+            assertThat(list[2].close).isEqualByComparingTo(BigDecimal("12.00"))
         }
 
         @Test

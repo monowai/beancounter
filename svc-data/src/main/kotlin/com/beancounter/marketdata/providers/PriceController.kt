@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.BulkPriceRequest
 import com.beancounter.common.contracts.BulkPriceResponse
 import com.beancounter.common.contracts.OffMarketPriceRequest
+import com.beancounter.common.contracts.PriceHistoryResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.utils.DateUtils
@@ -306,6 +307,26 @@ class PriceController(
         priceRefresh.refreshPrice(
             assetId,
             asAt
+        )
+
+    @GetMapping("/{assetId}/history")
+    @Operation(
+        summary = "Get price history for an asset between two dates",
+        description = """
+            Retrieves daily closing prices for an asset between the supplied dates (inclusive),
+            sorted by price date ascending. DB-only — does not trigger external provider calls.
+            Returns the hydrated asset together with a collection of price points.
+        """
+    )
+    fun getPriceHistory(
+        @PathVariable assetId: String,
+        @RequestParam from: String,
+        @RequestParam(required = false) to: String = TODAY
+    ): PriceHistoryResponse =
+        priceService.getPriceHistory(
+            assetId,
+            dateUtils.getFormattedDate(from),
+            dateUtils.getFormattedDate(to)
         )
 
     @PostMapping("/bulk")

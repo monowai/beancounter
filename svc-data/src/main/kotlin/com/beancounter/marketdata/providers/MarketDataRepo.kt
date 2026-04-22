@@ -47,6 +47,17 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         @Param("dates") dates: Collection<LocalDate>
     ): List<MarketData>
 
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset a " +
+            "WHERE a.id = :assetId AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.priceDate ASC"
+    )
+    fun findPriceHistory(
+        @Param("assetId") assetId: String,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<MarketData>
+
     /**
      * SAFEGUARD: Count market data records for an asset on a specific date
      */

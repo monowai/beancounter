@@ -36,7 +36,11 @@ data class PricePoint(
     val previousClose: BigDecimal = BigDecimal.ZERO,
     val change: BigDecimal = BigDecimal.ZERO,
     val changePercent: BigDecimal = BigDecimal.ZERO,
-    val volume: Int = 0
+    val volume: Int = 0,
+    /** Split ratio applied on this date (1 = no split). Enables split-adjusted charts. */
+    val split: BigDecimal = BigDecimal.ONE,
+    /** Dividend amount per share paid on this date (0 = none). */
+    val dividend: BigDecimal = BigDecimal.ZERO
 ) {
     companion object {
         fun from(md: MarketData): PricePoint =
@@ -49,7 +53,9 @@ data class PricePoint(
                 previousClose = md.previousClose,
                 change = md.change,
                 changePercent = md.changePercent,
-                volume = md.volume
+                volume = md.volume,
+                split = md.split,
+                dividend = md.dividend
             )
     }
 }

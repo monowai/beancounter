@@ -85,7 +85,6 @@ resilience4j:
   retry:
     configs:
       default:
-        maxRetryAttempts: 3
         waitDuration: 10s
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
@@ -97,13 +96,10 @@ resilience4j:
     instances:
       bcData:
         baseConfig: default
-        maxRetryAttempts: 3
       bcEvent:
         baseConfig: default
-        maxRetryAttempts: 3
       bcPosition:
         baseConfig: default
-        maxRetryAttempts: 3
 
 spring:
   application:

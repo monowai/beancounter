@@ -133,40 +133,118 @@ class PriceService(
     }
 
     /**
-     * If previousClose is not provided by the API (zero), calculate it from the previous day's close.
-     * Also calculates change and changePercent when previousClose is derived.
+     * Normalises price fields for the ex-date of a split and derives previousClose when missing.
+     *
+     * Behaviour:
+     *  - Always consults yesterday's stored close so we can detect an ex-date by comparing the
+     *    row's `split` to the previous row's `split` (a different value means this is a genuine
+     *    ex-date; a sticky identical value means the provider kept the flag around).
+     *  - On a genuine ex-date:
+     *      • If the provider's `close` looks unadjusted (> 2× the expected post-split level)
+     *        the OHLC fields are divided by the split to sit on the post-split basis.
+     *      • `previousClose` is rebased onto the post-split basis — whether it was supplied
+     *        by the provider (typically raw, e.g. Alpha) or derived from yesterday's stored
+     *        close. `change` / `changePercent` are recomputed from the adjusted values.
+     *  - Off ex-date, we only fill `previousClose` (and its derivatives) from the prior row
+     *    when the provider didn't supply a value — preserving the provider's own values when
+     *    it did.
+     *
+     * Example: Monday $1000 → Tuesday 25:1 split → close $40 stored, previousClose $40 stored,
+     * change 0, changePercent 0.
      */
     private fun enrichWithPreviousClose(marketData: MarketData): MarketData {
-        if (marketData.previousClose.compareTo(BigDecimal.ZERO) != 0) {
-            // API already provided previousClose, no enrichment needed
-            return marketData
-        }
-
-        // Try to get previous day's close from database
         val previousDayData =
             marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
                 marketData.asset,
                 marketData.priceDate
             )
-
-        if (previousDayData.isPresent) {
-            val previousClose = previousDayData.get().close
-            marketData.previousClose = previousClose
-            marketData.change = marketData.close.subtract(previousClose)
-            if (previousClose.compareTo(BigDecimal.ZERO) != 0) {
-                marketData.changePercent =
-                    marketData.change.divide(previousClose, 6, java.math.RoundingMode.HALF_UP)
-            }
-            log.trace(
-                "Calculated previousClose for {} on {}: {} -> change={}, changePercent={}",
-                marketData.asset.code,
-                marketData.priceDate,
-                previousClose,
-                marketData.change,
-                marketData.changePercent
-            )
+        if (!previousDayData.isPresent) {
+            return marketData
         }
 
+        val split = marketData.split
+        val hasSplit =
+            split.compareTo(BigDecimal.ZERO) > 0 && split.compareTo(BigDecimal.ONE) != 0
+        val previousSplit = previousDayData.get().split
+        // Only treat this row as a split ex-date when the previous day's row did not
+        // already carry the same split factor. Some providers keep the split value
+        // "sticky" on subsequent rows — re-adjusting those rows would divide prices twice.
+        val isSplitExDate = hasSplit && previousSplit.compareTo(split) != 0
+        val providerGavePreviousClose =
+            marketData.previousClose.compareTo(BigDecimal.ZERO) != 0
+
+        // Off an ex-date we respect the provider's values; only derive previousClose when absent.
+        if (!isSplitExDate && providerGavePreviousClose) {
+            return marketData
+        }
+
+        val rawPreviousClose =
+            if (providerGavePreviousClose) {
+                marketData.previousClose
+            } else {
+                previousDayData.get().close
+            }
+
+        if (isSplitExDate) {
+            // Close looks unadjusted when it's more than 2× the expected post-split level
+            // derived from yesterday's raw close. Rebase OHLC onto the post-split basis.
+            val closeLooksUnadjusted =
+                previousDayData.get().close.compareTo(BigDecimal.ZERO) > 0 &&
+                    marketData.close.compareTo(
+                        previousDayData
+                            .get()
+                            .close
+                            .divide(split, 6, java.math.RoundingMode.HALF_UP)
+                            .multiply(BigDecimal("2"))
+                    ) > 0
+            if (closeLooksUnadjusted) {
+                marketData.close =
+                    marketData.close.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                if (marketData.open.compareTo(BigDecimal.ZERO) > 0) {
+                    marketData.open =
+                        marketData.open.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                }
+                if (marketData.high.compareTo(BigDecimal.ZERO) > 0) {
+                    marketData.high =
+                        marketData.high.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                }
+                if (marketData.low.compareTo(BigDecimal.ZERO) > 0) {
+                    marketData.low =
+                        marketData.low.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                }
+            }
+        }
+
+        val splitAdjustedPreviousClose =
+            if (isSplitExDate) {
+                rawPreviousClose.divide(split, 6, java.math.RoundingMode.HALF_UP)
+            } else {
+                rawPreviousClose
+            }
+        marketData.previousClose = splitAdjustedPreviousClose
+        marketData.change = marketData.close.subtract(splitAdjustedPreviousClose)
+        if (splitAdjustedPreviousClose.compareTo(BigDecimal.ZERO) != 0) {
+            marketData.changePercent =
+                marketData.change.divide(
+                    splitAdjustedPreviousClose,
+                    6,
+                    java.math.RoundingMode.HALF_UP
+                )
+        }
+        log.trace(
+            "Enriched price for {} on {} (split={}, prevSplit={}, exDate={}): " +
+                "prevRaw={} prevAdj={} close={} -> change={}, changePercent={}",
+            marketData.asset.code,
+            marketData.priceDate,
+            split,
+            previousSplit,
+            isSplitExDate,
+            rawPreviousClose,
+            splitAdjustedPreviousClose,
+            marketData.close,
+            marketData.change,
+            marketData.changePercent
+        )
         return marketData
     }
 

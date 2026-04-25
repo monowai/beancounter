@@ -166,6 +166,32 @@ class SplitAdjusterTest {
     }
 
     @Test
+    fun `adjusts previousClose on the ex-date row to match the rebased close`() {
+        // The ex-date row's previousClose lives on the previous trading day,
+        // i.e. one event-step earlier than its own close. Provider rows can
+        // store that value either as raw pre-split or already-rebased; in
+        // both cases the response must end up internally consistent so the
+        // computed change / changePercent line up with the adjusted close.
+        val prices =
+            listOf(
+                point("2026-04-20", 308.395),
+                point(
+                    "2026-04-21",
+                    close = 76.625,
+                    split = 4.0,
+                    previousClose = 308.395
+                ),
+                point("2026-04-22", 76.56)
+            )
+
+        val adjusted = SplitAdjuster.adjust(prices)
+
+        // 308.395 / 4 = 77.09875
+        assertThat(adjusted[1].close).isEqualByComparingTo(BigDecimal("76.625"))
+        assertThat(adjusted[1].previousClose).isEqualByComparingTo(BigDecimal("77.09875"))
+    }
+
+    @Test
     fun `dedupes external events that already exist on a price row`() {
         val prices =
             listOf(

@@ -208,6 +208,46 @@ class AlphaCorporateEventEnricherTest {
     }
 
     @Test
+    fun `dividend fallback still fires when same-date event is split-only`() {
+        // If the exact-date event carries only a split, the ±1-day dividend
+        // fallback still has to look for a dividend on the neighbouring day.
+        // Filtering events.data by isDividend() before the fallback prevents
+        // a split-only same-date row from shadowing a real dividend.
+        val globalQuoteMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate,
+                close = BigDecimal("100.00"),
+                source = "ALPHA"
+            )
+
+        val splitOnlyToday =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate,
+                close = BigDecimal("100.00"),
+                split = BigDecimal("2.0"),
+                dividend = BigDecimal.ZERO
+            )
+        val dividendYesterday =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate.minusDays(1),
+                close = BigDecimal("100.00"),
+                split = BigDecimal.ONE,
+                dividend = BigDecimal("0.30")
+            )
+        `when`(alphaEventService.getEvents(asset)).thenReturn(
+            PriceResponse(listOf(splitOnlyToday, dividendYesterday))
+        )
+
+        val enrichedData = enricher.enrich(globalQuoteMarketData)
+
+        assertThat(enrichedData.split).isEqualByComparingTo(BigDecimal("2.0"))
+        assertThat(enrichedData.dividend).isEqualByComparingTo(BigDecimal("0.30"))
+    }
+
+    @Test
     fun `should not stamp split onto day after ex-date (VO regression)`() {
         // VO 4:1 split on 2026-04-21. Refreshing the price for 2026-04-22
         // must NOT carry the split=4 stamp forward, otherwise downstream

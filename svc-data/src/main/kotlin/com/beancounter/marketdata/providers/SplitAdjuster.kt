@@ -72,7 +72,20 @@ object SplitAdjuster {
                 }
             }
             val canonicalSplit = merged[p.priceDate] ?: BigDecimal.ONE
-            if (factor.compareTo(BigDecimal.ONE) == 0 && canonicalSplit == p.split) {
+            // previousClose lives on the previous trading day, so on the
+            // ex-date row it sits one event-step earlier than the current
+            // close. Including canonicalSplit keeps the row's change /
+            // changePercent internally consistent with the rebased close.
+            val previousCloseFactor =
+                if (canonicalSplit.compareTo(BigDecimal.ONE) != 0) {
+                    factor.multiply(canonicalSplit)
+                } else {
+                    factor
+                }
+            if (factor.compareTo(BigDecimal.ONE) == 0 &&
+                previousCloseFactor.compareTo(BigDecimal.ONE) == 0 &&
+                canonicalSplit == p.split
+            ) {
                 p
             } else {
                 p.copy(
@@ -80,7 +93,7 @@ object SplitAdjuster {
                     open = divideIfPositive(p.open, factor),
                     high = divideIfPositive(p.high, factor),
                     low = divideIfPositive(p.low, factor),
-                    previousClose = divideIfPositive(p.previousClose, factor),
+                    previousClose = divideIfPositive(p.previousClose, previousCloseFactor),
                     split = canonicalSplit
                 )
             }

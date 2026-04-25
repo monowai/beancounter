@@ -39,17 +39,25 @@ class AlphaCorporateEventEnricher(
             // onto a neighbouring row leaves the system with two rows carrying
             // the same split value, which downstream chart logic interprets as
             // two ex-dates and double-divides pre-split history.
-            val splitEvent = events.data.find { it.priceDate.isEqual(marketData.priceDate) }
+            val splitEvent =
+                events.data.find {
+                    it.priceDate.isEqual(marketData.priceDate) && isSplit(it)
+                }
 
             // Dividends keep the ±1-day fallback to handle Global Quote vs
             // TIME_SERIES date offsets (pay-date vs ex-date conventions).
+            // Filter to dividend-bearing events first so that a split-only row
+            // on the same day doesn't shadow a dividend that exists ±1 day away.
             val dividendEvent =
-                events.data.find { it.priceDate.isEqual(marketData.priceDate) }
+                events.data.find {
+                    it.priceDate.isEqual(marketData.priceDate) && isDividend(it)
+                }
                     ?: events.data.find {
-                        abs(ChronoUnit.DAYS.between(it.priceDate, marketData.priceDate)) == 1L
+                        isDividend(it) &&
+                            abs(ChronoUnit.DAYS.between(it.priceDate, marketData.priceDate)) == 1L
                     }
 
-            if (dividendEvent != null && isDividend(dividendEvent)) {
+            if (dividendEvent != null) {
                 marketData.dividend = dividendEvent.dividend
                 log.debug(
                     "Enriched {} with dividend {} on {}",
@@ -61,7 +69,7 @@ class AlphaCorporateEventEnricher(
 
             // Note: We do NOT adjust previousClose since GLOBAL_QUOTE already returns
             // split-adjusted values. We only copy the split coefficient metadata.
-            if (splitEvent != null && isSplit(splitEvent)) {
+            if (splitEvent != null) {
                 marketData.split = splitEvent.split
                 log.info(
                     "Enriched {} with split {} on {}",

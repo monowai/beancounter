@@ -5,10 +5,10 @@ orbs:
 
 # Configurable branch patterns for different actions
 # These can be overridden via CircleCI environment variables
-# Default to master if not specified
+# Default to main if not specified
 # Set these in CircleCI project settings:
-# DOCKER_BRANCH_PATTERN=master,/^mike\/.*/
-# COVERAGE_BRANCH_PATTERN=master,/^mike\/.*/
+# DOCKER_BRANCH_PATTERN=main,/^mike\/.*/
+# COVERAGE_BRANCH_PATTERN=main,/^mike\/.*/
 # CODACY_BRANCH_PATTERN=/^codacy.*/
 
 executors:
@@ -166,7 +166,7 @@ jobs:
           paths:
             - .
 
-  # Docker packaging jobs (only for master branch)
+  # Docker packaging jobs (only for main branch)
   package-shell:
     executor: java-build
     environment:
@@ -442,7 +442,7 @@ jobs:
 
             echo "✅ bc-agent image built and pushed successfully"
 
-  # Security scanning - runs only on master to save time on feature branches
+  # Security scanning - runs only on main to save time on feature branches
   security-scan:
     executor: java-build
     steps:
@@ -510,7 +510,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -518,7 +518,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -526,7 +526,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -534,7 +534,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -542,7 +542,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -552,7 +552,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
                 - /^codacy.*/
           requires:
@@ -563,16 +563,16 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
 
-      # Security scanning (master only - runs concurrently with other jobs)
+      # Security scanning (main only - runs concurrently with other jobs)
       - security-scan:
           filters:
             branches:
               only:
-                - master
+                - main
           requires:
             - build-and-test

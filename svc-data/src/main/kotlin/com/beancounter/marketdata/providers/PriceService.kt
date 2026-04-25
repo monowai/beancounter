@@ -385,11 +385,14 @@ class PriceService(
         to: LocalDate
     ): PriceHistoryResponse {
         val asset = assetFinder.find(assetId)
-        val prices =
+        val rawPrices =
             marketDataRepo
                 .findPriceHistory(assetId, from, to)
                 .map(PricePoint::from)
-        return PriceHistoryResponse(asset = asset, prices = prices)
+        return PriceHistoryResponse(
+            asset = asset,
+            prices = SplitAdjuster.adjust(rawPrices)
+        )
     }
 
     /**

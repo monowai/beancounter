@@ -145,19 +145,21 @@ class AlphaCorporateEventEnricherTest {
     }
 
     @Test
-    fun `should match event within 1-day window when no exact match exists`() {
-        // Given: A Global Quote MarketData for today
+    fun `should NOT enrich split from adjacent day - splits must match exact ex-date`() {
+        // Splits MUST match the ex-date exactly. Stamping the split coefficient
+        // onto a neighbouring row leaves the system with two rows carrying the
+        // same split, which downstream chart logic interprets as two ex-dates
+        // and double-divides pre-split history.
         val globalQuoteMarketData =
             MarketData(
                 asset = asset,
                 priceDate = priceDate,
                 close = BigDecimal("100.00"),
-                previousClose = BigDecimal("200.00"),
-                change = BigDecimal("-100.00"),
+                previousClose = BigDecimal("100.00"),
+                change = BigDecimal("0.00"),
                 source = "ALPHA"
             )
 
-        // And: A split exists for yesterday (within +/-1 day window)
         val yesterdayEvent =
             MarketData(
                 asset = asset,
@@ -170,11 +172,73 @@ class AlphaCorporateEventEnricherTest {
             PriceResponse(listOf(yesterdayEvent))
         )
 
-        // When: Enriching the Global Quote data
         val enrichedData = enricher.enrich(globalQuoteMarketData)
 
-        // Then: The split should be enriched from the adjacent-day event
-        assertThat(enrichedData.split).isEqualByComparingTo(BigDecimal("2.0"))
+        assertThat(enrichedData.split).isEqualByComparingTo(BigDecimal.ONE)
+    }
+
+    @Test
+    fun `should still enrich dividend from adjacent day`() {
+        // Dividends keep the ±1-day fallback to handle Global Quote vs
+        // TIME_SERIES date offsets (pay-date vs ex-date conventions).
+        val globalQuoteMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate,
+                close = BigDecimal("100.00"),
+                source = "ALPHA"
+            )
+
+        val yesterdayEvent =
+            MarketData(
+                asset = asset,
+                priceDate = priceDate.minusDays(1),
+                close = BigDecimal("100.00"),
+                split = BigDecimal.ONE,
+                dividend = BigDecimal("0.40")
+            )
+        `when`(alphaEventService.getEvents(asset)).thenReturn(
+            PriceResponse(listOf(yesterdayEvent))
+        )
+
+        val enrichedData = enricher.enrich(globalQuoteMarketData)
+
+        assertThat(enrichedData.dividend).isEqualByComparingTo(BigDecimal("0.40"))
+        assertThat(enrichedData.split).isEqualByComparingTo(BigDecimal.ONE)
+    }
+
+    @Test
+    fun `should not stamp split onto day after ex-date (VO regression)`() {
+        // VO 4:1 split on 2026-04-21. Refreshing the price for 2026-04-22
+        // must NOT carry the split=4 stamp forward, otherwise downstream
+        // chart logic sees two ex-dates and double-divides earlier history.
+        val voAsset = Asset(id = "vo-id", code = "VO", market = market)
+        val exDate = LocalDate.of(2026, 4, 21)
+        val dayAfter = LocalDate.of(2026, 4, 22)
+
+        val dayAfterQuote =
+            MarketData(
+                asset = voAsset,
+                priceDate = dayAfter,
+                close = BigDecimal("76.56"),
+                source = "ALPHA"
+            )
+
+        val splitEventOnExDate =
+            MarketData(
+                asset = voAsset,
+                priceDate = exDate,
+                close = BigDecimal("76.625"),
+                split = BigDecimal("4.0"),
+                dividend = BigDecimal.ZERO
+            )
+        `when`(alphaEventService.getEvents(voAsset)).thenReturn(
+            PriceResponse(listOf(splitEventOnExDate))
+        )
+
+        val enrichedData = enricher.enrich(dayAfterQuote)
+
+        assertThat(enrichedData.split).isEqualByComparingTo(BigDecimal.ONE)
     }
 
     @Test

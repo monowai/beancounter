@@ -35,41 +35,44 @@ class AlphaCorporateEventEnricher(
         try {
             val events = alphaEventService.getEvents(marketData.asset)
 
-            // Prefer exact date match; fall back to +/-1 day to handle
-            // edge cases where Global Quote and TIME_SERIES dates are slightly offset
-            val eventForDate =
+            // Splits MUST match the ex-date exactly. Stamping a split coefficient
+            // onto a neighbouring row leaves the system with two rows carrying
+            // the same split value, which downstream chart logic interprets as
+            // two ex-dates and double-divides pre-split history.
+            val splitEvent = events.data.find { it.priceDate.isEqual(marketData.priceDate) }
+
+            // Dividends keep the ±1-day fallback to handle Global Quote vs
+            // TIME_SERIES date offsets (pay-date vs ex-date conventions).
+            val dividendEvent =
                 events.data.find { it.priceDate.isEqual(marketData.priceDate) }
                     ?: events.data.find {
                         abs(ChronoUnit.DAYS.between(it.priceDate, marketData.priceDate)) == 1L
                     }
 
-            if (eventForDate == null) {
-                log.trace("No corporate event found for {} on {}", marketData.asset.code, marketData.priceDate)
-                return marketData
-            }
-
-            // Enrich with dividend if present
-            if (isDividend(eventForDate)) {
-                marketData.dividend = eventForDate.dividend
+            if (dividendEvent != null && isDividend(dividendEvent)) {
+                marketData.dividend = dividendEvent.dividend
                 log.debug(
                     "Enriched {} with dividend {} on {}",
                     marketData.asset.code,
-                    eventForDate.dividend,
+                    dividendEvent.dividend,
                     marketData.priceDate
                 )
             }
 
-            // Enrich with split if present
             // Note: We do NOT adjust previousClose since GLOBAL_QUOTE already returns
             // split-adjusted values. We only copy the split coefficient metadata.
-            if (isSplit(eventForDate)) {
-                marketData.split = eventForDate.split
+            if (splitEvent != null && isSplit(splitEvent)) {
+                marketData.split = splitEvent.split
                 log.info(
                     "Enriched {} with split {} on {}",
                     marketData.asset.code,
-                    eventForDate.split,
+                    splitEvent.split,
                     marketData.priceDate
                 )
+            }
+
+            if (splitEvent == null && dividendEvent == null) {
+                log.trace("No corporate event found for {} on {}", marketData.asset.code, marketData.priceDate)
             }
 
             return marketData

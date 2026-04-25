@@ -198,6 +198,10 @@ To switch from RabbitMQ to Kafka:
   prices, not historical backfill
 - `AssetCategory` constructor requires both `id` and `name` parameters (e.g.,
   `AssetCategory("cash", "Cash")`)
+- **Stock splits**: see [SPLITS.md](SPLITS.md) before adding a new market-data provider —
+  spec covers how `SplitAdjuster` rebases history, where event metadata comes from, and the
+  invariants every adapter must hold (raw OHLC in DB, exact-date split match, single ex-date
+  marker per event)
 
 ## Local Service Ports
 

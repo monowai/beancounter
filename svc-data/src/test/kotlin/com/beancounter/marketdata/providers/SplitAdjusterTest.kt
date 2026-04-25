@@ -202,6 +202,30 @@ class SplitAdjusterTest {
     }
 
     @Test
+    fun `does not re-divide previousClose that is already rebased`() {
+        // svc-data's enrichWithPreviousClose rebases previousClose on the
+        // ex-date row when persisting the daily refresh. SplitAdjuster must
+        // recognise that the input is already on the post-split basis and
+        // leave it untouched, otherwise it would double-divide and the
+        // chart's change / changePercent would diverge from reality.
+        val rebasedPreviousClose = 308.395 / 4
+        val prices =
+            listOf(
+                point(
+                    date20260421,
+                    close = 76.625,
+                    split = 4.0,
+                    previousClose = rebasedPreviousClose
+                )
+            )
+
+        val adjusted = SplitAdjuster.adjust(prices)
+
+        assertThat(adjusted[0].previousClose)
+            .isEqualByComparingTo(BigDecimal.valueOf(rebasedPreviousClose))
+    }
+
+    @Test
     fun `dedupes external events that already exist on a price row`() {
         val prices =
             listOf(

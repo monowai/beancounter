@@ -72,16 +72,15 @@ object SplitAdjuster {
                 }
             }
             val canonicalSplit = merged[p.priceDate] ?: BigDecimal.ONE
-            // previousClose lives on the previous trading day, so on the
-            // ex-date row it sits one event-step earlier than the current
-            // close. Including canonicalSplit keeps the row's change /
-            // changePercent internally consistent with the rebased close.
+            // previousClose on the ex-date row lives on the previous trading
+            // day. Some upstream paths leave it raw pre-split (so it needs
+            // dividing by canonicalSplit to land on the rebased basis); others
+            // (svc-data's enrichWithPreviousClose) already rebase it. We
+            // distinguish by magnitude: if it sits at roughly the raw
+            // pre-split level (≥ half of close × canonicalSplit) treat it as
+            // raw, otherwise leave it alone.
             val previousCloseFactor =
-                if (canonicalSplit.compareTo(BigDecimal.ONE) != 0) {
-                    factor.multiply(canonicalSplit)
-                } else {
-                    factor
-                }
+                resolvePreviousCloseFactor(p, factor, canonicalSplit)
             if (factor.compareTo(BigDecimal.ONE) == 0 &&
                 previousCloseFactor.compareTo(BigDecimal.ONE) == 0 &&
                 canonicalSplit == p.split
@@ -97,6 +96,26 @@ object SplitAdjuster {
                     split = canonicalSplit
                 )
             }
+        }
+    }
+
+    private fun resolvePreviousCloseFactor(
+        p: PricePoint,
+        factor: BigDecimal,
+        canonicalSplit: BigDecimal
+    ): BigDecimal {
+        if (canonicalSplit.compareTo(BigDecimal.ONE) == 0) {
+            return factor
+        }
+        if (p.previousClose.signum() == 0 || p.close.signum() == 0) {
+            return factor
+        }
+        val rawTarget = p.close.multiply(canonicalSplit)
+        val halfRawTarget = rawTarget.divide(BigDecimal("2"), SCALE, ROUNDING)
+        return if (p.previousClose.compareTo(halfRawTarget) >= 0) {
+            factor.multiply(canonicalSplit)
+        } else {
+            factor
         }
     }
 

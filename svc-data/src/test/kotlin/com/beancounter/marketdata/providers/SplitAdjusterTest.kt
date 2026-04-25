@@ -6,28 +6,43 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
+@Suppress("TooManyFunctions")
 class SplitAdjusterTest {
+    private val date20260101 = LocalDate.parse("2026-01-01")
+    private val date20260201 = LocalDate.parse("2026-02-01")
+    private val date20260215 = LocalDate.parse("2026-02-15")
+    private val date20260301 = LocalDate.parse("2026-03-01")
+    private val date20260302 = LocalDate.parse("2026-03-02")
+    private val date20260401 = LocalDate.parse("2026-04-01")
+    private val date20260402 = LocalDate.parse("2026-04-02")
+    private val date20260403 = LocalDate.parse("2026-04-03")
+    private val date20260406 = LocalDate.parse("2026-04-06")
+    private val date20260407 = LocalDate.parse("2026-04-07")
+    private val date20260415 = LocalDate.parse("2026-04-15")
+    private val date20260417 = LocalDate.parse("2026-04-17")
+    private val date20260420 = LocalDate.parse("2026-04-20")
+    private val date20260421 = LocalDate.parse("2026-04-21")
+    private val date20260422 = LocalDate.parse("2026-04-22")
+    private val date20260423 = LocalDate.parse("2026-04-23")
+    private val date20260424 = LocalDate.parse("2026-04-24")
+
+    private fun bd(v: Double) = BigDecimal.valueOf(v)
+
     private fun point(
-        date: String,
+        date: LocalDate,
         close: Double,
         split: Double = 1.0,
-        previousClose: Double = 0.0,
-        open: Double = 0.0,
-        high: Double = 0.0,
-        low: Double = 0.0
+        previousClose: Double = 0.0
     ) = PricePoint(
-        priceDate = LocalDate.parse(date),
-        close = BigDecimal.valueOf(close),
-        open = BigDecimal.valueOf(open),
-        high = BigDecimal.valueOf(high),
-        low = BigDecimal.valueOf(low),
-        previousClose = BigDecimal.valueOf(previousClose),
-        split = BigDecimal.valueOf(split)
+        priceDate = date,
+        close = bd(close),
+        previousClose = bd(previousClose),
+        split = bd(split)
     )
 
     @Test
     fun `passes through when no splits exist`() {
-        val prices = listOf(point("2026-04-01", 100.0), point("2026-04-02", 101.0))
+        val prices = listOf(point(date20260401, 100.0), point(date20260402, 101.0))
         val adjusted = SplitAdjuster.adjust(prices)
         assertThat(adjusted).isEqualTo(prices)
     }
@@ -36,9 +51,9 @@ class SplitAdjusterTest {
     fun `divides pre-split rows by the ex-date factor`() {
         val prices =
             listOf(
-                point("2026-04-03", 5000.0),
-                point("2026-04-06", 200.0, split = 25.0),
-                point("2026-04-07", 205.0)
+                point(date20260403, 5000.0),
+                point(date20260406, 200.0, split = 25.0),
+                point(date20260407, 205.0)
             )
         val adjusted = SplitAdjuster.adjust(prices)
         assertThat(adjusted[0].close).isEqualByComparingTo(BigDecimal("200"))
@@ -53,11 +68,11 @@ class SplitAdjusterTest {
         // stamp into one ex-date event so pre-event rows are divided once.
         val prices =
             listOf(
-                point("2026-04-20", 308.395),
-                point("2026-04-21", 76.625, split = 4.0),
-                point("2026-04-22", 76.56, split = 4.0),
-                point("2026-04-23", 76.825),
-                point("2026-04-24", 76.71)
+                point(date20260420, 308.395),
+                point(date20260421, 76.625, split = 4.0),
+                point(date20260422, 76.56, split = 4.0),
+                point(date20260423, 76.825),
+                point(date20260424, 76.71)
             )
 
         val adjusted = SplitAdjuster.adjust(prices)
@@ -78,11 +93,11 @@ class SplitAdjusterTest {
     fun `compounds factors across multiple split events`() {
         val prices =
             listOf(
-                point("2026-01-01", 1000.0),
-                point("2026-02-01", 500.0, split = 2.0),
-                point("2026-02-15", 510.0),
-                point("2026-03-01", 102.0, split = 5.0),
-                point("2026-03-02", 103.0)
+                point(date20260101, 1000.0),
+                point(date20260201, 500.0, split = 2.0),
+                point(date20260215, 510.0),
+                point(date20260301, 102.0, split = 5.0),
+                point(date20260302, 103.0)
             )
         val adjusted = SplitAdjuster.adjust(prices)
         // First row sees both events: 1000 / (2 * 5) = 100
@@ -97,19 +112,19 @@ class SplitAdjusterTest {
 
     @Test
     fun `also adjusts open high low and previousClose`() {
-        val prices =
-            listOf(
-                point(
-                    "2026-04-03",
-                    close = 5000.0,
-                    open = 4900.0,
-                    high = 5100.0,
-                    low = 4800.0,
-                    previousClose = 4950.0
-                ),
-                point("2026-04-06", 200.0, split = 25.0)
+        val preSplit =
+            PricePoint(
+                priceDate = date20260403,
+                close = bd(5000.0),
+                open = bd(4900.0),
+                high = bd(5100.0),
+                low = bd(4800.0),
+                previousClose = bd(4950.0)
             )
-        val adjusted = SplitAdjuster.adjust(prices)
+        val adjusted =
+            SplitAdjuster.adjust(
+                listOf(preSplit, point(date20260406, 200.0, split = 25.0))
+            )
         assertThat(adjusted[0].open).isEqualByComparingTo(BigDecimal("196"))
         assertThat(adjusted[0].high).isEqualByComparingTo(BigDecimal("204"))
         assertThat(adjusted[0].low).isEqualByComparingTo(BigDecimal("192"))
@@ -120,8 +135,8 @@ class SplitAdjusterTest {
     fun `leaves zero-valued OHLC fields alone`() {
         val prices =
             listOf(
-                point("2026-04-03", close = 5000.0), // open/high/low default 0
-                point("2026-04-06", 200.0, split = 25.0)
+                point(date20260403, close = 5000.0), // open/high/low default 0
+                point(date20260406, 200.0, split = 25.0)
             )
         val adjusted = SplitAdjuster.adjust(prices)
         assertThat(adjusted[0].open).isEqualByComparingTo(BigDecimal.ZERO)
@@ -142,18 +157,13 @@ class SplitAdjusterTest {
         // rows correctly.
         val prices =
             listOf(
-                point("2026-04-15", 301.91),
-                point("2026-04-17", 307.08),
-                point("2026-04-20", 308.44),
-                point("2026-04-24", 76.73)
+                point(date20260415, 301.91),
+                point(date20260417, 307.08),
+                point(date20260420, 308.44),
+                point(date20260424, 76.73)
             )
         val events =
-            listOf(
-                SplitAdjuster.SplitEvent(
-                    LocalDate.parse("2026-04-21"),
-                    BigDecimal("4")
-                )
-            )
+            listOf(SplitAdjuster.SplitEvent(date20260421, BigDecimal("4")))
 
         val adjusted = SplitAdjuster.adjust(prices, events)
 
@@ -174,14 +184,14 @@ class SplitAdjusterTest {
         // computed change / changePercent line up with the adjusted close.
         val prices =
             listOf(
-                point("2026-04-20", 308.395),
+                point(date20260420, 308.395),
                 point(
-                    "2026-04-21",
+                    date20260421,
                     close = 76.625,
                     split = 4.0,
                     previousClose = 308.395
                 ),
-                point("2026-04-22", 76.56)
+                point(date20260422, 76.56)
             )
 
         val adjusted = SplitAdjuster.adjust(prices)
@@ -195,17 +205,12 @@ class SplitAdjusterTest {
     fun `dedupes external events that already exist on a price row`() {
         val prices =
             listOf(
-                point("2026-04-03", 5000.0),
-                point("2026-04-06", 200.0, split = 25.0),
-                point("2026-04-07", 205.0)
+                point(date20260403, 5000.0),
+                point(date20260406, 200.0, split = 25.0),
+                point(date20260407, 205.0)
             )
         val events =
-            listOf(
-                SplitAdjuster.SplitEvent(
-                    LocalDate.parse("2026-04-06"),
-                    BigDecimal("25")
-                )
-            )
+            listOf(SplitAdjuster.SplitEvent(date20260406, BigDecimal("25")))
 
         val adjusted = SplitAdjuster.adjust(prices, events)
 

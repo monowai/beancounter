@@ -3,68 +3,76 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PricePoint
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 
 /**
  * Rebases a chronological list of [PricePoint]s onto the most recent
  * post-split share basis.
  *
- * Provider data carries the split coefficient on the ex-date row (and
- * occasionally on a sticky neighbour — Alpha Vantage's ±1-day enricher
- * fallback was a known source of this). Pre-event rows store raw
- * pre-split prices; ex-date and post-event rows store adjusted prices.
- *
- * The frontend used to perform this rebasing itself, which left the
- * adjustment scattered across each consumer and at risk of double-
- * dividing when stale stamps lingered on more than one row. Doing it
- * once here means every caller gets clean, charting-ready data.
+ * Two sources of split metadata are honoured:
+ *  1. The `split` column on individual price rows (set by the price-refresh
+ *     enricher when a Global Quote lands on the ex-date).
+ *  2. An explicit list of [SplitEvent]s. This covers the case where the
+ *     historical backfill never captured a split (Alpha Vantage's
+ *     TIME_SERIES_DAILY does not carry split coefficients), so the database
+ *     has nothing but raw pre-split closes for the days leading up to a
+ *     known corporate action.
  *
  * Algorithm:
- *  - Walk forward and identify ex-dates as rows where `split != 1` and
- *    the previous row's `split == 1`. Consecutive non-1 rows belong to
- *    the same event (sticky stamps) so only the first counts.
- *  - For each ex-date event, divide every OHLC + previousClose value
- *    on every row strictly before the event index by the event's split
- *    factor. Multiple events compound.
- *  - Normalise the `split` column so only the canonical ex-date keeps
- *    its non-1 value; sticky neighbours are reset to 1 to give the
- *    chart a single split marker.
+ *  - Build a unified set of ex-dates from the column transitions
+ *    (split=1 → split!=1 collapses sticky stamps so each event counts once)
+ *    and any externally-supplied events.
+ *  - For each price row, divide every OHLC + previousClose value by the
+ *    product of every event factor whose date strictly follows the row.
+ *  - Normalise the `split` column on the response so only the canonical
+ *    ex-date row carries a non-1 marker — sticky neighbours go back to 1
+ *    and rows without an ex-date stamp keep 1.
  */
 object SplitAdjuster {
     private const val SCALE = 6
     private val ROUNDING = RoundingMode.HALF_UP
 
-    fun adjust(prices: List<PricePoint>): List<PricePoint> {
+    data class SplitEvent(
+        val date: LocalDate,
+        val factor: BigDecimal
+    )
+
+    fun adjust(
+        prices: List<PricePoint>,
+        events: List<SplitEvent> = emptyList()
+    ): List<PricePoint> {
         if (prices.isEmpty()) return prices
 
-        data class SplitEvent(
-            val firstIdx: Int,
-            val factor: BigDecimal
-        )
+        val merged = mutableMapOf<LocalDate, BigDecimal>()
 
-        val events = mutableListOf<SplitEvent>()
+        for (ev in events) {
+            if (ev.factor.compareTo(BigDecimal.ONE) != 0 && ev.factor.signum() > 0) {
+                merged.putIfAbsent(ev.date, ev.factor)
+            }
+        }
         for (i in prices.indices) {
             val cur = prices[i].split
             val prev = if (i > 0) prices[i - 1].split else BigDecimal.ONE
             val curIsSplit = cur.compareTo(BigDecimal.ONE) != 0 && cur.signum() > 0
             val prevIsFlat = prev.compareTo(BigDecimal.ONE) == 0
             if (curIsSplit && prevIsFlat) {
-                events.add(SplitEvent(i, cur))
+                merged.putIfAbsent(prices[i].priceDate, cur)
             }
         }
-        if (events.isEmpty()) return prices
 
-        return prices.mapIndexed { i, p ->
+        if (merged.isEmpty()) return prices
+
+        val sortedEvents = merged.entries.sortedBy { it.key }
+
+        return prices.map { p ->
             var factor = BigDecimal.ONE
-            for (ev in events) {
-                if (i < ev.firstIdx) factor = factor.multiply(ev.factor)
-            }
-            val normalisedSplit =
-                if (events.any { it.firstIdx == i }) {
-                    p.split
-                } else {
-                    BigDecimal.ONE
+            for ((date, eventFactor) in sortedEvents) {
+                if (date.isAfter(p.priceDate)) {
+                    factor = factor.multiply(eventFactor)
                 }
-            if (factor.compareTo(BigDecimal.ONE) == 0 && normalisedSplit == p.split) {
+            }
+            val canonicalSplit = merged[p.priceDate] ?: BigDecimal.ONE
+            if (factor.compareTo(BigDecimal.ONE) == 0 && canonicalSplit == p.split) {
                 p
             } else {
                 p.copy(
@@ -73,7 +81,7 @@ object SplitAdjuster {
                     high = divideIfPositive(p.high, factor),
                     low = divideIfPositive(p.low, factor),
                     previousClose = divideIfPositive(p.previousClose, factor),
-                    split = normalisedSplit
+                    split = canonicalSplit
                 )
             }
         }

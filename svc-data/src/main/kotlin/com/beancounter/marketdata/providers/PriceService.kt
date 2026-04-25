@@ -12,6 +12,7 @@ import com.beancounter.common.utils.TestEnvironmentUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
+import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -33,6 +34,12 @@ class PriceService(
     private val log = LoggerFactory.getLogger(PriceService::class.java)
     private var eventProducer: EventProducer? = null
     private var cacheInvalidationProducer: CacheInvalidationProducer? = null
+    private var alphaEventService: AlphaEventService? = null
+
+    @Autowired(required = false)
+    fun setAlphaEventService(alphaEventService: AlphaEventService?) {
+        this.alphaEventService = alphaEventService
+    }
 
     @Autowired(required = false)
     fun setEventWriter(eventProducer: EventProducer?) {
@@ -389,10 +396,49 @@ class PriceService(
             marketDataRepo
                 .findPriceHistory(assetId, from, to)
                 .map(PricePoint::from)
+        val splitEvents = collectSplitEvents(asset, from, to)
         return PriceHistoryResponse(
             asset = asset,
-            prices = SplitAdjuster.adjust(rawPrices)
+            prices = SplitAdjuster.adjust(rawPrices, splitEvents)
         )
+    }
+
+    /**
+     * Pulls known split events for the asset within the requested range.
+     *
+     * The historical backfill via Alpha's TIME_SERIES_DAILY does not carry
+     * split coefficients, so the database can hold raw pre-split closes
+     * with split=1 across the board. AlphaEventService (cached) returns
+     * splits sourced from TIME_SERIES_DAILY_ADJUSTED which contains the
+     * coefficients on each ex-date. Without this, [SplitAdjuster] would
+     * have nothing to detect when the price rows themselves are bare.
+     */
+    private fun collectSplitEvents(
+        asset: Asset,
+        from: LocalDate,
+        to: LocalDate
+    ): List<SplitAdjuster.SplitEvent> {
+        val service = alphaEventService ?: return emptyList()
+        return try {
+            service
+                .getEvents(asset)
+                .data
+                .asSequence()
+                .filter(::isSplit)
+                .filter { !it.priceDate.isBefore(from) && !it.priceDate.isAfter(to) }
+                .map { SplitAdjuster.SplitEvent(it.priceDate, it.split) }
+                .toList()
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn(
+                "Failed to load split events for {}: {}",
+                asset.code,
+                e.message
+            )
+            emptyList()
+        }
     }
 
     /**

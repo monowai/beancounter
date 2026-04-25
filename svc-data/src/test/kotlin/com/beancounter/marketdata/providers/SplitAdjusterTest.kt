@@ -133,4 +133,59 @@ class SplitAdjusterTest {
     fun `empty input returns empty`() {
         assertThat(SplitAdjuster.adjust(emptyList())).isEmpty()
     }
+
+    @Test
+    fun `applies external split events when price rows lack the marker`() {
+        // Local DB backfilled via TIME_SERIES_DAILY has split=1 across the
+        // board even when a split happened. AlphaEventService supplies the
+        // ex-date out-of-band so SplitAdjuster can still rebase pre-event
+        // rows correctly.
+        val prices =
+            listOf(
+                point("2026-04-15", 301.91),
+                point("2026-04-17", 307.08),
+                point("2026-04-20", 308.44),
+                point("2026-04-24", 76.73)
+            )
+        val events =
+            listOf(
+                SplitAdjuster.SplitEvent(
+                    LocalDate.parse("2026-04-21"),
+                    BigDecimal("4")
+                )
+            )
+
+        val adjusted = SplitAdjuster.adjust(prices, events)
+
+        // Pre-event rows divided by 4
+        assertThat(adjusted[0].close).isEqualByComparingTo(BigDecimal("75.4775"))
+        assertThat(adjusted[1].close).isEqualByComparingTo(BigDecimal("76.77"))
+        assertThat(adjusted[2].close).isEqualByComparingTo(BigDecimal("77.11"))
+        // Post-event row untouched
+        assertThat(adjusted[3].close).isEqualByComparingTo(BigDecimal("76.73"))
+    }
+
+    @Test
+    fun `dedupes external events that already exist on a price row`() {
+        val prices =
+            listOf(
+                point("2026-04-03", 5000.0),
+                point("2026-04-06", 200.0, split = 25.0),
+                point("2026-04-07", 205.0)
+            )
+        val events =
+            listOf(
+                SplitAdjuster.SplitEvent(
+                    LocalDate.parse("2026-04-06"),
+                    BigDecimal("25")
+                )
+            )
+
+        val adjusted = SplitAdjuster.adjust(prices, events)
+
+        // Same as the no-events case — dedupe avoided a double-divide.
+        assertThat(adjusted[0].close).isEqualByComparingTo(BigDecimal("200"))
+        assertThat(adjusted[1].close).isEqualByComparingTo(BigDecimal("200"))
+        assertThat(adjusted[2].close).isEqualByComparingTo(BigDecimal("205"))
+    }
 }

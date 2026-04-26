@@ -114,12 +114,12 @@ class TrnController(
         @Parameter(
             description = "Date to retrieve transactions for (YYYY-MM-DD format)",
             example = "2024-01-15"
-        ) @RequestParam(required = false) asAt: String = dateUtils.today()
+        ) @RequestParam(required = false) asAt: String? = null
     ): TrnResponse =
         TrnResponse(
             trnService.findForPortfolio(
                 portfolioId,
-                dateUtils.getFormattedDate(asAt)
+                dateUtils.getFormattedDate(asAt ?: dateUtils.today())
             )
         )
 

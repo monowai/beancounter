@@ -389,11 +389,11 @@ class PortfolioController internal constructor(
             description = "Trade date (YYYY-MM-DD format)",
             example = "2024-01-15"
         )
-        @RequestParam(required = false) asAt: String = dateUtils.today()
+        @RequestParam(required = false) asAt: String? = null
     ): PortfoliosResponse =
         portfolioService.findWhereHeldForCaller(
             assetId,
-            dateUtils.getFormattedDate(asAt)
+            dateUtils.getFormattedDate(asAt ?: dateUtils.today())
         )
 
     @GetMapping(

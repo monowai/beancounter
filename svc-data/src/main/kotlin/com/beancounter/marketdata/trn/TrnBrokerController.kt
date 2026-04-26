@@ -104,12 +104,12 @@ class TrnBrokerController(
         @Parameter(
             description = "Date to retrieve transactions for (YYYY-MM-DD format)",
             example = "2024-01-15"
-        ) @RequestParam(required = false) asAt: String = dateUtils.today()
+        ) @RequestParam(required = false) asAt: String? = null
     ): TrnResponse =
         TrnResponse(
             trnBrokerService.findForBroker(
                 brokerId,
-                dateUtils.getFormattedDate(asAt)
+                dateUtils.getFormattedDate(asAt ?: dateUtils.today())
             )
         )
 }

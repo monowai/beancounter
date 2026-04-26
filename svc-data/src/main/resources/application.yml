@@ -423,7 +423,7 @@ beancounter:
       mstack:
         url: https://api.marketstack.com
         batchSize: 10
-        markets: "NZX,SGX"
+        markets: "NZX,SGX,ASX"
 
       private:
         batchSize: 1

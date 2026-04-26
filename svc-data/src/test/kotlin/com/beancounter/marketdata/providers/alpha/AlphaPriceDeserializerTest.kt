@@ -61,7 +61,7 @@ class AlphaPriceDeserializerTest {
         assertEquals(BigDecimal("6.0600"), marketData.change)
         assertEquals(BigDecimal("0.013450"), marketData.changePercent) // 1.3450% as decimal
         assertEquals(1000000, marketData.volume)
-        assertEquals("ALPHA", marketData.source)
+        assertEquals(AlphaPriceService.ID, marketData.source)
     }
 
     @Test
@@ -102,7 +102,7 @@ class AlphaPriceDeserializerTest {
         assertEquals(BigDecimal("0.0000"), marketData.change)
         assertEquals(BigDecimal.ZERO, marketData.changePercent)
         assertEquals(1000000, marketData.volume)
-        assertEquals("ALPHA", marketData.source)
+        assertEquals(AlphaPriceService.ID, marketData.source)
     }
 
     @Test
@@ -143,7 +143,7 @@ class AlphaPriceDeserializerTest {
         assertEquals(BigDecimal("-5.0000"), marketData.change)
         assertEquals(BigDecimal("-0.011111"), marketData.changePercent) // -1.1111% as decimal
         assertEquals(1000000, marketData.volume)
-        assertEquals("ALPHA", marketData.source)
+        assertEquals(AlphaPriceService.ID, marketData.source)
     }
 
     @Test

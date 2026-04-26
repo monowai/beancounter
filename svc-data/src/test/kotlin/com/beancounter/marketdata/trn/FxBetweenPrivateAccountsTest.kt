@@ -9,6 +9,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.Constants.Companion.PRIVATE
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetFinder
@@ -48,7 +49,7 @@ class FxBetweenPrivateAccountsTest {
     private val owner = SystemUser(id = ownerId)
     private val portfolio = Portfolio(id = "portfolio-1", code = "SGD", owner = owner, currency = SGD)
 
-    private val privateMarket = Market(code = "PRIVATE", currency = USD)
+    private val privateMarket = Market(code = PRIVATE, currency = USD)
 
     // Bank account assets with owner prefix in code (as stored in DB)
     private val scbUsdCode = "$ownerId.SCB-USD"
@@ -60,7 +61,7 @@ class FxBetweenPrivateAccountsTest {
             code = scbUsdCode,
             name = "SCB USD Account",
             market = privateMarket,
-            marketCode = "PRIVATE",
+            marketCode = PRIVATE,
             priceSymbol = USD.code,
             category = "ACCOUNT",
             assetCategory = AssetCategory("ACCOUNT", "Bank Account"),
@@ -73,7 +74,7 @@ class FxBetweenPrivateAccountsTest {
             code = scbSgdCode,
             name = "SCB SGD Account",
             market = privateMarket,
-            marketCode = "PRIVATE",
+            marketCode = PRIVATE,
             priceSymbol = SGD.code,
             category = "ACCOUNT",
             assetCategory = AssetCategory("ACCOUNT", "Bank Account"),
@@ -99,7 +100,7 @@ class FxBetweenPrivateAccountsTest {
             .`when`(
                 ais.resolveAsset(
                     AssetInput(
-                        market = "PRIVATE",
+                        market = PRIVATE,
                         code = scbUsdCode, // Full code with owner prefix
                         name = "",
                         owner = ownerId
@@ -116,7 +117,7 @@ class FxBetweenPrivateAccountsTest {
                 "20260121", // Batch
                 "", // CallerId
                 "FX_BUY", // Type - Buy USD
-                "PRIVATE", // Market
+                PRIVATE, // Market
                 scbUsdCode, // Code - the USD account (with owner prefix)
                 "", // Name
                 "", // CashAccount (settlement account)
@@ -159,7 +160,7 @@ class FxBetweenPrivateAccountsTest {
             .`when`(
                 ais.resolveAsset(
                     AssetInput(
-                        market = "PRIVATE",
+                        market = PRIVATE,
                         code = scbUsdCode,
                         name = "",
                         owner = ownerId
@@ -182,7 +183,7 @@ class FxBetweenPrivateAccountsTest {
             .`when`(
                 assetFinder.findLocally(
                     AssetInput(
-                        market = "PRIVATE",
+                        market = PRIVATE,
                         code = "SCB-SGD", // Code without owner prefix
                         owner = ownerId
                     )
@@ -195,7 +196,7 @@ class FxBetweenPrivateAccountsTest {
                 "20260121", // Batch
                 "", // CallerId
                 "FX_BUY", // Type - Buy USD
-                "PRIVATE", // Market
+                PRIVATE, // Market
                 scbUsdCode, // Code - the USD account (buy side)
                 "", // Name
                 "SCB-SGD", // CashAccount - SELL ASSET CODE (human readable!)
@@ -238,7 +239,7 @@ class FxBetweenPrivateAccountsTest {
             .`when`(
                 ais.resolveAsset(
                     AssetInput(
-                        market = "PRIVATE",
+                        market = PRIVATE,
                         code = scbUsdCode,
                         name = "",
                         owner = ownerId
@@ -257,7 +258,7 @@ class FxBetweenPrivateAccountsTest {
                 "20260121", // Batch
                 "", // CallerId
                 "FX_BUY", // Type - Buy USD
-                "PRIVATE", // Market
+                PRIVATE, // Market
                 scbUsdCode, // Code - the USD account (buy side)
                 "", // Name
                 scbSgdAccount.id, // CashAccount - SELL ASSET UUID (backward compat)
@@ -303,7 +304,7 @@ class FxBetweenPrivateAccountsTest {
             .`when`(
                 ais.resolveAsset(
                     AssetInput(
-                        market = "PRIVATE",
+                        market = PRIVATE,
                         code = cleanCode, // Clean code without owner prefix
                         name = "",
                         owner = ownerId
@@ -316,7 +317,7 @@ class FxBetweenPrivateAccountsTest {
                 "20260121", // Batch
                 "", // CallerId
                 "FX_BUY", // Type
-                "PRIVATE", // Market
+                PRIVATE, // Market
                 cleanCode, // Code - just "SCB-USD" without owner prefix
                 "", // Name
                 "", // CashAccount

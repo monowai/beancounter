@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -62,7 +63,7 @@ class MarketDataPriceProcessorTest {
         `when`(providerUtils.splitProviders(priceRequest.assets))
             .thenReturn(mutableMapOf(mockProvider to mutableListOf(asset)))
 
-        `when`(mockProvider.getId()).thenReturn("ALPHA")
+        `when`(mockProvider.getId()).thenReturn(AlphaPriceService.ID)
         `when`(mockProvider.isApiSupported()).thenReturn(true)
 
         `when`(utilityService.getMarketDate(mockProvider, asset, priceRequest))
@@ -114,7 +115,7 @@ class MarketDataPriceProcessorTest {
         `when`(providerUtils.splitProviders(priceRequest.assets))
             .thenReturn(mutableMapOf(mockProvider to mutableListOf(asset)))
 
-        `when`(mockProvider.getId()).thenReturn("ALPHA")
+        `when`(mockProvider.getId()).thenReturn(AlphaPriceService.ID)
         `when`(mockProvider.isApiSupported()).thenReturn(true)
 
         `when`(utilityService.getMarketDate(mockProvider, asset, priceRequest))
@@ -172,7 +173,7 @@ class MarketDataPriceProcessorTest {
         `when`(providerUtils.splitProviders(priceRequest.assets))
             .thenReturn(mutableMapOf(mockProvider to mutableListOf(asset)))
 
-        `when`(mockProvider.getId()).thenReturn("ALPHA")
+        `when`(mockProvider.getId()).thenReturn(AlphaPriceService.ID)
         `when`(mockProvider.isApiSupported()).thenReturn(true)
 
         `when`(utilityService.getMarketDate(mockProvider, asset, priceRequest))
@@ -224,7 +225,7 @@ class MarketDataPriceProcessorTest {
         `when`(providerUtils.splitProviders(priceRequest.assets))
             .thenReturn(mutableMapOf(mockProvider to mutableListOf(asset)))
 
-        `when`(mockProvider.getId()).thenReturn("ALPHA")
+        `when`(mockProvider.getId()).thenReturn(AlphaPriceService.ID)
 
         `when`(utilityService.getMarketDate(mockProvider, asset, priceRequest))
             .thenReturn(tradingDay)

@@ -12,6 +12,8 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.PRIVATE
+import com.beancounter.marketdata.Constants.Companion.PRIVATE_MARKET
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
@@ -37,7 +39,6 @@ class BcRowAdapterTest {
         const val CALLER_ID = "Kt-1jW3x1g"
         const val ASSET_NAME = "Caredx"
         const val TRADE_DATE = "2021-08-11"
-        const val PRIVATE = "PRIVATE"
     }
 
     @Mock
@@ -276,7 +277,7 @@ class BcRowAdapterTest {
 
     @Test
     fun `INCOME on private account should settle to same account`() {
-        val privateMarket = Market(PRIVATE)
+        val privateMarket = PRIVATE_MARKET
         val privateCash =
             Asset(
                 code = "e2e-test.SGD-SAVINGS",

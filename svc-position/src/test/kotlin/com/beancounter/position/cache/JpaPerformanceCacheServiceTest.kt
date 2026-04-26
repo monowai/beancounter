@@ -128,4 +128,35 @@ class JpaPerformanceCacheServiceTest {
     fun `isAvailable returns true`() {
         assertThat(cacheService.isAvailable()).isTrue()
     }
+
+    @Test
+    fun `storeSnapshots upserts existing rows without violating unique constraint`() {
+        // Regression for POSITION-2Q: storing the same (portfolio, date) twice
+        // must update in place, not throw on uk_portfolio_date.
+        val first =
+            CachedSnapshot(
+                valuationDate = date1,
+                marketValue = BigDecimal("100.00"),
+                externalCashFlow = BigDecimal.ZERO,
+                netContributions = BigDecimal.ZERO,
+                cumulativeDividends = BigDecimal.ZERO
+            )
+        cacheService.storeSnapshots(portfolioId, listOf(first))
+
+        val updated =
+            CachedSnapshot(
+                valuationDate = date1,
+                marketValue = BigDecimal("250.00"),
+                externalCashFlow = BigDecimal("10.00"),
+                netContributions = BigDecimal("5.00"),
+                cumulativeDividends = BigDecimal("1.00")
+            )
+        cacheService.storeSnapshots(portfolioId, listOf(updated))
+
+        val result = cacheService.findSnapshots(portfolioId, listOf(date1))
+        assertThat(result).hasSize(1)
+        assertThat(result[0].marketValue).isEqualByComparingTo(BigDecimal("250.00"))
+        assertThat(result[0].externalCashFlow).isEqualByComparingTo(BigDecimal("10.00"))
+        assertThat(result[0].cumulativeDividends).isEqualByComparingTo(BigDecimal("1.00"))
+    }
 }

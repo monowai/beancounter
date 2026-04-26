@@ -126,13 +126,6 @@ class SystemUserService(
 
     fun getActiveUser(): SystemUser? = find(tokenService.subject)
 
-    /**
-     * Resolve the caller's SystemUser or throw a uniform "not authenticated"
-     * BusinessException. Centralises the 8+ call sites that previously
-     * spelled the same message inline (Codacy StringLiteralDuplication).
-     */
-    fun requireActiveUser(): SystemUser = getActiveUser() ?: throw BusinessException(USER_NOT_AUTHENTICATED)
-
     fun getOrThrow(): SystemUser {
         if (isServiceAccount()) {
             return AuthConstants.authSystem

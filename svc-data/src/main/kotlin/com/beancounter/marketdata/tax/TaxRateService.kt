@@ -32,7 +32,7 @@ class TaxRateService(
      */
     fun getMyTaxRates(): TaxRatesResponse {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
                 ?: return TaxRatesResponse(emptyList())
         val rates = taxRateRepository.findAllByOwnerId(user.id)
         return TaxRatesResponse(rates.map { it.toDto() })
@@ -44,7 +44,8 @@ class TaxRateService(
      */
     fun getTaxRate(countryCode: String): TaxRateResponse? {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
         val normalizedCode = countryCode.uppercase()
         val rate =
             taxRateRepository
@@ -71,7 +72,8 @@ class TaxRateService(
      */
     fun saveTaxRate(request: TaxRateRequest): TaxRateResponse {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
 
         val normalizedCode = request.countryCode.uppercase()
         validateCountryCode(normalizedCode)
@@ -112,7 +114,8 @@ class TaxRateService(
      */
     fun deleteTaxRate(countryCode: String) {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
 
         val normalizedCode = countryCode.uppercase()
         val existing =

@@ -30,7 +30,7 @@ class OwnedAssetService(
      */
     fun findByOwnerAndCategory(category: String): AssetUpdateResponse {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserIdAndCategory(user.id, category.uppercase())
         return AssetUpdateResponse(
@@ -43,7 +43,7 @@ class OwnedAssetService(
      */
     fun findByOwner(): AssetUpdateResponse {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserId(user.id)
         return AssetUpdateResponse(
@@ -68,7 +68,8 @@ class OwnedAssetService(
      */
     fun deleteOwnedAsset(assetId: String) {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
         val asset =
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
@@ -91,7 +92,8 @@ class OwnedAssetService(
         assetInput: AssetInput
     ): Asset {
         val user =
-            systemUserService.requireActiveUser()
+            systemUserService.getActiveUser()
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
         val asset =
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
@@ -134,5 +136,7 @@ class OwnedAssetService(
      * Get the current user's ID for asset ownership.
      * @throws BusinessException if user not authenticated
      */
-    fun getCurrentOwnerId(): String = systemUserService.requireActiveUser().id
+    fun getCurrentOwnerId(): String =
+        systemUserService.getActiveUser()?.id
+            ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
 }

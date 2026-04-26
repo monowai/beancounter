@@ -91,6 +91,15 @@ class AssetFinder(
      */
     fun findActiveAssetsForPricing(): List<Asset> = assetRepository.findActiveAssetsForPricing().use { it.toList() }
 
+    /**
+     * Find assets the scheduled price refresh should actually fetch:
+     * active, non-private, AND held by at least one user (positive net
+     * BUY/ADD - SELL/REDUCE quantity). Skips orphans — assets sold-out,
+     * never bought, or never traded — to keep provider quota and Sentry
+     * noise focused on tickers people still own.
+     */
+    fun findHeldAssetsForPricing(): List<Asset> = assetRepository.findHeldAssetsForPricing().use { it.toList() }
+
     companion object {
         private val log = LoggerFactory.getLogger(AssetFinder::class.java)
     }

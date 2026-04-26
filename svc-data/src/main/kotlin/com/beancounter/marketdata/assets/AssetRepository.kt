@@ -44,6 +44,41 @@ interface AssetRepository : CrudRepository<Asset, String> {
     fun findActiveAssetsForPricing(): Stream<Asset>
 
     /**
+     * Find active assets with at least one positive net holding across all
+     * transactions. Used by the scheduled price refresh to skip orphans —
+     * assets sold-out, never bought, or never traded. Refreshing those wastes
+     * provider quota and floods Sentry with provider errors (DATA-2H, DATA-3A)
+     * for tickers no user holds anymore.
+     *
+     * Net position = SUM(BUY/ADD) - SUM(SELL/REDUCE). SPLIT/DIVI/cash flows
+     * are excluded — they don't change quantity in the same way.
+     */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND a.code IS NOT NULL AND a.code <> '' " +
+            "AND a.marketCode <> 'PRIVATE' " +
+            "AND EXISTS (" +
+            "  SELECT 1 FROM Trn t WHERE t.asset = a " +
+            "  GROUP BY t.asset " +
+            "  HAVING SUM(" +
+            "    CASE " +
+            "      WHEN t.trnType IN (" +
+            "        com.beancounter.common.model.TrnType.BUY, " +
+            "        com.beancounter.common.model.TrnType.ADD" +
+            "      ) THEN t.quantity " +
+            "      WHEN t.trnType IN (" +
+            "        com.beancounter.common.model.TrnType.SELL, " +
+            "        com.beancounter.common.model.TrnType.REDUCE" +
+            "      ) THEN -t.quantity " +
+            "      ELSE 0 " +
+            "    END" +
+            "  ) > 0" +
+            ")"
+    )
+    fun findHeldAssetsForPricing(): Stream<Asset>
+
+    /**
      * Find all assets owned by a specific user with a specific category.
      */
     @Query(

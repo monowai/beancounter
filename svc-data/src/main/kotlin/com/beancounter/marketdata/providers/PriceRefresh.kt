@@ -49,7 +49,7 @@ class PriceRefresh(
         // Assets are collected upfront so no long-running DB transaction
         // wraps the price-fetch loop.  Without this, a single fetch failure
         // could mark the transaction rollback-only and discard ALL saved prices.
-        val assets = assetFinder.findActiveAssetsForPricing()
+        val assets = assetFinder.findHeldAssetsForPricing()
 
         for (asset in assets) {
             totalAssets.getAndIncrement()

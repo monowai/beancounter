@@ -166,6 +166,6 @@ The project uses CircleCI with optimized build pipelines:
 
 - **build-core**: Builds core libraries and publishes stubs
 - **build-services**: Tests services using published stubs
-- **package-***: Creates Docker images (master branch only)
+- **package-***: Creates Docker images (main branch only)
 
 See [.circleci/config.yml](.circleci/config.yml) for configuration details.

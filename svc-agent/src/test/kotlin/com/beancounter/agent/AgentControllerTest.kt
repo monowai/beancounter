@@ -4,6 +4,7 @@ import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
 import com.beancounter.agent.tools.ToolSelector
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -13,6 +14,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.mock.env.MockEnvironment
+import reactor.core.publisher.Flux
+
+private const val EVENT_TOKEN = "token"
+private const val EVENT_DONE = "done"
+private const val EVENT_ERROR = "error"
+private const val OPAQUE_ERROR = "agent-error"
 
 /**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
@@ -62,7 +69,8 @@ class AgentControllerTest {
             toolSelector,
             systemPromptSelector,
             chatModelSelector,
-            environment
+            environment,
+            ObjectMapper()
         )
 
     private fun stubChecker(): ServiceHealthChecker =
@@ -136,6 +144,129 @@ class AgentControllerTest {
         val response = controller(chatClient = client).query(AgentQuery("anything"))
 
         assertThat(response.statusCode.value()).isEqualTo(500)
-        assertThat(response.body?.error).isEqualTo("agent-error")
+        assertThat(response.body?.error).isEqualTo(OPAQUE_ERROR)
+    }
+
+    @Test
+    fun `stream emits a single error event when no LLM is configured`() {
+        val events =
+            controller(chatClient = null)
+                .stream(AgentQuery("hello"))
+                .collectList()
+                .block()!!
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_ERROR)
+        assertThat(events[0].data()).contains("No LLM")
+    }
+
+    @Test
+    fun `stream emits token chunks then a done event`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.content()).thenReturn(Flux.just("Hello", " world"))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(events).hasSize(3)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("Hello")
+        assertThat(events[1].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[1].data()).isEqualTo(" world")
+
+        // Parse the `done` payload as JSON instead of substring matching so
+        // formatting / field-order changes can't quietly break the contract.
+        assertThat(events[2].event()).isEqualTo(EVENT_DONE)
+        val done = ObjectMapper().readTree(events[2].data())
+        assertThat(done["model"].asText()).isEqualTo("test-model-id")
+        assertThat(done["chars"].asLong()).isEqualTo(11L)
+        assertThat(done["elapsed_ms"].asLong()).isGreaterThanOrEqualTo(0L)
+    }
+
+    @Test
+    fun `done payload omits model when ollama profile is active`() {
+        // On ollama / openai profiles the per-call Anthropic model override is
+        // skipped and the configured ChatClient picks the model. Reporting
+        // `chatModelSelector.selectFor(...)` would mislead the client, so the
+        // field must be omitted from the done envelope on those profiles.
+        environment.setActiveProfiles("ollama")
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.content()).thenReturn(Flux.just("ok"))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        val done = ObjectMapper().readTree(events.last().data())
+        assertThat(done.has("model")).isFalse()
+        assertThat(done["chars"].asLong()).isEqualTo(2L)
+    }
+
+    @Test
+    fun `stream emits opaque error when stream setup itself throws before any Flux`() {
+        // Regression test for the Flux.defer hardening: a synchronous
+        // exception thrown by ChatClient.prompt().stream() must surface as
+        // the same SSE error envelope as a Flux.error mid-stream, not as a
+        // raw 500 response without an SSE body.
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenThrow(IllegalStateException("boom"))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_ERROR)
+        assertThat(events[0].data()).isEqualTo(OPAQUE_ERROR)
+        assertThat(events[0].data()).doesNotContain("boom")
+    }
+
+    @Test
+    fun `stream emits an error event when the upstream Flux fails`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.content()).thenReturn(Flux.error(RuntimeException("boom")))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        // Error path may emit a partial token chunk before the error fires —
+        // we only care that the LAST event is the opaque error envelope.
+        // The raw exception message is logged server-side, never returned.
+        val last = events.last()
+        assertThat(last.event()).isEqualTo(EVENT_ERROR)
+        assertThat(last.data()).isEqualTo(OPAQUE_ERROR)
+        assertThat(last.data()).doesNotContain("boom")
     }
 }

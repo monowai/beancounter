@@ -3,6 +3,7 @@ package com.beancounter.agent
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
@@ -12,14 +13,18 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.HtmlUtils
+import reactor.core.publisher.Flux
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Single natural-language entry point for the Beancounter agent.
@@ -39,7 +44,8 @@ class AgentController(
     private val toolSelector: ToolSelector,
     private val systemPromptSelector: SystemPromptSelector,
     private val chatModelSelector: ChatModelSelector,
-    private val environment: Environment
+    private val environment: Environment,
+    private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -139,6 +145,135 @@ class AgentController(
                 )
         }
     }
+
+    /**
+     * Streaming variant of [query]. Returns a Server-Sent Events stream so
+     * the browser sees a first byte within ~1–2s instead of waiting for the
+     * full LLM + tool-call chain to complete (which can run 30–60s on the
+     * heavier Independence / Rebalance domains and trip mobile-Safari's
+     * idle-timeout, surfacing as "Load failed" in [useChat]).
+     *
+     * Event protocol:
+     *   - `event: token` `data: <text-chunk>` — one per emitted text fragment
+     *   - `event: done`  `data: {chars, elapsed_ms[, model]}` — final summary;
+     *                    `model` is only present when the per-call Anthropic
+     *                    override was applied (i.e. the active profile is
+     *                    Anthropic), since on `ollama`/`openai` the underlying
+     *                    ChatClient picks the model and we don't surface it.
+     *   - `event: error` `data: <opaque-code>` — terminal; payload is a stable
+     *                    code (e.g. `"agent-error"`), never the raw exception.
+     */
+    @PostMapping("/query/stream", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    @Operation(
+        summary = "Streaming variant of /agent/query (Server-Sent Events).",
+        description =
+            "Same inputs as /agent/query but emits the LLM response token-by-token " +
+                "as `text/event-stream`. Use this from clients that risk hitting " +
+                "browser idle-timeouts on long queries."
+    )
+    fun stream(
+        @RequestBody request: AgentQuery
+    ): Flux<ServerSentEvent<String>> {
+        if (chatClient == null) return errorEvent("No LLM is configured.")
+        // Wrap the pipeline in Flux.defer so setup-time exceptions (selector
+        // failures, options builder failures) become Flux errors and reach
+        // onErrorResume rather than escaping out of the controller as a 500.
+        return Flux
+            .defer { runStream(request) }
+            .onErrorResume { e ->
+                // Never return e.message — leaks internals. Log full detail
+                // server-side; client gets a stable opaque code.
+                log.error("Agent stream failed: {}", e.message, e)
+                errorEvent("agent-error")
+            }
+    }
+
+    private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {
+        val safeQuery = HtmlUtils.htmlEscape(request.query)
+        val tools = toolSelector.selectTools(request.context)
+        val modelId = chatModelSelector.selectFor(request.context)
+        val startMs = System.currentTimeMillis()
+
+        // Track byte count for the final log line — Spring AI's stream() Flux
+        // doesn't surface token usage on per-chunk events, so we count chars
+        // as a proxy for visibility.
+        val totalChars = AtomicLong(0)
+
+        val streamSpec = buildStreamSpec(request, tools, modelId)
+        val tokenEvents =
+            streamSpec
+                .content()
+                .map { chunk ->
+                    totalChars.addAndGet(chunk.length.toLong())
+                    ServerSentEvent.builder(chunk).event("token").build()
+                }
+        val doneEvent =
+            Flux.defer { doneEvent(modelId, tools, totalChars.get(), startMs, safeQuery) }
+        return tokenEvents.concatWith(doneEvent)
+    }
+
+    private fun buildStreamSpec(
+        request: AgentQuery,
+        tools: Array<Any>,
+        modelId: String
+    ): ChatClient.StreamResponseSpec {
+        val promptSpec =
+            chatClient!!
+                .prompt()
+                .system(systemPromptSelector.selectFor(request.context))
+                .user(buildUserMessage(request))
+                .tools(*tools)
+        return if (anthropicActive) {
+            val builder = AnthropicChatOptions.builder().model(modelId)
+            anthropicCacheOptions?.let(builder::cacheOptions)
+            promptSpec.options(builder.build()).stream()
+        } else {
+            promptSpec.stream()
+        }
+    }
+
+    private fun doneEvent(
+        modelId: String,
+        tools: Array<Any>,
+        totalChars: Long,
+        startMs: Long,
+        safeQuery: String
+    ): Flux<ServerSentEvent<String>> {
+        val elapsedMs = System.currentTimeMillis() - startMs
+        if (log.isDebugEnabled) {
+            log.debug(
+                "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
+                    "elapsed_ms={}, query=\"{}\"",
+                modelId,
+                totalChars,
+                tools.size,
+                tools.map { it.javaClass.simpleName },
+                elapsedMs,
+                safeQuery.take(120)
+            )
+        }
+        // Build via Jackson rather than string interpolation so a future
+        // modelId / metric value containing a quote, backslash or newline can
+        // never produce malformed SSE.
+        //
+        // `model` is only meaningful when the per-call Anthropic override was
+        // applied — on `ollama` / `openai` profiles the underlying ChatClient
+        // picks the model and `chatModelSelector.selectFor(...)` doesn't
+        // reflect what actually answered the request. Omit the field rather
+        // than report a misleading id.
+        val payload =
+            objectMapper.writeValueAsString(
+                buildMap {
+                    put("chars", totalChars)
+                    put("elapsed_ms", elapsedMs)
+                    if (anthropicActive) put("model", modelId)
+                }
+            )
+        return Flux.just(ServerSentEvent.builder(payload).event("done").build())
+    }
+
+    private fun errorEvent(message: String): Flux<ServerSentEvent<String>> =
+        Flux.just(ServerSentEvent.builder<String>(message).event("error").build())
 
     private fun logLlmInteraction(
         userMessage: String,

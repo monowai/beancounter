@@ -90,6 +90,7 @@ class SystemUserService(
     }
 
     companion object {
+        const val USER_NOT_AUTHENTICATED = "User not authenticated"
         private val log = LoggerFactory.getLogger(SystemUserService::class.java)
     }
 

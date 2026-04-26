@@ -1,0 +1,23 @@
+# Detekt overrides for Codacy server-side scanning.
+#
+# Two complexity rules are noisy in tests by design and not worth chasing:
+# - TooManyFunctions: tests are made of many small @Test methods.
+# - LongMethod: integration-test scenarios are inherently long.
+#
+# Other rules — including StringLiteralDuplication — stay enabled on tests
+# so the high-signal cases (cross-file fixture repetition, error message
+# drift) still surface.
+
+complexity:
+  TooManyFunctions:
+    excludes:
+      - "**/test/**"
+      - "**/*Test.kt"
+      - "**/*Tests.kt"
+      - "**/*Spec.kt"
+  LongMethod:
+    excludes:
+      - "**/test/**"
+      - "**/*Test.kt"
+      - "**/*Tests.kt"
+      - "**/*Spec.kt"

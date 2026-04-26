@@ -69,7 +69,7 @@ class OwnedAssetService(
     fun deleteOwnedAsset(assetId: String) {
         val user =
             systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
         val asset =
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
@@ -93,7 +93,7 @@ class OwnedAssetService(
     ): Asset {
         val user =
             systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
         val asset =
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
@@ -138,5 +138,5 @@ class OwnedAssetService(
      */
     fun getCurrentOwnerId(): String =
         systemUserService.getActiveUser()?.id
-            ?: throw BusinessException("User not authenticated")
+            ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
 }

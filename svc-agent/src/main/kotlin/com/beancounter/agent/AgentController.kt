@@ -6,9 +6,12 @@ import com.beancounter.agent.tools.ToolSelector
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
+import org.springframework.ai.anthropic.AnthropicChatOptions
+import org.springframework.ai.anthropic.api.AnthropicCacheOptions
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,11 +34,25 @@ import java.time.Instant
 @Tag(name = "Agent", description = "Natural-language Beancounter assistant")
 class AgentController(
     @Autowired(required = false) private val chatClient: ChatClient?,
+    @Autowired(required = false) private val anthropicCacheOptions: AnthropicCacheOptions?,
     private val healthChecker: ServiceHealthChecker,
     private val toolSelector: ToolSelector,
-    private val systemPromptSelector: SystemPromptSelector
+    private val systemPromptSelector: SystemPromptSelector,
+    private val chatModelSelector: ChatModelSelector,
+    private val environment: Environment
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
+
+    /**
+     * Anthropic-only feature: the per-call model override uses
+     * [AnthropicChatOptions]. When the active profile is `ollama` or `openai`,
+     * skip the override and let the configured ChatClient's default model run.
+     */
+    private val anthropicActive: Boolean
+        get() {
+            val profiles = environment.activeProfiles.toSet()
+            return "ollama" !in profiles && "openai" !in profiles
+        }
 
     @GetMapping("/health")
     @Operation(
@@ -74,20 +91,32 @@ class AgentController(
             val userMessage = buildUserMessage(request)
             val tools = toolSelector.selectTools(request.context)
             val systemPrompt = systemPromptSelector.selectFor(request.context)
+            val modelId = chatModelSelector.selectFor(request.context)
             val startMs = System.currentTimeMillis()
-            val callResponse =
+            val promptSpec =
                 chatClient
                     .prompt()
                     .system(systemPrompt)
                     .user(userMessage)
                     .tools(*tools)
-                    .call()
+            val callResponse =
+                if (anthropicActive) {
+                    // Per-call options REPLACE (not merge) the ChatClient's
+                    // default options — so the cache config configured in
+                    // ChatClientConfiguration must be re-applied here, or
+                    // every request silently loses prompt caching.
+                    val optionsBuilder = AnthropicChatOptions.builder().model(modelId)
+                    anthropicCacheOptions?.let(optionsBuilder::cacheOptions)
+                    promptSpec.options(optionsBuilder.build()).call()
+                } else {
+                    promptSpec.call()
+                }
 
             val chatResponse = callResponse.chatResponse()
             val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: "(empty response)"
             val elapsedMs = System.currentTimeMillis() - startMs
 
-            logLlmInteraction(userMessage, tools, chatResponse, content, elapsedMs)
+            logLlmInteraction(userMessage, tools, chatResponse, content, elapsedMs, modelId)
 
             ResponseEntity.ok(
                 AgentResponse(
@@ -116,7 +145,8 @@ class AgentController(
         tools: Array<Any>,
         chatResponse: ChatResponse?,
         content: String,
-        elapsedMs: Long
+        elapsedMs: Long,
+        selectedModelId: String
     ) {
         if (!log.isDebugEnabled) return
         val meta = chatResponse?.metadata
@@ -124,9 +154,10 @@ class AgentController(
         val promptPreview = userMessage.take(120).replace("\n", " ")
         val toolNames = tools.map { it.javaClass.simpleName }
         log.debug(
-            "LLM call: model={}, prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
+            "LLM call: model={}, selected_model={}, prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
                 "tools={} {}, response_chars={}, elapsed_ms={}, prompt_preview=\"{}\"",
             meta?.model ?: "unknown",
+            selectedModelId,
             usage?.promptTokens ?: 0,
             usage?.completionTokens ?: 0,
             usage?.totalTokens ?: 0,

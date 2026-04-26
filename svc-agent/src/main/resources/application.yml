@@ -122,15 +122,24 @@ spring:
       base-url: "${ANTHROPIC_BASE_URL:https://api.anthropic.com}"
       chat:
         options:
-          # Claude Haiku 4.5 — fast, cheap, strong tool-calling. Override via
-          # ANTHROPIC_MODEL if you want Sonnet (claude-sonnet-4-6) or Opus
-          # (claude-opus-4-6).
+          # Default / fallback model. Per-domain routing is handled by
+          # ChatModelSelector — see `agent.models.*` below for the active
+          # tier IDs and the page-context that escalates to SMART.
           model: "${ANTHROPIC_MODEL:claude-haiku-4-5-20251001}"
           temperature: 0.2
           max-tokens: 4096
 
     model:
       chat: anthropic
+
+# Per-tier Anthropic model IDs. ChatModelSelector picks one per call based on
+# the page context (Holdings / News / Asset Review / Independence / Rebalance).
+# Override per environment via ANTHROPIC_MODEL_FAST / _SMART / _DEEP.
+agent:
+  models:
+    fast: "${ANTHROPIC_MODEL_FAST:claude-haiku-4-5-20251001}"
+    smart: "${ANTHROPIC_MODEL_SMART:claude-sonnet-4-6}"
+    deep: "${ANTHROPIC_MODEL_DEEP:claude-opus-4-7}"
 
 # Security Configuration - uses same auth.* properties as all other services
 # Helm sets AUTH_URI and AUTH_AUDIENCE via spring.auth template

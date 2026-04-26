@@ -12,6 +12,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.mock.env.MockEnvironment
 
 /**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
@@ -39,10 +40,27 @@ class AgentControllerTest {
             on { selectFor(anyOrNull()) } doReturn "test-system-prompt"
         }
 
+    private val chatModelSelector =
+        mock<ChatModelSelector> {
+            on { selectFor(anyOrNull()) } doReturn "test-model-id"
+        }
+
+    // Empty active profiles → controller treats this as the Anthropic default
+    // path. Tests that need ollama / openai branching can override.
+    private val environment = MockEnvironment()
+
     private fun controller(
         chatClient: ChatClient? = null,
         healthChecker: ServiceHealthChecker = stubChecker()
-    ): AgentController = AgentController(chatClient, healthChecker, toolSelector, systemPromptSelector)
+    ): AgentController =
+        AgentController(
+            chatClient,
+            healthChecker,
+            toolSelector,
+            systemPromptSelector,
+            chatModelSelector,
+            environment
+        )
 
     private fun stubChecker(): ServiceHealthChecker =
         mock<ServiceHealthChecker> {

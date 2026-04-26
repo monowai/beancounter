@@ -11,6 +11,7 @@ import org.springframework.ai.chat.messages.MessageType
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.ollama.OllamaChatModel
 import org.springframework.ai.openai.OpenAiChatModel
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -33,6 +34,7 @@ import org.springframework.context.annotation.Profile
  */
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
+@EnableConfigurationProperties(AgentModelTiers::class)
 class ChatClientConfiguration {
     private val log = LoggerFactory.getLogger(ChatClientConfiguration::class.java)
 

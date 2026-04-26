@@ -267,6 +267,10 @@ beancounter:
         name: "Ringgit"
         symbol: "RM"
 
+      - code: "CAD"
+        name: "Dollar"
+        symbol: "$"
+
   asset:
     categories:
       default: "EQUITY"

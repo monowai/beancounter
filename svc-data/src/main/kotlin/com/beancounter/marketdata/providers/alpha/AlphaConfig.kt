@@ -72,14 +72,10 @@ class AlphaConfig(
         if (isNullMarket(market.code)) {
             return null
         }
-        return if (market.code.equals(
-                "ASX",
-                ignoreCase = true
-            )
-        ) {
-            "AX"
-        } else {
-            market.code
+        return when (market.code.uppercase()) {
+            "ASX" -> "AX"
+            "TSX" -> "TRT"
+            else -> market.code
         }
     }
 

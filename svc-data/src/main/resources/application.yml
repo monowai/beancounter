@@ -370,6 +370,16 @@ beancounter:
           sharesight: "AX"
           FIGI: "AU"
 
+      - code: "TSX"
+        name: "Toronto Stock Exchange"
+        timezoneId: "America/Toronto"
+        currencyId: "CAD"
+        aliases:
+          alpha: "TRT"
+          mstack: "XTSX"
+          sharesight: "TO"
+          FIGI: "CT"
+
       - code: "NZX"
         name: "New Zealand Exchange"
         timezoneId: "Pacific/Auckland"
@@ -409,7 +419,7 @@ beancounter:
       alpha:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: "US,NASDAQ,AMEX,NYSE,LON"
+        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX"
         news:
           # Minimum per-ticker relevance_score (0.0-1.0) to keep an article.
           # Raise to narrow to only strongly-on-topic news; lower to be

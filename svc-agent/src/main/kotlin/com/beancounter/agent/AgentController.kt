@@ -154,9 +154,14 @@ class AgentController(
      * idle-timeout, surfacing as "Load failed" in [useChat]).
      *
      * Event protocol:
-     *   - `event: token` `data: <text-chunk>`  — one per emitted text fragment
-     *   - `event: done`  `data: {tokens, model, elapsed_ms}` — final summary
-     *   - `event: error` `data: <message>`     — terminal, sent on failure
+     *   - `event: token` `data: <text-chunk>` — one per emitted text fragment
+     *   - `event: done`  `data: {chars, elapsed_ms[, model]}` — final summary;
+     *                    `model` is only present when the per-call Anthropic
+     *                    override was applied (i.e. the active profile is
+     *                    Anthropic), since on `ollama`/`openai` the underlying
+     *                    ChatClient picks the model and we don't surface it.
+     *   - `event: error` `data: <opaque-code>` — terminal; payload is a stable
+     *                    code (e.g. `"agent-error"`), never the raw exception.
      */
     @PostMapping("/query/stream", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     @Operation(
@@ -250,13 +255,19 @@ class AgentController(
         // Build via Jackson rather than string interpolation so a future
         // modelId / metric value containing a quote, backslash or newline can
         // never produce malformed SSE.
+        //
+        // `model` is only meaningful when the per-call Anthropic override was
+        // applied — on `ollama` / `openai` profiles the underlying ChatClient
+        // picks the model and `chatModelSelector.selectFor(...)` doesn't
+        // reflect what actually answered the request. Omit the field rather
+        // than report a misleading id.
         val payload =
             objectMapper.writeValueAsString(
-                mapOf(
-                    "model" to modelId,
-                    "chars" to totalChars,
-                    "elapsed_ms" to elapsedMs
-                )
+                buildMap {
+                    put("chars", totalChars)
+                    put("elapsed_ms", elapsedMs)
+                    if (anthropicActive) put("model", modelId)
+                }
             )
         return Flux.just(ServerSentEvent.builder(payload).event("done").build())
     }

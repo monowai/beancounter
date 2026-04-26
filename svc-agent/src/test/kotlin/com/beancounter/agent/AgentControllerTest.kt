@@ -188,6 +188,33 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `done payload omits model when ollama profile is active`() {
+        // On ollama / openai profiles the per-call Anthropic model override is
+        // skipped and the configured ChatClient picks the model. Reporting
+        // `chatModelSelector.selectFor(...)` would mislead the client, so the
+        // field must be omitted from the done envelope on those profiles.
+        environment.setActiveProfiles("ollama")
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.content()).thenReturn(Flux.just("ok"))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        val done = ObjectMapper().readTree(events.last().data())
+        assertThat(done.has("model")).isFalse()
+        assertThat(done["chars"].asLong()).isEqualTo(2L)
+    }
+
+    @Test
     fun `stream emits opaque error when stream setup itself throws before any Flux`() {
         // Regression test for the Flux.defer hardening: a synchronous
         // exception thrown by ChatClient.prompt().stream() must surface as

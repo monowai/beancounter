@@ -37,6 +37,7 @@ class BcRowAdapterTest {
         const val CALLER_ID = "Kt-1jW3x1g"
         const val ASSET_NAME = "Caredx"
         const val TRADE_DATE = "2021-08-11"
+        const val PRIVATE = "PRIVATE"
     }
 
     @Mock
@@ -140,15 +141,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "BUY",
-                "NASDAQ",
+                NASDAQ.code,
                 assetCode,
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 TRADE_DATE,
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -174,15 +175,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "BUY",
-                "NASDAQ",
+                NASDAQ.code,
                 "INVALID",
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 TRADE_DATE,
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -218,15 +219,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "BUY",
-                "NASDAQ",
+                NASDAQ.code,
                 assetCode,
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 "invalid-date",
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -249,15 +250,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "SELL",
-                "NASDAQ",
+                NASDAQ.code,
                 assetCode,
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 TRADE_DATE,
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -275,7 +276,7 @@ class BcRowAdapterTest {
 
     @Test
     fun `INCOME on private account should settle to same account`() {
-        val privateMarket = Market("PRIVATE")
+        val privateMarket = Market(PRIVATE)
         val privateCash =
             Asset(
                 code = "e2e-test.SGD-SAVINGS",
@@ -290,7 +291,7 @@ class BcRowAdapterTest {
             .`when`(
                 ais.resolveAsset(
                     AssetInput(
-                        "PRIVATE",
+                        PRIVATE,
                         "SGD-SAVINGS",
                         name = "",
                         owner = portfolio.owner.id
@@ -304,7 +305,7 @@ class BcRowAdapterTest {
                 "20250115", // Batch
                 "", // CallerId
                 "INCOME", // Type
-                "PRIVATE", // Market
+                PRIVATE, // Market
                 "SGD-SAVINGS", // Code
                 "", // Name
                 "", // CashAccount (empty — should auto-resolve to asset)

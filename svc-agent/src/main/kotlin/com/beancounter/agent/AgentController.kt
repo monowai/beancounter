@@ -12,14 +12,18 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.HtmlUtils
+import reactor.core.publisher.Flux
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Single natural-language entry point for the Beancounter agent.
@@ -138,6 +142,112 @@ class AgentController(
                     )
                 )
         }
+    }
+
+    /**
+     * Streaming variant of [query]. Returns a Server-Sent Events stream so
+     * the browser sees a first byte within ~1–2s instead of waiting for the
+     * full LLM + tool-call chain to complete (which can run 30–60s on the
+     * heavier Independence / Rebalance domains and trip mobile-Safari's
+     * idle-timeout, surfacing as "Load failed" in [useChat]).
+     *
+     * Event protocol:
+     *   - `event: token` `data: <text-chunk>`  — one per emitted text fragment
+     *   - `event: done`  `data: {tokens, model, elapsed_ms}` — final summary
+     *   - `event: error` `data: <message>`     — terminal, sent on failure
+     */
+    @PostMapping("/query/stream", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    @Operation(
+        summary = "Streaming variant of /agent/query (Server-Sent Events).",
+        description =
+            "Same inputs as /agent/query but emits the LLM response token-by-token " +
+                "as `text/event-stream`. Use this from clients that risk hitting " +
+                "browser idle-timeouts on long queries."
+    )
+    fun stream(
+        @RequestBody request: AgentQuery
+    ): Flux<ServerSentEvent<String>> {
+        val safeQuery = HtmlUtils.htmlEscape(request.query)
+        if (chatClient == null) {
+            return Flux.just(
+                ServerSentEvent
+                    .builder<String>("No LLM is configured.")
+                    .event("error")
+                    .build()
+            )
+        }
+        val userMessage = buildUserMessage(request)
+        val tools = toolSelector.selectTools(request.context)
+        val systemPrompt = systemPromptSelector.selectFor(request.context)
+        val modelId = chatModelSelector.selectFor(request.context)
+        val startMs = System.currentTimeMillis()
+
+        val promptSpec =
+            chatClient
+                .prompt()
+                .system(systemPrompt)
+                .user(userMessage)
+                .tools(*tools)
+        val streamSpec =
+            if (anthropicActive) {
+                val builder = AnthropicChatOptions.builder().model(modelId)
+                anthropicCacheOptions?.let(builder::cacheOptions)
+                promptSpec.options(builder.build()).stream()
+            } else {
+                promptSpec.stream()
+            }
+
+        // Track byte count for the final log line — Spring AI's stream() Flux
+        // doesn't surface token usage on the per-chunk events, so we count
+        // characters as a proxy for visibility.
+        val totalChars = AtomicLong(0)
+
+        val tokenEvents =
+            streamSpec
+                .content()
+                .map { chunk ->
+                    totalChars.addAndGet(chunk.length.toLong())
+                    ServerSentEvent
+                        .builder(chunk)
+                        .event("token")
+                        .build()
+                }
+
+        val doneEvent =
+            Flux.defer {
+                val elapsedMs = System.currentTimeMillis() - startMs
+                if (log.isDebugEnabled) {
+                    val toolNames = tools.map { it.javaClass.simpleName }
+                    log.debug(
+                        "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
+                            "elapsed_ms={}, query=\"{}\"",
+                        modelId,
+                        totalChars.get(),
+                        tools.size,
+                        toolNames,
+                        elapsedMs,
+                        safeQuery.take(120)
+                    )
+                }
+                Flux.just(
+                    ServerSentEvent
+                        .builder("""{"model":"$modelId","chars":${totalChars.get()},"elapsed_ms":$elapsedMs}""")
+                        .event("done")
+                        .build()
+                )
+            }
+
+        return tokenEvents
+            .concatWith(doneEvent)
+            .onErrorResume { e ->
+                log.error("Agent stream failed: {}", e.message, e)
+                Flux.just(
+                    ServerSentEvent
+                        .builder<String>(e.message ?: "agent-error")
+                        .event("error")
+                        .build()
+                )
+            }
     }
 
     private fun logLlmInteraction(

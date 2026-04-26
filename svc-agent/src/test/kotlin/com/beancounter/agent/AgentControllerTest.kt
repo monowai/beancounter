@@ -13,6 +13,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.mock.env.MockEnvironment
+import reactor.core.publisher.Flux
 
 /**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
@@ -137,5 +138,68 @@ class AgentControllerTest {
 
         assertThat(response.statusCode.value()).isEqualTo(500)
         assertThat(response.body?.error).isEqualTo("agent-error")
+    }
+
+    @Test
+    fun `stream emits a single error event when no LLM is configured`() {
+        val events =
+            controller(chatClient = null)
+                .stream(AgentQuery("hello"))
+                .collectList()
+                .block()!!
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo("error")
+        assertThat(events[0].data()).contains("No LLM")
+    }
+
+    @Test
+    fun `stream emits token chunks then a done event`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.content()).thenReturn(Flux.just("Hello", " world"))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(events).hasSize(3)
+        assertThat(events[0].event()).isEqualTo("token")
+        assertThat(events[0].data()).isEqualTo("Hello")
+        assertThat(events[1].event()).isEqualTo("token")
+        assertThat(events[1].data()).isEqualTo(" world")
+        assertThat(events[2].event()).isEqualTo("done")
+        assertThat(events[2].data()).contains("\"chars\":11")
+    }
+
+    @Test
+    fun `stream emits an error event when the upstream Flux fails`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.content()).thenReturn(Flux.error(RuntimeException("boom")))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        // Error path may emit a partial token chunk before the error fires —
+        // we only care that the LAST event is the error envelope.
+        val last = events.last()
+        assertThat(last.event()).isEqualTo("error")
+        assertThat(last.data()).contains("boom")
     }
 }

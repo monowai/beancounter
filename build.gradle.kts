@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.jacoco)
     alias(libs.plugins.idea)
     alias(libs.plugins.kotlinter)
-    alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.spring)
     `maven-publish`
@@ -30,16 +29,7 @@ subprojects {
     apply(plugin = "jacoco")
     apply(plugin = "idea")
 
-    // Apply kotlinter for formatting, but skip detekt for AI agent module
-    // AI code patterns don't align with traditional static analysis conventions:
-    // - High cyclomatic complexity from intent determination and action routing
-    // - Long methods for AI prompt generation and response parsing
-    // - Generic exception handling for graceful degradation
-    // - Verbose string manipulation for context building
     apply(plugin = "org.jmailen.kotlinter")
-    if (name != agentModule) {
-        apply(plugin = "io.gitlab.arturbosch.detekt") // Direct plugin ID needed in subprojects block
-    }
 
     apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
@@ -56,7 +46,7 @@ subprojects {
         exclude(group = "commons-logging", module = "commons-logging")
         resolutionStrategy.eachDependency {
             if (requested.group == "io.sentry") {
-                useVersion("8.37.1")
+                useVersion("8.40.0")
                 because("Align all Sentry dependencies to avoid mixed versions warning")
             }
         }
@@ -195,30 +185,6 @@ subprojects {
         }
     }
 
-    // Custom task to run Detekt on all projects (excluding svc-agent)
-    tasks.register("detektAll") {
-        group = "verification"
-        description = "Run Detekt static analysis on all projects (excluding svc-agent)"
-
-        dependsOn(subprojects.filter { it.name != agentModule }.map { it.tasks.named("detekt") })
-
-        doLast {
-            println("✅ Detekt analysis completed for all projects!")
-        }
-    }
-
-    // Custom task to run Detekt with auto-correction
-    tasks.register("detektFix") {
-        group = "verification"
-        description = "Run Detekt with auto-correction on all projects (excluding svc-agent)"
-
-        dependsOn(subprojects.filter { it.name != agentModule }.map { it.tasks.named("detektMain") })
-
-        doLast {
-            println("✅ Detekt auto-correction completed for all projects!")
-        }
-    }
-
     // Kotlinter configuration
     kotlinter {
         // Note: The function count warning might be from the IDE or another static analysis tool
@@ -228,31 +194,6 @@ subprojects {
     // For svc-agent: Keep formatting available but disable linting
     if (name == agentModule) {
         tasks.findByName("lintKotlin")?.enabled = false
-    }
-
-    // Detekt configuration (only for modules that have detekt applied)
-    if (name != agentModule) {
-        detekt {
-            this.config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
-            buildUponDefaultConfig = true
-            allRules = false
-            autoCorrect = true
-            parallel = true
-        }
-        // Detekt 1.23.x runs in-process on the Gradle daemon and cannot run on
-        // JVM 25 — its internal bootstrap calls JvmTarget.fromString() on the
-        // running JVM version ("25.0.1") and throws. The Detekt task extends
-        // SourceTask (not JavaExec), so there's no javaLauncher to retarget.
-        // Disable detekt until detekt 2.x (JVM 25 support) is adopted.
-        // Local devs on JVM <= 21 still get detekt via the toolchain.
-        if (JavaVersion.current() >= JavaVersion.VERSION_25) {
-            tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-                enabled = false
-            }
-            tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
-                enabled = false
-            }
-        }
     }
 
     // Common dependencies for all modules

@@ -4,6 +4,7 @@ import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
 import com.beancounter.agent.tools.ToolSelector
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -63,7 +64,8 @@ class AgentControllerTest {
             toolSelector,
             systemPromptSelector,
             chatModelSelector,
-            environment
+            environment,
+            ObjectMapper()
         )
 
     private fun stubChecker(): ServiceHealthChecker =
@@ -197,9 +199,11 @@ class AgentControllerTest {
                 .block()!!
 
         // Error path may emit a partial token chunk before the error fires —
-        // we only care that the LAST event is the error envelope.
+        // we only care that the LAST event is the opaque error envelope.
+        // The raw exception message is logged server-side, never returned.
         val last = events.last()
         assertThat(last.event()).isEqualTo("error")
-        assertThat(last.data()).contains("boom")
+        assertThat(last.data()).isEqualTo("agent-error")
+        assertThat(last.data()).doesNotContain("boom")
     }
 }

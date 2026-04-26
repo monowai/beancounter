@@ -3,6 +3,7 @@ package com.beancounter.agent
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
@@ -43,7 +44,8 @@ class AgentController(
     private val toolSelector: ToolSelector,
     private val systemPromptSelector: SystemPromptSelector,
     private val chatModelSelector: ChatModelSelector,
-    private val environment: Environment
+    private val environment: Environment,
+    private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -167,7 +169,6 @@ class AgentController(
     fun stream(
         @RequestBody request: AgentQuery
     ): Flux<ServerSentEvent<String>> {
-        val safeQuery = HtmlUtils.htmlEscape(request.query)
         if (chatClient == null) {
             return Flux.just(
                 ServerSentEvent
@@ -176,74 +177,95 @@ class AgentController(
                     .build()
             )
         }
-        val userMessage = buildUserMessage(request)
-        val tools = toolSelector.selectTools(request.context)
-        val systemPrompt = systemPromptSelector.selectFor(request.context)
-        val modelId = chatModelSelector.selectFor(request.context)
-        val startMs = System.currentTimeMillis()
+        // Wrap the entire pipeline in Flux.defer so setup-time exceptions
+        // (selector failures, options builder failures) become Flux errors
+        // and reach onErrorResume rather than escaping out of the controller
+        // method as raw 500s with no SSE envelope.
+        return Flux
+            .defer {
+                val safeQuery = HtmlUtils.htmlEscape(request.query)
+                val userMessage = buildUserMessage(request)
+                val tools = toolSelector.selectTools(request.context)
+                val systemPrompt = systemPromptSelector.selectFor(request.context)
+                val modelId = chatModelSelector.selectFor(request.context)
+                val startMs = System.currentTimeMillis()
 
-        val promptSpec =
-            chatClient
-                .prompt()
-                .system(systemPrompt)
-                .user(userMessage)
-                .tools(*tools)
-        val streamSpec =
-            if (anthropicActive) {
-                val builder = AnthropicChatOptions.builder().model(modelId)
-                anthropicCacheOptions?.let(builder::cacheOptions)
-                promptSpec.options(builder.build()).stream()
-            } else {
-                promptSpec.stream()
-            }
+                val promptSpec =
+                    chatClient
+                        .prompt()
+                        .system(systemPrompt)
+                        .user(userMessage)
+                        .tools(*tools)
+                val streamSpec =
+                    if (anthropicActive) {
+                        val builder = AnthropicChatOptions.builder().model(modelId)
+                        anthropicCacheOptions?.let(builder::cacheOptions)
+                        promptSpec.options(builder.build()).stream()
+                    } else {
+                        promptSpec.stream()
+                    }
 
-        // Track byte count for the final log line — Spring AI's stream() Flux
-        // doesn't surface token usage on the per-chunk events, so we count
-        // characters as a proxy for visibility.
-        val totalChars = AtomicLong(0)
+                // Track byte count for the final log line — Spring AI's stream() Flux
+                // doesn't surface token usage on the per-chunk events, so we count
+                // characters as a proxy for visibility.
+                val totalChars = AtomicLong(0)
 
-        val tokenEvents =
-            streamSpec
-                .content()
-                .map { chunk ->
-                    totalChars.addAndGet(chunk.length.toLong())
-                    ServerSentEvent
-                        .builder(chunk)
-                        .event("token")
-                        .build()
-                }
+                val tokenEvents =
+                    streamSpec
+                        .content()
+                        .map { chunk ->
+                            totalChars.addAndGet(chunk.length.toLong())
+                            ServerSentEvent
+                                .builder(chunk)
+                                .event("token")
+                                .build()
+                        }
 
-        val doneEvent =
-            Flux.defer {
-                val elapsedMs = System.currentTimeMillis() - startMs
-                if (log.isDebugEnabled) {
-                    val toolNames = tools.map { it.javaClass.simpleName }
-                    log.debug(
-                        "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
-                            "elapsed_ms={}, query=\"{}\"",
-                        modelId,
-                        totalChars.get(),
-                        tools.size,
-                        toolNames,
-                        elapsedMs,
-                        safeQuery.take(120)
-                    )
-                }
-                Flux.just(
-                    ServerSentEvent
-                        .builder("""{"model":"$modelId","chars":${totalChars.get()},"elapsed_ms":$elapsedMs}""")
-                        .event("done")
-                        .build()
-                )
-            }
+                val doneEvent =
+                    Flux.defer {
+                        val elapsedMs = System.currentTimeMillis() - startMs
+                        if (log.isDebugEnabled) {
+                            val toolNames = tools.map { it.javaClass.simpleName }
+                            log.debug(
+                                "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
+                                    "elapsed_ms={}, query=\"{}\"",
+                                modelId,
+                                totalChars.get(),
+                                tools.size,
+                                toolNames,
+                                elapsedMs,
+                                safeQuery.take(120)
+                            )
+                        }
+                        // Build the JSON via Jackson rather than string interpolation —
+                        // model id values are config-controlled today but escaping
+                        // defensively avoids a future surprise if any field carries
+                        // a quote, backslash, or newline.
+                        val payload =
+                            objectMapper.writeValueAsString(
+                                mapOf(
+                                    "model" to modelId,
+                                    "chars" to totalChars.get(),
+                                    "elapsed_ms" to elapsedMs
+                                )
+                            )
+                        Flux.just(
+                            ServerSentEvent
+                                .builder(payload)
+                                .event("done")
+                                .build()
+                        )
+                    }
 
-        return tokenEvents
-            .concatWith(doneEvent)
-            .onErrorResume { e ->
+                tokenEvents.concatWith(doneEvent)
+            }.onErrorResume { e ->
+                // Don't return e.message — leaks internals (stack details, host
+                // names, library exception text). Log full detail server-side
+                // and emit a stable opaque code to the client.
                 log.error("Agent stream failed: {}", e.message, e)
                 Flux.just(
                     ServerSentEvent
-                        .builder<String>(e.message ?: "agent-error")
+                        .builder<String>("agent-error")
                         .event("error")
                         .build()
                 )

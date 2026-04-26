@@ -55,6 +55,9 @@ class AgentControllerTest {
     ): AgentController =
         AgentController(
             chatClient,
+            // anthropicCacheOptions is optional; null is fine — the controller
+            // gracefully omits .cacheOptions when the bean isn't present.
+            null,
             healthChecker,
             toolSelector,
             systemPromptSelector,

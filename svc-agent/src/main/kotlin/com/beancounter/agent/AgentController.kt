@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
 import org.springframework.ai.anthropic.AnthropicChatOptions
+import org.springframework.ai.anthropic.api.AnthropicCacheOptions
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +34,7 @@ import java.time.Instant
 @Tag(name = "Agent", description = "Natural-language Beancounter assistant")
 class AgentController(
     @Autowired(required = false) private val chatClient: ChatClient?,
+    @Autowired(required = false) private val anthropicCacheOptions: AnthropicCacheOptions?,
     private val healthChecker: ServiceHealthChecker,
     private val toolSelector: ToolSelector,
     private val systemPromptSelector: SystemPromptSelector,
@@ -99,9 +101,13 @@ class AgentController(
                     .tools(*tools)
             val callResponse =
                 if (anthropicActive) {
-                    promptSpec
-                        .options(AnthropicChatOptions.builder().model(modelId).build())
-                        .call()
+                    // Per-call options REPLACE (not merge) the ChatClient's
+                    // default options — so the cache config configured in
+                    // ChatClientConfiguration must be re-applied here, or
+                    // every request silently loses prompt caching.
+                    val optionsBuilder = AnthropicChatOptions.builder().model(modelId)
+                    anthropicCacheOptions?.let(optionsBuilder::cacheOptions)
+                    promptSpec.options(optionsBuilder.build()).call()
                 } else {
                     promptSpec.call()
                 }

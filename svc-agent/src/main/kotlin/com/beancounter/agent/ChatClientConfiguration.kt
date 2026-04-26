@@ -53,6 +53,30 @@ class ChatClientConfiguration {
     }
 
     /**
+     * Anthropic prompt-cache config exposed as a bean so per-call code in
+     * [AgentController] can re-include it when overriding model id.
+     *
+     * Cache the static prefix (system prompt + tool definitions) so the
+     * multi-iteration tool-calling loop doesn't re-pay for ~4k tokens of
+     * unchanged content on every round-trip. First request pays a 1.25×
+     * cache-write premium; subsequent requests within the TTL pay 0.1× on
+     * cache reads — a net ~40% input-token saving on any query that fires
+     * more than one tool call.
+     *
+     * ONE_HOUR TTL suits sustained chat / scripted workloads hitting the
+     * same system prompt; FIVE_MINUTES (Anthropic default) is cheaper on
+     * the write but worse for ad-hoc traffic spread across an hour.
+     */
+    @Bean
+    @Profile("!ollama & !openai")
+    fun anthropicCacheOptions(): AnthropicCacheOptions =
+        AnthropicCacheOptions
+            .builder()
+            .strategy(AnthropicCacheStrategy.SYSTEM_AND_TOOLS)
+            .messageTypeTtl(MessageType.SYSTEM, AnthropicCacheTtl.ONE_HOUR)
+            .build()
+
+    /**
      * Anthropic is the **default** ChatClient — created whenever neither
      * `ollama` nor `openai` is in the active profile list. This matches the
      * agent's `application.yml` defaults (`spring.ai.model.chat: anthropic`)
@@ -63,35 +87,19 @@ class ChatClientConfiguration {
      */
     @Bean("chatClient")
     @Profile("!ollama & !openai")
-    fun anthropicChatClient(chatModel: AnthropicChatModel): ChatClient {
+    fun anthropicChatClient(
+        chatModel: AnthropicChatModel,
+        anthropicCacheOptions: AnthropicCacheOptions
+    ): ChatClient {
         log.info(
             "Building Anthropic ChatClient ({}) with prompt caching enabled (default)",
             chatModel.javaClass.simpleName
         )
 
-        // Enable Anthropic prompt caching for the static prefix (system
-        // prompt + tool definitions) so the multi-iteration tool-calling
-        // loop doesn't re-pay for ~4k tokens of unchanged content on every
-        // round-trip. First request pays a 1.25× cache-write premium;
-        // subsequent requests within the TTL pay 0.1× on cache reads — a
-        // net ~40% input-token saving on any query that fires more than
-        // one tool call.
-        //
-        // FIVE_MINUTES TTL matches Anthropic's default and suits ad-hoc
-        // chat traffic. Swap to ONE_HOUR if you have sustained scripted
-        // workloads hitting the same system prompt; it's more expensive
-        // on the write but cheaper over a long session.
-        val cacheOptions =
-            AnthropicCacheOptions
-                .builder()
-                .strategy(AnthropicCacheStrategy.SYSTEM_AND_TOOLS)
-                .messageTypeTtl(MessageType.SYSTEM, AnthropicCacheTtl.ONE_HOUR)
-                .build()
-
         val anthropicOptions =
             AnthropicChatOptions
                 .builder()
-                .cacheOptions(cacheOptions)
+                .cacheOptions(anthropicCacheOptions)
                 .build()
 
         // No defaultSystem() — every call overrides via SystemPromptSelector

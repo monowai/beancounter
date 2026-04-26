@@ -6,8 +6,6 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.math.MathContext
-import java.math.RoundingMode
 
 // Privacy-preserving projections of portfolio/position data sent to the LLM.
 // Absolute monetary amounts (market value, cost basis, unrealised/realised gain,
@@ -27,30 +25,22 @@ data class ScrubbedPortfolio(
 )
 
 /**
- * Single position expressed in ratios and public market data.
+ * Compact, columnar projection of positions for an LLM tool result.
  *
- * `weight` is the portfolio weight (decimal, e.g. 0.125 = 12.5%).
- * `xirr` is annualised money-weighted return (decimal, 0.12 = 12% p.a.).
- * `roi` is total-return ratio (1.25 = +25%, 0.85 = -15%).
- * `yieldPercent` is dividends / marketValue (decimal), computed server-side.
- * Price fields are public market data and retained.
+ * Field names live in [COLS] once. Each entry of [rows] is a positional list
+ * aligned to [COLS] — typically ~75% smaller than the equivalent array of
+ * named-field objects, and tool results are never cached, so the saving
+ * applies on every chat turn.
+ *
+ * Column meanings (decimals throughout for ratios):
+ *   assetCode, assetName, market   — public identifiers
+ *   priceClose                     — public market price
+ *   changePercent                  — today's price move (0.012 = +1.2%)
+ *   xirr                           — annualised money-weighted return
+ *   weight                         — portfolio weight (0.125 = 12.5%)
+ *   category                       — asset class
+ *   closed                         — true if quantity is zero
  */
-data class ScrubbedPosition(
-    val assetCode: String,
-    val assetName: String?,
-    val market: String,
-    val category: String,
-    val tradeCurrency: String,
-    val weight: Double,
-    val xirr: Double?,
-    val roi: Double?,
-    val changePercent: Double?,
-    val yieldPercent: Double?,
-    val priceClose: Double?,
-    val priceDate: String?,
-    val closed: Boolean
-)
-
 data class ScrubbedPositionResponse(
     val portfolioCode: String,
     val portfolioName: String,
@@ -58,8 +48,24 @@ data class ScrubbedPositionResponse(
     val asAt: String,
     val mixedCurrencies: Boolean,
     val overallIrr: Double?,
-    val positions: List<ScrubbedPosition>
-)
+    val cols: List<String> = COLS,
+    val rows: List<List<Any?>>
+) {
+    companion object {
+        val COLS: List<String> =
+            listOf(
+                "assetCode",
+                "assetName",
+                "market",
+                "priceClose",
+                "changePercent",
+                "xirr",
+                "weight",
+                "category",
+                "closed"
+            )
+    }
+}
 
 /**
  * Maps full domain models to their scrubbed projections.
@@ -89,48 +95,26 @@ class ResponseScrubber {
                 positions.totals[Position.In.PORTFOLIO]
                     ?.irr
                     ?.toNullableDouble(),
-            positions = positions.positions.values.map(::scrubPosition)
+            rows = positions.positions.values.map(::scrubPositionRow)
         )
     }
 
-    private fun scrubPosition(position: Position): ScrubbedPosition {
+    private fun scrubPositionRow(position: Position): List<Any?> {
         val portfolioBucket = position.moneyValues[Position.In.PORTFOLIO]
         val price = portfolioBucket?.priceData
         val asset = position.asset
         val isClosed = position.quantityValues.getTotal().signum() == 0
-        val yieldPercent =
-            if (portfolioBucket == null ||
-                portfolioBucket.marketValue.signum() == 0
-            ) {
-                null
-            } else {
-                portfolioBucket.dividends
-                    .divide(portfolioBucket.marketValue, MATH)
-                    .setScale(6, RoundingMode.HALF_UP)
-                    .toDouble()
-            }
-        return ScrubbedPosition(
-            assetCode = asset.code,
-            assetName = asset.name,
-            market = asset.market.code,
-            category = asset.category,
-            tradeCurrency =
-                position.moneyValues[Position.In.TRADE]
-                    ?.currency
-                    ?.code ?: asset.market.currency.code,
-            weight = portfolioBucket?.weight?.toDouble() ?: 0.0,
-            xirr = portfolioBucket?.irr?.toNullableDouble(),
-            roi = portfolioBucket?.roi?.toNullableDouble(),
-            changePercent = price?.changePercent?.toNullableDouble(),
-            yieldPercent = yieldPercent,
-            priceClose = price?.close?.toNullableDouble(),
-            priceDate = price?.priceDate?.toString(),
-            closed = isClosed
+        return listOf(
+            asset.code,
+            asset.name,
+            asset.market.code,
+            price?.close?.toNullableDouble(),
+            price?.changePercent?.toNullableDouble(),
+            portfolioBucket?.irr?.toNullableDouble(),
+            portfolioBucket?.weight?.toDouble() ?: 0.0,
+            asset.category,
+            isClosed
         )
-    }
-
-    companion object {
-        private val MATH = MathContext.DECIMAL64
     }
 }
 

@@ -66,6 +66,7 @@ class Constants {
                 symbol = "€"
             )
         val NZD = Currency("NZD")
+        val CAD = Currency("CAD")
 
         val NZX =
             Market(

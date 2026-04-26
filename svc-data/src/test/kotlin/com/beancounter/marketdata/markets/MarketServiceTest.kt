@@ -4,6 +4,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AUD
+import com.beancounter.marketdata.Constants.Companion.CAD
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
@@ -52,6 +53,7 @@ class MarketServiceTest {
         `when`(currencyService.getCode(AUD.code)).thenReturn(AUD)
         `when`(currencyService.getCode(SGD.code)).thenReturn(SGD)
         `when`(currencyService.getCode(GBP.code)).thenReturn(GBP)
+        `when`(currencyService.getCode(CAD.code)).thenReturn(CAD)
     }
 
     @Test

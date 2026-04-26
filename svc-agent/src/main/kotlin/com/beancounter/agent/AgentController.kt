@@ -169,108 +169,100 @@ class AgentController(
     fun stream(
         @RequestBody request: AgentQuery
     ): Flux<ServerSentEvent<String>> {
-        if (chatClient == null) {
-            return Flux.just(
-                ServerSentEvent
-                    .builder<String>("No LLM is configured.")
-                    .event("error")
-                    .build()
-            )
-        }
-        // Wrap the entire pipeline in Flux.defer so setup-time exceptions
-        // (selector failures, options builder failures) become Flux errors
-        // and reach onErrorResume rather than escaping out of the controller
-        // method as raw 500s with no SSE envelope.
+        if (chatClient == null) return errorEvent("No LLM is configured.")
+        // Wrap the pipeline in Flux.defer so setup-time exceptions (selector
+        // failures, options builder failures) become Flux errors and reach
+        // onErrorResume rather than escaping out of the controller as a 500.
         return Flux
-            .defer {
-                val safeQuery = HtmlUtils.htmlEscape(request.query)
-                val userMessage = buildUserMessage(request)
-                val tools = toolSelector.selectTools(request.context)
-                val systemPrompt = systemPromptSelector.selectFor(request.context)
-                val modelId = chatModelSelector.selectFor(request.context)
-                val startMs = System.currentTimeMillis()
-
-                val promptSpec =
-                    chatClient
-                        .prompt()
-                        .system(systemPrompt)
-                        .user(userMessage)
-                        .tools(*tools)
-                val streamSpec =
-                    if (anthropicActive) {
-                        val builder = AnthropicChatOptions.builder().model(modelId)
-                        anthropicCacheOptions?.let(builder::cacheOptions)
-                        promptSpec.options(builder.build()).stream()
-                    } else {
-                        promptSpec.stream()
-                    }
-
-                // Track byte count for the final log line — Spring AI's stream() Flux
-                // doesn't surface token usage on the per-chunk events, so we count
-                // characters as a proxy for visibility.
-                val totalChars = AtomicLong(0)
-
-                val tokenEvents =
-                    streamSpec
-                        .content()
-                        .map { chunk ->
-                            totalChars.addAndGet(chunk.length.toLong())
-                            ServerSentEvent
-                                .builder(chunk)
-                                .event("token")
-                                .build()
-                        }
-
-                val doneEvent =
-                    Flux.defer {
-                        val elapsedMs = System.currentTimeMillis() - startMs
-                        if (log.isDebugEnabled) {
-                            val toolNames = tools.map { it.javaClass.simpleName }
-                            log.debug(
-                                "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
-                                    "elapsed_ms={}, query=\"{}\"",
-                                modelId,
-                                totalChars.get(),
-                                tools.size,
-                                toolNames,
-                                elapsedMs,
-                                safeQuery.take(120)
-                            )
-                        }
-                        // Build the JSON via Jackson rather than string interpolation —
-                        // model id values are config-controlled today but escaping
-                        // defensively avoids a future surprise if any field carries
-                        // a quote, backslash, or newline.
-                        val payload =
-                            objectMapper.writeValueAsString(
-                                mapOf(
-                                    "model" to modelId,
-                                    "chars" to totalChars.get(),
-                                    "elapsed_ms" to elapsedMs
-                                )
-                            )
-                        Flux.just(
-                            ServerSentEvent
-                                .builder(payload)
-                                .event("done")
-                                .build()
-                        )
-                    }
-
-                tokenEvents.concatWith(doneEvent)
-            }.onErrorResume { e ->
-                // Don't return e.message — leaks internals (stack details, host
-                // names, library exception text). Log full detail server-side
-                // and emit a stable opaque code to the client.
+            .defer { runStream(request) }
+            .onErrorResume { e ->
+                // Never return e.message — leaks internals. Log full detail
+                // server-side; client gets a stable opaque code.
                 log.error("Agent stream failed: {}", e.message, e)
-                Flux.just(
-                    ServerSentEvent
-                        .builder<String>("agent-error")
-                        .event("error")
-                        .build()
-                )
+                errorEvent("agent-error")
             }
     }
+
+    private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {
+        val safeQuery = HtmlUtils.htmlEscape(request.query)
+        val tools = toolSelector.selectTools(request.context)
+        val modelId = chatModelSelector.selectFor(request.context)
+        val startMs = System.currentTimeMillis()
+
+        // Track byte count for the final log line — Spring AI's stream() Flux
+        // doesn't surface token usage on per-chunk events, so we count chars
+        // as a proxy for visibility.
+        val totalChars = AtomicLong(0)
+
+        val streamSpec = buildStreamSpec(request, tools, modelId)
+        val tokenEvents =
+            streamSpec
+                .content()
+                .map { chunk ->
+                    totalChars.addAndGet(chunk.length.toLong())
+                    ServerSentEvent.builder(chunk).event("token").build()
+                }
+        val doneEvent =
+            Flux.defer { doneEvent(modelId, tools, totalChars.get(), startMs, safeQuery) }
+        return tokenEvents.concatWith(doneEvent)
+    }
+
+    private fun buildStreamSpec(
+        request: AgentQuery,
+        tools: Array<Any>,
+        modelId: String
+    ): ChatClient.StreamResponseSpec {
+        val promptSpec =
+            chatClient!!
+                .prompt()
+                .system(systemPromptSelector.selectFor(request.context))
+                .user(buildUserMessage(request))
+                .tools(*tools)
+        return if (anthropicActive) {
+            val builder = AnthropicChatOptions.builder().model(modelId)
+            anthropicCacheOptions?.let(builder::cacheOptions)
+            promptSpec.options(builder.build()).stream()
+        } else {
+            promptSpec.stream()
+        }
+    }
+
+    private fun doneEvent(
+        modelId: String,
+        tools: Array<Any>,
+        totalChars: Long,
+        startMs: Long,
+        safeQuery: String
+    ): Flux<ServerSentEvent<String>> {
+        val elapsedMs = System.currentTimeMillis() - startMs
+        if (log.isDebugEnabled) {
+            log.debug(
+                "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
+                    "elapsed_ms={}, query=\"{}\"",
+                modelId,
+                totalChars,
+                tools.size,
+                tools.map { it.javaClass.simpleName },
+                elapsedMs,
+                safeQuery.take(120)
+            )
+        }
+        // Build via Jackson rather than string interpolation so a future
+        // modelId / metric value containing a quote, backslash or newline can
+        // never produce malformed SSE.
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "model" to modelId,
+                    "chars" to totalChars,
+                    "elapsed_ms" to elapsedMs
+                )
+            )
+        return Flux.just(ServerSentEvent.builder(payload).event("done").build())
+    }
+
+    private fun errorEvent(message: String): Flux<ServerSentEvent<String>> =
+        Flux.just(ServerSentEvent.builder<String>(message).event("error").build())
 
     private fun logLlmInteraction(
         userMessage: String,

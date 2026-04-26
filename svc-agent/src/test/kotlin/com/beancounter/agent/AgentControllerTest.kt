@@ -177,8 +177,39 @@ class AgentControllerTest {
         assertThat(events[0].data()).isEqualTo("Hello")
         assertThat(events[1].event()).isEqualTo("token")
         assertThat(events[1].data()).isEqualTo(" world")
+
+        // Parse the `done` payload as JSON instead of substring matching so
+        // formatting / field-order changes can't quietly break the contract.
         assertThat(events[2].event()).isEqualTo("done")
-        assertThat(events[2].data()).contains("\"chars\":11")
+        val done = ObjectMapper().readTree(events[2].data())
+        assertThat(done["model"].asText()).isEqualTo("test-model-id")
+        assertThat(done["chars"].asLong()).isEqualTo(11L)
+        assertThat(done["elapsed_ms"].asLong()).isGreaterThanOrEqualTo(0L)
+    }
+
+    @Test
+    fun `stream emits opaque error when stream setup itself throws before any Flux`() {
+        // Regression test for the Flux.defer hardening: a synchronous
+        // exception thrown by ChatClient.prompt().stream() must surface as
+        // the same SSE error envelope as a Flux.error mid-stream, not as a
+        // raw 500 response without an SSE body.
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenThrow(IllegalStateException("boom"))
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo("error")
+        assertThat(events[0].data()).isEqualTo("agent-error")
+        assertThat(events[0].data()).doesNotContain("boom")
     }
 
     @Test

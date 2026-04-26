@@ -30,6 +30,12 @@ class ToolSelector(
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
 
         return when {
+            // Asset Review — single-asset deep dive from assets/lookup.
+            // Match before the trade/event branch so the word "asset" doesn't
+            // trip a fall-through.
+            page.contains("asset review") || page.contains("asset-review") -> {
+                (wealthTools + eventTools + newsTools).toTypedArray()
+            }
             // News & Sentiment — focused lookup, nothing else.
             page.contains("news") && page.contains("sentiment") -> {
                 arrayOf(newsTools)

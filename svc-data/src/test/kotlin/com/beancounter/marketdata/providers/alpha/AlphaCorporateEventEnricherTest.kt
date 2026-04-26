@@ -46,7 +46,7 @@ class AlphaCorporateEventEnricherTest {
                 change = BigDecimal("0.50"), // Already correct
                 changePercent = BigDecimal("0.005"),
                 volume = 1000000,
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         // And: The TIME_SERIES_DAILY_ADJUSTED shows a 2:1 split on the same date
@@ -85,7 +85,7 @@ class AlphaCorporateEventEnricherTest {
                 close = BigDecimal("100.00"),
                 previousClose = BigDecimal("100.50"),
                 change = BigDecimal("-0.50"),
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         // And: The TIME_SERIES_DAILY_ADJUSTED shows a dividend on the same date
@@ -127,7 +127,7 @@ class AlphaCorporateEventEnricherTest {
                 changePercent = BigDecimal("0.0101"),
                 split = BigDecimal.ONE,
                 dividend = BigDecimal.ZERO,
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         // And: No corporate events exist
@@ -157,7 +157,7 @@ class AlphaCorporateEventEnricherTest {
                 close = BigDecimal("100.00"),
                 previousClose = BigDecimal("100.00"),
                 change = BigDecimal("0.00"),
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         val yesterdayEvent =
@@ -186,7 +186,7 @@ class AlphaCorporateEventEnricherTest {
                 asset = asset,
                 priceDate = priceDate,
                 close = BigDecimal("100.00"),
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         val yesterdayEvent =
@@ -218,7 +218,7 @@ class AlphaCorporateEventEnricherTest {
                 asset = asset,
                 priceDate = priceDate,
                 close = BigDecimal("100.00"),
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         val splitOnlyToday =
@@ -261,7 +261,7 @@ class AlphaCorporateEventEnricherTest {
                 asset = voAsset,
                 priceDate = dayAfter,
                 close = BigDecimal("76.56"),
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         val splitEventOnExDate =
@@ -291,7 +291,7 @@ class AlphaCorporateEventEnricherTest {
                 close = BigDecimal("100.00"),
                 previousClose = BigDecimal("200.00"),
                 change = BigDecimal("-100.00"),
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         // And: A split exists but 2 days ago (outside the +/-1 day window)
@@ -322,7 +322,7 @@ class AlphaCorporateEventEnricherTest {
                 asset = asset,
                 priceDate = priceDate,
                 close = BigDecimal("100.00"),
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         // And: Both an exact-date dividend and an adjacent-day dividend exist
@@ -362,7 +362,7 @@ class AlphaCorporateEventEnricherTest {
                 close = BigDecimal("66.67"),
                 previousClose = BigDecimal("66.00"), // Already split-adjusted by GLOBAL_QUOTE
                 change = BigDecimal("0.67"), // Already correct
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         // And: A 3:2 split (1.5 coefficient) on the same date
@@ -411,7 +411,7 @@ class AlphaCorporateEventEnricherTest {
                 change = BigDecimal("0.50"),
                 changePercent = BigDecimal("0.0058"),
                 volume = 15000000,
-                source = "ALPHA"
+                source = AlphaPriceService.ID
             )
 
         // And: The TIME_SERIES_DAILY_ADJUSTED shows a 2:1 split on the same date

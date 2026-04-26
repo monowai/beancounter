@@ -35,6 +35,8 @@ class Constants {
         val CASH_MARKET = Market("CASH")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
+        val PRIVATE_MARKET = Market("PRIVATE")
+        const val PRIVATE = "PRIVATE"
 
         val AAPL =
             getTestAsset(

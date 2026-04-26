@@ -12,6 +12,8 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.PRIVATE
+import com.beancounter.marketdata.Constants.Companion.PRIVATE_MARKET
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
@@ -140,15 +142,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "BUY",
-                "NASDAQ",
+                NASDAQ.code,
                 assetCode,
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 TRADE_DATE,
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -174,15 +176,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "BUY",
-                "NASDAQ",
+                NASDAQ.code,
                 "INVALID",
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 TRADE_DATE,
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -218,15 +220,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "BUY",
-                "NASDAQ",
+                NASDAQ.code,
                 assetCode,
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 "invalid-date",
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -249,15 +251,15 @@ class BcRowAdapterTest {
                 BATCH_USX,
                 CALLER_ID,
                 "SELL",
-                "NASDAQ",
+                NASDAQ.code,
                 assetCode,
                 ASSET_NAME,
-                "USD",
-                "USD",
+                USD.code,
+                USD.code,
                 TRADE_DATE,
                 "200.000000",
                 "1.000000",
-                "USD",
+                USD.code,
                 "77.780000",
                 "0.00",
                 "1.386674",
@@ -275,7 +277,7 @@ class BcRowAdapterTest {
 
     @Test
     fun `INCOME on private account should settle to same account`() {
-        val privateMarket = Market("PRIVATE")
+        val privateMarket = PRIVATE_MARKET
         val privateCash =
             Asset(
                 code = "e2e-test.SGD-SAVINGS",
@@ -290,7 +292,7 @@ class BcRowAdapterTest {
             .`when`(
                 ais.resolveAsset(
                     AssetInput(
-                        "PRIVATE",
+                        PRIVATE,
                         "SGD-SAVINGS",
                         name = "",
                         owner = portfolio.owner.id
@@ -304,7 +306,7 @@ class BcRowAdapterTest {
                 "20250115", // Batch
                 "", // CallerId
                 "INCOME", // Type
-                "PRIVATE", // Market
+                PRIVATE, // Market
                 "SGD-SAVINGS", // Code
                 "", // Name
                 "", // CashAccount (empty — should auto-resolve to asset)

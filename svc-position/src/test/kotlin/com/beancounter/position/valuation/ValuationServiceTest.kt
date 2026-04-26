@@ -43,6 +43,11 @@ import java.time.LocalDate
  */
 @ExtendWith(MockitoExtension::class)
 class ValuationServiceTest {
+    companion object {
+        private val MV_10K = BigDecimal("10000.00")
+        private val PRICE_150 = BigDecimal("150.00")
+    }
+
     @Mock
     private lateinit var positionValuationService: PositionValuationService
 
@@ -128,13 +133,13 @@ class ValuationServiceTest {
 
         // Set up PORTFOLIO totals (in portfolio currency)
         val portfolioTotals = Totals(portfolio.currency)
-        portfolioTotals.marketValue = BigDecimal("10000.00")
+        portfolioTotals.marketValue = MV_10K
         portfolioTotals.irr = BigDecimal("0.15")
         positions.setTotal(Position.In.PORTFOLIO, portfolioTotals)
 
         // Set up BASE totals (in user's base currency) - this is what gets sent
         val baseTotals = Totals(portfolio.base)
-        baseTotals.marketValue = BigDecimal("10000.00")
+        baseTotals.marketValue = MV_10K
         baseTotals.irr = BigDecimal("0.15")
         positions.setTotal(Position.In.BASE, baseTotals)
 
@@ -210,7 +215,7 @@ class ValuationServiceTest {
                 portfolio = portfolio,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal("10"),
-                price = BigDecimal("150.00"),
+                price = PRICE_150,
                 tradeDate = LocalDate.of(2024, 1, 15)
             )
         val trn2 =
@@ -255,7 +260,7 @@ class ValuationServiceTest {
                 portfolio = portfolio,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal("10"),
-                price = BigDecimal("150.00"),
+                price = PRICE_150,
                 tradeDate = LocalDate.of(2024, 1, 15)
             )
 
@@ -466,7 +471,7 @@ class ValuationServiceTest {
 
         // Set up BASE totals (in USD) with a DIFFERENT value (converted at FX rate)
         val baseTotals = Totals(usdCurrency)
-        baseTotals.marketValue = BigDecimal("10000.00") // 10000 USD (GBP->USD converted)
+        baseTotals.marketValue = MV_10K // 10000 USD (GBP->USD converted)
         baseTotals.irr = BigDecimal("0.12")
         positions.setTotal(Position.In.BASE, baseTotals)
 
@@ -482,7 +487,7 @@ class ValuationServiceTest {
         // Assert the marketValue sent is from BASE totals (10000 USD), not PORTFOLIO totals (8000 GBP)
         assertThat(sentPortfolio.marketValue)
             .describedAs("Market value should be from BASE totals (10000 USD), not PORTFOLIO totals (8000 GBP)")
-            .isEqualTo(BigDecimal("10000.00"))
+            .isEqualTo(MV_10K)
 
         // Also verify IRR is from BASE totals
         assertThat(sentPortfolio.irr)
@@ -502,7 +507,7 @@ class ValuationServiceTest {
         position1.quantityValues.purchased = BigDecimal.TEN
         position1.moneyValues[Position.In.BASE] =
             MoneyValues(portfolio.base).apply {
-                gainOnDay = BigDecimal("150.00")
+                gainOnDay = PRICE_150
                 marketValue = BigDecimal("1500.00")
             }
         positions.add(position1)

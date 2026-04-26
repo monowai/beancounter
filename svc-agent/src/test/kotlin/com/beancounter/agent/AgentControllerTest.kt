@@ -16,6 +16,11 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.mock.env.MockEnvironment
 import reactor.core.publisher.Flux
 
+private const val EVENT_TOKEN = "token"
+private const val EVENT_DONE = "done"
+private const val EVENT_ERROR = "error"
+private const val OPAQUE_ERROR = "agent-error"
+
 /**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
  * Spring AI tool calling, which is exercised end-to-end against a real LLM —
@@ -139,7 +144,7 @@ class AgentControllerTest {
         val response = controller(chatClient = client).query(AgentQuery("anything"))
 
         assertThat(response.statusCode.value()).isEqualTo(500)
-        assertThat(response.body?.error).isEqualTo("agent-error")
+        assertThat(response.body?.error).isEqualTo(OPAQUE_ERROR)
     }
 
     @Test
@@ -151,7 +156,7 @@ class AgentControllerTest {
                 .block()!!
 
         assertThat(events).hasSize(1)
-        assertThat(events[0].event()).isEqualTo("error")
+        assertThat(events[0].event()).isEqualTo(EVENT_ERROR)
         assertThat(events[0].data()).contains("No LLM")
     }
 
@@ -173,14 +178,14 @@ class AgentControllerTest {
                 .block()!!
 
         assertThat(events).hasSize(3)
-        assertThat(events[0].event()).isEqualTo("token")
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
         assertThat(events[0].data()).isEqualTo("Hello")
-        assertThat(events[1].event()).isEqualTo("token")
+        assertThat(events[1].event()).isEqualTo(EVENT_TOKEN)
         assertThat(events[1].data()).isEqualTo(" world")
 
         // Parse the `done` payload as JSON instead of substring matching so
         // formatting / field-order changes can't quietly break the contract.
-        assertThat(events[2].event()).isEqualTo("done")
+        assertThat(events[2].event()).isEqualTo(EVENT_DONE)
         val done = ObjectMapper().readTree(events[2].data())
         assertThat(done["model"].asText()).isEqualTo("test-model-id")
         assertThat(done["chars"].asLong()).isEqualTo(11L)
@@ -234,8 +239,8 @@ class AgentControllerTest {
                 .block()!!
 
         assertThat(events).hasSize(1)
-        assertThat(events[0].event()).isEqualTo("error")
-        assertThat(events[0].data()).isEqualTo("agent-error")
+        assertThat(events[0].event()).isEqualTo(EVENT_ERROR)
+        assertThat(events[0].data()).isEqualTo(OPAQUE_ERROR)
         assertThat(events[0].data()).doesNotContain("boom")
     }
 
@@ -260,8 +265,8 @@ class AgentControllerTest {
         // we only care that the LAST event is the opaque error envelope.
         // The raw exception message is logged server-side, never returned.
         val last = events.last()
-        assertThat(last.event()).isEqualTo("error")
-        assertThat(last.data()).isEqualTo("agent-error")
+        assertThat(last.event()).isEqualTo(EVENT_ERROR)
+        assertThat(last.data()).isEqualTo(OPAQUE_ERROR)
         assertThat(last.data()).doesNotContain("boom")
     }
 }

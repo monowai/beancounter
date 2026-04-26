@@ -83,6 +83,22 @@ class ToolSelectorTest {
     }
 
     @Test
+    fun `asset review page ships wealth baseline plus event and news tools`() {
+        // Asset Review is a deep-dive on a single ticker triggered from
+        // the assets/lookup screen — needs market context, news, and
+        // corporate-event history. No retire/rebalance.
+        val tools = selector.selectTools(mapOf("page" to "Asset Review"))
+        assertThat(tools).containsExactlyInAnyOrder(
+            portfolioTools,
+            positionTools,
+            marketTools,
+            eventTools,
+            newsTools
+        )
+        assertThat(tools).doesNotContain(retireTools, rebalanceTools)
+    }
+
+    @Test
     fun `no context ships every tool`() {
         val tools = selector.selectTools(null)
         assertThat(tools).containsExactlyInAnyOrder(

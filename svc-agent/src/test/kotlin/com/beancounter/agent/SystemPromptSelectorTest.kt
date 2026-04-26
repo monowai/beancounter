@@ -43,6 +43,12 @@ class SystemPromptSelectorTest {
     }
 
     @Test
+    fun `asset review page returns the asset review prompt`() {
+        val prompt = selector.selectFor(mapOf("page" to "Asset Review"))
+        assertThat(prompt).isEqualTo(DomainSystemPrompts.ASSET_REVIEW)
+    }
+
+    @Test
     fun `null or unknown context falls back to the general prompt`() {
         assertThat(selector.selectFor(null)).isEqualTo(DomainSystemPrompts.GENERAL)
         assertThat(selector.selectFor(emptyMap())).isEqualTo(DomainSystemPrompts.GENERAL)

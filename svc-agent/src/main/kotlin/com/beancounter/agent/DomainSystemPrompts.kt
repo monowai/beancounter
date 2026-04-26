@@ -89,19 +89,22 @@ object DomainSystemPrompts {
         - `listPortfolios` — every portfolio the user owns. Metadata +
           portfolio-level XIRR.
         - `getPortfolio(code)` — portfolio metadata + XIRR by user-facing code.
-        - `getPositions(code, asAt?)` — positions projected onto privacy-
-          preserving fields:
+        - `getPositions(code, asAt?)` — positions in a compact columnar
+          shape: `cols` lists field names once and each entry of `rows`
+          is an array aligned to `cols` (rows[i][j] is cols[j] for the
+          i-th position). Columns:
+          - `assetCode`, `assetName`, `market` — public identifiers.
+          - `priceClose` — public market price.
+          - `changePercent` — today's price move (decimal).
+          - `xirr` — annualised money-weighted return (decimal;
+            0.12 = 12% p.a.). Prefer this for performance comparison —
+            most accurate when positions are held over varying periods.
           - `weight` — portfolio weight (decimal; 0.125 = 12.5%).
-          - `xirr` — annualised money-weighted return (0.12 = 12% p.a.).
-            Prefer this for time-weighted performance comparison — most
-            accurate when positions are held over varying periods.
-          - `roi` — total-return ratio (1.25 = +25%, 0.85 = −15%).
-          - `changePercent` — today's price move.
-          - `yieldPercent` — dividends as a fraction of market value.
-          - `priceClose`, `priceDate` — public market data.
+          - `category` — asset class, useful for grouping.
           - `closed` — true when quantity is zero.
-          Show both XIRR and ROI as percentages when discussing
-          performance.
+          Show ratios as percentages when discussing performance. ROI,
+          dividend yield, and trade currency are not exposed — never
+          claim them.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
 
         ### Workflow
@@ -116,9 +119,13 @@ object DomainSystemPrompts {
 
         ### Closed positions
 
-        Exclude closed positions (`closed = true`) by default. Include them
-        only when the user explicitly asks about closed/sold/historical
-        holdings.
+        Never mention, count, list, or comment on closed positions
+        (`closed = true`) — not even in passing, not even as a count or
+        footnote. Filter them out silently before any analysis.
+
+        The only exception: the user has explicitly asked about closed,
+        sold, exited, or historical holdings. In that case, address those
+        positions directly.
         """.trimIndent()
 
     /**

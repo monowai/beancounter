@@ -15,8 +15,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * Verify [ResponseScrubber] strips absolute monetary values and keeps ratios,
- * weights, percentages, and public price data.
+ * Verify [ResponseScrubber] emits the compact columnar position shape, strips
+ * absolute monetary values, and exposes only the 9-column field set the LLM
+ * needs.
  */
 class ResponseScrubberTest {
     private val usd = Currency("USD")
@@ -46,7 +47,7 @@ class ResponseScrubberTest {
     }
 
     @Test
-    fun `scrubbed position exposes only ratios, weight, yield, and public prices`() {
+    fun `position response is columnar with the 9 documented columns`() {
         val asset =
             Asset(
                 code = "AAPL",
@@ -86,27 +87,50 @@ class ResponseScrubberTest {
         val scrubbed = scrubber.scrub(PositionResponse(positions))
 
         assertThat(scrubbed.portfolioCode).isEqualTo("TEST")
+        assertThat(scrubbed.portfolioName).isEqualTo("Test Portfolio")
         assertThat(scrubbed.baseCurrency).isEqualTo("USD")
         assertThat(scrubbed.asAt).isEqualTo("2026-04-16")
         assertThat(scrubbed.overallIrr).isEqualTo(0.11)
-        assertThat(scrubbed.positions).hasSize(1)
 
-        val p = scrubbed.positions.first()
-        assertThat(p.assetCode).isEqualTo("AAPL")
-        assertThat(p.assetName).isEqualTo("Apple Inc.")
-        assertThat(p.market).isEqualTo("NASDAQ")
-        assertThat(p.category).isEqualTo("Equity")
-        assertThat(p.weight).isEqualTo(0.125)
-        assertThat(p.xirr).isEqualTo(0.14)
-        assertThat(p.roi).isEqualTo(1.357)
-        assertThat(p.changePercent).isEqualTo(0.012)
-        assertThat(p.priceClose).isEqualTo(178.50)
-        assertThat(p.priceDate).isEqualTo("2026-04-15")
-        assertThat(p.closed).isFalse()
-        // yieldPercent = dividends / marketValue = 180 / 10000 = 0.018
-        assertThat(p.yieldPercent).isEqualTo(0.018)
-        // The scrubbed shape has no marketValue/costValue/gain fields —
-        // compile-time guarantee from ScrubbedPosition's declaration.
+        assertThat(scrubbed.cols)
+            .containsExactly(
+                "assetCode",
+                "assetName",
+                "market",
+                "priceClose",
+                "changePercent",
+                "xirr",
+                "weight",
+                "category",
+                "closed"
+            )
+        assertThat(scrubbed.rows).hasSize(1)
+        assertThat(scrubbed.rows.first())
+            .containsExactly(
+                "AAPL",
+                "Apple Inc.",
+                "NASDAQ",
+                178.50,
+                0.012,
+                0.14,
+                0.125,
+                "Equity",
+                false
+            )
+    }
+
+    @Test
+    fun `dropped fields are not present in cols`() {
+        // Compact shape excludes roi, yieldPercent, tradeCurrency, priceDate.
+        // asAt at response level supersedes per-row priceDate.
+        val asset = Asset(code = "X", market = nasdaq, category = "Equity")
+        val position = Position(asset, portfolio)
+        val positions = Positions(portfolio).apply { add(position) }
+
+        val scrubbed = scrubber.scrub(PositionResponse(positions))
+
+        assertThat(scrubbed.cols)
+            .doesNotContain("roi", "yieldPercent", "tradeCurrency", "priceDate")
     }
 
     @Test
@@ -127,27 +151,7 @@ class ResponseScrubberTest {
         positions.add(position)
         val scrubbed = scrubber.scrub(PositionResponse(positions))
 
-        assertThat(scrubbed.positions.single().closed).isTrue()
-    }
-
-    @Test
-    fun `zero market value produces null yield`() {
-        val asset =
-            Asset(
-                code = "CASH",
-                market = nasdaq,
-                category = "Cash"
-            )
-        val position = Position(asset, portfolio)
-        val money = position.getMoneyValues(Position.In.PORTFOLIO)
-        money.marketValue = BigDecimal.ZERO
-        money.dividends = BigDecimal.ZERO
-        money.weight = BigDecimal.ZERO
-
-        val positions = Positions(portfolio)
-        positions.add(position)
-        val scrubbed = scrubber.scrub(PositionResponse(positions))
-
-        assertThat(scrubbed.positions.single().yieldPercent).isNull()
+        val closedIdx = scrubbed.cols.indexOf("closed")
+        assertThat(scrubbed.rows.single()[closedIdx]).isEqualTo(true)
     }
 }

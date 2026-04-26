@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service
  * the position list itself once it has the data. Keeping the tool surface
  * narrow reduces prompt-token cost and tool-selection errors.
  *
- * Responses are scrubbed of absolute monetary amounts: only ratios (weight,
- * XIRR, ROI, change %, yield %) and public price data reach the LLM.
- * See [ResponseScrubber].
+ * Responses are scrubbed of absolute monetary amounts: only weight, xirr,
+ * change %, and public price data reach the LLM, in a compact columnar
+ * shape. See [ResponseScrubber] / [ScrubbedPositionResponse].
  */
 @Service
 class PositionTools(
@@ -32,19 +32,25 @@ class PositionTools(
     companion object {
         const val POSITIONS_DESC =
             "Get the positions for a portfolio identified by its code. " +
-                "Each position is expressed in privacy-preserving ratios — no absolute " +
-                "dollar amounts are returned. Fields per position: " +
-                "`weight` (portfolio weight as decimal, e.g. 0.125 = 12.5%), " +
-                "`xirr` (annualised money-weighted return, 0.12 = 12% p.a. — most " +
-                "accurate measure for holdings over varying periods), " +
-                "`roi` (total-return ratio, 1.25 = +25%, 0.85 = −15%), " +
-                "`changePercent` (today's price move, decimal), " +
-                "`yieldPercent` (dividends / market value, decimal), " +
-                "`priceClose`, `priceDate` (public market data), " +
-                "`closed` (true if quantity is zero). " +
-                "Prefer `xirr` for time-weighted performance comparison across " +
-                "holdings; use `roi` for a total-return snapshot. Show both as " +
-                "percentages when discussing performance. Never invent or request " +
-                "dollar amounts — they are not available."
+                "Response is columnar to minimise tokens: `cols` lists field names " +
+                "in order; each entry of `rows` is an array of values aligned to " +
+                "`cols` (rows[i][j] is the value of cols[j] for the i-th position). " +
+                "No absolute dollar amounts are returned. Columns: " +
+                "`assetCode`, `assetName`, `market` (public identifiers); " +
+                "`priceClose` (public market price); " +
+                "`changePercent` (today's price move, decimal — 0.012 = +1.2%); " +
+                "`xirr` (annualised money-weighted return, decimal — 0.12 = 12% p.a.; " +
+                "the most accurate performance measure across holdings); " +
+                "`weight` (portfolio weight, decimal — 0.125 = 12.5%); " +
+                "`category` (asset class, useful for grouping); " +
+                "`closed` (boolean — true means zero quantity). " +
+                "Never mention, count, or discuss closed positions in your " +
+                "answer unless the user has explicitly asked about closed, " +
+                "sold, or historical holdings — filter them out silently. " +
+                "The response also carries `portfolioCode`, `portfolioName`, " +
+                "`baseCurrency`, `asAt`, `mixedCurrencies`, and `overallIrr`. " +
+                "Show ratios as percentages when discussing performance. " +
+                "Never invent or request dollar amounts, ROI, dividend yield, or " +
+                "trade currency — they are not available in this tool."
     }
 }

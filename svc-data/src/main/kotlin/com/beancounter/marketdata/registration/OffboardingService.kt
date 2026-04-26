@@ -42,8 +42,7 @@ class OffboardingService(
      */
     fun getSummary(): OffboardingSummaryResponse {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
 
         val portfolios = portfolioRepository.findByOwner(user).toList()
         val assets = assetRepository.findBySystemUserId(user.id)
@@ -62,8 +61,7 @@ class OffboardingService(
      */
     fun deleteUserAssets(): OffboardingResult {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
 
         val assets = assetRepository.findBySystemUserId(user.id)
         if (assets.isEmpty()) {
@@ -96,8 +94,7 @@ class OffboardingService(
      */
     fun deleteUserPortfolios(): OffboardingResult {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
 
         val portfolios = portfolioRepository.findByOwner(user).toList()
         if (portfolios.isEmpty()) {
@@ -130,8 +127,7 @@ class OffboardingService(
      */
     fun deleteUserWealth(): OffboardingResult {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
 
         var totalDeleted = 0
 
@@ -173,8 +169,7 @@ class OffboardingService(
      */
     fun deleteUserAccount(): OffboardingResult {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
 
         // Delete in order of FK dependencies
         // 1. Delete portfolios and their transactions

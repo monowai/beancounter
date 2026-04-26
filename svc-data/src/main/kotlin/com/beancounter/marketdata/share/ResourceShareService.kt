@@ -114,7 +114,7 @@ class ResourceShareService(
         shareId: String
     ) {
         if (!isAuthorisedToAccept(share, currentUser, shareId)) {
-            throw NotFoundException("Share not found: $shareId")
+            throw NotFoundException(shareNotFoundMessage(shareId))
         }
     }
 
@@ -149,7 +149,7 @@ class ResourceShareService(
         val isAdviser = share.sharedWith.id == currentUser.id
         val isTarget = share.targetUser?.id == currentUser.id
         if (!isOwner && !isAdviser && !isTarget) {
-            throw NotFoundException("Share not found: $shareId")
+            throw NotFoundException(shareNotFoundMessage(shareId))
         }
 
         share.status = ShareStatus.REVOKED
@@ -221,7 +221,7 @@ class ResourceShareService(
 
     private fun findShareOrThrow(shareId: String): ResourceShare =
         resourceShareRepository.findById(shareId).orElseThrow {
-            NotFoundException("Share not found: $shareId")
+            NotFoundException(shareNotFoundMessage(shareId))
         }
 
     private fun resolveUserByEmail(email: String): SystemUser =
@@ -260,3 +260,5 @@ class ResourceShareService(
         )
     }
 }
+
+private fun shareNotFoundMessage(shareId: String): String = "Share not found: $shareId"

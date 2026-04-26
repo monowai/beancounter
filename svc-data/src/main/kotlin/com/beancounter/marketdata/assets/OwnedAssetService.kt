@@ -30,7 +30,7 @@ class OwnedAssetService(
      */
     fun findByOwnerAndCategory(category: String): AssetUpdateResponse {
         val user =
-            systemUserService.getActiveUser()
+            systemUserService.requireActiveUser()
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserIdAndCategory(user.id, category.uppercase())
         return AssetUpdateResponse(
@@ -43,7 +43,7 @@ class OwnedAssetService(
      */
     fun findByOwner(): AssetUpdateResponse {
         val user =
-            systemUserService.getActiveUser()
+            systemUserService.requireActiveUser()
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserId(user.id)
         return AssetUpdateResponse(
@@ -68,8 +68,7 @@ class OwnedAssetService(
      */
     fun deleteOwnedAsset(assetId: String) {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
         val asset =
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
@@ -92,8 +91,7 @@ class OwnedAssetService(
         assetInput: AssetInput
     ): Asset {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
         val asset =
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
@@ -136,7 +134,5 @@ class OwnedAssetService(
      * Get the current user's ID for asset ownership.
      * @throws BusinessException if user not authenticated
      */
-    fun getCurrentOwnerId(): String =
-        systemUserService.getActiveUser()?.id
-            ?: throw BusinessException("User not authenticated")
+    fun getCurrentOwnerId(): String = systemUserService.requireActiveUser().id
 }

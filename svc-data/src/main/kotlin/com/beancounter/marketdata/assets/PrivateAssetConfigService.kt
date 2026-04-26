@@ -34,7 +34,7 @@ class PrivateAssetConfigService(
      */
     fun getMyConfigs(excludePortfolioIds: Set<String>? = null): PrivateAssetConfigsResponse {
         val user =
-            systemUserService.getActiveUser()
+            systemUserService.requireActiveUser()
                 ?: return PrivateAssetConfigsResponse(emptyList())
         var configs = configRepository.findByUserId(user.id)
 
@@ -335,8 +335,7 @@ class PrivateAssetConfigService(
      */
     private fun verifyAssetOwnership(assetId: String) {
         val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+            systemUserService.requireActiveUser()
 
         val asset =
             assetRepository.findById(assetId).orElseThrow {

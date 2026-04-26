@@ -36,7 +36,7 @@ data class AssetCategory(
                 RE, "REAL ESTATE" -> REPORT_PROPERTY
                 "EXCHANGE TRADED FUND", "ETF" -> REPORT_ETF
                 "MUTUAL FUND" -> REPORT_MUTUAL_FUND
-                POLICY, PENSION -> REPORT_RETIREMENT_FUND
+                POLICY, "PENSION" -> REPORT_RETIREMENT_FUND
                 else -> category // Default: use original category
             }
     }

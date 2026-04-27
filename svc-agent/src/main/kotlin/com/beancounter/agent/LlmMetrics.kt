@@ -24,12 +24,17 @@ class LlmMetrics {
     private val log = LoggerFactory.getLogger(LlmMetrics::class.java)
 
     fun capture(
-        modelId: String,
+        modelId: String?,
         usage: Usage?,
         elapsedMs: Long,
         toolCount: Int,
         mode: Mode
     ) {
+        @Suppress("TooGenericExceptionCaught")
+        // Sentry's SDK can surface unexpected errors (uninitialised, IO, etc).
+        // Telemetry must never break the user-visible response, so we catch
+        // broadly and log at DEBUG. Narrowing the type would let an unfamiliar
+        // failure mode crash the request thread purely to satisfy the linter.
         try {
             val tx = Sentry.getCurrentScopes().transaction
             if (tx == null) {
@@ -37,7 +42,11 @@ class LlmMetrics {
                 // by profile). Bail silently — metrics are best-effort.
                 return
             }
-            tx.setTag(TAG_MODEL, modelId)
+            // Only tag the model when we actually know it. On ollama / openai
+            // profiles the per-call selected id doesn't reflect what answered
+            // the request, so attributing measurements to it would mislead
+            // dashboards. Skip the tag rather than poison the data.
+            if (!modelId.isNullOrBlank()) tx.setTag(TAG_MODEL, modelId)
             tx.setTag(TAG_TOOLS, toolCount.toString())
             tx.setTag(TAG_MODE, mode.tag)
             tx.setData(DATA_ELAPSED_MS, elapsedMs)
@@ -45,7 +54,6 @@ class LlmMetrics {
             usage?.completionTokens?.toLong()?.let { tx.setMeasurement(M_COMPLETION_TOKENS, it) }
             usage?.totalTokens?.toLong()?.let { tx.setMeasurement(M_TOTAL_TOKENS, it) }
         } catch (e: Exception) {
-            // Telemetry must never affect the user-visible response.
             log.debug("LlmMetrics.capture failed: {}", e.message)
         }
     }

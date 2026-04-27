@@ -27,6 +27,21 @@ class LlmMetricsTest {
     }
 
     @Test
+    fun `capture accepts a null modelId and is a no-op`() {
+        // Controller passes null on ollama/openai profiles where the per-call
+        // model id would be misleading. The signature must accept null and
+        // not blow up downstream.
+        val metrics = LlmMetrics()
+        metrics.capture(
+            modelId = null,
+            usage = DefaultUsage(10, 5, 15),
+            elapsedMs = 0,
+            toolCount = 1,
+            mode = LlmMetrics.Mode.CALL
+        )
+    }
+
+    @Test
     fun `capture swallows null usage`() {
         val metrics = LlmMetrics()
         metrics.capture(

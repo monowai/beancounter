@@ -309,9 +309,12 @@ class AgentController(
     ): Flux<ServerSentEvent<String>> {
         val elapsedMs = System.currentTimeMillis() - startMs
         // Sentry transaction measurements — same shape as the non-streaming
-        // path so dashboards can mix call+stream traffic.
+        // path so dashboards can mix call+stream traffic. Only attribute the
+        // model tag when the per-call Anthropic override was applied; on
+        // ollama / openai the configured ChatClient picks the model and our
+        // selectedModelId would mislead the metric.
         llmMetrics.capture(
-            modelId = modelId,
+            modelId = modelId.takeIf { anthropicActive },
             usage = usage,
             elapsedMs = elapsedMs,
             toolCount = tools.size,
@@ -367,9 +370,11 @@ class AgentController(
         val meta = chatResponse?.metadata
         val usage = meta?.usage
         // Sentry transaction measurements — runs even when DEBUG is off so
-        // production retains queryable token telemetry.
+        // production retains queryable token telemetry. Only tag the model
+        // when the per-call Anthropic override was applied; otherwise the
+        // selected id doesn't reflect the actual answering model.
         llmMetrics.capture(
-            modelId = selectedModelId,
+            modelId = selectedModelId.takeIf { anthropicActive },
             usage = usage,
             elapsedMs = elapsedMs,
             toolCount = tools.size,

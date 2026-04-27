@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.ai.anthropic.AnthropicChatOptions
 import org.springframework.ai.anthropic.api.AnthropicCacheOptions
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.metadata.Usage
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
@@ -25,6 +26,7 @@ import org.springframework.web.util.HtmlUtils
 import reactor.core.publisher.Flux
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Single natural-language entry point for the Beancounter agent.
@@ -45,7 +47,8 @@ class AgentController(
     private val systemPromptSelector: SystemPromptSelector,
     private val chatModelSelector: ChatModelSelector,
     private val environment: Environment,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val llmMetrics: LlmMetrics
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -188,10 +191,51 @@ class AgentController(
             .defer { runStream(request) }
             .onErrorResume { e ->
                 // Never return e.message — leaks internals. Log full detail
-                // server-side; client gets a stable opaque code.
+                // server-side; client gets a stable, classified code so the
+                // UI can surface a real cause instead of generic
+                // "agent-error" when the failure is something the user can
+                // act on (e.g. provider quota, rate limit).
                 log.error("Agent stream failed: {}", e.message, e)
-                errorEvent("agent-error")
+                errorEvent(classifyError(e))
             }.contextCapture()
+    }
+
+    /**
+     * Map an upstream exception into a stable, opaque SSE error code. The
+     * client is free to render a friendly message keyed off the code; the
+     * raw exception text never reaches the client.
+     *
+     *   `provider-quota`   — Anthropic credit balance exhausted (HTTP 400
+     *                        invalid_request_error with "credit balance").
+     *   `provider-rate`    — Provider rate-limited the request (HTTP 429).
+     *   `provider-timeout` — Upstream took too long.
+     *   `agent-error`      — Anything else.
+     */
+    internal fun classifyError(e: Throwable): String {
+        val message = e.message.orEmpty()
+        // Anthropic returns 400 with the credit-balance text in the body.
+        // Match on the body string rather than the status code so we don't
+        // accidentally match unrelated 400s.
+        val isCreditBalance = message.contains("credit balance", ignoreCase = true)
+        val isBilling400 =
+            message.contains("billing", ignoreCase = true) &&
+                message.contains("400", ignoreCase = true)
+        if (isCreditBalance || isBilling400) {
+            return "provider-quota"
+        }
+        if (message.contains("429") ||
+            message.contains("rate limit", ignoreCase = true) ||
+            message.contains("rate_limit", ignoreCase = true)
+        ) {
+            return "provider-rate"
+        }
+        if (e is java.util.concurrent.TimeoutException ||
+            message.contains("timed out", ignoreCase = true) ||
+            message.contains("timeout", ignoreCase = true)
+        ) {
+            return "provider-timeout"
+        }
+        return "agent-error"
     }
 
     private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {
@@ -200,21 +244,38 @@ class AgentController(
         val modelId = chatModelSelector.selectFor(request.context)
         val startMs = System.currentTimeMillis()
 
-        // Track byte count for the final log line — Spring AI's stream() Flux
-        // doesn't surface token usage on per-chunk events, so we count chars
-        // as a proxy for visibility.
         val totalChars = AtomicLong(0)
+        // Spring AI's chatResponse() Flux surfaces ChatResponse per chunk; the
+        // final emission carries usage tokens. Capture it so doneEvent can
+        // ship token measurements to Sentry alongside char count + elapsed.
+        val capturedUsage = AtomicReference<Usage?>(null)
 
         val streamSpec = buildStreamSpec(request, tools, modelId)
         val tokenEvents =
             streamSpec
-                .content()
+                .chatResponse()
+                .doOnNext { resp -> resp.metadata?.usage?.let { capturedUsage.set(it) } }
+                .map { resp ->
+                    resp.result
+                        ?.output
+                        ?.text
+                        .orEmpty()
+                }.filter { it.isNotEmpty() }
                 .map { chunk ->
                     totalChars.addAndGet(chunk.length.toLong())
                     ServerSentEvent.builder(chunk).event("token").build()
                 }
         val doneEvent =
-            Flux.defer { doneEvent(modelId, tools, totalChars.get(), startMs, safeQuery) }
+            Flux.defer {
+                doneEvent(
+                    modelId = modelId,
+                    tools = tools,
+                    totalChars = totalChars.get(),
+                    usage = capturedUsage.get(),
+                    startMs = startMs,
+                    safeQuery = safeQuery
+                )
+            }
         return tokenEvents.concatWith(doneEvent)
     }
 
@@ -242,18 +303,35 @@ class AgentController(
         modelId: String,
         tools: Array<Any>,
         totalChars: Long,
+        usage: Usage?,
         startMs: Long,
         safeQuery: String
     ): Flux<ServerSentEvent<String>> {
         val elapsedMs = System.currentTimeMillis() - startMs
+        // Sentry transaction measurements — same shape as the non-streaming
+        // path so dashboards can mix call+stream traffic. Only attribute the
+        // model tag when the per-call Anthropic override was applied; on
+        // ollama / openai the configured ChatClient picks the model and our
+        // selectedModelId would mislead the metric.
+        llmMetrics.capture(
+            modelId = modelId.takeIf { anthropicActive },
+            usage = usage,
+            elapsedMs = elapsedMs,
+            toolCount = tools.size,
+            mode = LlmMetrics.Mode.STREAM
+        )
         if (log.isDebugEnabled) {
             log.debug(
                 "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
+                    "prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
                     "elapsed_ms={}, query=\"{}\"",
                 modelId,
                 totalChars,
                 tools.size,
                 tools.map { it.javaClass.simpleName },
+                usage?.promptTokens ?: 0,
+                usage?.completionTokens ?: 0,
+                usage?.totalTokens ?: 0,
                 elapsedMs,
                 safeQuery.take(120)
             )
@@ -289,9 +367,20 @@ class AgentController(
         elapsedMs: Long,
         selectedModelId: String
     ) {
-        if (!log.isDebugEnabled) return
         val meta = chatResponse?.metadata
         val usage = meta?.usage
+        // Sentry transaction measurements — runs even when DEBUG is off so
+        // production retains queryable token telemetry. Only tag the model
+        // when the per-call Anthropic override was applied; otherwise the
+        // selected id doesn't reflect the actual answering model.
+        llmMetrics.capture(
+            modelId = selectedModelId.takeIf { anthropicActive },
+            usage = usage,
+            elapsedMs = elapsedMs,
+            toolCount = tools.size,
+            mode = LlmMetrics.Mode.CALL
+        )
+        if (!log.isDebugEnabled) return
         val promptPreview = userMessage.take(120).replace("\n", " ")
         val toolNames = tools.map { it.javaClass.simpleName }
         log.debug(

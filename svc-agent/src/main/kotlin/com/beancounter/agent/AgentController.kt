@@ -178,6 +178,12 @@ class AgentController(
         // Wrap the pipeline in Flux.defer so setup-time exceptions (selector
         // failures, options builder failures) become Flux errors and reach
         // onErrorResume rather than escaping out of the controller as a 500.
+        //
+        // .contextCapture() snapshots the request thread's ThreadLocals
+        // (incl. SecurityContext via SecurityContextPropagationConfig) so
+        // tool callbacks invoked on Reactor scheduler threads still see the
+        // caller's JWT — without it, TokenService.jwt would throw
+        // "Not authorised" on every tool call.
         return Flux
             .defer { runStream(request) }
             .onErrorResume { e ->
@@ -185,7 +191,7 @@ class AgentController(
                 // server-side; client gets a stable opaque code.
                 log.error("Agent stream failed: {}", e.message, e)
                 errorEvent("agent-error")
-            }
+            }.contextCapture()
     }
 
     private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {

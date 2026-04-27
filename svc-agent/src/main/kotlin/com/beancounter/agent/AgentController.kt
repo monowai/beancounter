@@ -188,10 +188,51 @@ class AgentController(
             .defer { runStream(request) }
             .onErrorResume { e ->
                 // Never return e.message — leaks internals. Log full detail
-                // server-side; client gets a stable opaque code.
+                // server-side; client gets a stable, classified code so the
+                // UI can surface a real cause instead of generic
+                // "agent-error" when the failure is something the user can
+                // act on (e.g. provider quota, rate limit).
                 log.error("Agent stream failed: {}", e.message, e)
-                errorEvent("agent-error")
+                errorEvent(classifyError(e))
             }.contextCapture()
+    }
+
+    /**
+     * Map an upstream exception into a stable, opaque SSE error code. The
+     * client is free to render a friendly message keyed off the code; the
+     * raw exception text never reaches the client.
+     *
+     *   `provider-quota`   — Anthropic credit balance exhausted (HTTP 400
+     *                        invalid_request_error with "credit balance").
+     *   `provider-rate`    — Provider rate-limited the request (HTTP 429).
+     *   `provider-timeout` — Upstream took too long.
+     *   `agent-error`      — Anything else.
+     */
+    internal fun classifyError(e: Throwable): String {
+        val message = e.message.orEmpty()
+        // Anthropic returns 400 with the credit-balance text in the body.
+        // Match on the body string rather than the status code so we don't
+        // accidentally match unrelated 400s.
+        val isCreditBalance = message.contains("credit balance", ignoreCase = true)
+        val isBilling400 =
+            message.contains("billing", ignoreCase = true) &&
+                message.contains("400", ignoreCase = true)
+        if (isCreditBalance || isBilling400) {
+            return "provider-quota"
+        }
+        if (message.contains("429") ||
+            message.contains("rate limit", ignoreCase = true) ||
+            message.contains("rate_limit", ignoreCase = true)
+        ) {
+            return "provider-rate"
+        }
+        if (e is java.util.concurrent.TimeoutException ||
+            message.contains("timed out", ignoreCase = true) ||
+            message.contains("timeout", ignoreCase = true)
+        ) {
+            return "provider-timeout"
+        }
+        return "agent-error"
     }
 
     private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {

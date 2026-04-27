@@ -245,6 +245,42 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `classifyError returns provider-quota for Anthropic credit balance errors`() {
+        val anthropicQuota =
+            RuntimeException(
+                "Response exception, Status: [400 BAD_REQUEST], " +
+                    "Body:[{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\"," +
+                    "\"message\":\"Your credit balance is too low to access the Anthropic API.\"}}]"
+            )
+        assertThat(controller().classifyError(anthropicQuota))
+            .isEqualTo("provider-quota")
+    }
+
+    @Test
+    fun `classifyError returns provider-rate for HTTP 429 and rate-limit text`() {
+        assertThat(controller().classifyError(RuntimeException("HTTP 429 Too Many Requests")))
+            .isEqualTo("provider-rate")
+        assertThat(controller().classifyError(RuntimeException("anthropic.rate_limit_exceeded")))
+            .isEqualTo("provider-rate")
+    }
+
+    @Test
+    fun `classifyError returns provider-timeout for TimeoutException and timeout text`() {
+        assertThat(controller().classifyError(java.util.concurrent.TimeoutException()))
+            .isEqualTo("provider-timeout")
+        assertThat(controller().classifyError(RuntimeException("Read timed out")))
+            .isEqualTo("provider-timeout")
+    }
+
+    @Test
+    fun `classifyError falls back to agent-error for unknown failures`() {
+        assertThat(controller().classifyError(RuntimeException("something exploded")))
+            .isEqualTo(OPAQUE_ERROR)
+        assertThat(controller().classifyError(RuntimeException(null as String?)))
+            .isEqualTo(OPAQUE_ERROR)
+    }
+
+    @Test
     fun `stream emits an error event when the upstream Flux fails`() {
         val request =
             mock<ChatClient.ChatClientRequestSpec>(

@@ -13,6 +13,9 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.messages.AssistantMessage
+import org.springframework.ai.chat.model.ChatResponse
+import org.springframework.ai.chat.model.Generation
 import org.springframework.mock.env.MockEnvironment
 import reactor.core.publisher.Flux
 
@@ -20,6 +23,14 @@ private const val EVENT_TOKEN = "token"
 private const val EVENT_DONE = "done"
 private const val EVENT_ERROR = "error"
 private const val OPAQUE_ERROR = "agent-error"
+
+/**
+ * Build a minimal Spring AI [ChatResponse] carrying a single text chunk —
+ * mirrors what `ChatClient.stream().chatResponse()` emits per LLM token
+ * batch in production. Tests prefer this over a Mockito mock so type
+ * changes in Spring AI surface as compile errors, not runtime NPEs.
+ */
+private fun textResponse(chunk: String): ChatResponse = ChatResponse(listOf(Generation(AssistantMessage(chunk))))
 
 /**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
@@ -70,7 +81,8 @@ class AgentControllerTest {
             systemPromptSelector,
             chatModelSelector,
             environment,
-            ObjectMapper()
+            ObjectMapper(),
+            LlmMetrics()
         )
 
     private fun stubChecker(): ServiceHealthChecker =
@@ -169,7 +181,8 @@ class AgentControllerTest {
         val streamResponse = mock<ChatClient.StreamResponseSpec>()
         val client = mock<ChatClient> { on { prompt() } doReturn request }
         whenever(request.stream()).thenReturn(streamResponse)
-        whenever(streamResponse.content()).thenReturn(Flux.just("Hello", " world"))
+        whenever(streamResponse.chatResponse())
+            .thenReturn(Flux.just(textResponse("Hello"), textResponse(" world")))
 
         val events =
             controller(chatClient = client)
@@ -206,7 +219,7 @@ class AgentControllerTest {
         val streamResponse = mock<ChatClient.StreamResponseSpec>()
         val client = mock<ChatClient> { on { prompt() } doReturn request }
         whenever(request.stream()).thenReturn(streamResponse)
-        whenever(streamResponse.content()).thenReturn(Flux.just("ok"))
+        whenever(streamResponse.chatResponse()).thenReturn(Flux.just(textResponse("ok")))
 
         val events =
             controller(chatClient = client)
@@ -289,7 +302,8 @@ class AgentControllerTest {
         val streamResponse = mock<ChatClient.StreamResponseSpec>()
         val client = mock<ChatClient> { on { prompt() } doReturn request }
         whenever(request.stream()).thenReturn(streamResponse)
-        whenever(streamResponse.content()).thenReturn(Flux.error(RuntimeException("boom")))
+        whenever(streamResponse.chatResponse())
+            .thenReturn(Flux.error(RuntimeException("boom")))
 
         val events =
             controller(chatClient = client)

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.ai.anthropic.AnthropicChatOptions
 import org.springframework.ai.anthropic.api.AnthropicCacheOptions
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.metadata.Usage
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
@@ -25,6 +26,7 @@ import org.springframework.web.util.HtmlUtils
 import reactor.core.publisher.Flux
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Single natural-language entry point for the Beancounter agent.
@@ -45,7 +47,8 @@ class AgentController(
     private val systemPromptSelector: SystemPromptSelector,
     private val chatModelSelector: ChatModelSelector,
     private val environment: Environment,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val llmMetrics: LlmMetrics
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -241,21 +244,38 @@ class AgentController(
         val modelId = chatModelSelector.selectFor(request.context)
         val startMs = System.currentTimeMillis()
 
-        // Track byte count for the final log line — Spring AI's stream() Flux
-        // doesn't surface token usage on per-chunk events, so we count chars
-        // as a proxy for visibility.
         val totalChars = AtomicLong(0)
+        // Spring AI's chatResponse() Flux surfaces ChatResponse per chunk; the
+        // final emission carries usage tokens. Capture it so doneEvent can
+        // ship token measurements to Sentry alongside char count + elapsed.
+        val capturedUsage = AtomicReference<Usage?>(null)
 
         val streamSpec = buildStreamSpec(request, tools, modelId)
         val tokenEvents =
             streamSpec
-                .content()
+                .chatResponse()
+                .doOnNext { resp -> resp.metadata?.usage?.let { capturedUsage.set(it) } }
+                .map { resp ->
+                    resp.result
+                        ?.output
+                        ?.text
+                        .orEmpty()
+                }.filter { it.isNotEmpty() }
                 .map { chunk ->
                     totalChars.addAndGet(chunk.length.toLong())
                     ServerSentEvent.builder(chunk).event("token").build()
                 }
         val doneEvent =
-            Flux.defer { doneEvent(modelId, tools, totalChars.get(), startMs, safeQuery) }
+            Flux.defer {
+                doneEvent(
+                    modelId = modelId,
+                    tools = tools,
+                    totalChars = totalChars.get(),
+                    usage = capturedUsage.get(),
+                    startMs = startMs,
+                    safeQuery = safeQuery
+                )
+            }
         return tokenEvents.concatWith(doneEvent)
     }
 
@@ -283,18 +303,32 @@ class AgentController(
         modelId: String,
         tools: Array<Any>,
         totalChars: Long,
+        usage: Usage?,
         startMs: Long,
         safeQuery: String
     ): Flux<ServerSentEvent<String>> {
         val elapsedMs = System.currentTimeMillis() - startMs
+        // Sentry transaction measurements — same shape as the non-streaming
+        // path so dashboards can mix call+stream traffic.
+        llmMetrics.capture(
+            modelId = modelId,
+            usage = usage,
+            elapsedMs = elapsedMs,
+            toolCount = tools.size,
+            mode = LlmMetrics.Mode.STREAM
+        )
         if (log.isDebugEnabled) {
             log.debug(
                 "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
+                    "prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
                     "elapsed_ms={}, query=\"{}\"",
                 modelId,
                 totalChars,
                 tools.size,
                 tools.map { it.javaClass.simpleName },
+                usage?.promptTokens ?: 0,
+                usage?.completionTokens ?: 0,
+                usage?.totalTokens ?: 0,
                 elapsedMs,
                 safeQuery.take(120)
             )
@@ -330,9 +364,18 @@ class AgentController(
         elapsedMs: Long,
         selectedModelId: String
     ) {
-        if (!log.isDebugEnabled) return
         val meta = chatResponse?.metadata
         val usage = meta?.usage
+        // Sentry transaction measurements — runs even when DEBUG is off so
+        // production retains queryable token telemetry.
+        llmMetrics.capture(
+            modelId = selectedModelId,
+            usage = usage,
+            elapsedMs = elapsedMs,
+            toolCount = tools.size,
+            mode = LlmMetrics.Mode.CALL
+        )
+        if (!log.isDebugEnabled) return
         val promptPreview = userMessage.take(120).replace("\n", " ")
         val toolNames = tools.map { it.javaClass.simpleName }
         log.debug(

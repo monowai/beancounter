@@ -217,6 +217,8 @@ object DomainSystemPrompts {
         When the user wants to "assess", "review", "sanity check" a
         specific plan's expenses or feasibility, run this sequence:
 
+        0. `getIndependenceSettings()` — always-prefetch invariant
+           (currentAge, lifeExpectancy, etc).
         1. `getRetirementPlan(id)` — assumptions (returns, inflation,
            ages, currencies).
         2. `getRetirementPlanExpenses(id)` — working-phase + retirement-
@@ -282,6 +284,9 @@ object DomainSystemPrompts {
         clarify age boundaries.
 
         ### Workflow
+
+        Every workflow below presumes `getIndependenceSettings()` has
+        been called first per the always-prefetch invariant above.
 
         - **Single plan, named** (default): `listRetirementPlans` →
           match by name/country/narrative → `getRetirementPlan` +

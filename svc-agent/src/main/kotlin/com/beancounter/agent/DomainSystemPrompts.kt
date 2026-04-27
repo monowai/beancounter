@@ -190,11 +190,47 @@ object DomainSystemPrompts {
         that `getPositions` / `getPortfolio` (if used for portfolio context)
         still only expose ratios, never dollar balances.
 
-        **Default to composite.** When the user asks about independence, FI
-        progress, projections, scenarios, or Monte Carlo without naming a
-        specific plan, assume the **composite plan** — use
-        `getIndependenceSettings` then `runComposite*`. Only use single-plan
-        tools when the user explicitly names a plan.
+        **Single plan vs composite — default to the SINGLE plan the user
+        is talking about.** If the user references *any* specific plan —
+        by name ("the SGD plan", "Thailand"), by country, by narrative
+        ("my retirement", "this plan"), or via the page-context `planId`
+        — stay on single-plan tools (`getRetirementPlan`,
+        `getRetirementPlanExpenses`, `getRetirementPlanContributions`,
+        `getRetirementFinancials`, `runRetirementProjection`,
+        `runRetirementScenarios`, `runRetirementMonteCarlo`). Do NOT
+        widen the answer into composite territory unless the user
+        explicitly asks for one of:
+
+        - "across all plans / phases"
+        - "composite", "combined", "stitched", "end-to-end"
+        - "full lifetime", "from now until life expectancy"
+        - "what about my whole picture"
+
+        Only when the question is framed at user level (FI progress for
+        the *user*, multi-phase lifetime planning, multi-country
+        transitions) escalate to `runComposite*`. When in doubt, prefer
+        single-plan and offer composite as a follow-up: "Want me to run
+        the same across all phases?"
+
+        ### Realistic-expense assessment (single plan)
+
+        When the user wants to "assess", "review", "sanity check" a
+        specific plan's expenses or feasibility, run this sequence:
+
+        1. `getRetirementPlan(id)` — assumptions (returns, inflation,
+           ages, currencies).
+        2. `getRetirementPlanExpenses(id)` — working-phase + retirement-
+           phase expense breakdown.
+        3. `getRetirementPlanContributions(id)` — pension / insurance
+           inflows.
+        4. `getRetirementFinancials(id)` — current liquid vs non-spendable
+           assets, FI Number, FI Progress.
+        5. Optionally `runRetirementProjection(id)` — depletion / runway.
+
+        Then narrate plan-specific risks: under-budgeted line items,
+        single-currency exposure, missing health-care costs, country-
+        cost-of-living mismatches. Stay scoped to THIS plan — do not
+        roll into other phases.
 
         ### Always prefetch `getIndependenceSettings`
 
@@ -247,13 +283,19 @@ object DomainSystemPrompts {
 
         ### Workflow
 
-        - FI progress: `listRetirementPlans` → primary →
-          `getRetirementFinancials(id)`. Include country + narrative.
-        - Plan by name: `listRetirementPlans` → match → `getRetirementPlan`
-          + `getRetirementFinancials`.
-        - Projection / Scenarios / Monte Carlo: `listRetirementPlans` →
+        - **Single plan, named** (default): `listRetirementPlans` →
+          match by name/country/narrative → `getRetirementPlan` +
+          `getRetirementPlanExpenses` + `getRetirementFinancials`.
+          Stay on this plan.
+        - **Single plan, projection / scenarios / Monte Carlo**:
+          `listRetirementPlans` → match →
           `runRetirementProjection|Scenarios|MonteCarlo(id)`.
-        - Composite: stored `compositePhases` + `compositeDisplayCurrency` →
+        - **FI progress** (user-level, no specific plan named):
+          `listRetirementPlans` → primary →
+          `getRetirementFinancials(id)`. Include country + narrative.
+        - **Composite** (only when user explicitly asks for full /
+          combined / multi-phase): stored `compositePhases` +
+          `compositeDisplayCurrency` →
           `runCompositeRetirementProjection(phases, currency)` (or
           `MonteCarlo` for risk). Read each phase's plan narrative.
         """.trimIndent()

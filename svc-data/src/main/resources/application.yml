@@ -267,6 +267,10 @@ beancounter:
         name: "Ringgit"
         symbol: "RM"
 
+      - code: "THB"
+        name: "Baht"
+        symbol: "฿"
+
       - code: "CAD"
         name: "Dollar"
         symbol: "$"

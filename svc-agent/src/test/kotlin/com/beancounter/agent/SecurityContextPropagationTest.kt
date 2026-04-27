@@ -2,6 +2,7 @@ package com.beancounter.agent
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -28,6 +29,20 @@ import java.util.concurrent.atomic.AtomicReference
  * + `.contextCapture()`, the original Authentication is restored.
  */
 class SecurityContextPropagationTest {
+    companion object {
+        // Reactor's automatic-context-propagation hook and the
+        // ContextRegistry accessor are global, process-wide state. Enable
+        // them exactly once for the whole test class — invoking the same
+        // setup per-test would re-register the accessor on every run, which
+        // is wasted work at best and a state-leak at worst when JUnit
+        // parallelises classes that touch the same ContextRegistry.
+        @BeforeAll
+        @JvmStatic
+        fun enableContextPropagationOnce() {
+            SecurityContextPropagationConfig().enablePropagation()
+        }
+    }
+
     @AfterEach
     fun clearSecurityContext() {
         SecurityContextHolder.clearContext()
@@ -35,10 +50,6 @@ class SecurityContextPropagationTest {
 
     @Test
     fun `Authentication survives Reactor parallel-scheduler hop with contextCapture`() {
-        // Make sure the application's @PostConstruct propagation hooks have
-        // been wired — production code lives in SecurityContextPropagationConfig.
-        SecurityContextPropagationConfig().enablePropagation()
-
         val original: Authentication =
             TestingAuthenticationToken("user@example.com", "creds", "ROLE_USER")
         SecurityContextHolder.getContext().authentication = original

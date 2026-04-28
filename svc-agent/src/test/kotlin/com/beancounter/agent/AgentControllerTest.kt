@@ -1,5 +1,6 @@
 package com.beancounter.agent
 
+import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
@@ -9,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -67,9 +69,18 @@ class AgentControllerTest {
     // path. Tests that need ollama / openai branching can override.
     private val environment = MockEnvironment()
 
+    // Default to a no-op authorizer so existing tests (that don't set up a
+    // SecurityContext) aren't affected by the scope check. The authz contract
+    // itself is verified in AgentControllerAuthzTest.
+    private val permissiveAuthorizer =
+        mock<AgentScopeAuthorizer> {
+            on { authorize(anyOrNull()) } doAnswer { }
+        }
+
     private fun controller(
         chatClient: ChatClient? = null,
-        healthChecker: ServiceHealthChecker = stubChecker()
+        healthChecker: ServiceHealthChecker = stubChecker(),
+        scopeAuthorizer: AgentScopeAuthorizer = permissiveAuthorizer
     ): AgentController =
         AgentController(
             chatClient,
@@ -82,7 +93,8 @@ class AgentControllerTest {
             chatModelSelector,
             environment,
             ObjectMapper(),
-            LlmMetrics()
+            LlmMetrics(),
+            scopeAuthorizer
         )
 
     private fun stubChecker(): ServiceHealthChecker =

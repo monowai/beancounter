@@ -1,5 +1,6 @@
 package com.beancounter.agent
 
+import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
@@ -48,7 +49,8 @@ class AgentController(
     private val chatModelSelector: ChatModelSelector,
     private val environment: Environment,
     private val objectMapper: ObjectMapper,
-    private val llmMetrics: LlmMetrics
+    private val llmMetrics: LlmMetrics,
+    private val scopeAuthorizer: AgentScopeAuthorizer
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -82,6 +84,7 @@ class AgentController(
     fun query(
         @RequestBody request: AgentQuery
     ): ResponseEntity<AgentResponse> {
+        scopeAuthorizer.authorize(request.context)
         val safeQuery = HtmlUtils.htmlEscape(request.query)
         if (chatClient == null) {
             return ResponseEntity
@@ -177,6 +180,7 @@ class AgentController(
     fun stream(
         @RequestBody request: AgentQuery
     ): Flux<ServerSentEvent<String>> {
+        scopeAuthorizer.authorize(request.context)
         if (chatClient == null) return errorEvent("No LLM is configured.")
         // Wrap the pipeline in Flux.defer so setup-time exceptions (selector
         // failures, options builder failures) become Flux errors and reach

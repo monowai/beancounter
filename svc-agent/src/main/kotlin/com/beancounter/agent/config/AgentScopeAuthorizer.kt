@@ -40,17 +40,16 @@ class AgentScopeAuthorizer {
     }
 
     internal fun requiredFor(context: Map<String, Any>?): Set<String> {
-        val page =
+        val normalizedPage =
             context
                 ?.get("page")
                 ?.toString()
+                ?.trim()
                 ?.lowercase()
+                ?.replace('-', ' ')
+                ?.replace(WHITESPACE, " ")
                 .orEmpty()
-        val previewEligible =
-            page.contains("asset review") ||
-                page.contains("asset-review") ||
-                (page.contains("news") && page.contains("sentiment"))
-        return if (previewEligible) {
+        return if (normalizedPage in PREVIEW_PAGES) {
             setOf(
                 AuthConstants.SCOPE_AI,
                 AuthConstants.SCOPE_PREVIEW,
@@ -62,5 +61,16 @@ class AgentScopeAuthorizer {
                 AuthConstants.SCOPE_SYSTEM
             )
         }
+    }
+
+    companion object {
+        // Exact-match allowlist of preview-eligible page values. The
+        // normalisation step (trim, lowercase, hyphen→space, whitespace
+        // collapse) lets the bc-view side send "Asset Review" / "asset-review"
+        // and have authz still resolve to the same key. Substring matching
+        // is deliberately avoided — a page literal like "asset review notes"
+        // would otherwise grant preview access to a non-preview surface.
+        private val PREVIEW_PAGES = setOf("asset review", "news sentiment")
+        private val WHITESPACE = Regex("\\s+")
     }
 }

@@ -23,6 +23,10 @@ import org.springframework.security.core.context.SecurityContextHolder
  *
  * News & Sentiment popup is also preview-eligible (single-asset surface).
  */
+private const val PAGE_ASSET_REVIEW = "Asset Review"
+private const val PAGE_NEWS_SENTIMENT = "News Sentiment"
+private const val PAGE_PORTFOLIO_AI = "Portfolio AI Overview"
+
 class AgentControllerAuthzTest {
     private val authorizer = AgentScopeAuthorizer()
 
@@ -45,15 +49,15 @@ class AgentControllerAuthzTest {
     @Test
     fun `ai scope authorizes any agent context`() {
         authenticateAs(AuthConstants.SCOPE_AI)
-        authorizer.authorize(mapOf("page" to "Asset Review"))
-        authorizer.authorize(mapOf("page" to "Portfolio AI Overview"))
+        authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
+        authorizer.authorize(mapOf("page" to PAGE_PORTFOLIO_AI))
         authorizer.authorize(null)
     }
 
     @Test
     fun `system scope authorizes any agent context`() {
         authenticateAs(AuthConstants.SCOPE_SYSTEM)
-        authorizer.authorize(mapOf("page" to "Asset Review"))
+        authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
         authorizer.authorize(mapOf("page" to "Independence"))
         authorizer.authorize(null)
     }
@@ -63,12 +67,12 @@ class AgentControllerAuthzTest {
         authenticateAs(AuthConstants.SCOPE_PREVIEW)
 
         // Allowed surfaces — case-insensitive, both spellings accepted.
-        authorizer.authorize(mapOf("page" to "Asset Review"))
+        authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
         authorizer.authorize(mapOf("page" to "asset-review"))
-        authorizer.authorize(mapOf("page" to "News Sentiment"))
+        authorizer.authorize(mapOf("page" to PAGE_NEWS_SENTIMENT))
 
         assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to "Portfolio AI Overview"))
+            authorizer.authorize(mapOf("page" to PAGE_PORTFOLIO_AI))
         }.isInstanceOf(AccessDeniedException::class.java)
 
         assertThatThrownBy {
@@ -85,11 +89,11 @@ class AgentControllerAuthzTest {
         authenticateAs(AuthConstants.SCOPE_USER, AuthConstants.SCOPE_BC)
 
         assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to "Asset Review"))
+            authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
         }.isInstanceOf(AccessDeniedException::class.java)
 
         assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to "Portfolio AI Overview"))
+            authorizer.authorize(mapOf("page" to PAGE_PORTFOLIO_AI))
         }.isInstanceOf(AccessDeniedException::class.java)
 
         assertThatThrownBy {
@@ -101,22 +105,35 @@ class AgentControllerAuthzTest {
     fun `unauthenticated context is rejected`() {
         SecurityContextHolder.clearContext()
         assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to "Asset Review"))
+            authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
         }.isInstanceOf(AccessDeniedException::class.java)
     }
 
     @Test
     fun `requiredFor returns preview-tier set for asset and news surfaces only`() {
-        assertThat(authorizer.requiredFor(mapOf("page" to "Asset Review")))
+        assertThat(authorizer.requiredFor(mapOf("page" to PAGE_ASSET_REVIEW)))
             .contains(AuthConstants.SCOPE_PREVIEW)
         assertThat(authorizer.requiredFor(mapOf("page" to "asset-review")))
             .contains(AuthConstants.SCOPE_PREVIEW)
-        assertThat(authorizer.requiredFor(mapOf("page" to "News Sentiment")))
+        assertThat(authorizer.requiredFor(mapOf("page" to PAGE_NEWS_SENTIMENT)))
             .contains(AuthConstants.SCOPE_PREVIEW)
 
-        assertThat(authorizer.requiredFor(mapOf("page" to "Portfolio AI Overview")))
+        assertThat(authorizer.requiredFor(mapOf("page" to PAGE_PORTFOLIO_AI)))
             .doesNotContain(AuthConstants.SCOPE_PREVIEW)
         assertThat(authorizer.requiredFor(null))
             .doesNotContain(AuthConstants.SCOPE_PREVIEW)
+    }
+
+    @Test
+    fun `partial keyword matches do not grant preview access`() {
+        authenticateAs(AuthConstants.SCOPE_PREVIEW)
+        // Substring matches like "asset review notes" or "weekly news + sentiment summary"
+        // must NOT be treated as preview-eligible — only exact normalised pages do.
+        assertThatThrownBy {
+            authorizer.authorize(mapOf("page" to "asset review notes"))
+        }.isInstanceOf(AccessDeniedException::class.java)
+        assertThatThrownBy {
+            authorizer.authorize(mapOf("page" to "weekly news and sentiment summary"))
+        }.isInstanceOf(AccessDeniedException::class.java)
     }
 }

@@ -1,0 +1,2 @@
+ALTER TABLE user_preferences
+    ADD COLUMN auto_settle BOOLEAN NOT NULL DEFAULT TRUE;

@@ -39,5 +39,7 @@ data class UserPreferences(
     var enableTwr: Boolean = false,
     @Enumerated(EnumType.STRING)
     @Column(name = "milestone_mode")
-    var milestoneMode: MilestoneMode = MilestoneMode.ACTIVE
+    var milestoneMode: MilestoneMode = MilestoneMode.ACTIVE,
+    @Column(name = "auto_settle")
+    var autoSettle: Boolean = true
 )

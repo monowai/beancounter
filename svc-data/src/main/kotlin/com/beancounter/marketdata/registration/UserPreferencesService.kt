@@ -50,6 +50,7 @@ class UserPreferencesService(
         request.showWeightedIrr?.let { preferences.showWeightedIrr = it }
         request.enableTwr?.let { preferences.enableTwr = it }
         request.milestoneMode?.let { preferences.milestoneMode = it }
+        request.autoSettle?.let { preferences.autoSettle = it }
         return userPreferencesRepository.save(preferences)
     }
 }

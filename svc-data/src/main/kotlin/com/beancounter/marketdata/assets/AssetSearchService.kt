@@ -259,16 +259,24 @@ class AssetSearchService(
                     .filter { result ->
                         val type = result.securityType2?.uppercase()
                         type != null && ALLOWED_SECURITY_TYPES.contains(type)
-                    }.map { result ->
-                        val market = result.exchCode?.let { FigiConfig.getMarketCode(it) }
-                        AssetSearchResult(
-                            symbol = result.ticker ?: keyword,
-                            name = result.name ?: "",
-                            type = result.securityType2 ?: "Equity",
-                            region = market ?: result.exchCode,
-                            currency = null,
-                            market = market ?: result.exchCode
-                        )
+                    }.mapNotNull { result ->
+                        // Drop results whose FIGI exchange code does not map to a BC
+                        // market — the UI would otherwise post the raw FIGI code to
+                        // /api/assets and trigger a 404 ("Unable to resolve market
+                        // code"). Matches the searchFigiByTicker path which also
+                        // requires a configured market.
+                        result.exchCode
+                            ?.let(FigiConfig::getMarketCode)
+                            ?.let { market ->
+                                AssetSearchResult(
+                                    symbol = result.ticker ?: keyword,
+                                    name = result.name ?: "",
+                                    type = result.securityType2 ?: "Equity",
+                                    region = market,
+                                    currency = null,
+                                    market = market
+                                )
+                            }
                     }
 
             AssetSearchResponse(results)

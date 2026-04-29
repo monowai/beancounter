@@ -7,6 +7,7 @@ import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.event.EventProducer
+import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -221,6 +222,72 @@ class PriceServiceTest {
         assertTrue(
             saved[0].changePercent.compareTo(BigDecimal("-0.01")) > 0 &&
                 saved[0].changePercent.compareTo(BigDecimal("0.01")) < 0,
+            "changePercent should be small but was ${saved[0].changePercent}"
+        )
+    }
+
+    @Test
+    fun `should stamp ex-date split from Alpha when provider omits the flag`() {
+        // Given: MarketStack-style ex-date row — close already on the post-split
+        // basis, no split flag on the row, no previousClose supplied. The
+        // Alpha-backed events feed knows the 6:1 split happened today.
+        val today = LocalDate.of(2026, 4, 21)
+        val yesterday = LocalDate.of(2026, 4, 20)
+
+        val todayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = today,
+                close = BigDecimal("81.50"),
+                split = BigDecimal.ONE
+            )
+        val yesterdayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = yesterday,
+                close = BigDecimal("492.58")
+            )
+
+        val alphaEventService = mock(AlphaEventService::class.java)
+        `when`(alphaEventService.getEvents(asset)).thenReturn(
+            PriceResponse(
+                listOf(
+                    MarketData(
+                        asset = asset,
+                        priceDate = today,
+                        close = BigDecimal.ZERO,
+                        split = BigDecimal("6"),
+                        dividend = BigDecimal.ZERO
+                    )
+                )
+            )
+        )
+        priceService.setAlphaEventService(alphaEventService)
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(asset.id, today)).thenReturn(0L)
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, today)
+        ).thenReturn(Optional.of(yesterdayMarketData))
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
+
+        // Split flag stamped from Alpha so SplitAdjuster recognises the ex-date.
+        assertTrue(
+            saved[0].split.compareTo(BigDecimal("6")) == 0,
+            "split should be 6 but was ${saved[0].split}"
+        )
+        // previousClose rebased onto post-split basis (492.58 / 6 ≈ 82.0967)
+        assertTrue(
+            saved[0].previousClose.compareTo(BigDecimal("82.00")) > 0 &&
+                saved[0].previousClose.compareTo(BigDecimal("82.20")) < 0,
+            "previousClose should be ~82.10 but was ${saved[0].previousClose}"
+        )
+        // changePercent reflects the real intraday move, not -83%
+        assertTrue(
+            saved[0].changePercent.compareTo(BigDecimal("-0.05")) > 0 &&
+                saved[0].changePercent.compareTo(BigDecimal("0.05")) < 0,
             "changePercent should be small but was ${saved[0].changePercent}"
         )
     }

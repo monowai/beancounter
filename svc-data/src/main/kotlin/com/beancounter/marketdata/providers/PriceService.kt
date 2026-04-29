@@ -169,6 +169,16 @@ class PriceService(
             return marketData
         }
 
+        // Some providers (e.g. MarketStack) deliver the ex-date row without a
+        // split flag, leaving previousClose on the pre-split basis and the
+        // change/changePercent at -1/N. Cross-check Alpha's split feed (cached)
+        // and stamp the row before the rebase logic below kicks in.
+        if (marketData.split.compareTo(BigDecimal.ONE) == 0) {
+            knownSplitFor(marketData.asset, marketData.priceDate)?.let { factor ->
+                marketData.split = factor
+            }
+        }
+
         val split = marketData.split
         val hasSplit =
             split.compareTo(BigDecimal.ZERO) > 0 && split.compareTo(BigDecimal.ONE) != 0
@@ -413,6 +423,39 @@ class PriceService(
      * coefficients on each ex-date. Without this, [SplitAdjuster] would
      * have nothing to detect when the price rows themselves are bare.
      */
+
+    // Returns Alpha's known split factor for the asset on `date` when one
+    // exists, or null otherwise. Lets enrichWithPreviousClose recover from
+    // providers that omit the split flag on the ex-date row (e.g. MarketStack
+    // on VUG 2026-04-21).
+    private fun knownSplitFor(
+        asset: Asset,
+        date: LocalDate
+    ): BigDecimal? {
+        val service = alphaEventService ?: return null
+        return try {
+            service
+                .getEvents(asset)
+                .data
+                .asSequence()
+                .filter(::isSplit)
+                .firstOrNull { it.priceDate == date }
+                ?.split
+                ?.takeIf { it.compareTo(BigDecimal.ONE) != 0 && it.signum() > 0 }
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug(
+                "Split lookup failed for {} on {}: {}",
+                asset.code,
+                date,
+                e.message
+            )
+            null
+        }
+    }
+
     private fun collectSplitEvents(
         asset: Asset,
         from: LocalDate,

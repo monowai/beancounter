@@ -265,17 +265,18 @@ class AssetSearchService(
                         // /api/assets and trigger a 404 ("Unable to resolve market
                         // code"). Matches the searchFigiByTicker path which also
                         // requires a configured market.
-                        val market =
-                            result.exchCode?.let { FigiConfig.getMarketCode(it) }
-                                ?: return@mapNotNull null
-                        AssetSearchResult(
-                            symbol = result.ticker ?: keyword,
-                            name = result.name ?: "",
-                            type = result.securityType2 ?: "Equity",
-                            region = market,
-                            currency = null,
-                            market = market
-                        )
+                        result.exchCode
+                            ?.let(FigiConfig::getMarketCode)
+                            ?.let { market ->
+                                AssetSearchResult(
+                                    symbol = result.ticker ?: keyword,
+                                    name = result.name ?: "",
+                                    type = result.securityType2 ?: "Equity",
+                                    region = market,
+                                    currency = null,
+                                    market = market
+                                )
+                            }
                     }
 
             AssetSearchResponse(results)

@@ -110,19 +110,19 @@ class AssetSearchPublicFallbackTest {
                             ticker = "GCOW",
                             name = "PACER GLOBAL CASH COWS DIVID",
                             exchCode = "VG",
-                            securityType2 = "Mutual Fund"
+                            securityType2 = MUTUAL_FUND
                         ),
                         FigiFilterResult(
                             ticker = "GCOW",
                             name = "PACER GLOBAL CASH COWS DIVID",
                             exchCode = "UF",
-                            securityType2 = "Mutual Fund"
+                            securityType2 = MUTUAL_FUND
                         ),
                         FigiFilterResult(
                             ticker = "COWZ",
                             name = "PACER US CASH COWS 100 ETF",
                             exchCode = "US",
-                            securityType2 = "Mutual Fund"
+                            securityType2 = MUTUAL_FUND
                         )
                     )
             )
@@ -162,5 +162,9 @@ class AssetSearchPublicFallbackTest {
         assertThat(results.data).isNotEmpty
         assertThat(results.data.first().symbol).isEqualTo("COWZ")
         verify(alphaProxy, never()).search(any(), any())
+    }
+
+    companion object {
+        private const val MUTUAL_FUND = "Mutual Fund"
     }
 }

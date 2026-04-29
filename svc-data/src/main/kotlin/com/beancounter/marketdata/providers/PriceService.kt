@@ -413,17 +413,6 @@ class PriceService(
         )
     }
 
-    /**
-     * Pulls known split events for the asset within the requested range.
-     *
-     * The historical backfill via Alpha's TIME_SERIES_DAILY does not carry
-     * split coefficients, so the database can hold raw pre-split closes
-     * with split=1 across the board. AlphaEventService (cached) returns
-     * splits sourced from TIME_SERIES_DAILY_ADJUSTED which contains the
-     * coefficients on each ex-date. Without this, [SplitAdjuster] would
-     * have nothing to detect when the price rows themselves are bare.
-     */
-
     // Returns Alpha's known split factor for the asset on `date` when one
     // exists, or null otherwise. Lets enrichWithPreviousClose recover from
     // providers that omit the split flag on the ex-date row (e.g. MarketStack
@@ -456,6 +445,16 @@ class PriceService(
         }
     }
 
+    /**
+     * Pulls known split events for the asset within the requested range.
+     *
+     * The historical backfill via Alpha's TIME_SERIES_DAILY does not carry
+     * split coefficients, so the database can hold raw pre-split closes
+     * with split=1 across the board. AlphaEventService (cached) returns
+     * splits sourced from TIME_SERIES_DAILY_ADJUSTED which contains the
+     * coefficients on each ex-date. Without this, [SplitAdjuster] would
+     * have nothing to detect when the price rows themselves are bare.
+     */
     private fun collectSplitEvents(
         asset: Asset,
         from: LocalDate,

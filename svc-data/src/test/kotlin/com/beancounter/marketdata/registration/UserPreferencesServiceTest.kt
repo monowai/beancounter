@@ -55,6 +55,7 @@ class UserPreferencesServiceTest {
             .hasFieldOrPropertyWithValue("baseCurrencyCode", "USD")
             .hasFieldOrPropertyWithValue("showWeightedIrr", true)
             .hasFieldOrPropertyWithValue("enableTwr", false)
+            .hasFieldOrPropertyWithValue("autoSettle", true)
         assertThat(preferences.owner.id).isEqualTo(user.id)
 
         // Verify preferences are now persisted
@@ -118,6 +119,26 @@ class UserPreferencesServiceTest {
         assertThat(updated.preferredName).isEqualTo("Mike")
         assertThat(updated.defaultHoldingsView).isEqualTo(defaultView) // unchanged
         assertThat(updated.baseCurrencyCode).isEqualTo("USD") // unchanged
+    }
+
+    @Test
+    fun `should update autoSettle preference`() {
+        val user = createAndAuthenticateUser("prefs-test-autosettle@email.com")
+
+        val updated =
+            userPreferencesService.update(
+                user,
+                UserPreferencesRequest(autoSettle = false)
+            )
+
+        assertThat(updated.autoSettle).isFalse()
+
+        val reEnabled =
+            userPreferencesService.update(
+                user,
+                UserPreferencesRequest(autoSettle = true)
+            )
+        assertThat(reEnabled.autoSettle).isTrue()
     }
 
     @Test

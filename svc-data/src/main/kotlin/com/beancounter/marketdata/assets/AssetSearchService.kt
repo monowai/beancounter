@@ -147,9 +147,16 @@ class AssetSearchService(
         keyword: String,
         market: String?
     ): AssetSearchResponse {
-        // Use FIGI for markets configured in figi.search.markets
+        // Use FIGI for markets configured in figi.search.markets.
+        // FIGI's filter endpoint returns exact-ticker hits and full-name
+        // matches but does poorly on short ticker prefixes (e.g. "COW")
+        // because it surfaces option chains that we filter out. Fall back
+        // to AlphaVantage SYMBOL_SEARCH when FIGI yields nothing so users
+        // get fuzzy ticker/name matches as they type.
         if (market != null && figiSearchMarkets.contains(market.uppercase())) {
-            return searchFigiAssets(keyword, market)
+            val figiResults = searchFigiAssets(keyword, market)
+            if (figiResults.data.isNotEmpty()) return figiResults
+            return searchAlphaVantageAssets(keyword, market)
         }
 
         // Use MarketStack for markets configured in mstack.markets (but not FIGI)

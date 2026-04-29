@@ -1,0 +1,122 @@
+package com.beancounter.marketdata.assets
+
+import com.beancounter.common.model.Currency
+import com.beancounter.common.model.Market
+import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.assets.figi.FigiAsset
+import com.beancounter.marketdata.assets.figi.FigiConfig
+import com.beancounter.marketdata.assets.figi.FigiFilterResponse
+import com.beancounter.marketdata.assets.figi.FigiGateway
+import com.beancounter.marketdata.assets.figi.FigiResponse
+import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.alpha.AlphaConfig
+import com.beancounter.marketdata.providers.alpha.AlphaProxy
+import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
+import com.beancounter.marketdata.providers.marketstack.MarketStackGateway
+import com.beancounter.marketdata.registration.SystemUserService
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+
+/**
+ * Verifies the FIGI -> AlphaVantage fallback for partial public-market
+ * ticker searches. FIGI's /v3/search returns mostly options/derivatives
+ * for short ticker prefixes (e.g. "COW"), all of which we filter out,
+ * leaving the user with "No results found" while typing. Falling back
+ * to AlphaVantage SYMBOL_SEARCH gives them fuzzy matches as they type.
+ */
+class AssetSearchPublicFallbackTest {
+    private val usMarket = Market(code = "US", currency = Currency("USD"))
+
+    private val alphaJson =
+        """
+        {"data":[
+          {"symbol":"COWZ","name":"PACER US CASH COWS 100 ETF","type":"ETF",
+           "region":"United States","currency":"USD","market":"US"}
+        ]}
+        """.trimIndent()
+
+    private fun buildService(
+        figiTickerHits: Collection<FigiResponse> = emptyList(),
+        figiFilterHits: FigiFilterResponse = FigiFilterResponse(),
+        alphaResponse: String = alphaJson,
+        alphaProxy: AlphaProxy = mock { on { search(any(), any()) } doReturn alphaResponse }
+    ): Pair<AssetSearchService, AlphaProxy> {
+        val alphaConfig =
+            mock<AlphaConfig> {
+                on { isNullMarket(any()) } doReturn true
+                on { translateSymbol(any()) } doReturn "COW"
+                on { getObjectMapper() } doReturn BcJson.objectMapper
+            }
+        val figiGateway =
+            mock<FigiGateway> {
+                on { search(any(), any()) } doReturn figiTickerHits
+                on { filter(any(), any()) } doReturn figiFilterHits
+            }
+        val figiConfig =
+            FigiConfig().apply {
+                apiKey = "test"
+                enabled = true
+                searchMarkets = "US"
+            }
+        val service =
+            AssetSearchService(
+                assetRepository =
+                    mock { on { searchByCodeOrName(any()) } doReturn emptyList() },
+                alphaProxy = alphaProxy,
+                alphaConfig = alphaConfig,
+                marketStackGateway = mock<MarketStackGateway>(),
+                marketStackConfig =
+                    mock {
+                        on { markets } doReturn ""
+                        on { apiKey } doReturn "test"
+                    },
+                figiGateway = figiGateway,
+                figiConfig = figiConfig,
+                marketService =
+                    mock<MarketService> { on { getMarket(any()) } doReturn usMarket },
+                systemUserService = mock<SystemUserService>()
+            )
+        return service to alphaProxy
+    }
+
+    @Test
+    fun `falls back to AlphaVantage when FIGI returns no allowed results`() {
+        val (service, alphaProxy) = buildService()
+
+        val results = service.search("COW", "US")
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .containsExactly("COWZ")
+        verify(alphaProxy).search(any(), any())
+    }
+
+    @Test
+    fun `does not call AlphaVantage when FIGI ticker mapping returns matches`() {
+        val tickerHit =
+            FigiResponse(
+                data =
+                    listOf(
+                        FigiAsset(
+                            ticker = "COWZ",
+                            name = "PACER US CASH COWS 100 ETF",
+                            securityType2 = "Mutual Fund"
+                        )
+                    ),
+                error = null
+            )
+        val alphaProxy = mock<AlphaProxy>()
+        val (service, _) = buildService(figiTickerHits = listOf(tickerHit), alphaProxy = alphaProxy)
+
+        val results = service.search("COWZ", "US")
+
+        assertThat(results.data).isNotEmpty
+        assertThat(results.data.first().symbol).isEqualTo("COWZ")
+        verify(alphaProxy, never()).search(any(), any())
+    }
+}

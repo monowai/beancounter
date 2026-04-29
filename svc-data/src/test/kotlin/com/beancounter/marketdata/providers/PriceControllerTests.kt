@@ -71,6 +71,9 @@ internal class PriceControllerTests
         @MockitoBean
         private lateinit var assetFinder: AssetFinder
 
+        @MockitoBean
+        private lateinit var marketDataService: MarketDataService
+
         @BeforeEach
         fun setUp() {
             `when`(
@@ -480,6 +483,44 @@ internal class PriceControllerTests
             assertThat(list[0].close).isEqualByComparingTo(BigDecimal("10.00"))
             assertThat(list[2].priceDate).isEqualTo(to)
             assertThat(list[2].close).isEqualByComparingTo(BigDecimal("12.00"))
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
+        fun is_PriceHistoryBackfilledOnEmpty() {
+            val from = LocalDate.of(2024, 1, 1)
+            val to = LocalDate.of(2024, 1, 3)
+            val backfilledRow = MarketData(asset, close = BigDecimal("21.00"), priceDate = from)
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            // First call (no history yet) returns empty; after backfill the second
+            // call returns the freshly-persisted row.
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to))
+                .thenReturn(emptyList())
+                .thenReturn(listOf(backfilledRow))
+
+            val json =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .get("/prices/{assetId}/history", asset.id)
+                            .param("from", from.toString())
+                            .param("to", to.toString())
+                            .with(
+                                SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                            ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString
+            val response = objectMapper.readValue<PriceHistoryResponse>(json)
+            assertThat(response.prices).hasSize(1)
+            assertThat(response.prices.first().close).isEqualByComparingTo(BigDecimal("21.00"))
+            org.mockito.Mockito
+                .verify(marketDataService)
+                .backFill(asset.id)
         }
 
         @Test

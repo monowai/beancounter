@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -53,6 +54,8 @@ class PriceController(
     private val dateUtils: DateUtils,
     private val portfolioPriceBackfillService: PortfolioPriceBackfillService
 ) {
+    private val log = LoggerFactory.getLogger(PriceController::class.java)
+
     /**
      * Market:Asset i.e. NYSE:MSFT.
      *
@@ -314,20 +317,32 @@ class PriceController(
         summary = "Get price history for an asset between two dates",
         description = """
             Retrieves daily closing prices for an asset between the supplied dates (inclusive),
-            sorted by price date ascending. DB-only — does not trigger external provider calls.
-            Returns the hydrated asset together with a collection of price points.
+            sorted by price date ascending. If the asset has no persisted price history we try
+            once to backfill from the configured external provider so newly-researched assets
+            return data on first chart open. Returns the hydrated asset together with a
+            collection of price points.
         """
     )
     fun getPriceHistory(
         @PathVariable assetId: String,
         @RequestParam from: String,
         @RequestParam(required = false) to: String = TODAY
-    ): PriceHistoryResponse =
-        priceService.getPriceHistory(
-            assetId,
-            dateUtils.getFormattedDate(from),
-            dateUtils.getFormattedDate(to)
-        )
+    ): PriceHistoryResponse {
+        val fromDate = dateUtils.getFormattedDate(from)
+        val toDate = dateUtils.getFormattedDate(to)
+        val initial = priceService.getPriceHistory(assetId, fromDate, toDate)
+        if (initial.prices.isNotEmpty()) return initial
+        return try {
+            marketDataService.backFill(assetId)
+            priceService.getPriceHistory(assetId, fromDate, toDate)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("Price history backfill failed for asset {}: {}", assetId, e.message)
+            initial
+        }
+    }
 
     @PostMapping("/bulk")
     @Operation(

@@ -1,0 +1,27 @@
+# DeepSeek profile.
+#
+# DeepSeek's API is OpenAI-compatible (/v1/chat/completions, OpenAI-style
+# function calling), so we ride the spring-ai-openai client and only swap the
+# base URL + key + model. Activate alongside an environment profile, e.g.
+#
+#   SPRING_PROFILES_ACTIVE=deepseek,local DEEPSEEK_API_KEY=sk-... \
+#     ./gradlew :svc-agent:bootRun
+#
+# Models:
+#   deepseek-chat     — general chat / tool calling (cheaper, faster)
+#   deepseek-reasoner — chain-of-thought; emits thinking tokens that count
+#                       toward output cost; slower; use only for analytical
+#                       (smart / deep) tiers.
+spring:
+  ai:
+    # Provide dummy Ollama config to prevent autoconfiguration errors
+    ollama:
+      base-url: "http://undefined:11434"
+    openai:
+      api-key: "${DEEPSEEK_API_KEY:}"
+      base-url: "${DEEPSEEK_BASE_URL:https://api.deepseek.com}"
+      chat:
+        options:
+          model: "${DEEPSEEK_MODEL:deepseek-chat}"
+          temperature: 0.2
+          max-tokens: 2000

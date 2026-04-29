@@ -62,7 +62,9 @@ class AgentController(
     private val anthropicActive: Boolean
         get() {
             val profiles = environment.activeProfiles.toSet()
-            return "ollama" !in profiles && "openai" !in profiles
+            return "ollama" !in profiles &&
+                "openai" !in profiles &&
+                "deepseek" !in profiles
         }
 
     @GetMapping("/health")
@@ -157,7 +159,7 @@ class AgentController(
      * the browser sees a first byte within ~1–2s instead of waiting for the
      * full LLM + tool-call chain to complete (which can run 30–60s on the
      * heavier Independence / Rebalance domains and trip mobile-Safari's
-     * idle-timeout, surfacing as "Load failed" in [useChat]).
+     * idle-timeout, surfacing as "Load failed".
      *
      * Event protocol:
      *   - `event: token` `data: <text-chunk>` — one per emitted text fragment
@@ -258,11 +260,11 @@ class AgentController(
         val tokenEvents =
             streamSpec
                 .chatResponse()
-                .doOnNext { resp -> resp.metadata?.usage?.let { capturedUsage.set(it) } }
+                .doOnNext { resp -> resp.metadata.usage?.let { capturedUsage.set(it) } }
                 .map { resp ->
                     resp.result
-                        ?.output
-                        ?.text
+                        .output
+                        .text
                         .orEmpty()
                 }.filter { it.isNotEmpty() }
                 .map { chunk ->

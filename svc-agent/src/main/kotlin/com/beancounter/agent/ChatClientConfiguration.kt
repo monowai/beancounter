@@ -45,10 +45,16 @@ class ChatClientConfiguration {
         return build(chatModel)
     }
 
+    /**
+     * OpenAI-compatible ChatClient. The `deepseek` profile reuses this code
+     * path because DeepSeek's API speaks the same wire format — the
+     * application-deepseek.yaml profile only swaps `spring.ai.openai.base-url`
+     * and the model id.
+     */
     @Bean("chatClient")
-    @Profile("openai")
+    @Profile("openai | deepseek")
     fun openAiChatClient(chatModel: OpenAiChatModel): ChatClient {
-        log.info("Building OpenAI ChatClient ({})", chatModel.javaClass.simpleName)
+        log.info("Building OpenAI-compatible ChatClient ({})", chatModel.javaClass.simpleName)
         return build(chatModel)
     }
 
@@ -68,7 +74,7 @@ class ChatClientConfiguration {
      * the write but worse for ad-hoc traffic spread across an hour.
      */
     @Bean
-    @Profile("!ollama & !openai")
+    @Profile("!ollama & !openai & !deepseek")
     fun anthropicCacheOptions(): AnthropicCacheOptions =
         AnthropicCacheOptions
             .builder()
@@ -86,7 +92,7 @@ class ChatClientConfiguration {
      * `openai` explicitly disables this fallback.
      */
     @Bean("chatClient")
-    @Profile("!ollama & !openai")
+    @Profile("!ollama & !openai & !deepseek")
     fun anthropicChatClient(
         chatModel: AnthropicChatModel,
         anthropicCacheOptions: AnthropicCacheOptions

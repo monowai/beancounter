@@ -6,6 +6,7 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.assets.figi.FigiAsset
 import com.beancounter.marketdata.assets.figi.FigiConfig
 import com.beancounter.marketdata.assets.figi.FigiFilterResponse
+import com.beancounter.marketdata.assets.figi.FigiFilterResult
 import com.beancounter.marketdata.assets.figi.FigiGateway
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.markets.MarketService
@@ -94,6 +95,49 @@ class AssetSearchPublicFallbackTest {
             .extracting<String> { it.symbol }
             .containsExactly("COWZ")
         verify(alphaProxy).search(any(), any())
+    }
+
+    @Test
+    fun `searchFigiGlobal drops results whose exchCode does not map to a BC market`() {
+        val figiFilterHits =
+            FigiFilterResponse(
+                data =
+                    listOf(
+                        // VG / UF / UT / UC are not in FigiConfig.EXCHANGE_CODES.
+                        // Returning them raw made the lookup UI post unknown
+                        // market codes to /api/assets and trigger a 404.
+                        FigiFilterResult(
+                            ticker = "GCOW",
+                            name = "PACER GLOBAL CASH COWS DIVID",
+                            exchCode = "VG",
+                            securityType2 = "Mutual Fund"
+                        ),
+                        FigiFilterResult(
+                            ticker = "GCOW",
+                            name = "PACER GLOBAL CASH COWS DIVID",
+                            exchCode = "UF",
+                            securityType2 = "Mutual Fund"
+                        ),
+                        FigiFilterResult(
+                            ticker = "COWZ",
+                            name = "PACER US CASH COWS 100 ETF",
+                            exchCode = "US",
+                            securityType2 = "Mutual Fund"
+                        )
+                    )
+            )
+        val (service, _) =
+            buildService(
+                figiFilterHits = figiFilterHits,
+                alphaProxy = mock<AlphaProxy>()
+            )
+
+        val results = service.search("COW", "FIGI")
+
+        assertThat(results.data)
+            .extracting<String> { it.market }
+            .containsExactly("US")
+        assertThat(results.data.first().symbol).isEqualTo("COWZ")
     }
 
     @Test

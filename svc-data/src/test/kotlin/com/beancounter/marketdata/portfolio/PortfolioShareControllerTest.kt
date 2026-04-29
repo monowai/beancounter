@@ -226,6 +226,58 @@ internal class PortfolioShareControllerTest {
     }
 
     @Test
+    fun `adviser can view shared portfolio by code after acceptance`() {
+        val portfolio =
+            portfolioCreate(
+                PortfolioInput("VIEW_BY_CODE", "View By Code", USD.code, NZD.code),
+                mockMvc,
+                clientToken
+            ).data.first()
+
+        val inviteRequest =
+            ShareInviteRequest(
+                portfolioIds = listOf(portfolio.id),
+                adviserEmail = "adviser@testing.com"
+            )
+        val inviteResult =
+            mockMvc
+                .perform(
+                    post("$SHARES_ROOT/invite")
+                        .with(jwt().jwt(clientToken))
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsBytes(inviteRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        val shareId =
+            objectMapper
+                .readValue(
+                    inviteResult.response.contentAsString,
+                    PortfolioSharesResponse::class.java
+                ).data
+                .first()
+                .id
+
+        mockMvc
+            .perform(
+                post("$SHARES_ROOT/$shareId/accept")
+                    .with(jwt().jwt(adviserToken))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        // Adviser can resolve the portfolio by code (the path bc-view's
+        // /holdings/{code} route hits via svc-position).
+        mockMvc
+            .perform(
+                get("/portfolios/code/${portfolio.code}")
+                    .with(jwt().jwt(adviserToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
+    }
+
+    @Test
     fun `adviser cannot view portfolio before acceptance`() {
         val portfolio =
             portfolioCreate(

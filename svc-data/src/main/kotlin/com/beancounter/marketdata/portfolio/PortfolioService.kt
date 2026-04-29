@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.Locale
+import java.util.Optional
 import java.util.function.Consumer
 
 /**
@@ -130,18 +131,30 @@ class PortfolioService(
             "Searching on behalf of {}",
             systemUser.id
         )
-        val found =
-            portfolioRepository.findByCodeAndOwner(
-                code.uppercase(Locale.getDefault()),
-                systemUser
-            )
-        val portfolio =
-            found.orElseThrow {
-                NotFoundException("Portfolio not found: $code")
+        val normalised = code.uppercase(Locale.getDefault())
+        val owned = portfolioRepository.findByCodeAndOwner(normalised, systemUser)
+        if (owned.isPresent) {
+            val portfolio = owned.get()
+            if (canView(portfolio)) {
+                return portfolio
             }
-        if (canView(portfolio)) {
-            return portfolio
         }
+
+        // Caller may be an adviser viewing a portfolio shared with them.
+        // The (code, owner_id) unique constraint means caller can't already
+        // own a portfolio with this code and the share carries a different
+        // owner — but we still verify canView() to honour share status.
+        val shared =
+            portfolioShareRepository.findByPortfolioCodeIgnoreCaseAndSharedWithAndStatus(
+                normalised,
+                systemUser,
+                ShareStatus.ACTIVE
+            )
+        val sharedPortfolio = shared.flatMap { Optional.ofNullable(it.portfolio) }
+        if (sharedPortfolio.isPresent && canView(sharedPortfolio.get())) {
+            return sharedPortfolio.get()
+        }
+
         throw NotFoundException("Portfolio not found: $code")
     }
 

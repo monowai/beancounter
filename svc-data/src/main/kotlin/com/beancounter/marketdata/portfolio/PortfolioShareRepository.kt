@@ -34,6 +34,12 @@ interface PortfolioShareRepository : CrudRepository<PortfolioShare, String> {
         sharedWith: SystemUser
     ): Optional<PortfolioShare>
 
+    fun findByPortfolioCodeIgnoreCaseAndSharedWithAndStatus(
+        code: String,
+        sharedWith: SystemUser,
+        status: ShareStatus
+    ): Optional<PortfolioShare>
+
     fun findByTargetUserAndStatus(
         targetUser: SystemUser,
         status: ShareStatus

@@ -31,4 +31,22 @@ class PositionClient(
             .retrieve()
             .body<PositionResponse>()
             ?: PositionResponse()
+
+    /**
+     * Lookup positions by portfolio id. Required for managed (shared)
+     * portfolios because portfolio code is unique only within an owner —
+     * the by-code path 404s for an adviser viewing a client's portfolio.
+     */
+    fun getPositionsById(
+        portfolioId: String,
+        asAt: String = "today",
+        includeValues: Boolean = true
+    ): PositionResponse =
+        restClient
+            .get()
+            .uri("/id/{id}?asAt={asAt}&value={value}", portfolioId, asAt, includeValues)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body<PositionResponse>()
+            ?: PositionResponse()
 }

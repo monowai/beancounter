@@ -31,6 +31,17 @@ class EventTools(
         return eventClient.loadPortfolioEvents(portfolio.id, asAt)
     }
 
+    @Tool(description = LOAD_BY_ID_DESC)
+    fun loadPortfolioEventsByPortfolioId(
+        @ToolParam(
+            description =
+                "Internal portfolio id (UUID-like, ~22 chars). Use this when the page " +
+                    "context provides `portfolioId` instead of `portfolioCode` " +
+                    "(managed/shared portfolios)."
+        ) portfolioId: String,
+        @ToolParam(description = "Date YYYY-MM-DD or 'today'") asAt: String = "today"
+    ): Map<String, Any> = eventClient.loadPortfolioEvents(portfolioId, asAt)
+
     @Tool(description = BACKFILL_DESC)
     fun backfillPortfolioEvents(
         @ToolParam(description = "Portfolio code as the user types it, e.g. 'TYLER'") portfolioCode: String,
@@ -41,6 +52,18 @@ class EventTools(
         return eventClient.backfillPortfolio(portfolio.id, fromDate, toDate.ifBlank { fromDate })
     }
 
+    @Tool(description = BACKFILL_BY_ID_DESC)
+    fun backfillPortfolioEventsByPortfolioId(
+        @ToolParam(
+            description =
+                "Internal portfolio id (UUID-like, ~22 chars). Use this when the page " +
+                    "context provides `portfolioId` instead of `portfolioCode` " +
+                    "(managed/shared portfolios)."
+        ) portfolioId: String,
+        @ToolParam(description = "Start date YYYY-MM-DD") fromDate: String,
+        @ToolParam(description = "End date YYYY-MM-DD; defaults to fromDate") toDate: String = ""
+    ): Map<String, Any> = eventClient.backfillPortfolio(portfolioId, fromDate, toDate.ifBlank { fromDate })
+
     companion object {
         const val ASSET_EVENTS_DESC =
             "List all stored corporate events (dividends, splits) for an asset, " +
@@ -48,8 +71,14 @@ class EventTools(
         const val LOAD_DESC =
             "Trigger a load of new corporate events from external providers for every asset " +
                 "in a portfolio. Returns immediately; the load runs asynchronously."
+        const val LOAD_BY_ID_DESC =
+            "Same as loadPortfolioEvents but resolves the portfolio by its internal id. " +
+                "Prefer this when the context exposes `portfolioId` (managed/shared portfolios)."
         const val BACKFILL_DESC =
             "Reprocess corporate events for a portfolio between two dates, generating any " +
                 "missing dividend/split transactions. Use to reconcile or repair history."
+        const val BACKFILL_BY_ID_DESC =
+            "Same as backfillPortfolioEvents but resolves the portfolio by its internal id. " +
+                "Prefer this when the context exposes `portfolioId` (managed/shared portfolios)."
     }
 }

@@ -30,6 +30,16 @@ class PortfolioTools(
         @ToolParam(description = "Portfolio code as the user types it, e.g. 'TYLER'") code: String
     ): ScrubbedPortfolio = scrubber.scrub(portfolioServiceClient.getPortfolioByCode(code))
 
+    @Tool(description = BY_ID_DESC)
+    fun getPortfolioByPortfolioId(
+        @ToolParam(
+            description =
+                "Internal portfolio id (UUID-like, ~22 chars, e.g. 'WKN0stp6QIWhg8LdQti5-Q'). " +
+                    "Required for managed/shared portfolios where the user is not the owner. " +
+                    "Use this when the page context provides `portfolioId` instead of `portfolioCode`."
+        ) portfolioId: String
+    ): ScrubbedPortfolio = scrubber.scrub(portfolioServiceClient.getPortfolioById(portfolioId))
+
     companion object {
         const val LIST_DESC =
             "List every portfolio the current user owns. " +
@@ -40,5 +50,11 @@ class PortfolioTools(
             "Look up a single portfolio by its short user-facing code (e.g. 'TYLER', 'NZD'). " +
                 "Returns the portfolio's metadata and XIRR as a decimal ratio. " +
                 "Absolute monetary amounts are intentionally not included."
+        const val BY_ID_DESC =
+            "Same response shape as getPortfolio, but resolves the portfolio by " +
+                "its internal id rather than its code. Prefer this tool whenever " +
+                "the page context exposes `portfolioId` (managed/shared portfolios). " +
+                "The by-code tool 404s for shared portfolios because portfolio " +
+                "code is unique only within an owner."
     }
 }

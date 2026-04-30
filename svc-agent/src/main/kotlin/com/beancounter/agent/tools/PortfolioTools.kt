@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service
 /**
  * Tools the LLM can call to enumerate and resolve Beancounter portfolios.
  *
- * Every portfolio-shaped tool in the agent accepts a user-visible **code**,
- * never an internal UUID — users only ever talk about codes, and surfacing
- * the id to the LLM just invites it to feed codes into id-shaped parameters.
- * Code→id resolution, when needed, happens inside the tool implementation.
+ * The default surface is by **code** — the user-visible short identifier (e.g.
+ * `TYLER`). A parallel by-id tool ([getPortfolioByPortfolioId]) is exposed
+ * for managed/shared portfolios where the caller is not the owner: portfolio
+ * code is unique only within an owner, so the by-code lookup 404s for
+ * advisers viewing a client's portfolio. The frontend exposes `portfolioId`
+ * in the page context whenever the by-id tool should be picked.
  *
  * Responses are scrubbed of absolute monetary amounts (market value, gain
  * on day) — the LLM receives IRR as a ratio and portfolio metadata only.

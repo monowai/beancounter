@@ -9,8 +9,15 @@ import org.springframework.stereotype.Service
 /**
  * Tools for corporate event lookup, loading and backfill.
  *
- * Portfolio-scoped tools accept a user-visible code and resolve it to the
- * internal id inside the tool — the LLM never sees or has to manage ids.
+ * Portfolio-scoped tools come in pairs: a by-**code** variant for the
+ * standard case (the user owns the portfolio and refers to it by its
+ * short code), and a by-**id** variant
+ * ([loadPortfolioEventsByPortfolioId], [backfillPortfolioEventsByPortfolioId])
+ * for managed/shared portfolios where code is ambiguous. The by-code
+ * variants resolve the code to an internal id inside the tool; the by-id
+ * variants pass the caller-supplied id straight through. The frontend
+ * exposes `portfolioId` in the page context when the by-id variants
+ * should be picked.
  */
 @Service
 class EventTools(

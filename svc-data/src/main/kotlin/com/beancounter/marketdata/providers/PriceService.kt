@@ -169,6 +169,20 @@ class PriceService(
             return marketData
         }
 
+        // Some providers (e.g. MarketStack) deliver the ex-date row without a
+        // split flag, leaving previousClose on the pre-split basis and the
+        // change/changePercent at -1/N. Cross-check Alpha's split feed (cached)
+        // and stamp the row before the rebase logic below kicks in.
+        // Gate the lookup behind a "likely missing split" anomaly check so we
+        // don't hit Alpha for every normal split=1 row (the common case).
+        if (marketData.split.compareTo(BigDecimal.ONE) == 0 &&
+            looksLikeMissingSplit(marketData, previousDayData.get())
+        ) {
+            knownSplitFor(marketData.asset, marketData.priceDate)?.let { factor ->
+                marketData.split = factor
+            }
+        }
+
         val split = marketData.split
         val hasSplit =
             split.compareTo(BigDecimal.ZERO) > 0 && split.compareTo(BigDecimal.ONE) != 0
@@ -403,6 +417,53 @@ class PriceService(
         )
     }
 
+    // True when today's close has dropped sharply enough versus yesterday to
+    // suggest the provider may have omitted a split flag on the ex-date row.
+    // Uses a 30% gap threshold — small enough to catch a 2-for-1 split (50%
+    // drop) and well above any plausible single-day organic move, so we keep
+    // Alpha lookups limited to genuinely suspicious rows.
+    private fun looksLikeMissingSplit(
+        marketData: MarketData,
+        previousDay: MarketData
+    ): Boolean {
+        if (previousDay.close.compareTo(BigDecimal.ZERO) <= 0) return false
+        if (marketData.close.compareTo(BigDecimal.ZERO) <= 0) return false
+        val anomalyThreshold = previousDay.close.multiply(MISSING_SPLIT_DROP_THRESHOLD)
+        return marketData.close.compareTo(anomalyThreshold) < 0
+    }
+
+    // Returns Alpha's known split factor for the asset on `date` when one
+    // exists, or null otherwise. Lets enrichWithPreviousClose recover from
+    // providers that omit the split flag on the ex-date row (e.g. MarketStack
+    // on VUG 2026-04-21).
+    private fun knownSplitFor(
+        asset: Asset,
+        date: LocalDate
+    ): BigDecimal? {
+        val service = alphaEventService ?: return null
+        return try {
+            service
+                .getEvents(asset)
+                .data
+                .asSequence()
+                .filter(::isSplit)
+                .firstOrNull { it.priceDate == date }
+                ?.split
+                ?.takeIf { it.compareTo(BigDecimal.ONE) != 0 && it.signum() > 0 }
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug(
+                "Split lookup failed for {} on {}: {}",
+                asset.code,
+                date,
+                e.message
+            )
+            null
+        }
+    }
+
     /**
      * Pulls known split events for the asset within the requested range.
      *
@@ -462,4 +523,12 @@ class PriceService(
         assetId: String,
         date: LocalDate
     ): Long = marketDataRepo.countByAssetIdAndPriceDate(assetId, date)
+
+    companion object {
+        // Today's close must be below this fraction of yesterday's close before
+        // we treat the row as a candidate for a missing split flag and consult
+        // Alpha. 0.70 catches 2:1 splits (50% drop) with comfortable headroom
+        // over any realistic organic single-day move.
+        private val MISSING_SPLIT_DROP_THRESHOLD = BigDecimal("0.70")
+    }
 }

@@ -8,6 +8,7 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -274,22 +275,15 @@ class PriceServiceTest {
         val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
 
         // Split flag stamped from Alpha so SplitAdjuster recognises the ex-date.
-        assertTrue(
-            saved[0].split.compareTo(BigDecimal("6")) == 0,
-            "split should be 6 but was ${saved[0].split}"
-        )
+        assertThat(saved[0].split).isEqualByComparingTo("6")
         // previousClose rebased onto post-split basis (492.58 / 6 ≈ 82.0967)
-        assertTrue(
-            saved[0].previousClose.compareTo(BigDecimal("82.00")) > 0 &&
-                saved[0].previousClose.compareTo(BigDecimal("82.20")) < 0,
-            "previousClose should be ~82.10 but was ${saved[0].previousClose}"
-        )
+        assertThat(saved[0].previousClose)
+            .isGreaterThan(BigDecimal("82.00"))
+            .isLessThan(BigDecimal("82.20"))
         // changePercent reflects the real intraday move, not -83%
-        assertTrue(
-            saved[0].changePercent.compareTo(BigDecimal("-0.05")) > 0 &&
-                saved[0].changePercent.compareTo(BigDecimal("0.05")) < 0,
-            "changePercent should be small but was ${saved[0].changePercent}"
-        )
+        assertThat(saved[0].changePercent)
+            .isGreaterThan(BigDecimal("-0.05"))
+            .isLessThan(BigDecimal("0.05"))
     }
 
     @Test

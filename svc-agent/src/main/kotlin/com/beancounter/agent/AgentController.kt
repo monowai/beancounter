@@ -261,10 +261,13 @@ class AgentController(
             streamSpec
                 .chatResponse()
                 .doOnNext { resp -> resp.metadata.usage?.let { capturedUsage.set(it) } }
+                // Spring AI emits trailing ChatResponse chunks with no Generation
+                // (metadata-only — token usage, finishReason). Skip those instead
+                // of NPE'ing on resp.result.
                 .map { resp ->
                     resp.result
-                        .output
-                        .text
+                        ?.output
+                        ?.text
                         .orEmpty()
                 }.filter { it.isNotEmpty() }
                 .map { chunk ->

@@ -218,6 +218,41 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `stream skips ChatResponse chunks that carry no Generation`() {
+        // Spring AI emits trailing metadata-only ChatResponse chunks (token
+        // usage, finishReason) where getResult() is null. Previously the
+        // mapper accessed resp.result.output.text directly and NPE'd. The
+        // chunk should be filtered out, leaving the surrounding text chunks
+        // and the done envelope intact.
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.chatResponse())
+            .thenReturn(
+                Flux.just(
+                    textResponse("Hello"),
+                    ChatResponse(emptyList()),
+                    textResponse(" world")
+                )
+            )
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(events).hasSize(3)
+        assertThat(events[0].data()).isEqualTo("Hello")
+        assertThat(events[1].data()).isEqualTo(" world")
+        assertThat(events[2].event()).isEqualTo(EVENT_DONE)
+    }
+
+    @Test
     fun `done payload omits model when ollama profile is active`() {
         // On ollama / openai profiles the per-call Anthropic model override is
         // skipped and the configured ChatClient picks the model. Reporting

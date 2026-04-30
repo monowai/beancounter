@@ -32,6 +32,10 @@ data class ScrubbedPortfolio(
  * named-field objects, and tool results are never cached, so the saving
  * applies on every chat turn.
  *
+ * Closed (zero-quantity) positions are filtered out before this DTO is
+ * built, so every row represents an open position. The legacy `closed`
+ * column has been dropped accordingly.
+ *
  * Column meanings (decimals throughout for ratios):
  *   assetCode, assetName, market   — public identifiers
  *   priceClose                     — public market price
@@ -39,7 +43,6 @@ data class ScrubbedPortfolio(
  *   xirr                           — annualised money-weighted return
  *   weight                         — portfolio weight (0.125 = 12.5%)
  *   category                       — asset class
- *   closed                         — true if quantity is zero
  */
 data class ScrubbedPositionResponse(
     val portfolioCode: String,
@@ -61,8 +64,7 @@ data class ScrubbedPositionResponse(
                 "changePercent",
                 "xirr",
                 "weight",
-                "category",
-                "closed"
+                "category"
             )
     }
 }
@@ -85,6 +87,14 @@ class ResponseScrubber {
 
     fun scrub(response: PositionResponse): ScrubbedPositionResponse {
         val positions = response.data
+        // Drop closed (zero-quantity) rows server-side so the LLM never sees
+        // them. Earlier the system prompt asked the LLM to filter silently;
+        // it kept surfacing them in commentary anyway. Excluding here is
+        // both cheaper (smaller payload) and behaviourally reliable.
+        val openRows =
+            positions.positions.values
+                .filter { it.quantityValues.getTotal().signum() != 0 }
+                .map(::scrubPositionRow)
         return ScrubbedPositionResponse(
             portfolioCode = positions.portfolio.code,
             portfolioName = positions.portfolio.name,
@@ -95,7 +105,7 @@ class ResponseScrubber {
                 positions.totals[Position.In.PORTFOLIO]
                     ?.irr
                     ?.toNullableDouble(),
-            rows = positions.positions.values.map(::scrubPositionRow)
+            rows = openRows
         )
     }
 
@@ -103,7 +113,6 @@ class ResponseScrubber {
         val portfolioBucket = position.moneyValues[Position.In.PORTFOLIO]
         val price = portfolioBucket?.priceData
         val asset = position.asset
-        val isClosed = position.quantityValues.getTotal().signum() == 0
         return listOf(
             asset.code,
             asset.name,
@@ -112,8 +121,7 @@ class ResponseScrubber {
             price?.changePercent?.toNullableDouble(),
             portfolioBucket?.irr?.toNullableDouble(),
             portfolioBucket?.weight?.toDouble() ?: 0.0,
-            asset.category,
-            isClosed
+            asset.category
         )
     }
 }

@@ -18,5 +18,6 @@ data class UserPreferencesRequest(
     val reportingCurrencyCode: String? = null,
     val showWeightedIrr: Boolean? = null,
     val enableTwr: Boolean? = null,
-    val milestoneMode: MilestoneMode? = null
+    val milestoneMode: MilestoneMode? = null,
+    val autoSettle: Boolean? = null
 )

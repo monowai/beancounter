@@ -54,11 +54,10 @@ class PositionTools(
                 "`xirr` (annualised money-weighted return, decimal — 0.12 = 12% p.a.; " +
                 "the most accurate performance measure across holdings); " +
                 "`weight` (portfolio weight, decimal — 0.125 = 12.5%); " +
-                "`category` (asset class, useful for grouping); " +
-                "`closed` (boolean — true means zero quantity). " +
-                "Never mention, count, or discuss closed positions in your " +
-                "answer unless the user has explicitly asked about closed, " +
-                "sold, or historical holdings — filter them out silently. " +
+                "`category` (asset class, useful for grouping). " +
+                "Closed (zero-quantity) positions are filtered out before " +
+                "the response is built, so every row represents an open " +
+                "holding — there is no `closed` column to inspect. " +
                 "The response also carries `portfolioCode`, `portfolioName`, " +
                 "`baseCurrency`, `asAt`, `mixedCurrencies`, and `overallIrr`. " +
                 "Show ratios as percentages when discussing performance. " +

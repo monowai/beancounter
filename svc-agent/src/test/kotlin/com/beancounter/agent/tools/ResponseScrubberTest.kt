@@ -101,8 +101,7 @@ class ResponseScrubberTest {
                 "changePercent",
                 "xirr",
                 "weight",
-                "category",
-                "closed"
+                "category"
             )
         assertThat(scrubbed.rows).hasSize(1)
         assertThat(scrubbed.rows.first())
@@ -114,8 +113,7 @@ class ResponseScrubberTest {
                 0.012,
                 0.14,
                 0.125,
-                "Equity",
-                false
+                "Equity"
             )
     }
 
@@ -134,24 +132,28 @@ class ResponseScrubberTest {
     }
 
     @Test
-    fun `zero-quantity position is marked closed`() {
-        val asset =
-            Asset(
-                code = "OLD",
-                market = nasdaq,
-                category = "Equity"
-            )
-        val position = Position(asset, portfolio)
-        val money = position.getMoneyValues(Position.In.PORTFOLIO)
-        money.marketValue = BigDecimal.ZERO
-        money.weight = BigDecimal.ZERO
-        // quantityValues.total = purchased + sold + adjustment, all zero by default
+    fun `zero-quantity positions are filtered out before reaching the LLM`() {
+        // Closed (zero-quantity) positions clutter analysis prompts and the
+        // LLM has been observed surfacing them in commentary even when the
+        // system prompt forbids it. Drop them server-side so the row list
+        // contains only open holdings.
+        val openAsset = Asset(code = "OPEN", market = nasdaq, category = "Equity")
+        val openPosition = Position(openAsset, portfolio)
+        openPosition.quantityValues.purchased = BigDecimal("10")
 
-        val positions = Positions(portfolio)
-        positions.add(position)
+        val closedAsset = Asset(code = "OLD", market = nasdaq, category = "Equity")
+        val closedPosition = Position(closedAsset, portfolio)
+        // quantityValues defaults sum to zero, marking the position closed.
+
+        val positions =
+            Positions(portfolio).apply {
+                add(openPosition)
+                add(closedPosition)
+            }
         val scrubbed = scrubber.scrub(PositionResponse(positions))
 
-        val closedIdx = scrubbed.cols.indexOf("closed")
-        assertThat(scrubbed.rows.single()[closedIdx]).isEqualTo(true)
+        val codeIdx = scrubbed.cols.indexOf("assetCode")
+        assertThat(scrubbed.rows).hasSize(1)
+        assertThat(scrubbed.rows.single()[codeIdx]).isEqualTo("OPEN")
     }
 }

@@ -29,6 +29,18 @@ class PositionTools(
     ): ScrubbedPositionResponse =
         scrubber.scrub(positionClient.getPositionsByCode(portfolioCode, asAt, includeValues = true))
 
+    @Tool(description = POSITIONS_BY_ID_DESC)
+    fun getPositionsByPortfolioId(
+        @ToolParam(
+            description =
+                "Internal portfolio id (UUID-like, ~22 chars, e.g. 'WKN0stp6QIWhg8LdQti5-Q'). " +
+                    "Required for managed/shared portfolios where the user is not the owner. " +
+                    "Use this when the page context provides `portfolioId` instead of `portfolioCode`."
+        ) portfolioId: String,
+        @ToolParam(description = "Valuation date YYYY-MM-DD or 'today'") asAt: String = "today"
+    ): ScrubbedPositionResponse =
+        scrubber.scrub(positionClient.getPositionsById(portfolioId, asAt, includeValues = true))
+
     companion object {
         const val POSITIONS_DESC =
             "Get the positions for a portfolio identified by its code. " +
@@ -52,5 +64,11 @@ class PositionTools(
                 "Show ratios as percentages when discussing performance. " +
                 "Never invent or request dollar amounts, ROI, dividend yield, or " +
                 "trade currency — they are not available in this tool."
+        const val POSITIONS_BY_ID_DESC =
+            "Same response shape as getPositions, but resolves the portfolio by " +
+                "its internal id rather than its code. Prefer this tool whenever " +
+                "the page context exposes `portfolioId` (managed/shared portfolios). " +
+                "The by-code tool 404s for shared portfolios because portfolio " +
+                "code is unique only within an owner."
     }
 }

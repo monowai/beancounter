@@ -1,23 +1,34 @@
 package com.beancounter.agent
 
-import io.sentry.Sentry
+import io.opentelemetry.api.trace.Span
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.metadata.Usage
 import org.springframework.stereotype.Component
 
 /**
- * Publishes per-call LLM telemetry to Sentry so token usage is queryable
- * from the events / measurements UI without parsing kauri pod stdout.
+ * Publishes per-call LLM telemetry as OpenTelemetry span attributes.
  *
- * Strategy: piggyback on the inbound HTTP request's Sentry transaction
- * (Spring's Sentry integration auto-creates one per request). Each LLM
- * call adds:
- *   - tags    `agent.model`, `agent.tools`, `agent.mode` (call/stream)
- *   - data    `agent.elapsed_ms`
- *   - measurements `prompt_tokens`, `completion_tokens`, `total_tokens`
+ * The previous implementation wrote Sentry transaction measurements via
+ * `Sentry.getCurrentScopes().transaction.setMeasurement`. That works on
+ * the request thread for the non-streaming `/agent/query` path, but
+ * silently no-ops on the SSE `/agent/query/stream` path because the
+ * `doneEvent` lambda runs on a Reactor `boundedElastic` thread where the
+ * Sentry scope is empty. Result: zero token data in Sentry's spans
+ * dataset for any streamed call (which is the dominant traffic shape).
  *
- * Sentry's events search supports filtering on `measurements.total_tokens`
- * and aggregating sum/avg per `agent.model` tag.
+ * Switching to OTel attributes solves both axes:
+ *   - bc-agent already runs the `sentry-opentelemetry-agent` javaagent
+ *     plus the `opentelemetry-instrumentation-reactor` autoload, which
+ *     propagates the ambient `Span` across Reactor schedulers.
+ *   - Sentry's OTel exporter reads OTel span attributes and surfaces them
+ *     under the same span the http.server transaction already owns.
+ *
+ * Callers capture the request-time `Span.current()` and pass it to
+ * [capture] so the lambda always writes to the right span — even if
+ * Reactor's automatic context propagation regresses in a future agent
+ * upgrade. The default-arg `Span.current()` keeps unit tests (where no
+ * agent is attached) noop-safe — the SDK returns an invalid span and
+ * `setAttribute` is a cheap no-op.
  */
 @Component
 class LlmMetrics {
@@ -28,31 +39,24 @@ class LlmMetrics {
         usage: Usage?,
         elapsedMs: Long,
         toolCount: Int,
-        mode: Mode
+        mode: Mode,
+        span: Span = Span.current()
     ) {
         @Suppress("TooGenericExceptionCaught")
-        // Sentry's SDK can surface unexpected errors (uninitialised, IO, etc).
-        // Telemetry must never break the user-visible response, so we catch
-        // broadly and log at DEBUG. Narrowing the type would let an unfamiliar
-        // failure mode crash the request thread purely to satisfy the linter.
         try {
-            val tx = Sentry.getCurrentScopes().transaction
-            if (tx == null) {
-                // No active Sentry transaction (e.g. unit test, Sentry disabled
-                // by profile). Bail silently — metrics are best-effort.
-                return
+            if (!modelId.isNullOrBlank()) span.setAttribute(ATTR_MODEL, modelId)
+            span.setAttribute(ATTR_TOOLS, toolCount.toLong())
+            span.setAttribute(ATTR_MODE, mode.tag)
+            span.setAttribute(ATTR_ELAPSED_MS, elapsedMs)
+            usage?.promptTokens?.toLong()?.let {
+                span.setAttribute(ATTR_PROMPT_TOKENS, it)
             }
-            // Only tag the model when we actually know it. On ollama / openai
-            // profiles the per-call selected id doesn't reflect what answered
-            // the request, so attributing measurements to it would mislead
-            // dashboards. Skip the tag rather than poison the data.
-            if (!modelId.isNullOrBlank()) tx.setTag(TAG_MODEL, modelId)
-            tx.setTag(TAG_TOOLS, toolCount.toString())
-            tx.setTag(TAG_MODE, mode.tag)
-            tx.setData(DATA_ELAPSED_MS, elapsedMs)
-            usage?.promptTokens?.toLong()?.let { tx.setMeasurement(M_PROMPT_TOKENS, it) }
-            usage?.completionTokens?.toLong()?.let { tx.setMeasurement(M_COMPLETION_TOKENS, it) }
-            usage?.totalTokens?.toLong()?.let { tx.setMeasurement(M_TOTAL_TOKENS, it) }
+            usage?.completionTokens?.toLong()?.let {
+                span.setAttribute(ATTR_COMPLETION_TOKENS, it)
+            }
+            usage?.totalTokens?.toLong()?.let {
+                span.setAttribute(ATTR_TOTAL_TOKENS, it)
+            }
         } catch (e: Exception) {
             log.debug("LlmMetrics.capture failed: {}", e.message)
         }
@@ -66,12 +70,16 @@ class LlmMetrics {
     }
 
     companion object {
-        private const val TAG_MODEL = "agent.model"
-        private const val TAG_TOOLS = "agent.tools"
-        private const val TAG_MODE = "agent.mode"
-        private const val DATA_ELAPSED_MS = "agent.elapsed_ms"
-        private const val M_PROMPT_TOKENS = "prompt_tokens"
-        private const val M_COMPLETION_TOKENS = "completion_tokens"
-        private const val M_TOTAL_TOKENS = "total_tokens"
+        private const val ATTR_MODEL = "agent.model"
+        private const val ATTR_TOOLS = "agent.tools"
+        private const val ATTR_MODE = "agent.mode"
+        private const val ATTR_ELAPSED_MS = "agent.elapsed_ms"
+
+        // Tokens use the `llm.*` namespace so Sentry's GenAI dashboards
+        // and the standard `has:llm.total_tokens` event filter pick them
+        // up without further config.
+        private const val ATTR_PROMPT_TOKENS = "llm.prompt_tokens"
+        private const val ATTR_COMPLETION_TOKENS = "llm.completion_tokens"
+        private const val ATTR_TOTAL_TOKENS = "llm.total_tokens"
     }
 }

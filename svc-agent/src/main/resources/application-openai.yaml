@@ -12,4 +12,7 @@ spring:
           temperature: 0.2
           max-tokens: 2000
 
+    model:
+      chat: openai
+
 

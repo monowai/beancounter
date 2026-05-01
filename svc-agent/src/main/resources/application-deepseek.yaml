@@ -25,3 +25,6 @@ spring:
           model: "${DEEPSEEK_MODEL:deepseek-chat}"
           temperature: 0.2
           max-tokens: 2000
+
+    model:
+      chat: openai

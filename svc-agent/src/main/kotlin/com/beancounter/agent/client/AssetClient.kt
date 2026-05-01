@@ -26,10 +26,15 @@ class AssetClient(
         market: String,
         code: String
     ): Asset {
+        // ?canonical=true asks svc-data to fold colloquial inputs
+        // (NASDAQ/NYSE/AMEX/ARCA, NASAQ, DOW, DOW JONES) onto the active
+        // US market before lookup — so the LLM doesn't need to know BC's
+        // exchange conventions and we don't mint a duplicate per-exchange
+        // asset row.
         val response =
             restClient
                 .get()
-                .uri("/assets/{market}/{code}", market, code)
+                .uri("/assets/{market}/{code}?canonical=true", market, code)
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
                 .body<AssetResponse>()

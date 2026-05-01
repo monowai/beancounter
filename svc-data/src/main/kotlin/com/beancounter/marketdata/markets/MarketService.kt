@@ -106,4 +106,26 @@ class MarketService
             // Don't persist Mock market assets
             return market.code != "MOCK"
         }
+
+        /**
+         * Resolve [input] to the canonical market the rest of the system
+         * persists against. Most callers want this rather than the raw
+         * [getMarket] result, because the inactive US aggregator markets
+         * (NASDAQ, NYSE, AMEX, ARCA) all collapse to the single active
+         * `US` market for asset persistence — otherwise GOOG@NASDAQ and
+         * GOOG@US become two distinct rows.
+         */
+        fun canonical(input: String): Market {
+            val resolved = getMarket(input)
+            return if (resolved.code in US_AGGREGATOR_CODES) {
+                getMarket(US_MARKET_CODE)
+            } else {
+                resolved
+            }
+        }
+
+        companion object {
+            private const val US_MARKET_CODE = "US"
+            private val US_AGGREGATOR_CODES = setOf("NASDAQ", "NYSE", "AMEX", "ARCA")
+        }
     }

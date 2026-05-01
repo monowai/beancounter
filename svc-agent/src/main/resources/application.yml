@@ -42,6 +42,16 @@ management:
   info:
     git:
       mode: SIMPLE
+  # Sample every Micrometer observation so Spring AI's gen_ai.* spans —
+  # which now feed Sentry's GenAI dashboard via the OTel bridge — never
+  # get dropped. Adjust per-env in application-<profile>.yaml if cost
+  # becomes an issue.
+  tracing:
+    sampling:
+      probability: 1.0
+  observations:
+    annotations:
+      enabled: true
 
 logging:
   pattern:

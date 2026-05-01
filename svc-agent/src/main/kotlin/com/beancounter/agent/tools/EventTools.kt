@@ -28,7 +28,11 @@ class EventTools(
 ) {
     @Tool(description = ASSET_EVENTS_DESC)
     fun getAssetEvents(
-        @ToolParam(description = "Asset identifier (UUID or ticker)") assetId: String
+        @ToolParam(
+            description =
+                "Internal Beancounter asset id (UUID-like). " +
+                    "If the user gives a public ticker, use getAssetEventsByTicker instead."
+        ) assetId: String
     ): Map<String, Any> = eventClient.getAssetEvents(assetId)
 
     @Tool(description = ASSET_EVENTS_BY_TICKER_DESC)
@@ -90,8 +94,9 @@ class EventTools(
 
     companion object {
         const val ASSET_EVENTS_DESC =
-            "List all stored corporate events (dividends, splits) for an asset, " +
-                "ordered by pay date, most recent first."
+            "List all stored corporate events (dividends, splits) for an internal " +
+                "Beancounter asset id, ordered by pay date, most recent first. " +
+                "For public tickers, prefer getAssetEventsByTicker."
         const val ASSET_EVENTS_BY_TICKER_DESC =
             "List all stored corporate events (dividends, splits) for a publicly " +
                 "listed ticker — e.g. 'how many dividends has GOOG paid?'. " +

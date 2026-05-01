@@ -59,13 +59,15 @@ class ToolSelector(
                 page.contains("trn") -> {
                 (wealthTools + eventTools + newsTools).toTypedArray()
             }
-            // Wealth — portfolios/holdings. Keep newsTools for
-            // "what's happening with my holdings" style questions.
+            // Wealth — portfolios/holdings. Keep newsTools for "what's
+            // happening with my holdings" style questions, plus eventTools
+            // so users can ask "how many dividends has GOOG paid?" without
+            // having to navigate to a corporate-events page first.
             page.contains("holding") ||
                 page.contains("portfolio") ||
                 page.contains("wealth") ||
                 page.contains("position") -> {
-                (wealthTools + newsTools).toTypedArray()
+                (wealthTools + eventTools + newsTools).toTypedArray()
             }
             // Unknown / no context — ship everything so the LLM can route.
             else -> {

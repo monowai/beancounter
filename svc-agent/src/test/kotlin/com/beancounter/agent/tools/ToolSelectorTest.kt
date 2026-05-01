@@ -34,15 +34,19 @@ class ToolSelectorTest {
     }
 
     @Test
-    fun `wealth pages ship portfolio, position, market, and news tools`() {
+    fun `wealth pages ship portfolio, position, market, news, and event tools`() {
+        // Event tools are part of the wealth bundle so users can ask
+        // "how many dividends has GOOG paid?" from holdings/portfolio pages
+        // without having to navigate to a corporate-events page first.
         val tools = selector.selectTools(mapOf("page" to "Holdings"))
         assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
             marketTools,
+            eventTools,
             newsTools
         )
-        assertThat(tools).doesNotContain(retireTools, rebalanceTools, eventTools)
+        assertThat(tools).doesNotContain(retireTools, rebalanceTools)
     }
 
     @Test

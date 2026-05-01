@@ -41,12 +41,18 @@ class EventTools(
             description = "Ticker symbol as quoted on the market, e.g. 'GOOG', 'AAPL'."
         ) ticker: String,
         @ToolParam(
+            required = false,
             description =
-                "Beancounter market code, e.g. 'NASDAQ', 'US', 'ASX', 'NZX'. " +
-                    "Use listMarkets if unsure."
-        ) market: String
+                "Optional Beancounter market hint. Default 'US' covers every " +
+                    "US-listed equity (NASDAQ/NYSE/AMEX/ARCA all collapse to " +
+                    "the canonical US market server-side). Pass 'ASX', 'NZX', " +
+                    "'SGX' etc. for non-US listings, or call listMarkets for " +
+                    "the full set. Typos like 'NASAQ' and index labels like " +
+                    "'DOW' / 'DOW JONES' are also accepted and resolved to US."
+        ) market: String = "US"
     ): Map<String, Any> {
-        val asset = assetClient.getAsset(market, ticker)
+        val resolved = market.ifBlank { "US" }
+        val asset = assetClient.getAsset(resolved, ticker)
         return eventClient.getAssetEvents(asset.id)
     }
 

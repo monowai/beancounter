@@ -1,5 +1,6 @@
 package com.beancounter.agent.tools
 
+import com.beancounter.agent.client.AssetClient
 import com.beancounter.agent.client.EventClient
 import com.beancounter.client.services.PortfolioServiceClient
 import org.springframework.ai.tool.annotation.Tool
@@ -22,12 +23,32 @@ import org.springframework.stereotype.Service
 @Service
 class EventTools(
     private val eventClient: EventClient,
-    private val portfolioServiceClient: PortfolioServiceClient
+    private val portfolioServiceClient: PortfolioServiceClient,
+    private val assetClient: AssetClient
 ) {
     @Tool(description = ASSET_EVENTS_DESC)
     fun getAssetEvents(
-        @ToolParam(description = "Asset identifier (UUID or ticker)") assetId: String
+        @ToolParam(
+            description =
+                "Internal Beancounter asset id (UUID-like). " +
+                    "If the user gives a public ticker, use getAssetEventsByTicker instead."
+        ) assetId: String
     ): Map<String, Any> = eventClient.getAssetEvents(assetId)
+
+    @Tool(description = ASSET_EVENTS_BY_TICKER_DESC)
+    fun getAssetEventsByTicker(
+        @ToolParam(
+            description = "Ticker symbol as quoted on the market, e.g. 'GOOG', 'AAPL'."
+        ) ticker: String,
+        @ToolParam(
+            description =
+                "Beancounter market code, e.g. 'NASDAQ', 'US', 'ASX', 'NZX'. " +
+                    "Use listMarkets if unsure."
+        ) market: String
+    ): Map<String, Any> {
+        val asset = assetClient.getAsset(market, ticker)
+        return eventClient.getAssetEvents(asset.id)
+    }
 
     @Tool(description = LOAD_DESC)
     fun loadPortfolioEvents(
@@ -73,8 +94,16 @@ class EventTools(
 
     companion object {
         const val ASSET_EVENTS_DESC =
-            "List all stored corporate events (dividends, splits) for an asset, " +
-                "ordered by pay date, most recent first."
+            "List all stored corporate events (dividends, splits) for an internal " +
+                "Beancounter asset id, ordered by pay date, most recent first. " +
+                "For public tickers, prefer getAssetEventsByTicker."
+        const val ASSET_EVENTS_BY_TICKER_DESC =
+            "List all stored corporate events (dividends, splits) for a publicly " +
+                "listed ticker — e.g. 'how many dividends has GOOG paid?'. " +
+                "Resolves the ticker on the named market into a Beancounter asset " +
+                "(creating one on demand) and then returns the same payload as " +
+                "getAssetEvents. Prefer this tool when the user names a ticker " +
+                "rather than referring to a portfolio holding."
         const val LOAD_DESC =
             "Trigger a load of new corporate events from external providers for every asset " +
                 "in a portfolio. Returns immediately; the load runs asynchronously."

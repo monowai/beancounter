@@ -39,11 +39,9 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-client")
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.integration)
-    // Bridges Micrometer Observations -> OTel spans, so Spring AI's
-    // built-in `spring.ai.chat.client` / `gen_ai.*` observations land in
-    // Sentry's spans dataset (the sentry-opentelemetry-agent javaagent
-    // already provides the OTel SDK + Sentry exporter at runtime).
-    implementation("io.micrometer:micrometer-tracing-bridge-otel")
+    // micrometer-tracing-bridge-otel comes via jar-common (api dep) so
+    // Spring AI's `spring.ai.chat.client` / `gen_ai.*` observations
+    // export to Sentry through the existing OTel agent.
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation(libs.jackson.kotlin)
     implementation("org.jetbrains.kotlin:kotlin-reflect")

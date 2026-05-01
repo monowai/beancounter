@@ -249,6 +249,12 @@ class AgentController(
         val tools = toolSelector.selectTools(request.context)
         val modelId = chatModelSelector.selectFor(request.context)
         val startMs = System.currentTimeMillis()
+        // Pin the OTel span at request-time so the doneEvent lambda — which
+        // runs on a Reactor boundedElastic thread — writes telemetry to the
+        // request's http.server span rather than a noop fallback.
+        val requestSpan =
+            io.opentelemetry.api.trace.Span
+                .current()
 
         val totalChars = AtomicLong(0)
         // Spring AI's chatResponse() Flux surfaces ChatResponse per chunk; the
@@ -282,7 +288,8 @@ class AgentController(
                     totalChars = totalChars.get(),
                     usage = capturedUsage.get(),
                     startMs = startMs,
-                    safeQuery = safeQuery
+                    safeQuery = safeQuery,
+                    requestSpan = requestSpan
                 )
             }
         return tokenEvents.concatWith(doneEvent)
@@ -314,20 +321,23 @@ class AgentController(
         totalChars: Long,
         usage: Usage?,
         startMs: Long,
-        safeQuery: String
+        safeQuery: String,
+        requestSpan: io.opentelemetry.api.trace.Span
     ): Flux<ServerSentEvent<String>> {
         val elapsedMs = System.currentTimeMillis() - startMs
-        // Sentry transaction measurements — same shape as the non-streaming
-        // path so dashboards can mix call+stream traffic. Only attribute the
-        // model tag when the per-call Anthropic override was applied; on
-        // ollama / openai the configured ChatClient picks the model and our
-        // selectedModelId would mislead the metric.
+        // Token telemetry as OTel attributes on the captured request span
+        // (same span the http.server transaction owns). Same shape as the
+        // non-streaming path so dashboards can mix call+stream traffic.
+        // Only attribute the model tag when the per-call Anthropic override
+        // was applied — on ollama / openai the configured ChatClient picks
+        // the model and our selectedModelId would mislead the metric.
         llmMetrics.capture(
             modelId = modelId.takeIf { anthropicActive },
             usage = usage,
             elapsedMs = elapsedMs,
             toolCount = tools.size,
-            mode = LlmMetrics.Mode.STREAM
+            mode = LlmMetrics.Mode.STREAM,
+            span = requestSpan
         )
         if (log.isDebugEnabled) {
             log.debug(

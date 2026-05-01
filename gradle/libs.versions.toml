@@ -18,6 +18,10 @@ guava = "33.5.0-jre"
 servlet-api = "6.1.0"
 spring-ai = "1.1.2"
 flyway = "11.20.0"
+# Pinned because jar-common exposes the bridge as an api dep but
+# downstream modules (e.g. jar-shell) don't import the spring-boot
+# platform, so version resolution falls back to the catalog.
+micrometer-tracing = "1.5.6"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -52,6 +56,7 @@ spring-security-oauth2 = { module = "org.springframework.security:spring-securit
 spring-security-jose = { module = "org.springframework.security:spring-security-oauth2-jose", version.ref = "spring-security" }
 sentry-opentelemetry = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentry" }
 sentry-spring-boot = { module = "io.sentry:sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
+micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel", version.ref = "micrometer-tracing" }
 sentry-jdbc = { module = "io.sentry:sentry-jdbc", version.ref = "sentry" }
 jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }

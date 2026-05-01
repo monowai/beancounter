@@ -362,8 +362,15 @@ beancounter:
         name: "US Market"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        # Fuzzy / colloquial inputs all resolve to US so the chat agent and
+        # CSV imports don't need exact knowledge of BC market conventions.
+        # Aliases are matched case-insensitively after upper-casing.
         aliases:
           FIGI: "US"
+          typo: "NASAQ"
+          dow: "DOW"
+          dowJones: "DOW JONES"
+          arca: "ARCA"
 
       - code: "ASX"
         name: "Australian Securities Exchange"

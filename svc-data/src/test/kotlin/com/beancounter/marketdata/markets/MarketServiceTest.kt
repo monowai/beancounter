@@ -151,4 +151,17 @@ class MarketServiceTest {
         // Provider aliases (NAS → NASDAQ) also collapse to US.
         assertThat(marketService.canonical("NAS")).isEqualTo(us)
     }
+
+    @Test
+    fun `canonical resolves typos and colloquial labels to US`() {
+        // Chat users sometimes type 'NASAQ' (typo) or 'DOW' / 'DOW JONES'
+        // (index name they confuse with an exchange). Each resolves to the
+        // canonical US market via configured aliases.
+        val us = marketService.getMarket("US")
+        assertThat(marketService.canonical("NASAQ")).isEqualTo(us)
+        assertThat(marketService.canonical("DOW")).isEqualTo(us)
+        assertThat(marketService.canonical("DOW JONES")).isEqualTo(us)
+        // ARCA is the NYSE Arca aggregator; ETFs typically list there.
+        assertThat(marketService.canonical("ARCA")).isEqualTo(us)
+    }
 }

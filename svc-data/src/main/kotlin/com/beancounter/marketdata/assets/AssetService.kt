@@ -20,7 +20,6 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
-import java.util.Locale
 import java.util.UUID
 
 /**
@@ -80,26 +79,16 @@ class AssetService(
     override fun find(assetId: String): Asset = assetFinder.find(assetId)
 
     fun findOrCreate(assetInput: AssetInput): Asset {
-        // Canonicalise the market BEFORE the local lookup so that callers
-        // passing aggregator codes (NASDAQ/NYSE/AMEX/ARCA) hit the same
-        // (US, code) row as a request that already used the canonical 'US'
-        // market — instead of creating a duplicate per-exchange asset.
-        val market = marketService.canonical(assetInput.market)
-        val canonicalInput =
-            if (market.code != assetInput.market.uppercase(Locale.getDefault())) {
-                assetInput.copy(market = market.code)
-            } else {
-                assetInput
-            }
-        val localAsset = assetFinder.findLocally(canonicalInput)
+        val localAsset = assetFinder.findLocally(assetInput)
         if (localAsset != null) {
             return localAsset
         }
+        val market = marketService.getMarket(assetInput.market)
         val eAsset =
             enrichmentFactory.getEnricher(market).enrich(
                 id = keyGenUtils.format(UUID.randomUUID()),
                 market = market,
-                assetInput = canonicalInput
+                assetInput = assetInput
             )
         if (marketService.canPersist(market)) {
             return try {

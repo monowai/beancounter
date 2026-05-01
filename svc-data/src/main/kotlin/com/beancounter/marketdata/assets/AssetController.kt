@@ -62,7 +62,8 @@ class AssetController(
     private val assetIoDefinition: AssetIoDefinition,
     private val assetCategoryConfig: AssetCategoryConfig,
     private val assetSearchService: AssetSearchService,
-    private val marketDataService: MarketDataService
+    private val marketDataService: MarketDataService,
+    private val marketService: com.beancounter.marketdata.markets.MarketService
 ) {
     companion object {
         private const val MAX_INPUT_LENGTH = 50
@@ -187,16 +188,39 @@ class AssetController(
             description = "Asset ticker code",
             example = "AAPL"
         )
-        @PathVariable code: String
-    ): AssetResponse =
-        AssetResponse(
+        @PathVariable code: String,
+        @Parameter(
+            description =
+                "When true, the supplied market is run through " +
+                    "MarketService.canonical first — colloquial inputs " +
+                    "(NASDAQ/NYSE/AMEX/ARCA, NASAQ, DOW, DOW JONES) collapse " +
+                    "to the active US market so the lookup hits the same row " +
+                    "as a request that already used the canonical code. " +
+                    "Used by the chat agent's by-ticker tools where the LLM " +
+                    "has no reason to know BC's exchange conventions. " +
+                    "Default false preserves existing CSV-import behaviour."
+        )
+        @RequestParam(
+            value = "canonical",
+            defaultValue = "false"
+        ) canonical: Boolean
+    ): AssetResponse {
+        val sanitizedMarket = sanitize(market) ?: ""
+        val resolvedMarket =
+            if (canonical && sanitizedMarket.isNotBlank()) {
+                marketService.canonical(sanitizedMarket).code
+            } else {
+                sanitizedMarket
+            }
+        return AssetResponse(
             assetService.findOrCreate(
                 AssetInput(
-                    sanitize(market) ?: "",
+                    resolvedMarket,
                     sanitize(code) ?: ""
                 )
             )
         )
+    }
 
     @GetMapping("/{assetId}")
     @Operation(

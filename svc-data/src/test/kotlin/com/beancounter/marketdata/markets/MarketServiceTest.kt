@@ -136,4 +136,19 @@ class MarketServiceTest {
         val market = marketService.getMarket(CASH_MARKET.code)
         assertThat(market).isNotNull
     }
+
+    @Test
+    fun `canonical collapses US aggregator markets to the active US market`() {
+        // The inactive aggregator markets (NASDAQ/NYSE/AMEX/ARCA) all live
+        // under the single active 'US' market for asset persistence —
+        // otherwise GOOG@NASDAQ and GOOG@US end up as two distinct rows.
+        val us = marketService.getMarket("US")
+        assertThat(marketService.canonical("NASDAQ")).isEqualTo(us)
+        assertThat(marketService.canonical("NYSE")).isEqualTo(us)
+        assertThat(marketService.canonical("AMEX")).isEqualTo(us)
+        // Markets that are already canonical pass through unchanged.
+        assertThat(marketService.canonical("ASX").code).isEqualTo("ASX")
+        // Provider aliases (NAS → NASDAQ) also collapse to US.
+        assertThat(marketService.canonical("NAS")).isEqualTo(us)
+    }
 }

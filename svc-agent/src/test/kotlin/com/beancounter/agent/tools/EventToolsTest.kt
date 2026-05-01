@@ -51,7 +51,9 @@ class EventToolsTest {
     }
 
     companion object {
-        private const val MARKET = "NASDAQ"
+        // US-listed tickers all live under the single 'US' market code
+        // in Beancounter — there's no separate NASDAQ/NYSE distinction.
+        private const val MARKET = "US"
         private const val TICKER = "GOOG"
         private const val ASSET_ID = "asset-goog"
     }

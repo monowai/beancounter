@@ -42,8 +42,10 @@ class EventTools(
         ) ticker: String,
         @ToolParam(
             description =
-                "Beancounter market code, e.g. 'NASDAQ', 'US', 'ASX', 'NZX'. " +
-                    "Use listMarkets if unsure."
+                "Beancounter market code. US-listed tickers (NASDAQ, NYSE, " +
+                    "AMEX, ARCA) all live under the single market code 'US'. " +
+                    "Other examples: 'ASX' (Australia), 'NZX' (New Zealand), " +
+                    "'SGX' (Singapore). Call listMarkets if unsure."
         ) market: String
     ): Map<String, Any> {
         val asset = assetClient.getAsset(market, ticker)

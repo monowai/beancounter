@@ -22,19 +22,19 @@ class EventToolsTest {
     fun `getAssetEventsByTicker resolves ticker then fetches events by id`() {
         val asset =
             Asset(
-                id = "asset-goog",
-                code = "GOOG",
-                market = Market(code = "NASDAQ")
+                id = ASSET_ID,
+                code = TICKER,
+                market = Market(code = MARKET)
             )
         val payload = mapOf("data" to listOf(mapOf("trnType" to "DIVI")))
 
         val assetClient =
             mock<AssetClient> {
-                on { getAsset("NASDAQ", "GOOG") } doReturn asset
+                on { getAsset(MARKET, TICKER) } doReturn asset
             }
         val eventClient =
             mock<EventClient> {
-                on { getAssetEvents("asset-goog") } doReturn payload
+                on { getAssetEvents(ASSET_ID) } doReturn payload
             }
         val tools =
             EventTools(
@@ -43,10 +43,16 @@ class EventToolsTest {
                 assetClient = assetClient
             )
 
-        val result = tools.getAssetEventsByTicker("GOOG", "NASDAQ")
+        val result = tools.getAssetEventsByTicker(TICKER, MARKET)
 
         assertThat(result).isEqualTo(payload)
-        verify(assetClient).getAsset(eq("NASDAQ"), eq("GOOG"))
-        verify(eventClient).getAssetEvents(eq("asset-goog"))
+        verify(assetClient).getAsset(eq(MARKET), eq(TICKER))
+        verify(eventClient).getAssetEvents(eq(ASSET_ID))
+    }
+
+    companion object {
+        private const val MARKET = "NASDAQ"
+        private const val TICKER = "GOOG"
+        private const val ASSET_ID = "asset-goog"
     }
 }

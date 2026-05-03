@@ -581,6 +581,11 @@
                placeholder="Ask me anything about your portfolios..." autocomplete="off">
         <button id="sendButton" class="send-button">Send</button>
     </div>
+    <div style="text-align: right; margin-top: 6px; font-size: 12px; color: #666;">
+        <label title="Escalates the agent to its DEEP tier (slower, more analytical, higher cost).">
+            <input type="checkbox" id="deepThink"> 🧠 Deep think
+        </label>
+    </div>
 
     <div class="examples">
         <h3>💡 Try these examples:</h3>
@@ -823,12 +828,14 @@
                 headers['Authorization'] = 'Bearer ' + token;
             }
 
+            const deepThink = !!document.getElementById('deepThink')?.checked;
             const response = await fetch('agent/query', {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({
                     query: message,
-                    context: {}
+                    context: {},
+                    deepThink
                 })
             });
 

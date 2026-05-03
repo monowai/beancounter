@@ -67,6 +67,52 @@ class AgentController(
                 "deepseek" !in profiles
         }
 
+    private val deepseekActive: Boolean
+        get() = "deepseek" in environment.activeProfiles.toSet()
+
+    /**
+     * Build per-call ChatOptions for the active LLM surface.
+     *
+     * Returns `null` for surfaces that don't support a per-call model override
+     * (Ollama / OpenAI), in which case the ChatClient's configured default
+     * model answers and tier escalation is silently ignored.
+     *
+     * `deepThink` raises `maxTokens` so the deep tier (deepseek-reasoner /
+     * claude-opus-*) has headroom for chain-of-thought + final answer; on the
+     * Anthropic surface it also explicitly enables thinking with a 4k budget
+     * (Claude 4 has thinking on by default; setting it explicitly documents
+     * intent and lets the budget be tuned).
+     */
+    internal fun buildOptions(
+        modelId: String,
+        deepThink: Boolean
+    ): org.springframework.ai.chat.prompt.ChatOptions? =
+        when {
+            anthropicActive -> {
+                val b = AnthropicChatOptions.builder().model(modelId)
+                anthropicCacheOptions?.let(b::cacheOptions)
+                if (deepThink) {
+                    b
+                        .maxTokens(16384)
+                        .thinking(
+                            org.springframework.ai.anthropic.api.AnthropicApi.ThinkingType.ENABLED,
+                            4096
+                        )
+                }
+                b.build()
+            }
+            deepseekActive -> {
+                org.springframework.ai.deepseek.DeepSeekChatOptions
+                    .builder()
+                    .model(modelId)
+                    .maxTokens(if (deepThink) 16384 else 4096)
+                    .build()
+            }
+            else -> {
+                null
+            }
+        }
+
     @GetMapping("/health")
     @Operation(
         summary = "Traffic-light health check for the agent and its downstream services.",
@@ -105,7 +151,7 @@ class AgentController(
             val userMessage = buildUserMessage(request)
             val tools = toolSelector.selectTools(request.context)
             val systemPrompt = systemPromptSelector.selectFor(request.context)
-            val modelId = chatModelSelector.selectFor(request.context)
+            val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
             val startMs = System.currentTimeMillis()
             val promptSpec =
                 chatClient
@@ -113,18 +159,13 @@ class AgentController(
                     .system(systemPrompt)
                     .user(userMessage)
                     .tools(*tools)
+            // Per-call options REPLACE (not merge) the ChatClient's default
+            // options — Anthropic cache config must be re-applied here, or
+            // every request silently loses prompt caching. See buildOptions.
             val callResponse =
-                if (anthropicActive) {
-                    // Per-call options REPLACE (not merge) the ChatClient's
-                    // default options — so the cache config configured in
-                    // ChatClientConfiguration must be re-applied here, or
-                    // every request silently loses prompt caching.
-                    val optionsBuilder = AnthropicChatOptions.builder().model(modelId)
-                    anthropicCacheOptions?.let(optionsBuilder::cacheOptions)
-                    promptSpec.options(optionsBuilder.build()).call()
-                } else {
-                    promptSpec.call()
-                }
+                buildOptions(modelId, request.deepThink)?.let { opts ->
+                    promptSpec.options(opts).call()
+                } ?: promptSpec.call()
 
             val chatResponse = callResponse.chatResponse()
             val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: "(empty response)"
@@ -247,7 +288,7 @@ class AgentController(
     private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {
         val safeQuery = HtmlUtils.htmlEscape(request.query)
         val tools = toolSelector.selectTools(request.context)
-        val modelId = chatModelSelector.selectFor(request.context)
+        val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
         val startMs = System.currentTimeMillis()
         // Pin the OTel span at request-time so the doneEvent lambda — which
         // runs on a Reactor boundedElastic thread — writes telemetry to the
@@ -306,13 +347,9 @@ class AgentController(
                 .system(systemPromptSelector.selectFor(request.context))
                 .user(buildUserMessage(request))
                 .tools(*tools)
-        return if (anthropicActive) {
-            val builder = AnthropicChatOptions.builder().model(modelId)
-            anthropicCacheOptions?.let(builder::cacheOptions)
-            promptSpec.options(builder.build()).stream()
-        } else {
-            promptSpec.stream()
-        }
+        return buildOptions(modelId, request.deepThink)?.let { opts ->
+            promptSpec.options(opts).stream()
+        } ?: promptSpec.stream()
     }
 
     private fun doneEvent(
@@ -428,7 +465,13 @@ class AgentController(
 
 data class AgentQuery(
     val query: String,
-    val context: Map<String, Any>? = null
+    val context: Map<String, Any>? = null,
+    /**
+     * Caller-driven escalation to the deep tier (typically `deepseek-reasoner`
+     * or `claude-opus-*`). Off by default; flips model selection regardless of
+     * page-context routing in [ChatModelSelector].
+     */
+    val deepThink: Boolean = false
 )
 
 data class AgentResponse(

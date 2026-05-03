@@ -15,7 +15,11 @@ import org.springframework.stereotype.Service
 class ChatModelSelector(
     private val tiers: AgentModelTiers
 ) {
-    fun selectFor(context: Map<String, Any>?): String {
+    fun selectFor(
+        context: Map<String, Any>?,
+        deepThink: Boolean = false
+    ): String {
+        if (deepThink) return tiers.deep
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
         val isSmart = SMART_DOMAINS.any { it in page }
         return if (isSmart) tiers.smart else tiers.fast

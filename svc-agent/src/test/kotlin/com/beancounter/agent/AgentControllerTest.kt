@@ -62,7 +62,7 @@ class AgentControllerTest {
 
     private val chatModelSelector =
         mock<ChatModelSelector> {
-            on { selectFor(anyOrNull()) } doReturn "test-model-id"
+            on { selectFor(anyOrNull(), any()) } doReturn "test-model-id"
         }
 
     // Empty active profiles → controller treats this as the Anthropic default
@@ -365,5 +365,94 @@ class AgentControllerTest {
         assertThat(last.event()).isEqualTo(EVENT_ERROR)
         assertThat(last.data()).isEqualTo(OPAQUE_ERROR)
         assertThat(last.data()).doesNotContain("boom")
+    }
+
+    @Test
+    fun `buildOptions on deepseek profile returns DeepSeekChatOptions with model + maxTokens`() {
+        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+        val ctrl =
+            AgentController(
+                null,
+                null,
+                stubChecker(),
+                toolSelector,
+                systemPromptSelector,
+                chatModelSelector,
+                env,
+                ObjectMapper(),
+                LlmMetrics(),
+                permissiveAuthorizer
+            )
+        val opts = ctrl.buildOptions("deepseek-chat", deepThink = false)
+        assertThat(opts).isInstanceOf(org.springframework.ai.deepseek.DeepSeekChatOptions::class.java)
+        val dsOpts = opts as org.springframework.ai.deepseek.DeepSeekChatOptions
+        assertThat(dsOpts.model).isEqualTo("deepseek-chat")
+        assertThat(dsOpts.maxTokens).isEqualTo(4096)
+    }
+
+    @Test
+    fun `buildOptions on deepseek profile with deepThink raises maxTokens to 16k`() {
+        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+        val ctrl =
+            AgentController(
+                null,
+                null,
+                stubChecker(),
+                toolSelector,
+                systemPromptSelector,
+                chatModelSelector,
+                env,
+                ObjectMapper(),
+                LlmMetrics(),
+                permissiveAuthorizer
+            )
+        val opts =
+            ctrl.buildOptions("deepseek-reasoner", deepThink = true)
+                as org.springframework.ai.deepseek.DeepSeekChatOptions
+        assertThat(opts.model).isEqualTo("deepseek-reasoner")
+        assertThat(opts.maxTokens).isEqualTo(16384)
+    }
+
+    @Test
+    fun `buildOptions on anthropic default with deepThink enables thinking`() {
+        // Empty active profiles → anthropicActive = true (real Anthropic surface).
+        val ctrl = controller()
+        val opts =
+            ctrl.buildOptions("claude-opus-4-7", deepThink = true)
+                as org.springframework.ai.anthropic.AnthropicChatOptions
+        assertThat(opts.model).isEqualTo("claude-opus-4-7")
+        assertThat(opts.maxTokens).isEqualTo(16384)
+        assertThat(opts.thinking).isNotNull
+        assertThat(opts.thinking.budgetTokens).isEqualTo(4096)
+    }
+
+    @Test
+    fun `buildOptions on anthropic default without deepThink omits thinking`() {
+        val ctrl = controller()
+        val opts =
+            ctrl.buildOptions("claude-haiku-4-5-20251001", deepThink = false)
+                as org.springframework.ai.anthropic.AnthropicChatOptions
+        assertThat(opts.model).isEqualTo("claude-haiku-4-5-20251001")
+        // thinking object may be null OR (defensively) present with no budget; assert intent:
+        assertThat(opts.thinking?.budgetTokens).isNull()
+    }
+
+    @Test
+    fun `buildOptions on ollama profile returns null for default model fallback`() {
+        val env = MockEnvironment().apply { setActiveProfiles("ollama") }
+        val ctrl =
+            AgentController(
+                null,
+                null,
+                stubChecker(),
+                toolSelector,
+                systemPromptSelector,
+                chatModelSelector,
+                env,
+                ObjectMapper(),
+                LlmMetrics(),
+                permissiveAuthorizer
+            )
+        assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
     }
 }

@@ -16,7 +16,7 @@ sentry = "8.40.0"
 postgres = "42.7.10"
 guava = "33.5.0-jre"
 servlet-api = "6.1.0"
-spring-ai = "1.1.2"
+spring-ai = "1.1.5"
 flyway = "11.20.0"
 # Pinned because jar-common exposes the bridge as an api dep but
 # downstream modules (e.g. jar-shell) don't import the spring-boot
@@ -70,6 +70,7 @@ spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref =
 spring-ai-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai", version.ref = "spring-ai" }
 spring-ai-ollama = { module = "org.springframework.ai:spring-ai-starter-model-ollama", version.ref = "spring-ai" }
 spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-starter-model-anthropic", version.ref = "spring-ai" }
+spring-ai-deepseek = { module = "org.springframework.ai:spring-ai-starter-model-deepseek", version.ref = "spring-ai" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 

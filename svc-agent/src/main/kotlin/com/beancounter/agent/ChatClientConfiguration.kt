@@ -9,6 +9,7 @@ import org.springframework.ai.anthropic.api.AnthropicCacheTtl
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.MessageType
 import org.springframework.ai.chat.model.ChatModel
+import org.springframework.ai.deepseek.DeepSeekChatModel
 import org.springframework.ai.ollama.OllamaChatModel
 import org.springframework.ai.openai.OpenAiChatModel
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -45,16 +46,24 @@ class ChatClientConfiguration {
         return build(chatModel)
     }
 
+    @Bean("chatClient")
+    @Profile("openai")
+    fun openAiChatClient(chatModel: OpenAiChatModel): ChatClient {
+        log.info("Building OpenAI ChatClient ({})", chatModel.javaClass.simpleName)
+        return build(chatModel)
+    }
+
     /**
-     * OpenAI-compatible ChatClient. The `deepseek` profile reuses this code
-     * path because DeepSeek's API speaks the same wire format — the
-     * application-deepseek.yaml profile only swaps `spring.ai.openai.base-url`
-     * and the model id.
+     * DeepSeek native ChatClient. Uses Spring AI's first-class DeepSeek module
+     * (spring-ai-starter-model-deepseek) rather than the OpenAI-compat surface,
+     * so DeepSeekAssistantMessage.getReasoningContent() is available and
+     * multi-turn tool calls correctly strip reasoning_content from echoed
+     * messages (DeepSeek 400s otherwise).
      */
     @Bean("chatClient")
-    @Profile("openai | deepseek")
-    fun openAiChatClient(chatModel: OpenAiChatModel): ChatClient {
-        log.info("Building OpenAI-compatible ChatClient ({})", chatModel.javaClass.simpleName)
+    @Profile("deepseek")
+    fun deepSeekChatClient(chatModel: DeepSeekChatModel): ChatClient {
+        log.info("Building DeepSeek ChatClient ({})", chatModel.javaClass.simpleName)
         return build(chatModel)
     }
 

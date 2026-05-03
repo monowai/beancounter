@@ -1,30 +1,57 @@
 # DeepSeek profile.
 #
-# DeepSeek's API is OpenAI-compatible (/v1/chat/completions, OpenAI-style
-# function calling), so we ride the spring-ai-openai client and only swap the
-# base URL + key + model. Activate alongside an environment profile, e.g.
+# Uses Spring AI's native DeepSeek integration (spring-ai-starter-model-deepseek),
+# which exposes DeepSeekChatModel + DeepSeekChatOptions and surfaces chain-of-
+# thought via DeepSeekAssistantMessage.getReasoningContent(). Native module
+# strips reasoning_content from follow-up tool messages — required by DeepSeek
+# to avoid 400 errors on multi-turn tool-calling.
 #
-#   SPRING_PROFILES_ACTIVE=deepseek,local DEEPSEEK_API_KEY=sk-... \
+# Activate alongside an environment profile, e.g.
+#
+#   SPRING_PROFILES_ACTIVE=deepseek,kauri DEEPSEEK_API_KEY=sk-... \
 #     ./gradlew :svc-agent:bootRun
 #
 # Models:
-#   deepseek-chat     — general chat / tool calling (cheaper, faster)
-#   deepseek-reasoner — chain-of-thought; emits thinking tokens that count
-#                       toward output cost; slower; use only for analytical
-#                       (smart / deep) tiers.
+#   deepseek-chat     — general chat / tool calling (DeepSeek aliases this to
+#                       v4-flash server-side; tool loop is stable).
+#   deepseek-reasoner — chain-of-thought; triggers thinking mode. **Avoid for
+#                       tool-calling workloads with Spring AI 1.1.5**: the
+#                       framework does not strip `reasoning_content` from
+#                       echoed assistant messages on the next turn, and
+#                       DeepSeek 400s with "The `reasoning_content` in the
+#                       thinking mode must be passed back to the API."
+#                       Re-enable the deep tier here once Spring AI ships a
+#                       DeepSeek tool-loop fix or we add a custom interceptor.
 spring:
   ai:
-    # Provide dummy Ollama config to prevent autoconfiguration errors
+    # Provide dummy Ollama / OpenAI / Anthropic config to keep their
+    # autoconfigurations from failing on missing keys. Only the deepseek
+    # client is built on this profile (see ChatClientConfiguration).
     ollama:
       base-url: "http://undefined:11434"
     openai:
+      api-key: "dummy-key-to-prevent-errors"
+    anthropic:
+      api-key: "dummy-key-to-prevent-errors"
+    deepseek:
       api-key: "${DEEPSEEK_API_KEY:}"
       base-url: "${DEEPSEEK_BASE_URL:https://api.deepseek.com}"
       chat:
         options:
           model: "${DEEPSEEK_MODEL:deepseek-chat}"
           temperature: 0.2
-          max-tokens: 2000
+          max-tokens: 4096
 
     model:
-      chat: openai
+      chat: deepseek
+
+# DeepSeek model IDs per cost/quality tier. Override via env vars
+# DEEPSEEK_MODEL_FAST / _SMART / _DEEP if needed.
+agent:
+  models:
+    fast: "${DEEPSEEK_MODEL_FAST:deepseek-chat}"
+    smart: "${DEEPSEEK_MODEL_SMART:deepseek-chat}"
+    # Deep tier on DeepSeek currently = same model with larger token budget
+    # (see model-list comment above). Override to `deepseek-reasoner` only if
+    # the Spring AI tool-loop strips reasoning_content correctly.
+    deep: "${DEEPSEEK_MODEL_DEEP:deepseek-chat}"

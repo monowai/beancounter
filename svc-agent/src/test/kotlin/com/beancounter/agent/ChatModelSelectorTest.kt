@@ -68,4 +68,17 @@ class ChatModelSelectorTest {
         assertThat(selector.selectFor(mapOf("page" to "ASSET REVIEW"))).isEqualTo("smart-id")
         assertThat(selector.selectFor(mapOf("page" to "rebalance plans"))).isEqualTo("smart-id")
     }
+
+    @Test
+    fun `deepThink flag escalates to DEEP regardless of page`() {
+        assertThat(selector.selectFor(null, deepThink = true)).isEqualTo("deep-id")
+        assertThat(selector.selectFor(mapOf("page" to "Holdings"), deepThink = true)).isEqualTo("deep-id")
+        assertThat(selector.selectFor(mapOf("page" to "Asset Review"), deepThink = true)).isEqualTo("deep-id")
+    }
+
+    @Test
+    fun `deepThink false preserves existing domain routing`() {
+        assertThat(selector.selectFor(mapOf("page" to "Asset Review"), deepThink = false)).isEqualTo("smart-id")
+        assertThat(selector.selectFor(mapOf("page" to "Holdings"), deepThink = false)).isEqualTo("fast-id")
+    }
 }

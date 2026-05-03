@@ -1,0 +1,105 @@
+name: Code review (Claude)
+
+# Runs the .claude/skills/code-review prompt against the PR diff and posts a
+# single review comment with severity-tiered findings. Augments — does not
+# replace — CircleCI's existing test/lint/typecheck pipeline.
+#
+# Security: every github.* expression is hoisted into env: with proper quoting
+# so an attacker cannot inject shell via PR metadata. See
+# https://github.blog/security/vulnerability-research/how-to-catch-github-actions-workflow-injections-before-attackers-do/
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+# Cancel an in-flight review if a new commit lands on the same PR.
+concurrency:
+  group: code-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_REF: ${{ github.base_ref }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Check API key presence
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" = "true" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::ANTHROPIC_API_KEY not configured — skipping Claude review."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout PR head
+        if: steps.gate.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history so `git diff <base>...HEAD` works
+
+      - name: Resolve diff base
+        id: diff
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          BASE_SHA=$(git rev-parse "origin/$BASE_REF")
+          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+          # Skip on empty diffs (renamed-only, whitespace-only, etc.)
+          if [ -z "$(git diff --name-only "$BASE_SHA"...HEAD)" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Codacy (best-effort, non-blocking)
+        id: codacy
+        if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip != 'true'
+        continue-on-error: true
+        env:
+          BASE_SHA: ${{ steps.diff.outputs.base_sha }}
+        run: |
+          if [ -x .codacy/cli.sh ]; then
+            # Limit Codacy to the changed files — full-repo scans take minutes.
+            mapfile -t CHANGED < <(git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD)
+            if [ "${#CHANGED[@]}" -gt 0 ]; then
+              .codacy/cli.sh analyze --format sarif "${CHANGED[@]}" > codacy.sarif 2>codacy.log || true
+            fi
+          fi
+          # Always emit the file (even empty) so the next step can read unconditionally.
+          test -f codacy.sarif || echo '{}' > codacy.sarif
+
+      - name: Claude review
+        if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip != 'true'
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_SHA: ${{ steps.diff.outputs.base_sha }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # The action mounts the workspace so .claude/skills/code-review/SKILL.md
+          # is auto-discovered. The prompt body is static — all dynamic values
+          # come from env: above to prevent injection via PR metadata.
+          prompt: |
+            Run the `code-review` skill against the diff between $BASE_SHA and HEAD.
+
+            Codacy SARIF (may be empty {}): see `codacy.sarif` in the workspace —
+            fold its findings into the review per the skill's rules.
+
+            Post the review as a single PR comment via
+            `gh pr comment "$PR_NUMBER"`.
+            Do NOT post inline review threads — one consolidated comment only.
+            Prefix the comment body with `## Claude review`.
+
+      - name: Skip notice (empty diff)
+        if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip == 'true'
+        run: echo "::notice::Empty diff vs base — skipping Claude review."

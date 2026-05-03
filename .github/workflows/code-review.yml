@@ -31,13 +31,27 @@ jobs:
       BASE_REF: ${{ github.base_ref }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
+      - name: Check API key presence
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" = "true" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::ANTHROPIC_API_KEY not configured — skipping Claude review."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout PR head
+        if: steps.gate.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # full history so `git diff <base>...HEAD` works
 
       - name: Resolve diff base
         id: diff
+        if: steps.gate.outputs.skip != 'true'
         run: |
           git fetch --no-tags --depth=1 origin "$BASE_REF"
           BASE_SHA=$(git rev-parse "origin/$BASE_REF")
@@ -49,7 +63,7 @@ jobs:
 
       - name: Run Codacy (best-effort, non-blocking)
         id: codacy
-        if: steps.diff.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip != 'true'
         continue-on-error: true
         env:
           BASE_SHA: ${{ steps.diff.outputs.base_sha }}
@@ -65,7 +79,7 @@ jobs:
           test -f codacy.sarif || echo '{}' > codacy.sarif
 
       - name: Claude review
-        if: steps.diff.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip != 'true'
         uses: anthropics/claude-code-action@v1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -86,6 +100,6 @@ jobs:
             Do NOT post inline review threads — one consolidated comment only.
             Prefix the comment body with `## Claude review`.
 
-      - name: Skip notice
-        if: steps.diff.outputs.skip == 'true'
+      - name: Skip notice (empty diff)
+        if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip == 'true'
         run: echo "::notice::Empty diff vs base — skipping Claude review."

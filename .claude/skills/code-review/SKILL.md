@@ -199,11 +199,12 @@ Nothing else.
 
 ## Regression suite
 
-A 10-case golden dataset lives **outside any deployable repo** at
-`bc-claude/code-review-eval/` (synthetic vulnerable diffs must not be
-committed to a service repo where they'd trip security scanners). Each case
-exercises one anti-pattern this skill is required to catch at a specific
-severity:
+A 10-case golden dataset lives in its own private repo at
+`https://github.com/monowai/code-review-eval` — kept separate from any
+deployable service repo because the synthetic vulnerable diffs would
+otherwise trip security scanners and alarm anyone reading `git log`. Each
+case exercises one anti-pattern this skill is required to catch at a
+specific severity:
 
 | # | Anti-pattern | Required severity |
 |---|---|---|
@@ -222,7 +223,8 @@ After **any** edit to this `SKILL.md`, re-run the suite to confirm recall
 hasn't regressed:
 
 ```bash
-cd ~/IdeaProjects/monowai/bc-claude/code-review-eval
+gh repo clone monowai/code-review-eval ~/code-review-eval  # first time only
+cd ~/code-review-eval
 # 1. For each cases/<NN-name>/diff.patch, run this skill and save the output
 #    as cases/<NN-name>/actual.md
 # 2. Score:

@@ -137,6 +137,47 @@ Apply only when the diff touches `*.ts` / `*.tsx`.
 - New `@Bean` with `@Profile` conditions → check Spring's user-config evaluates BEFORE auto-config (memory: ChatClientConfiguration silent skip trap); profile-qualified beans + concrete subtype injection avoids it.
 - Spring AI / Anthropic / DeepSeek tool-loop changes → flag if `reasoning_content` handling missing on follow-up turns (memory: DeepSeek 400 on multi-turn).
 
+## Severity calibration — examples to anchor judgement
+
+The four severity tiers below have caused inconsistent grading in the past
+(e.g. SQL injection downgraded to 🟡, secret-in-log marked ⚪). Use these
+worked examples to calibrate before grading anything close to the boundary.
+Each is drawn from the project's regression suite (see "Regression suite"
+below). When a finding in front of you closely matches one of these patterns,
+its severity should not be lower than shown.
+
+**🔴 Critical**
+- SQL/command injection via string concatenation into a query / shell call.
+- Bearer token / API key / password written to a log statement (any level).
+- New state-changing endpoint (`@PostMapping` / `@DeleteMapping` / `@PutMapping`)
+  without a JWT scope check while sibling endpoints in the same controller
+  carry one.
+- Entity / `@Column` change shipped without a paired Flyway migration in
+  `**/db/migration/V*.sql`.
+
+**🟠 Bug**
+- `catch (e: Exception) { }` (or with only a comment) that drops the stack
+  trace and never logs / re-throws.
+- Shared mutable state (`mutableSetOf`, `mutableMapOf`, `var counter`) accessed
+  from a `@RabbitListener` / `@Async` / `@Scheduled` handler without a
+  thread-safe wrapper.
+- A unit test that mocks the unit under test (`mock<X>()` then asserts on the
+  stub's return) — exercises nothing real.
+
+**🟡 Cleanup**
+- Three or more near-identical blocks (rule of three) without extraction —
+  e.g. controller endpoints repeating scope-check + timer + log scaffolding.
+- 5+ levels of `if`/`else` nesting where guard clauses with early returns
+  would flatten the path. (3-4 levels alone — only flag if the happy path
+  is genuinely buried.)
+- Method named `get…` / `find…` / `is…` that mutates state (cache rewrite,
+  side-effect timestamp, lazy-init that races).
+
+**⚪ Nit**
+- Whitespace, missing trailing newline, formatter-fixable issues — only if
+  not already enforced by lint/prettier/ktlint (CI catches those, don't
+  duplicate).
+
 ## What to SKIP
 
 - Anything caught by lint / prettier / ktlint / typecheck (CI runs these — do not duplicate)
@@ -155,3 +196,42 @@ Comments in severity order (🔴 first). End with a single-line verdict:
 - `Codacy: <skipped|N findings>` — one line if Codacy ran or was skipped
 
 Nothing else.
+
+## Regression suite
+
+A 10-case golden dataset lives in its own private repo at
+`https://github.com/monowai/code-review-eval` — kept separate from any
+deployable service repo because the synthetic vulnerable diffs would
+otherwise trip security scanners and alarm anyone reading `git log`. Each
+case exercises one anti-pattern this skill is required to catch at a
+specific severity:
+
+| # | Anti-pattern | Required severity |
+|---|---|---|
+| 01 | SQL injection via string concatenation | 🔴 |
+| 02 | Missing `@PreAuthorize` on DELETE endpoint | 🔴 |
+| 03 | Silent `catch (e: Exception)` swallowing errors | 🟠 |
+| 04 | Race on shared mutable state in `@RabbitListener` | 🟠 |
+| 05 | Entity column added without paired Flyway migration | 🔴 |
+| 06 | DRY violation across 3 admin endpoints | 🟡 |
+| 07 | Test mocks the unit under test | 🟠 |
+| 08 | Bearer token written to logs | 🔴 |
+| 09 | 5-level deep `if`/`else` pyramid | 🟡 |
+| 10 | `get(…)` method hides state mutation | 🟡 (or 🟠) |
+
+After **any** edit to this `SKILL.md`, re-run the suite to confirm recall
+hasn't regressed:
+
+```bash
+gh repo clone monowai/code-review-eval ~/code-review-eval  # first time only
+cd ~/code-review-eval
+# 1. For each cases/<NN-name>/diff.patch, run this skill and save the output
+#    as cases/<NN-name>/actual.md
+# 2. Score:
+./run-eval.sh
+```
+
+Healthy bar: **≥ 9/10 PASS**. Below 8/10 = prompt regression; investigate
+before merging the SKILL.md edit. New incidents that the skill misses in the
+wild → add a corresponding case under `cases/NN-…/` (the suite is the
+source of truth for what we expect this skill to catch).

@@ -91,7 +91,10 @@ subprojects {
         maxParallelForks = 1
         forkEvery = 100L
         maxHeapSize = "1g"
-        timeout.set(Duration.ofMinutes(8))
+        // svc-data tests have crept toward 8m on CircleCI's executor and tipped over on
+        // main #32be9384 (build-and-test job 17895). Bump headroom; revisit if any
+        // single test is genuinely runaway, but the existing suite is just slow.
+        timeout.set(Duration.ofMinutes(15))
 
         // Test logging
         testLogging {

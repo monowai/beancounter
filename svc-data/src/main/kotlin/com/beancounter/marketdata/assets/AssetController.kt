@@ -363,6 +363,36 @@ class AssetController(
         @PathVariable category: String
     ): AssetUpdateResponse = ownedAssetService.findByOwnerAndCategory(category)
 
+    @GetMapping(
+        value = ["/market/{market}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "List assets on a given market",
+        description = """
+            Returns all assets registered on the supplied market code.
+            Primary use case is enumerating reference assets such as the
+            pre-seeded benchmark indices on the synthetic INDEX market,
+            which clients render as a chart-overlay selector.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Assets retrieved successfully",
+                content = [Content(schema = Schema(implementation = AssetUpdateResponse::class))]
+            )
+        ]
+    )
+    fun getAssetsByMarket(
+        @Parameter(description = "Market code to filter by", example = "INDEX")
+        @PathVariable market: String
+    ): AssetUpdateResponse {
+        val assets = assetFinder.findByMarketCode(market.uppercase())
+        return AssetUpdateResponse(assets.associateBy { it.id })
+    }
+
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         summary = "Create or update multiple assets",

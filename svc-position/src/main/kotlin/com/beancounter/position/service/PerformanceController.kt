@@ -31,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController
 class PerformanceController(
     private val portfolioServiceClient: PortfolioServiceClient,
     private val performanceService: PerformanceService,
-    private val performanceCacheService: PerformanceCacheService
+    private val performanceCacheService: PerformanceCacheService,
+    private val benchmarkService: BenchmarkService
 ) {
     private val log = LoggerFactory.getLogger(PerformanceController::class.java)
 
@@ -51,6 +52,34 @@ class PerformanceController(
         log.debug("Performance request for portfolio={}, months={}", code, months)
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
         return performanceService.calculate(portfolio, months)
+    }
+
+    @GetMapping("/{code}/performance/benchmark")
+    @Operation(
+        summary = "Get index benchmark series for a portfolio",
+        description =
+            "Returns a Growth-of-1000 series for the supplied index asset, " +
+                "aligned to the portfolio performance series' monthly date grid."
+    )
+    fun getBenchmark(
+        @Parameter(description = "Portfolio code", example = "MY_PORTFOLIO")
+        @PathVariable
+        code: String,
+        @Parameter(description = "Index asset id (INDEX market)", example = "^GSPC")
+        @RequestParam(value = "indexAssetId")
+        indexAssetId: String,
+        @Parameter(description = "Number of months to look back", example = "12")
+        @RequestParam(value = "months", defaultValue = "12")
+        months: Int
+    ): PerformanceResponse {
+        log.debug(
+            "Benchmark request portfolio={} indexAssetId={} months={}",
+            code,
+            indexAssetId,
+            months
+        )
+        val portfolio = portfolioServiceClient.getPortfolioByCode(code)
+        return benchmarkService.benchmark(portfolio, indexAssetId, months)
     }
 
     @DeleteMapping("/{code}/performance/cache")

@@ -252,6 +252,58 @@ internal class AssetControllerTest {
     }
 
     @Test
+    fun `list INDEX market assets via market endpoint`() {
+        val gspc =
+            AssetInput(
+                market = "INDEX",
+                code = "^GSPC",
+                name = "S&P 500",
+                category = AssetCategory.INDEX
+            )
+        val ftse =
+            AssetInput(
+                market = "INDEX",
+                code = "^FTSE",
+                name = "FTSE 100",
+                category = AssetCategory.INDEX
+            )
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post(ASSET_ROOT)
+                    .with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
+                            .jwt(mockAuthConfig.getUserToken())
+                    ).with(csrf())
+                    .content(
+                        objectMapper.writeValueAsBytes(
+                            AssetRequest(mapOf(toKey(gspc) to gspc, toKey(ftse) to ftse))
+                        )
+                    ).contentType(APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        val mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$ASSET_ROOT/market/{market}", "INDEX")
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
+                ).andExpect(status().isOk)
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andReturn()
+
+        val response = objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
+        assertThat(response.data.values.map { it.code })
+            .contains("^GSPC", "^FTSE")
+        assertThat(response.data.values).allMatch { it.marketCode == "INDEX" }
+    }
+
+    @Test
     fun `lookup index asset via URL with caret-prefix code`() {
         val input =
             AssetInput(

@@ -31,6 +31,9 @@ class PerformanceControllerTest {
     @Mock
     private lateinit var performanceCacheService: PerformanceCacheService
 
+    @Mock
+    private lateinit var benchmarkService: BenchmarkService
+
     private lateinit var controller: PerformanceController
 
     private val portfolio =
@@ -45,7 +48,13 @@ class PerformanceControllerTest {
 
     @BeforeEach
     fun setup() {
-        controller = PerformanceController(portfolioServiceClient, performanceService, performanceCacheService)
+        controller =
+            PerformanceController(
+                portfolioServiceClient,
+                performanceService,
+                performanceCacheService,
+                benchmarkService
+            )
     }
 
     @Test
@@ -90,6 +99,45 @@ class PerformanceControllerTest {
 
         assertThat(result.data.currency.code).isEqualTo("GBP")
         assertThat(result.data.series).isEmpty()
+    }
+
+    @Test
+    fun `getBenchmark delegates to BenchmarkService and returns its response`() {
+        val benchmarkResponse =
+            PerformanceResponse(
+                PerformanceData(
+                    currency = USD,
+                    series =
+                        listOf(
+                            PerformanceDataPoint(
+                                date = LocalDate.of(2024, 1, 1),
+                                growthOf1000 = BigDecimal("1000"),
+                                marketValue = BigDecimal.ZERO,
+                                netContributions = BigDecimal.ZERO,
+                                cumulativeReturn = BigDecimal.ZERO
+                            ),
+                            PerformanceDataPoint(
+                                date = LocalDate.of(2024, 6, 1),
+                                growthOf1000 = BigDecimal("1075"),
+                                marketValue = BigDecimal.ZERO,
+                                netContributions = BigDecimal.ZERO,
+                                cumulativeReturn = BigDecimal("0.075")
+                            )
+                        )
+                )
+            )
+        whenever(portfolioServiceClient.getPortfolioByCode("TEST")).thenReturn(portfolio)
+        whenever(benchmarkService.benchmark(portfolio, "^GSPC", 12)).thenReturn(benchmarkResponse)
+
+        val result = controller.getBenchmark("TEST", "^GSPC", 12)
+
+        assertThat(result.data.series).hasSize(2)
+        assertThat(
+            result.data.series
+                .last()
+                .growthOf1000
+        ).isEqualByComparingTo(BigDecimal("1075"))
+        verify(benchmarkService).benchmark(portfolio, "^GSPC", 12)
     }
 
     @Test

@@ -28,9 +28,11 @@ class ToolSelectorTest {
         )
 
     @Test
-    fun `news sentiment page only ships news tools`() {
+    fun `news sentiment page ships news and market tools`() {
+        // marketTools is included so the model can call getCurrentPrice
+        // when grounding analyst price targets surfaced in news articles.
         val tools = selector.selectTools(mapOf("page" to "News & Sentiment"))
-        assertThat(tools).containsExactly(newsTools)
+        assertThat(tools).containsExactlyInAnyOrder(newsTools, marketTools)
     }
 
     @Test

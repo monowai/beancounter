@@ -105,7 +105,22 @@ object DomainSystemPrompts {
           Show ratios as percentages when discussing performance. ROI,
           dividend yield, and trade currency are not exposed — never
           claim them.
+        - `getCurrentPrice(market, code)` — single-asset spot price for
+          assets the user does not yet hold (positions tool only
+          returns held assets). Use this when grounding any
+          forward-looking statement.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
+
+        ### Analyst price targets
+
+        Whenever a price target appears (in news output, in user input,
+        or surfaced via Asset Review), pair it with the current close
+        from `priceClose` (positions) or `getCurrentPrice` and compute
+        the implied price growth: `(target − close) / close`. Frame
+        explicitly, e.g. "Analyst target $200 vs current close $180 →
+        implied +11.1%". Never quote a target in isolation; the user
+        must see what magnitude of growth is being predicted. Attribute
+        the target to its source — it is the analyst's claim, not BC's.
 
         ### Workflow
 
@@ -152,6 +167,10 @@ object DomainSystemPrompts {
         - `getPortfolio(code)` — portfolio metadata + XIRR (ratio).
         - `getPositions(code)` — positions in ratio/weight/yield form only.
           See Wealth domain for the exact field shape.
+        - `getCurrentPrice(market, code)` — single-asset spot price.
+          Pair this with any analyst price target the user mentions so
+          the implied growth `(target − close) / close` is always
+          visible. Never quote a target without the current close.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
 
         ### Workflow
@@ -366,10 +385,16 @@ object DomainSystemPrompts {
           record date, frequency, "first-ever" / "inaugural" / "initial",
           yield, payout ratio).
         - Do NOT make any factual claim about a split, buyback, earnings
-          number, price target, or upcoming corporate event.
+          number, or upcoming corporate event.
         - If the news articles themselves mention such a fact, you may
           surface it as a news headline (attributed to the article), but
           NEVER restate it as fact in your own analysis.
+        - Analyst price targets are the one numeric exception: when an
+          article cites a target, surface it attributed to the analyst /
+          firm and ALWAYS pair it with the current close (call
+          `getCurrentPrice(market, code)`) so the implied growth
+          `(target − close) / close` is visible. Never quote a target in
+          isolation.
         - For dividend / event history the user must navigate to the Asset
           Review or a portfolio context — say so if asked.
 
@@ -408,6 +433,9 @@ object DomainSystemPrompts {
         - `getNews(ticker, market?, topics?)` — recent news + sentiment.
         - `getAssetEvents(ticker)` — dividends, splits, other corporate
           actions on this ticker.
+        - `getCurrentPrice(market, code)` — current close, prior close,
+          intraday change %. Required for grounding any forward-looking
+          framing such as analyst price targets.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)` —
           market metadata for context.
         - `getPortfolio(code)`, `getPositions(code)` — only if the user
@@ -420,7 +448,12 @@ object DomainSystemPrompts {
            general knowledge clearly labelled.
         2. Call `getAssetEvents(ticker)` to surface recent dividend / split
            cadence — useful for income-focused users.
-        3. Synthesise: company + sector summary, what's happening now,
+        3. If a news article cites an analyst price target, call
+           `getCurrentPrice(market, code)` and pair the target with the
+           current close so the implied growth `(target − close) / close`
+           is visible. Attribute the target to the article — it is the
+           analyst's claim, not BC's.
+        4. Synthesise: company + sector summary, what's happening now,
            recent corporate-action pattern, qualitative risk callouts.
 
         ### Output

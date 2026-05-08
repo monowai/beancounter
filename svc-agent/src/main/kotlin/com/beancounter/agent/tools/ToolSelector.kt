@@ -36,9 +36,11 @@ class ToolSelector(
             page.contains("asset review") || page.contains("asset-review") -> {
                 (wealthTools + eventTools + newsTools).toTypedArray()
             }
-            // News & Sentiment — focused lookup, nothing else.
+            // News & Sentiment — focused lookup, plus marketTools so the
+            // model can ground analyst price targets surfaced in news
+            // articles against the current close.
             page.contains("news") && page.contains("sentiment") -> {
-                arrayOf(newsTools)
+                arrayOf(newsTools, marketTools)
             }
             // Independence — wealth + retirement planning.
             page.contains("independence") ||

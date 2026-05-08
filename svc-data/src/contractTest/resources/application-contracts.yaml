@@ -2,6 +2,11 @@ auth:
   enabled: false
   web: false
 beancounter:
+  indices:
+    # Contract-test profile mocks AssetService; the seed runner would
+    # NPE on the null AssetUpdateResponse. Indices aren't part of any
+    # contract, so disable.
+    seed-on-startup: false
   market:
     providers:
       mock:

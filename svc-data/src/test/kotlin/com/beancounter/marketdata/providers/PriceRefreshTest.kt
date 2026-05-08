@@ -6,13 +6,22 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
+import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
+import com.beancounter.marketdata.registration.SystemUserRepository
+import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,6 +29,7 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.math.BigDecimal
 
 /**
  * Verify price refresh removes and re-imports the price for a single asset.
@@ -40,6 +50,18 @@ internal class PriceRefreshTest {
 
     @Autowired
     private lateinit var assetFinder: AssetFinder
+
+    @Autowired
+    private lateinit var portfolioRepository: PortfolioRepository
+
+    @Autowired
+    private lateinit var systemUserRepository: SystemUserRepository
+
+    @Autowired
+    private lateinit var trnRepository: TrnRepository
+
+    @Autowired
+    private lateinit var currencyService: CurrencyService
 
     @BeforeEach
     fun mockAlpha() {
@@ -83,6 +105,38 @@ internal class PriceRefreshTest {
             )
         val hydratedAsset = assetFinder.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")
+
+        // PriceRefresh.updatePrices uses findHeldAssetsForPricing which requires
+        // a positive BUY/ADD net position, so seed a SETTLED BUY transaction.
+        val owner =
+            systemUserRepository.save(
+                SystemUser(
+                    id = "refresh-test-user-$code",
+                    email = "refresh-$code@test.com",
+                    auth0 = "auth0|refresh-$code"
+                )
+            )
+        val usd = currencyService.getCode(USD.code)
+        val portfolio =
+            portfolioRepository.save(
+                Portfolio(
+                    id = "refresh-pf-$code",
+                    code = "REFRESH_PF_$code",
+                    name = "Refresh Test Portfolio",
+                    currency = usd,
+                    base = usd,
+                    owner = owner
+                )
+            )
+        trnRepository.save(
+            Trn(
+                trnType = TrnType.BUY,
+                asset = hydratedAsset,
+                quantity = BigDecimal("10"),
+                portfolio = portfolio,
+                tradeCurrency = usd
+            )
+        )
         val count = priceRefresh.updatePrices()
         assertThat(count).isGreaterThanOrEqualTo(1)
     }

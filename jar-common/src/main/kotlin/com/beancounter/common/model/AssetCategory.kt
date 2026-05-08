@@ -13,6 +13,7 @@ data class AssetCategory(
         const val ACCOUNT: String = "ACCOUNT"
         const val TRADE: String = "TRADE"
         const val POLICY: String = "POLICY"
+        const val INDEX: String = "INDEX"
 
         @Deprecated("Use POLICY instead", replaceWith = ReplaceWith("POLICY"))
         const val PENSION: String = "PENSION"
@@ -24,6 +25,7 @@ data class AssetCategory(
         const val REPORT_MUTUAL_FUND: String = "Mutual Fund"
         const val REPORT_PROPERTY: String = "Property"
         const val REPORT_RETIREMENT_FUND: String = "Retirement Fund"
+        const val REPORT_INDEX: String = "Index"
 
         /**
          * Maps a detailed category to a higher-level report category.
@@ -37,6 +39,7 @@ data class AssetCategory(
                 "EXCHANGE TRADED FUND", "ETF" -> REPORT_ETF
                 "MUTUAL FUND" -> REPORT_MUTUAL_FUND
                 POLICY, "PENSION" -> REPORT_RETIREMENT_FUND
+                INDEX -> REPORT_INDEX
                 else -> category // Default: use original category
             }
     }

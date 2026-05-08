@@ -2,8 +2,10 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.Constants.Companion.INDEX_MARKET
 import com.beancounter.marketdata.providers.ProviderArguments
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -439,6 +441,31 @@ class AlphaCorporateEventEnricherTest {
 
         // And: change should be correct (no adjustment needed since GLOBAL_QUOTE handles it)
         assertThat(enrichedData.change).isEqualByComparingTo(BigDecimal("0.50"))
+    }
+
+    @Test
+    fun `should skip enrichment for INDEX category assets`() {
+        val indexAsset =
+            Asset(
+                id = "^GSPC",
+                code = "^GSPC",
+                market = INDEX_MARKET,
+                category = AssetCategory.INDEX
+            )
+        val marketData =
+            MarketData(
+                asset = indexAsset,
+                priceDate = priceDate,
+                close = BigDecimal("5808.12"),
+                source = AlphaPriceService.ID
+            )
+
+        val enriched = enricher.enrich(marketData)
+
+        verify(alphaEventService, never()).getEvents(any<Asset>())
+        assertThat(enriched).isSameAs(marketData)
+        assertThat(enriched.split).isEqualByComparingTo(BigDecimal.ONE)
+        assertThat(enriched.dividend).isEqualByComparingTo(BigDecimal.ZERO)
     }
 
     @Test

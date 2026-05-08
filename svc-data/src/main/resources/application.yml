@@ -295,6 +295,25 @@ beancounter:
           name: "Trade Account"
         - id: "POLICY"
           name: "Retirement Fund"
+        - id: "INDEX"
+          name: "Market Index"
+
+  # Pre-seed market index assets created at startup. All routed to the
+  # synthetic INDEX market and priced by Alpha Vantage (TIME_SERIES_DAILY).
+  indices:
+    values:
+      - code: "^GSPC"
+        name: "S&P 500"
+        currency: "USD"
+      - code: "^IXIC"
+        name: "NASDAQ Composite"
+        currency: "USD"
+      - code: "^DJI"
+        name: "Dow Jones Industrial Average"
+        currency: "USD"
+      - code: "^FTSE"
+        name: "FTSE 100"
+        currency: "GBP"
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: FIGI
@@ -426,11 +445,19 @@ beancounter:
         timezoneId: "Europe/London"
         enricher: "DEFAULT"
         type: "Fund"
+
+      - code: "INDEX"
+        name: "Market Index"
+        currencyId: "USD"
+        timezoneId: "US/Eastern"
+        enricher: "DEFAULT"
+        type: "Index"
+        active: false
     providers:
       alpha:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX"
+        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX,INDEX"
         news:
           # Minimum per-ticker relevance_score (0.0-1.0) to keep an article.
           # Raise to narrow to only strongly-on-topic news; lower to be

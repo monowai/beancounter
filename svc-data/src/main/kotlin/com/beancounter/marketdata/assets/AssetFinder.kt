@@ -100,6 +100,11 @@ class AssetFinder(
      */
     fun findHeldAssetsForPricing(): List<Asset> = assetRepository.findHeldAssetsForPricing().use { it.toList() }
 
+    /**
+     * Index benchmark assets refreshed on schedule regardless of holdings.
+     */
+    fun findActiveIndexAssets(): List<Asset> = assetRepository.findActiveIndexAssets().map { hydrateAsset(it) }
+
     companion object {
         private val log = LoggerFactory.getLogger(AssetFinder::class.java)
     }

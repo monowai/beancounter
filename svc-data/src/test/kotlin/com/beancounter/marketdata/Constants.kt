@@ -70,6 +70,25 @@ class Constants {
         val NZD = Currency("NZD")
         val CAD = Currency("CAD")
 
+        val INDEX_MARKET =
+            Market(
+                "INDEX",
+                USD.code
+            )
+        val SP500 =
+            Asset(
+                code = "^GSPC",
+                id = "^GSPC",
+                name = "S&P 500",
+                market = INDEX_MARKET,
+                priceSymbol = "^GSPC",
+                category = AssetCategory.INDEX,
+                assetCategory =
+                    AssetCategory(
+                        AssetCategory.INDEX,
+                        "Market Index"
+                    )
+            )
         val NZX =
             Market(
                 "NZX",

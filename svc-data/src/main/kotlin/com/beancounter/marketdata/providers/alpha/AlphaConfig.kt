@@ -106,6 +106,10 @@ class AlphaConfig(
         if (asset.priceSymbol != null) {
             return asset.priceSymbol!!
         }
+        // Index symbols (e.g. ^GSPC, ^IXIC) carry no market suffix on Alpha Vantage.
+        if (asset.code.startsWith("^")) {
+            return asset.code
+        }
         val marketCode = translateMarketCode(asset.market)
         return if (!marketCode.isNullOrEmpty()) {
             asset.code + "." + marketCode

@@ -38,6 +38,8 @@ spring:
       bindings: {}
 beancounter:
   enricher: DEFAULT
+  indices:
+    seed-on-startup: false
 
   market.providers:
     alpha:

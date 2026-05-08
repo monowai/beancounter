@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
@@ -32,6 +33,11 @@ class AlphaCorporateEventEnricher(
      * @return The same MarketData enriched with split/dividend data and adjusted prices
      */
     fun enrich(marketData: MarketData): MarketData {
+        // Index assets never have splits or dividends. TIME_SERIES_DAILY_ADJUSTED also
+        // returns an error for index symbols (^GSPC, ^IXIC), so skip the upstream call.
+        if (marketData.asset.category.equals(AssetCategory.INDEX, ignoreCase = true)) {
+            return marketData
+        }
         try {
             val events = alphaEventService.getEvents(marketData.asset)
 

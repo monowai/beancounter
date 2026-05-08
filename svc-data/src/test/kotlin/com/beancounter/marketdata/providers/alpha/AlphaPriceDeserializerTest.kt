@@ -5,6 +5,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.US
 import com.fasterxml.jackson.databind.DeserializationContext
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -272,13 +273,13 @@ class AlphaPriceDeserializerTest {
         val context = mock(DeserializationContext::class.java)
         val priceResponse = deserializer.deserialize(parser, context)
 
-        assertEquals(1, priceResponse.data.size)
+        assertThat(priceResponse.data).hasSize(1)
         val marketData = priceResponse.data.first()
 
-        assertEquals("^GSPC", marketData.asset.code)
-        assertEquals(BigDecimal("5808.1200"), marketData.close)
-        assertEquals(0, marketData.volume)
-        assertEquals(AlphaPriceService.ID, marketData.source)
+        assertThat(marketData.asset.code).isEqualTo("^GSPC")
+        assertThat(marketData.close).isEqualByComparingTo(BigDecimal("5808.1200"))
+        assertThat(marketData.volume).isEqualTo(0)
+        assertThat(marketData.source).isEqualTo(AlphaPriceService.ID)
     }
 
     @Test

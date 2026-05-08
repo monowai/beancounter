@@ -54,7 +54,10 @@ class IndexSeedRunner(
                 AssetKeyUtils.toKey(input) to input
             }
         val response = assetService.handle(AssetRequest(inputs))
-        log.info("Seeded {} index assets", response.data.size)
+        // Defensive: contract / partial-context tests mock AssetService and
+        // the mock returns null. Don't fail startup over a missing seed.
+        val count = response?.data?.size ?: 0
+        log.info("Seeded {} index assets", count)
     }
 
     companion object {

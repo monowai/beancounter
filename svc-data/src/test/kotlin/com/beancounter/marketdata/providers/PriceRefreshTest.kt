@@ -63,38 +63,56 @@ internal class PriceRefreshTest {
     @Autowired
     private lateinit var currencyService: CurrencyService
 
+    @Autowired
+    private lateinit var cacheManager: org.springframework.cache.CacheManager
+
     @BeforeEach
     fun mockAlpha() {
         Mockito.`when`(alphaPriceService.getId()).thenReturn(AlphaPriceService.ID)
+        // The MdFactory.getMarketDataProvider is @Cacheable("provider") and
+        // shared Spring contexts can carry over a real (non-mocked) provider
+        // proxy from a prior test class — making this test ignore the
+        // @MockitoBean replacement. Clearing the cache forces a fresh
+        // resolve, which goes through isMarketSupported on the mock.
+        cacheManager.getCache("provider")?.clear()
     }
 
     @Test
     fun updatePrices() {
         val keyGenUtils = KeyGenUtils()
         val code = keyGenUtils.id
+        // Mock by argument matcher — full-sweep ordering can resolve the
+        // PriceRequest with `resolvedAsset` populated, so equality matching
+        // on a literal request misses the call. Return a positive close so
+        // PriceRefresh counts the call as a successful fetch (close > 0).
         Mockito
             .`when`(
-                alphaPriceService.getMarketData(
-                    PriceRequest(
-                        TODAY,
-                        listOf(
-                            PriceAsset(
-                                NASDAQ.code,
-                                code = code
-                            )
-                        )
-                    )
-                )
+                alphaPriceService.getMarketData(org.mockito.kotlin.any())
             ).thenReturn(
                 listOf(
                     MarketData(
-                        Asset(
-                            code = "",
-                            market = NASDAQ
-                        )
+                        asset =
+                            Asset(
+                                code = code,
+                                market = NASDAQ
+                            ),
+                        close = BigDecimal("100.00")
                     )
                 )
             )
+        Mockito
+            .`when`(alphaPriceService.isMarketSupported(org.mockito.kotlin.any()))
+            .thenReturn(true)
+        // Mockito returns null for unstubbed LocalDate calls; getDate is
+        // dereferenced as a non-null parameter inside DateCache, so stub
+        // a deterministic date here.
+        Mockito
+            .`when`(
+                alphaPriceService.getDate(
+                    org.mockito.kotlin.any(),
+                    org.mockito.kotlin.any()
+                )
+            ).thenReturn(java.time.LocalDate.now())
         val asset =
             assetRepository.save(
                 Asset(
@@ -107,7 +125,10 @@ internal class PriceRefreshTest {
         assertThat(hydratedAsset).hasFieldOrProperty("market")
 
         // PriceRefresh.updatePrices uses findHeldAssetsForPricing which requires
-        // a positive BUY/ADD net position, so seed a SETTLED BUY transaction.
+        // a positive BUY/ADD net position, so seed a SETTLED BUY transaction
+        // and force a JPA flush. Without the explicit flush the test passes
+        // when run in isolation but the held-query intermittently misses the
+        // newly-saved trn when the class runs as part of the full sweep.
         val owner =
             systemUserRepository.save(
                 SystemUser(
@@ -137,6 +158,13 @@ internal class PriceRefreshTest {
                 tradeCurrency = usd
             )
         )
+
+        // Sanity: the asset must qualify as held before we exercise the
+        // refresh path. This makes the failure mode obvious if a future
+        // change breaks the held-query rather than the refresh logic.
+        assertThat(assetFinder.findHeldAssetsForPricing().map { it.id })
+            .contains(hydratedAsset.id)
+
         val count = priceRefresh.updatePrices()
         assertThat(count).isGreaterThanOrEqualTo(1)
     }

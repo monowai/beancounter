@@ -79,6 +79,19 @@ interface AssetRepository : CrudRepository<Asset, String> {
     fun findHeldAssetsForPricing(): Stream<Asset>
 
     /**
+     * Find active assets on the synthetic INDEX market. These are reference
+     * benchmarks (no holdings) that the scheduled refresh fetches alongside
+     * held assets so dashboards always show fresh index quotes.
+     */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND a.code IS NOT NULL AND a.code <> '' " +
+            "AND a.marketCode = 'INDEX'"
+    )
+    fun findActiveIndexAssets(): List<Asset>
+
+    /**
      * Find all assets owned by a specific user with a specific category.
      */
     @Query(

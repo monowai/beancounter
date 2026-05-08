@@ -29,6 +29,8 @@ spring:
 
 beancounter:
   enricher: DEFAULT
+  indices:
+    seed-on-startup: false
   market.providers:
     alpha:
       markets: NASDAQ,AMEX,NYSE,ASX,LON,US

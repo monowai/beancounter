@@ -249,6 +249,39 @@ class AlphaPriceDeserializerTest {
     }
 
     @Test
+    fun `should deserialize index symbol with caret prefix from Global Quote`() {
+        val apiResponse =
+            """
+            {
+                "Global Quote": {
+                    "01. symbol": "^GSPC",
+                    "02. open": "5780.4400",
+                    "03. high": "5810.6300",
+                    "04. low": "5777.4500",
+                    "05. price": "5808.1200",
+                    "06. volume": "0",
+                    "07. latest trading day": "2026-05-07",
+                    "08. previous close": "5793.7500",
+                    "09. change": "14.3700",
+                    "10. change percent": "0.2480%"
+                }
+            }
+            """.trimIndent()
+
+        val parser = objectMapper.createParser(apiResponse)
+        val context = mock(DeserializationContext::class.java)
+        val priceResponse = deserializer.deserialize(parser, context)
+
+        assertEquals(1, priceResponse.data.size)
+        val marketData = priceResponse.data.first()
+
+        assertEquals("^GSPC", marketData.asset.code)
+        assertEquals(BigDecimal("5808.1200"), marketData.close)
+        assertEquals(0, marketData.volume)
+        assertEquals(AlphaPriceService.ID, marketData.source)
+    }
+
+    @Test
     fun `isSplit should return true for non-1 split coefficient`() {
         // Given: MarketData with split coefficient != 1
         val marketDataWithSplit =

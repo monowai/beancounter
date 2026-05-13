@@ -210,6 +210,32 @@ interface TrnRepository :
         owner: SystemUser
     ): Long
 
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.status = ?1 " +
+            "and t.portfolio.id in ?2 " +
+            "order by t.tradeDate desc"
+    )
+    fun findByStatusAndPortfolioIdIn(
+        status: TrnStatus,
+        portfolioIds: Collection<String>
+    ): Collection<Trn>
+
+    @Query(
+        "select count(t) from Trn t " +
+            "where t.status = ?1 " +
+            "and t.portfolio.id in ?2"
+    )
+    fun countByStatusAndPortfolioIdIn(
+        status: TrnStatus,
+        portfolioIds: Collection<String>
+    ): Long
+
     /**
      * Find all transactions with a specific status and trade date for portfolios owned by the given user.
      * Used for showing settled transactions on a specific date across all portfolios.

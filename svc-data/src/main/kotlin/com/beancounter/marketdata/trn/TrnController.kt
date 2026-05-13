@@ -535,7 +535,9 @@ class TrnController(
             )
         ]
     )
-    fun findProposed(): TrnResponse = TrnResponse(trnService.findProposedForUser())
+    fun findProposed(
+        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope
+    ): TrnResponse = TrnResponse(trnService.findProposedForUser(scope))
 
     @GetMapping(
         value = ["/proposed/count"],
@@ -560,7 +562,9 @@ class TrnController(
             )
         ]
     )
-    fun countProposed(): Map<String, Long> = mapOf("count" to trnService.countProposedForUser())
+    fun countProposed(
+        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope
+    ): Map<String, Long> = mapOf("count" to trnService.countProposedForUser(scope))
 
     @GetMapping(
         value = ["/settled"],

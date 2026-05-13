@@ -3,11 +3,14 @@ package com.beancounter.marketdata.trn
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.PortfolioSharesResponse
+import com.beancounter.common.contracts.ShareInviteRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
@@ -27,13 +30,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.math.BigDecimal
 
@@ -211,6 +217,125 @@ class ProposedTransactionsTest {
         // Then: Count should be 0
         val count = objectMapper.readTree(result.response.contentAsString).get("count").asInt()
         assertThat(count).isEqualTo(0)
+    }
+
+    @Test
+    fun `scope MANAGED returns proposed transactions on portfolios shared with the user`() {
+        // Client owns a portfolio with a PROPOSED transaction. An adviser is granted
+        // ACTIVE share access. The adviser must see the trn under scope=MANAGED, while
+        // scope=OWNED returns nothing for the adviser, and ALL returns the trn.
+
+        val adviser =
+            SystemUser(
+                id = "managed-adviser",
+                email = "managed-adviser@test.com",
+                auth0 = "auth0|managed-adviser"
+            )
+        val adviserToken = mockAuthConfig.getUserToken(adviser)
+        RegistrationUtils.registerUser(mockMvc, adviserToken)
+
+        val msft = bcMvcHelper.asset(AssetRequest(msftInput))
+        val portfolio =
+            bcMvcHelper.portfolio(
+                PortfolioInput("PROPOSED-MANAGED", "Managed", currency = USD.code)
+            )
+
+        val trnInput =
+            TrnInput(
+                CallerRef(batch = "MANAGED-PROPOSED", callerId = "1"),
+                msft.id,
+                trnType = TrnType.SELL,
+                quantity = BigDecimal("5"),
+                tradeCurrency = USD.code,
+                tradeDate = dateUtils.getFormattedDate("2024-04-10"),
+                price = BigDecimal("180.00"),
+                status = TrnStatus.PROPOSED
+            )
+        trnService.save(portfolio, TrnRequest(portfolio.id, listOf(trnInput)))
+
+        val invite =
+            ShareInviteRequest(
+                portfolioIds = listOf(portfolio.id),
+                adviserEmail = adviser.email
+            )
+        val inviteResult =
+            mockMvc
+                .perform(
+                    post("/shares/invite")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsBytes(invite))
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        val shareId =
+            objectMapper
+                .readValue(inviteResult.response.contentAsString, PortfolioSharesResponse::class.java)
+                .data
+                .first()
+                .id
+        mockMvc
+            .perform(
+                post("/shares/$shareId/accept")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adviserToken))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        val managed =
+            objectMapper.readValue(
+                mockMvc
+                    .perform(
+                        get("$TRNS_ROOT/proposed?scope=MANAGED")
+                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adviserToken))
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString,
+                TrnResponse::class.java
+            )
+        assertThat(managed.data)
+            .anySatisfy { trn ->
+                assertThat(trn.portfolio.id).isEqualTo(portfolio.id)
+                assertThat(trn.status).isEqualTo(TrnStatus.PROPOSED)
+            }
+
+        val owned =
+            objectMapper.readValue(
+                mockMvc
+                    .perform(
+                        get("$TRNS_ROOT/proposed?scope=OWNED")
+                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adviserToken))
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString,
+                TrnResponse::class.java
+            )
+        assertThat(owned.data).noneMatch { it.portfolio.id == portfolio.id }
+
+        val all =
+            objectMapper.readValue(
+                mockMvc
+                    .perform(
+                        get("$TRNS_ROOT/proposed?scope=ALL")
+                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adviserToken))
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString,
+                TrnResponse::class.java
+            )
+        assertThat(all.data).anyMatch { it.portfolio.id == portfolio.id }
+
+        val countNode =
+            objectMapper.readTree(
+                mockMvc
+                    .perform(
+                        get("$TRNS_ROOT/proposed/count?scope=MANAGED")
+                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adviserToken))
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString
+            )
+        assertThat(countNode.get("count").asInt()).isGreaterThanOrEqualTo(1)
     }
 
     @Test

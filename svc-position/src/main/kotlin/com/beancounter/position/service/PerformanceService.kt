@@ -57,6 +57,7 @@ class PerformanceService(
     private val priceService: PriceService,
     private val fxRateService: FxService,
     private val twrCalculator: TwrCalculator,
+    private val irrCalculator: com.beancounter.position.irr.IrrCalculator,
     private val dateUtils: DateUtils,
     private val tokenService: TokenService,
     private val cacheService: PerformanceCacheService,
@@ -757,9 +758,68 @@ class PerformanceService(
                 )
             }
 
+        val xirr = computeAggregateXirr(perPortfolioFx)
+
         return AggregatedPerformanceResponse(
-            AggregatedPerformanceData(currency = displayCurrency, series = points)
+            AggregatedPerformanceData(currency = displayCurrency, series = points, xirr = xirr)
         )
+    }
+
+    /**
+     * Pool per-portfolio investor cash flows over the window into a single
+     * `PeriodicCashFlows` and solve for XIRR via the shared `IrrCalculator`.
+     *
+     * Sign convention is investor-POV:
+     *   - At series[0] (window start): −marketValue (capital invested).
+     *   - Between snapshots: −Δ netContributions (deposit = money out of wallet).
+     *   - At series[last] (window end): +marketValue (capital realised).
+     *
+     * Inputs are already FX-converted to the display currency, so all flows
+     * land in a single denomination. `IrrCalculator` itself handles short-
+     * window fallback to simple ROI and bails to 0.0 when the solver fails.
+     */
+    private fun computeAggregateXirr(perPortfolioFx: List<List<DisplaySnapshot>>): BigDecimal? {
+        if (perPortfolioFx.isEmpty()) return null
+        val flows = mutableListOf<com.beancounter.common.model.CashFlow>()
+        for (snaps in perPortfolioFx) {
+            if (snaps.isEmpty()) continue
+            val first = snaps.first()
+            if (first.mv.signum() > 0) {
+                flows.add(
+                    com.beancounter.common.model.CashFlow(
+                        amount = first.mv.negate().toDouble(),
+                        date = first.date
+                    )
+                )
+            }
+            for (i in 1 until snaps.size) {
+                val delta = snaps[i].contrib.subtract(snaps[i - 1].contrib)
+                if (delta.signum() != 0) {
+                    flows.add(
+                        com.beancounter.common.model.CashFlow(
+                            amount = delta.negate().toDouble(),
+                            date = snaps[i].date
+                        )
+                    )
+                }
+            }
+            val last = snaps.last()
+            if (last.mv.signum() > 0) {
+                flows.add(
+                    com.beancounter.common.model.CashFlow(
+                        amount = last.mv.toDouble(),
+                        date = last.date
+                    )
+                )
+            }
+        }
+        if (flows.size < 2) return null
+        val periodic =
+            com.beancounter.common.model
+                .PeriodicCashFlows()
+        periodic.addAll(flows)
+        val xirr = irrCalculator.calculate(periodic)
+        return BigDecimal(xirr).setScale(6, RoundingMode.HALF_UP)
     }
 
     private data class DisplaySnapshot(

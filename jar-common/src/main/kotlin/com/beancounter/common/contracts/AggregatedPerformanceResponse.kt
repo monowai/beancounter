@@ -38,6 +38,14 @@ data class AggregatedPerformanceDataPoint(
 data class AggregatedPerformanceData(
     val currency: Currency,
     val series: List<AggregatedPerformanceDataPoint> = emptyList(),
+    /**
+     * Aggregate money-weighted return (XIRR) for the requested window, as an
+     * annualised decimal (0.10 = +10% p.a.). Null when the solver could not
+     * converge or there were insufficient flows. For windows shorter than
+     * ~1 year, IrrCalculator falls back to simple ROI on the pooled flows;
+     * consumers should label sub-year results as "cumulative", not "p.a."
+     */
+    val xirr: BigDecimal? = null,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)

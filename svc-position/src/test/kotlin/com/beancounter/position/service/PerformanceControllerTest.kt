@@ -1,6 +1,7 @@
 package com.beancounter.position.service
 
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.PerformanceData
 import com.beancounter.common.contracts.PerformanceDataPoint
 import com.beancounter.common.contracts.PerformanceResponse
@@ -34,6 +35,9 @@ class PerformanceControllerTest {
     @Mock
     private lateinit var benchmarkService: BenchmarkService
 
+    @Mock
+    private lateinit var staticService: StaticService
+
     private lateinit var controller: PerformanceController
 
     private val portfolio =
@@ -53,7 +57,8 @@ class PerformanceControllerTest {
                 portfolioServiceClient,
                 performanceService,
                 performanceCacheService,
-                benchmarkService
+                benchmarkService,
+                staticService
             )
     }
 

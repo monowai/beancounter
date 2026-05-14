@@ -69,14 +69,14 @@ class PerformanceService(
         if (cached != null) {
             val earliestCached = cached.minOf { it.valuationDate }
             if (!earliestCached.isAfter(startDate)) {
-                val filtered = cached.filter { !it.valuationDate.isBefore(startDate) }
+                val anchored = anchorToStartDate(cached, startDate)
                 log.debug(
                     "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
                     portfolio.code,
-                    filtered.size,
+                    anchored.size,
                     cached.size
                 )
-                return buildResponseFromCache(portfolio, filtered)
+                return buildResponseFromCache(portfolio, anchored)
             }
             log.debug(
                 "Cache PARTIAL: portfolio={}, cached from {} but requested from {}, recomputing",
@@ -489,6 +489,40 @@ class PerformanceService(
         } catch (e: DataAccessException) {
             log.warn("Cache store failed, computation unaffected: {}", e.message)
         }
+    }
+
+    /**
+     * Returns cached snapshots restricted to the requested window with a
+     * baseline anchor at exactly `startDate`. When the cache lacks a snapshot
+     * on that date, synthesize one by carrying forward the latest cached
+     * snapshot strictly before `startDate`.
+     *
+     * `netContributions` and `cumulativeDividends` carry exactly because every
+     * cash flow date is itself a valuation date (see `determineValuationDates`),
+     * so nothing flows between two cached snapshots. `marketValue` is an
+     * approximation — at most ~1 month stale, bounded by the monthly cadence
+     * of valuation dates between cash-flow events.
+     *
+     * Without this anchor, multi-portfolio frontends that union per-portfolio
+     * dates see one portfolio's series start mid-window, leaking that
+     * portfolio's lifetime gain into period-relative metrics.
+     */
+    internal fun anchorToStartDate(
+        cached: List<CachedSnapshot>,
+        startDate: LocalDate
+    ): List<CachedSnapshot> {
+        val onOrAfter = cached.filter { !it.valuationDate.isBefore(startDate) }
+        if (onOrAfter.firstOrNull()?.valuationDate == startDate) return onOrAfter
+        val prior = cached.lastOrNull { it.valuationDate.isBefore(startDate) } ?: return onOrAfter
+        val anchor =
+            CachedSnapshot(
+                valuationDate = startDate,
+                marketValue = prior.marketValue,
+                externalCashFlow = BigDecimal.ZERO,
+                netContributions = prior.netContributions,
+                cumulativeDividends = prior.cumulativeDividends
+            )
+        return listOf(anchor) + onOrAfter
     }
 
     private fun buildResponseFromCache(

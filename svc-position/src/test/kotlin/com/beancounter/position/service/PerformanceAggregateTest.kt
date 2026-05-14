@@ -17,6 +17,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.cache.CachedSnapshot
 import com.beancounter.position.cache.PerformanceCacheService
+import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset
@@ -77,6 +78,7 @@ class PerformanceAggregateTest {
 
     @BeforeEach
     fun setup() {
+        val dateUtils = DateUtils()
         service =
             PerformanceService(
                 trnService = trnService,
@@ -84,7 +86,12 @@ class PerformanceAggregateTest {
                 priceService = priceService,
                 fxRateService = fxRateService,
                 twrCalculator = TwrCalculator(),
-                dateUtils = DateUtils(),
+                irrCalculator =
+                    IrrCalculator(
+                        minHoldingDays = 365,
+                        dateUtils = dateUtils
+                    ),
+                dateUtils = dateUtils,
                 tokenService = tokenService,
                 cacheService = cacheService
             )
@@ -541,5 +548,156 @@ class PerformanceAggregateTest {
         val expected = (50.0 / 110.0) * 1.10 + (60.0 / 110.0) * 1.20
         assertThat(out[1].growthOf1000.toDouble())
             .isCloseTo(1000.0 * expected, Offset.offset(0.5))
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // XIRR (money-weighted return) — investor's POV over the window
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `xirr for single-portfolio doubling over 1 year is approximately 100 percent`() {
+        // Investor invests $1000 at startDate, realises $2000 at endDate.
+        // NPV: -1000 + 2000 / (1+r)^1 = 0 → r = 1.0
+        val p = portfolio("P1", usd)
+        val series =
+            listOf(
+                point("2024-01-01", "1000", "1000", netContributions = "1000"),
+                point("2025-01-01", "2000", "2000", netContributions = "1000")
+            )
+
+        val result =
+            service.composeAggregate(
+                perPortfolio = listOf(p to PerformanceData(usd, series)),
+                displayCurrency = usd,
+                fxRates = mapOf("USD" to BigDecimal.ONE)
+            )
+
+        assertThat(result.data.xirr).isNotNull
+        assertThat(result.data.xirr!!.toDouble())
+            .isCloseTo(1.0, Offset.offset(0.01))
+    }
+
+    @Test
+    fun `xirr accounts for mid-window deposit timing`() {
+        // -$1000 at t=0, -$500 deposit at t=0.5, +$1800 at t=1.
+        // Solving: -1000 - 500/(1+r)^0.5 + 1800/(1+r) = 0 ⇒ r ≈ 0.241
+        val p = portfolio("P1", usd)
+        val series =
+            listOf(
+                point("2024-01-01", "1000", "1000", netContributions = "1000"),
+                // ~6 months in: deposit lifts MV (modelled as a step; growthOf1000 unchanged for simplicity)
+                point("2024-07-01", "1000", "1500", netContributions = "1500"),
+                point("2025-01-01", "1800", "1800", netContributions = "1500")
+            )
+
+        val result =
+            service.composeAggregate(
+                perPortfolio = listOf(p to PerformanceData(usd, series)),
+                displayCurrency = usd,
+                fxRates = mapOf("USD" to BigDecimal.ONE)
+            )
+
+        assertThat(result.data.xirr).isNotNull
+        // Hand-computed root ≈ 0.241; allow a few percent for date-fraction precision.
+        assertThat(result.data.xirr!!.toDouble())
+            .isCloseTo(0.241, Offset.offset(0.02))
+    }
+
+    @Test
+    fun `xirr pools multi-portfolio flows, distinct from average of per-portfolio xirrs`() {
+        // P1: -100 → +200 (100% over 1Y).  P2: -200 → +200 (0% over 1Y).
+        // Pooled: -300 → +400 ⇒ r = 1/3 ≈ 0.333. Average of (1.0, 0.0) = 0.5.
+        // Pooled XIRR must differ from the simple average — proves pooling, not averaging.
+        val p1 = portfolio("P1", usd)
+        val p2 = portfolio("P2", usd)
+        val seriesP1 =
+            listOf(
+                point("2024-01-01", "1000", "100", netContributions = "100"),
+                point("2025-01-01", "2000", "200", netContributions = "100")
+            )
+        val seriesP2 =
+            listOf(
+                point("2024-01-01", "1000", "200", netContributions = "200"),
+                point("2025-01-01", "1000", "200", netContributions = "200")
+            )
+
+        val result =
+            service.composeAggregate(
+                perPortfolio =
+                    listOf(
+                        p1 to PerformanceData(usd, seriesP1),
+                        p2 to PerformanceData(usd, seriesP2)
+                    ),
+                displayCurrency = usd,
+                fxRates = mapOf("USD" to BigDecimal.ONE)
+            )
+
+        assertThat(result.data.xirr).isNotNull
+        assertThat(result.data.xirr!!.toDouble())
+            .isCloseTo(0.333, Offset.offset(0.02))
+        // Not the simple average (0.5).
+        assertThat(result.data.xirr!!.toDouble()).isLessThan(0.45)
+    }
+
+    @Test
+    fun `xirr returns simple ROI for sub-year window via IrrCalculator fallback`() {
+        // 6-month window under IrrCalculator's minHoldingDays=365 → simpleRoi
+        // simpleRoi = (returns − investment) / investment = (1100 − 1000) / 1000 = 0.10
+        val p = portfolio("P1", usd)
+        val series =
+            listOf(
+                point("2024-07-01", "1000", "1000", netContributions = "1000"),
+                point("2025-01-01", "1100", "1100", netContributions = "1000")
+            )
+
+        val result =
+            service.composeAggregate(
+                perPortfolio = listOf(p to PerformanceData(usd, series)),
+                displayCurrency = usd,
+                fxRates = mapOf("USD" to BigDecimal.ONE)
+            )
+
+        assertThat(result.data.xirr).isNotNull
+        assertThat(result.data.xirr!!.toDouble())
+            .isCloseTo(0.10, Offset.offset(0.005))
+    }
+
+    @Test
+    fun `xirr is null when no portfolios produce flows`() {
+        val result =
+            service.composeAggregate(
+                perPortfolio = emptyList(),
+                displayCurrency = usd,
+                fxRates = emptyMap()
+            )
+        assertThat(result.data.xirr).isNull()
+    }
+
+    @Test
+    fun `xirr handles new portfolio with zero anchor and mid-window deposit`() {
+        // Backend's synthesised zero anchor: series[0] has mv=0, contrib=0.
+        // The zero start MV is skipped in the flow stream, so the effective
+        // flow span runs from the deposit (Jul) to year-end — only 6 months.
+        // That's below IrrCalculator.minHoldingDays (365), so the calculator
+        // returns the simple ROI on the actual contributed capital:
+        //   ROI = (22 − 20) / 20 = 0.10
+        val p = portfolio("P1", usd)
+        val series =
+            listOf(
+                point("2024-01-01", "1000", "0", netContributions = "0"),
+                point("2024-07-01", "1000", "20", netContributions = "20"),
+                point("2025-01-01", "1100", "22", netContributions = "20")
+            )
+
+        val result =
+            service.composeAggregate(
+                perPortfolio = listOf(p to PerformanceData(usd, series)),
+                displayCurrency = usd,
+                fxRates = mapOf("USD" to BigDecimal.ONE)
+            )
+
+        assertThat(result.data.xirr).isNotNull
+        assertThat(result.data.xirr!!.toDouble())
+            .isCloseTo(0.10, Offset.offset(0.005))
     }
 }

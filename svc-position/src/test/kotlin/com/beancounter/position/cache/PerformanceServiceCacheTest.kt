@@ -16,6 +16,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
+import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.service.PerformanceService
 import org.assertj.core.api.Assertions.assertThat
@@ -94,6 +95,7 @@ class PerformanceServiceCacheTest {
                 priceService = priceService,
                 fxRateService = fxRateService,
                 twrCalculator = twrCalculator,
+                irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
                 dateUtils = dateUtils,
                 tokenService = tokenService,
                 cacheService = cacheService

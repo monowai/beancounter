@@ -5,7 +5,6 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.providers.MarketDataRepo
-import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -31,11 +30,10 @@ class EodhdEventService(
     private val eodhdConfig: EodhdConfig,
     private val marketDataRepo: MarketDataRepo
 ) {
-    @Transactional
     @Cacheable("eodhd.asset.event")
     fun getEvents(assetId: String): PriceResponse = getEvents(assetFinder.find(assetId))
 
-    @Cacheable("eodhd.asset.event")
+    @Cacheable("eodhd.asset.event", key = "#asset.id")
     fun getEvents(asset: Asset): PriceResponse {
         if (!isMarketSupported(asset.market.code)) {
             log.debug("Market {} not supported by EODHD; falling back to repo for {}", asset.market.code, asset.code)

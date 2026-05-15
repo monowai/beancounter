@@ -6,7 +6,7 @@ package com.beancounter.marketdata.providers
  * empty map when there's no coverage.
  *
  * Today two providers exist (AlphaVantage + EODHD). The facade in [NewsServiceFacade] picks one
- * at request time based on `beancounter.market.providers.news` (default: `alpha`).
+ * at request time based on `beancounter.market.news.provider` (default: `alpha`).
  */
 interface NewsProvider {
     /**

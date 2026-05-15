@@ -30,7 +30,9 @@ class EodhdNewsService(
 ) : NewsProvider {
     private val log = LoggerFactory.getLogger(EodhdNewsService::class.java)
 
-    @Cacheable("eodhd.news.sentiment", key = "#tickers + '-' + (#market ?: '') + '-' + (#topics ?: '')")
+    // Key components are separated by `|` and each null defaults to a sentinel so the cache
+    // doesn't collide on legitimate values that contain dashes (e.g. tickers like `BRK-B`).
+    @Cacheable("eodhd.news.sentiment", key = "#tickers + '|' + (#market ?: '~') + '|' + (#topics ?: '~')")
     override fun getNewsSentiment(
         tickers: String,
         market: String?,

@@ -116,15 +116,20 @@ class EodhdGateway(
         from: String? = null,
         apiKey: String = DEMO_KEY
     ): List<EodhdNewsArticle> {
-        val fromClause = if (from.isNullOrBlank()) "" else "&from=$from"
+        // Two URI templates instead of string-interpolating the optional clause — keeps each
+        // placeholder going through RestClient's URI encoding rather than concatenation.
+        val (uri, vars) =
+            if (from.isNullOrBlank()) {
+                "/api/news?api_token={apiKey}&s={symbol}&limit={limit}&fmt=json" to
+                    arrayOf<Any>(apiKey, symbol, limit)
+            } else {
+                "/api/news?api_token={apiKey}&s={symbol}&limit={limit}&from={from}&fmt=json" to
+                    arrayOf<Any>(apiKey, symbol, limit, from)
+            }
         return restClient
             .get()
-            .uri(
-                "/api/news?api_token={apiKey}&s={symbol}&limit={limit}$fromClause&fmt=json",
-                apiKey,
-                symbol,
-                limit
-            ).retrieve()
+            .uri(uri, *vars)
+            .retrieve()
             .body<Array<EodhdNewsArticle>>()
             ?.toList()
             ?: emptyList()

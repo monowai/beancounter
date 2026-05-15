@@ -39,7 +39,9 @@ class AlphaNewsService(
     @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
 
-    @Cacheable("news.sentiment", key = "#tickers + '-' + (#market ?: '') + '-' + (#topics ?: '')")
+    // Pipe + null-sentinel separator so the cache doesn't collide on legitimate values that
+    // contain dashes (e.g. tickers like `BRK-B`).
+    @Cacheable("news.sentiment", key = "#tickers + '|' + (#market ?: '~') + '|' + (#topics ?: '~')")
     override fun getNewsSentiment(
         tickers: String,
         market: String?,

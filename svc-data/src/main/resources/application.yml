@@ -528,6 +528,12 @@ beancounter:
           max-articles: 5
           # How many articles to ask EODHD for per ticker before merging + ranking.
           provider-limit: 50
+          # Per-ticker refresh interval. EODHD news endpoint quota is ~1200 req/day shared
+          # with svc-agent chat lookups; default 6h ≈ 4 refreshes/day per active ticker.
+          refresh-after-hours: 6
+          # Articles older than this are pruned daily by NewsRetentionSchedule. Combine with
+          # `schedule.enabled=true` to actually run the prune; otherwise it's a no-op bean.
+          retention-days: 30
 
       # OpenFIGI - free, unlimited, Bloomberg-based
       figi:

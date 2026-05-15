@@ -39,8 +39,9 @@ class CacheConfig {
                 ConcurrentMapCache(name)
             } + CaffeineCache("alpha.asset.event", Duration.ofMinutes(10), 200) +
                 CaffeineCache("eodhd.asset.event", Duration.ofMinutes(10), 200) +
-                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100) +
-                CaffeineCache("eodhd.news.sentiment", Duration.ofMinutes(30), 100)
+                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100)
+        // Note: EODHD news is no longer cached in-memory — it persists to `news_article` and is
+        // served from there. See EodhdNewsService + V19 migration.
 
         return SimpleCacheManager().apply {
             setCaches(caches)

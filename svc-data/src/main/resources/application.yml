@@ -437,7 +437,8 @@ beancounter:
           mstack: "NZ"
           alpha: "NZ"
           FIGI: "NZ"
-          eodhd: "NZ"
+          # EODHD has no NZ exchange (verified via /api/exchanges-list).
+          # Do not add an eodhd alias here unless the plan adds NZ coverage.
 
       - code: "SGX"
         name: "Singapore Exchange"
@@ -447,7 +448,8 @@ beancounter:
         aliases:
           mstack: "SI"
           FIGI: "SP"
-          eodhd: "SG"
+          # EODHD has no SG/SES exchange (verified via /api/exchanges-list).
+          # Do not add an eodhd alias here unless the plan adds SG coverage.
 
       - code: "LON"
         name: "London Stock Exchange"

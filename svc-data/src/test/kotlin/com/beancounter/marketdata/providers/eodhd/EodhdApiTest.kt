@@ -5,7 +5,6 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.MarketDataBoot
@@ -35,8 +34,6 @@ import java.math.BigDecimal
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 internal class EodhdApiTest {
-    private val dateUtils = DateUtils()
-
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 
@@ -121,6 +118,31 @@ internal class EodhdApiTest {
 
         assertThat(date).isNotNull
         assertThat(date.toString()).matches("\\d{4}-\\d{2}-\\d{2}")
+    }
+
+    @Test
+    fun `404 on one symbol does not abort the whole batch`() {
+        // Regression: a single Ticker-Not-Found used to propagate
+        // HttpClientErrorException out of EodhdPriceService.getMarketData
+        // and abort every other symbol in the same valuation cycle.
+        stubFor(
+            get(urlPathEqualTo("/api/eod/MSFT.US"))
+                .willReturn(aResponse().withStatus(404).withBody("Ticker Not Found."))
+        )
+        stubEod("AAPL.US", "mock/eodhd/AAPL-US.json")
+
+        val result =
+            eodhdPriceService.getMarketData(
+                PriceRequest(
+                    "2024-11-29",
+                    listOf(PriceAsset(MSFT), PriceAsset(AAPL))
+                )
+            )
+
+        assertThat(result).hasSize(1)
+        assertThat(result.first().asset).isEqualTo(AAPL)
+        assertThat(result.first().close).isEqualByComparingTo(BigDecimal("237.33"))
+        assertThat(result.first().source).isEqualTo(ID)
     }
 
     @Test

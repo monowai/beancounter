@@ -151,7 +151,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, market.holidays
+    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, news.sentiment, eodhd.news.sentiment, market.holidays
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true
@@ -475,6 +475,13 @@ beancounter:
         type: "Index"
         aliases:
           eodhd: "INDX"
+    # News backend selector — `alpha` (default) or `eodhd`.
+    # AlphaVantage NEWS_SENTIMENT needs a Premium key in practice; EODHD's `/api/news`
+    # is exposed on the free tier so operators can flip this to `eodhd` when their EODHD
+    # key is set and they want to drop the AV news cost. Switching only affects the
+    # `/news` endpoint surface — price/event routing is unchanged.
+    news:
+      provider: alpha
     providers:
       alpha:
         url: https://www.alphavantage.co
@@ -515,6 +522,12 @@ beancounter:
         url: https://eodhd.com
         batchSize: 1
         markets: ""
+        news:
+          # Top-N articles returned to the caller after ranking. Keep small —
+          # each article becomes tool_result tokens on the LLM's second inference call.
+          max-articles: 5
+          # How many articles to ask EODHD for per ticker before merging + ranking.
+          provider-limit: 50
 
       # OpenFIGI - free, unlimited, Bloomberg-based
       figi:

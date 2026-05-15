@@ -7,6 +7,7 @@ import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.DataProviderConfig
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
@@ -19,10 +20,13 @@ import java.time.LocalDate
  * unchanged. Operators enable specific markets by setting `beancounter.market.providers.eodhd.markets`.
  */
 @Configuration
+@EnableConfigurationProperties(EodhdNewsProperties::class)
 @Import(
     EodhdPriceService::class,
     EodhdProxy::class,
-    EodhdAdapter::class
+    EodhdAdapter::class,
+    EodhdEventService::class,
+    EodhdNewsService::class
 )
 class EodhdConfig(
     val marketService: MarketService

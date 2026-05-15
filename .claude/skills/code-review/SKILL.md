@@ -109,6 +109,19 @@ Apply these only when the diff touches `*.kt` files. Skip if the file is a gener
 - **Coroutines vs Reactor**: don't mix unless explicitly bridged — flag `runBlocking` inside reactive chains, flag `.block()` outside tests.
 - **Kotlin Spring AI options builder**: per-call options REPLACE (don't merge with) the ChatClient's defaults — re-apply `cacheOptions` etc. on every per-call override (BC incident: silent loss of prompt caching).
 - **Logging**: parameterised `log.debug("x={}, y={}", x, y)` — never `log.debug("x=$x")` (string concatenation runs even when DEBUG is off).
+- **Spring caching — `@Cacheable` traps** (BC has caused two outages here):
+  - **Cache must be registered with the active `CacheManager` bean.** `svc-data` defines a programmatic `SimpleCacheManager` in `CacheConfig.kt`, which **overrides** Spring Boot's `spring.cache.cache-names` autoconfig. Adding the name to `application.yml` is dead code. Every new `@Cacheable("foo.bar")` must add `foo.bar` to `CacheConfig.cacheManager()` — flag any `@Cacheable` whose cache name doesn't appear in the bean. Failure mode is `IllegalArgumentException: Cannot find cache named '…'` on first call.
+  - **SpEL key collisions.** Concatenating string components with a delimiter that can appear in the values produces silent cache poisoning. `key = "#a + '-' + #b"` collides when either `#a` or `#b` legitimately contains `-` (e.g. ticker `BRK-B`). Flag any concat-with-dash key — recommend `|` with `~` sentinel for nulls, or `T(java.util.Objects).hash(...)`.
+  - **Self-invocation bypasses AOP.** `@Cacheable` on a method called from inside the same class doesn't intercept (proxy bypass). Flag any in-class call to a `@Cacheable` method that expects caching to fire.
+  - **Empty results sticky.** `@Cacheable` without `unless = "#result.isEmpty()"` caches empty maps/lists forever — a transient provider failure becomes permanent no-coverage. Flag when the cached return is a collection type whose emptiness implies upstream failure.
+- **Spring `@ConfigurationProperties` wiring**:
+  - The class needs `@Component`, or registration via `@EnableConfigurationProperties(X::class)` on a `@Configuration`, or `@ConfigurationPropertiesScan` on the boot class. Flag a `@ConfigurationProperties` class that's only `data class` with no path to bean registration — it'll inject as defaults silently.
+  - **YAML binder structural rule.** Spring's binder fails (`Could not bind properties to '…'`) when a `@ConfigurationProperties` prefix contains a key that's both a scalar AND a map at sibling positions, e.g. `beancounter.market.providers.news: alpha` next to `beancounter.market.providers.alpha: { … }`. Flag any new top-level scalar under a prefix that already binds nested maps.
+- **Spring `@Value` and Kotlin 2.x string templates**:
+  - `@Value($$"${prop:default}")` (double-dollar prefix) is **valid Kotlin 2.x multi-dollar template syntax** — escapes the `$` so Spring sees `${prop:default}` literally. Do NOT flag as a syntax error; it's the BC convention for property placeholders to avoid Kotlin interpreting the `$` as string interpolation. Confirm with `MarketStackConfig.kt:26`.
+  - Defaults in `@Value("\${prop:fallback}")` MUST match the corresponding `application.yml` value — silent drift otherwise. When a diff changes one, flag if the other isn't touched.
+- **URI template hygiene** (Spring `RestClient.uri(template, vars)`):
+  - String-interpolating values into the template (`"/api?x=$value"`) bypasses Spring's URI encoding and is unsafe even for internal callers if the value can ever contain reserved chars. Flag any `uri("…${var}…")` in a gateway/client — prefer `uri("…{var}…", value)` with the placeholder pattern.
 
 ### Idioms — TypeScript / Next.js (bc-view)
 
@@ -218,6 +231,11 @@ specific severity:
 | 08 | Bearer token written to logs | 🔴 |
 | 09 | 5-level deep `if`/`else` pyramid | 🟡 |
 | 10 | `get(…)` method hides state mutation | 🟡 (or 🟠) |
+| 11 | `@Cacheable("foo.bar")` whose cache name is missing from `CacheConfig.cacheManager()` | 🟠 |
+| 12 | `@Cacheable` key SpEL `"#a + '-' + #b"` where either component can contain `-` | 🟠 |
+| 13 | Scalar property added under a `@ConfigurationProperties` prefix that also has map siblings (YAML binder break) | 🟠 |
+| 14 | Kotlin 2.x `@Value($$"${prop:default}")` flagged as "invalid syntax" (false-positive regression) | NOT a finding — must NOT be flagged |
+| 15 | `RestClient.uri("/api?from=$var")` string-interpolating into the URI template | 🟡 |
 
 After **any** edit to this `SKILL.md`, re-run the suite to confirm recall
 hasn't regressed:

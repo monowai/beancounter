@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.eodhd
 
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
+import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSplit
 import org.springframework.beans.factory.annotation.Qualifier
@@ -99,6 +100,40 @@ class EodhdGateway(
             .body<Array<EodhdSplit>>()
             ?.toList()
             ?: emptyList()
+
+    /**
+     * News articles tagged with the given symbol.
+     *
+     * GET /api/news?api_token={apiKey}&s={symbol}&limit={limit}&from={from}&fmt=json
+     *
+     * `from` is optional (ISO date or `yyyy-MM-dd`). When omitted EODHD returns the most recent
+     * articles regardless of date. EODHD's free tier exposes a roughly 2-day window and a 1200
+     * request/day quota that's shared with the rest of the free endpoints.
+     */
+    fun getNews(
+        symbol: String,
+        limit: Int = 50,
+        from: String? = null,
+        apiKey: String = DEMO_KEY
+    ): List<EodhdNewsArticle> {
+        // Two URI templates instead of string-interpolating the optional clause — keeps each
+        // placeholder going through RestClient's URI encoding rather than concatenation.
+        val (uri, vars) =
+            if (from.isNullOrBlank()) {
+                "/api/news?api_token={apiKey}&s={symbol}&limit={limit}&fmt=json" to
+                    arrayOf<Any>(apiKey, symbol, limit)
+            } else {
+                "/api/news?api_token={apiKey}&s={symbol}&limit={limit}&from={from}&fmt=json" to
+                    arrayOf<Any>(apiKey, symbol, limit, from)
+            }
+        return restClient
+            .get()
+            .uri(uri, *vars)
+            .retrieve()
+            .body<Array<EodhdNewsArticle>>()
+            ?.toList()
+            ?: emptyList()
+    }
 
     companion object {
         const val DEMO_KEY = "demo"

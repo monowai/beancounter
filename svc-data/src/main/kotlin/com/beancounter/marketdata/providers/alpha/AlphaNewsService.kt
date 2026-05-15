@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.marketdata.providers.NewsProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -32,17 +33,17 @@ class AlphaNewsService(
     private val alphaConfig: AlphaConfig,
     private val objectMapper: ObjectMapper,
     private val newsProperties: NewsProperties
-) {
+) : NewsProvider {
     private val log = LoggerFactory.getLogger(AlphaNewsService::class.java)
 
     @Value("\${beancounter.market.providers.alpha.key:demo}")
     private lateinit var apiKey: String
 
     @Cacheable("news.sentiment", key = "#tickers + '-' + (#market ?: '') + '-' + (#topics ?: '')")
-    fun getNewsSentiment(
+    override fun getNewsSentiment(
         tickers: String,
-        market: String? = null,
-        topics: String? = null
+        market: String?,
+        topics: String?
     ): Map<String, Any> {
         // NEWS_SENTIMENT only covers US-listed equities reliably.
         // Non-US markets return US tickers with the same symbol, so

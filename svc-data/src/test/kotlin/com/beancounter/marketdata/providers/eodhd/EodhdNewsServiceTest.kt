@@ -153,6 +153,61 @@ internal class EodhdNewsServiceTest {
     }
 
     @Test
+    fun `unparseable date timestamp falls back to now instead of throwing`() {
+        // EODHD has occasionally shipped articles with malformed dates; the service must not
+        // crash the request — falls back to `now(UTC)` and stores the row with the rest intact.
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val broken =
+            EodhdNewsArticle(
+                date = "not-a-date",
+                title = "garbage date",
+                content = "body",
+                link = "https://example.com/news/broken",
+                symbols = listOf("AAPL.US"),
+                sentiment = EodhdArticleSentiment(polarity = BigDecimal("0.2"))
+            )
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(broken))
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        // Must not throw.
+        service.getNewsSentiment("AAPL")
+
+        val captor = argumentCaptor<NewsArticle>()
+        verify(articleRepo).save(captor.capture())
+        assertThat(captor.firstValue.title).isEqualTo("garbage date")
+        // Stamped to ~now (in UTC — service uses LocalDateTime.now(ZoneOffset.UTC) as the fallback),
+        // not stuck on EPOCH or null.
+        assertThat(captor.firstValue.published)
+            .isAfter(LocalDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(1))
+    }
+
+    @Test
+    fun `LocalDateTime-shaped published (no zone offset) parses successfully`() {
+        // Defensive path: the EODHD shape is always ISO-with-offset, but the parser falls through
+        // to LocalDateTime.parse() before giving up — pin that branch.
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val noOffset =
+            EodhdNewsArticle(
+                date = "2026-05-15T09:00:00",
+                title = "no offset",
+                content = "body",
+                link = "https://example.com/news/no-offset",
+                symbols = listOf("AAPL.US"),
+                sentiment = EodhdArticleSentiment(polarity = BigDecimal("0.2"))
+            )
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(noOffset))
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getNewsSentiment("AAPL")
+
+        val captor = argumentCaptor<NewsArticle>()
+        verify(articleRepo).save(captor.capture())
+        assertThat(captor.firstValue.published).isEqualTo(LocalDateTime.of(2026, 5, 15, 9, 0, 0))
+    }
+
+    @Test
     fun `upstream failure still advances news_fetch so we don't retry-storm the quota`() {
         // Without this the catch block would leave news_fetch missing/stale, so every subsequent
         // request would re-hit EODHD immediately — exactly the quota-burn scenario this PR fixes.

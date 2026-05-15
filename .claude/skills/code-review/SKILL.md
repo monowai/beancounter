@@ -122,6 +122,10 @@ Apply these only when the diff touches `*.kt` files. Skip if the file is a gener
   - Defaults in `@Value("\${prop:fallback}")` MUST match the corresponding `application.yml` value — silent drift otherwise. When a diff changes one, flag if the other isn't touched.
 - **URI template hygiene** (Spring `RestClient.uri(template, vars)`):
   - String-interpolating values into the template (`"/api?x=$value"`) bypasses Spring's URI encoding and is unsafe even for internal callers if the value can ever contain reserved chars. Flag any `uri("…${var}…")` in a gateway/client — prefer `uri("…{var}…", value)` with the placeholder pattern.
+- **Upstream-failure backoff (quota amplification)**:
+  - When an external API call fails and a cache/cooldown row is only updated on success, every subsequent request re-hits the upstream — turning a transient outage or a 429 into a retry storm that burns quota and amplifies the upstream's load. Flag any provider integration where the cache TTL / cooldown record advances **only** on the success path. Recommend bumping the `last_fetched_at` (or equivalent) in the `catch` block so failures respect the same backoff window. Real BC incident: EODHD news service in PR #845 — caller would have retry-stormed on every 429 until CodeRabbit caught it.
+- **Read-then-save upsert race**:
+  - Code that does `findByX` → conditionally `new()` → `save()` can race when two concurrent transactions both miss the read and both try to insert the same unique key. Postgres throws on the second insert; Spring surfaces it as `DataIntegrityViolationException`. Flag any read-then-save against a `@Column(unique=true)` / `@UniqueConstraint` field that doesn't wrap the `save` in a `try`/`catch` that re-reads the winning row and merges. JPA has no native upsert — the catch-and-retry pattern is the canonical fix without dropping to dialect-specific SQL. Severity 🟠 because the symptom is sporadic 500s, not deterministic, so it slips through tests easily.
 
 ### Idioms — TypeScript / Next.js (bc-view)
 
@@ -236,6 +240,8 @@ specific severity:
 | 13 | Scalar property added under a `@ConfigurationProperties` prefix that also has map siblings (YAML binder break) | 🟠 |
 | 14 | Kotlin 2.x `@Value($$"${prop:default}")` flagged as "invalid syntax" (false-positive regression) | NOT a finding — must NOT be flagged |
 | 15 | `RestClient.uri("/api?from=$var")` string-interpolating into the URI template | 🟡 |
+| 16 | Provider `catch` block doesn't bump cache/cooldown timestamp → next request retry-storms the upstream | 🟠 |
+| 17 | Read-then-save against a unique-constrained column without `DataIntegrityViolationException` retry-as-merge | 🟠 |
 
 After **any** edit to this `SKILL.md`, re-run the suite to confirm recall
 hasn't regressed:

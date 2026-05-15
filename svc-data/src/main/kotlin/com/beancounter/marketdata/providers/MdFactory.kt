@@ -4,6 +4,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
+import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
 import com.beancounter.marketdata.providers.marketstack.MarketStackService
 import com.beancounter.marketdata.providers.morningstar.MorningstarPriceService
 import org.slf4j.LoggerFactory
@@ -23,13 +24,18 @@ class MdFactory internal constructor(
     alphaPriceService: AlphaPriceService,
     privateMarketDataProvider: PrivateMarketDataProvider,
     marketStackService: MarketStackService,
-    morningstarPriceService: MorningstarPriceService
+    morningstarPriceService: MorningstarPriceService,
+    eodhdPriceService: EodhdPriceService
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
             Pair(
                 CashProviderService.ID,
                 cashProviderService
+            ),
+            Pair(
+                EodhdPriceService.ID,
+                eodhdPriceService
             ),
             Pair(
                 MarketStackService.ID,

@@ -56,6 +56,7 @@ logging:
     jdk: error
     io:
       opentelemetry: error
+      micrometer: error
       github:
         resilience4j: error
     okhttp3: error
@@ -307,19 +308,22 @@ beancounter:
           name: "Market Index"
 
   # Pre-seed market index assets created at startup. All routed to the
-  # synthetic INDEX market and priced by Alpha Vantage (TIME_SERIES_DAILY).
+  # synthetic INDEX market. EODHD's `.INDX` exchange handles these natively
+  # in the EOD plan; AlphaVantage historically required the `^GSPC`-style
+  # Yahoo prefix but kauri's AV key lacks INDEX_DATA entitlement, so the
+  # provider for INDEX market is opt-in per env via `eodhd.markets`.
   indices:
     values:
-      - code: "^GSPC"
+      - code: "GSPC"
         name: "S&P 500"
         currency: "USD"
-      - code: "^IXIC"
+      - code: "IXIC"
         name: "NASDAQ Composite"
         currency: "USD"
-      - code: "^DJI"
+      - code: "DJI"
         name: "Dow Jones Industrial Average"
         currency: "USD"
-      - code: "^FTSE"
+      - code: "FTSE"
         name: "FTSE 100"
         currency: "GBP"
 
@@ -469,12 +473,13 @@ beancounter:
         timezoneId: "US/Eastern"
         enricher: "DEFAULT"
         type: "Index"
-        active: false
+        aliases:
+          eodhd: "INDX"
     providers:
       alpha:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX,INDEX"
+        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX"
         news:
           # Minimum per-ticker relevance_score (0.0-1.0) to keep an article.
           # Raise to narrow to only strongly-on-topic news; lower to be

@@ -34,17 +34,17 @@ class AlphaIndexBackFillTest {
     fun `backFill uses getHistoric for INDEX category asset`() {
         val sp500 =
             Asset(
-                code = "^GSPC",
-                id = "^GSPC",
+                code = "GSPC",
+                id = "GSPC",
                 market = INDEX_MARKET,
-                priceSymbol = "^GSPC",
+                priceSymbol = "GSPC",
                 category = AssetCategory.INDEX
             )
-        whenever(proxy.getHistoric(eq("^GSPC"), any())).thenReturn(emptyHistoric)
+        whenever(proxy.getHistoric(eq("GSPC"), any())).thenReturn(emptyHistoric)
 
         val response = service.backFill(sp500)
 
-        verify(proxy).getHistoric(eq("^GSPC"), any())
+        verify(proxy).getHistoric(eq("GSPC"), any())
         verify(proxy, never()).getAdjusted(any(), any())
         assertThat(response.data).isEmpty()
     }

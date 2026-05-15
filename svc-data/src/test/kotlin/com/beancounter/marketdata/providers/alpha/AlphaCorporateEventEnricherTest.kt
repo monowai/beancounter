@@ -447,8 +447,8 @@ class AlphaCorporateEventEnricherTest {
     fun `should skip enrichment for INDEX category assets`() {
         val indexAsset =
             Asset(
-                id = "^GSPC",
-                code = "^GSPC",
+                id = "GSPC",
+                code = "GSPC",
                 market = INDEX_MARKET,
                 category = AssetCategory.INDEX
             )

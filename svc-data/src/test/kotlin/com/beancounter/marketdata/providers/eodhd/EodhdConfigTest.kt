@@ -41,6 +41,18 @@ internal class EodhdConfigTest {
     }
 
     @Test
+    fun `getPriceCode resolves INDEX market assets to the INDX exchange suffix`() {
+        val index = Market(code = "INDEX", aliases = mapOf("eodhd" to "INDX"))
+        val ms = mock<MarketService>()
+        whenever(ms.getMarket("INDEX")).thenReturn(index)
+
+        val cfg = EodhdConfig(ms)
+        val sp500 = Asset(code = "GSPC", market = index)
+
+        assertThat(cfg.getPriceCode(sp500)).isEqualTo("GSPC.INDX")
+    }
+
+    @Test
     fun `getPriceCode honours an explicit priceSymbol override on the asset`() {
         val lon = Market(code = "LON", aliases = mapOf("eodhd" to "LSE"))
         val ms = mock<MarketService>()

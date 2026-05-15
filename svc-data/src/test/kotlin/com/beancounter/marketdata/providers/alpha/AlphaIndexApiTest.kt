@@ -59,7 +59,7 @@ class AlphaIndexApiTest {
         indexSeedRunner.seed()
 
         val codes = indexConfig.values.map { it.code }
-        assertThat(codes).contains("^GSPC")
+        assertThat(codes).contains("GSPC")
 
         val response =
             assetService.handle(
@@ -68,7 +68,7 @@ class AlphaIndexApiTest {
                         "gspc" to
                             AssetInput(
                                 market = INDEX_MARKET_CODE,
-                                code = "^GSPC"
+                                code = "GSPC"
                             )
                     )
                 )
@@ -82,7 +82,7 @@ class AlphaIndexApiTest {
     @Test
     fun `backFill of index asset persists prices via TIME_SERIES_DAILY`() {
         mockHistoricResponse(
-            "^GSPC",
+            "GSPC",
             ClassPathResource("$ALPHA_MOCK/gspc-historic.json").file
         )
 
@@ -95,7 +95,7 @@ class AlphaIndexApiTest {
                             "gspc" to
                                 AssetInput(
                                     market = INDEX_MARKET_CODE,
-                                    code = "^GSPC"
+                                    code = "GSPC"
                                 )
                         )
                     )

@@ -367,8 +367,9 @@ class AssetSearchService(
 
             val results =
                 response.data?.tickers?.map { ticker ->
-                    // Extract the asset code from symbol (e.g., "D05.SI" -> "D05")
-                    val assetCode = ticker.symbol.substringBefore(".")
+                    // Strip the exchange suffix only — `substringBeforeLast` keeps any class
+                    // indicator inside the symbol (e.g. "BRK.B.US" → "BRK.B", "D05.SI" → "D05").
+                    val assetCode = ticker.symbol.substringBeforeLast(".")
                     AssetSearchResult(
                         symbol = assetCode,
                         name = ticker.name,
@@ -422,8 +423,15 @@ class AssetSearchService(
         }
 
     private fun toSearchResult(asset: Asset): AssetSearchResult {
-        // Private asset codes are stored as "{userId}.{CODE}" - extract just the code portion
-        val displayCode = asset.code.substringAfter(".")
+        // Private asset codes are stored as "{userId}.{CODE}" — extract the code portion only
+        // when the asset truly is PRIVATE. Without the gate, dotted public tickers like BRK.B
+        // get their prefix amputated to "B" on the way out.
+        val displayCode =
+            if (asset.marketCode == "PRIVATE") {
+                asset.code.substringAfter(".")
+            } else {
+                asset.code
+            }
         return AssetSearchResult(
             symbol = displayCode,
             name = asset.name ?: displayCode,

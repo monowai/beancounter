@@ -81,6 +81,29 @@ class AssetSearchServiceTest {
     }
 
     @Test
+    fun `dotted public tickers preserve their full code through local search`() {
+        // Regression: BRK.B (Berkshire Hathaway class B) reported as "B" because the
+        // dot-strip used for `{userId}.{CODE}` private assets was firing for every asset,
+        // not just PRIVATE-market ones.
+        val nasdaq = Market("NASDAQ", currencyId = "USD")
+        assetRepository.save(
+            Asset(
+                id = "brk-b",
+                code = "BRK.B",
+                name = "Berkshire Hathaway Inc Class B",
+                market = nasdaq,
+                marketCode = "NASDAQ",
+                category = "Equity"
+            )
+        )
+
+        val results = assetSearchService.search("BRK.B", null)
+
+        assertThat(results.data).isNotEmpty
+        assertThat(results.data.first().symbol).isEqualTo("BRK.B")
+    }
+
+    @Test
     fun `search handles asset with null priceSymbol resolving currency from market`() {
         // market is @Transient so JPA won't populate it on read.
         // When priceSymbol is also null, currency should be resolved via MarketService.

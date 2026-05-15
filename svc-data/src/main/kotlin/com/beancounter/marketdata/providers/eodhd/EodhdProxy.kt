@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
+import com.beancounter.marketdata.providers.eodhd.model.EodhdSplit
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.stereotype.Service
 
@@ -37,6 +39,26 @@ class EodhdProxy(
             symbol,
             dateFrom,
             dateTo,
+            apiKey
+        )
+
+    @RateLimiter(name = "eodhd")
+    fun getDividends(
+        symbol: String,
+        apiKey: String
+    ): List<EodhdDividend> =
+        eodhdGateway.getDividends(
+            symbol,
+            apiKey
+        )
+
+    @RateLimiter(name = "eodhd")
+    fun getSplits(
+        symbol: String,
+        apiKey: String
+    ): List<EodhdSplit> =
+        eodhdGateway.getSplits(
+            symbol,
             apiKey
         )
 }

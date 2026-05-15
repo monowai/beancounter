@@ -38,7 +38,9 @@ class EodhdAdapter {
             ).also {
                 it.high = row.high
                 it.low = row.low
-                it.volume = row.volume.toInt()
+                // MarketData.volume is Int; EODHD ships Long. Clamp so high-volume tickers
+                // (e.g. heavy ETF flow days) don't silently overflow to a negative Int.
+                it.volume = row.volume.coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
             }
         }
     }

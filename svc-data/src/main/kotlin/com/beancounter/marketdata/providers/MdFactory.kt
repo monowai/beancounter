@@ -34,10 +34,6 @@ class MdFactory internal constructor(
                 cashProviderService
             ),
             Pair(
-                EodhdPriceService.ID,
-                eodhdPriceService
-            ),
-            Pair(
                 MarketStackService.ID,
                 marketStackService
             ),
@@ -52,6 +48,15 @@ class MdFactory internal constructor(
             Pair(
                 MorningstarPriceService.ID,
                 morningstarPriceService
+            ),
+            // EODHD is appended last so it never wins by iteration order — its empty-by-default
+            // `markets` allowlist already makes it inert until an operator opts in, but keeping the
+            // documented Cash → MarketStack → Alpha → Private → Morningstar precedence intact means
+            // routing changes for an existing market require an explicit config change, never a
+            // bean-registration order shift.
+            Pair(
+                EodhdPriceService.ID,
+                eodhdPriceService
             )
         )
 

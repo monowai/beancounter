@@ -11,6 +11,7 @@ import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInsta
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
 import java.time.LocalDate
 
 /**
@@ -48,7 +49,16 @@ class EodhdPriceService(
             val symbol = providerArguments.batch[batchId] ?: continue
             val asset = providerArguments.getAsset(symbol)
             val priceDate = providerArguments.getBatchConfigs(batchId)?.date ?: dateUtils.today()
-            val rows = eodhdProxy.getPrice(symbol, priceDate, eodhdConfig.apiKey)
+            // A 4xx for one symbol must not abort the whole batch — bc-position
+            // schedules valuations across every portfolio, so one bad ticker would
+            // otherwise halt every portfolio sequenced after it.
+            val rows =
+                try {
+                    eodhdProxy.getPrice(symbol, priceDate, eodhdConfig.apiKey)
+                } catch (e: HttpClientErrorException) {
+                    log.warn("EODHD {} for {} on {} — skipping", e.statusCode, symbol, priceDate)
+                    continue
+                }
             results.addAll(
                 eodhdAdapter.toMarketData(asset, LocalDate.parse(priceDate), rows)
             )

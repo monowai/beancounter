@@ -151,7 +151,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
+    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, market.holidays
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true

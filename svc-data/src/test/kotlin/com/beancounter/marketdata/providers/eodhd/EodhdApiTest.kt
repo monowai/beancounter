@@ -3,6 +3,8 @@ package com.beancounter.marketdata.providers.eodhd
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.model.Market
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
@@ -59,6 +61,66 @@ internal class EodhdApiTest {
         assertThat(md.source).isEqualTo(ID)
         assertThat(md.close).isEqualByComparingTo(BigDecimal("237.33"))
         assertThat(md.open).isEqualByComparingTo(BigDecimal("234.81"))
+    }
+
+    @Test
+    fun `routes LON symbols via the LSE exchange suffix`() {
+        // BARC on the London Stock Exchange — confirms the `LON → LSE` alias
+        // produces `BARC.LSE`, the EODHD ticker for Barclays.
+        val barc = getTestAsset(Market("LON"), "BARC")
+        stubEod("BARC.LSE", "mock/eodhd/BARC-LON.json")
+
+        val result =
+            eodhdPriceService.getMarketData(
+                PriceRequest(
+                    "2024-11-29",
+                    listOf(PriceAsset(barc))
+                )
+            )
+
+        assertThat(result).hasSize(1)
+        assertThat(result.first().close).isEqualByComparingTo(BigDecimal("274.85"))
+        assertThat(result.first().source).isEqualTo(ID)
+    }
+
+    @Test
+    fun `backFill streams historical EOD rows for the requested asset`() {
+        // Exercises EodhdPriceService.backFill → EodhdProxy.getHistory → EodhdGateway.getHistory
+        // end-to-end. The history fixture carries two trading days; both should round-trip.
+        stubEod("AAPL.US", "mock/eodhd/AAPL-US-history.json")
+
+        val result = eodhdPriceService.backFill(AAPL)
+
+        assertThat(result.data).hasSize(2)
+        val byDate = result.data.associateBy { it.priceDate.toString() }
+        assertThat(byDate["2024-11-29"]?.close).isEqualByComparingTo(BigDecimal("237.33"))
+        assertThat(byDate["2024-11-27"]?.close).isEqualByComparingTo(BigDecimal("234.93"))
+        result.data.forEach { md -> assertThat(md.source).isEqualTo(ID) }
+    }
+
+    @Test
+    fun `provider metadata exposes EODHD identity and the configured allowlist`() {
+        // Cheap surface checks for MarketDataPriceProvider plumbing. The h2db/eodhd test
+        // profile sets markets to "NASDAQ,AMEX,NYSE,LON" so US-aliased and LON markets are
+        // supported while APAC markets fall through to other providers.
+        assertThat(eodhdPriceService.getId()).isEqualTo(ID)
+        assertThat(eodhdPriceService.isApiSupported()).isTrue
+        assertThat(eodhdPriceService.isMarketSupported(Market("NASDAQ"))).isTrue
+        assertThat(eodhdPriceService.isMarketSupported(Market("LON"))).isTrue
+        assertThat(eodhdPriceService.isMarketSupported(Market("ASX"))).isFalse
+    }
+
+    @Test
+    fun `getDate resolves a previous-close date for the requested market`() {
+        // Smoke-tests the EodhdConfig.getMarketDate plumbing — non-null, ISO format, no throw.
+        val date =
+            eodhdPriceService.getDate(
+                Market("NASDAQ"),
+                PriceRequest("2024-11-29", emptyList())
+            )
+
+        assertThat(date).isNotNull
+        assertThat(date.toString()).matches("\\d{4}-\\d{2}-\\d{2}")
     }
 
     @Test

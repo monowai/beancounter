@@ -55,7 +55,7 @@ logging:
     netflix: error
     jdk: error
     io:
-      openttelemetry: error
+      opentelemetry: error
       github:
         resilience4j: error
     okhttp3: error

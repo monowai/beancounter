@@ -15,9 +15,10 @@ import java.time.Duration
 /**
  * Cache Enablement configuration.
  *
- * Configures alpha.asset.event with a 10-minute TTL via Caffeine
- * to ensure fresh dividend data from Alpha Vantage.
- * All other caches use ConcurrentMapCache (no expiry).
+ * Defines the cache manager programmatically so each cache can pick its own backing store
+ * (concurrent map for cheap reference data; Caffeine with TTL for provider-fetched data that
+ * needs freshness). Because the bean is explicit, the `spring.cache.cache-names` property in
+ * `application.yml` is ignored — every cache used via `@Cacheable` must be listed here.
  */
 @Configuration
 @EnableCaching
@@ -37,7 +38,9 @@ class CacheConfig {
             DEFAULT_CACHES.map { name ->
                 ConcurrentMapCache(name)
             } + CaffeineCache("alpha.asset.event", Duration.ofMinutes(10), 200) +
-                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100)
+                CaffeineCache("eodhd.asset.event", Duration.ofMinutes(10), 200) +
+                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100) +
+                CaffeineCache("eodhd.news.sentiment", Duration.ofMinutes(30), 100)
 
         return SimpleCacheManager().apply {
             setCaches(caches)

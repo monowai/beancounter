@@ -19,6 +19,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.test.util.ReflectionTestUtils
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -152,6 +153,58 @@ internal class EodhdNewsServiceTest {
     }
 
     @Test
+    fun `upstream failure still advances news_fetch so we don't retry-storm the quota`() {
+        // Without this the catch block would leave news_fetch missing/stale, so every subsequent
+        // request would re-hit EODHD immediately — exactly the quota-burn scenario this PR fixes.
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        whenever(proxy.getNews(any(), any(), anyOrNull(), any())).thenThrow(RuntimeException("EODHD 429"))
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getNewsSentiment("AAPL")
+
+        val captor = argumentCaptor<NewsFetch>()
+        verify(fetchRepo).save(captor.capture())
+        assertThat(captor.firstValue.ticker).isEqualTo("AAPL.US")
+        // last_fetched_at advanced to ~now so the next refresh waits the configured backoff.
+        assertThat(captor.firstValue.lastFetchedAt)
+            .isAfter(LocalDateTime.now().minusMinutes(1))
+    }
+
+    @Test
+    fun `concurrent insert race on externalId is recovered via merge into the winning row`() {
+        // Simulate: read miss → save fails on the unique constraint because another transaction
+        // raced ahead and inserted the same external_id → service re-reads and merges into the
+        // winner. End state must be a single article with the latest payload.
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val incoming = eodhArticle(0.6, link = "https://example.com/news/race")
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(incoming))
+
+        val winner =
+            NewsArticle(
+                externalId = "https://example.com/news/race",
+                title = "winner inserted first"
+            )
+        whenever(articleRepo.findByExternalId(eq("https://example.com/news/race")))
+            // First call: no row exists yet (we read before save).
+            // Second call (after the constraint violation): the winning row exists.
+            .thenReturn(Optional.empty(), Optional.of(winner))
+        // First save throws — simulates the unique-constraint collision with the racing transaction.
+        whenever(articleRepo.save(any<NewsArticle>()))
+            .thenThrow(DataIntegrityViolationException("uk_news_article_external"))
+            .thenAnswer { it.arguments[0] }
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getNewsSentiment("AAPL")
+
+        // Two saves expected: the failing original and the merged retry into the winner.
+        val captor = argumentCaptor<NewsArticle>()
+        verify(articleRepo, org.mockito.Mockito.times(2)).save(captor.capture())
+        assertThat(captor.allValues).hasSize(2)
+        assertThat(captor.allValues.last().id).isEqualTo(winner.id)
+        assertThat(captor.allValues.last().title).isEqualTo(incoming.title)
+    }
+
+    @Test
     fun `dedup upsert reuses an existing article row keyed by externalId`() {
         whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
         val incoming = eodhArticle(0.6, link = "https://example.com/news/123")
@@ -166,13 +219,19 @@ internal class EodhdNewsServiceTest {
             .thenReturn(Optional.of(existing))
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
+        // Snapshot the id BEFORE invoking the service. `NewsArticle.id` is auto-initialised via
+        // `KeyGenUtils()` so it's always non-null — capturing it here makes the round-trip explicit
+        // and rules out an accidental new-entity instantiation path.
+        val originalId = existing.id
+
         service.getNewsSentiment("AAPL")
 
         val captor = argumentCaptor<NewsArticle>()
         verify(articleRepo).save(captor.capture())
         // The same instance is reused (id preserved), with content fields overwritten by the
         // upstream payload — this is the contract that prevents duplicate rows on refresh.
-        assertThat(captor.firstValue.id).isEqualTo(existing.id)
+        assertThat(captor.firstValue.id).isEqualTo(originalId)
+        assertThat(captor.firstValue.id).isNotBlank()
         assertThat(captor.firstValue.title).isEqualTo(incoming.title)
     }
 

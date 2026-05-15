@@ -9,6 +9,7 @@ import com.beancounter.marketdata.providers.eodhd.news.NewsFetch
 import com.beancounter.marketdata.providers.eodhd.news.NewsFetchRepo
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -97,8 +98,13 @@ class EodhdNewsService(
             e: Exception
         ) {
             log.debug("EODHD news lookup failed for {}: {}", symbol, e.message)
-            // Don't poison the next refresh — keep the existing news_fetch row so the stale-cutoff
-            // logic falls back to whatever the DB has without thrashing on a broken upstream.
+            // Burn the refresh cooldown even on failure — otherwise a transient EODHD outage
+            // or 429 turns every subsequent request into a quota-amplifying retry storm. Next
+            // attempt waits `refresh-after-hours`, matching the success-path backoff. Articles
+            // already in the DB keep serving in the meantime.
+            val existing = newsFetchRepo.findById(symbol).orElseGet { NewsFetch(symbol) }
+            existing.lastFetchedAt = LocalDateTime.now()
+            newsFetchRepo.save(existing)
         }
     }
 
@@ -108,35 +114,64 @@ class EodhdNewsService(
     ) {
         for (incoming in fresh) {
             val externalId = incoming.link.ifBlank { "${incoming.date}|${incoming.title}" }
-            val existing = newsArticleRepo.findByExternalId(externalId).orElse(null)
-            val article = existing ?: NewsArticle(externalId = externalId)
-            article.externalId = externalId
-            article.published = parsePublished(incoming.date)
-            article.title = incoming.title
-            article.content = incoming.content
-            article.link = incoming.link
-            incoming.sentiment?.let { s ->
-                article.polarity = s.polarity
-                article.sentimentPos = s.pos
-                article.sentimentNeg = s.neg
-                article.sentimentNeu = s.neu
-            }
-            article.source = "EODHD"
-            article.fetchedAt = LocalDateTime.now()
+            saveOrMerge(symbol, externalId, incoming)
+        }
+    }
 
-            // Refresh the tag set — EODHD can revise tags between fetches.
-            article.tags.clear()
-            article.tags.addAll(incoming.tags)
-
-            // Symbols: keep raw EODHD tickers + ensure the queried symbol is always present so a
-            // ticker that only appears in `symbols[]` on one update isn't lost.
-            val symbolSet = (incoming.symbols + symbol).toSet()
-            val existingTickers = article.tickerLinks.map { it.ticker }.toSet()
-            for (t in symbolSet - existingTickers) {
-                article.tickerLinks.add(NewsArticleTicker(ticker = t))
-            }
-
+    /**
+     * Defensive upsert: read-then-save can race when two concurrent refreshes for overlapping
+     * tickers find the same `external_id` missing and both try to insert. The DB unique constraint
+     * catches one transaction with a [DataIntegrityViolationException]; we then re-fetch the row
+     * the winner inserted and merge our fields into it. Idempotent — at worst we do one extra read
+     * + write on contention.
+     */
+    private fun saveOrMerge(
+        symbol: String,
+        externalId: String,
+        incoming: EodhdNewsArticle
+    ) {
+        val existing = newsArticleRepo.findByExternalId(externalId).orElse(null)
+        val article = existing ?: NewsArticle(externalId = externalId)
+        applyIncoming(article, externalId, symbol, incoming)
+        try {
             newsArticleRepo.save(article)
+        } catch (e: DataIntegrityViolationException) {
+            val winner = newsArticleRepo.findByExternalId(externalId).orElseThrow { e }
+            applyIncoming(winner, externalId, symbol, incoming)
+            newsArticleRepo.save(winner)
+        }
+    }
+
+    private fun applyIncoming(
+        article: NewsArticle,
+        externalId: String,
+        symbol: String,
+        incoming: EodhdNewsArticle
+    ) {
+        article.externalId = externalId
+        article.published = parsePublished(incoming.date)
+        article.title = incoming.title
+        article.content = incoming.content
+        article.link = incoming.link
+        incoming.sentiment?.let { s ->
+            article.polarity = s.polarity
+            article.sentimentPos = s.pos
+            article.sentimentNeg = s.neg
+            article.sentimentNeu = s.neu
+        }
+        article.source = "EODHD"
+        article.fetchedAt = LocalDateTime.now()
+
+        // Refresh the tag set — EODHD can revise tags between fetches.
+        article.tags.clear()
+        article.tags.addAll(incoming.tags)
+
+        // Symbols: keep raw EODHD tickers + ensure the queried symbol is always present so a
+        // ticker that only appears in `symbols[]` on one update isn't lost.
+        val symbolSet = (incoming.symbols + symbol).toSet()
+        val existingTickers = article.tickerLinks.map { it.ticker }.toSet()
+        for (t in symbolSet - existingTickers) {
+            article.tickerLinks.add(NewsArticleTicker(ticker = t))
         }
     }
 

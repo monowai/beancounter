@@ -153,6 +153,17 @@ interface AssetRepository : CrudRepository<Asset, String> {
     fun countByAccountingTypeId(id: String): Long
 
     /**
+     * Group asset count by [Asset.marketCode]. Surfaced as the
+     * `beancounter.asset.count.by_market` MultiGauge — see
+     * [com.beancounter.marketdata.metrics.EntityCountMetrics].
+     */
+    @Query(
+        "SELECT new com.beancounter.marketdata.metrics.MarketCount(a.marketCode, COUNT(a)) " +
+            "FROM Asset a GROUP BY a.marketCode ORDER BY COUNT(a) DESC"
+    )
+    fun countByMarketCode(): List<com.beancounter.marketdata.metrics.MarketCount>
+
+    /**
      * Search all assets in the database by code or name (case-insensitive partial match).
      * Used for local-only asset lookup to find assets without calling external providers.
      * Returns distinct assets to avoid duplicates when same asset is held in multiple portfolios.

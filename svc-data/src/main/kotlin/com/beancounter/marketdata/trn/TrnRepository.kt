@@ -319,4 +319,14 @@ interface TrnRepository :
             "where t.portfolio.id in (?1)"
     )
     fun findDistinctAssetIdsByPortfolioIds(portfolioIds: Collection<String>): Collection<String>
+
+    /**
+     * Group transaction count by [com.beancounter.common.model.TrnType].
+     * Surfaced as the `beancounter.transaction.count.by_type` MultiGauge.
+     */
+    @Query(
+        "SELECT new com.beancounter.marketdata.metrics.TypeCount(CAST(t.trnType AS string), COUNT(t)) " +
+            "FROM Trn t GROUP BY t.trnType ORDER BY COUNT(t) DESC"
+    )
+    fun countByTrnType(): List<com.beancounter.marketdata.metrics.TypeCount>
 }

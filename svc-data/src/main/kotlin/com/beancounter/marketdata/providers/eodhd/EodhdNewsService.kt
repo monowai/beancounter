@@ -2,37 +2,44 @@ package com.beancounter.marketdata.providers.eodhd
 
 import com.beancounter.marketdata.providers.NewsProvider
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
+import com.beancounter.marketdata.providers.eodhd.news.NewsArticle
+import com.beancounter.marketdata.providers.eodhd.news.NewsArticleRepo
+import com.beancounter.marketdata.providers.eodhd.news.NewsArticleTicker
+import com.beancounter.marketdata.providers.eodhd.news.NewsFetch
+import com.beancounter.marketdata.providers.eodhd.news.NewsFetchRepo
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeParseException
 import kotlin.math.abs
 
 /**
- * EODHD `/api/news` adapter, projecting the EODHD response into the AV-compatible `{feed, count}`
- * shape that svc-agent's NewsTools already consumes.
+ * DB-backed EODHD news adapter. The read path always returns from the [NewsArticle] table; the
+ * write path only re-hits EODHD when the per-ticker entry in [NewsFetch] is older than
+ * `eodhd.news.refresh-after-hours` (default 6h). Articles persist for `retention-days` (default 30)
+ * and the daily [com.beancounter.marketdata.providers.eodhd.news.NewsRetentionSchedule] prunes
+ * anything older.
  *
- * Each ticker is queried individually because EODHD's news endpoint is single-symbol. The merged
- * results are ranked by `|sentiment.polarity|` (strongest opinion first) and truncated to
- * [EodhdNewsProperties.maxArticles] so the LLM tool_result stays compact.
- *
- * EODHD's response carries a richer per-article sentiment than AV (polarity + pos/neg/neu split).
- * The projection keeps both the AV-style `sentimentLabel` / `sentimentScore` keys so existing
- * consumers don't change shape, and adds `polarity` + `tags` + `symbols` as bonus fields the
- * LLM can use for context.
+ * The projection back to the caller keeps the AV-compatible `{feed, count}` shape so
+ * svc-agent's NewsTools doesn't change. EODHD-specific fields (`polarity`, `tags`, `symbols`) are
+ * also returned because they're useful context for the LLM.
  */
 @Service
 class EodhdNewsService(
     private val eodhdProxy: EodhdProxy,
     private val eodhdConfig: EodhdConfig,
-    private val newsProperties: EodhdNewsProperties
+    private val newsProperties: EodhdNewsProperties,
+    private val newsArticleRepo: NewsArticleRepo,
+    private val newsFetchRepo: NewsFetchRepo
 ) : NewsProvider {
     private val log = LoggerFactory.getLogger(EodhdNewsService::class.java)
 
-    // Key components are separated by `|` and each null defaults to a sentinel so the cache
-    // doesn't collide on legitimate values that contain dashes (e.g. tickers like `BRK-B`).
-    @Cacheable("eodhd.news.sentiment", key = "#tickers + '|' + (#market ?: '~') + '|' + (#topics ?: '~')")
+    @Transactional
     override fun getNewsSentiment(
         tickers: String,
         market: String?,
@@ -41,31 +48,20 @@ class EodhdNewsService(
         val symbols = resolveSymbols(tickers, market)
         if (symbols.isEmpty()) return emptyMap()
 
-        val all = mutableListOf<EodhdNewsArticle>()
+        val refreshCutoff = LocalDateTime.now().minusHours(newsProperties.refreshAfterHours)
         for (symbol in symbols) {
-            try {
-                all.addAll(
-                    eodhdProxy.getNews(
-                        symbol = symbol,
-                        limit = newsProperties.providerLimit,
-                        from = null,
-                        apiKey = eodhdConfig.apiKey
-                    )
-                )
-            } catch (
-                @Suppress("TooGenericExceptionCaught")
-                e: Exception
-            ) {
-                log.debug("EODHD news lookup failed for {}: {}", symbol, e.message)
+            if (shouldRefresh(symbol, refreshCutoff)) {
+                refreshFromUpstream(symbol)
             }
         }
-        if (all.isEmpty()) return emptyMap()
 
+        val retentionStart = LocalDateTime.now().minusDays(newsProperties.retentionDays)
+        val stored = newsArticleRepo.findByTickersAfter(symbols, retentionStart)
         val ranked =
-            all
+            stored
                 .asSequence()
                 .filter { topics.isNullOrBlank() || matchesTopic(it, topics) }
-                .sortedByDescending { abs(polarityOf(it)) }
+                .sortedByDescending { abs(it.polarity.toDouble()) }
                 .take(newsProperties.maxArticles)
                 .map { project(it) }
                 .toList()
@@ -77,11 +73,91 @@ class EodhdNewsService(
         )
     }
 
-    /**
-     * Compose `${ticker}.${exchange}` per EODHD's convention.
-     * - When a market is supplied, look up its `eodhd:` alias (US, LSE, AU, …).
-     * - When omitted, default to the `US` exchange — EODHD's convention for NYSE/NASDAQ/AMEX equities.
-     */
+    private fun shouldRefresh(
+        symbol: String,
+        cutoff: LocalDateTime
+    ): Boolean {
+        val meta = newsFetchRepo.findById(symbol).orElse(null)
+        return meta == null || meta.lastFetchedAt.isBefore(cutoff)
+    }
+
+    private fun refreshFromUpstream(symbol: String) {
+        try {
+            val fresh =
+                eodhdProxy.getNews(
+                    symbol = symbol,
+                    limit = newsProperties.providerLimit,
+                    from = null,
+                    apiKey = eodhdConfig.apiKey
+                )
+            upsertAll(symbol, fresh)
+            newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(), fresh.size))
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug("EODHD news lookup failed for {}: {}", symbol, e.message)
+            // Don't poison the next refresh — keep the existing news_fetch row so the stale-cutoff
+            // logic falls back to whatever the DB has without thrashing on a broken upstream.
+        }
+    }
+
+    private fun upsertAll(
+        symbol: String,
+        fresh: List<EodhdNewsArticle>
+    ) {
+        for (incoming in fresh) {
+            val externalId = incoming.link.ifBlank { "${incoming.date}|${incoming.title}" }
+            val existing = newsArticleRepo.findByExternalId(externalId).orElse(null)
+            val article = existing ?: NewsArticle(externalId = externalId)
+            article.externalId = externalId
+            article.published = parsePublished(incoming.date)
+            article.title = incoming.title
+            article.content = incoming.content
+            article.link = incoming.link
+            incoming.sentiment?.let { s ->
+                article.polarity = s.polarity
+                article.sentimentPos = s.pos
+                article.sentimentNeg = s.neg
+                article.sentimentNeu = s.neu
+            }
+            article.source = "EODHD"
+            article.fetchedAt = LocalDateTime.now()
+
+            // Refresh the tag set — EODHD can revise tags between fetches.
+            article.tags.clear()
+            article.tags.addAll(incoming.tags)
+
+            // Symbols: keep raw EODHD tickers + ensure the queried symbol is always present so a
+            // ticker that only appears in `symbols[]` on one update isn't lost.
+            val symbolSet = (incoming.symbols + symbol).toSet()
+            val existingTickers = article.tickerLinks.map { it.ticker }.toSet()
+            for (t in symbolSet - existingTickers) {
+                article.tickerLinks.add(NewsArticleTicker(ticker = t))
+            }
+
+            newsArticleRepo.save(article)
+        }
+    }
+
+    private fun parsePublished(raw: String): LocalDateTime =
+        try {
+            // EODHD ships `2026-05-15T05:15:00+00:00` — keep an OffsetDateTime parse for safety.
+            OffsetDateTime.parse(raw).toLocalDateTime()
+        } catch (
+            @Suppress("SwallowedException")
+            e: DateTimeParseException
+        ) {
+            try {
+                LocalDateTime.parse(raw)
+            } catch (
+                @Suppress("SwallowedException")
+                e2: DateTimeParseException
+            ) {
+                LocalDateTime.now(ZoneOffset.UTC)
+            }
+        }
+
     private fun resolveSymbols(
         tickers: String,
         market: String?
@@ -107,31 +183,29 @@ class EodhdNewsService(
             .map { "$it.$exchange" }
     }
 
-    private fun polarityOf(article: EodhdNewsArticle): Double = article.sentiment?.polarity?.toDouble() ?: 0.0
-
     private fun matchesTopic(
-        article: EodhdNewsArticle,
+        article: NewsArticle,
         topic: String
     ): Boolean {
         val needle = topic.trim().uppercase()
         return article.tags.any { it.uppercase() == needle }
     }
 
-    private fun project(article: EodhdNewsArticle): Map<String, Any> {
-        val polarity = polarityOf(article)
+    private fun project(article: NewsArticle): Map<String, Any> {
+        val polarity = article.polarity.toDouble()
         return mapOf(
             "title" to article.title,
             "summary" to article.content.take(SUMMARY_CHARS),
             "source" to article.link,
-            "timePublished" to article.date,
+            "timePublished" to article.published.toString(),
             "sentimentLabel" to labelFor(polarity),
             "sentimentScore" to scaledScore(polarity),
             "relevance" to 1.0,
             "tickerSentimentLabel" to labelFor(polarity),
             "tickerSentimentScore" to scaledScore(polarity),
             "polarity" to polarity,
-            "symbols" to article.symbols,
-            "tags" to article.tags
+            "symbols" to article.tickerLinks.map { it.ticker },
+            "tags" to article.tags.toList()
         )
     }
 
@@ -146,13 +220,9 @@ class EodhdNewsService(
         }
 
     companion object {
-        // Cap the article body fed back to the LLM so tool_result payloads stay small.
         private const val SUMMARY_CHARS = 400
-
-        // EODHD polarity is roughly [-1, 1]. Bands align with AV's Bullish/Neutral/Bearish vocabulary.
         private const val BULLISH_THRESHOLD = 0.35
         private const val BEARISH_THRESHOLD = -0.35
-
         private val TICKER_PATTERN = Regex("[A-Z0-9.-]{1,10}")
     }
 }

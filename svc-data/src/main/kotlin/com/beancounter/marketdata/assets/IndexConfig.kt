@@ -16,7 +16,11 @@ class IndexConfig {
 }
 
 data class IndexDefinition(
-    /** Alpha Vantage symbol, e.g. "^GSPC". */
+    /**
+     * Bare symbol with no Yahoo-style caret prefix, e.g. "GSPC" (not "^GSPC").
+     * EODHD composes the lookup as `${code}.INDX` via the INDEX market alias;
+     * V18 migration retroactively strips the prefix from any historical rows.
+     */
     var code: String = "",
     var name: String = "",
     /** ISO currency code the index is quoted in. */

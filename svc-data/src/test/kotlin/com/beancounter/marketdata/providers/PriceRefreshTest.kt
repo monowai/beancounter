@@ -171,7 +171,7 @@ internal class PriceRefreshTest {
 
     @Test
     fun `findActiveIndexAssets returns INDEX market assets without holdings`() {
-        val indexCode = "^GSPC_TEST"
+        val indexCode = "GSPC_TEST"
         val indexMarket = Market("INDEX")
         assetRepository.save(
             Asset(
@@ -189,7 +189,7 @@ internal class PriceRefreshTest {
 
     @Test
     fun `updatePrices includes index assets even without holdings`() {
-        val indexCode = "^GSPC_REFRESH"
+        val indexCode = "GSPC_REFRESH"
         val indexMarket = Market("INDEX")
         Mockito
             .`when`(alphaPriceService.isMarketSupported(org.mockito.kotlin.any()))

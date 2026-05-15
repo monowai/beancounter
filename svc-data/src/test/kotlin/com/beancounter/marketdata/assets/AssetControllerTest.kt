@@ -256,14 +256,14 @@ internal class AssetControllerTest {
         val gspc =
             AssetInput(
                 market = "INDEX",
-                code = "^GSPC",
+                code = "GSPC",
                 name = "S&P 500",
                 category = AssetCategory.INDEX
             )
         val ftse =
             AssetInput(
                 market = "INDEX",
-                code = "^FTSE",
+                code = "FTSE",
                 name = "FTSE 100",
                 category = AssetCategory.INDEX
             )
@@ -299,7 +299,7 @@ internal class AssetControllerTest {
 
         val response = objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
         assertThat(response.data.values.map { it.code })
-            .contains("^GSPC", "^FTSE")
+            .contains("GSPC", "FTSE")
         assertThat(response.data.values).allMatch { it.marketCode == "INDEX" }
     }
 
@@ -308,7 +308,7 @@ internal class AssetControllerTest {
         val input =
             AssetInput(
                 market = "INDEX",
-                code = "^GSPC",
+                code = "GSPC",
                 name = "S&P 500",
                 category = AssetCategory.INDEX
             )
@@ -329,7 +329,7 @@ internal class AssetControllerTest {
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("$ASSET_ROOT/{marketCode}/{assetCode}", "INDEX", "^GSPC")
+                        .get("$ASSET_ROOT/{marketCode}/{assetCode}", "INDEX", "GSPC")
                         .with(
                             SecurityMockMvcRequestPostProcessors
                                 .jwt()
@@ -340,7 +340,7 @@ internal class AssetControllerTest {
                 .andReturn()
 
         val response = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
-        assertThat(response.data.code).isEqualTo("^GSPC")
+        assertThat(response.data.code).isEqualTo("GSPC")
         assertThat(response.data.marketCode).isEqualTo("INDEX")
         assertThat(response.data.assetCategory.id).isEqualTo(AssetCategory.INDEX)
     }
@@ -350,7 +350,7 @@ internal class AssetControllerTest {
         val input =
             AssetInput(
                 market = "INDEX",
-                code = "^GSPC",
+                code = "GSPC",
                 name = "S&P 500",
                 category = AssetCategory.INDEX
             )
@@ -376,7 +376,7 @@ internal class AssetControllerTest {
         val created = response.data[toKey(input)]
         assertThat(created)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", "^GSPC")
+            .hasFieldOrPropertyWithValue("code", "GSPC")
             .hasFieldOrPropertyWithValue("marketCode", "INDEX")
         assertThat(created!!.assetCategory.id).isEqualTo(AssetCategory.INDEX)
         assertThat(created.effectiveReportCategory).isEqualTo(AssetCategory.REPORT_INDEX)

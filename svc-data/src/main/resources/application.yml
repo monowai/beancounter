@@ -56,6 +56,7 @@ logging:
     jdk: error
     io:
       opentelemetry: error
+      micrometer: error
       github:
         resilience4j: error
     okhttp3: error
@@ -150,7 +151,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
+    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, market.holidays
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true
@@ -200,6 +201,14 @@ resilience4j:
         limitRefreshPeriod: 60s
         timeoutDuration: 60s
         eventConsumerBufferSize: 100
+      # EODHD EOD Historical Data plan: 1000 req/min, 100K/day.
+      # Spread requests at ~60ms cadence so we never burst into the per-minute cap.
+      eodhd:
+        registerHealthIndicator: false
+        limitForPeriod: 1
+        limitRefreshPeriod: 60ms
+        timeoutDuration: 120s
+        eventConsumerBufferSize: 200
       fxRates:
         registerHealthIndicator: false
         limitForPeriod: 10
@@ -299,19 +308,22 @@ beancounter:
           name: "Market Index"
 
   # Pre-seed market index assets created at startup. All routed to the
-  # synthetic INDEX market and priced by Alpha Vantage (TIME_SERIES_DAILY).
+  # synthetic INDEX market. EODHD's `.INDX` exchange handles these natively
+  # in the EOD plan; AlphaVantage historically required the `^GSPC`-style
+  # Yahoo prefix but kauri's AV key lacks INDEX_DATA entitlement, so the
+  # provider for INDEX market is opt-in per env via `eodhd.markets`.
   indices:
     values:
-      - code: "^GSPC"
+      - code: "GSPC"
         name: "S&P 500"
         currency: "USD"
-      - code: "^IXIC"
+      - code: "IXIC"
         name: "NASDAQ Composite"
         currency: "USD"
-      - code: "^DJI"
+      - code: "DJI"
         name: "Dow Jones Industrial Average"
         currency: "USD"
-      - code: "^FTSE"
+      - code: "FTSE"
         name: "FTSE 100"
         currency: "GBP"
 
@@ -359,6 +371,7 @@ beancounter:
         aliases:
           SHARESIGHT: "NAS"
           FIGI: "US"
+          eodhd: "US"
 
       - code: "NYSE"
         name: "New York Stock Exchange"
@@ -368,6 +381,7 @@ beancounter:
         aliases:
           SHARESIGHT: "NYS"
           FIGI: "US"
+          eodhd: "US"
 
       - code: "AMEX"
         name: "American Stock Exchange"
@@ -376,6 +390,7 @@ beancounter:
         active: false
         aliases:
           FIGI: "US"
+          eodhd: "US"
 
       - code: "US"
         name: "US Market"
@@ -386,6 +401,7 @@ beancounter:
         # Aliases are matched case-insensitively after upper-casing.
         aliases:
           FIGI: "US"
+          eodhd: "US"
           typo: "NASAQ"
           dow: "DOW"
           dowJones: "DOW JONES"
@@ -399,6 +415,7 @@ beancounter:
           mstack: "XASX"
           sharesight: "AX"
           FIGI: "AU"
+          eodhd: "AU"
 
       - code: "TSX"
         name: "Toronto Stock Exchange"
@@ -409,6 +426,7 @@ beancounter:
           mstack: "XTSX"
           sharesight: "TO"
           FIGI: "CT"
+          eodhd: "TO"
 
       - code: "NZX"
         name: "New Zealand Exchange"
@@ -419,6 +437,7 @@ beancounter:
           mstack: "NZ"
           alpha: "NZ"
           FIGI: "NZ"
+          eodhd: "NZ"
 
       - code: "SGX"
         name: "Singapore Exchange"
@@ -428,6 +447,7 @@ beancounter:
         aliases:
           mstack: "SI"
           FIGI: "SP"
+          eodhd: "SG"
 
       - code: "LON"
         name: "London Stock Exchange"
@@ -438,6 +458,7 @@ beancounter:
         aliases:
           mstack: "XLON"
           FIGI: "LN"
+          eodhd: "LSE"
 
       - code: "MUTF"
         name: "Mutual Funds"
@@ -452,12 +473,13 @@ beancounter:
         timezoneId: "US/Eastern"
         enricher: "DEFAULT"
         type: "Index"
-        active: false
+        aliases:
+          eodhd: "INDX"
     providers:
       alpha:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX,INDEX"
+        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX"
         news:
           # Minimum per-ticker relevance_score (0.0-1.0) to keep an article.
           # Raise to narrow to only strongly-on-topic news; lower to be
@@ -484,6 +506,15 @@ beancounter:
       morningstar:
         batchSize: 1
         markets: "MUTF"
+
+      # EODHD — opt-in only. Empty `markets` keeps EODHD registered but unrouted,
+      # so existing AlphaVantage / MarketStack / Morningstar routing is unchanged.
+      # Operators enable per-env via BEANCOUNTER_MARKET_PROVIDERS_EODHD_MARKETS.
+      # Plan reference: https://eodhd.com/pricing
+      eodhd:
+        url: https://eodhd.com
+        batchSize: 1
+        markets: ""
 
       # OpenFIGI - free, unlimited, Bloomberg-based
       figi:

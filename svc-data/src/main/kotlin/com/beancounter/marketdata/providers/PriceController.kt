@@ -9,7 +9,6 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
-import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -49,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController
 class PriceController(
     private val marketDataService: MarketDataService,
     private val priceRefresh: PriceRefresh,
-    private val eventService: AlphaEventService,
+    private val eventService: EventServiceFacade,
     private val priceService: PriceService,
     private val dateUtils: DateUtils,
     private val portfolioPriceBackfillService: PortfolioPriceBackfillService

@@ -77,11 +77,11 @@ class Constants {
             )
         val SP500 =
             Asset(
-                code = "^GSPC",
-                id = "^GSPC",
+                code = "GSPC",
+                id = "GSPC",
                 name = "S&P 500",
                 market = INDEX_MARKET,
-                priceSymbol = "^GSPC",
+                priceSymbol = "GSPC",
                 category = AssetCategory.INDEX,
                 assetCategory =
                     AssetCategory(

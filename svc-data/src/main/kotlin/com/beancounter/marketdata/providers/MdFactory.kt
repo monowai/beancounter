@@ -4,6 +4,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
+import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
 import com.beancounter.marketdata.providers.marketstack.MarketStackService
 import com.beancounter.marketdata.providers.morningstar.MorningstarPriceService
 import org.slf4j.LoggerFactory
@@ -23,7 +24,8 @@ class MdFactory internal constructor(
     alphaPriceService: AlphaPriceService,
     privateMarketDataProvider: PrivateMarketDataProvider,
     marketStackService: MarketStackService,
-    morningstarPriceService: MorningstarPriceService
+    morningstarPriceService: MorningstarPriceService,
+    eodhdPriceService: EodhdPriceService
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
@@ -46,6 +48,15 @@ class MdFactory internal constructor(
             Pair(
                 MorningstarPriceService.ID,
                 morningstarPriceService
+            ),
+            // EODHD is appended last so it never wins by iteration order — its empty-by-default
+            // `markets` allowlist already makes it inert until an operator opts in, but keeping the
+            // documented Cash → MarketStack → Alpha → Private → Morningstar precedence intact means
+            // routing changes for an existing market require an explicit config change, never a
+            // bean-registration order shift.
+            Pair(
+                EodhdPriceService.ID,
+                eodhdPriceService
             )
         )
 

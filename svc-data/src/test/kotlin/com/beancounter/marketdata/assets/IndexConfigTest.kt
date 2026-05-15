@@ -24,16 +24,16 @@ class IndexConfigTest {
     fun `binds index definitions from yml`() {
         assertThat(indexConfig.values)
             .extracting<String> { it.code }
-            .contains("^GSPC", "^IXIC", "^DJI", "^FTSE")
+            .contains("GSPC", "IXIC", "DJI", "FTSE")
     }
 
     @Test
     fun `each index defines name and currency`() {
-        val gspc = indexConfig.values.first { it.code == "^GSPC" }
+        val gspc = indexConfig.values.first { it.code == "GSPC" }
         assertThat(gspc.name).isEqualTo("S&P 500")
         assertThat(gspc.currency).isEqualTo("USD")
 
-        val ftse = indexConfig.values.first { it.code == "^FTSE" }
+        val ftse = indexConfig.values.first { it.code == "FTSE" }
         assertThat(ftse.currency).isEqualTo("GBP")
     }
 }

@@ -29,13 +29,19 @@ spring:
         connect-timeout: 5s
         read-timeout: 10s
   security:
+    # In-memory user used by the client registration filter chain only —
+    # SBA clients POST /instances with HTTP Basic credentials matching
+    # this user. Browsers never see this; UI auth is OIDC.
+    user:
+      name: ${SPRING_SECURITY_USER_NAME:admin}
+      password: ${SPRING_SECURITY_USER_PASSWORD:not-set}
     oauth2:
       client:
         registration:
           auth0:
             # Reuses bc-view's Auth0 application — the same client-id/secret.
             # Auth0 app must list this server's callback URL alongside bc-view's:
-            #   https://kauri.monowai.com:30530/login/oauth2/code/auth0
+            #   https://bc-admin.monowai.com/login/oauth2/code/auth0
             client-id: ${AUTH0_CLIENT_ID:not-set}
             client-secret: ${AUTH0_CLIENT_SECRET:not-set}
             client-authentication-method: client_secret_post

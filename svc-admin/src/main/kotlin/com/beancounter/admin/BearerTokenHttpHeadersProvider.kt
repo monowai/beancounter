@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Component
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -22,15 +23,10 @@ import java.util.concurrent.atomic.AtomicReference
  *  1. The currently authenticated OIDC user's access_token (when the call
  *     happens inside a request thread carrying a Spring SecurityContext).
  *  2. The most recently observed user token, cached after each interactive
- *     request so background polling threads still have something to send.
- *  3. An optional static token from `BC_ADMIN_M2M_TOKEN` — fallback for
- *     "no admin has ever logged in this boot" scenarios.
- *
- * This means continuous polling depends on at least one admin having
- * recently visited the UI. When the cached token expires Auth0-side, the
- * dashboard flips instances to OFFLINE until the next login refreshes it.
- * Acceptable for an admin-only tool; swap in a true client_credentials cache
- * if continuous monitoring becomes a hard requirement.
+ *     request — used by background polling threads. Cleared once expired so
+ *     it does not block the static fallback.
+ *  3. An optional static token from `BC_ADMIN_M2M_TOKEN` — final fallback
+ *     when no admin has logged in this boot and any cached token has aged out.
  */
 @Component
 class BearerTokenHttpHeadersProvider(
@@ -39,13 +35,22 @@ class BearerTokenHttpHeadersProvider(
     private val staticFallbackToken: String
 ) : HttpHeadersProvider {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val cachedUserToken = AtomicReference<String?>(null)
+    private val cachedUserToken = AtomicReference<CachedToken?>(null)
 
     override fun getHeaders(instance: Instance): HttpHeaders {
         val headers = HttpHeaders()
-        val token = currentUserToken() ?: cachedUserToken.get() ?: staticFallbackToken.takeIf { it.isNotBlank() }
+        val token = currentUserToken() ?: validCachedToken() ?: staticFallbackToken.takeIf { it.isNotBlank() }
         token?.let { headers.setBearerAuth(it) }
         return headers
+    }
+
+    private fun validCachedToken(): String? {
+        val cached = cachedUserToken.get() ?: return null
+        if (cached.expiresAt != null && !cached.expiresAt.isAfter(Instant.now())) {
+            cachedUserToken.compareAndSet(cached, null)
+            return null
+        }
+        return cached.value
     }
 
     private fun currentUserToken(): String? {
@@ -56,12 +61,17 @@ class BearerTokenHttpHeadersProvider(
                     auth.authorizedClientRegistrationId,
                     auth.name
                 ) ?: return null
-            val tokenValue = client.accessToken.tokenValue
-            cachedUserToken.set(tokenValue)
-            tokenValue
+            val accessToken = client.accessToken
+            cachedUserToken.set(CachedToken(accessToken.tokenValue, accessToken.expiresAt))
+            accessToken.tokenValue
         } catch (ex: Exception) {
             log.warn("failed to load OAuth2 access token for {}: {}", auth.name, ex.message)
             null
         }
     }
+
+    private data class CachedToken(
+        val value: String,
+        val expiresAt: Instant?
+    )
 }

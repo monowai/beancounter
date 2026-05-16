@@ -99,7 +99,7 @@ spring:
         enabled: ${SBA_CLIENT_ENABLED:false}
         url: ${SBA_SERVER_URL:http://localhost:9530}
         username: ${SBA_REGISTRATION_USERNAME:admin}
-        password: ${SBA_REGISTRATION_PASSWORD:changeme-in-bc-deploy}
+        password: ${SBA_REGISTRATION_PASSWORD:}
         instance:
           management-base-url: ${MANAGEMENT_BASE_URL:http://localhost:9511}
           metadata:

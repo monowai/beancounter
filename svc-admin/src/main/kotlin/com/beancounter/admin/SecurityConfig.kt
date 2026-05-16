@@ -7,7 +7,6 @@ import org.springframework.security.config.Customizer.withDefaults
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 /**
@@ -55,7 +54,7 @@ class SecurityConfig(
                     .anyRequest()
                     .hasAuthority("SCOPE_beancounter:admin")
             }.oauth2Login { oauth2 ->
-                oauth2.defaultSuccessUrl("$contextPath/", true)
+                oauth2.successHandler(successHandler)
                 oauth2.loginProcessingUrl("$contextPath/login/oauth2/code/*")
             }.logout { logout -> logout.logoutUrl("$contextPath/logout") }
             .httpBasic(withDefaults())
@@ -75,10 +74,8 @@ class SecurityConfig(
                         ),
                         AntPathRequestMatcher("$contextPath/actuator/**")
                     )
-            }.requestCache { cache -> cache.requestCache(HttpSessionRequestCache()) }
+            }
 
-        @Suppress("UNUSED_EXPRESSION")
-        successHandler
         return http.build()
     }
 }

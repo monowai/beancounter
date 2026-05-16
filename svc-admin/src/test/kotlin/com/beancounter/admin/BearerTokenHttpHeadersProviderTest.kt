@@ -91,6 +91,37 @@ class BearerTokenHttpHeadersProviderTest {
     }
 
     @Test
+    fun `expired cached token does not block static fallback`() {
+        // First call seeds the cache with a token whose expiry is already in the past.
+        val expiredAccessToken: OAuth2AccessToken =
+            mock {
+                on { tokenValue } doReturn "expired.user.token"
+                on { expiresAt } doReturn Instant.now().minusSeconds(60)
+            }
+        val client: OAuth2AuthorizedClient = mock { on { this.accessToken } doReturn expiredAccessToken }
+        whenever(authorizedClientService.loadAuthorizedClient<OAuth2AuthorizedClient>(eq("auth0"), eq("u")))
+            .thenReturn(client)
+
+        val auth: OAuth2AuthenticationToken =
+            mock {
+                on { authorizedClientRegistrationId } doReturn "auth0"
+                on { name } doReturn "u"
+            }
+        SecurityContextHolder.getContext().authentication = auth
+
+        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, "static.m2m.token")
+        // Populate the cache. Inside the request thread the current-user lookup still returns
+        // the (about-to-be-expired) token — getHeaders will Bearer it. We only care that the
+        // next background call falls through to the static fallback.
+        provider.getHeaders(instance)
+        SecurityContextHolder.clearContext()
+
+        val headers = provider.getHeaders(instance)
+
+        assertThat(headers.getFirst("Authorization")).isEqualTo("Bearer static.m2m.token")
+    }
+
+    @Test
     fun `omits Authorization when nothing configured and no user`() {
         val provider = BearerTokenHttpHeadersProvider(authorizedClientService, "")
 

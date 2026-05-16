@@ -90,6 +90,21 @@ stream:
   enabled: true
 
 spring:
+  boot:
+    admin:
+      client:
+        # Spring Boot Admin client. Disabled by default; enabled in kauri via
+        # SBA_CLIENT_ENABLED=true + SBA_SERVER_URL=http://bc-admin:9530. See
+        # svc-admin module + bc-deploy/charts/bc-admin.
+        enabled: ${SBA_CLIENT_ENABLED:false}
+        url: ${SBA_SERVER_URL:http://localhost:9530}
+        username: ${SBA_REGISTRATION_USERNAME:admin}
+        password: ${SBA_REGISTRATION_PASSWORD:}
+        instance:
+          management-base-url: ${MANAGEMENT_BASE_URL:http://localhost:9511}
+          metadata:
+            tags:
+              service: bc-data
   cloud:
     function:
       definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer

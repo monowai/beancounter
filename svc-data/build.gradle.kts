@@ -50,6 +50,9 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
+    // Spring Boot Admin client. Inactive unless `spring.boot.admin.client.enabled=true`
+    // (default false in application.yml). Enabled in kauri via env var; see bc-deploy.
+    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
     implementation(libs.spring.boot.starter.integration)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

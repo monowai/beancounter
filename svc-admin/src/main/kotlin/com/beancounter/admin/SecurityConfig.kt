@@ -14,11 +14,17 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 /**
  * SBA server security.
  *
- * Two filter chains, ordered:
+ * Three filter chains, ordered:
  *
- *  1. Client registration chain (instances + actuator paths) — SBA
- *     clients (bc-data, bc-position, etc.) POST their actuator metadata
- *     using HTTP Basic with the user supplied via
+ *  0. Probe chain — K8s liveness, readiness and startup probes hit
+ *     the actuator health endpoint (and its sub-paths liveness,
+ *     readiness) unauthenticated. Must run before the Basic-auth
+ *     chain or the kubelet receives a 401 challenge and fails the
+ *     probe.
+ *
+ *  1. Client registration chain (instances + remaining actuator paths)
+ *     — SBA clients (bc-data, bc-position, etc.) POST their actuator
+ *     metadata using HTTP Basic with the user supplied via
  *     spring.security.user.name + spring.security.user.password.
  *     Browsers never hit these paths, so Basic-auth is the correct
  *     primary entry-point here.
@@ -42,6 +48,20 @@ class SecurityConfig(
 ) {
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
+    fun probeFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val contextPath = adminServer.contextPath
+        http
+            .securityMatcher(
+                "$contextPath/actuator/health",
+                "$contextPath/actuator/health/**",
+                "$contextPath/actuator/info"
+            ).authorizeHttpRequests { it.anyRequest().permitAll() }
+            .csrf { it.disable() }
+        return http.build()
+    }
+
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 10)
     fun clientRegistrationFilterChain(http: HttpSecurity): SecurityFilterChain {
         val contextPath = adminServer.contextPath
         http

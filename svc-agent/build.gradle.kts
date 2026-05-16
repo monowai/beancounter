@@ -38,6 +38,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation("org.springframework.security:spring-security-oauth2-client")
     implementation(libs.spring.boot.starter.actuator)
+    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
     implementation(libs.spring.boot.starter.integration)
     // micrometer-tracing-bridge-otel comes via jar-common (api dep) so
     // Spring AI's `spring.ai.chat.client` / `gen_ai.*` observations

@@ -38,6 +38,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
+    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
     implementation(libs.spring.boot.starter.integration)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation(libs.jackson.kotlin)

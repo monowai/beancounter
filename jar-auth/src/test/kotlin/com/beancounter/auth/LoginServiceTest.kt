@@ -95,12 +95,14 @@ class LoginServiceTest {
 
     @Test
     fun `should mask credentials correctly for logging`() {
-        val secret = "jkVboA25BQq8spZHfg1YR37TWnWOLwn7GSKhBqXeo71gKT4BHilMC1IelrCEAqTY"
+        // Synthetic 64-char fixture; prior literal was a real (since-rotated)
+        // bc-event Auth0 client_secret. Don't put real secrets in test files.
+        val secret = "x".repeat(64)
         val maskedPrefix = secret.take(4)
         val maskedSuffix = secret.takeLast(4)
 
-        assertThat(maskedPrefix).isEqualTo("jkVb")
-        assertThat(maskedSuffix).isEqualTo("AqTY")
+        assertThat(maskedPrefix).isEqualTo("xxxx")
+        assertThat(maskedSuffix).isEqualTo("xxxx")
         assertThat(secret).startsWith(maskedPrefix)
         assertThat(secret).endsWith(maskedSuffix)
     }

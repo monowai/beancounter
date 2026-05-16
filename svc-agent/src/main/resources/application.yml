@@ -114,6 +114,20 @@ resilience4j:
 spring:
   application:
     name: bc-agent
+  boot:
+    admin:
+      client:
+        # Spring Boot Admin client. Disabled by default; enabled in kauri via
+        # SBA_CLIENT_ENABLED=true + SBA_SERVER_URL=http://bc-admin:9530.
+        enabled: ${SBA_CLIENT_ENABLED:false}
+        url: ${SBA_SERVER_URL:http://localhost:9530}
+        username: ${SBA_REGISTRATION_USERNAME:admin}
+        password: ${SBA_REGISTRATION_PASSWORD:}
+        instance:
+          management-base-url: ${MANAGEMENT_BASE_URL:http://localhost:9531}
+          metadata:
+            tags:
+              service: bc-agent
   security:
     oauth2:
       resourceserver:

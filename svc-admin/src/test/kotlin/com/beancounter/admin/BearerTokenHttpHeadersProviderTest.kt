@@ -18,6 +18,7 @@ import java.time.Instant
 class BearerTokenHttpHeadersProviderTest {
     private val instance: Instance = mock()
     private val authorizedClientService: OAuth2AuthorizedClientService = mock()
+    private val m2mTokenService: M2mTokenService = mock { on { token() } doReturn null }
 
     @AfterEach
     fun clearContext() {
@@ -46,7 +47,7 @@ class BearerTokenHttpHeadersProviderTest {
             }
         SecurityContextHolder.getContext().authentication = auth
 
-        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, "")
+        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, m2mTokenService, "")
 
         val headers = provider.getHeaders(instance)
 
@@ -64,7 +65,7 @@ class BearerTokenHttpHeadersProviderTest {
         whenever(authorizedClientService.loadAuthorizedClient<OAuth2AuthorizedClient>(eq("auth0"), eq("u")))
             .thenReturn(client)
 
-        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, "")
+        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, m2mTokenService, "")
 
         // First call inside a request thread — populates the cache.
         val auth: OAuth2AuthenticationToken =
@@ -83,7 +84,7 @@ class BearerTokenHttpHeadersProviderTest {
 
     @Test
     fun `falls back to static M2M token when no user has authenticated`() {
-        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, "static.m2m.token")
+        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, m2mTokenService, "static.m2m.token")
 
         val headers = provider.getHeaders(instance)
 
@@ -109,7 +110,7 @@ class BearerTokenHttpHeadersProviderTest {
             }
         SecurityContextHolder.getContext().authentication = auth
 
-        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, "static.m2m.token")
+        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, m2mTokenService, "static.m2m.token")
         // Populate the cache. Inside the request thread the current-user lookup still returns
         // the (about-to-be-expired) token — getHeaders will Bearer it. We only care that the
         // next background call falls through to the static fallback.
@@ -123,11 +124,21 @@ class BearerTokenHttpHeadersProviderTest {
 
     @Test
     fun `omits Authorization when nothing configured and no user`() {
-        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, "")
+        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, m2mTokenService, "")
 
         val headers = provider.getHeaders(instance)
 
         assertThat(headers.getFirst("Authorization")).isNull()
+    }
+
+    @Test
+    fun `falls back to M2M client_credentials token before static fallback`() {
+        val m2m: M2mTokenService = mock { on { token() } doReturn "fetched.m2m.token" }
+        val provider = BearerTokenHttpHeadersProvider(authorizedClientService, m2m, "static.m2m.token")
+
+        val headers = provider.getHeaders(instance)
+
+        assertThat(headers.getFirst("Authorization")).isEqualTo("Bearer fetched.m2m.token")
     }
 
     private fun <T> eq(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value

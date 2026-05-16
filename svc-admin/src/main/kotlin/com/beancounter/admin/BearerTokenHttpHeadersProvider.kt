@@ -24,13 +24,19 @@ import java.util.concurrent.atomic.AtomicReference
  *     happens inside a request thread carrying a Spring SecurityContext).
  *  2. The most recently observed user token, cached after each interactive
  *     request — used by background polling threads. Cleared once expired so
- *     it does not block the static fallback.
- *  3. An optional static token from `BC_ADMIN_M2M_TOKEN` — final fallback
- *     when no admin has logged in this boot and any cached token has aged out.
+ *     it does not block the M2M fallback.
+ *  3. An Auth0 M2M token fetched via client_credentials using
+ *     AUTH0_SERVICE_ID / AUTH0_SERVICE_SECRET. Keeps the SBA monitor
+ *     scrape working when no admin is logged in — without it, actuator
+ *     discovery returns only the health endpoint and the SBA UI shows
+ *     no metrics.
+ *  4. An optional static token from `BC_ADMIN_M2M_TOKEN` — emergency
+ *     override when the M2M fetch path is unavailable.
  */
 @Component
 class BearerTokenHttpHeadersProvider(
     private val authorizedClientService: OAuth2AuthorizedClientService,
+    private val m2mTokenService: M2mTokenService,
     @Value("\${beancounter.admin.client.bearer-token:}")
     private val staticFallbackToken: String
 ) : HttpHeadersProvider {
@@ -39,7 +45,11 @@ class BearerTokenHttpHeadersProvider(
 
     override fun getHeaders(instance: Instance): HttpHeaders {
         val headers = HttpHeaders()
-        val token = currentUserToken() ?: validCachedToken() ?: staticFallbackToken.takeIf { it.isNotBlank() }
+        val token =
+            currentUserToken()
+                ?: validCachedToken()
+                ?: m2mTokenService.token()
+                ?: staticFallbackToken.takeIf { it.isNotBlank() }
         token?.let { headers.setBearerAuth(it) }
         return headers
     }

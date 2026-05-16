@@ -58,11 +58,15 @@ spring:
             issuer-uri: https://${AUTH0_DOMAIN:beancounter.eu.auth0.com}/
 
 auth:
+  # Auth0 issuer URI, used by M2mTokenService when fetching a
+  # client_credentials token for background SBA scrapes. Must end with
+  # a trailing slash to match the OIDC issuer format.
+  uri: https://${AUTH0_DOMAIN:beancounter.eu.auth0.com}/
   # Auth0 API audience injected into the authorization request via
   # OAuth2AuthorizationRequestResolver. Without it Auth0 issues a
   # generic OIDC token with no `beancounter:*` permissions in the
   # `scope` claim, so SecurityConfig's `SCOPE_beancounter:admin`
-  # authority check 403s every login.
+  # authority check 403s every login. Reused by M2mTokenService.
   audience: ${AUTH_AUDIENCE:https://holdsworth.app}
 
 beancounter:

@@ -285,6 +285,7 @@ tasks.register("buildAll") {
     dependsOn(":svc-data:build")
     dependsOn(":svc-position:build")
     dependsOn(":svc-event:build")
+    dependsOn(":svc-admin:build")
     description = "Build all subprojects in dependency order"
 }
 
@@ -303,6 +304,7 @@ tasks.register("buildServices") {
     dependsOn(":svc-data:build")
     dependsOn(":svc-position:build")
     dependsOn(":svc-event:build")
+    dependsOn(":svc-admin:build")
     description = "Build services after core libraries"
 }
 
@@ -338,6 +340,7 @@ tasks.register("testAll") {
     dependsOn(":svc-data:test")
     dependsOn(":svc-position:test")
     dependsOn(":svc-event:test")
+    dependsOn(":svc-admin:test")
     description = "Test all subprojects in dependency order (stubs must be available)"
 }
 
@@ -392,6 +395,7 @@ tasks.register("buildServicesAndPublishStubs") {
     dependsOn(":svc-data:build")
     dependsOn(":svc-position:build")
     dependsOn(":svc-event:build")
+    dependsOn(":svc-admin:build")
     dependsOn("publishStubs")
     description = "Build services and publish stubs"
 }

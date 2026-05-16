@@ -1,0 +1,54 @@
+server:
+  port: 9530
+  shutdown: graceful
+
+management:
+  server:
+    port: 9531
+  endpoint:
+    health.show-details: always
+  endpoints:
+    web:
+      exposure.include: '*'
+  health:
+    livenessstate.enabled: true
+    readinessState.enabled: true
+
+spring:
+  application:
+    name: bc-admin
+  boot:
+    admin:
+      ui:
+        title: Beancounter Admin
+      monitor:
+        # How often the SBA server polls each registered client's actuator.
+        # 30s is gentle; raise if monitoring overhead shows up in svc-data CPU.
+        period: 30s
+        status-lifetime: 30s
+        connect-timeout: 5s
+        read-timeout: 10s
+  security:
+    user:
+      # TODO(SBA-OIDC): replace with Auth0 OIDC. Until then, ship admin/<random>
+      # via env vars in bc-deploy. NEVER deploy with the literal default.
+      name: ${SBA_ADMIN_USERNAME:admin}
+      password: ${SBA_ADMIN_PASSWORD:changeme-in-bc-deploy}
+
+beancounter:
+  admin:
+    client:
+      # M2M bearer token for outbound /actuator/** calls to registered services.
+      # Required in any non-dev env. See BearerTokenHttpHeadersProvider for plan
+      # to swap to Auth0 client_credentials with a refreshing cache.
+      bearer-token: ${BC_ADMIN_M2M_TOKEN:}
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
+  level:
+    root: info
+    de.codecentric.boot.admin: info
+    com.beancounter: info
+    org.springframework.security: warn

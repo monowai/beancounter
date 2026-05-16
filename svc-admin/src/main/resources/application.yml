@@ -57,6 +57,14 @@ spring:
             # AUTH0_DOMAIN form: beancounter.eu.auth0.com (no scheme).
             issuer-uri: https://${AUTH0_DOMAIN:beancounter.eu.auth0.com}/
 
+auth:
+  # Auth0 API audience injected into the authorization request via
+  # OAuth2AuthorizationRequestResolver. Without it Auth0 issues a
+  # generic OIDC token with no `beancounter:*` permissions in the
+  # `scope` claim, so SecurityConfig's `SCOPE_beancounter:admin`
+  # authority check 403s every login.
+  audience: ${AUTH_AUDIENCE:https://holdsworth.app}
+
 beancounter:
   admin:
     client:

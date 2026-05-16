@@ -81,4 +81,16 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
      * Used when cascading asset deletion.
      */
     fun deleteByAssetId(assetId: String)
+
+    /**
+     * Group MarketData row count by the owning asset's marketCode.
+     * Surfaced as the `beancounter.market_data.count.by_market` MultiGauge.
+     * Note: heavy query on large tables — refreshed via @Scheduled rather than
+     * on every actuator scrape (see EntityCountMetrics).
+     */
+    @Query(
+        "SELECT new com.beancounter.marketdata.metrics.MarketCount(md.asset.marketCode, COUNT(md)) " +
+            "FROM MarketData md GROUP BY md.asset.marketCode ORDER BY COUNT(md) DESC"
+    )
+    fun countByMarketCode(): List<com.beancounter.marketdata.metrics.MarketCount>
 }

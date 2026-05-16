@@ -31,4 +31,14 @@ interface NewsArticleRepo : CrudRepository<NewsArticle, String> {
     fun deleteByPublishedBefore(
         @Param("threshold") threshold: LocalDateTime
     ): Int
+
+    /**
+     * Group news article count by [NewsArticle.source]. Surfaced as the
+     * `beancounter.news.count.by_source` MultiGauge.
+     */
+    @Query(
+        "SELECT new com.beancounter.marketdata.metrics.SourceCount(a.source, COUNT(a)) " +
+            "FROM NewsArticle a GROUP BY a.source ORDER BY COUNT(a) DESC"
+    )
+    fun countBySource(): List<com.beancounter.marketdata.metrics.SourceCount>
 }

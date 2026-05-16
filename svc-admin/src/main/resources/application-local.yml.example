@@ -1,5 +1,6 @@
-# Local development overrides for bc-admin.
-# Activate with: SPRING_PROFILES_ACTIVE=local ./gradlew :svc-admin:bootRun
+# Template for local development overrides for bc-admin.
+# Copy this file to application-local.yml (gitignored), fill in real values,
+# then activate with: SPRING_PROFILES_ACTIVE=local ./gradlew :svc-admin:bootRun
 #
 # Auth0 callbacks: this profile uses http://localhost:9530/login/oauth2/code/auth0.
 # Add that URL to the bc-view Auth0 application's "Allowed Callback URLs" list
@@ -18,8 +19,14 @@ spring:
       client:
         registration:
           auth0:
-            client-id: 95uobv1ZR1h3tRuP4zlliHj3k2TmdhXP
-            client-secret: crcPeFZMX3x9A_bTsNyLvAQYsvBANoWCXnGiNoS9sXrGO0j_RwHTsnHD85IntRbH
+            # bc-view Auth0 application — same clientId stored in
+            # bc-deploy/env/kauri.yaml under global.auth.data.clientId.
+            # clientSecret lives in your local
+            # bc-deploy/env/kauri-secrets.yaml under global.auth.data.clientSecret
+            # (or copy from svc-data/src/main/resources/application-local.yml
+            # if you've already set that up).
+            client-id: YOUR_BC_VIEW_CLIENT_ID
+            client-secret: YOUR_BC_VIEW_CLIENT_SECRET
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
             scope:

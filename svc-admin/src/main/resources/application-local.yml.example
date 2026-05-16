@@ -1,0 +1,47 @@
+# Local development overrides for bc-admin.
+# Activate with: SPRING_PROFILES_ACTIVE=local ./gradlew :svc-admin:bootRun
+#
+# Auth0 callbacks: this profile uses http://localhost:9530/login/oauth2/code/auth0.
+# Add that URL to the bc-view Auth0 application's "Allowed Callback URLs" list
+# alongside the kauri one before logging in locally.
+
+management:
+  endpoint:
+    env:
+      show-values: ALWAYS
+    configprops:
+      show-values: ALWAYS
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          auth0:
+            client-id: 95uobv1ZR1h3tRuP4zlliHj3k2TmdhXP
+            client-secret: crcPeFZMX3x9A_bTsNyLvAQYsvBANoWCXnGiNoS9sXrGO0j_RwHTsnHD85IntRbH
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            scope:
+              - openid
+              - profile
+              - email
+              - beancounter:admin
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          auth0:
+            issuer-uri: https://beancounter.eu.auth0.com/
+
+beancounter:
+  admin:
+    client:
+      # Local fallback bearer for outbound /actuator scrapes before any user
+      # logs in. Mint with `bcm2m` or similar local helper and export, or
+      # leave blank and just log into the SBA UI to seed the cached token.
+      bearer-token: ${BC_ADMIN_M2M_TOKEN:}
+
+logging:
+  level:
+    root: info
+    de.codecentric.boot.admin: debug
+    org.springframework.security: info

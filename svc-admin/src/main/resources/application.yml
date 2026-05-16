@@ -29,18 +29,35 @@ spring:
         connect-timeout: 5s
         read-timeout: 10s
   security:
-    user:
-      # TODO(SBA-OIDC): replace with Auth0 OIDC. Until then, ship admin/<random>
-      # via env vars in bc-deploy. NEVER deploy with the literal default.
-      name: ${SBA_ADMIN_USERNAME:admin}
-      password: ${SBA_ADMIN_PASSWORD:changeme-in-bc-deploy}
+    oauth2:
+      client:
+        registration:
+          auth0:
+            # Reuses bc-view's Auth0 application — the same client-id/secret.
+            # Auth0 app must list this server's callback URL alongside bc-view's:
+            #   https://kauri.monowai.com:30530/login/oauth2/code/auth0
+            client-id: ${AUTH0_CLIENT_ID:not-set}
+            client-secret: ${AUTH0_CLIENT_SECRET:not-set}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            scope:
+              - openid
+              - profile
+              - email
+              - beancounter:admin
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          auth0:
+            # AUTH0_DOMAIN form: beancounter.eu.auth0.com (no scheme).
+            issuer-uri: https://${AUTH0_DOMAIN:beancounter.eu.auth0.com}/
 
 beancounter:
   admin:
     client:
-      # M2M bearer token for outbound /actuator/** calls to registered services.
-      # Required in any non-dev env. See BearerTokenHttpHeadersProvider for plan
-      # to swap to Auth0 client_credentials with a refreshing cache.
+      # Optional static M2M bearer token for outbound /actuator/** calls used
+      # ONLY when no admin has logged in since boot AND no cached user token
+      # is available. Leave blank in normal operation — the OIDC-passthrough
+      # provider supplies a token from the logged-in admin's session.
       bearer-token: ${BC_ADMIN_M2M_TOKEN:}
 
 logging:

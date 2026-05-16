@@ -13,16 +13,12 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 /**
  * SBA server security.
  *
- * Today: form-login backed by `spring.security.user.{name,password}` (Spring Boot
- * default user). Suitable for behind-VPN / cluster-internal access; secrets land
- * via env vars in bc-deploy.
- *
- * TODO(SBA-OIDC): swap to Auth0 OIDC login once the "BC Admin Server" Regular Web
- *   App is registered in the `beancounter.eu.auth0.com` tenant. Roughly:
- *     - add `spring.security.oauth2.client.registration.auth0.{client-id,client-secret,scope}`
- *     - replace `formLogin` below with `oauth2Login(withDefaults())`
- *     - add a `GrantedAuthoritiesMapper` that requires the `beancounter:admin`
- *       claim (the same claim the bc-view admin hub gates on).
+ * Reuses bc-view's Auth0 application for OIDC login — no separate
+ * "BC Admin Server" app needed. Admins already carry the
+ * `beancounter:admin` claim in their bc-view session; the SBA UI is gated on
+ * the same claim. The Auth0 application must list this server's callback URL
+ * (`https://kauri.monowai.com:30530/login/oauth2/code/auth0`) alongside
+ * bc-view's existing callback.
  *
  * CSRF: `CookieCsrfTokenRepository.withHttpOnlyFalse()` writes an XSRF-TOKEN
  * cookie the SBA SPA reads + echoes back as `X-XSRF-TOKEN`. The cookie is
@@ -50,16 +46,17 @@ class SecurityConfig(
                 authz
                     .requestMatchers(AntPathRequestMatcher("$contextPath/assets/**"))
                     .permitAll()
-                    .requestMatchers(AntPathRequestMatcher("$contextPath/login"))
+                    .requestMatchers(AntPathRequestMatcher("$contextPath/login/**"))
+                    .permitAll()
+                    .requestMatchers(AntPathRequestMatcher("$contextPath/oauth2/**"))
                     .permitAll()
                     .requestMatchers(AntPathRequestMatcher("$contextPath/actuator/health/**"))
                     .permitAll()
                     .anyRequest()
-                    .authenticated()
-            }.formLogin { form ->
-                form
-                    .loginPage("$contextPath/login")
-                    .successHandler(successHandler)
+                    .hasAuthority("SCOPE_beancounter:admin")
+            }.oauth2Login { oauth2 ->
+                oauth2.defaultSuccessUrl("$contextPath/", true)
+                oauth2.loginProcessingUrl("$contextPath/login/oauth2/code/*")
             }.logout { logout -> logout.logoutUrl("$contextPath/logout") }
             .httpBasic(withDefaults())
             .csrf { csrf ->
@@ -79,6 +76,9 @@ class SecurityConfig(
                         AntPathRequestMatcher("$contextPath/actuator/**")
                     )
             }.requestCache { cache -> cache.requestCache(HttpSessionRequestCache()) }
+
+        @Suppress("UNUSED_EXPRESSION")
+        successHandler
         return http.build()
     }
 }

@@ -37,7 +37,7 @@ class CacheInvalidationConsumer(
                     }
                 }
             } catch (e: DataAccessException) {
-                log.error("Failed to process cache invalidation event: {}", e.message)
+                log.error("Failed to process cache invalidation event", e)
             }
         }
 

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Asset
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.defaultBackfillFrom
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -16,14 +17,14 @@ class MarketDataBackfillService(
 ) {
     fun backFill(
         assetId: String,
-        fromDate: LocalDate = LocalDate.now().minusYears(2)
+        fromDate: LocalDate = defaultBackfillFrom()
     ) {
         backFill(getAsset(assetId), fromDate)
     }
 
     fun backFill(
         asset: Asset,
-        fromDate: LocalDate = LocalDate.now().minusYears(2)
+        fromDate: LocalDate = defaultBackfillFrom()
     ) {
         val byFactory = providerUtils.splitProviders(providerUtils.getInputs(listOf(asset)))
         for (marketDataProvider in byFactory.keys) {

@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
@@ -19,6 +20,10 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * In-flight guard prevents two concurrent backfills for the same asset.
  * Cooldown prevents retry storms when the provider call keeps failing.
+ *
+ * The `lastAttempt` map is pruned hourly so it can't grow without bound
+ * across the lifetime of the process — every distinct assetId ever queried
+ * would otherwise stick around forever.
  */
 @Service
 class PriceBackfillCoordinator(
@@ -64,6 +69,21 @@ class PriceBackfillCoordinator(
             log.warn("Async backfill failed for asset {}", assetId, e)
         } finally {
             inFlight.remove(assetId)
+        }
+    }
+
+    /**
+     * Drop cooldown entries older than the cooldown window — they no longer
+     * block any caller, so retaining them just leaks memory in long-running
+     * processes that see a steady stream of distinct assets.
+     */
+    @Scheduled(fixedDelayString = "PT1H")
+    fun pruneStaleCooldowns() {
+        val threshold = Instant.now().minus(ATTEMPT_COOLDOWN)
+        val sizeBefore = lastAttempt.size
+        lastAttempt.entries.removeIf { it.value.isBefore(threshold) }
+        if (sizeBefore != lastAttempt.size) {
+            log.debug("Pruned cooldown entries: {} -> {}", sizeBefore, lastAttempt.size)
         }
     }
 

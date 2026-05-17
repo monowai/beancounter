@@ -321,6 +321,20 @@ interface TrnRepository :
     fun findDistinctAssetIdsByPortfolioIds(portfolioIds: Collection<String>): Collection<String>
 
     /**
+     * Earliest SETTLED tradeDate for this asset across every portfolio that has ever held it.
+     * Anchors price backfill: if portfolio A imported trades since 2020 and portfolio B since 2010,
+     * backfill must reach 2010 for the wealth-performance "ALL" chart to be drawable.
+     */
+    @Query(
+        "select min(t.tradeDate) from Trn t " +
+            "where t.asset.id = :assetId " +
+            "and t.status = com.beancounter.common.model.TrnStatus.SETTLED"
+    )
+    fun findEarliestTradeDateByAssetId(
+        @Param("assetId") assetId: String
+    ): LocalDate?
+
+    /**
      * Group transaction count by [com.beancounter.common.model.TrnType].
      * Surfaced as the `beancounter.transaction.count.by_type` MultiGauge.
      */

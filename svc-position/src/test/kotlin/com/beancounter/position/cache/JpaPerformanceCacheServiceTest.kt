@@ -110,6 +110,30 @@ class JpaPerformanceCacheServiceTest {
     }
 
     @Test
+    fun `invalidateFromDate deletes all rows on-or-after the date across portfolios`() {
+        cacheService.storeSnapshots(
+            "pf-1",
+            listOf(
+                CachedSnapshot(date1, BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO),
+                CachedSnapshot(date2, BigDecimal("110"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+            )
+        )
+        cacheService.storeSnapshots(
+            "pf-2",
+            listOf(
+                CachedSnapshot(date1, BigDecimal("200"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO),
+                CachedSnapshot(date2, BigDecimal("220"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+            )
+        )
+
+        // Wipe everything from date2 onward in both portfolios; date1 must survive.
+        cacheService.invalidateFromDate(date2)
+
+        assertThat(cacheService.findSnapshots("pf-1", listOf(date1, date2))).hasSize(1)
+        assertThat(cacheService.findSnapshots("pf-2", listOf(date1, date2))).hasSize(1)
+    }
+
+    @Test
     fun `invalidatePortfolio deletes all dates for that portfolio`() {
         cacheService.storeSnapshots(
             portfolioId,

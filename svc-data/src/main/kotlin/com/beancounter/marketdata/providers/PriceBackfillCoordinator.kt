@@ -34,6 +34,10 @@ class PriceBackfillCoordinator(
         assetId: String,
         fromDate: LocalDate
     ) {
+        if (assetId.isBlank()) {
+            log.debug("Backfill skipped — blank assetId")
+            return
+        }
         val now = Instant.now()
         val previous = lastAttempt[assetId]
         if (previous != null && Duration.between(previous, now) < ATTEMPT_COOLDOWN) {
@@ -57,7 +61,7 @@ class PriceBackfillCoordinator(
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
-            log.warn("Async backfill failed for asset {}: {}", assetId, e.message)
+            log.warn("Async backfill failed for asset {}", assetId, e)
         } finally {
             inFlight.remove(assetId)
         }

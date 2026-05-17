@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -524,9 +525,12 @@ internal class PriceControllerTests
             val response = objectMapper.readValue<PriceHistoryResponse>(json)
             assertThat(response.prices).hasSize(1)
             assertThat(response.prices.first().close).isEqualByComparingTo(BigDecimal("21.00"))
+            val fromCaptor = argumentCaptor<LocalDate>()
             org.mockito.Mockito
                 .verify(marketDataService)
-                .backFill(eq(asset.id), any())
+                .backFill(eq(asset.id), fromCaptor.capture())
+            // `from` (2024-01-01) sits within the 10-year cap, so targetFrom is `from` unchanged.
+            assertThat(fromCaptor.firstValue).isEqualTo(from)
         }
 
         @Test
@@ -559,9 +563,12 @@ internal class PriceControllerTests
                         ).contentType(MediaType.APPLICATION_JSON_VALUE)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
 
+            val asyncFromCaptor = argumentCaptor<LocalDate>()
             org.mockito.Mockito
                 .verify(priceBackfillCoordinator)
-                .scheduleBackfill(eq(asset.id), any())
+                .scheduleBackfill(eq(asset.id), asyncFromCaptor.capture())
+            // `from` (today-12m) is well inside the 10y cap, so targetFrom = from.
+            assertThat(asyncFromCaptor.firstValue).isEqualTo(from)
             // Synchronous backfill must NOT happen — we returned what we had.
             org.mockito.Mockito
                 .verify(marketDataService, org.mockito.Mockito.never())
@@ -588,15 +595,16 @@ internal class PriceControllerTests
                         .content(body)
                 ).andExpect(MockMvcResultMatchers.status().isOk)
 
+            val assetIdCaptor = argumentCaptor<String>()
+            val ensureFromCaptor = argumentCaptor<LocalDate>()
             org.mockito.Mockito
-                .verify(priceBackfillCoordinator)
-                .scheduleBackfill(eq("asset-1"), any())
-            org.mockito.Mockito
-                .verify(priceBackfillCoordinator)
-                .scheduleBackfill(eq("asset-2"), any())
-            org.mockito.Mockito
-                .verify(priceBackfillCoordinator)
-                .scheduleBackfill(eq("asset-3"), any())
+                .verify(priceBackfillCoordinator, org.mockito.Mockito.times(3))
+                .scheduleBackfill(assetIdCaptor.capture(), ensureFromCaptor.capture())
+            // Body fromDate is 2020-01-01, well inside the 10y cap, so each asset
+            // is scheduled against the same forwarded targetFrom.
+            val expectedFrom = LocalDate.of(2020, 1, 1)
+            assertThat(assetIdCaptor.allValues).containsExactlyInAnyOrder("asset-1", "asset-2", "asset-3")
+            assertThat(ensureFromCaptor.allValues).containsExactly(expectedFrom, expectedFrom, expectedFrom)
         }
 
         @Test
@@ -636,6 +644,40 @@ internal class PriceControllerTests
             org.mockito.Mockito
                 .verify(marketDataService, org.mockito.Mockito.never())
                 .backFill(any<String>(), any())
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
+        fun is_PriceHistoryReturnsEmptyWhenBackfillFails() {
+            // Cache miss path: backFill throws, controller must catch and return the empty initial.
+            val from = LocalDate.of(2024, 1, 1)
+            val to = LocalDate.of(2024, 1, 3)
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(emptyList())
+            org.mockito.Mockito
+                .doThrow(RuntimeException("provider unavailable"))
+                .`when`(marketDataService)
+                .backFill(eq(asset.id), any())
+
+            val json =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .get("/prices/{assetId}/history", asset.id)
+                            .param("from", from.toString())
+                            .param("to", to.toString())
+                            .with(
+                                SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                            ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString
+            val response = objectMapper.readValue<PriceHistoryResponse>(json)
+            assertThat(response.prices).isEmpty()
         }
 
         @Test

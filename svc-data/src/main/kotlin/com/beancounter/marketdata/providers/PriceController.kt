@@ -345,7 +345,7 @@ class PriceController(
                 @Suppress("TooGenericExceptionCaught")
                 e: Exception
             ) {
-                log.warn("Price history backfill failed for asset {}: {}", assetId, e.message)
+                log.warn("Price history backfill failed for asset {}", assetId, e)
                 initial
             }
         }

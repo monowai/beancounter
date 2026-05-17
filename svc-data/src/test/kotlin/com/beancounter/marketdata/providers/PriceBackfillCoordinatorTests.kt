@@ -69,9 +69,10 @@ internal class PriceBackfillCoordinatorTests {
         val backfillService = mock<MarketDataBackfillService>()
         val coordinator = PriceBackfillCoordinator(backfillService)
 
-        coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
+        coordinator.scheduleBackfill("", LocalDate.now().minusYears(5))
+        coordinator.scheduleBackfill("   ", LocalDate.now().minusYears(5))
 
-        verify(backfillService, never()).backFill(eq("asset-2"), any())
+        verify(backfillService, never()).backFill(any<String>(), any<LocalDate>())
     }
 
     @Test

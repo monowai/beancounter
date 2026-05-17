@@ -496,6 +496,69 @@ class PerformanceServiceCacheTest {
     }
 
     @Test
+    fun `cache hit with no in-window snapshots triggers recomputation`() {
+        // Regression: kauri 2026-05-17. Cache held only snapshots from BEFORE
+        // the requested window. Outer guard saw `earliestCached <= startDate`
+        // and HIT the cache; `anchorToStartDate` then returned a single
+        // synthesised anchor (onOrAfter was empty). Result: 1-point series,
+        // TWR = 0%, investmentGain = 0, even though portfolios had real
+        // activity in the window. Cache must MISS when nothing in
+        // `[startDate, endDate]`, regardless of how much pre-window history
+        // exists.
+        whenever(cacheService.isAvailable()).thenReturn(true)
+
+        val now = LocalDate.now()
+        val cachedSnapshots =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(24),
+                    marketValue = BigDecimal("9000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("9000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(18),
+                    marketValue = BigDecimal("10000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("9000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            )
+        whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
+            .thenReturn(cachedSnapshots)
+
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = testAsset,
+                tradeDate = now.minusMonths(20),
+                quantity = BigDecimal("100"),
+                tradeAmount = BigDecimal("15000")
+            )
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn)))
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                positions.getOrCreate(testAsset)
+            }
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(emptyMap()))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+
+        // Request 12 months — startDate = now - 12M. All cached snapshots are
+        // older than that. Must recompute, not return a single-anchor series.
+        performanceService.calculate(portfolio, 12)
+
+        verify(trnService).query(any<Portfolio>(), any())
+        verify(priceService).getBulkPrices(any(), any())
+    }
+
+    @Test
     fun `cache miss stores results`() {
         val buyDate = LocalDate.now().minusMonths(6)
         val buyTrn =

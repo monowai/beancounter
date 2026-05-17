@@ -79,7 +79,8 @@ class PerformanceService(
         val cached = tryLoadFromCache(portfolio.id)
         if (cached != null) {
             val earliestCached = cached.minOf { it.valuationDate }
-            if (!earliestCached.isAfter(startDate)) {
+            val hasInWindow = cached.any { !it.valuationDate.isBefore(startDate) }
+            if (!earliestCached.isAfter(startDate) && hasInWindow) {
                 val anchored = anchorToStartDate(cached, startDate)
                 log.debug(
                     "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
@@ -89,10 +90,15 @@ class PerformanceService(
                 )
                 return buildResponseFromCache(portfolio, anchored)
             }
+            // `earliestCached <= startDate` alone is not enough: if every cached
+            // snapshot predates startDate, `anchorToStartDate` returns just the
+            // synthesised anchor (single-point series), producing 0% TWR and 0
+            // gain. Require at least one snapshot in `[startDate, endDate]`.
             log.debug(
-                "Cache PARTIAL: portfolio={}, cached from {} but requested from {}, recomputing",
+                "Cache PARTIAL: portfolio={}, earliest={}, latest={}, requested from {}, recomputing",
                 portfolio.code,
                 earliestCached,
+                cached.maxOf { it.valuationDate },
                 startDate
             )
         }

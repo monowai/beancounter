@@ -136,6 +136,7 @@ class TrnBase {
                     .readValue<TrnResponse>(
                         ClassPathResource("contracts/trn/trn-for-asset-response.json").file
                     ).data
+                    .toTrns()
             )
     }
 
@@ -184,7 +185,7 @@ class TrnBase {
                     portfolio.id,
                     dateUtils.getFormattedDate(date)
                 )
-            ).thenReturn(trnResponse.data)
+            ).thenReturn(trnResponse.data.toTrns())
     }
 
     fun mockTrnPostResponse(portfolio: Portfolio) {
@@ -202,6 +203,7 @@ class TrnBase {
                     .readValue<TrnResponse>(
                         ClassPathResource("contracts/trn/client-csv-response.json").file
                     ).data
+                    .toTrns()
             )
     }
 }

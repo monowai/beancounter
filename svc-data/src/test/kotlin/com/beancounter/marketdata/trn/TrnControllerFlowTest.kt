@@ -231,7 +231,7 @@ class TrnControllerFlowTest(
                 bcMvcHelper.postTrn(trnRequest).response.contentAsString,
                 TrnResponse::class.java
             )
-        assertThat(trnResponse.data).hasSize(trnRequest.data.size)
+        assertThat(trnResponse.data.trns).hasSize(trnRequest.data.size)
 
         // General Query
         val queryResponse =
@@ -260,13 +260,13 @@ class TrnControllerFlowTest(
                     TrnResponse::class.java
                 )
 
-        assertThat(queryResponse.data).isNotEmpty.hasSize(2) // 2 MSFT transactions
+        assertThat(queryResponse.data.trns).isNotEmpty.hasSize(2) // 2 MSFT transactions
         val mvcResult = findSortedByAssetAndTradeDate(portfolio)
         val firstId =
             checkResponseSortOrder(
                 mvcResult,
                 trnRequest.data.size
-            ).data.iterator().next().id
+            ).data.trns.iterator().next().id
 
         // Find by PrimaryKey
         verifyFoundByPk(
@@ -280,10 +280,13 @@ class TrnControllerFlowTest(
             )
 
         // Find by portfolio and asset
-        assertThat(allTrades.data).isNotEmpty.hasSize(2) // 2 MSFT transactions
+        assertThat(allTrades.data.trns).isNotEmpty.hasSize(2) // 2 MSFT transactions
 
         // Most recent transaction first
-        val (id, _, foundTradeDate) = allTrades.data.iterator().next()
+        val (id, _, foundTradeDate) =
+            allTrades.data.trns
+                .iterator()
+                .next()
         assertThat(foundTradeDate).isEqualTo(TRADE_DATE)
 
         // Delete a single transaction by primary key
@@ -359,7 +362,7 @@ class TrnControllerFlowTest(
                 .readValue(
                     pkResult.response.contentAsString,
                     TrnResponse::class.java
-                ).data
+                ).data.trns
         ).isNotEmpty.hasSize(1)
     }
 
@@ -399,13 +402,13 @@ class TrnControllerFlowTest(
                     mvcResult.response.contentAsString,
                     TrnResponse::class.java
                 )
-        assertThat(sortedResponse.data).isNotEmpty.hasSize(i1)
+        assertThat(sortedResponse.data.trns).isNotEmpty.hasSize(i1)
         // Verify the sort order - asset.code, tradeDate
-        for (trn in sortedResponse.data) {
+        for (trn in sortedResponse.data.trns) {
             assertThat(trn.callerRef).isNotNull.hasNoNullFieldsOrProperties()
             assertThat(trn.callerRef!!.callerId).isNotNull
             assertThat(trn.callerRef!!.callerId == i1--.toString())
-            assertThat(trn.asset).isNotNull
+            assertThat(trn.assetId).isNotNull
             assertThat(trn.id).isNotNull
         }
         return sortedResponse

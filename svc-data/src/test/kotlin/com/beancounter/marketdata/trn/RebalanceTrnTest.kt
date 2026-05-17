@@ -149,8 +149,8 @@ class RebalanceTrnTest {
                 TrnResponse::class.java
             )
 
-        assertThat(response.data).hasSize(1)
-        val createdTrn = response.data.first()
+        assertThat(response.data.trns).hasSize(1)
+        val createdTrn = response.data.trns.first()
         assertThat(createdTrn.trnType).isEqualTo(TrnType.BUY)
         assertThat(createdTrn.status).isEqualTo(TrnStatus.PROPOSED)
         assertThat(createdTrn.quantity).isEqualByComparingTo(BigDecimal("4.0000"))
@@ -224,9 +224,9 @@ class RebalanceTrnTest {
                 TrnResponse::class.java
             )
 
-        assertThat(response.data).hasSize(1)
-        val createdTrn = response.data.first()
-        assertThat(createdTrn.tradeCurrency.code).isEqualTo(USD.code)
+        assertThat(response.data.trns).hasSize(1)
+        val createdTrn = response.data.trns.first()
+        assertThat(createdTrn.tradeCurrencyCode).isEqualTo(USD.code)
         // FX rates should be populated by svc-data
         assertThat(createdTrn.tradeBaseRate).isNotNull()
     }

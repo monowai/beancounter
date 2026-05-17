@@ -13,6 +13,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnDto
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils
 import com.beancounter.common.utils.AssetUtils
@@ -132,24 +133,21 @@ internal class TrnInputTest {
                 BcJson.objectMapper.writeValueAsString(trnResponse),
                 TrnResponse::class.java
             )
-        val fromAsset: Asset =
-            fromJson.data
-                .iterator()
-                .next()
-                .asset
+        val fromDto = fromJson.data.trns.first()
+        val fromAsset: Asset = fromJson.data.assets.getValue(fromDto.assetId)
         // Market.aliases are not serialized
         assertThat(fromAsset.market)
             .usingRecursiveComparison()
-            .ignoringFields(
-                "market",
-                "aliases"
-            )
+            .ignoringFields("aliases")
+            .isEqualTo(trn.asset.market)
         assertThat(fromAsset)
             .usingRecursiveComparison()
-        assertThat(fromJson.data).hasSize(1)
-        assertThat(fromJson.data.iterator().next())
+            .ignoringFields("market.aliases")
+            .isEqualTo(trn.asset)
+        assertThat(fromJson.data.trns).hasSize(1)
+        assertThat(fromDto)
             .usingRecursiveComparison()
-            .ignoringFields("asset")
+            .isEqualTo(TrnDto.from(trn))
     }
 
     private val portfolioProp = "portfolio"

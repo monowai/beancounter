@@ -46,13 +46,14 @@ class BrokerPositionService(
     ): PositionResponse {
         val trnResponse = trnService.queryByBroker(brokerId, valuationDate)
 
-        if (trnResponse.data.isEmpty()) {
+        val trns = trnResponse.data.toTrns()
+        if (trns.isEmpty()) {
             log.debug("No transactions found for broker: {}", brokerId)
             return PositionResponse()
         }
 
         // Sort transactions by trade date (required by Accumulator)
-        val sortedTransactions = trnResponse.data.sortedBy { it.tradeDate }
+        val sortedTransactions = trns.sortedBy { it.tradeDate }
 
         // Use the first transaction's portfolio as context for currency settings
         val contextPortfolio = sortedTransactions.first().portfolio

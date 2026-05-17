@@ -152,8 +152,8 @@ class ProposedTransactionsTest {
                 result.response.contentAsString,
                 TrnResponse::class.java
             )
-        assertThat(response.data).isNotEmpty
-        assertThat(response.data.filter { it.status == TrnStatus.PROPOSED }).hasSizeGreaterThanOrEqualTo(2)
+        assertThat(response.data.trns).isNotEmpty
+        assertThat(response.data.trns.filter { it.status == TrnStatus.PROPOSED }).hasSizeGreaterThanOrEqualTo(2)
     }
 
     @Test
@@ -293,7 +293,7 @@ class ProposedTransactionsTest {
                     .response.contentAsString,
                 TrnResponse::class.java
             )
-        assertThat(managed.data)
+        assertThat(managed.data.toTrns())
             .anySatisfy { trn ->
                 assertThat(trn.portfolio.id).isEqualTo(portfolio.id)
                 assertThat(trn.status).isEqualTo(TrnStatus.PROPOSED)
@@ -310,7 +310,7 @@ class ProposedTransactionsTest {
                     .response.contentAsString,
                 TrnResponse::class.java
             )
-        assertThat(owned.data).noneMatch { it.portfolio.id == portfolio.id }
+        assertThat(owned.data.toTrns()).noneMatch { it.portfolio.id == portfolio.id }
 
         val all =
             objectMapper.readValue(
@@ -323,7 +323,7 @@ class ProposedTransactionsTest {
                     .response.contentAsString,
                 TrnResponse::class.java
             )
-        assertThat(all.data).anyMatch { it.portfolio.id == portfolio.id }
+        assertThat(all.data.toTrns()).anyMatch { it.portfolio.id == portfolio.id }
 
         val countNode =
             objectMapper.readTree(
@@ -388,6 +388,6 @@ class ProposedTransactionsTest {
                 result.response.contentAsString,
                 TrnResponse::class.java
             )
-        assertThat(response.data.all { it.status == TrnStatus.PROPOSED }).isTrue()
+        assertThat(response.data.trns.all { it.status == TrnStatus.PROPOSED }).isTrue()
     }
 }

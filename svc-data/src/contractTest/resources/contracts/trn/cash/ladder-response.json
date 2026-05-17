@@ -1,8 +1,93 @@
 {
-  "data": [
-    {
-      "trnType": "DEPOSIT",
-      "asset": {
+  "data": {
+    "trns": [
+      {
+        "trnType": "DEPOSIT",
+        "quantity": 10000.0,
+        "price": 1,
+        "tradeAmount": 10000.0,
+        "tradeCashRate": 1,
+        "tradeBaseRate": 1,
+        "tradePortfolioRate": 1,
+        "cashAmount": 10000.0,
+        "tradeDate": "2021-11-24",
+        "comments": null,
+        "version": "3",
+        "id": "GONgffVcRzWLtqBiZWDC_w",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "CASHLADDER",
+          "callerId": "r-6CI0h7Q6eXTy57pEBwGw"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0,
+        "tax": 0,
+        "assetId": "NZD",
+        "portfolioId": "CASHLADDER",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "NZD"
+      },
+      {
+        "trnType": "FX_BUY",
+        "quantity": 2500.0,
+        "price": 1,
+        "tradeAmount": 2500.0,
+        "tradeCashRate": 1.5,
+        "tradeBaseRate": 1,
+        "tradePortfolioRate": 1.5,
+        "cashAmount": -5000.0,
+        "tradeDate": "2021-11-24",
+        "comments": null,
+        "version": "3",
+        "id": "Ucsd-Zk8RwOTkwONdG4G_g",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "CASHLADDER",
+          "callerId": "LYQm_Hp2RYax7awutCjCzw"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0,
+        "tax": 0,
+        "assetId": "USD",
+        "portfolioId": "CASHLADDER",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "NZD"
+      },
+      {
+        "trnType": "BUY",
+        "quantity": 1000.0,
+        "price": 1,
+        "tradeAmount": 1000.0,
+        "tradeCashRate": 0.67,
+        "tradeBaseRate": 1,
+        "tradePortfolioRate": 1,
+        "cashAmount": -1492.54,
+        "tradeDate": "2021-11-24",
+        "comments": null,
+        "version": "3",
+        "id": "rMP3wWx1T86-kG5D89eIHg",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "CASHLADDER",
+          "callerId": "GgVuSs25SViGhTmfu8DIHg"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0,
+        "tax": 0,
+        "assetId": "AAPL",
+        "portfolioId": "CASHLADDER",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "NZD",
+        "cashAssetId": "NZD"
+      }
+    ],
+    "assets": {
+      "NZD": {
         "code": "NZD",
         "id": "NZD",
         "name": "NZD Balance",
@@ -18,7 +103,6 @@
           "daysToSubtract": 1,
           "enricher": "ECHO",
           "multiplier": 1.0,
-
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -30,90 +114,7 @@
         "version": "1",
         "status": "Active"
       },
-      "quantity": 10000.00,
-      "price": 1,
-      "tradeAmount": 10000.00,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashAsset": {
-        "code": "NZD",
-        "id": "NZD",
-        "name": "NZD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "NZD",
-        "version": "1",
-        "status": "Active"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1,
-      "cashAmount": 10000.00,
-      "tradeDate": "2021-11-24",
-      "comments": null,
-      "version": "3",
-      "id": "GONgffVcRzWLtqBiZWDC_w",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "CASHLADDER",
-        "callerId": "r-6CI0h7Q6eXTy57pEBwGw"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "CASHLADDER",
-        "code": "CASHLADDER",
-        "name": "CASHLADDER",
-        "currency": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "owner": {
-          "id": "user",
-          "email": "user@testing.com",
-          "auth0": "",
-          "active": true,
-          "since": "2021-11-24"
-        }
-      },
-      "settleDate": null,
-      "fees": 0,
-      "tax": 0
-    },
-    {
-      "trnType": "FX_BUY",
-      "asset": {
+      "USD": {
         "code": "USD",
         "id": "USD",
         "name": "USD Balance",
@@ -129,7 +130,6 @@
           "daysToSubtract": 1,
           "enricher": "ECHO",
           "multiplier": 1.0,
-
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -141,90 +141,7 @@
         "version": "1",
         "status": "Active"
       },
-      "quantity": 2500.00,
-      "price": 1,
-      "tradeAmount": 2500.00,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashAsset": {
-        "code": "NZD",
-        "id": "NZD",
-        "name": "NZD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "NZD",
-        "version": "1",
-        "status": "Active"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.5,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1.5,
-      "cashAmount": -5000.00,
-      "tradeDate": "2021-11-24",
-      "comments": null,
-      "version": "3",
-      "id": "Ucsd-Zk8RwOTkwONdG4G_g",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "CASHLADDER",
-        "callerId": "LYQm_Hp2RYax7awutCjCzw"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "CASHLADDER",
-        "code": "CASHLADDER",
-        "name": "CASHLADDER",
-        "currency": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "owner": {
-          "id": "user",
-          "email": "user@testing.com",
-          "auth0": "",
-          "active": true,
-          "since": "2021-11-24"
-        }
-      },
-      "settleDate": null,
-      "fees": 0,
-      "tax": 0
-    },
-    {
-      "trnType": "BUY",
-      "asset": {
+      "AAPL": {
         "code": "AAPL",
         "id": "AAPL",
         "assetCategory": {
@@ -252,63 +169,10 @@
         "priceSymbol": "AAPL",
         "version": "1",
         "status": "Active"
-      },
-      "quantity": 1000.00,
-      "price": 1,
-      "tradeAmount": 1000.00,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashAsset": {
-        "code": "NZD",
-        "id": "NZD",
-        "name": "NZD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "NZD",
-        "version": "1",
-        "status": "Active"
-      },
-      "cashCurrency": {
-        "code": "NZD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 0.67,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1,
-      "cashAmount": -1492.54,
-      "tradeDate": "2021-11-24",
-      "comments": null,
-      "version": "3",
-      "id": "rMP3wWx1T86-kG5D89eIHg",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "CASHLADDER",
-        "callerId": "GgVuSs25SViGhTmfu8DIHg"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
+      }
+    },
+    "portfolios": {
+      "CASHLADDER": {
         "id": "CASHLADDER",
         "code": "CASHLADDER",
         "name": "CASHLADDER",
@@ -329,10 +193,20 @@
           "active": true,
           "since": "2021-11-24"
         }
+      }
+    },
+    "currencies": {
+      "USD": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
       },
-      "settleDate": null,
-      "fees": 0,
-      "tax": 0
-    }
-  ]
+      "NZD": {
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      }
+    },
+    "brokers": {}
+  }
 }

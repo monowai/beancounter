@@ -98,7 +98,14 @@ class MarketStackService(
             marketStackConfig.markets!!.contains(market.code)
         }
 
-    override fun getDate(
+    /**
+         * Resolve the effective date to use for price retrieval for a specific market and request.
+         *
+         * @param market The market for which the date is being resolved.
+         * @param priceRequest The price request containing the requested date or date context.
+         * @return The LocalDate to use when requesting prices for the specified market.
+         */
+        override fun getDate(
         market: Market,
         priceRequest: PriceRequest
     ): LocalDate =
@@ -107,6 +114,13 @@ class MarketStackService(
             priceRequest.date
         )
 
+    /**
+     * Fetches historical price data for an asset starting from the given date and returns it as a PriceResponse.
+     *
+     * @param asset The asset to backfill prices for.
+     * @param fromDate The start date (inclusive) for the historical data retrieval.
+     * @return A PriceResponse containing market data for the asset from `fromDate` up to today.
+     */
     override fun backFill(
         asset: Asset,
         fromDate: LocalDate

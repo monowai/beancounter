@@ -29,13 +29,28 @@ interface PerformanceSnapshotRepository : JpaRepository<PerformanceSnapshotEntit
         dates: Collection<LocalDate>
     )
 
+    /**
+     * Delete all performance snapshot entities whose valuation date equals the provided date.
+     *
+     * @param date The valuation date identifying snapshots to remove.
+     */
     @Modifying
     fun deleteByValuationDate(date: LocalDate)
 
+    /**
+     * Deletes all PerformanceSnapshotEntity records whose valuationDate is greater than or equal to the provided date.
+     *
+     * @param fromDate The inclusive lower bound for valuationDate; records with valuationDate >= fromDate will be removed.
+     */
     @Modifying
     @Query("DELETE FROM PerformanceSnapshotEntity e WHERE e.valuationDate >= :fromDate")
     fun deleteByValuationDateGreaterThanEqual(fromDate: LocalDate)
 
+    /**
+     * Deletes all performance snapshot rows belonging to the specified portfolio.
+     *
+     * @param portfolioId Identifier of the portfolio whose performance snapshots will be removed.
+     */
     @Modifying
     fun deleteByPortfolioId(portfolioId: String)
 }

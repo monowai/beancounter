@@ -143,11 +143,25 @@ class AlphaPriceService(
 
     override fun isMarketSupported(market: Market) = alphaConfig.markets?.contains(market.code) ?: false
 
+    /**
+     * Resolve the applicable market date for a price request.
+     *
+     * @param market The market for which the date should be resolved.
+     * @param priceRequest The request whose `date` and `currentMode` determine the resolved date.
+     * @return The market-specific date to use for fetching prices.
+     */
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest
     ) = alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
 
+    /**
+     * Fetches historical price data for the given asset to support backfill operations.
+     *
+     * @param asset The asset to retrieve historical prices for.
+     * @param fromDate The requested start date for backfill; this provider does not use this value and it is ignored.
+     * @return A `PriceResponse` containing market data entries whose `source` is set to `ALPHA` and `asset` is set to the provided `asset`.
+     */
     override fun backFill(
         asset: Asset,
         fromDate: LocalDate

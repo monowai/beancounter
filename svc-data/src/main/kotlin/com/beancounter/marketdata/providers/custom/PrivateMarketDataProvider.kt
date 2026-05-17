@@ -90,17 +90,37 @@ class PrivateMarketDataProvider(
     val priceDate: LocalDate
         get() = dateUtils.getDate()
 
+    /**
+     * Get the provider's formatted price date for a price request.
+     *
+     * @param market The market for which the date is requested; this provider ignores the market.
+     * @param priceRequest The request whose `date` will be formatted.
+     * @return The formatted `LocalDate` extracted from `priceRequest.date`.
+     */
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest
     ): LocalDate = dateUtils.getFormattedDate(priceRequest.date)
 
+    /**
+     * Attempts to backfill historical prices for the given asset starting at the specified date but is not supported for private assets.
+     *
+     * @param asset The asset to backfill.
+     * @param fromDate The start date for the backfill range.
+     * @return A PriceResponse containing backfilled data.
+     * @throws UnsupportedOperationException Always thrown because private market assets do not support backfill requests.
+     */
     override fun backFill(
         asset: Asset,
         fromDate: LocalDate
     ): PriceResponse = throw UnsupportedOperationException("Private market assets do not support backfill requests")
 
-    override fun isApiSupported(): Boolean = false
+    /**
+ * Indicates whether this provider exposes a public API.
+ *
+ * @return `true` if API access is supported, `false` otherwise.
+ */
+override fun isApiSupported(): Boolean = false
 
     companion object {
         const val ID = "PRIVATE"

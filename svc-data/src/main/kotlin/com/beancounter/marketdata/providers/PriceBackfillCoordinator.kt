@@ -29,6 +29,18 @@ class PriceBackfillCoordinator(
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
     private val lastAttempt = ConcurrentHashMap<String, Instant>()
 
+    /**
+     * Schedule a deep historical price backfill for the given asset starting from the specified date.
+     *
+     * This method will skip scheduling when `assetId` is blank, enforce a per-asset retry cooldown (1 hour),
+     * and avoid starting a second concurrent backfill for the same asset. When allowed, it records the attempt
+     * time, invokes the backfill service, optionally emits a cache-invalidation event if a producer is configured,
+     * logs progress, and ensures the in-flight marker is cleared even on error. Exceptions from the backfill are caught
+     * and logged rather than propagated.
+     *
+     * @param assetId The identifier of the asset to backfill.
+     * @param fromDate The inclusive start date from which price history should be backfilled.
+     */
     @Async("priceBackfillExecutor")
     fun scheduleBackfill(
         assetId: String,

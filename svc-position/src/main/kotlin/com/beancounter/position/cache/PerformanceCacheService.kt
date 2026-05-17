@@ -29,11 +29,31 @@ interface PerformanceCacheService {
         fromDate: LocalDate
     )
 
-    fun invalidateOnDate(date: LocalDate)
+    /**
+ * Invalidates all cached performance snapshots associated with the given valuation date across all portfolios.
+ *
+ * @param date The valuation date whose cached snapshots should be invalidated.
+ */
+fun invalidateOnDate(date: LocalDate)
 
-    fun invalidateFromDate(fromDate: LocalDate)
+    /**
+ * Invalidates cached performance snapshots for all portfolios starting from the specified date.
+ *
+ * @param fromDate The date (inclusive) from which cached entries should be invalidated across all portfolios.
+ */
+fun invalidateFromDate(fromDate: LocalDate)
 
-    fun invalidatePortfolio(portfolioId: String)
+    /**
+ * Invalidates all cached performance snapshots for the specified portfolio.
+ *
+ * @param portfolioId The unique identifier of the portfolio whose cached snapshots should be removed.
+ */
+fun invalidatePortfolio(portfolioId: String)
 
-    fun isAvailable(): Boolean
+    /**
+ * Indicates whether the performance cache service can be used.
+ *
+ * @return `true` if the cache service is available, `false` otherwise.
+ */
+fun isAvailable(): Boolean
 }

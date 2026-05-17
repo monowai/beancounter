@@ -34,6 +34,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableAsync
 class MarketDataBoot
 
+/**
+ * Application entry point that boots the Spring application using MarketDataBoot as the primary configuration.
+ */
 fun main(args: Array<String>) {
     runApplication<MarketDataBoot>(args = args)
 }

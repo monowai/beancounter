@@ -14,6 +14,12 @@ class MarketDataBackfillService(
     private val priceService: PriceService,
     private val assetFinder: AssetFinder
 ) {
+    /**
+     * Backfills market data for the asset identified by the given asset ID starting from the specified date.
+     *
+     * @param assetId The identifier of the asset to backfill.
+     * @param fromDate The start date (inclusive) for the backfill; defaults to two years before the current date.
+     */
     fun backFill(
         assetId: String,
         fromDate: LocalDate = LocalDate.now().minusYears(2)
@@ -21,6 +27,12 @@ class MarketDataBackfillService(
         backFill(getAsset(assetId), fromDate)
     }
 
+    /**
+     * Backfills market data for the given asset starting from the specified date and submits the results to the pricing service.
+     *
+     * @param asset The asset to backfill market data for.
+     * @param fromDate The start date (inclusive) for the backfill; defaults to two years before the current date.
+     */
     fun backFill(
         asset: Asset,
         fromDate: LocalDate = LocalDate.now().minusYears(2)

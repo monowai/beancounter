@@ -64,6 +64,17 @@ class PerformanceService(
     private val cacheService: PerformanceCacheService,
     private val cashUtils: CashUtils = CashUtils()
 ) {
+    /**
+     * Calculates the portfolio's performance series (time-weighted returns and related metrics) over a recent rolling window.
+     *
+     * This builds valuation snapshots on selected dates, computes TWR-based growth factors, and returns a PerformanceResponse
+     * containing the resulting series and portfolio currency. The method will return cached snapshots when available and
+     * otherwise fetch price and FX data, build snapshots, optionally store results in cache, and return the computed response.
+     *
+     * @param portfolio The portfolio to calculate performance for.
+     * @param months Number of months before the current date to include in the series (defaults to 12).
+     * @return A PerformanceResponse containing the portfolio's currency and the computed performance data points.
+     */
     fun calculate(
         portfolio: Portfolio,
         months: Int = 12
@@ -150,6 +161,16 @@ class PerformanceService(
                 toPair(trn.tradeCurrency, portfolio.currency)
             }.toSet()
 
+    /**
+     * Fetches bulk market price data for the given assets on the specified valuation dates.
+     *
+     * If `assets` is empty, this returns an empty map without calling the price service.
+     *
+     * @param assets The list of assets to request prices for.
+     * @param dates The valuation dates for which prices are required.
+     * @param token Bearer token used to authenticate the price service request.
+     * @return A map keyed by date string (ISO-8601, e.g. `yyyy-MM-dd`) to a collection of `MarketData` for that date.
+     */
     private fun prefetchPrices(
         assets: List<PriceAsset>,
         dates: List<LocalDate>,
@@ -164,6 +185,18 @@ class PerformanceService(
         return priceService.getBulkPrices(request, token).data
     }
 
+    /**
+     * Requests a price-history backfill for the given assets starting at the specified date.
+     *
+     * This triggers a non-fatal call to the price service to ensure historical price data exists
+     * from `startDate` for the resolved asset IDs extracted from `assets`. Failures are caught
+     * and logged; the caller's computation continues regardless of the outcome.
+     *
+     * @param assets List of assets to ensure history for; IDs are taken from `resolvedAsset?.id`
+     *               or `assetId` when present.
+     * @param startDate Earliest date (inclusive) for which history should be ensured.
+     * @param token Bearer token used for the price service call.
+     */
     private fun ensureAssetHistory(
         assets: List<PriceAsset>,
         startDate: LocalDate,
@@ -192,6 +225,14 @@ class PerformanceService(
         }
     }
 
+    /**
+     * Fetches bulk FX rates for the given currency pairs over the specified date range.
+     *
+     * @param pairs The set of ISO currency pairs to request rates for.
+     * @param startDate The start of the date range (inclusive).
+     * @param endDate The end of the date range (inclusive).
+     * @param token Bearer token used to authenticate the FX rate service call.
+     * @return A map keyed by ISO date string to `FxPairResults`, containing the FX rates returned for each requested date.
     private fun prefetchFxRates(
         pairs: Set<IsoCurrencyPair>,
         startDate: LocalDate,

@@ -32,6 +32,12 @@ class MarketDataService(
     private val priceService: PriceService,
     private val dateUtils: DateUtils
 ) {
+    /**
+     * Request historical market data backfill for the specified asset starting from the given date.
+     *
+     * @param assetId Identifier of the asset to backfill.
+     * @param fromDate Earliest date (inclusive) for which to backfill data; defaults to two years before today.
+     */
     fun backFill(
         assetId: String,
         fromDate: LocalDate = LocalDate.now().minusYears(2)
@@ -39,6 +45,14 @@ class MarketDataService(
         backfillService.backFill(assetId, fromDate)
     }
 
+    /**
+     * Fetches the price response for a single asset identified by market and asset code for the specified date.
+     *
+     * @param market The market identifier where the asset is listed.
+     * @param assetCode The asset code within the specified market.
+     * @param date The target price date as a string; defaults to TODAY.
+     * @return A PriceResponse containing the asset's price when the asset is found, otherwise an empty PriceResponse.
+     */
     fun getPriceResponse(
         market: String,
         assetCode: String,

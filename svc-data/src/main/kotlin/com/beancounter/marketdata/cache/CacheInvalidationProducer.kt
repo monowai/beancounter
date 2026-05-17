@@ -38,6 +38,11 @@ class CacheInvalidationProducer(
         )
     }
 
+    /**
+     * Publishes a cache invalidation event for foreign-exchange (FX) data starting at the given date.
+     *
+     * @param date The start date (`fromDate`) from which FX cache entries should be invalidated.
+     */
     fun sendFxEvent(date: LocalDate) {
         send(
             CacheInvalidationEvent(
@@ -47,6 +52,12 @@ class CacheInvalidationProducer(
         )
     }
 
+    /**
+     * Publishes a `PRICE_HISTORY` cache invalidation event for the specified asset starting at the given date.
+     *
+     * @param assetId The identifier of the asset whose price history changed.
+     * @param fromDate The earliest date (inclusive) from which cached price history should be considered invalid.
+     */
     fun sendPriceHistoryEvent(
         assetId: String,
         fromDate: LocalDate
@@ -60,6 +71,13 @@ class CacheInvalidationProducer(
         )
     }
 
+    /**
+     * Publishes a CacheInvalidationEvent to the configured output binding when streaming is enabled.
+     *
+     * Does nothing if streaming is disabled. Any MessagingException raised while sending is caught and logged.
+     *
+     * @param event The cache invalidation event to publish (contains change type and related identifiers/dates).
+     */
     private fun send(event: CacheInvalidationEvent) {
         if (!streamEnabled) return
         try {

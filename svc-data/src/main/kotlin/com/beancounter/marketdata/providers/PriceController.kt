@@ -315,6 +315,18 @@ class PriceController(
             asAt
         )
 
+    /**
+     * Retrieve daily closing prices for an asset over an inclusive date range, sorted by date ascending.
+     *
+     * If no persisted prices exist for the asset the controller attempts a single synchronous backfill (bounded
+     * by the controller's configured backfill window) and returns the reloaded history; if cached history exists
+     * but does not extend back far enough the controller schedules an asynchronous backfill and returns the cached results.
+     *
+     * @param assetId The asset identifier.
+     * @param from The start date of the range (inclusive), provided as a string parseable by the application's date parser.
+     * @param to The end date of the range (inclusive), provided as a string parseable by the application's date parser; defaults to today.
+     * @return A PriceHistoryResponse containing the asset and a collection of daily price points for the requested range.
+     */
     @GetMapping("/{assetId}/history")
     @Operation(
         summary = "Get price history for an asset between two dates",
@@ -370,6 +382,15 @@ class PriceController(
         const val BACKFILL_RETRY_BUFFER_DAYS = 7L
     }
 
+    /**
+     * Retrieve prices for multiple assets across multiple dates.
+     *
+     * This is a DB-only lookup (does not call external providers). For requested dates that have no exact price
+     * (e.g., weekends or market holidays), the response contains the nearest prior available price.
+     *
+     * @param bulkPriceRequest Request describing the asset identifiers and the date range or set of dates to query.
+     * @return A BulkPriceResponse containing resolved prices for each requested asset and date (using prior prices when exact-date prices are unavailable).
+     */
     @PostMapping("/bulk")
     @Operation(
         summary = "Get prices for multiple assets across multiple dates",
@@ -383,6 +404,14 @@ class PriceController(
         @RequestBody bulkPriceRequest: BulkPriceRequest
     ): BulkPriceResponse = marketDataService.getBulkAssetPrices(bulkPriceRequest)
 
+    /**
+     * Initiates an asynchronous backfill of corporate events for the specified asset.
+     *
+     * Starts processing historical corporate-event data for the given asset identifier so missing or outdated events can be populated or refreshed.
+     *
+     * @param assetId Identifier of the asset whose events should be backfilled.
+     * @return The result returned by the backfill operation indicating the request was accepted or scheduled.
+     */
     @PostMapping(
         value = ["/{assetId}/events"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
@@ -420,6 +449,16 @@ class PriceController(
         @PathVariable assetId: String
     ) = marketDataService.backFill(assetId)
 
+    /**
+     * Schedules asynchronous deep price-history backfills for the provided assets.
+     *
+     * The requested `fromDate` is bounded to at most `MAX_BACKFILL_YEARS` before today. Asset IDs are trimmed,
+     * empty entries are discarded, and duplicates are removed before scheduling so the returned count reflects
+     * actual queued work.
+     *
+     * @param request Contains the desired `fromDate` and the list of `assetIds` to ensure history for.
+     * @return An `EnsureHistoryResponse` whose `scheduled` value is the number of distinct, non-empty asset IDs that were queued.
+     */
     @PostMapping("/ensure-history")
     @Operation(
         summary = "Ensure price history coverage for a set of assets",
@@ -449,6 +488,15 @@ class PriceController(
         return EnsureHistoryResponse(scheduled = cleanAssetIds.size)
     }
 
+    /**
+     * Trigger a portfolio-level historical price backfill.
+     *
+     * Pre-populates price data for all assets in the specified portfolio across monthly
+     * intervals and external cash flow dates to accelerate subsequent performance calculations.
+     *
+     * @param code Portfolio code identifying which portfolio to backfill.
+     * @return A map containing result details about the backfill operation.
+     */
     @PostMapping("/backfill/{code}")
     @Operation(
         summary = "Backfill prices for a portfolio's historical dates",

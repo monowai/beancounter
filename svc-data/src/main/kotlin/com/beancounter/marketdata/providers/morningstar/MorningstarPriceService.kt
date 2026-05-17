@@ -130,11 +130,24 @@ class MorningstarPriceService(
 
     override fun isMarketSupported(market: Market): Boolean = morningstarConfig.isMarketSupported(market)
 
+    /**
+     * Determine the effective market date for the given market and price request.
+     *
+     * @param market The market for which the date is required.
+     * @param priceRequest The price request whose `date` and `currentMode` determine the resulting market date.
+     * @return The date to use when querying Morningstar for prices.
+     */
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest
     ): LocalDate = morningstarConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
 
+    /**
+     * Fetches historical market prices for the specified asset from Morningstar starting at the given date.
+     *
+     * @param asset The asset whose historical prices should be retrieved.
+     * @param fromDate Inclusive start date for the historical price data to fetch.
+     * @return A PriceResponse containing zero or more MarketData entries for the asset, ordered by date. */
     override fun backFill(
         asset: Asset,
         fromDate: LocalDate

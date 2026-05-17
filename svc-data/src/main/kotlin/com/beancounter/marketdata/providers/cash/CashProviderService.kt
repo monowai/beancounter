@@ -54,11 +54,27 @@ class CashProviderService(
     val priceDate: LocalDate?
         get() = dateUtils.getDate()
 
+    /**
+     * Retrieve the provider's configured price date.
+     *
+     * Both `market` and `priceRequest` are accepted to satisfy the provider interface but are not used.
+     *
+     * @param market Ignored.
+     * @param priceRequest Ignored.
+     * @return The provider's current price date.
+     */
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest
     ): LocalDate = priceDate!!
 
+    /**
+     * Rejects backfill requests for cash assets.
+     *
+     * @param asset The cash asset for which backfill was requested.
+     * @param fromDate The start date (inclusive) from which backfill was requested.
+     * @throws UnsupportedOperationException Always thrown because cash does not support backfill requests.
+     */
     override fun backFill(
         asset: Asset,
         fromDate: LocalDate

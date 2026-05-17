@@ -76,18 +76,35 @@ class JpaPerformanceCacheService(
         log.trace("Cache invalidate: portfolio={}, from={}", portfolioId, fromDate)
     }
 
+    /**
+     * Removes all cached performance snapshots whose valuation date equals the provided date.
+     *
+     * @param date The valuation date for which cached snapshots should be deleted.
+     */
     @Transactional
     override fun invalidateOnDate(date: LocalDate) {
         repository.deleteByValuationDate(date)
         log.trace("Cache invalidate: date={}", date)
     }
 
+    /**
+     * Deletes all cached performance snapshots whose valuation date is greater than or equal to `fromDate`.
+     *
+     * @param fromDate The inclusive start date from which cached snapshots will be removed.
+     */
     @Transactional
     override fun invalidateFromDate(fromDate: LocalDate) {
         repository.deleteByValuationDateGreaterThanEqual(fromDate)
         log.trace("Cache invalidate: from={}", fromDate)
     }
 
+    /**
+     * Deletes all cached performance snapshots for the given portfolio.
+     *
+     * Removes persisted cache entries associated with the specified portfolio identifier.
+     *
+     * @param portfolioId The portfolio identifier whose cached snapshots will be removed.
+     */
     @Transactional
     override fun invalidatePortfolio(portfolioId: String) {
         repository.deleteByPortfolioId(portfolioId)

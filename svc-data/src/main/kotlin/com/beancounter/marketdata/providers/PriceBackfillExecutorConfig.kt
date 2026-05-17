@@ -11,6 +11,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
  */
 @Configuration
 class PriceBackfillExecutorConfig {
+    /**
+     * Creates and configures a TaskExecutor dedicated to running price-history backfill work.
+     *
+     * The executor is a ThreadPoolTaskExecutor configured with a core pool size of 2, maximum pool size of 4,
+     * a queue capacity of 64, and a thread name prefix of "price-backfill-".
+     *
+     * @return A configured ThreadPoolTaskExecutor for price backfill tasks.
+     */
     @Bean("priceBackfillExecutor")
     fun priceBackfillExecutor(): TaskExecutor {
         val executor = ThreadPoolTaskExecutor()

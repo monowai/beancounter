@@ -75,7 +75,14 @@ class EodhdPriceService(
             eodhdConfig.markets!!.contains(market.code)
         }
 
-    override fun getDate(
+    /**
+         * Determine the effective date for the given market based on provider configuration and the requested date.
+         *
+         * @param market The market for which to compute the effective date.
+         * @param priceRequest The incoming price request whose `date` may be used or adjusted by configuration.
+         * @return The LocalDate that should be used when fetching prices for the specified market.
+         */
+        override fun getDate(
         market: Market,
         priceRequest: PriceRequest
     ): LocalDate =
@@ -84,6 +91,13 @@ class EodhdPriceService(
             priceRequest.date
         )
 
+    /**
+     * Fetches historical price data for an asset starting from a specified date and returns it as a PriceResponse.
+     *
+     * @param asset The asset to backfill prices for.
+     * @param fromDate The earliest date (inclusive) from which to retrieve historical prices.
+     * @return A PriceResponse containing the asset's market data from `fromDate` through today's date.
+     */
     override fun backFill(
         asset: Asset,
         fromDate: LocalDate

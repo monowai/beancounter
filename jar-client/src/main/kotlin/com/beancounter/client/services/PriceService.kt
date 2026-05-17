@@ -37,7 +37,15 @@ class PriceService(
             .body(PriceResponse::class.java)
             ?: throw BusinessException("Failed to get prices")
 
-    fun getBulkPrices(
+    /**
+             * Request bulk prices for multiple assets using the provided request payload.
+             *
+             * @param bulkPriceRequest The request payload specifying the assets and parameters for the bulk price lookup.
+             * @param token Authorization bearer token to include in the request `Authorization` header.
+             * @return The `BulkPriceResponse` parsed from the service response.
+             * @throws BusinessException if the response body is null and bulk prices could not be obtained.
+             */
+            fun getBulkPrices(
         bulkPriceRequest: BulkPriceRequest,
         token: String = tokenService.bearerToken
     ): BulkPriceResponse =
@@ -51,7 +59,15 @@ class PriceService(
             .body(BulkPriceResponse::class.java)
             ?: throw BusinessException("Failed to get bulk prices")
 
-    fun ensureHistory(
+    /**
+             * Requests scheduling of historical price data operations for the provided assets.
+             *
+             * @param ensureHistoryRequest Details of the assets and time range to ensure history for.
+             * @param token Bearer token used for the Authorization header; defaults to the token from the injected tokenService.
+             * @return The service's response mapped to `EnsureHistoryResponse`.
+             * @throws BusinessException if the remote service returns no body and the response cannot be parsed.
+             */
+            fun ensureHistory(
         ensureHistoryRequest: EnsureHistoryRequest,
         token: String = tokenService.bearerToken
     ): EnsureHistoryResponse =
@@ -65,7 +81,14 @@ class PriceService(
             .body(EnsureHistoryResponse::class.java)
             ?: throw BusinessException("Failed to schedule ensure-history")
 
-    fun getEvents(assetId: String): PriceResponse =
+    /**
+             * Fetches price events for the given asset.
+             *
+             * @param assetId The asset identifier substituted into the request path.
+             * @return The parsed PriceResponse containing price events for the specified asset.
+             * @throws BusinessException if the response body cannot be parsed into a PriceResponse.
+             */
+            fun getEvents(assetId: String): PriceResponse =
         restClient
             .get()
             .uri("/prices/{assetId}/events", assetId)

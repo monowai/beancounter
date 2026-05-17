@@ -136,6 +136,12 @@ internal class PriceControllerTests
                     )
                 )
             )
+            // Default the coordinator to "accepted" so the ensure-history
+            // endpoint reports the requested count. Tests that exercise the
+            // reject path override this with a per-test stub.
+            `when`(
+                priceBackfillCoordinator.scheduleBackfill(any(), any())
+            ).thenReturn(true)
         }
 
         @Test

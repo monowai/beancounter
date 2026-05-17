@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 /**
  * Market Data MVC for price management operations.
@@ -330,7 +331,7 @@ class PriceController(
         val fromDate = dateUtils.getFormattedDate(from)
         val toDate = dateUtils.getFormattedDate(to)
         val initial = priceService.getPriceHistory(assetId, fromDate, toDate)
-        if (initial.prices.isNotEmpty()) return initial
+        if (!needsBackfill(initial, fromDate)) return initial
         return try {
             marketDataService.backFill(assetId)
             priceService.getPriceHistory(assetId, fromDate, toDate)
@@ -341,6 +342,28 @@ class PriceController(
             log.warn("Price history backfill failed for asset {}: {}", assetId, e.message)
             initial
         }
+    }
+
+    // Backfill is worth attempting when either we have no data at all, or when
+    // the earliest cached price is later than the requested `from` AND still
+    // sits inside the provider's ~2y backfill window with enough headroom that
+    // another fetch can plausibly extend history earlier. The 7-day buffer
+    // stops us re-hitting the provider once the existing earliest is right at
+    // the 2y floor — no new rows would come back.
+    private fun needsBackfill(
+        response: PriceHistoryResponse,
+        requestedFrom: LocalDate
+    ): Boolean {
+        if (response.prices.isEmpty()) return true
+        val earliest = response.prices.minByOrNull { it.priceDate }?.priceDate ?: return true
+        if (earliest <= requestedFrom) return false
+        val backfillFloor = LocalDate.now().minusYears(BACKFILL_WINDOW_YEARS)
+        return earliest > backfillFloor.plusDays(BACKFILL_RETRY_BUFFER_DAYS)
+    }
+
+    private companion object {
+        const val BACKFILL_WINDOW_YEARS = 2L
+        const val BACKFILL_RETRY_BUFFER_DAYS = 7L
     }
 
     @PostMapping("/bulk")

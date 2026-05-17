@@ -530,6 +530,81 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
+        fun is_PriceHistoryBackfilledWhenEarliestLaterThanFrom() {
+            // The DB only has prices from after a recent purchase, but the user
+            // requests a wider window. Earliest available is well inside the
+            // provider's 2y backfill window, so we should backfill to fill the
+            // gap before the purchase.
+            val today = LocalDate.now()
+            val from = today.minusMonths(12)
+            val to = today
+            val purchaseDate = today.minusMonths(8)
+            val initial = listOf(MarketData(asset, close = BigDecimal("10.00"), priceDate = purchaseDate))
+            val backfilled =
+                listOf(
+                    MarketData(asset, close = BigDecimal("5.00"), priceDate = from),
+                    MarketData(asset, close = BigDecimal("10.00"), priceDate = purchaseDate)
+                )
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to))
+                .thenReturn(initial)
+                .thenReturn(backfilled)
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/prices/{assetId}/history", asset.id)
+                        .param("from", from.toString())
+                        .param("to", to.toString())
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+
+            org.mockito.Mockito
+                .verify(marketDataService)
+                .backFill(asset.id)
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
+        fun is_PriceHistoryNotBackfilledWhenEarliestBeyondProviderWindow() {
+            // Existing earliest already sits at the provider's 2y backfill floor.
+            // Another backfill cannot reach further back, so don't burn quota.
+            val today = LocalDate.now()
+            val from = today.minusYears(5)
+            val to = today
+            val earliestExisting = today.minusYears(2).minusDays(30)
+            val history = listOf(MarketData(asset, close = BigDecimal("10.00"), priceDate = earliestExisting))
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(history)
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/prices/{assetId}/history", asset.id)
+                        .param("from", from.toString())
+                        .param("to", to.toString())
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+
+            org.mockito.Mockito
+                .verify(marketDataService, org.mockito.Mockito.never())
+                .backFill(asset.id)
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
         fun is_ValuationRequestHydratingAssets() {
             val json =
                 mockMvc

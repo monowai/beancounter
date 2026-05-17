@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.java.test.fixtures)
 }
 
-version = "0.1.2-SNAPSHOT"
+version = "0.1.3-SNAPSHOT"
 
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))

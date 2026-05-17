@@ -80,6 +80,7 @@ Cap at **10 comments**. If more issues exist, report the worst 10 and add a one-
 - Premature abstraction added to handle one-off variation
 - Defensive null/undefined checks inside trusted internal boundaries (BC convention: validate at system boundaries only)
 - Comments explaining WHAT instead of WHY; comments referencing the current task/PR/issue (rot)
+- **Missing KDoc on non-trivial public surface** — see Kotlin idioms section for the rule and worked examples.
 - Magic numbers without named constant
 - Deeply nested conditionals (>3 levels)
 - Public API surface that should be internal/private
@@ -109,6 +110,12 @@ Apply these only when the diff touches `*.kt` files. Skip if the file is a gener
 - **Coroutines vs Reactor**: don't mix unless explicitly bridged — flag `runBlocking` inside reactive chains, flag `.block()` outside tests.
 - **Kotlin Spring AI options builder**: per-call options REPLACE (don't merge with) the ChatClient's defaults — re-apply `cacheOptions` etc. on every per-call override (BC incident: silent loss of prompt caching).
 - **Logging**: parameterised `log.debug("x={}, y={}", x, y)` — never `log.debug("x=$x")` (string concatenation runs even when DEBUG is off).
+- **KDoc on public surface (insist)**: new or modified **public** classes, interfaces, top-level functions, public/internal methods, and `@Bean` factories MUST carry KDoc that explains the *contract* — what it guarantees, what callers must not assume, non-obvious failure modes, why the design choice. Apply the rule to the diff: if the function is touched and is missing KDoc, flag it.
+  - **Skip** for: `private` helpers, simple `data class` fields (class-level KDoc is enough), trivial accessors that restate the name (`getX(): X`), `override` functions whose contract is unchanged from the parent (link to parent doc instead), test functions (test name *is* the doc).
+  - **Quality bar**: KDoc that just restates the function name in prose ("Fetches the price response for a single asset" on `getPriceResponse`) does NOT satisfy this rule — flag as if missing. KDoc must add information beyond what the signature already conveys.
+  - **Format**: KDoc indent matches the function indent (4-space block, `*` lines aligned). Auto-generated docs that misalign (column 0 or 12-space drift) are 🟠 — they break `lintKotlin` and pollute diffs.
+  - **Severity**: 🟡 Cleanup when missing on non-trivial public API; ⚪ Nit when added but signal-free. 🟠 only when the missing doc hides a non-obvious failure mode that has bitten the project before (e.g. an `@Async` method's proxy-bypass-on-self-invocation trap).
+  - Reference good examples in-repo: `PriceBackfillCoordinator.scheduleBackfill`, `CacheInvalidationProducer.sendPriceHistoryEvent`, `EnsureHistoryRequest` (class-level).
 - **Spring caching — `@Cacheable` traps** (BC has caused two outages here):
   - **Cache must be registered with the active `CacheManager` bean.** `svc-data` defines a programmatic `SimpleCacheManager` in `CacheConfig.kt`, which **overrides** Spring Boot's `spring.cache.cache-names` autoconfig. Adding the name to `application.yml` is dead code. Every new `@Cacheable("foo.bar")` must add `foo.bar` to `CacheConfig.cacheManager()` — flag any `@Cacheable` whose cache name doesn't appear in the bean. Failure mode is `IllegalArgumentException: Cannot find cache named '…'` on first call.
   - **SpEL key collisions.** Concatenating string components with a delimiter that can appear in the values produces silent cache poisoning. `key = "#a + '-' + #b"` collides when either `#a` or `#b` legitimately contains `-` (e.g. ticker `BRK-B`). Flag any concat-with-dash key — recommend `|` with `~` sentinel for nulls, or `T(java.util.Objects).hash(...)`.
@@ -189,6 +196,9 @@ its severity should not be lower than shown.
   is genuinely buried.)
 - Method named `get…` / `find…` / `is…` that mutates state (cache rewrite,
   side-effect timestamp, lazy-init that races).
+- Missing KDoc on a non-trivial public method / class / `@Bean` /
+  `@PostMapping` / `@RabbitListener` in the diff. The contract surface is
+  exactly where readers reach for the docstring; absence is a real defect.
 
 **⚪ Nit**
 - Whitespace, missing trailing newline, formatter-fixable issues — only if

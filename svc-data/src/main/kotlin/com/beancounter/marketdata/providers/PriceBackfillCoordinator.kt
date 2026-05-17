@@ -1,16 +1,20 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
+import jakarta.annotation.PreDestroy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.task.TaskExecutor
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.Semaphore
 
 /**
  * Schedules deep price-history backfills outside the request thread.
@@ -27,32 +31,33 @@ import java.util.concurrent.RejectedExecutionException
  * across the lifetime of the process — every distinct assetId ever queried
  * would otherwise stick around forever.
  *
- * Submission is synchronous: prefilter (blank/cooldown/inFlight) runs on
- * the caller's thread, then the actual provider call is dispatched to
- * `priceBackfillExecutor`. Doing the prefilter inline (rather than inside
- * an `@Async` body) means cooled-down assets never reach the executor
- * queue, which is what kept the queue saturating under chart-load bursts.
- * On `RejectedExecutionException` the in-flight slot is released and the
- * submission is dropped — the cooldown will let the asset retry later.
+ * Backpressure model: prefilter (blank / cooldown / in-flight) runs on
+ * the caller's thread, then a non-blocking `Semaphore.tryAcquire` reserves
+ * a slot before the work is launched on the dedicated coroutine scope.
+ * Exhausted permits = silent drop; the cooldown lets the asset retry on
+ * the next chart load. Doing the check inline (rather than letting an
+ * unbounded `launch` queue grow) is what stops chart-load bursts from
+ * piling up work the system can't actually process.
  */
 @Service
 class PriceBackfillCoordinator(
     private val backfillService: MarketDataBackfillService,
-    @Qualifier("priceBackfillExecutor") private val executor: TaskExecutor,
+    @Qualifier("priceBackfillScope") private val scope: CoroutineScope,
+    @Value("\${price.backfill.max-permits:68}") maxPermits: Int,
     private val cacheInvalidationProducer: CacheInvalidationProducer? = null
 ) {
     private val log = LoggerFactory.getLogger(PriceBackfillCoordinator::class.java)
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
     private val lastAttempt = ConcurrentHashMap<String, Instant>()
+    private val permits = Semaphore(maxPermits)
 
     /**
      * Queue a deep backfill for [assetId] reaching back to [fromDate]. Returns
-     * `true` when the work was accepted by the executor, `false` when it was
-     * filtered out (blank id, cooldown, in-flight) or the executor queue was
-     * saturated. Callers can use the return value to report what was actually
-     * scheduled; bursts that overflow the queue are dropped silently here so
-     * the calling request isn't broken by a backpressure signal that's
-     * irrelevant to it.
+     * `true` when the work was accepted, `false` when it was filtered out
+     * (blank id, cooldown, in-flight) or no permit was available. Callers can
+     * use the return value to report what was actually scheduled; saturation
+     * drops are silent here so the calling request isn't broken by a
+     * backpressure signal that's irrelevant to it.
      */
     fun scheduleBackfill(
         assetId: String,
@@ -73,16 +78,21 @@ class PriceBackfillCoordinator(
             return false
         }
         lastAttempt[assetId] = now
-        return try {
-            executor.execute { runBackfill(assetId, fromDate) }
-            true
-        } catch (e: RejectedExecutionException) {
+        if (!permits.tryAcquire()) {
             // Release the slot so the cooldown window — not a stuck in-flight
             // flag — governs the next retry attempt.
             inFlight.remove(assetId)
-            log.warn("Backfill queue saturated; dropping submission for {}", assetId, e)
-            false
+            log.warn("Backfill capacity saturated; dropping submission for {}", assetId)
+            return false
         }
+        scope.launch {
+            try {
+                runBackfill(assetId, fromDate)
+            } finally {
+                permits.release()
+            }
+        }
+        return true
     }
 
     private fun runBackfill(
@@ -120,6 +130,11 @@ class PriceBackfillCoordinator(
         if (sizeBefore != lastAttempt.size) {
             log.debug("Pruned cooldown entries: {} -> {}", sizeBefore, lastAttempt.size)
         }
+    }
+
+    @PreDestroy
+    fun shutdown() {
+        scope.cancel("PriceBackfillCoordinator shutting down")
     }
 
     private companion object {

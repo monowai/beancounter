@@ -1,7 +1,12 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -10,18 +15,25 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.core.task.SyncTaskExecutor
-import org.springframework.core.task.TaskExecutor
 import java.time.LocalDate
-import java.util.concurrent.RejectedExecutionException
 
 internal class PriceBackfillCoordinatorTests {
-    private val syncExecutor: TaskExecutor = SyncTaskExecutor()
+    // Unconfined keeps `launch` synchronous from the caller's POV: the body
+    // runs on the current thread until the first suspension, and `runBackfill`
+    // never suspends, so by the time `scheduleBackfill` returns the work and
+    // its `finally` blocks have already executed. SupervisorJob isolates a
+    // failed test from sibling launches that may share the scope.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
+    @AfterEach
+    fun tearDown() {
+        scope.cancel("test cleanup")
+    }
 
     @Test
     fun is_BackfillDelegatedToService() {
         val backfillService = mock<MarketDataBackfillService>()
-        val coordinator = PriceBackfillCoordinator(backfillService, syncExecutor)
+        val coordinator = PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS)
 
         val fromDate = LocalDate.now().minusYears(5)
         val accepted = coordinator.scheduleBackfill("asset-1", fromDate)
@@ -33,7 +45,7 @@ internal class PriceBackfillCoordinatorTests {
     @Test
     fun is_CooldownSuppressesRepeatBackfillForSameAsset() {
         val backfillService = mock<MarketDataBackfillService>()
-        val coordinator = PriceBackfillCoordinator(backfillService, syncExecutor)
+        val coordinator = PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS)
 
         val first = coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
         val second = coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
@@ -46,7 +58,7 @@ internal class PriceBackfillCoordinatorTests {
     @Test
     fun is_DifferentAssetsBackfilledIndependently() {
         val backfillService = mock<MarketDataBackfillService>()
-        val coordinator = PriceBackfillCoordinator(backfillService, syncExecutor)
+        val coordinator = PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS)
 
         coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
         coordinator.scheduleBackfill("asset-2", LocalDate.now().minusYears(5))
@@ -60,7 +72,7 @@ internal class PriceBackfillCoordinatorTests {
         val backfillService = mock<MarketDataBackfillService>()
         whenever(backfillService.backFill(eq("asset-1"), any()))
             .thenThrow(RuntimeException("provider failure"))
-        val coordinator = PriceBackfillCoordinator(backfillService, syncExecutor)
+        val coordinator = PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS)
 
         // First call fails inside the catch — the in-flight set should be
         // cleared in the finally block so a later (post-cooldown) call could
@@ -76,7 +88,7 @@ internal class PriceBackfillCoordinatorTests {
     @Test
     fun is_BackfillNotInvokedForBlankAsset() {
         val backfillService = mock<MarketDataBackfillService>()
-        val coordinator = PriceBackfillCoordinator(backfillService, syncExecutor)
+        val coordinator = PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS)
 
         val blank = coordinator.scheduleBackfill("", LocalDate.now().minusYears(5))
         val whitespace = coordinator.scheduleBackfill("   ", LocalDate.now().minusYears(5))
@@ -90,7 +102,8 @@ internal class PriceBackfillCoordinatorTests {
     fun is_PriceHistoryEventPublishedAfterSuccessfulBackfill() {
         val backfillService = mock<MarketDataBackfillService>()
         val producer = mock<CacheInvalidationProducer>()
-        val coordinator = PriceBackfillCoordinator(backfillService, syncExecutor, producer)
+        val coordinator =
+            PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS, producer)
 
         val fromDate = LocalDate.now().minusYears(5)
         coordinator.scheduleBackfill("asset-1", fromDate)
@@ -104,7 +117,8 @@ internal class PriceBackfillCoordinatorTests {
         whenever(backfillService.backFill(eq("asset-1"), any()))
             .thenThrow(RuntimeException("provider failure"))
         val producer = mock<CacheInvalidationProducer>()
-        val coordinator = PriceBackfillCoordinator(backfillService, syncExecutor, producer)
+        val coordinator =
+            PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS, producer)
 
         coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
 
@@ -112,17 +126,14 @@ internal class PriceBackfillCoordinatorTests {
     }
 
     @Test
-    fun is_RejectedExecutionDroppedNotThrown() {
-        // Simulates the saturated-queue case that surfaced in DATA-4P. The
-        // executor rejects the submission; the coordinator must swallow the
-        // throw, return false, and release the in-flight slot so the next
-        // (post-cooldown) attempt isn't permanently blocked.
+    fun is_SaturatedCapacityDropsSubmission() {
+        // Zero permits = every submission saturates. Simulates the load
+        // condition that surfaced in DATA-4P. The coordinator must drop the
+        // request, return false, release the in-flight slot, and never call
+        // the service.
         val backfillService = mock<MarketDataBackfillService>()
-        val rejectingExecutor =
-            TaskExecutor { _ ->
-                throw RejectedExecutionException("queue saturated")
-            }
-        val coordinator = PriceBackfillCoordinator(backfillService, rejectingExecutor)
+        val coordinator =
+            PriceBackfillCoordinator(backfillService, scope, maxPermits = 0)
 
         val accepted = coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
 
@@ -131,29 +142,25 @@ internal class PriceBackfillCoordinatorTests {
     }
 
     @Test
-    fun is_RejectedExecutionReleasesInFlightSlot() {
-        // After a rejection, a follow-up submission on a working executor
-        // should still get through (i.e. the slot wasn't left marked). The
-        // cooldown will still block re-submission for the same asset, so we
-        // verify slot-release on a different asset that succeeds.
+    fun is_PermitReleasedAfterCompletion() {
+        // With one permit and an Unconfined dispatcher, the launch body
+        // (including the `finally` that releases the permit) runs before
+        // `scheduleBackfill` returns. A second submission for a *different*
+        // asset must therefore find the permit available again — proving the
+        // semaphore isn't leaking permits on the happy path.
         val backfillService = mock<MarketDataBackfillService>()
-        var rejectNext = true
-        val flakyExecutor =
-            TaskExecutor { task ->
-                if (rejectNext) {
-                    rejectNext = false
-                    throw RejectedExecutionException("queue saturated")
-                }
-                task.run()
-            }
-        val coordinator = PriceBackfillCoordinator(backfillService, flakyExecutor)
+        val coordinator =
+            PriceBackfillCoordinator(backfillService, scope, maxPermits = 1)
 
         val first = coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
         val second = coordinator.scheduleBackfill("asset-2", LocalDate.now().minusYears(5))
 
-        assertThat(first).isFalse()
+        assertThat(first).isTrue()
         assertThat(second).isTrue()
-        verify(backfillService, never()).backFill(eq("asset-1"), any())
-        verify(backfillService).backFill(eq("asset-2"), any())
+        verify(backfillService, times(2)).backFill(any<String>(), any<LocalDate>())
+    }
+
+    private companion object {
+        const val DEFAULT_PERMITS = 4
     }
 }

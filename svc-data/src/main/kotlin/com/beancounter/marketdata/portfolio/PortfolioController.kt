@@ -213,9 +213,13 @@ class PortfolioController internal constructor(
             example = "portfolio-123"
         )
         @PathVariable id: String
-    ): String {
+    ): Map<String, String> {
+        // Return JSON rather than echoing the path variable into a String
+        // body. JSON serialisation escapes any HTML metacharacters in the
+        // value, eliminating the reflected-XSS vector flagged by Snyk
+        // (kotlin/XSS, CWE-79).
         portfolioService.delete(id)
-        return "deleted $id"
+        return mapOf("deleted" to id)
     }
 
     @GetMapping("/code/{code}")
@@ -385,11 +389,11 @@ class PortfolioController internal constructor(
             description = "Trade date (YYYY-MM-DD format)",
             example = "2024-01-15"
         )
-        @RequestParam(required = false) asAt: String = dateUtils.today()
+        @RequestParam(required = false) asAt: String? = null
     ): PortfoliosResponse =
-        portfolioService.findWhereHeld(
+        portfolioService.findWhereHeldForCaller(
             assetId,
-            dateUtils.getFormattedDate(asAt)
+            dateUtils.getFormattedDate(asAt ?: dateUtils.today())
         )
 
     @GetMapping(

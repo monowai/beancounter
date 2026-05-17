@@ -1,0 +1,44 @@
+# DeepSeek via Anthropic-compatible API.
+#
+# DeepSeek's V4 family (`deepseek-v4-pro`, `deepseek-v4-flash`) emits
+# `thinking` blocks. The OpenAI-compat path (application-deepseek.yaml)
+# strips those blocks, and DeepSeek then rejects the next tool-roundtrip
+# request with:
+#   "The reasoning_content in the thinking mode must be passed back to
+#    the API."
+# Anthropic's wire protocol natively round-trips `thinking` blocks, so
+# Spring AI's AnthropicChatModel preserves them and tool calling works.
+#
+# Activate alongside an environment profile, e.g.
+#
+#   SPRING_PROFILES_ACTIVE=deepseek-claude,kauri \
+#     DEEPSEEK_API_KEY=sk-... ./gradlew :svc-agent:bootRun
+#
+# Profile name is intentionally NOT `deepseek` — AgentController.anthropicActive
+# treats only the literal `deepseek` profile as OpenAI-compat, so this name
+# keeps us on the Anthropic code path (AnthropicChatOptions per-call,
+# prompt cache enabled).
+spring:
+  ai:
+    openai:
+      api-key: "dummy-key-to-prevent-errors"
+    ollama:
+      base-url: "http://undefined:11434"
+    anthropic:
+      api-key: "${DEEPSEEK_API_KEY:}"
+      base-url: "${DEEPSEEK_BASE_URL:https://api.deepseek.com}/anthropic"
+      chat:
+        options:
+          model: "${DEEPSEEK_MODEL:deepseek-v4-pro}"
+          temperature: 0.2
+          max-tokens: 4096
+
+    model:
+      chat: anthropic
+
+# DeepSeek only ships two models — collapse all three tiers onto them.
+agent:
+  models:
+    fast: "${DEEPSEEK_MODEL_FAST:deepseek-v4-flash}"
+    smart: "${DEEPSEEK_MODEL_SMART:deepseek-v4-pro}"
+    deep: "${DEEPSEEK_MODEL_DEEP:deepseek-v4-pro}"

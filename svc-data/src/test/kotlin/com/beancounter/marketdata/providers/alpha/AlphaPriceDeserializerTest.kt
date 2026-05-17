@@ -5,6 +5,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.US
 import com.fasterxml.jackson.databind.DeserializationContext
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -61,7 +62,7 @@ class AlphaPriceDeserializerTest {
         assertEquals(BigDecimal("6.0600"), marketData.change)
         assertEquals(BigDecimal("0.013450"), marketData.changePercent) // 1.3450% as decimal
         assertEquals(1000000, marketData.volume)
-        assertEquals("ALPHA", marketData.source)
+        assertEquals(AlphaPriceService.ID, marketData.source)
     }
 
     @Test
@@ -102,7 +103,7 @@ class AlphaPriceDeserializerTest {
         assertEquals(BigDecimal("0.0000"), marketData.change)
         assertEquals(BigDecimal.ZERO, marketData.changePercent)
         assertEquals(1000000, marketData.volume)
-        assertEquals("ALPHA", marketData.source)
+        assertEquals(AlphaPriceService.ID, marketData.source)
     }
 
     @Test
@@ -143,7 +144,7 @@ class AlphaPriceDeserializerTest {
         assertEquals(BigDecimal("-5.0000"), marketData.change)
         assertEquals(BigDecimal("-0.011111"), marketData.changePercent) // -1.1111% as decimal
         assertEquals(1000000, marketData.volume)
-        assertEquals("ALPHA", marketData.source)
+        assertEquals(AlphaPriceService.ID, marketData.source)
     }
 
     @Test
@@ -246,6 +247,39 @@ class AlphaPriceDeserializerTest {
         assertEquals(0, BigDecimal("0.25").compareTo(marketData.dividend))
         assertEquals(0, BigDecimal("1.0").compareTo(marketData.split))
         assertEquals(0, BigDecimal("181.0000").compareTo(marketData.close))
+    }
+
+    @Test
+    fun `should deserialize index symbol with caret prefix from Global Quote`() {
+        val apiResponse =
+            """
+            {
+                "Global Quote": {
+                    "01. symbol": "^GSPC",
+                    "02. open": "5780.4400",
+                    "03. high": "5810.6300",
+                    "04. low": "5777.4500",
+                    "05. price": "5808.1200",
+                    "06. volume": "0",
+                    "07. latest trading day": "2026-05-07",
+                    "08. previous close": "5793.7500",
+                    "09. change": "14.3700",
+                    "10. change percent": "0.2480%"
+                }
+            }
+            """.trimIndent()
+
+        val parser = objectMapper.createParser(apiResponse)
+        val context = mock(DeserializationContext::class.java)
+        val priceResponse = deserializer.deserialize(parser, context)
+
+        assertThat(priceResponse.data).hasSize(1)
+        val marketData = priceResponse.data.first()
+
+        assertThat(marketData.asset.code).isEqualTo("^GSPC")
+        assertThat(marketData.close).isEqualByComparingTo(BigDecimal("5808.1200"))
+        assertThat(marketData.volume).isEqualTo(0)
+        assertThat(marketData.source).isEqualTo(AlphaPriceService.ID)
     }
 
     @Test

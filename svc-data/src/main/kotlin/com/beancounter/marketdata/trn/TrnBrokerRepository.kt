@@ -9,6 +9,8 @@ import java.time.LocalDate
 
 /**
  * Broker-related transaction queries. Extended by [TrnRepository].
+ *
+ * Queries use JOIN FETCH to avoid N+1 on ManyToOne associations.
  */
 @NoRepositoryBean
 interface TrnBrokerRepository {
@@ -20,6 +22,11 @@ interface TrnBrokerRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.broker.id = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.status = ?3 " +
@@ -43,6 +50,11 @@ interface TrnBrokerRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.broker.id = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate <= ?3 " +
@@ -66,6 +78,11 @@ interface TrnBrokerRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.broker is null " +
             "and t.portfolio.owner = ?1 " +
             "and t.status = ?2 " +
@@ -88,6 +105,11 @@ interface TrnBrokerRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.broker is null " +
             "and t.portfolio.owner = ?1 " +
             "and t.tradeDate <= ?2 " +
@@ -122,6 +144,11 @@ interface TrnBrokerRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.broker.id = ?1 " +
             "and t.portfolio.owner = ?2"
     )

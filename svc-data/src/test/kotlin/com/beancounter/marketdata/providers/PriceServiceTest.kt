@@ -7,6 +7,8 @@ import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.event.EventProducer
+import com.beancounter.marketdata.providers.alpha.AlphaEventService
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -177,6 +179,261 @@ class PriceServiceTest {
         assertEquals(1, savedData.size)
         assertEquals(apiPreviousClose, savedData[0].previousClose)
         assertEquals(BigDecimal("2.00"), savedData[0].change)
+    }
+
+    @Test
+    fun `should rebase provider-supplied previousClose on split ex-date`() {
+        // Given: Alpha-style row on the ex-date — post-split close with a raw pre-split
+        // previousClose already populated (not zero). Yesterday had no split.
+        val today = LocalDate.of(2026, 4, 21)
+        val yesterday = LocalDate.of(2026, 4, 20)
+
+        val todayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = today,
+                close = BigDecimal("76.65"),
+                previousClose = BigDecimal("308.44"), // raw pre-split supplied by provider
+                change = BigDecimal.ZERO,
+                changePercent = BigDecimal.ZERO,
+                split = BigDecimal("4")
+            )
+        val yesterdayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = yesterday,
+                close = BigDecimal("308.44")
+            )
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(asset.id, today)).thenReturn(0L)
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, today)
+        ).thenReturn(Optional.of(yesterdayMarketData))
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
+
+        // previousClose rebased: 308.44 / 4 = 77.11
+        assertTrue(
+            saved[0].previousClose.compareTo(BigDecimal("77.11")) == 0,
+            "previousClose should be 77.11 but was ${saved[0].previousClose}"
+        )
+        // change% reflects the real intra-day move (76.65 - 77.11) / 77.11 ≈ -0.6%
+        assertTrue(
+            saved[0].changePercent.compareTo(BigDecimal("-0.01")) > 0 &&
+                saved[0].changePercent.compareTo(BigDecimal("0.01")) < 0,
+            "changePercent should be small but was ${saved[0].changePercent}"
+        )
+    }
+
+    @Test
+    fun `should stamp ex-date split from Alpha when provider omits the flag`() {
+        // Given: MarketStack-style ex-date row — close already on the post-split
+        // basis, no split flag on the row, no previousClose supplied. The
+        // Alpha-backed events feed knows the 6:1 split happened today.
+        val today = LocalDate.of(2026, 4, 21)
+        val yesterday = LocalDate.of(2026, 4, 20)
+
+        val todayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = today,
+                close = BigDecimal("81.50"),
+                split = BigDecimal.ONE
+            )
+        val yesterdayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = yesterday,
+                close = BigDecimal("492.58")
+            )
+
+        val alphaEventService = mock(AlphaEventService::class.java)
+        `when`(alphaEventService.getEvents(asset)).thenReturn(
+            PriceResponse(
+                listOf(
+                    MarketData(
+                        asset = asset,
+                        priceDate = today,
+                        close = BigDecimal.ZERO,
+                        split = BigDecimal("6"),
+                        dividend = BigDecimal.ZERO
+                    )
+                )
+            )
+        )
+        priceService.setAlphaEventService(alphaEventService)
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(asset.id, today)).thenReturn(0L)
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, today)
+        ).thenReturn(Optional.of(yesterdayMarketData))
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
+
+        // Split flag stamped from Alpha so SplitAdjuster recognises the ex-date.
+        assertThat(saved[0].split).isEqualByComparingTo("6")
+        // previousClose rebased onto post-split basis (492.58 / 6 ≈ 82.0967)
+        assertThat(saved[0].previousClose)
+            .isGreaterThan(BigDecimal("82.00"))
+            .isLessThan(BigDecimal("82.20"))
+        // changePercent reflects the real intraday move, not -83%
+        assertThat(saved[0].changePercent)
+            .isGreaterThan(BigDecimal("-0.05"))
+            .isLessThan(BigDecimal("0.05"))
+    }
+
+    @Test
+    fun `should not re-adjust when provider keeps split ratio sticky on days after the ex-date`() {
+        // Given: yesterday was the ex-date already rebased (close=40, split=25 stored).
+        // Today (7 Apr) the provider still carries split=25 but the close is already
+        // post-split ($184) and should not be re-divided.
+        val today = LocalDate.of(2026, 4, 7)
+        val yesterday = LocalDate.of(2026, 4, 6)
+        val todayClose = BigDecimal("184.00")
+        val yesterdayClose = BigDecimal("176.19")
+
+        val todayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = today,
+                close = todayClose,
+                split = BigDecimal("25"),
+                previousClose = BigDecimal.ZERO,
+                change = BigDecimal.ZERO,
+                changePercent = BigDecimal.ZERO
+            )
+        val yesterdayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = yesterday,
+                close = yesterdayClose,
+                split = BigDecimal("25")
+            )
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(asset.id, today)).thenReturn(0L)
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, today)
+        ).thenReturn(Optional.of(yesterdayMarketData))
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
+
+        assertEquals(1, saved.size)
+        // Close stays at $184 (no extra division)
+        assertTrue(
+            saved[0].close.compareTo(BigDecimal("184")) == 0,
+            "close should stay at 184 but was ${saved[0].close}"
+        )
+        // previousClose is yesterday's stored (already adjusted) close, not further divided
+        assertTrue(
+            saved[0].previousClose.compareTo(BigDecimal("176.19")) == 0,
+            "previousClose should be 176.19 but was ${saved[0].previousClose}"
+        )
+    }
+
+    @Test
+    fun `should split-adjust close when provider supplies raw prices with split ratio`() {
+        // Given: provider stored today's close as the raw pre-split $1000 (same as yesterday)
+        // and carries a split ratio of 25 on the ex-date row.
+        val today = LocalDate.of(2026, 4, 6)
+        val yesterday = LocalDate.of(2026, 4, 5)
+        val rawPreSplit = BigDecimal("1000.00")
+
+        val todayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = today,
+                close = rawPreSplit,
+                open = rawPreSplit,
+                high = rawPreSplit,
+                low = rawPreSplit,
+                split = BigDecimal("25"),
+                previousClose = BigDecimal.ZERO,
+                change = BigDecimal.ZERO,
+                changePercent = BigDecimal.ZERO
+            )
+        val yesterdayMarketData =
+            MarketData(asset = asset, priceDate = yesterday, close = rawPreSplit)
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(asset.id, today)).thenReturn(0L)
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, today)
+        ).thenReturn(Optional.of(yesterdayMarketData))
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
+
+        assertEquals(1, saved.size)
+        // Close / open / high / low rebased to post-split basis
+        assertTrue(
+            saved[0].close.compareTo(BigDecimal("40")) == 0,
+            "close should be rebased to 40 but was ${saved[0].close}"
+        )
+        assertTrue(saved[0].open.compareTo(BigDecimal("40")) == 0)
+        assertTrue(saved[0].high.compareTo(BigDecimal("40")) == 0)
+        assertTrue(saved[0].low.compareTo(BigDecimal("40")) == 0)
+        // previousClose also rebased; change/% reflect real movement (0 here)
+        assertTrue(saved[0].previousClose.compareTo(BigDecimal("40")) == 0)
+        assertTrue(saved[0].change.compareTo(BigDecimal.ZERO) == 0)
+        assertTrue(saved[0].changePercent.compareTo(BigDecimal.ZERO) == 0)
+    }
+
+    @Test
+    fun `should split-adjust previousClose when today carries a split ratio`() {
+        // Given: Monday close $1000, Tuesday 25:1 split with post-split close $40
+        val today = LocalDate.of(2026, 4, 6)
+        val yesterday = LocalDate.of(2026, 4, 5)
+        val yesterdayClose = BigDecimal("1000.00")
+        val todayClose = BigDecimal("40.00")
+
+        val todayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = today,
+                close = todayClose,
+                split = BigDecimal("25"),
+                previousClose = BigDecimal.ZERO,
+                change = BigDecimal.ZERO,
+                changePercent = BigDecimal.ZERO
+            )
+        val yesterdayMarketData =
+            MarketData(
+                asset = asset,
+                priceDate = yesterday,
+                close = yesterdayClose
+            )
+
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+        `when`(marketDataRepo.countByAssetIdAndPriceDate(asset.id, today)).thenReturn(0L)
+        `when`(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, today)
+        ).thenReturn(Optional.of(yesterdayMarketData))
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        // When: Processing the price response for the ex-date
+        val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
+
+        // Then: previousClose is rebased onto the post-split basis ($1000 / 25 = $40)
+        assertEquals(1, saved.size)
+        assertTrue(
+            saved[0].previousClose.compareTo(BigDecimal("40")) == 0,
+            "previousClose should be split-adjusted to 40.00 but was ${saved[0].previousClose}"
+        )
+        // And day-over-day change reflects only the real move (0 in this setup)
+        assertTrue(
+            saved[0].change.compareTo(BigDecimal.ZERO) == 0,
+            "change should be 0 but was ${saved[0].change}"
+        )
+        assertTrue(
+            saved[0].changePercent.compareTo(BigDecimal.ZERO) == 0,
+            "changePercent should be 0 but was ${saved[0].changePercent}"
+        )
     }
 
     @Test

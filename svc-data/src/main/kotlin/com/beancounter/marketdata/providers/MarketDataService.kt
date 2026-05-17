@@ -11,6 +11,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.defaultBackfillFrom
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -32,8 +33,11 @@ class MarketDataService(
     private val priceService: PriceService,
     private val dateUtils: DateUtils
 ) {
-    fun backFill(assetId: String) {
-        backfillService.backFill(assetId)
+    fun backFill(
+        assetId: String,
+        fromDate: LocalDate = defaultBackfillFrom()
+    ) {
+        backfillService.backFill(assetId, fromDate)
     }
 
     fun getPriceResponse(

@@ -35,11 +35,25 @@ class JpaPerformanceCacheService(
         portfolioId: String,
         snapshots: List<CachedSnapshot>
     ) {
+        // Application-level upsert: load existing rows for the requested dates,
+        // mutate them in place (JPA UPDATE on flush), and insert new entities
+        // for missing dates. The previous delete+insert pattern produced
+        // duplicate-key violations on uk_portfolio_date when two concurrent
+        // GET /{code}/performance requests both missed the cache and tried to
+        // write the same row (POSITION-2Q in Sentry).
         val datesToStore = snapshots.map { it.valuationDate }
-        repository.deleteByPortfolioIdAndValuationDateIn(portfolioId, datesToStore)
-        val entities =
+        val existingByDate =
+            repository
+                .findByPortfolioIdAndValuationDateIn(portfolioId, datesToStore)
+                .associateBy { it.valuationDate }
+        val toSave =
             snapshots.map { snapshot ->
-                PerformanceSnapshotEntity(
+                existingByDate[snapshot.valuationDate]?.copy(
+                    marketValue = snapshot.marketValue,
+                    externalCashFlow = snapshot.externalCashFlow,
+                    netContributions = snapshot.netContributions,
+                    cumulativeDividends = snapshot.cumulativeDividends
+                ) ?: PerformanceSnapshotEntity(
                     id = keyGen.id,
                     portfolioId = portfolioId,
                     valuationDate = snapshot.valuationDate,
@@ -49,7 +63,7 @@ class JpaPerformanceCacheService(
                     cumulativeDividends = snapshot.cumulativeDividends
                 )
             }
-        repository.saveAll(entities)
+        repository.saveAll(toSave)
         log.trace("Cache store: portfolio={}, snapshots={}", portfolioId, snapshots.size)
     }
 
@@ -66,6 +80,12 @@ class JpaPerformanceCacheService(
     override fun invalidateOnDate(date: LocalDate) {
         repository.deleteByValuationDate(date)
         log.trace("Cache invalidate: date={}", date)
+    }
+
+    @Transactional
+    override fun invalidateFromDate(fromDate: LocalDate) {
+        repository.deleteByValuationDateGreaterThanEqual(fromDate)
+        log.trace("Cache invalidate: from={}", fromDate)
     }
 
     @Transactional

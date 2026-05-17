@@ -27,9 +27,6 @@ spring:
         csvImport-out-0:
           destination: bc-trn-csv-dev
           content-type: application/json
-      kafka:
-        binder:
-          brokers: kafka:9092
 
   jackson:
     serialization:

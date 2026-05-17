@@ -5,10 +5,10 @@ orbs:
 
 # Configurable branch patterns for different actions
 # These can be overridden via CircleCI environment variables
-# Default to master if not specified
+# Default to main if not specified
 # Set these in CircleCI project settings:
-# DOCKER_BRANCH_PATTERN=master,/^mike\/.*/
-# COVERAGE_BRANCH_PATTERN=master,/^mike\/.*/
+# DOCKER_BRANCH_PATTERN=main,/^mike\/.*/
+# COVERAGE_BRANCH_PATTERN=main,/^mike\/.*/
 # CODACY_BRANCH_PATTERN=/^codacy.*/
 
 executors:
@@ -18,7 +18,7 @@ executors:
       GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
       STACK_VER: << pipeline.number >>
     docker:
-      - image: cimg/openjdk:21.0.8
+      - image: cimg/openjdk:25.0.1
 
 jobs:
   # Complete build job that handles everything in the correct order
@@ -62,6 +62,10 @@ jobs:
             echo "📦 Phase 4: Building svc-event..."
             ./gradlew :svc-event:build --parallel
 
+            # Phase 5: svc-agent + svc-admin (leaf services, no stub deps)
+            echo "📦 Phase 5: Building svc-agent and svc-admin..."
+            ./gradlew :svc-agent:build :svc-admin:build --parallel
+
             echo "✅ Build completed!"
 
       # Upload coverage for all projects
@@ -79,6 +83,10 @@ jobs:
           file: ./svc-position/build/reports/jacoco/test/jacocoTestReport.xml
       - codecov/upload:
           file: ./svc-event/build/reports/jacoco/test/jacocoTestReport.xml
+      - codecov/upload:
+          file: ./svc-agent/build/reports/jacoco/test/jacocoTestReport.xml
+      - codecov/upload:
+          file: ./svc-admin/build/reports/jacoco/test/jacocoTestReport.xml
 
       # Save build cache for faster subsequent builds
       - run:
@@ -114,6 +122,8 @@ jobs:
             cp -r ~/project/svc-data/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-data artifacts"
             cp -r ~/project/svc-position/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-position artifacts"
             cp -r ~/project/svc-event/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-event artifacts"
+            cp -r ~/project/svc-agent/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-agent artifacts"
+            cp -r ~/project/svc-admin/build/libs/* ~/artifacts/services/ 2>/dev/null || echo "No svc-admin artifacts"
       - store_artifacts:
           path: ~/artifacts/services
           destination: services
@@ -150,6 +160,8 @@ jobs:
             cp -r ~/project/svc-data/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-data artifacts"
             cp -r ~/project/svc-position/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-position artifacts"
             cp -r ~/project/svc-event/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-event artifacts"
+            cp -r ~/project/svc-agent/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-agent artifacts"
+            cp -r ~/project/svc-admin/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-admin artifacts"
 
             echo "📋 Workspace artifacts prepared:"
             ls -la ~/workspace-artifacts/build-artifacts/
@@ -158,7 +170,7 @@ jobs:
           paths:
             - .
 
-  # Docker packaging jobs (only for master branch)
+  # Docker packaging jobs (only for main branch)
   package-shell:
     executor: java-build
     environment:
@@ -379,7 +391,117 @@ jobs:
 
             echo "✅ bc-event image built and pushed successfully"
 
-  # Security scanning - runs only on master to save time on feature branches
+  package-agent:
+    executor: java-build
+    environment:
+      IMAGE_NAME: bc-agent
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
+      - restore_cache:
+          keys:
+            - v3-build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle.kts" }}
+      - attach_workspace:
+          at: ~/workspace
+      - setup_remote_docker
+      - run:
+          name: Setup Docker Buildx and Registry Login
+          command: |
+            echo "🐳 Setting up Docker buildx and logging into registry..."
+
+            # Install QEMU for multi-platform builds
+            docker run --rm --privileged tonistiigi/binfmt --install all
+
+            # Create and use a new builder instance
+            docker buildx create --name multiarch-builder --use || true
+            docker buildx inspect --bootstrap
+
+            # Login to GitHub Container Registry
+            echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+
+            echo "✅ Docker buildx setup complete"
+      - run:
+          name: Build and Push BC-AGENT
+          command: |
+            echo "📦 Building and pushing bc-agent Docker image..."
+
+            # Copy built artifacts to expected locations
+            echo "📋 Copying built artifacts from workspace..."
+            mkdir -p ~/project/svc-agent/build/libs/
+            cp ~/workspace/build-artifacts/svc-agent-*.jar ~/project/svc-agent/build/libs/ 2>/dev/null || echo "No svc-agent JAR found in workspace"
+
+            # Verify JAR file exists
+            echo "🔍 Checking for JAR file:"
+            ls -la ~/project/svc-agent/build/libs/ || echo "No build/libs directory"
+
+            # Build and push multi-platform image
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --tag "ghcr.io/monowai/bc-agent:latest" \
+              --tag "ghcr.io/monowai/bc-agent:${STACK_VER}" \
+              ~/project/svc-agent/
+
+            echo "✅ bc-agent image built and pushed successfully"
+
+  package-admin:
+    executor: java-build
+    environment:
+      IMAGE_NAME: bc-admin
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - checkout
+      - restore_cache:
+          keys:
+            - v3-build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle.kts" }}
+      - attach_workspace:
+          at: ~/workspace
+      - setup_remote_docker
+      - run:
+          name: Setup Docker Buildx and Registry Login
+          command: |
+            echo "🐳 Setting up Docker buildx and logging into registry..."
+
+            # Install QEMU for multi-platform builds
+            docker run --rm --privileged tonistiigi/binfmt --install all
+
+            # Create and use a new builder instance
+            docker buildx create --name multiarch-builder --use || true
+            docker buildx inspect --bootstrap
+
+            # Login to GitHub Container Registry
+            echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
+
+            echo "✅ Docker buildx setup complete"
+      - run:
+          name: Build and Push BC-ADMIN
+          command: |
+            echo "📦 Building and pushing bc-admin Docker image..."
+
+            # Copy built artifacts to expected locations
+            echo "📋 Copying built artifacts from workspace..."
+            mkdir -p ~/project/svc-admin/build/libs/
+            cp ~/workspace/build-artifacts/svc-admin-*.jar ~/project/svc-admin/build/libs/ 2>/dev/null || echo "No svc-admin JAR found in workspace"
+
+            # Verify JAR file exists
+            echo "🔍 Checking for JAR file:"
+            ls -la ~/project/svc-admin/build/libs/ || echo "No build/libs directory"
+
+            # Build and push multi-platform image
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              --tag "ghcr.io/monowai/bc-admin:latest" \
+              --tag "ghcr.io/monowai/bc-admin:${STACK_VER}" \
+              ~/project/svc-admin/
+
+            echo "✅ bc-admin image built and pushed successfully"
+
+  # Security scanning - runs only on main to save time on feature branches
   security-scan:
     executor: java-build
     steps:
@@ -392,7 +514,13 @@ jobs:
           monitor-on-build: true
           severity-threshold: low
           target-file: build.gradle.kts
-          additional-arguments: --all-sub-projects
+          # --configuration-matching restricts the scan to the production
+          # runtime classpath only. Without it, Snyk also scans every Gradle
+          # test/contract configuration, surfacing CVEs in test-only deps
+          # like spring-cloud-contract-stub-runner that never reach a
+          # deployed artifact. Maven and npm exclude test scope by default;
+          # Gradle is the odd one out.
+          additional-arguments: --all-sub-projects --configuration-matching=^runtimeClasspath$
 
   publish-jars:
     executor: java-build
@@ -441,7 +569,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -449,7 +577,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -457,7 +585,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -465,7 +593,23 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
+                - /^deploy\/.*/
+          requires:
+            - build-and-test
+      - package-agent:
+          filters:
+            branches:
+              only:
+                - main
+                - /^deploy\/.*/
+          requires:
+            - build-and-test
+      - package-admin:
+          filters:
+            branches:
+              only:
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
@@ -475,7 +619,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
                 - /^codacy.*/
           requires:
@@ -486,16 +630,16 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
                 - /^deploy\/.*/
           requires:
             - build-and-test
 
-      # Security scanning (master only - runs concurrently with other jobs)
+      # Security scanning (main only - runs concurrently with other jobs)
       - security-scan:
           filters:
             branches:
               only:
-                - master
+                - main
           requires:
             - build-and-test

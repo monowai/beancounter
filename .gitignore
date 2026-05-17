@@ -8,12 +8,23 @@
 .secrets/*.*
 !.secrets/*.secret
 !.secrets/public-keys/
+
+# Local-only Spring profiles — never commit
+svc-agent/src/main/resources/application-anthropic.yaml
+svc-agent/src/main/resources/application-kauri.yaml
 .gitsecret/keys/random_seed
 .gitsecret/keys/pubring.kbx~
 **/application-local.y*ml
 **/application-sentry.y*ml
 .run/
-.claude/
+# Ignore .claude/* (settings.local.json etc.) but not the directory itself —
+# we still need to traverse it to surface the negated paths below. Project-
+# shared skills + commands ARE checked in; runtime/local files stay ignored.
+.claude/*
+!.claude/skills/
+!.claude/skills/**
+!.claude/commands/
+!.claude/commands/**
 .ci/gradle*
 
 # You can put a script which call `yarn prettier-eslint --write` that prettify the file in-place.

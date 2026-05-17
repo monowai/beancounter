@@ -83,6 +83,22 @@ object AlphaMockUtils {
     }
 
     /**
+     * Stub TIME_SERIES_DAILY (non-adjusted, no dividend/split data).
+     * Used for index symbols (^GSPC etc.) where the _ADJUSTED endpoint errors.
+     * `^` is URL-encoded as `%5E` by RestClient, which the WireMock stub must mirror.
+     */
+    fun mockHistoricResponse(
+        symbol: String,
+        jsonFile: File
+    ) {
+        val encoded = symbol.replace("^", "%5E")
+        mockGetResponse(
+            "/query?function=TIME_SERIES_DAILY&symbol=$encoded&apikey=demo",
+            jsonFile
+        )
+    }
+
+    /**
      * Convenience function to stub a GET/200 response.
      *
      * @param url          url to stub

@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 /**
@@ -33,6 +36,9 @@ class TokenServiceTest {
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
+    @Autowired
+    private lateinit var authConfig: AuthConfig
+
     @Test
     fun `should format bearer token correctly`() {
         assertThat(tokenService.getBearerToken("Test")).isEqualTo("Bearer Test")
@@ -48,5 +54,49 @@ class TokenServiceTest {
     fun `should throw UnauthorizedException when no security context is available`() {
         mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
+    }
+
+    @Test
+    fun `should return system user id from configured claim`() {
+        val jwt =
+            Jwt
+                .withTokenValue("test")
+                .header("alg", "none")
+                .subject("auth0|user")
+                .claim(authConfig.claimSystemUserId, "SU-12345")
+                .claim("scope", "beancounter beancounter:user")
+                .build()
+        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(jwt)
+
+        assertThat(tokenService.getSystemUserId()).isEqualTo("SU-12345")
+    }
+
+    @Test
+    fun `should return null when system user id claim is absent`() {
+        val jwt =
+            Jwt
+                .withTokenValue("test")
+                .header("alg", "none")
+                .subject("auth0|user")
+                .claim("scope", "beancounter beancounter:user")
+                .build()
+        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(jwt)
+
+        assertThat(tokenService.getSystemUserId()).isNull()
+    }
+
+    @Test
+    fun `should return null when system user id claim is blank`() {
+        val jwt =
+            Jwt
+                .withTokenValue("test")
+                .header("alg", "none")
+                .subject("auth0|user")
+                .claim(authConfig.claimSystemUserId, "")
+                .claim("scope", "beancounter beancounter:user")
+                .build()
+        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(jwt)
+
+        assertThat(tokenService.getSystemUserId()).isNull()
     }
 }

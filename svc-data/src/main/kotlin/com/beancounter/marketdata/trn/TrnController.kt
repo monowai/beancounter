@@ -114,12 +114,12 @@ class TrnController(
         @Parameter(
             description = "Date to retrieve transactions for (YYYY-MM-DD format)",
             example = "2024-01-15"
-        ) @RequestParam(required = false) asAt: String = dateUtils.today()
+        ) @RequestParam(required = false) asAt: String? = null
     ): TrnResponse =
         TrnResponse(
             trnService.findForPortfolio(
                 portfolioId,
-                dateUtils.getFormattedDate(asAt)
+                dateUtils.getFormattedDate(asAt ?: dateUtils.today())
             )
         )
 
@@ -535,7 +535,9 @@ class TrnController(
             )
         ]
     )
-    fun findProposed(): TrnResponse = TrnResponse(trnService.findProposedForUser())
+    fun findProposed(
+        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope
+    ): TrnResponse = TrnResponse(trnService.findProposedForUser(scope))
 
     @GetMapping(
         value = ["/proposed/count"],
@@ -560,7 +562,9 @@ class TrnController(
             )
         ]
     )
-    fun countProposed(): Map<String, Long> = mapOf("count" to trnService.countProposedForUser())
+    fun countProposed(
+        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope
+    ): Map<String, Long> = mapOf("count" to trnService.countProposedForUser(scope))
 
     @GetMapping(
         value = ["/settled"],

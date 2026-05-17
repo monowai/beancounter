@@ -58,7 +58,6 @@ logging:
       apache: error
       postgres: error
       postgresql: error
-    kafka: info
 
 marketdata:
   url: "http://localhost:9510/api"
@@ -79,11 +78,22 @@ auth:
     proactive-refresh-seconds: 172800
 
 spring:
-  kafka:
-    admin:
-      auto-create: false
   application:
     name: bc-event
+  boot:
+    admin:
+      client:
+        # Spring Boot Admin client. Disabled by default; enabled in kauri via
+        # SBA_CLIENT_ENABLED=true + SBA_SERVER_URL=http://bc-admin:9530.
+        enabled: ${SBA_CLIENT_ENABLED:false}
+        url: ${SBA_SERVER_URL:http://localhost:9530}
+        username: ${SBA_REGISTRATION_USERNAME:admin}
+        password: ${SBA_REGISTRATION_PASSWORD:}
+        instance:
+          management-base-url: ${MANAGEMENT_BASE_URL:http://localhost:9521}
+          metadata:
+            tags:
+              service: bc-event
   cache:
     cache-names: auth.m2m
   flyway:
@@ -141,10 +151,6 @@ spring:
         transactionEvent-out-0:
           destination: bc-trn-event-dev
           content-type: application/json
-      # Kafka-specific configuration (when default-binder=kafka)
-      kafka:
-        binder:
-          brokers: kafka:9092
       # RabbitMQ-specific configuration (when default-binder=rabbit)
       rabbit:
         binder:

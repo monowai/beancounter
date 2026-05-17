@@ -22,7 +22,7 @@ class PrivateAssetConfigService(
     private val configRepository: PrivateAssetConfigRepository,
     private val assetRepository: AssetRepository,
     private val systemUserService: SystemUserService,
-    private val trnRepository: TrnRepository,
+    private val trnRepository: TrnRepository
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -336,7 +336,7 @@ class PrivateAssetConfigService(
     private fun verifyAssetOwnership(assetId: String) {
         val user =
             systemUserService.getActiveUser()
-                ?: throw BusinessException("User not authenticated")
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
 
         val asset =
             assetRepository.findById(assetId).orElseThrow {

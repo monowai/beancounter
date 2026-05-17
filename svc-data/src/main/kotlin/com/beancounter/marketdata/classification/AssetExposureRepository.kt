@@ -7,7 +7,11 @@ import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
 
 interface AssetExposureRepository : CrudRepository<AssetExposure, String> {
-    @Query("SELECT ae FROM AssetExposure ae WHERE ae.asset.id = :assetId")
+    @Query(
+        "SELECT ae FROM AssetExposure ae " +
+            "JOIN FETCH ae.asset JOIN FETCH ae.standard JOIN FETCH ae.item " +
+            "WHERE ae.asset.id = :assetId"
+    )
     fun findByAssetId(
         @Param("assetId") assetId: String
     ): List<AssetExposure>
@@ -18,7 +22,11 @@ interface AssetExposureRepository : CrudRepository<AssetExposure, String> {
         @Param("assetId") assetId: String
     )
 
-    @Query("SELECT ae FROM AssetExposure ae WHERE ae.asset.id IN :assetIds")
+    @Query(
+        "SELECT ae FROM AssetExposure ae " +
+            "JOIN FETCH ae.asset JOIN FETCH ae.standard JOIN FETCH ae.item " +
+            "WHERE ae.asset.id IN :assetIds"
+    )
     fun findByAssetIdIn(
         @Param("assetIds") assetIds: List<String>
     ): List<AssetExposure>

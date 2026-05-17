@@ -55,4 +55,9 @@ class ExternalApiRestClientConfig {
     fun marketStackRestClient(
         @Value($$"${beancounter.market.providers.mstack.url:https://api.marketstack.com}") baseUrl: String
     ): RestClient = buildRestClient(baseUrl)
+
+    @Bean
+    fun eodhdRestClient(
+        @Value($$"${beancounter.market.providers.eodhd.url:https://eodhd.com}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
 }

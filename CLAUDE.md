@@ -154,13 +154,22 @@ spring.cloud.stream:
 
 ### Topic Naming Convention
 
-Topics follow the pattern: `bc-{service}-{type}-{env}`
+Topics follow the pattern: `bc-{service}-{type}-{env}`.
+
+| Suffix  | Stack            | Where set                                             |
+|---------|------------------|-------------------------------------------------------|
+| `-dev`  | localhost dev    | default in each `application.yml`                     |
+| `-demo` | kauri (deployed) | overridden via env vars in `bc-deploy/env/kauri.yaml` |
+
+The two suffixes keep local and deployed flows from cross-talking on a shared broker.
+Values shown below are the in-repo defaults (`-dev`):
 
 - `bc-pos-mv-dev` - Portfolio market values
 - `bc-trn-csv-dev` - CSV transaction imports
 - `bc-trn-event-dev` - Transaction events
 - `bc-ca-event-dev` - Corporate action events
 - `bc-price-dev` - Price data updates
+- `bc-perf-invalidate-dev` - Performance cache invalidation
 
 ### Switching to Kafka
 
@@ -178,12 +187,21 @@ To switch from RabbitMQ to Kafka:
 
 ## Market Data Architecture
 
-- `MarketDataPriceProcessor.getPriceResponse()` is the main price fetch entry point — checks DB first, then calls provider APIs for missing prices
+- `MarketDataPriceProcessor.getPriceResponse()` is the main price fetch entry point — checks DB
+  first, then calls provider APIs for missing prices
 - Price lookups are provider-agnostic: queries match by `(asset_id, priceDate)` regardless of source
-- `MdFactory.resolveProvider()` iterates providers in map order: Cash → MarketStack → Alpha → Private → Morningstar
-- Default provider config (application.yml): Alpha handles `US,NASDAQ,AMEX,NYSE,LON`; MarketStack handles `NZX,SGX`
-- `AlphaCorporateEventEnricher` calls AlphaVantage API per asset — only meaningful for current-mode prices, not historical backfill
-- `AssetCategory` constructor requires both `id` and `name` parameters (e.g., `AssetCategory("cash", "Cash")`)
+- `MdFactory.resolveProvider()` iterates providers in map order: Cash → MarketStack → Alpha →
+  Private → Morningstar
+- Default provider config (application.yml): Alpha handles `US,NASDAQ,AMEX,NYSE,LON`; MarketStack
+  handles `NZX,SGX`
+- `AlphaCorporateEventEnricher` calls AlphaVantage API per asset — only meaningful for current-mode
+  prices, not historical backfill
+- `AssetCategory` constructor requires both `id` and `name` parameters (e.g.,
+  `AssetCategory("cash", "Cash")`)
+- **Stock splits**: see [SPLITS.md](SPLITS.md) before adding a new market-data provider —
+  spec covers how `SplitAdjuster` rebases history, where event metadata comes from, and the
+  invariants every adapter must hold (raw OHLC in DB, exact-date split match, single ex-date
+  marker per event)
 
 ## Local Service Ports
 
@@ -282,87 +300,18 @@ For cross-repository work (debugging message flows, tracing requests, architectu
 
 - `build-with-stubs.sh`: Script for clean builds handling circular dependencies
 
-# Test-Driven Development (TDD) Approach
+# Test-Driven Development
 
-## Mandatory TDD Workflow
+TDD is mandatory. Red → Green → Refactor → Lint. See
+[`../bc-claude/SERVICE_DESIGN.md`](../bc-claude/SERVICE_DESIGN.md#test-driven-development-tdd)
+for the full workflow, coverage targets, and test-behaviour-not-implementation
+guidance — it applies unchanged here.
 
-When implementing new features or fixing bugs, ALWAYS follow this strict TDD cycle:
+## Pre-Commit Checklist (beancounter-specific)
 
-### 1. Understand Requirements First
+Use the `*Smart` tasks; they handle the circular-dependency stub check.
 
-- Clarify the feature/fix requirements before writing any code
-- Ask questions if specifications are ambiguous
-- Identify edge cases and expected behaviors
-
-### 2. Write Tests FIRST (Red Phase)
-
-- Write failing tests BEFORE implementing any functionality
-- Tests should cover:
-    - Happy path scenarios
-    - Edge cases
-    - Error conditions
-    - Boundary values
-- Use descriptive test names that explain the expected behavior
-- Start with the simplest test case
-
-### 3. Run Tests to Confirm Failure
-
-- Verify that new tests fail for the right reasons
-- Ensure test failure messages are clear and informative
-
-### 4. Implement Minimal Code (Green Phase)
-
-- Write the SIMPLEST code that makes the tests pass
-- Don't add functionality that isn't tested
-- Focus on making tests green, not on perfect code
-
-### 5. Run Tests to Confirm Success
-
-- All new tests should pass
-- All existing tests should still pass (no regressions)
-
-### 6. Refactor (Refactor Phase)
-
-- Improve code quality while keeping tests green
-- Remove duplication
-- Improve cohesion - group related information by capability, not technical concerns.
-- Improve naming and structure
-- Run tests after each refactoring step
-
-### 7. Repeat the Cycle
-
-- Continue with the next smallest piece of functionality
-
-## TDD Guidelines
-
-### DO:
-
-- Write tests that describe behavior, not implementation
-- Keep tests focused and atomic (one assertion concept per test)
-- Use meaningful test descriptions
-- Mock external dependencies
-- Test user-facing behavior over internal implementation
-- Keep tests fast and independent
-
-### DON'T:
-
-- Write implementation code before tests
-- Skip tests because "it's simple"
-- Test implementation details
-- Write tests that depend on other tests
-- Leave failing tests uncommitted
-- Mock everything (only mock boundaries)
-
-## Test Coverage Expectations
-
-- Aim for 80%+ code coverage
-- 100% coverage for critical business logic
-- Focus on meaningful coverage, not just hitting percentages
-- Test edge case scenarios, minimum, mid and maximum.
-
-## Checklist Before Committing
-
-- [ ] All tests passing (`./gradlew testSmart`)
+- [ ] All tests passing: `./gradlew testSmart`
 - [ ] New functionality has tests
-- [ ] Code formatted (`./gradlew formatKotlin`)
-- [ ] Linting passes (`./gradlew lintKotlin`)
+- [ ] Code formatted: `./gradlew formatKotlin`
+- [ ] Linting passes: `./gradlew lintKotlin`

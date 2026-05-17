@@ -6,15 +6,16 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.portfolio.PortfolioShareRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.function.Consumer
@@ -34,7 +35,8 @@ class TrnService(
     private val trnMigrator: TrnMigrator,
     private val assetFinder: AssetFinder,
     private val systemUserService: SystemUserService,
-    private val cacheInvalidationProducer: CacheInvalidationProducer
+    private val cacheInvalidationProducer: CacheInvalidationProducer,
+    private val portfolioShareRepository: PortfolioShareRepository
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
 
@@ -101,8 +103,7 @@ class TrnService(
             trnRepository.findByPortfolioId(
                 portfolio.id,
                 tradeDate,
-                TrnStatus.SETTLED,
-                Sort.by("tradeDate").and(Sort.by("asset.code"))
+                TrnStatus.SETTLED
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
@@ -122,24 +123,62 @@ class TrnService(
     }
 
     /**
-     * Find all PROPOSED transactions for the current user across all their portfolios.
+     * Find PROPOSED transactions for the current user.
+     *
+     * - OWNED: portfolios where current user is the owner (default historical behaviour).
+     * - MANAGED: portfolios shared with the current user via an ACTIVE PortfolioShare.
+     * - ALL: union of both.
      */
-    fun findProposedForUser(): Collection<Trn> {
+    fun findProposedForUser(scope: ProposedScope = ProposedScope.ALL): Collection<Trn> {
         val user = systemUserService.getOrThrow()
-        val results = trnRepository.findByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
-        log.trace("proposed trns: ${results.size}")
-        return postProcess(results.toList())
+        val results = mutableMapOf<String, Trn>()
+
+        if (scope == ProposedScope.OWNED || scope == ProposedScope.ALL) {
+            trnRepository
+                .findByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
+                .forEach { results[it.id] = it }
+        }
+
+        if (scope == ProposedScope.MANAGED || scope == ProposedScope.ALL) {
+            val managedPortfolioIds = managedPortfolioIdsFor(user)
+            if (managedPortfolioIds.isNotEmpty()) {
+                trnRepository
+                    .findByStatusAndPortfolioIdIn(TrnStatus.PROPOSED, managedPortfolioIds)
+                    .forEach { results[it.id] = it }
+            }
+        }
+
+        log.trace("proposed trns: ${results.size} (scope=$scope)")
+        return postProcess(results.values.toList())
     }
 
     /**
-     * Count all PROPOSED transactions for the current user across all their portfolios.
+     * Count PROPOSED transactions for the current user under the given scope.
      */
-    fun countProposedForUser(): Long {
+    fun countProposedForUser(scope: ProposedScope = ProposedScope.ALL): Long {
         val user = systemUserService.getOrThrow()
-        val count = trnRepository.countByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
-        log.trace("proposed count: $count")
+        var count = 0L
+
+        if (scope == ProposedScope.OWNED || scope == ProposedScope.ALL) {
+            count += trnRepository.countByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
+        }
+
+        if (scope == ProposedScope.MANAGED || scope == ProposedScope.ALL) {
+            val managedPortfolioIds = managedPortfolioIdsFor(user)
+            if (managedPortfolioIds.isNotEmpty()) {
+                count += trnRepository.countByStatusAndPortfolioIdIn(TrnStatus.PROPOSED, managedPortfolioIds)
+            }
+        }
+
+        log.trace("proposed count: $count (scope=$scope)")
         return count
     }
+
+    private fun managedPortfolioIdsFor(user: com.beancounter.common.model.SystemUser): Set<String> =
+        portfolioShareRepository
+            .findBySharedWithAndStatus(user, ShareStatus.ACTIVE)
+            .mapNotNull { it.portfolio?.id }
+            .toSet()
 
     /**
      * Find all SETTLED transactions for the current user on a specific trade date.

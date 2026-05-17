@@ -195,4 +195,15 @@ internal class AlphaBehaviourTest {
             )
         assertThat(computedDate).isEqualTo(dateUtils.getFormattedDate("2020-04-28"))
     }
+
+    @Test
+    fun translateMarketCodeMapsExchangesToAlphaSuffixes() {
+        // ASX uses ".AX" on AlphaVantage, TSX uses ".TRT"; everything else
+        // passes through, and the US umbrella exchanges resolve to no suffix.
+        assertThat(alphaConfig.translateMarketCode(Market("ASX"))).isEqualTo("AX")
+        assertThat(alphaConfig.translateMarketCode(Market("TSX"))).isEqualTo("TRT")
+        assertThat(alphaConfig.translateMarketCode(Market("LON"))).isEqualTo("LON")
+        assertThat(alphaConfig.translateMarketCode(Market("NASDAQ"))).isNull()
+        assertThat(alphaConfig.translateMarketCode(Market("NYSE"))).isNull()
+    }
 }

@@ -42,7 +42,7 @@ class PrivateAssetConfigServiceTest {
                 configRepository,
                 assetRepository,
                 systemUserService,
-                trnRepository,
+                trnRepository
             )
     }
 

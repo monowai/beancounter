@@ -4,6 +4,7 @@ import com.beancounter.common.model.ClassificationItem
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -70,14 +71,14 @@ class ClassificationServiceTest {
         val existingStandard =
             ClassificationStandard(
                 id = STD_ID,
-                key = "ALPHA",
+                key = AlphaPriceService.ID,
                 name = "AlphaVantage",
                 version = "1.0",
                 provider = "ALPHAVANTAGE"
             )
-        whenever(standardRepository.findByKey("ALPHA")).thenReturn(Optional.of(existingStandard))
+        whenever(standardRepository.findByKey(AlphaPriceService.ID)).thenReturn(Optional.of(existingStandard))
 
-        val result = service.getOrCreateStandard("ALPHA", "AlphaVantage")
+        val result = service.getOrCreateStandard(AlphaPriceService.ID, "AlphaVantage")
 
         assertThat(result).isEqualTo(existingStandard)
         verify(standardRepository, never()).save(any())
@@ -134,7 +135,7 @@ class ClassificationServiceTest {
         val standard =
             ClassificationStandard(
                 id = STD_ID,
-                key = "ALPHA",
+                key = AlphaPriceService.ID,
                 name = "Alpha Classification"
             )
         // "TECHNOLOGY" normalizes to "Information Technology" -> code "INFORMATION_TECHNOLOGY"
@@ -252,7 +253,7 @@ class ClassificationServiceTest {
         val standard =
             ClassificationStandard(
                 id = STD_ID,
-                key = "ALPHA",
+                key = AlphaPriceService.ID,
                 name = "Alpha Classification"
             )
         whenever(
@@ -351,7 +352,7 @@ class ClassificationServiceTest {
         val standard =
             ClassificationStandard(
                 id = STD_ID,
-                key = "ALPHA",
+                key = AlphaPriceService.ID,
                 name = "Alpha"
             )
         val sectors =

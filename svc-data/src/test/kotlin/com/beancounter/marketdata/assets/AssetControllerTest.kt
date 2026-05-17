@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
@@ -248,6 +249,137 @@ internal class AssetControllerTest {
             objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
         val updatedAsset = assetUpdateResponse.data[toKey(asset)]
         assertThat(updatedAsset).isEqualTo(createdAsset)
+    }
+
+    @Test
+    fun `list INDEX market assets via market endpoint`() {
+        val gspc =
+            AssetInput(
+                market = "INDEX",
+                code = "GSPC",
+                name = "S&P 500",
+                category = AssetCategory.INDEX
+            )
+        val ftse =
+            AssetInput(
+                market = "INDEX",
+                code = "FTSE",
+                name = "FTSE 100",
+                category = AssetCategory.INDEX
+            )
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post(ASSET_ROOT)
+                    .with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
+                            .jwt(mockAuthConfig.getUserToken())
+                    ).with(csrf())
+                    .content(
+                        objectMapper.writeValueAsBytes(
+                            AssetRequest(mapOf(toKey(gspc) to gspc, toKey(ftse) to ftse))
+                        )
+                    ).contentType(APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        val mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$ASSET_ROOT/market/{market}", "INDEX")
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
+                ).andExpect(status().isOk)
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andReturn()
+
+        val response = objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
+        assertThat(response.data.values.map { it.code })
+            .contains("GSPC", "FTSE")
+        assertThat(response.data.values).allMatch { it.marketCode == "INDEX" }
+    }
+
+    @Test
+    fun `lookup index asset via URL with caret-prefix code`() {
+        val input =
+            AssetInput(
+                market = "INDEX",
+                code = "GSPC",
+                name = "S&P 500",
+                category = AssetCategory.INDEX
+            )
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post(ASSET_ROOT)
+                    .with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
+                            .jwt(mockAuthConfig.getUserToken())
+                    ).with(csrf())
+                    .content(objectMapper.writeValueAsBytes(AssetRequest(mapOf(toKey(input) to input))))
+                    .contentType(APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        val mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$ASSET_ROOT/{marketCode}/{assetCode}", "INDEX", "GSPC")
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        )
+                ).andExpect(status().isOk)
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andReturn()
+
+        val response = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
+        assertThat(response.data.code).isEqualTo("GSPC")
+        assertThat(response.data.marketCode).isEqualTo("INDEX")
+        assertThat(response.data.assetCategory.id).isEqualTo(AssetCategory.INDEX)
+    }
+
+    @Test
+    fun `create market index asset with INDEX category`() {
+        val input =
+            AssetInput(
+                market = "INDEX",
+                code = "GSPC",
+                name = "S&P 500",
+                category = AssetCategory.INDEX
+            )
+        val assetRequest = AssetRequest(mapOf(toKey(input) to input))
+
+        val mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post(ASSET_ROOT)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).with(csrf())
+                        .content(objectMapper.writeValueAsBytes(assetRequest))
+                        .contentType(APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andReturn()
+
+        val response = objectMapper.readValue<AssetUpdateResponse>(mvcResult.response.contentAsString)
+        val created = response.data[toKey(input)]
+        assertThat(created)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("code", "GSPC")
+            .hasFieldOrPropertyWithValue("marketCode", "INDEX")
+        assertThat(created!!.assetCategory.id).isEqualTo(AssetCategory.INDEX)
+        assertThat(created.effectiveReportCategory).isEqualTo(AssetCategory.REPORT_INDEX)
     }
 
     @Test

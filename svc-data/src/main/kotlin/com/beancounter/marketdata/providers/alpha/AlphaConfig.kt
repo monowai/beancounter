@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
@@ -21,6 +22,7 @@ import java.time.LocalDate
  * Helper functions for Alpha data provider. Enable dependant supporting classes
  */
 @Configuration
+@EnableConfigurationProperties(NewsProperties::class)
 @Import(
     AlphaPriceService::class,
     AlphaProxy::class,
@@ -70,14 +72,10 @@ class AlphaConfig(
         if (isNullMarket(market.code)) {
             return null
         }
-        return if (market.code.equals(
-                "ASX",
-                ignoreCase = true
-            )
-        ) {
-            "AX"
-        } else {
-            market.code
+        return when (market.code.uppercase()) {
+            "ASX" -> "AX"
+            "TSX" -> "TRT"
+            else -> market.code
         }
     }
 
@@ -107,6 +105,10 @@ class AlphaConfig(
     override fun getPriceCode(asset: Asset): String {
         if (asset.priceSymbol != null) {
             return asset.priceSymbol!!
+        }
+        // Index symbols (e.g. ^GSPC, ^IXIC) carry no market suffix on Alpha Vantage.
+        if (asset.code.startsWith("^")) {
+            return asset.code
         }
         val marketCode = translateMarketCode(asset.market)
         return if (!marketCode.isNullOrEmpty()) {

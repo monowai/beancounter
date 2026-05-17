@@ -35,6 +35,8 @@ class Constants {
         val CASH_MARKET = Market("CASH")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
+        val PRIVATE_MARKET = Market("PRIVATE")
+        const val PRIVATE = "PRIVATE"
 
         val AAPL =
             getTestAsset(
@@ -66,7 +68,27 @@ class Constants {
                 symbol = "€"
             )
         val NZD = Currency("NZD")
+        val CAD = Currency("CAD")
 
+        val INDEX_MARKET =
+            Market(
+                "INDEX",
+                USD.code
+            )
+        val SP500 =
+            Asset(
+                code = "GSPC",
+                id = "GSPC",
+                name = "S&P 500",
+                market = INDEX_MARKET,
+                priceSymbol = "GSPC",
+                category = AssetCategory.INDEX,
+                assetCategory =
+                    AssetCategory(
+                        AssetCategory.INDEX,
+                        "Market Index"
+                    )
+            )
         val NZX =
             Market(
                 "NZX",

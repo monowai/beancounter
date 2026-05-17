@@ -90,6 +90,7 @@ class SystemUserService(
     }
 
     companion object {
+        const val USER_NOT_AUTHENTICATED = "User not authenticated"
         private val log = LoggerFactory.getLogger(SystemUserService::class.java)
     }
 
@@ -101,6 +102,24 @@ class SystemUserService(
         if (id == null) return null
         val email = if (tokenService.hasEmail()) tokenService.getEmail() else null
         return systemUserCache.find(email, id)
+    }
+
+    fun findByExternal(
+        sub: String?,
+        email: String?
+    ): SystemUser? {
+        if (!email.isNullOrBlank()) {
+            val byEmail = systemUserRepository.findByEmail(email).orElse(null)
+            if (byEmail != null) return byEmail
+        }
+        if (!sub.isNullOrBlank()) {
+            return when {
+                sub.startsWith("auth0") -> systemUserRepository.findByAuth0(sub).orElse(null)
+                sub.startsWith("goog") -> systemUserRepository.findByGoogleId(sub).orElse(null)
+                else -> null
+            }
+        }
+        return null
     }
 
     fun findByEmail(email: String): SystemUser? = systemUserRepository.findByEmail(email).orElse(null)

@@ -4,7 +4,6 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
-import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
@@ -16,6 +15,9 @@ import java.util.Optional
  * CRUD Repo for business transactions.
  * Broker-related queries are in [TrnBrokerRepository].
  * Analysis and reporting queries are in [TrnAnalysisRepository].
+ *
+ * Queries returning Collection<Trn> use JOIN FETCH to avoid N+1 on
+ * the ManyToOne associations that Hibernate would otherwise load individually.
  */
 interface TrnRepository :
     CrudRepository<Trn, String>,
@@ -27,15 +29,20 @@ interface TrnRepository :
      */
     @Query(
         "select t from Trn t " +
-            "where t.portfolio.id =?1  " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.portfolio.id = ?1 " +
             "and t.tradeDate <= ?2 " +
-            "and t.status = ?3"
+            "and t.status = ?3 " +
+            "order by t.tradeDate, t.asset.code"
     )
     fun findByPortfolioId(
         portfolioId: String,
         tradeDate: LocalDate,
-        status: TrnStatus,
-        sort: Sort
+        status: TrnStatus
     ): Collection<Trn>
 
     fun deleteByPortfolioId(portfolioId: String): Long
@@ -55,23 +62,33 @@ interface TrnRepository :
 
     @Query(
         "select t from Trn t " +
-            "where t.portfolio.id =?1 " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.portfolio.id = ?1 " +
             "and t.asset.id = ?2 " +
-            "and t.trnType in (?3) "
+            "and t.trnType in (?3) " +
+            "order by t.tradeDate desc, t.asset.code"
     )
     fun findByPortfolioIdAndAssetIdAndTrnType(
         portfolioId: String,
         assetId: String,
-        trnType: List<TrnType>,
-        sort: Sort
+        trnType: List<TrnType>
     ): Collection<Trn>
 
     @Query(
         "select t from Trn t " +
-            "where t.portfolio.id =?1 " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.portfolio.id = ?1 " +
             "and t.asset.id = ?2 " +
             "and t.tradeDate <= ?3 " +
-            "order by t.tradeDate asc "
+            "order by t.tradeDate asc"
     )
     fun findByPortfolioIdAndAssetIdUpTo(
         id: String,
@@ -81,6 +98,11 @@ interface TrnRepository :
 
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.id = ?1 " +
             "and t.asset.id = ?2 " +
             "order by t.tradeDate asc"
@@ -91,13 +113,18 @@ interface TrnRepository :
     ): Collection<Trn>
 
     @Query(
-        "select t from Trn t  " +
-            "where t.portfolio.id =?1  " +
-            "and t.asset.id =?2 " +
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.portfolio.id = ?1 " +
+            "and t.asset.id = ?2 " +
             "and t.trnType = ?3 " +
             "and t.tradeDate >= ?4 " +
             "and t.tradeDate <= ?5 " +
-            "order by t.tradeDate asc "
+            "order by t.tradeDate asc"
     )
     fun findExisting(
         portfolio: String,
@@ -112,6 +139,11 @@ interface TrnRepository :
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.id = ?1 " +
             "and t.status = ?2 " +
             "order by t.tradeDate desc"
@@ -129,6 +161,11 @@ interface TrnRepository :
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.status = ?1 " +
             "and t.trnType in (?2) " +
             "and t.tradeDate <= ?3 " +
@@ -146,6 +183,11 @@ interface TrnRepository :
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "order by t.tradeDate desc"
@@ -168,12 +210,43 @@ interface TrnRepository :
         owner: SystemUser
     ): Long
 
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.status = ?1 " +
+            "and t.portfolio.id in ?2 " +
+            "order by t.tradeDate desc"
+    )
+    fun findByStatusAndPortfolioIdIn(
+        status: TrnStatus,
+        portfolioIds: Collection<String>
+    ): Collection<Trn>
+
+    @Query(
+        "select count(t) from Trn t " +
+            "where t.status = ?1 " +
+            "and t.portfolio.id in ?2"
+    )
+    fun countByStatusAndPortfolioIdIn(
+        status: TrnStatus,
+        portfolioIds: Collection<String>
+    ): Long
+
     /**
      * Find all transactions with a specific status and trade date for portfolios owned by the given user.
      * Used for showing settled transactions on a specific date across all portfolios.
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate = ?3 " +
@@ -197,6 +270,11 @@ interface TrnRepository :
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.id = ?1 " +
             "and (t.cashAsset.id = ?2 OR (t.asset.id = ?2 AND t.trnType = 'FX_BUY')) " +
             "and t.tradeDate <= ?3 " +
@@ -216,6 +294,11 @@ interface TrnRepository :
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.id = ?1 " +
             "and t.modelId = ?2 " +
             "and t.status = ?3 " +
@@ -238,19 +321,12 @@ interface TrnRepository :
     fun findDistinctAssetIdsByPortfolioIds(portfolioIds: Collection<String>): Collection<String>
 
     /**
-     * Find all transactions for multiple portfolios that belong to a specific rebalance model.
-     * Used for aggregated model-level position tracking across portfolios.
+     * Group transaction count by [com.beancounter.common.model.TrnType].
+     * Surfaced as the `beancounter.transaction.count.by_type` MultiGauge.
      */
     @Query(
-        "select t from Trn t " +
-            "where t.portfolio.id in ?1 " +
-            "and t.modelId = ?2 " +
-            "and t.status = ?3 " +
-            "order by t.tradeDate asc"
+        "SELECT new com.beancounter.marketdata.metrics.TypeCount(CAST(t.trnType AS string), COUNT(t)) " +
+            "FROM Trn t GROUP BY t.trnType ORDER BY COUNT(t) DESC"
     )
-    fun findByPortfolioIdsAndModelId(
-        portfolioIds: List<String>,
-        modelId: String,
-        status: TrnStatus
-    ): Collection<Trn>
+    fun countByTrnType(): List<com.beancounter.marketdata.metrics.TypeCount>
 }

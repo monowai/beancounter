@@ -3,35 +3,43 @@ package com.beancounter.agent.config
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
 
 /**
- * Custom security configuration for the agent service.
- * Handles only agent-specific endpoints, allowing chat interface without authentication.
+ * Security filter chain for the svc-agent endpoints.
+ *
+ * Declared with a high-precedence `@Order` so it takes priority over jar-auth's
+ * catch-all `WebAuthFilterConfig` for the agent paths and the chat UI static
+ * resources. The agent is a public-facing service: the chat page and the
+ * liveness probe are unauthenticated, while the query endpoint requires a
+ * valid JWT so the LLM's tool calls act on behalf of the user.
  */
 @Configuration
 @EnableWebSecurity
 @ConditionalOnProperty(value = ["auth.web"], havingValue = "true", matchIfMissing = true)
 class AgentSecurityConfig {
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     fun agentSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .securityMatcher("/", "/api/agent/**") // Handle root path and agent endpoints
+            .securityMatcher("/", "/agent/**", "/chat.html", "/login.html", "/favicon.ico")
             .authorizeHttpRequests { auth ->
-                // Allow access to root path (chat interface) without authentication
-                auth.requestMatchers("/").permitAll()
-
-                // Allow access to chat interface and login without authentication
-                auth.requestMatchers("/api/agent/chat").permitAll()
-                auth.requestMatchers("/api/agent/login").permitAll()
-                auth.requestMatchers("/api/agent/health").permitAll()
-
-                // Require authentication for other agent endpoints
-                auth.requestMatchers("/api/agent/**").authenticated()
-            }.csrf { csrf ->
+                auth.requestMatchers("/", "/chat.html", "/login.html", "/favicon.ico").permitAll()
+                auth.requestMatchers("/agent/health").permitAll()
+                auth.requestMatchers("/agent/**").authenticated()
+            }
+            // deepcode ignore DisablesCSRFProtection: bc-agent is a
+            // stateless JWT-bearer REST API. CSRF defends against form
+            // submissions riding on cookie auth — every request here must
+            // carry an `Authorization: Bearer` header that an HTML form
+            // cannot set. Spring's official guidance is to disable CSRF
+            // for stateless REST APIs.
+            .csrf { csrf ->
                 csrf.disable()
             }.oauth2ResourceServer { oauth2 ->
                 oauth2.jwt(Customizer.withDefaults())

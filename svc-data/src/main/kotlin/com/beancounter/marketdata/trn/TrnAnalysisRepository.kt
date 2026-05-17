@@ -9,6 +9,8 @@ import java.time.LocalDate
 
 /**
  * Analysis and reporting transaction queries. Extended by [TrnRepository].
+ *
+ * Queries returning Collection<Trn> use JOIN FETCH to avoid N+1.
  */
 @NoRepositoryBean
 interface TrnAnalysisRepository {
@@ -41,6 +43,11 @@ interface TrnAnalysisRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.owner = ?1 " +
             "and t.trnType in ('BUY', 'SELL') " +
             "and t.tradeDate >= ?2 " +
@@ -62,6 +69,11 @@ interface TrnAnalysisRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.id in ?1 " +
             "and t.trnType in ('BUY', 'SELL') " +
             "and t.tradeDate >= ?2 " +
@@ -82,6 +94,11 @@ interface TrnAnalysisRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.owner = ?1 " +
             "and t.trnType = 'DIVI' " +
             "and t.tradeDate >= ?2 " +
@@ -102,6 +119,11 @@ interface TrnAnalysisRepository {
      */
     @Query(
         "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
             "where t.portfolio.id in ?1 " +
             "and t.trnType = 'DIVI' " +
             "and t.tradeDate >= ?2 " +

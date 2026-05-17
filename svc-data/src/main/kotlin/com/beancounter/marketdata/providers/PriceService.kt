@@ -1,5 +1,7 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.contracts.PriceHistoryResponse
+import com.beancounter.common.contracts.PricePoint
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
@@ -10,6 +12,7 @@ import com.beancounter.common.utils.TestEnvironmentUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
+import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -31,6 +34,12 @@ class PriceService(
     private val log = LoggerFactory.getLogger(PriceService::class.java)
     private var eventProducer: EventProducer? = null
     private var cacheInvalidationProducer: CacheInvalidationProducer? = null
+    private var alphaEventService: AlphaEventService? = null
+
+    @Autowired(required = false)
+    fun setAlphaEventService(alphaEventService: AlphaEventService?) {
+        this.alphaEventService = alphaEventService
+    }
 
     @Autowired(required = false)
     fun setEventWriter(eventProducer: EventProducer?) {
@@ -131,40 +140,132 @@ class PriceService(
     }
 
     /**
-     * If previousClose is not provided by the API (zero), calculate it from the previous day's close.
-     * Also calculates change and changePercent when previousClose is derived.
+     * Normalises price fields for the ex-date of a split and derives previousClose when missing.
+     *
+     * Behaviour:
+     *  - Always consults yesterday's stored close so we can detect an ex-date by comparing the
+     *    row's `split` to the previous row's `split` (a different value means this is a genuine
+     *    ex-date; a sticky identical value means the provider kept the flag around).
+     *  - On a genuine ex-date:
+     *      • If the provider's `close` looks unadjusted (> 2× the expected post-split level)
+     *        the OHLC fields are divided by the split to sit on the post-split basis.
+     *      • `previousClose` is rebased onto the post-split basis — whether it was supplied
+     *        by the provider (typically raw, e.g. Alpha) or derived from yesterday's stored
+     *        close. `change` / `changePercent` are recomputed from the adjusted values.
+     *  - Off ex-date, we only fill `previousClose` (and its derivatives) from the prior row
+     *    when the provider didn't supply a value — preserving the provider's own values when
+     *    it did.
+     *
+     * Example: Monday $1000 → Tuesday 25:1 split → close $40 stored, previousClose $40 stored,
+     * change 0, changePercent 0.
      */
     private fun enrichWithPreviousClose(marketData: MarketData): MarketData {
-        if (marketData.previousClose.compareTo(BigDecimal.ZERO) != 0) {
-            // API already provided previousClose, no enrichment needed
-            return marketData
-        }
-
-        // Try to get previous day's close from database
         val previousDayData =
             marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
                 marketData.asset,
                 marketData.priceDate
             )
-
-        if (previousDayData.isPresent) {
-            val previousClose = previousDayData.get().close
-            marketData.previousClose = previousClose
-            marketData.change = marketData.close.subtract(previousClose)
-            if (previousClose.compareTo(BigDecimal.ZERO) != 0) {
-                marketData.changePercent =
-                    marketData.change.divide(previousClose, 6, java.math.RoundingMode.HALF_UP)
-            }
-            log.trace(
-                "Calculated previousClose for {} on {}: {} -> change={}, changePercent={}",
-                marketData.asset.code,
-                marketData.priceDate,
-                previousClose,
-                marketData.change,
-                marketData.changePercent
-            )
+        if (!previousDayData.isPresent) {
+            return marketData
         }
 
+        // Some providers (e.g. MarketStack) deliver the ex-date row without a
+        // split flag, leaving previousClose on the pre-split basis and the
+        // change/changePercent at -1/N. Cross-check Alpha's split feed (cached)
+        // and stamp the row before the rebase logic below kicks in.
+        // Gate the lookup behind a "likely missing split" anomaly check so we
+        // don't hit Alpha for every normal split=1 row (the common case).
+        if (marketData.split.compareTo(BigDecimal.ONE) == 0 &&
+            looksLikeMissingSplit(marketData, previousDayData.get())
+        ) {
+            knownSplitFor(marketData.asset, marketData.priceDate)?.let { factor ->
+                marketData.split = factor
+            }
+        }
+
+        val split = marketData.split
+        val hasSplit =
+            split.compareTo(BigDecimal.ZERO) > 0 && split.compareTo(BigDecimal.ONE) != 0
+        val previousSplit = previousDayData.get().split
+        // Only treat this row as a split ex-date when the previous day's row did not
+        // already carry the same split factor. Some providers keep the split value
+        // "sticky" on subsequent rows — re-adjusting those rows would divide prices twice.
+        val isSplitExDate = hasSplit && previousSplit.compareTo(split) != 0
+        val providerGavePreviousClose =
+            marketData.previousClose.compareTo(BigDecimal.ZERO) != 0
+
+        // Off an ex-date we respect the provider's values; only derive previousClose when absent.
+        if (!isSplitExDate && providerGavePreviousClose) {
+            return marketData
+        }
+
+        val rawPreviousClose =
+            if (providerGavePreviousClose) {
+                marketData.previousClose
+            } else {
+                previousDayData.get().close
+            }
+
+        if (isSplitExDate) {
+            // Close looks unadjusted when it's more than 2× the expected post-split level
+            // derived from yesterday's raw close. Rebase OHLC onto the post-split basis.
+            val closeLooksUnadjusted =
+                previousDayData.get().close.compareTo(BigDecimal.ZERO) > 0 &&
+                    marketData.close.compareTo(
+                        previousDayData
+                            .get()
+                            .close
+                            .divide(split, 6, java.math.RoundingMode.HALF_UP)
+                            .multiply(BigDecimal("2"))
+                    ) > 0
+            if (closeLooksUnadjusted) {
+                marketData.close =
+                    marketData.close.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                if (marketData.open.compareTo(BigDecimal.ZERO) > 0) {
+                    marketData.open =
+                        marketData.open.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                }
+                if (marketData.high.compareTo(BigDecimal.ZERO) > 0) {
+                    marketData.high =
+                        marketData.high.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                }
+                if (marketData.low.compareTo(BigDecimal.ZERO) > 0) {
+                    marketData.low =
+                        marketData.low.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                }
+            }
+        }
+
+        val splitAdjustedPreviousClose =
+            if (isSplitExDate) {
+                rawPreviousClose.divide(split, 6, java.math.RoundingMode.HALF_UP)
+            } else {
+                rawPreviousClose
+            }
+        marketData.previousClose = splitAdjustedPreviousClose
+        marketData.change = marketData.close.subtract(splitAdjustedPreviousClose)
+        if (splitAdjustedPreviousClose.compareTo(BigDecimal.ZERO) != 0) {
+            marketData.changePercent =
+                marketData.change.divide(
+                    splitAdjustedPreviousClose,
+                    6,
+                    java.math.RoundingMode.HALF_UP
+                )
+        }
+        log.trace(
+            "Enriched price for {} on {} (split={}, prevSplit={}, exDate={}): " +
+                "prevRaw={} prevAdj={} close={} -> change={}, changePercent={}",
+            marketData.asset.code,
+            marketData.priceDate,
+            split,
+            previousSplit,
+            isSplitExDate,
+            rawPreviousClose,
+            splitAdjustedPreviousClose,
+            marketData.close,
+            marketData.change,
+            marketData.changePercent
+        )
         return marketData
     }
 
@@ -294,6 +395,114 @@ class PriceService(
         )
 
     /**
+     * Get the price history for an asset between two dates.
+     * Returns the hydrated asset plus a chronological list of prices
+     * (no repeated asset per row).
+     */
+    @Transactional
+    fun getPriceHistory(
+        assetId: String,
+        from: LocalDate,
+        to: LocalDate
+    ): PriceHistoryResponse {
+        val asset = assetFinder.find(assetId)
+        val rawPrices =
+            marketDataRepo
+                .findPriceHistory(assetId, from, to)
+                .map(PricePoint::from)
+        val splitEvents = collectSplitEvents(asset, from, to)
+        return PriceHistoryResponse(
+            asset = asset,
+            prices = SplitAdjuster.adjust(rawPrices, splitEvents)
+        )
+    }
+
+    // True when today's close has dropped sharply enough versus yesterday to
+    // suggest the provider may have omitted a split flag on the ex-date row.
+    // Uses a 30% gap threshold — small enough to catch a 2-for-1 split (50%
+    // drop) and well above any plausible single-day organic move, so we keep
+    // Alpha lookups limited to genuinely suspicious rows.
+    private fun looksLikeMissingSplit(
+        marketData: MarketData,
+        previousDay: MarketData
+    ): Boolean {
+        if (previousDay.close.compareTo(BigDecimal.ZERO) <= 0) return false
+        if (marketData.close.compareTo(BigDecimal.ZERO) <= 0) return false
+        val anomalyThreshold = previousDay.close.multiply(MISSING_SPLIT_DROP_THRESHOLD)
+        return marketData.close.compareTo(anomalyThreshold) < 0
+    }
+
+    // Returns Alpha's known split factor for the asset on `date` when one
+    // exists, or null otherwise. Lets enrichWithPreviousClose recover from
+    // providers that omit the split flag on the ex-date row (e.g. MarketStack
+    // on VUG 2026-04-21).
+    private fun knownSplitFor(
+        asset: Asset,
+        date: LocalDate
+    ): BigDecimal? {
+        val service = alphaEventService ?: return null
+        return try {
+            service
+                .getEvents(asset)
+                .data
+                .asSequence()
+                .filter(::isSplit)
+                .firstOrNull { it.priceDate == date }
+                ?.split
+                ?.takeIf { it.compareTo(BigDecimal.ONE) != 0 && it.signum() > 0 }
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug(
+                "Split lookup failed for {} on {}: {}",
+                asset.code,
+                date,
+                e.message
+            )
+            null
+        }
+    }
+
+    /**
+     * Pulls known split events for the asset within the requested range.
+     *
+     * The historical backfill via Alpha's TIME_SERIES_DAILY does not carry
+     * split coefficients, so the database can hold raw pre-split closes
+     * with split=1 across the board. AlphaEventService (cached) returns
+     * splits sourced from TIME_SERIES_DAILY_ADJUSTED which contains the
+     * coefficients on each ex-date. Without this, [SplitAdjuster] would
+     * have nothing to detect when the price rows themselves are bare.
+     */
+    private fun collectSplitEvents(
+        asset: Asset,
+        from: LocalDate,
+        to: LocalDate
+    ): List<SplitAdjuster.SplitEvent> {
+        val service = alphaEventService ?: return emptyList()
+        return try {
+            service
+                .getEvents(asset)
+                .data
+                .asSequence()
+                .filter(::isSplit)
+                .filter { !it.priceDate.isBefore(from) && !it.priceDate.isAfter(to) }
+                .map { SplitAdjuster.SplitEvent(it.priceDate, it.split) }
+                .toList()
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn(
+                "Failed to load split events for {}: {}",
+                asset.code,
+                e.message
+            )
+            emptyList()
+        }
+    }
+
+    /**
      * Get the most recent market data for an asset on or before the given date.
      * Used as a fallback when the market was closed on the requested date.
      */
@@ -314,4 +523,12 @@ class PriceService(
         assetId: String,
         date: LocalDate
     ): Long = marketDataRepo.countByAssetIdAndPriceDate(assetId, date)
+
+    companion object {
+        // Today's close must be below this fraction of yesterday's close before
+        // we treat the row as a candidate for a missing split flag and consult
+        // Alpha. 0.70 catches 2:1 splits (50% drop) with comfortable headroom
+        // over any realistic organic single-day move.
+        private val MISSING_SPLIT_DROP_THRESHOLD = BigDecimal("0.70")
+    }
 }

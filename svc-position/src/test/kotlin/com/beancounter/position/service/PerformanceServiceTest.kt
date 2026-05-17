@@ -6,6 +6,8 @@ import com.beancounter.client.services.PriceService
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.BulkPriceResponse
+import com.beancounter.common.contracts.EnsureHistoryRequest
+import com.beancounter.common.contracts.EnsureHistoryResponse
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
@@ -19,6 +21,7 @@ import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.cache.NoOpPerformanceCacheService
+import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset
@@ -29,7 +32,10 @@ import org.mockito.Mock
 import org.mockito.Mockito.lenient
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -84,6 +90,7 @@ class PerformanceServiceTest {
                 priceService = priceService,
                 fxRateService = fxRateService,
                 twrCalculator = twrCalculator,
+                irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
                 dateUtils = dateUtils,
                 tokenService = tokenService,
                 cacheService = NoOpPerformanceCacheService()
@@ -382,5 +389,86 @@ class PerformanceServiceTest {
                 .growthOf1000
                 .toDouble()
         ).isCloseTo(1000.0, Offset.offset(0.01))
+    }
+
+    @Test
+    fun `ensureHistory is nudged with the collected asset ids on calculate`() {
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = testAsset,
+                tradeDate = LocalDate.now().minusMonths(6),
+                quantity = BigDecimal("100"),
+                price = BigDecimal("150"),
+                tradeAmount = BigDecimal("15000"),
+                cashAmount = BigDecimal("-15000")
+            )
+
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn)))
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                positions.getOrCreate(testAsset)
+            }
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(emptyMap()))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+        whenever(priceService.ensureHistory(any(), any()))
+            .thenReturn(EnsureHistoryResponse(scheduled = 1))
+
+        performanceService.calculate(portfolio, 12)
+
+        val captor = argumentCaptor<EnsureHistoryRequest>()
+        verify(priceService).ensureHistory(captor.capture(), any())
+        assertThat(captor.firstValue.assetIds).containsExactly(testAsset.id)
+        assertThat(captor.firstValue.fromDate).isNotNull()
+    }
+
+    @Test
+    fun `ensureHistory failure does not break calculate`() {
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = testAsset,
+                tradeDate = LocalDate.now().minusMonths(6),
+                quantity = BigDecimal("100"),
+                price = BigDecimal("150"),
+                tradeAmount = BigDecimal("15000"),
+                cashAmount = BigDecimal("-15000")
+            )
+
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn)))
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                positions.getOrCreate(testAsset)
+            }
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(emptyMap()))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+        whenever(priceService.ensureHistory(any(), any()))
+            .thenThrow(RuntimeException("svc-data unavailable"))
+
+        // Calculate must still succeed (fire-and-forget contract).
+        val result = performanceService.calculate(portfolio, 12)
+        assertThat(result.data.series).isNotEmpty
+    }
+
+    @Test
+    fun `ensureHistory skipped when no transactions`() {
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse())
+
+        performanceService.calculate(portfolio, 12)
+
+        verify(priceService, never()).ensureHistory(any(), any())
     }
 }

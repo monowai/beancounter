@@ -1,0 +1,12 @@
+-- Widen news_article_tag.tag from VARCHAR(64) to VARCHAR(255).
+--
+-- EODHD ships topic tags that routinely exceed 64 characters (compound topics
+-- like "ANALYST RATINGS AND PRICE TARGETS" or longer multi-word phrases),
+-- triggering `value too long for type character varying(64)` on flush in
+-- EodhdNewsService.saveOrMerge. The error surfaces at the next findByExternalId
+-- because JPA autoflush runs pending inserts before the read.
+--
+-- 255 matches the upper bound EODHD has been observed to ship; if they widen
+-- further we can revisit. The column is part of the (article_id, tag) primary
+-- key — Postgres handles the alter without rebuilding the index.
+ALTER TABLE news_article_tag ALTER COLUMN tag TYPE VARCHAR(255);

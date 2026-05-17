@@ -89,4 +89,26 @@ class AlphaGateway(
             .retrieve()
             .body<String>()
             ?: ""
+
+    fun getNewsSentiment(
+        tickers: String,
+        apiKey: String,
+        topics: String? = null,
+        limit: Int = 10,
+        timeFrom: String? = null
+    ): String {
+        var uri = "/query?function=NEWS_SENTIMENT&tickers=$tickers&apikey=$apiKey&limit=$limit"
+        if (!topics.isNullOrBlank()) {
+            uri += "&topics=$topics"
+        }
+        if (!timeFrom.isNullOrBlank()) {
+            uri += "&time_from=$timeFrom"
+        }
+        return restClient
+            .get()
+            .uri(uri)
+            .retrieve()
+            .body<String>()
+            ?: ""
+    }
 }

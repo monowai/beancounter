@@ -1,7 +1,7 @@
 server:
   port: 9530
   servlet:
-    context-path: '/api'
+    context-path: '/'
   shutdown: graceful
 
 sentry:
@@ -10,12 +10,17 @@ sentry:
   traces-sample-rate: 1
   debug: false
 
+
 marketdata:
-  url: "http://localhost:9510"
+  url: "http://localhost:9510/api"
 event:
-  url: "http://localhost:9520"
+  url: "http://localhost:9520/api"
 position:
-  url: "http://localhost:9500"
+  url: "http://localhost:9500/api"
+retire:
+  url: "http://localhost:9540/api"
+rebalance:
+  url: "http://localhost:9550/api"
 
 springdoc:
   use-management-port: true
@@ -37,6 +42,16 @@ management:
   info:
     git:
       mode: SIMPLE
+  # Sample every Micrometer observation so Spring AI's gen_ai.* spans —
+  # which now feed Sentry's GenAI dashboard via the OTel bridge — never
+  # get dropped. Adjust per-env in application-<profile>.yaml if cost
+  # becomes an issue.
+  tracing:
+    sampling:
+      probability: 1.0
+  observations:
+    annotations:
+      enabled: true
 
 logging:
   pattern:
@@ -56,6 +71,7 @@ logging:
       netfix: error
       beancounter: debug
       zaxxer: error
+      github.victools: error
     org:
       springframework: error
       hibernate: error
@@ -79,7 +95,6 @@ resilience4j:
   retry:
     configs:
       default:
-        maxRetryAttempts: 3
         waitDuration: 10s
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
@@ -91,60 +106,70 @@ resilience4j:
     instances:
       bcData:
         baseConfig: default
-        maxRetryAttempts: 3
       bcEvent:
         baseConfig: default
-        maxRetryAttempts: 3
       bcPosition:
         baseConfig: default
-        maxRetryAttempts: 3
 
 spring:
   application:
     name: bc-agent
+  boot:
+    admin:
+      client:
+        # Spring Boot Admin client. Disabled by default; enabled in kauri via
+        # SBA_CLIENT_ENABLED=true + SBA_SERVER_URL=http://bc-admin:9530.
+        enabled: ${SBA_CLIENT_ENABLED:false}
+        url: ${SBA_SERVER_URL:http://localhost:9530}
+        username: ${SBA_REGISTRATION_USERNAME:admin}
+        password: ${SBA_REGISTRATION_PASSWORD:}
+        instance:
+          management-base-url: ${MANAGEMENT_BASE_URL:http://localhost:9531}
+          metadata:
+            tags:
+              service: bc-agent
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${beancounter.auth.uri}
-          audience: ${beancounter.auth.audience}
+          issuer-uri: ${auth.uri}
+          audience: ${auth.audience}
+  ai:
+    # Dummy OpenAI + Ollama config to prevent autoconfiguration errors
+    # (mirrors the pattern in application-ollama.yaml / application-openai.yaml)
+    openai:
+      api-key: "dummy-key-to-prevent-errors"
+    ollama:
+      base-url: "http://undefined:11434"
+    anthropic:
+      api-key: "${ANTHROPIC_API_KEY:}"
+      base-url: "${ANTHROPIC_BASE_URL:https://api.anthropic.com}"
+      chat:
+        options:
+          # Default / fallback model. Per-domain routing is handled by
+          # ChatModelSelector — see `agent.models.*` below for the active
+          # tier IDs and the page-context that escalates to SMART.
+          model: "${ANTHROPIC_MODEL:claude-haiku-4-5-20251001}"
+          temperature: 0.2
+          max-tokens: 4096
 
-  # Default: No AI configuration (Spring AI will not create any beans without config)
-  # AI configuration is provided by specific profiles (ollama, openai)
+    model:
+      chat: anthropic
 
-# Service URLs for MCP communication
-mcp:
-  services:
-    data:
-      url: "http://localhost:9510"
-    event:
-      url: "http://localhost:9520"
-    position:
-      url: "http://localhost:9500"
-
-# Agent Configuration
+# Per-tier Anthropic model IDs. ChatModelSelector picks one per call based on
+# the page context (Holdings / News / Asset Review / Independence / Rebalance).
+# Override per environment via ANTHROPIC_MODEL_FAST / _SMART / _DEEP.
 agent:
-  llm:
-    provider: "ollama" # simple, openai, anthropic, etc.
-    timeout: 30000
-    max-retries: 3
-  mcp:
-    timeout: 10000
-    max-retries: 3
-    circuit-breaker:
-      enabled: true
-      failure-threshold: 5
-      recovery-timeout: 30000
+  models:
+    fast: "${ANTHROPIC_MODEL_FAST:claude-haiku-4-5-20251001}"
+    smart: "${ANTHROPIC_MODEL_SMART:claude-sonnet-4-6}"
+    deep: "${ANTHROPIC_MODEL_DEEP:claude-opus-4-7}"
 
-# Security Configuration
+# Security Configuration - uses same auth.* properties as all other services
+# Helm sets AUTH_URI and AUTH_AUDIENCE via spring.auth template
 auth:
-  web: true  # Disable auth for testing
-  #audience: "test-audience"
-  email: "email"
-
-beancounter:
-  auth:
-    uri: "${AUTH0_DOMAIN:https://your-domain.auth0.com/}"
-    audience: "${AUTH0_AUDIENCE:your-api-identifier}"
-    enabled: true
-    email: "${AUTH0_EMAIL_CLAIM:email}"
+  uri: "https://your-auth0-endpoint"
+  audience: "auth0-audience"
+  enabled: true
+  email: "${auth.audience}/claims/email"
+  web: true

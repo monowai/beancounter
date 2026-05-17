@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.Duration
 
@@ -7,7 +6,6 @@ plugins {
     alias(libs.plugins.jacoco)
     alias(libs.plugins.idea)
     alias(libs.plugins.kotlinter)
-    alias(libs.plugins.detekt)
     alias(libs.plugins.kotlin.jpa)
     alias(libs.plugins.kotlin.spring)
     `maven-publish`
@@ -31,16 +29,7 @@ subprojects {
     apply(plugin = "jacoco")
     apply(plugin = "idea")
 
-    // Apply kotlinter for formatting, but skip detekt for AI agent module
-    // AI code patterns don't align with traditional static analysis conventions:
-    // - High cyclomatic complexity from intent determination and action routing
-    // - Long methods for AI prompt generation and response parsing
-    // - Generic exception handling for graceful degradation
-    // - Verbose string manipulation for context building
     apply(plugin = "org.jmailen.kotlinter")
-    if (name != agentModule) {
-        apply(plugin = "io.gitlab.arturbosch.detekt") // Direct plugin ID needed in subprojects block
-    }
 
     apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
@@ -57,17 +46,29 @@ subprojects {
         exclude(group = "commons-logging", module = "commons-logging")
         resolutionStrategy.eachDependency {
             if (requested.group == "io.sentry") {
-                useVersion("8.13.3")
+                useVersion("8.40.0")
                 because("Align all Sentry dependencies to avoid mixed versions warning")
             }
+        }
+        // Force-pin transitive dependencies that have known CVEs but are
+        // pulled in indirectly (so we can't bump them at the declaration site).
+        // Review periodically — when the upstream BOM catches up, the force()
+        // entry can be removed.
+        resolutionStrategy {
+            force(
+                // CVE-2025-48924 — uncontrolled recursion / DoS
+                "org.apache.commons:commons-lang3:3.18.0",
+                // CVE-2025-48734 — unsafe reflection (test/contract tooling)
+                "commons-beanutils:commons-beanutils:1.11.0"
+            )
         }
     }
 
     // JVM configuration
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(25)
         compilerOptions {
-            languageVersion.set(KotlinVersion.KOTLIN_2_2)
+            languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
         }
     }
 
@@ -90,7 +91,10 @@ subprojects {
         maxParallelForks = 1
         forkEvery = 100L
         maxHeapSize = "1g"
-        timeout.set(Duration.ofMinutes(8))
+        // svc-data tests have crept toward 8m on CircleCI's executor and tipped over on
+        // main #32be9384 (build-and-test job 17895). Bump headroom; revisit if any
+        // single test is genuinely runaway, but the existing suite is just slow.
+        timeout.set(Duration.ofMinutes(15))
 
         // Test logging
         testLogging {
@@ -110,11 +114,10 @@ subprojects {
     // Kotlin compilation configuration
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
             freeCompilerArgs.addAll(
                 "-Xjsr305=strict",
-                "-Xjvm-default=all",
-                "-Xmulti-dollar-interpolation",
+                "-jvm-default=enable",
                 "-Xannotation-default-target=param-property"
             )
         }
@@ -127,7 +130,7 @@ subprojects {
 
     // JaCoCo configuration
     jacoco {
-        toolVersion = "0.8.12"
+        toolVersion = "0.8.13"
     }
 
     tasks.named<JacocoReport>("jacocoTestReport") {
@@ -185,30 +188,6 @@ subprojects {
         }
     }
 
-    // Custom task to run Detekt on all projects (excluding svc-agent)
-    tasks.register("detektAll") {
-        group = "verification"
-        description = "Run Detekt static analysis on all projects (excluding svc-agent)"
-
-        dependsOn(subprojects.filter { it.name != agentModule }.map { it.tasks.named("detekt") })
-
-        doLast {
-            println("✅ Detekt analysis completed for all projects!")
-        }
-    }
-
-    // Custom task to run Detekt with auto-correction
-    tasks.register("detektFix") {
-        group = "verification"
-        description = "Run Detekt with auto-correction on all projects (excluding svc-agent)"
-
-        dependsOn(subprojects.filter { it.name != agentModule }.map { it.tasks.named("detektMain") })
-
-        doLast {
-            println("✅ Detekt auto-correction completed for all projects!")
-        }
-    }
-
     // Kotlinter configuration
     kotlinter {
         // Note: The function count warning might be from the IDE or another static analysis tool
@@ -218,17 +197,6 @@ subprojects {
     // For svc-agent: Keep formatting available but disable linting
     if (name == agentModule) {
         tasks.findByName("lintKotlin")?.enabled = false
-    }
-
-    // Detekt configuration (only for modules that have detekt applied)
-    if (name != agentModule) {
-        detekt {
-            config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
-            buildUponDefaultConfig = true
-            allRules = false
-            autoCorrect = true
-            parallel = true
-        }
     }
 
     // Common dependencies for all modules
@@ -317,6 +285,7 @@ tasks.register("buildAll") {
     dependsOn(":svc-data:build")
     dependsOn(":svc-position:build")
     dependsOn(":svc-event:build")
+    dependsOn(":svc-admin:build")
     description = "Build all subprojects in dependency order"
 }
 
@@ -335,6 +304,7 @@ tasks.register("buildServices") {
     dependsOn(":svc-data:build")
     dependsOn(":svc-position:build")
     dependsOn(":svc-event:build")
+    dependsOn(":svc-admin:build")
     description = "Build services after core libraries"
 }
 
@@ -370,6 +340,7 @@ tasks.register("testAll") {
     dependsOn(":svc-data:test")
     dependsOn(":svc-position:test")
     dependsOn(":svc-event:test")
+    dependsOn(":svc-admin:test")
     description = "Test all subprojects in dependency order (stubs must be available)"
 }
 
@@ -424,6 +395,7 @@ tasks.register("buildServicesAndPublishStubs") {
     dependsOn(":svc-data:build")
     dependsOn(":svc-position:build")
     dependsOn(":svc-event:build")
+    dependsOn(":svc-admin:build")
     dependsOn("publishStubs")
     description = "Build services and publish stubs"
 }

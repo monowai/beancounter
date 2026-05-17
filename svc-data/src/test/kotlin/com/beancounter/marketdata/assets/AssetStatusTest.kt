@@ -163,4 +163,27 @@ class AssetStatusTest {
         assertThat(pricingIds).doesNotContain(privateAsset.id)
         assertThat(pricingAssets.any { it.code == "TRADEABLE" }).isTrue()
     }
+
+    @Test
+    fun `findHeldAssetsForPricing should exclude orphan assets with no transactions`() {
+        // findActiveAssetsForPricing returns the asset; findHeldAssetsForPricing
+        // does not, because no Trn exists with positive net BUY/ADD - SELL/REDUCE.
+        // Sentry case (XUCS) was a sold-out asset; here we cover the simpler
+        // never-traded variant — the JPQL EXISTS clause excludes both.
+        assetService.handle(
+            AssetRequest(
+                mapOf(
+                    "ORPHAN" to
+                        AssetInput(
+                            NASDAQ.code,
+                            "ORPHAN",
+                            name = "Never Traded"
+                        )
+                )
+            )
+        )
+
+        assertThat(assetFinder.findActiveAssetsForPricing().map { it.code }).contains("ORPHAN")
+        assertThat(assetFinder.findHeldAssetsForPricing().map { it.code }).doesNotContain("ORPHAN")
+    }
 }

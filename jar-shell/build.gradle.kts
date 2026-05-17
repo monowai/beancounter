@@ -16,7 +16,6 @@ dependencies {
     implementation(libs.spring.security.oauth2)
     implementation(libs.spring.security.jose)
     implementation(libs.spring.cloud.stream)
-    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
     implementation("com.opencsv:opencsv:5.11.1")
     

@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.time.LocalDate
 
 /**
  * Facade. AlphaAdvantage - www.alphavantage.co.
@@ -146,8 +148,20 @@ class AlphaPriceService(
         priceRequest: PriceRequest
     ) = alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
 
-    override fun backFill(asset: Asset): PriceResponse {
-        val json = alphaProxy.getAdjusted(asset.code, apiKey)
+    override fun backFill(
+        asset: Asset,
+        fromDate: LocalDate
+    ): PriceResponse {
+        // TIME_SERIES_DAILY_ADJUSTED returns an error for index symbols (^GSPC, ^IXIC).
+        // Fall back to TIME_SERIES_DAILY which works for indices and never carries
+        // dividend/split data.
+        val isIndex = asset.category.equals(AssetCategory.INDEX, ignoreCase = true)
+        val json =
+            if (isIndex) {
+                alphaProxy.getHistoric(asset.code, apiKey)
+            } else {
+                alphaProxy.getAdjusted(asset.code, apiKey)
+            }
         val priceResponse: PriceResponse = alphaConfig.getObjectMapper().readValue(json, PriceResponse::class.java)
         for (marketData in priceResponse.data) {
             marketData.source = ID

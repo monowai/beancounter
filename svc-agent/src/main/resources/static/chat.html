@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beancounter AI Agent Chat</title>
+    <!-- Markdown rendering: marked for parsing, DOMPurify for XSS sanitation.
+         Pinned versions to avoid drift; served from jsdelivr's immutable CDN. -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -11,6 +15,7 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -19,20 +24,24 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
             text-align: center;
         }
+
         .header h1 {
             margin: 0;
             font-size: 24px;
         }
+
         .header p {
             margin: 8px 0 0 0;
             opacity: 0.9;
         }
+
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -43,46 +52,62 @@
             border-radius: 8px;
             font-size: 12px;
         }
+
         .status-light {
             display: flex;
             align-items: center;
             gap: 8px;
         }
+
         .light {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
+
         .light.green {
             background: #28a745;
             box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
         }
+
         .light.amber {
             background: #ffc107;
             box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
         }
+
         .light.red {
             background: #dc3545;
             box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
         }
+
         .light.gray {
             background: #6c757d;
             box-shadow: none;
             animation: none;
         }
+
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
         }
+
         .status-text {
             font-weight: 500;
         }
+
         .last-updated {
             opacity: 0.8;
             font-size: 11px;
         }
+
         .refresh-button {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -93,54 +118,66 @@
             font-size: 11px;
             transition: background-color 0.2s;
         }
+
         .refresh-button:hover {
             background: rgba(255, 255, 255, 0.3);
         }
+
         .refresh-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         .chat-container {
             height: 500px;
             overflow-y: auto;
             padding: 20px;
             border-bottom: 1px solid #eee;
         }
+
         .message {
             margin-bottom: 16px;
             display: flex;
             align-items: flex-start;
         }
+
         .message.user {
             justify-content: flex-end;
         }
+
         .message.agent {
             justify-content: flex-start;
         }
+
         .message-content {
             max-width: 70%;
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
         }
+
         .message.user .message-content {
             background: #007bff;
             color: white;
         }
+
         .message.agent .message-content {
             background: #f1f3f4;
             color: #333;
         }
+
         .message-meta {
             font-size: 12px;
             opacity: 0.7;
             margin-top: 4px;
         }
+
         .input-container {
             padding: 20px;
             display: flex;
             gap: 12px;
         }
+
         .input-field {
             flex: 1;
             padding: 12px 16px;
@@ -150,9 +187,11 @@
             outline: none;
             transition: border-color 0.2s;
         }
+
         .input-field:focus {
             border-color: #007bff;
         }
+
         .send-button {
             padding: 12px 24px;
             background: #007bff;
@@ -164,19 +203,23 @@
             font-weight: 500;
             transition: background-color 0.2s;
         }
+
         .send-button:hover {
             background: #0056b3;
         }
+
         .send-button:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
+
         .loading {
             display: none;
             text-align: center;
             padding: 20px;
             color: #666;
         }
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -185,41 +228,50 @@
             margin: 16px 20px;
             border: 1px solid #f5c6cb;
         }
+
         .error-message {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
         }
+
         .error-message .message-content {
             background: #f8d7da;
             color: #721c24;
         }
+
         .error-icon {
             font-size: 20px;
             margin-right: 10px;
         }
+
         .error-text {
             flex: 1;
         }
+
         .error-text small {
             color: #6c757d;
             font-size: 12px;
             line-height: 1.4;
         }
+
         .examples {
             padding: 20px;
             background: #f8f9fa;
             border-top: 1px solid #eee;
         }
+
         .examples h3 {
             margin: 0 0 12px 0;
             color: #333;
             font-size: 16px;
         }
+
         .example-queries {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
+
         .example-query {
             background: white;
             border: 1px solid #dee2e6;
@@ -229,6 +281,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .example-query:hover {
             background: #e9ecef;
             border-color: #007bff;
@@ -368,397 +421,588 @@
             font-size: 13px;
             color: #d63384;
         }
+
+        /* Markdown content inside agent messages (rendered by marked.js).
+           Scope everything under .response-content so it doesn't bleed into
+           the chat chrome. */
+        .response-content h1,
+        .response-content h2,
+        .response-content h3,
+        .response-content h4,
+        .response-content h5,
+        .response-content h6 {
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #1f2328;
+        }
+        .response-content h1 { font-size: 20px; border-bottom: 1px solid #e9ecef; padding-bottom: 6px; }
+        .response-content h2 { font-size: 18px; border-bottom: 1px solid #e9ecef; padding-bottom: 4px; }
+        .response-content h3 { font-size: 16px; }
+        .response-content h4 { font-size: 14px; }
+        .response-content h5,
+        .response-content h6 { font-size: 13px; color: #57606a; }
+
+        .response-content p {
+            margin: 8px 0;
+        }
+
+        .response-content ul,
+        .response-content ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+        .response-content li {
+            margin: 3px 0;
+        }
+        .response-content li > ul,
+        .response-content li > ol {
+            margin: 2px 0;
+        }
+
+        .response-content blockquote {
+            margin: 8px 0;
+            padding: 4px 12px;
+            border-left: 3px solid #d0d7de;
+            color: #57606a;
+            background: #f6f8fa;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .response-content hr {
+            border: 0;
+            border-top: 1px solid #d0d7de;
+            margin: 14px 0;
+        }
+
+        .response-content table {
+            border-collapse: collapse;
+            margin: 10px 0;
+            width: 100%;
+            font-size: 13px;
+        }
+        .response-content th,
+        .response-content td {
+            border: 1px solid #d0d7de;
+            padding: 6px 10px;
+            text-align: left;
+        }
+        .response-content th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        .response-content tr:nth-child(even) td {
+            background: #f9fafb;
+        }
+
+        .response-content pre {
+            background: #f6f8fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        .response-content pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .response-content code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            color: #d63384;
+        }
+
+        .response-content a {
+            color: #0969da;
+            text-decoration: none;
+        }
+        .response-content a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-            <div class="header">
-                <h1>🤖 Beancounter AI Agent</h1>
-                <p>Ask me about your portfolios, market data, or corporate events</p>
-                <div style="margin-top: 10px;">
-                    <input type="text" id="authToken" placeholder="Enter your Auth0 JWT token"
-                           style="width: 300px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
-                    <button onclick="setAuthToken()" style="margin-left: 8px; padding: 8px 12px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; cursor: pointer; font-size: 12px;">Set Token</button>
-                </div>
-                <div class="status-bar">
-                    <div class="status-light">
-                        <div class="light gray" id="statusLight"></div>
-                        <span class="status-text" id="statusText">Checking services...</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="refresh-button" id="refreshButton" onclick="refreshHealthStatus()">🔄 Refresh</button>
-                        <div class="last-updated" id="lastUpdated">Never</div>
-                    </div>
-                </div>
+<div class="container">
+    <div class="header">
+        <h1>🤖 Beancounter AI Agent</h1>
+        <p>Ask me about your portfolios, market data, or corporate events</p>
+        <div style="margin-top: 10px;">
+            <input type="text" id="authToken" placeholder="Enter your Auth0 JWT token"
+                   style="width: 300px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
+            <button onclick="setAuthToken()"
+                    style="margin-left: 8px; padding: 8px 12px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; cursor: pointer; font-size: 12px;">
+                Set Token
+            </button>
+        </div>
+        <div class="status-bar">
+            <div class="status-light">
+                <div class="light gray" id="statusLight"></div>
+                <span class="status-text" id="statusText">Checking services...</span>
             </div>
-
-        <div class="chat-container" id="chatContainer">
-            <div class="message agent">
-                <div class="message-content">
-                    <div>Hello! I'm your Beancounter AI Agent. I can help you with:</div>
-                    <ul style="margin: 8px 0 0 0; padding-left: 20px;">
-                        <li>Portfolio analysis and positions</li>
-                        <li>Market data and asset information</li>
-                        <li>Corporate events and dividends</li>
-                        <li>FX rates and currency conversions</li>
-                        <li>Position valuations and metrics</li>
-                    </ul>
-                    <div class="message-meta">Agent • Just now</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="loading" id="loading">
-            <div>🤔 Thinking...</div>
-        </div>
-
-        <div class="input-container">
-            <input type="text" id="messageInput" class="input-field" placeholder="Ask me anything about your portfolios..." autocomplete="off">
-            <button id="sendButton" class="send-button">Send</button>
-        </div>
-
-        <div class="examples">
-            <h3>💡 Try these examples:</h3>
-            <div class="example-queries">
-                <div class="example-query" onclick="sendExample('What are my positions in portfolio TEST?')">Portfolio positions</div>
-                <div class="example-query" onclick="sendExample('Show me market data for AAPL')">Market data</div>
-                <div class="example-query" onclick="sendExample('What events are coming up for my portfolio?')">Upcoming events</div>
-                <div class="example-query" onclick="sendExample('Get me FX rates for USD to EUR')">FX rates</div>
-                <div class="example-query" onclick="sendExample('Analyze my portfolio TEST')">Portfolio analysis</div>
-                <div class="example-query" onclick="sendExample('What markets are available?')">Available markets</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="refresh-button" id="refreshButton" onclick="refreshHealthStatus()">🔄
+                    Refresh
+                </button>
+                <div class="last-updated" id="lastUpdated">Never</div>
             </div>
         </div>
     </div>
 
-    <script>
-        const chatContainer = document.getElementById('chatContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const loading = document.getElementById('loading');
+    <div class="chat-container" id="chatContainer">
+        <div class="message agent">
+            <div class="message-content">
+                <div>Hello! I'm your Beancounter AI Agent. I can help you with:</div>
+                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                    <li>Portfolio analysis and positions</li>
+                    <li>Market data and asset information</li>
+                    <li>Corporate events and dividends</li>
+                    <li>FX rates and currency conversions</li>
+                    <li>Position valuations and metrics</li>
+                </ul>
+                <div class="message-meta">Agent • Just now</div>
+            </div>
+        </div>
+    </div>
 
-        function addMessage(content, isUser = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ' + (isUser ? 'user' : 'agent');
+    <div class="loading" id="loading">
+        <div>🤔 Thinking...</div>
+    </div>
 
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
+    <div class="input-container">
+        <input type="text" id="messageInput" class="input-field"
+               placeholder="Ask me anything about your portfolios..." autocomplete="off">
+        <button id="sendButton" class="send-button">Send</button>
+    </div>
+    <div style="text-align: right; margin-top: 6px; font-size: 12px; color: #666;">
+        <label title="Escalates the agent to its DEEP tier (slower, more analytical, higher cost).">
+            <input type="checkbox" id="deepThink"> 🧠 Deep think
+        </label>
+    </div>
 
-            if (typeof content === 'string') {
-                contentDiv.innerHTML = content.replace(/\n/g, '<br>');
-            } else {
-                contentDiv.innerHTML = formatResponse(content);
-            }
+    <div class="examples">
+        <h3>💡 Try these examples:</h3>
+        <div class="example-queries">
+            <div class="example-query"
+                 onclick="sendExample('What are my positions in portfolio TEST?')">Portfolio
+                positions
+            </div>
+            <div class="example-query" onclick="sendExample('Show me market data for AAPL')">Market
+                data
+            </div>
+            <div class="example-query"
+                 onclick="sendExample('What events are coming up for my portfolio?')">Upcoming
+                events
+            </div>
+            <div class="example-query" onclick="sendExample('Get me FX rates for USD to EUR')">FX
+                rates
+            </div>
+            <div class="example-query" onclick="sendExample('Analyze my portfolio TEST')">Portfolio
+                analysis
+            </div>
+            <div class="example-query" onclick="sendExample('What markets are available?')">
+                Available markets
+            </div>
+        </div>
+    </div>
+</div>
 
-            const metaDiv = document.createElement('div');
-            metaDiv.className = 'message-meta';
-            metaDiv.textContent = (isUser ? 'You' : 'Agent') + ' • ' + new Date().toLocaleTimeString();
+<script>
+    const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const loading = document.getElementById('loading');
 
-            contentDiv.appendChild(metaDiv);
-            messageDiv.appendChild(contentDiv);
-            chatContainer.appendChild(messageDiv);
+    // Configure marked once: enable GFM (tables, strikethrough, task lists),
+    // treat newlines inside a paragraph as <br> (matches chat UX expectations),
+    // and disable mangle/headerIds which aren't needed in a chat transcript.
+    if (window.marked && typeof marked.setOptions === 'function') {
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+            mangle: false,
+            headerIds: false
+        });
+    }
 
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+    // Sanitize any generated HTML through DOMPurify before inserting into the
+    // DOM. `setHtmlSafe` is used everywhere that HTML needs to be injected —
+    // never call .innerHTML directly on untrusted content.
+    function setHtmlSafe(element, html) {
+        const clean = window.DOMPurify
+            ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] })
+            : html;
+        // DOMPurify returns a sanitized string; parse it into a fragment and
+        // append, so we don't need to touch innerHTML directly.
+        const template = document.createElement('template');
+        template.innerHTML = clean;
+        element.replaceChildren(template.content);
+    }
+
+    function addMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + (isUser ? 'user' : 'agent');
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        if (typeof content === 'string') {
+            // User message — treat as plain text (don't let angle brackets
+            // in a query become HTML). Preserve intentional line breaks.
+            const textNode = document.createElement('div');
+            textNode.textContent = content;
+            textNode.style.whiteSpace = 'pre-wrap';
+            contentDiv.appendChild(textNode);
+        } else {
+            setHtmlSafe(contentDiv, formatResponse(content));
         }
 
-        function formatResponse(response) {
-            let html = '';
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'message-meta';
+        metaDiv.textContent = (isUser ? 'You' : 'Agent') + ' • ' + new Date().toLocaleTimeString();
 
-            // Format the main response with markdown-like support
-            if (response.response) {
-                html += '<div class="response-content">' + formatMarkdown(response.response) + '</div>';
-            }
+        contentDiv.appendChild(metaDiv);
+        messageDiv.appendChild(contentDiv);
+        chatContainer.appendChild(messageDiv);
 
-            // Show actions in a more compact way
-            if (response.actions && response.actions.length > 0) {
-                html += '<div class="actions-section">';
-                html += '<div class="section-header">🔧 Actions Performed</div>';
-                html += '<div class="action-list">';
-                response.actions.forEach(function(action) {
-                    html += '<div class="action-item">• ' + action.description + '</div>';
-                });
-                html += '</div></div>';
-            }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 
-            // Show results in collapsible sections
-            if (response.results && Object.keys(response.results).length > 0) {
-                html += '<div class="results-section">';
-                html += '<div class="section-header">📊 Data Retrieved</div>';
-                for (var key in response.results) {
-                    var result = response.results[key];
-                    if (typeof result === 'object' && result !== null) {
-                        // Check if it's an error object
-                        if (result.error || (typeof result === 'string' && result.includes('error'))) {
-                            html += '<details class="result-error"><summary>⚠️ ' + key + ' (Error)</summary>';
-                            html += '<pre class="error-content">' + JSON.stringify(result, null, 2) + '</pre></details>';
-                        } else {
-                            html += '<details class="result-success"><summary>✅ ' + key + '</summary>';
-                            html += '<pre class="result-content">' + JSON.stringify(result, null, 2) + '</pre></details>';
-                        }
+    function formatResponse(response) {
+        let html = '';
+
+        // Format the main response with markdown-like support
+        if (response.response) {
+            html += '<div class="response-content">' + formatMarkdown(response.response) + '</div>';
+        }
+
+        // Show actions in a more compact way
+        if (response.actions && response.actions.length > 0) {
+            html += '<div class="actions-section">';
+            html += '<div class="section-header">🔧 Actions Performed</div>';
+            html += '<div class="action-list">';
+            response.actions.forEach(function (action) {
+                html += '<div class="action-item">• ' + action.description + '</div>';
+            });
+            html += '</div></div>';
+        }
+
+        // Show results in collapsible sections
+        if (response.results && Object.keys(response.results).length > 0) {
+            html += '<div class="results-section">';
+            html += '<div class="section-header">📊 Data Retrieved</div>';
+            for (var key in response.results) {
+                var result = response.results[key];
+                if (typeof result === 'object' && result !== null) {
+                    // Check if it's an error object
+                    if (result.error || (typeof result === 'string' && result.includes('error'))) {
+                        html += '<details class="result-error"><summary>⚠️ ' + key + ' (Error)</summary>';
+                        html += '<pre class="error-content">' + JSON.stringify(result, null, 2) + '</pre></details>';
                     } else {
-                        html += '<div class="result-simple"><strong>' + key + ':</strong> ' + result + '</div>';
+                        html += '<details class="result-success"><summary>✅ ' + key + '</summary>';
+                        html += '<pre class="result-content">' + JSON.stringify(result, null, 2) + '</pre></details>';
                     }
+                } else {
+                    html += '<div class="result-simple"><strong>' + key + ':</strong> ' + result + '</div>';
                 }
-                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        // Show errors prominently
+        if (response.error) {
+            html += '<div class="error-section">';
+            html += '<div class="section-header error-header">❌ Error</div>';
+            html += '<div class="error-content">' + response.error + '</div>';
+            html += '</div>';
+        }
+
+        return html;
+    }
+
+    // Render Markdown → HTML via marked.js. Sanitization happens later in
+    // setHtmlSafe() so the raw HTML returned here is never inserted directly.
+    // Falls back to a text-escaped representation if marked failed to load
+    // (e.g. CDN blocked), so the user still sees their answer.
+    function formatMarkdown(text) {
+        if (text == null) return '';
+        if (window.marked && typeof marked.parse === 'function') {
+            return marked.parse(String(text));
+        }
+        // Fallback: escape and preserve line breaks.
+        const escaped = String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return '<pre class="code-block">' + escaped + '</pre>';
+    }
+
+    function showLoading() {
+        loading.style.display = 'block';
+        sendButton.disabled = true;
+        sendButton.textContent = 'Sending...';
+    }
+
+    function hideLoading() {
+        loading.style.display = 'none';
+        sendButton.disabled = false;
+        sendButton.textContent = 'Send';
+    }
+
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'message error-message';
+
+        const content = document.createElement('div');
+        content.className = 'message-content';
+
+        const icon = document.createElement('div');
+        icon.className = 'error-icon';
+        icon.textContent = '⚠️';
+        content.appendChild(icon);
+
+        const text = document.createElement('div');
+        text.className = 'error-text';
+
+        const strong = document.createElement('strong');
+        strong.textContent = 'Error: ';
+        text.appendChild(strong);
+        text.appendChild(document.createTextNode(message));
+        text.appendChild(document.createElement('br'));
+        text.appendChild(document.createElement('br'));
+
+        const small = document.createElement('small');
+        // Static help text — safe to build via a small helper.
+        const tips = [
+            'Check if all services are running (Data, Event, Position)',
+            'Verify your authentication token is valid',
+            'Try a simpler query like "list my portfolios"',
+            'Check the browser console for more details'
+        ];
+        const tipsLabel = document.createElement('strong');
+        tipsLabel.textContent = '💡 Common solutions:';
+        small.appendChild(tipsLabel);
+        small.appendChild(document.createElement('br'));
+        tips.forEach(function (t, i) {
+            small.appendChild(document.createTextNode('• ' + t));
+            if (i < tips.length - 1) small.appendChild(document.createElement('br'));
+        });
+        text.appendChild(small);
+        content.appendChild(text);
+        errorDiv.appendChild(content);
+
+        const meta = document.createElement('div');
+        meta.className = 'message-meta';
+        meta.textContent = 'System • ' + new Date().toLocaleTimeString();
+        errorDiv.appendChild(meta);
+
+        chatContainer.appendChild(errorDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        messageInput.value = '';
+        showLoading();
+
+        try {
+            // Get the auth token from localStorage or sessionStorage
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add Authorization header if token is available
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
             }
 
-            // Show errors prominently
-            if (response.error) {
-                html += '<div class="error-section">';
-                html += '<div class="section-header error-header">❌ Error</div>';
-                html += '<div class="error-content">' + response.error + '</div>';
-                html += '</div>';
-            }
+            const deepThink = !!document.getElementById('deepThink')?.checked;
+            const response = await fetch('agent/query', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    query: message,
+                    context: {},
+                    deepThink
+                })
+            });
 
-            return html;
-        }
+            if (!response.ok) {
+                let errorMessage = 'HTTP ' + response.status + ': ' + response.statusText;
 
-        function formatMarkdown(text) {
-            return text
-                // Bold text **bold**
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                // Italic text *italic*
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                // Code blocks ```code```
-                .replace(/```([\s\S]*?)```/g, '<pre class="code-block">$1</pre>')
-                // Inline code `code`
-                .replace(/`(.*?)`/g, '<code class="inline-code">$1</code>')
-                // Links [text](url)
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                // Line breaks
-                .replace(/\n/g, '<br>');
-        }
+                // Try to get more detailed error information from ProblemDetail
+                try {
+                    const errorData = await response.json();
 
-        function showLoading() {
-            loading.style.display = 'block';
-            sendButton.disabled = true;
-            sendButton.textContent = 'Sending...';
-        }
+                    // Handle ProblemDetail format (application/problem+json)
+                    if (errorData.detail) {
+                        errorMessage += ' - ' + errorData.detail;
+                    } else if (errorData.title) {
+                        errorMessage += ' - ' + errorData.title;
+                    } else if (errorData.message) {
+                        errorMessage += ' - ' + errorData.message;
+                    } else if (errorData.error) {
+                        errorMessage += ' - ' + errorData.error;
+                    }
 
-        function hideLoading() {
-            loading.style.display = 'none';
-            sendButton.disabled = false;
-            sendButton.textContent = 'Send';
-        }
+                    // Add additional context for common error types
+                    if (response.status === 400) {
+                        errorMessage += ' (Bad Request - check your query format)';
+                    } else if (response.status === 401) {
+                        errorMessage += ' (Unauthorized - check your authentication token)';
+                    } else if (response.status === 403) {
+                        errorMessage += ' (Forbidden - insufficient permissions)';
+                    } else if (response.status === 404) {
+                        errorMessage += ' (Not Found - service endpoint may not exist)';
+                    } else if (response.status === 500) {
+                        errorMessage += ' (Internal Server Error - check if MCP services are running)';
+                    }
 
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'message error-message';
-            errorDiv.innerHTML =
-                '<div class="message-content">' +
-                    '<div class="error-icon">⚠️</div>' +
-                    '<div class="error-text">' +
-                        '<strong>Error:</strong> ' + message +
-                        '<br><br>' +
-                        '<small>' +
-                            '💡 <strong>Common solutions:</strong><br>' +
-                            '• Check if all services are running (Data, Event, Position)<br>' +
-                            '• Verify your authentication token is valid<br>' +
-                            '• Try a simpler query like "list my portfolios"<br>' +
-                            '• Check the browser console for more details' +
-                        '</small>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="message-meta">' +
-                    'System • ' + new Date().toLocaleTimeString() +
-                '</div>';
-            chatContainer.appendChild(errorDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
-
-            addMessage(message, true);
-            messageInput.value = '';
-            showLoading();
-
-            try {
-                // Get the auth token from localStorage or sessionStorage
-                const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-
-                const headers = {
-                    'Content-Type': 'application/json',
-                };
-
-                // Add Authorization header if token is available
-                if (token) {
-                    headers['Authorization'] = 'Bearer ' + token;
-                }
-
-                const response = await fetch('/api/agent/query', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        query: message,
-                        context: {}
-                    })
-                });
-
-                if (!response.ok) {
-                    let errorMessage = 'HTTP ' + response.status + ': ' + response.statusText;
-
-                    // Try to get more detailed error information from ProblemDetail
+                    // Show the full error response for debugging
+                    console.error('Full error response:', errorData);
+                } catch (parseError) {
+                    // If we can't parse the error response, try to get the text
                     try {
-                        const errorData = await response.json();
-
-                        // Handle ProblemDetail format (application/problem+json)
-                        if (errorData.detail) {
-                            errorMessage += ' - ' + errorData.detail;
-                        } else if (errorData.title) {
-                            errorMessage += ' - ' + errorData.title;
-                        } else if (errorData.message) {
-                            errorMessage += ' - ' + errorData.message;
-                        } else if (errorData.error) {
-                            errorMessage += ' - ' + errorData.error;
+                        const errorText = await response.text();
+                        if (errorText) {
+                            errorMessage += ' - ' + errorText;
                         }
-
-                        // Add additional context for common error types
-                        if (response.status === 400) {
-                            errorMessage += ' (Bad Request - check your query format)';
-                        } else if (response.status === 401) {
-                            errorMessage += ' (Unauthorized - check your authentication token)';
-                        } else if (response.status === 403) {
-                            errorMessage += ' (Forbidden - insufficient permissions)';
-                        } else if (response.status === 404) {
-                            errorMessage += ' (Not Found - service endpoint may not exist)';
-                        } else if (response.status === 500) {
-                            errorMessage += ' (Internal Server Error - check if MCP services are running)';
-                        }
-
-                        // Show the full error response for debugging
-                        console.error('Full error response:', errorData);
-                    } catch (parseError) {
-                        // If we can't parse the error response, try to get the text
-                        try {
-                            const errorText = await response.text();
-                            if (errorText) {
-                                errorMessage += ' - ' + errorText;
-                            }
-                        } catch (textError) {
-                            // Fall back to basic error message
-                        }
+                    } catch (textError) {
+                        // Fall back to basic error message
                     }
-
-                    throw new Error(errorMessage);
                 }
 
-                const data = await response.json();
-                addMessage(data, false);
-            } catch (error) {
-                console.error('Error:', error);
-                showError(error.message);
-            } finally {
-                hideLoading();
+                throw new Error(errorMessage);
             }
+
+            const data = await response.json();
+            addMessage(data, false);
+        } catch (error) {
+            console.error('Error:', error);
+            showError(error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function sendExample(query) {
+        messageInput.value = query;
+        sendMessage();
+    }
+
+    function setAuthToken() {
+        const token = document.getElementById('authToken').value.trim();
+        if (token) {
+            localStorage.setItem('authToken', token);
+            alert('Auth token set successfully!');
+        } else {
+            alert('Please enter a valid token');
+        }
+    }
+
+    // Health status functions
+    async function checkHealthStatus() {
+        try {
+            const response = await fetch('agent/health');
+            if (response.ok) {
+                const healthData = await response.json();
+                updateStatusLight(healthData);
+            } else {
+                updateStatusLight({overallStatus: 'RED', summary: 'Health check failed'});
+            }
+        } catch (error) {
+            console.error('Health check failed:', error);
+            updateStatusLight({overallStatus: 'RED', summary: 'Health check failed'});
+        }
+    }
+
+    async function refreshHealthStatus() {
+        const refreshButton = document.getElementById('refreshButton');
+        const originalText = refreshButton.textContent;
+
+        // Disable button and show loading state
+        refreshButton.disabled = true;
+        refreshButton.textContent = '🔄 Checking...';
+
+        try {
+            await checkHealthStatus();
+        } finally {
+            // Re-enable button
+            refreshButton.disabled = false;
+            refreshButton.textContent = originalText;
+        }
+    }
+
+    function updateStatusLight(healthData) {
+        const statusLight = document.getElementById('statusLight');
+        const statusText = document.getElementById('statusText');
+        const lastUpdated = document.getElementById('lastUpdated');
+
+        // Remove all status classes
+        statusLight.className = 'light';
+
+        // Set the appropriate status
+        switch (healthData.overallStatus) {
+            case 'GREEN':
+                statusLight.classList.add('green');
+                statusText.textContent = 'All services operational';
+                break;
+            case 'AMBER':
+                statusLight.classList.add('amber');
+                statusText.textContent = 'Some services partially available';
+                break;
+            case 'RED':
+                statusLight.classList.add('red');
+                statusText.textContent = 'Services unavailable';
+                break;
+            default:
+                statusLight.classList.add('gray');
+                statusText.textContent = 'Status unknown';
         }
 
-        function sendExample(query) {
-            messageInput.value = query;
+        // Update last checked time
+        const now = new Date();
+        lastUpdated.textContent = 'Updated ' + now.toLocaleTimeString();
+
+        // Log detailed status for debugging
+        console.log('Health Status:', healthData);
+        if (healthData.services) {
+            healthData.services.forEach(function (service) {
+                if (service.status !== 'UP') {
+                    console.warn(service.name + ': ' + service.status + ' - ' + service.error);
+                }
+            });
+        }
+    }
+
+    // Check health status on page load and every 30 seconds
+    document.addEventListener('DOMContentLoaded', function () {
+        checkHealthStatus();
+        setInterval(checkHealthStatus, 30000); // Check every 30 seconds
+    });
+
+    // Event listeners
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
             sendMessage();
         }
+    });
 
-        function setAuthToken() {
-            const token = document.getElementById('authToken').value.trim();
-            if (token) {
-                localStorage.setItem('authToken', token);
-                alert('Auth token set successfully!');
-            } else {
-                alert('Please enter a valid token');
-            }
-        }
-
-        // Health status functions
-        async function checkHealthStatus() {
-            try {
-                const response = await fetch('/api/agent/health');
-                if (response.ok) {
-                    const healthData = await response.json();
-                    updateStatusLight(healthData);
-                } else {
-                    updateStatusLight({ overallStatus: 'RED', summary: 'Health check failed' });
-                }
-            } catch (error) {
-                console.error('Health check failed:', error);
-                updateStatusLight({ overallStatus: 'RED', summary: 'Health check failed' });
-            }
-        }
-
-        async function refreshHealthStatus() {
-            const refreshButton = document.getElementById('refreshButton');
-            const originalText = refreshButton.textContent;
-
-            // Disable button and show loading state
-            refreshButton.disabled = true;
-            refreshButton.textContent = '🔄 Checking...';
-
-            try {
-                await checkHealthStatus();
-            } finally {
-                // Re-enable button
-                refreshButton.disabled = false;
-                refreshButton.textContent = originalText;
-            }
-        }
-
-        function updateStatusLight(healthData) {
-            const statusLight = document.getElementById('statusLight');
-            const statusText = document.getElementById('statusText');
-            const lastUpdated = document.getElementById('lastUpdated');
-
-            // Remove all status classes
-            statusLight.className = 'light';
-
-            // Set the appropriate status
-            switch (healthData.overallStatus) {
-                case 'GREEN':
-                    statusLight.classList.add('green');
-                    statusText.textContent = 'All services operational';
-                    break;
-                case 'AMBER':
-                    statusLight.classList.add('amber');
-                    statusText.textContent = 'Some services partially available';
-                    break;
-                case 'RED':
-                    statusLight.classList.add('red');
-                    statusText.textContent = 'Services unavailable';
-                    break;
-                default:
-                    statusLight.classList.add('gray');
-                    statusText.textContent = 'Status unknown';
-            }
-
-            // Update last checked time
-            const now = new Date();
-            lastUpdated.textContent = 'Updated ' + now.toLocaleTimeString();
-
-            // Log detailed status for debugging
-            console.log('Health Status:', healthData);
-            if (healthData.services) {
-                healthData.services.forEach(function(service) {
-                    if (service.status !== 'UP') {
-                        console.warn(service.name + ': ' + service.status + ' - ' + service.error);
-                    }
-                });
-            }
-        }
-
-        // Check health status on page load and every 30 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            checkHealthStatus();
-            setInterval(checkHealthStatus, 30000); // Check every 30 seconds
-        });
-
-        // Event listeners
-        sendButton.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        // Focus input on load
-        messageInput.focus();
-    </script>
+    // Focus input on load
+    messageInput.focus();
+</script>
 </body>
 </html>

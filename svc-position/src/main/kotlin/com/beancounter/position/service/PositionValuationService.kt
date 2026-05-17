@@ -41,7 +41,7 @@ class PositionValuationService(
         if (assets.isEmpty()) {
             return positions // Nothing to value
         }
-        logger.debug(
+        logger.trace(
             "Requesting valuation positions: {}, code: {}, asAt: {}...",
             positions.positions.size,
             positions.portfolio.code,

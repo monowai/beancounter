@@ -13,6 +13,13 @@ dependencies {
     api(libs.jackson.kotlin)
     api(libs.sentry.opentelemetry)
     api(libs.sentry.spring.boot)
+    // Bridges Micrometer Observations -> OTel spans so every Beancounter
+    // service that pulls jar-common emits Spring AI / Spring MVC / Hikari
+    // / Resilience4j / Spring Data observations as OTel spans, which the
+    // sentry-opentelemetry-agent javaagent already exports to Sentry.
+    // Pinned in the version catalog because some consumers (e.g. jar-shell)
+    // don't import the spring-boot-dependencies platform.
+    api(libs.micrometer.tracing.bridge.otel)
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(platform(libs.spring.boot.dependencies))
@@ -24,7 +31,6 @@ dependencies {
     implementation(libs.jackson.kotlin)
     implementation("org.springframework:spring-web")
     implementation(libs.spring.boot.starter.data.jpa)
-    implementation(libs.spring.kafka)
     implementation(libs.commons.io)
     implementation(libs.guava)
 
@@ -38,7 +44,6 @@ dependencies {
     testImplementation(libs.servlet.api)
     testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    testImplementation(libs.spring.kafka)
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation(libs.assertj)
     testImplementation(libs.guava)

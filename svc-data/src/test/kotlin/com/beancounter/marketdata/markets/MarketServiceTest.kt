@@ -4,6 +4,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AUD
+import com.beancounter.marketdata.Constants.Companion.CAD
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
@@ -52,6 +53,7 @@ class MarketServiceTest {
         `when`(currencyService.getCode(AUD.code)).thenReturn(AUD)
         `when`(currencyService.getCode(SGD.code)).thenReturn(SGD)
         `when`(currencyService.getCode(GBP.code)).thenReturn(GBP)
+        `when`(currencyService.getCode(CAD.code)).thenReturn(CAD)
     }
 
     @Test
@@ -133,5 +135,33 @@ class MarketServiceTest {
         // Pseudo market for cash Assets.
         val market = marketService.getMarket(CASH_MARKET.code)
         assertThat(market).isNotNull
+    }
+
+    @Test
+    fun `canonical collapses US aggregator markets to the active US market`() {
+        // The inactive aggregator markets (NASDAQ/NYSE/AMEX/ARCA) all live
+        // under the single active 'US' market for asset persistence —
+        // otherwise GOOG@NASDAQ and GOOG@US end up as two distinct rows.
+        val us = marketService.getMarket("US")
+        assertThat(marketService.canonical("NASDAQ")).isEqualTo(us)
+        assertThat(marketService.canonical("NYSE")).isEqualTo(us)
+        assertThat(marketService.canonical("AMEX")).isEqualTo(us)
+        // Markets that are already canonical pass through unchanged.
+        assertThat(marketService.canonical("ASX").code).isEqualTo("ASX")
+        // Provider aliases (NAS → NASDAQ) also collapse to US.
+        assertThat(marketService.canonical("NAS")).isEqualTo(us)
+    }
+
+    @Test
+    fun `canonical resolves typos and colloquial labels to US`() {
+        // Chat users sometimes type 'NASAQ' (typo) or 'DOW' / 'DOW JONES'
+        // (index name they confuse with an exchange). Each resolves to the
+        // canonical US market via configured aliases.
+        val us = marketService.getMarket("US")
+        assertThat(marketService.canonical("NASAQ")).isEqualTo(us)
+        assertThat(marketService.canonical("DOW")).isEqualTo(us)
+        assertThat(marketService.canonical("DOW JONES")).isEqualTo(us)
+        // ARCA is the NYSE Arca aggregator; ETFs typically list there.
+        assertThat(marketService.canonical("ARCA")).isEqualTo(us)
     }
 }

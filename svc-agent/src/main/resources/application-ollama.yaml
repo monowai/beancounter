@@ -7,7 +7,11 @@ spring:
       base-url: "${OLLAMA_BASE_URL:http://localhost:11434}"
       chat:
         options:
-          model: "${OLLAMA_MODEL:llama3:8b}"
+          # Must be a tool-capable model. `llama3:8b` (the base llama3 release) does
+          # NOT expose a tool API and Ollama rejects function calls with
+          # "does not support tools". Known-good alternatives: llama3.1:8b,
+          # llama3.2, qwen2.5:7b, mistral-nemo.
+          model: "${OLLAMA_MODEL:llama3.1:8b}"
           temperature: 0.2
           num-predict: 2000
 

@@ -123,7 +123,7 @@ class PortfolioShareService(
         shareId: String
     ) {
         if (!isAuthorisedToAccept(share, currentUser, shareId)) {
-            throw NotFoundException("Share not found: $shareId")
+            throw NotFoundException(shareNotFoundMessage(shareId))
         }
     }
 
@@ -158,7 +158,7 @@ class PortfolioShareService(
         val isAdviser = share.sharedWith.id == currentUser.id
         val isTarget = share.targetUser?.id == currentUser.id
         if (!isOwner && !isAdviser && !isTarget) {
-            throw NotFoundException("Share not found: $shareId")
+            throw NotFoundException(shareNotFoundMessage(shareId))
         }
 
         share.status = ShareStatus.REVOKED
@@ -224,7 +224,7 @@ class PortfolioShareService(
 
     private fun findShareOrThrow(shareId: String): PortfolioShare =
         portfolioShareRepository.findById(shareId).orElseThrow {
-            NotFoundException("Share not found: $shareId")
+            NotFoundException(shareNotFoundMessage(shareId))
         }
 
     private fun resolveUserByEmail(email: String): SystemUser =
@@ -281,3 +281,5 @@ class PortfolioShareService(
         }
     }
 }
+
+private fun shareNotFoundMessage(shareId: String): String = "Share not found: $shareId"

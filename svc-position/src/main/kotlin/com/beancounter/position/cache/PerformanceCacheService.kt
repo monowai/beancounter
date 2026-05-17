@@ -31,6 +31,8 @@ interface PerformanceCacheService {
 
     fun invalidateOnDate(date: LocalDate)
 
+    fun invalidateFromDate(fromDate: LocalDate)
+
     fun invalidatePortfolio(portfolioId: String)
 
     fun isAvailable(): Boolean

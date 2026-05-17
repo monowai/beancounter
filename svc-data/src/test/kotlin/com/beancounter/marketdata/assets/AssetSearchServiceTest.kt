@@ -4,6 +4,8 @@ import com.beancounter.auth.AuthUtilService
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.Constants.Companion.PRIVATE
+import com.beancounter.marketdata.Constants.Companion.PRIVATE_MARKET
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
@@ -48,7 +50,7 @@ class AssetSearchServiceTest {
     fun `search PRIVATE finds assets by code`() {
         createPrivateAsset("MY-PROP", "My Investment Property")
 
-        val results = assetSearchService.search("MY-PROP", "PRIVATE")
+        val results = assetSearchService.search("MY-PROP", PRIVATE)
 
         assertThat(results.data).isNotEmpty
         assertThat(results.data.first().symbol).isEqualTo("MY-PROP")
@@ -58,7 +60,7 @@ class AssetSearchServiceTest {
     fun `search PRIVATE finds assets by name`() {
         createPrivateAsset("MY-PROP", "My Investment Property")
 
-        val results = assetSearchService.search("Investment", "PRIVATE")
+        val results = assetSearchService.search("Investment", PRIVATE)
 
         assertThat(results.data).isNotEmpty
         assertThat(results.data.first().name).isEqualTo("My Investment Property")
@@ -73,23 +75,46 @@ class AssetSearchServiceTest {
         authUtilService.authenticate(otherUser, AuthUtilService.AuthProvider.AUTH0)
         systemUserService.register()
 
-        val results = assetSearchService.search("SECRET", "PRIVATE")
+        val results = assetSearchService.search("SECRET", PRIVATE)
 
         assertThat(results.data).isEmpty()
+    }
+
+    @Test
+    fun `dotted public tickers preserve their full code through local search`() {
+        // Regression: BRK.B (Berkshire Hathaway class B) reported as "B" because the
+        // dot-strip used for `{userId}.{CODE}` private assets was firing for every asset,
+        // not just PRIVATE-market ones.
+        val nasdaq = Market("NASDAQ", currencyId = "USD")
+        assetRepository.save(
+            Asset(
+                id = "brk-b",
+                code = "BRK.B",
+                name = "Berkshire Hathaway Inc Class B",
+                market = nasdaq,
+                marketCode = "NASDAQ",
+                category = "Equity"
+            )
+        )
+
+        val results = assetSearchService.search("BRK.B", null)
+
+        assertThat(results.data).isNotEmpty
+        assertThat(results.data.first().symbol).isEqualTo("BRK.B")
     }
 
     @Test
     fun `search handles asset with null priceSymbol resolving currency from market`() {
         // market is @Transient so JPA won't populate it on read.
         // When priceSymbol is also null, currency should be resolved via MarketService.
-        val market = Market("PRIVATE")
+        val market = PRIVATE_MARKET
         assetRepository.save(
             Asset(
                 id = "local-nps-test",
                 code = "${user.id}.NOPRICE",
                 name = "No PriceSymbol Asset",
                 market = market,
-                marketCode = "PRIVATE",
+                marketCode = PRIVATE,
                 priceSymbol = null,
                 category = "Equity",
                 systemUser = user
@@ -107,14 +132,14 @@ class AssetSearchServiceTest {
         code: String,
         name: String
     ) {
-        val privateMarket = Market("PRIVATE")
+        val privateMarket = PRIVATE_MARKET
         assetRepository.save(
             Asset(
                 id = "pvt-${code.lowercase()}",
                 code = "${user.id}.$code",
                 name = name,
                 market = privateMarket,
-                marketCode = "PRIVATE",
+                marketCode = PRIVATE,
                 category = "RE",
                 systemUser = user
             )

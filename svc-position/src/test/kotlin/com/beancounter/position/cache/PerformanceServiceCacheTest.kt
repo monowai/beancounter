@@ -16,6 +16,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
+import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.service.PerformanceService
 import org.assertj.core.api.Assertions.assertThat
@@ -94,6 +95,7 @@ class PerformanceServiceCacheTest {
                 priceService = priceService,
                 fxRateService = fxRateService,
                 twrCalculator = twrCalculator,
+                irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
                 dateUtils = dateUtils,
                 tokenService = tokenService,
                 cacheService = cacheService
@@ -231,6 +233,211 @@ class PerformanceServiceCacheTest {
         // The 12-month and 6-month snapshots should be excluded
         assertThat(dates).doesNotContain(now.minusMonths(12))
         assertThat(dates).doesNotContain(now.minusMonths(6))
+    }
+
+    @Test
+    fun `anchorToStartDate returns onOrAfter unchanged when exact match present`() {
+        val now = LocalDate.now()
+        val startDate = now.minusMonths(3)
+        val cached =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(12),
+                    marketValue = BigDecimal("10000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = startDate,
+                    marketValue = BigDecimal("12000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("11000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now,
+                    marketValue = BigDecimal("15000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("11000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            )
+
+        val result = performanceService.anchorToStartDate(cached, startDate)
+
+        // Exact anchor exists: no synthesis. Result starts at startDate, drops
+        // the older snapshot, retains the rest as-is.
+        assertThat(result).hasSize(2)
+        assertThat(result.first().valuationDate).isEqualTo(startDate)
+        assertThat(result.first().marketValue).isEqualByComparingTo("12000")
+        // Original anchor passed through unmutated (not a fresh ZERO cashflow copy).
+        assertThat(result.first().netContributions).isEqualByComparingTo("11000")
+    }
+
+    @Test
+    fun `anchorToStartDate picks latest pre-startDate snapshot when multiple exist`() {
+        // Carry-forward must use the LATEST snapshot strictly before startDate,
+        // not the earliest. Older snapshot has stale MV; latest has the most
+        // accurate carry-forward state.
+        val now = LocalDate.now()
+        val startDate = now.minusMonths(3)
+        val cached =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(12),
+                    marketValue = BigDecimal("8000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("8000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(8),
+                    marketValue = BigDecimal("9500"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("9000"),
+                    cumulativeDividends = BigDecimal("50")
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(4),
+                    marketValue = BigDecimal("11000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal("120")
+                ),
+                CachedSnapshot(
+                    valuationDate = now,
+                    marketValue = BigDecimal("13000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal("200")
+                )
+            )
+
+        val result = performanceService.anchorToStartDate(cached, startDate)
+
+        assertThat(result).hasSize(2)
+        assertThat(result.first().valuationDate).isEqualTo(startDate)
+        // Carries from -4M, not -8M or -12M.
+        assertThat(result.first().marketValue).isEqualByComparingTo("11000")
+        assertThat(result.first().netContributions).isEqualByComparingTo("10000")
+        assertThat(result.first().cumulativeDividends).isEqualByComparingTo("120")
+        // Synthesized anchor has zero cashflow (no flow occurred on this date).
+        assertThat(result.first().externalCashFlow).isEqualByComparingTo("0")
+    }
+
+    @Test
+    fun `anchorToStartDate falls through when no pre-startDate snapshot exists`() {
+        // Edge case the outer caller guards against, but the helper must still
+        // return a sensible value when called with cached.first > startDate.
+        val now = LocalDate.now()
+        val startDate = now.minusMonths(3)
+        val cached =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(2),
+                    marketValue = BigDecimal("13000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            )
+
+        val result = performanceService.anchorToStartDate(cached, startDate)
+
+        // No prior snapshot to carry forward; returns the onOrAfter subset
+        // without synthesising an anchor.
+        assertThat(result).hasSize(1)
+        assertThat(result.first().valuationDate).isEqualTo(now.minusMonths(2))
+    }
+
+    @Test
+    fun `cache hit synthesizes anchor at startDate when no exact match`() {
+        whenever(cacheService.isAvailable()).thenReturn(true)
+
+        // Cache populated for a 12-month window; snapshot dates land at the
+        // original window start (-12M), monthly first-of-month boundaries, and
+        // today. None fall exactly on -3M. The latest snapshot strictly before
+        // the requested -3M startDate is the -4M anchor.
+        val now = LocalDate.now()
+        val startDate = now.minusMonths(3)
+        val cachedSnapshots =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(12),
+                    marketValue = BigDecimal("10000"),
+                    externalCashFlow = BigDecimal("10000"),
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(10),
+                    marketValue = BigDecimal("10500"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(8),
+                    marketValue = BigDecimal("11000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(6),
+                    marketValue = BigDecimal("11500"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(4),
+                    marketValue = BigDecimal("12000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(2),
+                    marketValue = BigDecimal("13500"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now,
+                    marketValue = BigDecimal("15000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("12000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            )
+        whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
+            .thenReturn(cachedSnapshots)
+
+        val result = performanceService.calculate(portfolio, 3)
+
+        // First data point must be the requested startDate (synthesized anchor),
+        // not the first cached snapshot that happens to fall after startDate.
+        assertThat(result.data.series).isNotEmpty()
+        assertThat(
+            result.data.series
+                .first()
+                .date
+        ).isEqualTo(startDate)
+        // Anchor mv and netContributions carry forward from the latest cached
+        // snapshot strictly before startDate (-4M).
+        assertThat(
+            result.data.series
+                .first()
+                .marketValue
+        ).isEqualByComparingTo(BigDecimal("12000"))
+        assertThat(
+            result.data.series
+                .first()
+                .netContributions
+        ).isEqualByComparingTo(BigDecimal("10000"))
     }
 
     @Test

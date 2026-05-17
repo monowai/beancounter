@@ -5,7 +5,6 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -124,8 +123,7 @@ class TrnQueryService(
             trnRepository.findByPortfolioIdAndAssetIdAndTrnType(
                 portfolio.id,
                 assetId,
-                typeFilter,
-                Sort.by("tradeDate").descending().and(Sort.by("asset.code"))
+                typeFilter
             )
         log.trace(
             "Found {} for portfolio {} and asset {}",

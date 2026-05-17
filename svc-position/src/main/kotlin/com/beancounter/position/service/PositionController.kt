@@ -340,7 +340,17 @@ class PositionController(
         @RequestParam(
             value = "codes",
             required = false
-        ) codes: String?
+        ) codes: String?,
+        @Parameter(
+            description =
+                "Target currency for PORTFOLIO-view values (e.g., SGD, NZD). " +
+                    "If not specified, values are returned in the first selected portfolio's currency.",
+            example = "SGD"
+        )
+        @RequestParam(
+            value = "currency",
+            required = false
+        ) targetCurrency: String?
     ): PositionResponse {
         val allPortfolios = portfolioServiceClient.portfolios.data
         val selectedPortfolios =
@@ -350,11 +360,20 @@ class PositionController(
                 val codeSet = codes.split(",").map { it.trim() }.toSet()
                 allPortfolios.filter { it.code in codeSet }
             }
-        return valuationService.getAggregatedPositions(
-            selectedPortfolios,
-            asAt,
-            value
-        )
+        val response =
+            valuationService.getAggregatedPositions(
+                selectedPortfolios,
+                asAt,
+                value
+            )
+        if (value && !targetCurrency.isNullOrBlank()) {
+            allocationService.convertPositionsToCurrency(
+                response.data,
+                targetCurrency,
+                asAt
+            )
+        }
+        return response
     }
 
     @GetMapping(

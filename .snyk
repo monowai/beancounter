@@ -1,0 +1,33 @@
+# Snyk policy file. Documents intentional suppressions of Snyk findings
+# that are false positives or accepted risks. Each entry has an explicit
+# reason and an expiry date so the suppression is reviewed annually rather
+# than living forever.
+#
+# Format reference: https://docs.snyk.io/manage-issues/snyk-controls/the-.snyk-file
+version: v1.0.0
+ignore:
+  # CSRF protection disabled in two security configurations. Both are
+  # intentional and conventional Spring Security usage:
+  #
+  #  1. NoAuthSecurityConfig — used only by the no-auth profile for local
+  #     development and tests. CSRF only matters when there's a session to
+  #     forge; with auth disabled there is no session, so the protection is
+  #     meaningless.
+  #
+  #  2. AgentSecurityConfig — bc-agent is a stateless JWT-bearer REST API.
+  #     Spring's official guidance is to disable CSRF on stateless APIs:
+  #     CSRF defends against form-submit attacks riding on cookie auth, and
+  #     bc-agent has no cookie auth — every request must carry an
+  #     `Authorization: Bearer` header that an HTML form cannot set.
+  'kotlin/DisablesCSRFProtection':
+    - 'jar-auth/src/main/kotlin/com/beancounter/auth/server/NoAuthSecurityConfig.kt':
+        reason: >
+          No-auth profile for local dev / tests — CSRF is irrelevant when
+          there is no session to forge.
+        expires: 2027-01-01T00:00:00.000Z
+    - 'svc-agent/src/main/kotlin/com/beancounter/agent/config/AgentSecurityConfig.kt':
+        reason: >
+          Stateless JWT-bearer REST API — CSRF doesn't apply to APIs that
+          authenticate with Authorization headers rather than cookies.
+        expires: 2027-01-01T00:00:00.000Z
+patch: {}

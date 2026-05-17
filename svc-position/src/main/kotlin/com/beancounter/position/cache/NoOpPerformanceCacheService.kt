@@ -32,6 +32,10 @@ class NoOpPerformanceCacheService : PerformanceCacheService {
         // No-op
     }
 
+    override fun invalidateFromDate(fromDate: LocalDate) {
+        // No-op
+    }
+
     override fun invalidatePortfolio(portfolioId: String) {
         // No-op
     }

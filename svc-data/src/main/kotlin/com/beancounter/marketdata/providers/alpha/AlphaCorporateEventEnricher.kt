@@ -1,10 +1,13 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 
 /**
  * Enriches Global Quote MarketData with corporate event data (splits/dividends)
@@ -30,39 +33,60 @@ class AlphaCorporateEventEnricher(
      * @return The same MarketData enriched with split/dividend data and adjusted prices
      */
     fun enrich(marketData: MarketData): MarketData {
+        // Index assets never have splits or dividends. TIME_SERIES_DAILY_ADJUSTED also
+        // returns an error for index symbols (^GSPC, ^IXIC), so skip the upstream call.
+        if (marketData.asset.category.equals(AssetCategory.INDEX, ignoreCase = true)) {
+            return marketData
+        }
         try {
             val events = alphaEventService.getEvents(marketData.asset)
 
-            // Find event for the same date
-            val eventForDate = events.data.find { it.priceDate.isEqual(marketData.priceDate) }
+            // Splits MUST match the ex-date exactly. Stamping a split coefficient
+            // onto a neighbouring row leaves the system with two rows carrying
+            // the same split value, which downstream chart logic interprets as
+            // two ex-dates and double-divides pre-split history.
+            val splitEvent =
+                events.data.find {
+                    it.priceDate.isEqual(marketData.priceDate) && isSplit(it)
+                }
 
-            if (eventForDate == null) {
-                log.trace("No corporate event found for {} on {}", marketData.asset.code, marketData.priceDate)
-                return marketData
-            }
+            // Dividends keep the ±1-day fallback to handle Global Quote vs
+            // TIME_SERIES date offsets (pay-date vs ex-date conventions).
+            // Filter to dividend-bearing events first so that a split-only row
+            // on the same day doesn't shadow a dividend that exists ±1 day away.
+            val dividendEvent =
+                events.data.find {
+                    it.priceDate.isEqual(marketData.priceDate) && isDividend(it)
+                }
+                    ?: events.data.find {
+                        isDividend(it) &&
+                            abs(ChronoUnit.DAYS.between(it.priceDate, marketData.priceDate)) == 1L
+                    }
 
-            // Enrich with dividend if present
-            if (isDividend(eventForDate)) {
-                marketData.dividend = eventForDate.dividend
+            if (dividendEvent != null) {
+                marketData.dividend = dividendEvent.dividend
                 log.debug(
                     "Enriched {} with dividend {} on {}",
                     marketData.asset.code,
-                    eventForDate.dividend,
+                    dividendEvent.dividend,
                     marketData.priceDate
                 )
             }
 
-            // Enrich with split if present
             // Note: We do NOT adjust previousClose since GLOBAL_QUOTE already returns
             // split-adjusted values. We only copy the split coefficient metadata.
-            if (isSplit(eventForDate)) {
-                marketData.split = eventForDate.split
+            if (splitEvent != null) {
+                marketData.split = splitEvent.split
                 log.info(
                     "Enriched {} with split {} on {}",
                     marketData.asset.code,
-                    eventForDate.split,
+                    splitEvent.split,
                     marketData.priceDate
                 )
+            }
+
+            if (splitEvent == null && dividendEvent == null) {
+                log.trace("No corporate event found for {} on {}", marketData.asset.code, marketData.priceDate)
             }
 
             return marketData

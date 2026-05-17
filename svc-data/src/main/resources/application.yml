@@ -55,7 +55,8 @@ logging:
     netflix: error
     jdk: error
     io:
-      openttelemetry: error
+      opentelemetry: error
+      micrometer: error
       github:
         resilience4j: error
     okhttp3: error
@@ -89,6 +90,21 @@ stream:
   enabled: true
 
 spring:
+  boot:
+    admin:
+      client:
+        # Spring Boot Admin client. Disabled by default; enabled in kauri via
+        # SBA_CLIENT_ENABLED=true + SBA_SERVER_URL=http://bc-admin:9530. See
+        # svc-admin module + bc-deploy/charts/bc-admin.
+        enabled: ${SBA_CLIENT_ENABLED:false}
+        url: ${SBA_SERVER_URL:http://localhost:9530}
+        username: ${SBA_REGISTRATION_USERNAME:admin}
+        password: ${SBA_REGISTRATION_PASSWORD:}
+        instance:
+          management-base-url: ${MANAGEMENT_BASE_URL:http://localhost:9511}
+          metadata:
+            tags:
+              service: bc-data
   cloud:
     function:
       definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
@@ -125,10 +141,6 @@ spring:
         cacheInvalidation-out-0:
           destination: bc-perf-invalidate-dev
           content-type: application/json
-      # Kafka-specific configuration (when default-binder=kafka)
-      kafka:
-        binder:
-          brokers: kafka:9092
       # RabbitMQ-specific configuration (when default-binder=rabbit)
       rabbit:
         binder:
@@ -154,7 +166,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
+    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, news.sentiment, eodhd.news.sentiment, market.holidays
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true
@@ -204,6 +216,14 @@ resilience4j:
         limitRefreshPeriod: 60s
         timeoutDuration: 60s
         eventConsumerBufferSize: 100
+      # EODHD EOD Historical Data plan: 1000 req/min, 100K/day.
+      # Spread requests at ~60ms cadence so we never burst into the per-minute cap.
+      eodhd:
+        registerHealthIndicator: false
+        limitForPeriod: 1
+        limitRefreshPeriod: 60ms
+        timeoutDuration: 120s
+        eventConsumerBufferSize: 200
       fxRates:
         registerHealthIndicator: false
         limitForPeriod: 10
@@ -271,6 +291,14 @@ beancounter:
         name: "Ringgit"
         symbol: "RM"
 
+      - code: "THB"
+        name: "Baht"
+        symbol: "฿"
+
+      - code: "CAD"
+        name: "Dollar"
+        symbol: "$"
+
   asset:
     categories:
       default: "EQUITY"
@@ -291,6 +319,28 @@ beancounter:
           name: "Trade Account"
         - id: "POLICY"
           name: "Retirement Fund"
+        - id: "INDEX"
+          name: "Market Index"
+
+  # Pre-seed market index assets created at startup. All routed to the
+  # synthetic INDEX market. EODHD's `.INDX` exchange handles these natively
+  # in the EOD plan; AlphaVantage historically required the `^GSPC`-style
+  # Yahoo prefix but kauri's AV key lacks INDEX_DATA entitlement, so the
+  # provider for INDEX market is opt-in per env via `eodhd.markets`.
+  indices:
+    values:
+      - code: "GSPC"
+        name: "S&P 500"
+        currency: "USD"
+      - code: "IXIC"
+        name: "NASDAQ Composite"
+        currency: "USD"
+      - code: "DJI"
+        name: "Dow Jones Industrial Average"
+        currency: "USD"
+      - code: "FTSE"
+        name: "FTSE 100"
+        currency: "GBP"
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: FIGI
@@ -336,6 +386,7 @@ beancounter:
         aliases:
           SHARESIGHT: "NAS"
           FIGI: "US"
+          eodhd: "US"
 
       - code: "NYSE"
         name: "New York Stock Exchange"
@@ -345,6 +396,7 @@ beancounter:
         aliases:
           SHARESIGHT: "NYS"
           FIGI: "US"
+          eodhd: "US"
 
       - code: "AMEX"
         name: "American Stock Exchange"
@@ -353,13 +405,22 @@ beancounter:
         active: false
         aliases:
           FIGI: "US"
+          eodhd: "US"
 
       - code: "US"
         name: "US Market"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        # Fuzzy / colloquial inputs all resolve to US so the chat agent and
+        # CSV imports don't need exact knowledge of BC market conventions.
+        # Aliases are matched case-insensitively after upper-casing.
         aliases:
           FIGI: "US"
+          eodhd: "US"
+          typo: "NASAQ"
+          dow: "DOW"
+          dowJones: "DOW JONES"
+          arca: "ARCA"
 
       - code: "ASX"
         name: "Australian Securities Exchange"
@@ -369,6 +430,18 @@ beancounter:
           mstack: "XASX"
           sharesight: "AX"
           FIGI: "AU"
+          eodhd: "AU"
+
+      - code: "TSX"
+        name: "Toronto Stock Exchange"
+        timezoneId: "America/Toronto"
+        currencyId: "CAD"
+        aliases:
+          alpha: "TRT"
+          mstack: "XTSX"
+          sharesight: "TO"
+          FIGI: "CT"
+          eodhd: "TO"
 
       - code: "NZX"
         name: "New Zealand Exchange"
@@ -379,6 +452,8 @@ beancounter:
           mstack: "NZ"
           alpha: "NZ"
           FIGI: "NZ"
+          # EODHD has no NZ exchange (verified via /api/exchanges-list).
+          # Do not add an eodhd alias here unless the plan adds NZ coverage.
 
       - code: "SGX"
         name: "Singapore Exchange"
@@ -388,6 +463,8 @@ beancounter:
         aliases:
           mstack: "SI"
           FIGI: "SP"
+          # EODHD has no SG/SES exchange (verified via /api/exchanges-list).
+          # Do not add an eodhd alias here unless the plan adds SG coverage.
 
       - code: "LON"
         name: "London Stock Exchange"
@@ -398,6 +475,7 @@ beancounter:
         aliases:
           mstack: "XLON"
           FIGI: "LN"
+          eodhd: "LSE"
 
       - code: "MUTF"
         name: "Mutual Funds"
@@ -405,16 +483,45 @@ beancounter:
         timezoneId: "Europe/London"
         enricher: "DEFAULT"
         type: "Fund"
+
+      - code: "INDEX"
+        name: "Market Index"
+        currencyId: "USD"
+        timezoneId: "US/Eastern"
+        enricher: "DEFAULT"
+        type: "Index"
+        aliases:
+          eodhd: "INDX"
+    # News backend selector — `alpha` (default) or `eodhd`.
+    # AlphaVantage NEWS_SENTIMENT needs a Premium key in practice; EODHD's `/api/news`
+    # is exposed on the free tier so operators can flip this to `eodhd` when their EODHD
+    # key is set and they want to drop the AV news cost. Switching only affects the
+    # `/news` endpoint surface — price/event routing is unchanged.
+    news:
+      provider: alpha
     providers:
       alpha:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: "US,NASDAQ,AMEX,NYSE,LON"
+        markets: "US,NASDAQ,AMEX,NYSE,LON,TSX"
+        news:
+          # Minimum per-ticker relevance_score (0.0-1.0) to keep an article.
+          # Raise to narrow to only strongly-on-topic news; lower to be
+          # more permissive with tangentially-related articles.
+          relevance-threshold: 0.3
+          # Top-N articles returned after ranking. Keep small — each article
+          # becomes tool_result tokens on the LLM's second inference call.
+          max-articles: 5
+          # Recency window in business days (skips weekends).
+          business-days-back: 5
+          # How many articles to request from Alpha Vantage before ranking.
+          # Larger pool means stronger ranking at no LLM cost.
+          provider-limit: 50
 
       mstack:
         url: https://api.marketstack.com
         batchSize: 10
-        markets: "NZX,SGX"
+        markets: "NZX,SGX,ASX"
 
       private:
         batchSize: 1
@@ -423,6 +530,27 @@ beancounter:
       morningstar:
         batchSize: 1
         markets: "MUTF"
+
+      # EODHD — opt-in only. Empty `markets` keeps EODHD registered but unrouted,
+      # so existing AlphaVantage / MarketStack / Morningstar routing is unchanged.
+      # Operators enable per-env via BEANCOUNTER_MARKET_PROVIDERS_EODHD_MARKETS.
+      # Plan reference: https://eodhd.com/pricing
+      eodhd:
+        url: https://eodhd.com
+        batchSize: 1
+        markets: ""
+        news:
+          # Top-N articles returned to the caller after ranking. Keep small —
+          # each article becomes tool_result tokens on the LLM's second inference call.
+          max-articles: 5
+          # How many articles to ask EODHD for per ticker before merging + ranking.
+          provider-limit: 50
+          # Per-ticker refresh interval. EODHD news endpoint quota is ~1200 req/day shared
+          # with svc-agent chat lookups; default 6h ≈ 4 refreshes/day per active ticker.
+          refresh-after-hours: 6
+          # Articles older than this are pruned daily by NewsRetentionSchedule. Combine with
+          # `schedule.enabled=true` to actually run the prune; otherwise it's a no-op bean.
+          retention-days: 30
 
       # OpenFIGI - free, unlimited, Bloomberg-based
       figi:

@@ -70,5 +70,5 @@ data class PrivateAssetConfigResponse(
  */
 data class PrivateAssetConfigsResponse(
     val data: Collection<PrivateAssetConfig>,
-    val assetNames: Map<String, String> = emptyMap(),
+    val assetNames: Map<String, String> = emptyMap()
 )

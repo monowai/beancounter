@@ -184,6 +184,28 @@ class PortfolioService(
         return PortfoliosResponse(portfolios)
     }
 
+    /**
+     * Same as [findWhereHeld] but restricted to portfolios the current caller
+     * can view (owner or active share). Use this for user-scoped lookups
+     * (e.g. Asset Lookup); service-to-service callers should use [findWhereHeld].
+     */
+    fun findWhereHeldForCaller(
+        assetId: String?,
+        tradeDate: LocalDate?
+    ): PortfoliosResponse {
+        val all = findWhereHeld(assetId, tradeDate).data
+        val systemUser = systemUserService.getOrThrow()
+        val viewable = all.filter { isViewable(systemUser, it) }
+        log.trace(
+            "Filtered {} -> {} viewable holders for assetId: {} on behalf of {}",
+            all.size,
+            viewable.size,
+            assetId,
+            systemUser.id
+        )
+        return PortfoliosResponse(viewable)
+    }
+
     companion object {
         private val log = LoggerFactory.getLogger(PortfolioService::class.java)
     }

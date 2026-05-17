@@ -1,0 +1,25 @@
+{
+  "Meta Data": {
+    "1. Information": "Daily Prices (open, high, low, close) and Volumes",
+    "2. Symbol": "^GSPC",
+    "3. Last Refreshed": "2026-05-07",
+    "4. Output Size": "Compact",
+    "5. Time Zone": "US/Eastern"
+  },
+  "Time Series (Daily)": {
+    "2026-05-07": {
+      "1. open": "5780.4400",
+      "2. high": "5810.6300",
+      "3. low": "5777.4500",
+      "4. close": "5808.1200",
+      "5. volume": "0"
+    },
+    "2026-05-06": {
+      "1. open": "5775.1000",
+      "2. high": "5795.2500",
+      "3. low": "5770.0000",
+      "4. close": "5793.7500",
+      "5. volume": "0"
+    }
+  }
+}

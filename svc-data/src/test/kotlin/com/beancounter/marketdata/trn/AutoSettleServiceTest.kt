@@ -5,9 +5,11 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.model.UserPreferences
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.registration.UserPreferencesService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,6 +20,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
 import java.time.LocalDate
+import org.mockito.kotlin.any as kAny
 
 /**
  * Tests for AutoSettleService - the service that auto-settles PROPOSED
@@ -28,8 +31,10 @@ class AutoSettleServiceTest {
     private lateinit var trnRepository: TrnRepository
     private lateinit var autoSettleService: AutoSettleService
     private lateinit var dateUtils: DateUtils
+    private lateinit var userPreferencesService: UserPreferencesService
     private val today = LocalDate.now()
 
+    private val testOwner = SystemUser("test-user", "test@example.com")
     private val testPortfolio =
         Portfolio(
             id = "test-portfolio-id",
@@ -37,7 +42,7 @@ class AutoSettleServiceTest {
             name = "Test Portfolio",
             currency = USD,
             base = USD,
-            owner = SystemUser("test-user", "test@example.com")
+            owner = testOwner
         )
 
     companion object {
@@ -48,8 +53,15 @@ class AutoSettleServiceTest {
     fun setUp() {
         trnRepository = mock(TrnRepository::class.java)
         dateUtils = mock(DateUtils::class.java)
+        userPreferencesService = mock(UserPreferencesService::class.java)
         `when`(dateUtils.date).thenReturn(today)
-        autoSettleService = AutoSettleService(trnRepository, dateUtils)
+        // Default: every owner opted in.
+        `when`(userPreferencesService.getOrCreate(kAny<SystemUser>()))
+            .thenAnswer { invocation ->
+                UserPreferences(owner = invocation.getArgument(0))
+            }
+        autoSettleService =
+            AutoSettleService(trnRepository, dateUtils, userPreferencesService)
     }
 
     @Test
@@ -131,6 +143,21 @@ class AutoSettleServiceTest {
 
         // Then: No transactions should be settled
         assertThat(result).isEqualTo(0)
+        verify(trnRepository, never()).save(any(Trn::class.java))
+    }
+
+    @Test
+    fun `should leave transactions PROPOSED when owner has autoSettle disabled`() {
+        val proposedTrn = createProposedTransaction("trn-1", today, TrnType.DIVI)
+        `when`(trnRepository.findDueEventTransactions(TrnStatus.PROPOSED, EVENT_TYPES, today))
+            .thenReturn(listOf(proposedTrn))
+        `when`(userPreferencesService.getOrCreate(testOwner))
+            .thenReturn(UserPreferences(owner = testOwner, autoSettle = false))
+
+        val result = autoSettleService.autoSettleDueTransactions()
+
+        assertThat(result).isEqualTo(0)
+        assertThat(proposedTrn.status).isEqualTo(TrnStatus.PROPOSED)
         verify(trnRepository, never()).save(any(Trn::class.java))
     }
 

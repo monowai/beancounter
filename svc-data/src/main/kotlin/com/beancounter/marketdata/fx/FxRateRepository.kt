@@ -22,6 +22,8 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     @Query(
         """
         select f from FxRate f
+        join fetch f.from
+        join fetch f.to
         where (f.date >= :date and f.date <= :date)
            or f.date <= :earlyDate
         """
@@ -48,6 +50,8 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     @Query(
         """
         select f from FxRate f
+        join fetch f.from
+        join fetch f.to
         where (f.provider = :provider and f.date >= :date and f.date <= :date)
            or (f.provider = :provider and f.date <= :earlyDate)
         """
@@ -72,7 +76,7 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
      * @return The base FxRate entity that matches the criteria, or null if not found.
      */
     @Query(
-        "select f from FxRate f where f.from = :from and f.to = :from and f.date <= :earlyDate order by f.date desc limit 1"
+        "select f from FxRate f join fetch f.from join fetch f.to where f.from = :from and f.to = :from and f.date <= :earlyDate order by f.date desc limit 1"
     )
     fun findBaseRate(
         from: Currency,
@@ -96,6 +100,8 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     @Query(
         """
         select f from FxRate f
+        join fetch f.from
+        join fetch f.to
         where f.from = :from and f.to = :from
           and f.provider = :provider and f.date <= :earlyDate
         """
@@ -119,6 +125,8 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     @Query(
         """
         select f from FxRate f
+        join fetch f.from
+        join fetch f.to
         where f.date = (
             select max(f2.date) from FxRate f2
             where f2.date < :date and f2.date > :earlyDate
@@ -142,6 +150,8 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     @Query(
         """
         select f from FxRate f
+        join fetch f.from
+        join fetch f.to
         where f.date >= :startDate and f.date <= :endDate
         """
     )
@@ -163,6 +173,8 @@ interface FxRateRepository : CrudRepository<FxRate, String> {
     @Query(
         """
         select f from FxRate f
+        join fetch f.from
+        join fetch f.to
         where f.from = :baseCurrency and f.to = :to
           and f.date >= :startDate and f.date <= :endDate
         order by f.date asc

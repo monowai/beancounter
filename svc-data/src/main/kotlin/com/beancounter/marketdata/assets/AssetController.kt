@@ -62,7 +62,8 @@ class AssetController(
     private val assetIoDefinition: AssetIoDefinition,
     private val assetCategoryConfig: AssetCategoryConfig,
     private val assetSearchService: AssetSearchService,
-    private val marketDataService: MarketDataService
+    private val marketDataService: MarketDataService,
+    private val marketService: com.beancounter.marketdata.markets.MarketService
 ) {
     companion object {
         private const val MAX_INPUT_LENGTH = 50
@@ -187,16 +188,39 @@ class AssetController(
             description = "Asset ticker code",
             example = "AAPL"
         )
-        @PathVariable code: String
-    ): AssetResponse =
-        AssetResponse(
+        @PathVariable code: String,
+        @Parameter(
+            description =
+                "When true, the supplied market is run through " +
+                    "MarketService.canonical first — colloquial inputs " +
+                    "(NASDAQ/NYSE/AMEX/ARCA, NASAQ, DOW, DOW JONES) collapse " +
+                    "to the active US market so the lookup hits the same row " +
+                    "as a request that already used the canonical code. " +
+                    "Used by the chat agent's by-ticker tools where the LLM " +
+                    "has no reason to know BC's exchange conventions. " +
+                    "Default false preserves existing CSV-import behaviour."
+        )
+        @RequestParam(
+            value = "canonical",
+            defaultValue = "false"
+        ) canonical: Boolean
+    ): AssetResponse {
+        val sanitizedMarket = sanitize(market) ?: ""
+        val resolvedMarket =
+            if (canonical && sanitizedMarket.isNotBlank()) {
+                marketService.canonical(sanitizedMarket).code
+            } else {
+                sanitizedMarket
+            }
+        return AssetResponse(
             assetService.findOrCreate(
                 AssetInput(
-                    sanitize(market) ?: "",
+                    resolvedMarket,
                     sanitize(code) ?: ""
                 )
             )
         )
+    }
 
     @GetMapping("/{assetId}")
     @Operation(
@@ -338,6 +362,36 @@ class AssetController(
         @Parameter(description = "Asset category to filter by", example = "ACCOUNT")
         @PathVariable category: String
     ): AssetUpdateResponse = ownedAssetService.findByOwnerAndCategory(category)
+
+    @GetMapping(
+        value = ["/market/{market}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "List assets on a given market",
+        description = """
+            Returns all assets registered on the supplied market code.
+            Primary use case is enumerating reference assets such as the
+            pre-seeded benchmark indices on the synthetic INDEX market,
+            which clients render as a chart-overlay selector.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Assets retrieved successfully",
+                content = [Content(schema = Schema(implementation = AssetUpdateResponse::class))]
+            )
+        ]
+    )
+    fun getAssetsByMarket(
+        @Parameter(description = "Market code to filter by", example = "INDEX")
+        @PathVariable market: String
+    ): AssetUpdateResponse {
+        val assets = assetFinder.findByMarketCode(market.uppercase())
+        return AssetUpdateResponse(assets.associateBy { it.id })
+    }
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(

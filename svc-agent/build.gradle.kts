@@ -38,15 +38,20 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation("org.springframework.security:spring-security-oauth2-client")
     implementation(libs.spring.boot.starter.actuator)
+    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
     implementation(libs.spring.boot.starter.integration)
+    // micrometer-tracing-bridge-otel comes via jar-common (api dep) so
+    // Spring AI's `spring.ai.chat.client` / `gen_ai.*` observations
+    // export to Sentry through the existing OTel agent.
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation(libs.jackson.kotlin)
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(libs.resilience4j.spring.boot3)
-    implementation(libs.spring.kafka)
     // Spring AI for LLM integration
     implementation(libs.spring.ai.openai)
     implementation(libs.spring.ai.ollama)
+    implementation(libs.spring.ai.anthropic)
+    implementation(libs.spring.ai.deepseek)
     // Note: Agent is an MCP client, not an MCP server
     
     compileOnly(libs.spring.boot.configuration.processor)
@@ -57,7 +62,6 @@ dependencies {
     }
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation(libs.spring.kafka.test)
     testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
 }

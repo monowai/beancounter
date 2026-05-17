@@ -11,6 +11,9 @@ class AuthConfig(
     @Value($$"${auth.email:${auth.audience}/claims/email}")
     var claimEmail: String
 ) {
+    @Value($$"${auth.system-user-id:${auth.audience}/claims/system_user_id}")
+    var claimSystemUserId: String = ""
+
     @Value($$"${auth.audience:https://holdsworth.app}")
     val audience: String = "beancounter"
 

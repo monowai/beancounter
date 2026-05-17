@@ -1,0 +1,13 @@
+beancounter:
+  enricher: MOCK
+  market:
+    providers:
+      alpha:
+        markets:
+      mstack:
+        markets:
+      eodhd:
+        url: http://localhost:${wiremock.server.port}
+        markets: NASDAQ,AMEX,NYSE,LON
+      mock:
+        markets: MOCK

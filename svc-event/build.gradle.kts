@@ -32,6 +32,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
+    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
     implementation(libs.spring.boot.starter.integration)
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)
@@ -46,9 +47,7 @@ dependencies {
     implementation(libs.flyway.core)
     runtimeOnly(libs.flyway.postgresql)
     implementation(libs.spring.cloud.stream)
-    implementation(libs.spring.cloud.stream.binder.kafka)
     implementation(libs.spring.cloud.stream.binder.rabbit)
-    implementation(libs.spring.ai.starter.mcp.server.webmvc)
 
     compileOnly(libs.spring.boot.configuration.processor)
 

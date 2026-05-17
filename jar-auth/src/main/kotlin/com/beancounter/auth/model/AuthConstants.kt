@@ -11,11 +11,15 @@ object AuthConstants {
     const val USER = "$APP_NAME:user"
     const val SYSTEM = "$APP_NAME:system"
     const val ADMIN = "$APP_NAME:admin"
+    const val AI = "$APP_NAME:ai"
+    const val PREVIEW = "$APP_NAME:preview"
 
     const val SCOPE_BC = "SCOPE_$APP_NAME"
     const val SCOPE_USER = "SCOPE_$USER"
     const val SCOPE_SYSTEM = "SCOPE_$SYSTEM"
     const val SCOPE_ADMIN = "SCOPE_$ADMIN"
+    const val SCOPE_AI = "SCOPE_$AI"
+    const val SCOPE_PREVIEW = "SCOPE_$PREVIEW"
 
     val authSystem = SystemUser(id = SYSTEM)
 

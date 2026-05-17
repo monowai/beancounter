@@ -9,18 +9,30 @@ import org.springframework.data.repository.query.Param
 import java.util.Optional
 
 interface AssetClassificationRepository : CrudRepository<AssetClassification, String> {
-    @Query("SELECT ac FROM AssetClassification ac WHERE ac.asset.id = :assetId")
+    @Query(
+        "SELECT ac FROM AssetClassification ac " +
+            "JOIN FETCH ac.asset JOIN FETCH ac.standard JOIN FETCH ac.item " +
+            "WHERE ac.asset.id = :assetId"
+    )
     fun findByAssetId(
         @Param("assetId") assetId: String
     ): List<AssetClassification>
 
-    @Query("SELECT ac FROM AssetClassification ac WHERE ac.asset.id = :assetId AND ac.level = :level")
+    @Query(
+        "SELECT ac FROM AssetClassification ac " +
+            "JOIN FETCH ac.asset JOIN FETCH ac.standard JOIN FETCH ac.item " +
+            "WHERE ac.asset.id = :assetId AND ac.level = :level"
+    )
     fun findByAssetIdAndLevel(
         @Param("assetId") assetId: String,
         @Param("level") level: ClassificationLevel
     ): Optional<AssetClassification>
 
-    @Query("SELECT ac FROM AssetClassification ac WHERE ac.asset.id IN :assetIds")
+    @Query(
+        "SELECT ac FROM AssetClassification ac " +
+            "JOIN FETCH ac.asset JOIN FETCH ac.standard JOIN FETCH ac.item " +
+            "WHERE ac.asset.id IN :assetIds"
+    )
     fun findByAssetIdIn(
         @Param("assetIds") assetIds: List<String>
     ): List<AssetClassification>

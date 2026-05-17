@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 #docker build . -t bc/shell
 
 ARG JAR_FILE=build/libs/jar-shell-0.1.1.jar

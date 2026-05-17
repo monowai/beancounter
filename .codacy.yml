@@ -13,3 +13,5 @@ exclude_paths:
   - "**/generated/**"
   # Exclude AI assistant instructions
   - "CLAUDE.md"
+  # Exclude Flyway migrations - Postgres DDL, not SQL Server; TSQLLint reports false positives
+  - "**/db/migration/**"

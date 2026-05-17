@@ -110,6 +110,34 @@ class JpaPerformanceCacheServiceTest {
     }
 
     @Test
+    fun `invalidateFromDate deletes all rows on-or-after the date across portfolios`() {
+        cacheService.storeSnapshots(
+            "pf-1",
+            listOf(
+                CachedSnapshot(date1, BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO),
+                CachedSnapshot(date2, BigDecimal("110"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+            )
+        )
+        cacheService.storeSnapshots(
+            "pf-2",
+            listOf(
+                CachedSnapshot(date1, BigDecimal("200"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO),
+                CachedSnapshot(date2, BigDecimal("220"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+            )
+        )
+
+        // Wipe everything from date2 onward in both portfolios; date1 must survive.
+        cacheService.invalidateFromDate(date2)
+
+        val remainingPf1 = cacheService.findSnapshots("pf-1", listOf(date1, date2))
+        val remainingPf2 = cacheService.findSnapshots("pf-2", listOf(date1, date2))
+        assertThat(remainingPf1).hasSize(1)
+        assertThat(remainingPf1[0].valuationDate).isEqualTo(date1)
+        assertThat(remainingPf2).hasSize(1)
+        assertThat(remainingPf2[0].valuationDate).isEqualTo(date1)
+    }
+
+    @Test
     fun `invalidatePortfolio deletes all dates for that portfolio`() {
         cacheService.storeSnapshots(
             portfolioId,
@@ -127,5 +155,36 @@ class JpaPerformanceCacheServiceTest {
     @Test
     fun `isAvailable returns true`() {
         assertThat(cacheService.isAvailable()).isTrue()
+    }
+
+    @Test
+    fun `storeSnapshots upserts existing rows without violating unique constraint`() {
+        // Regression for POSITION-2Q: storing the same (portfolio, date) twice
+        // must update in place, not throw on uk_portfolio_date.
+        val first =
+            CachedSnapshot(
+                valuationDate = date1,
+                marketValue = BigDecimal("100.00"),
+                externalCashFlow = BigDecimal.ZERO,
+                netContributions = BigDecimal.ZERO,
+                cumulativeDividends = BigDecimal.ZERO
+            )
+        cacheService.storeSnapshots(portfolioId, listOf(first))
+
+        val updated =
+            CachedSnapshot(
+                valuationDate = date1,
+                marketValue = BigDecimal("250.00"),
+                externalCashFlow = BigDecimal("10.00"),
+                netContributions = BigDecimal("5.00"),
+                cumulativeDividends = BigDecimal("1.00")
+            )
+        cacheService.storeSnapshots(portfolioId, listOf(updated))
+
+        val result = cacheService.findSnapshots(portfolioId, listOf(date1))
+        assertThat(result).hasSize(1)
+        assertThat(result[0].marketValue).isEqualByComparingTo(BigDecimal("250.00"))
+        assertThat(result[0].externalCashFlow).isEqualByComparingTo(BigDecimal("10.00"))
+        assertThat(result[0].cumulativeDividends).isEqualByComparingTo(BigDecimal("1.00"))
     }
 }

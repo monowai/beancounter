@@ -153,6 +153,30 @@ internal class EodhdNewsServiceTest {
     }
 
     @Test
+    fun `projection prefers persisted summary over content truncation`() {
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 1))
+        )
+        // If `summary` is set, the bot must see it verbatim rather than the long content blob.
+        whenever(articleRepo.findByTickersAfter(any(), any()))
+            .thenReturn(
+                listOf(
+                    storedArticle(
+                        polarity = 0.7,
+                        content = "x".repeat(1000),
+                        summary = "Apple beats Q2 expectations — guidance up 8%."
+                    )
+                )
+            )
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.first()["summary"]).isEqualTo("Apple beats Q2 expectations — guidance up 8%.")
+    }
+
+    @Test
     fun `unparseable date timestamp falls back to now instead of throwing`() {
         // EODHD has occasionally shipped articles with malformed dates; the service must not
         // crash the request — falls back to `now(UTC)` and stores the row with the rest intact.
@@ -311,13 +335,15 @@ internal class EodhdNewsServiceTest {
         polarity: Double,
         title: String = "headline",
         content: String = "body",
-        tags: Set<String> = emptySet()
+        tags: Set<String> = emptySet(),
+        summary: String? = null
     ): NewsArticle =
         NewsArticle(
             externalId = "ext-${title.hashCode()}",
             published = LocalDateTime.now().minusHours(1),
             title = title,
             content = content,
+            summary = summary,
             polarity = BigDecimal(polarity),
             tags = tags.toMutableSet(),
             tickerLinks = mutableSetOf()

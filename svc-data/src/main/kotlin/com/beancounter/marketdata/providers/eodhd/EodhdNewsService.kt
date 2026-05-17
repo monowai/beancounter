@@ -230,7 +230,7 @@ class EodhdNewsService(
         val polarity = article.polarity.toDouble()
         return mapOf(
             "title" to article.title,
-            "summary" to article.content.take(SUMMARY_CHARS),
+            "summary" to (article.summary ?: article.content.take(SUMMARY_CHARS)),
             "source" to article.link,
             "timePublished" to article.published.toString(),
             "sentimentLabel" to labelFor(polarity),

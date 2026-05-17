@@ -39,6 +39,8 @@ data class NewsArticle(
     var title: String = "",
     @Column(nullable = false, columnDefinition = "TEXT")
     var content: String = "",
+    @Column(length = 1024)
+    var summary: String? = null,
     @Column(nullable = false, length = 2048)
     var link: String = "",
     @Column(precision = 7, scale = 4, nullable = false)
@@ -58,7 +60,7 @@ data class NewsArticle(
         name = "news_article_tag",
         joinColumns = [JoinColumn(name = "article_id")]
     )
-    @Column(name = "tag", length = 64)
+    @Column(name = "tag", length = 255)
     var tags: MutableSet<String> = mutableSetOf(),
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(

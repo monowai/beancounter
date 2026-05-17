@@ -129,8 +129,12 @@ class JpaPerformanceCacheServiceTest {
         // Wipe everything from date2 onward in both portfolios; date1 must survive.
         cacheService.invalidateFromDate(date2)
 
-        assertThat(cacheService.findSnapshots("pf-1", listOf(date1, date2))).hasSize(1)
-        assertThat(cacheService.findSnapshots("pf-2", listOf(date1, date2))).hasSize(1)
+        val remainingPf1 = cacheService.findSnapshots("pf-1", listOf(date1, date2))
+        val remainingPf2 = cacheService.findSnapshots("pf-2", listOf(date1, date2))
+        assertThat(remainingPf1).hasSize(1)
+        assertThat(remainingPf1[0].valuationDate).isEqualTo(date1)
+        assertThat(remainingPf2).hasSize(1)
+        assertThat(remainingPf2[0].valuationDate).isEqualTo(date1)
     }
 
     @Test

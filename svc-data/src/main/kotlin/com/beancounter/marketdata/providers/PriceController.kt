@@ -435,10 +435,18 @@ class PriceController(
         @RequestBody request: EnsureHistoryRequest
     ): EnsureHistoryResponse {
         val targetFrom = request.fromDate.coerceAtLeast(LocalDate.now().minusYears(MAX_BACKFILL_YEARS))
-        request.assetIds.forEach { assetId ->
+        // Trim and de-duplicate so a sloppy caller (e.g. a portfolio with the same asset across
+        // currencies) doesn't blow the per-asset cooldown budget on phantom IDs, and so the
+        // returned `scheduled` count reflects what we actually queued.
+        val cleanAssetIds =
+            request.assetIds
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .distinct()
+        cleanAssetIds.forEach { assetId ->
             priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
         }
-        return EnsureHistoryResponse(scheduled = request.assetIds.size)
+        return EnsureHistoryResponse(scheduled = cleanAssetIds.size)
     }
 
     @PostMapping("/backfill/{code}")

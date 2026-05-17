@@ -613,6 +613,40 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
+        fun is_EnsureHistoryTrimsAndDedupesAssetIds() {
+            // Caller may ship duplicates, padded, or blank entries (e.g. portfolio with same
+            // asset across currencies). The endpoint must only schedule unique non-blank IDs and
+            // report the cleaned count in `scheduled`.
+            val body =
+                """{"assetIds":["asset-1","  asset-1","asset-2"," ",""],"fromDate":"2020-01-01"}"""
+
+            val json =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .post("/prices/ensure-history")
+                            .with(
+                                SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                            ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(body)
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString
+
+            assertThat(json).contains("\"scheduled\":2")
+            val cleanCaptor = argumentCaptor<String>()
+            org.mockito.Mockito
+                .verify(priceBackfillCoordinator, org.mockito.Mockito.times(2))
+                .scheduleBackfill(cleanCaptor.capture(), any())
+            assertThat(cleanCaptor.allValues).containsExactlyInAnyOrder("asset-1", "asset-2")
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
         fun is_NoBackfillScheduledWhenCachedRangeCoversRequest() {
             // Earliest cached price is already before (or equal to) the requested
             // `from` plus the retry buffer — nothing to fill, no async schedule.

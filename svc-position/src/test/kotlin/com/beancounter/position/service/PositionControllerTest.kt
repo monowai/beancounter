@@ -41,9 +41,6 @@ class PositionControllerTest {
     private lateinit var portfolioServiceClient: PortfolioServiceClient
 
     @Mock
-    private lateinit var dateUtils: DateUtils
-
-    @Mock
     private lateinit var valuationService: Valuation
 
     @Mock
@@ -71,7 +68,6 @@ class PositionControllerTest {
         positionController =
             PositionController(
                 portfolioServiceClient,
-                dateUtils,
                 allocationService,
                 sectorExposureService,
                 fxService,

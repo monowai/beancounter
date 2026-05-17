@@ -48,7 +48,6 @@ import org.springframework.web.bind.annotation.RestController
 )
 class PositionController(
     private val portfolioServiceClient: PortfolioServiceClient,
-    private val dateUtils: DateUtils,
     private val allocationService: AllocationService,
     private val sectorExposureService: SectorExposureService,
     private val fxService: FxService,
@@ -125,7 +124,7 @@ class PositionController(
         @RequestParam(
             value = "asAt",
             required = false
-        ) asAt: String = dateUtils.offsetDateString(),
+        ) asAt: String = DateUtils.TODAY,
         @Parameter(
             description = "Whether to include market values in the response",
             example = "true"

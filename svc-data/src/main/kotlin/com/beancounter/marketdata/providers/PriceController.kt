@@ -443,10 +443,15 @@ class PriceController(
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
                 .distinct()
-        cleanAssetIds.forEach { assetId ->
-            priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
-        }
-        return EnsureHistoryResponse(scheduled = cleanAssetIds.size)
+        // Count what the coordinator actually accepted — cooldowns, in-flight
+        // duplicates, and queue-saturation drops all return false. Reporting
+        // the post-filter count lets the caller see real backpressure instead
+        // of trusting an always-equal `scheduled = requested` number.
+        val scheduled =
+            cleanAssetIds.count { assetId ->
+                priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
+            }
+        return EnsureHistoryResponse(scheduled = scheduled)
     }
 
     @PostMapping("/backfill/{code}")

@@ -2,13 +2,15 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.RejectedExecutionException
 
 /**
  * Schedules deep price-history backfills outside the request thread.
@@ -24,10 +26,19 @@ import java.util.concurrent.ConcurrentHashMap
  * The `lastAttempt` map is pruned hourly so it can't grow without bound
  * across the lifetime of the process — every distinct assetId ever queried
  * would otherwise stick around forever.
+ *
+ * Submission is synchronous: prefilter (blank/cooldown/inFlight) runs on
+ * the caller's thread, then the actual provider call is dispatched to
+ * `priceBackfillExecutor`. Doing the prefilter inline (rather than inside
+ * an `@Async` body) means cooled-down assets never reach the executor
+ * queue, which is what kept the queue saturating under chart-load bursts.
+ * On `RejectedExecutionException` the in-flight slot is released and the
+ * submission is dropped — the cooldown will let the asset retry later.
  */
 @Service
 class PriceBackfillCoordinator(
     private val backfillService: MarketDataBackfillService,
+    @Qualifier("priceBackfillExecutor") private val executor: TaskExecutor,
     private val cacheInvalidationProducer: CacheInvalidationProducer? = null
 ) {
     private val log = LoggerFactory.getLogger(PriceBackfillCoordinator::class.java)
@@ -36,36 +47,48 @@ class PriceBackfillCoordinator(
 
     /**
      * Queue a deep backfill for [assetId] reaching back to [fromDate]. Returns
-     * immediately — the actual provider call runs on `priceBackfillExecutor`.
-     *
-     * Three guards short-circuit before any work runs:
-     *  - blank [assetId] is dropped (caller bug, don't spam the executor)
-     *  - cooldown: same asset attempted within [ATTEMPT_COOLDOWN] is dropped
-     *  - in-flight: concurrent backfill for same asset is suppressed
-     *
-     * On success a `PRICE_HISTORY` cache-invalidation event is published so
-     * downstream caches (svc-position snapshots) recompute on the next read.
+     * `true` when the work was accepted by the executor, `false` when it was
+     * filtered out (blank id, cooldown, in-flight) or the executor queue was
+     * saturated. Callers can use the return value to report what was actually
+     * scheduled; bursts that overflow the queue are dropped silently here so
+     * the calling request isn't broken by a backpressure signal that's
+     * irrelevant to it.
      */
-    @Async("priceBackfillExecutor")
     fun scheduleBackfill(
         assetId: String,
         fromDate: LocalDate
-    ) {
+    ): Boolean {
         if (assetId.isBlank()) {
             log.debug("Backfill skipped — blank assetId")
-            return
+            return false
         }
         val now = Instant.now()
         val previous = lastAttempt[assetId]
         if (previous != null && Duration.between(previous, now) < ATTEMPT_COOLDOWN) {
             log.debug("Backfill cooldown active for {}, skipping", assetId)
-            return
+            return false
         }
         if (!inFlight.add(assetId)) {
             log.debug("Backfill already running for {}", assetId)
-            return
+            return false
         }
         lastAttempt[assetId] = now
+        return try {
+            executor.execute { runBackfill(assetId, fromDate) }
+            true
+        } catch (e: RejectedExecutionException) {
+            // Release the slot so the cooldown window — not a stuck in-flight
+            // flag — governs the next retry attempt.
+            inFlight.remove(assetId)
+            log.warn("Backfill queue saturated; dropping submission for {}", assetId, e)
+            false
+        }
+    }
+
+    private fun runBackfill(
+        assetId: String,
+        fromDate: LocalDate
+    ) {
         try {
             log.info("Async backfill starting for asset={} fromDate={}", assetId, fromDate)
             backfillService.backFill(assetId, fromDate)

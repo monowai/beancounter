@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.AggregatedPerformanceResponse
 import com.beancounter.common.contracts.BulkFxRequest
 import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.BulkPriceRequest
+import com.beancounter.common.contracts.EnsureHistoryRequest
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.PerformanceData
 import com.beancounter.common.contracts.PerformanceDataPoint
@@ -108,6 +109,12 @@ class PerformanceService(
         val allAssets = collectAssets(transactions)
         val allPairs = collectFxPairs(transactions, portfolio)
 
+        // Fire-and-forget — nudge svc-data to backfill deep history for the
+        // assets we're about to value. This lets long-window growth / wealth
+        // charts converge to a complete series across requests without
+        // blocking the current calculation on a multi-year provider call.
+        ensureAssetHistory(allAssets, startDate, token)
+
         // Pre-fetch all prices and FX rates in exactly 2 bulk calls
         val priceCache = prefetchPrices(allAssets, valuationDates, token)
         val fxCache = prefetchFxRates(allPairs, startDate, endDate, token)
@@ -155,6 +162,34 @@ class PerformanceService(
                 assets = assets
             )
         return priceService.getBulkPrices(request, token).data
+    }
+
+    private fun ensureAssetHistory(
+        assets: List<PriceAsset>,
+        startDate: LocalDate,
+        token: String
+    ) {
+        if (assets.isEmpty()) return
+        val assetIds =
+            assets
+                .mapNotNull {
+                    it.resolvedAsset?.id ?: it.assetId.takeIf { id ->
+                        id.isNotEmpty()
+                    }
+                }.distinct()
+        if (assetIds.isEmpty()) return
+        try {
+            priceService.ensureHistory(
+                EnsureHistoryRequest(assetIds = assetIds, fromDate = startDate),
+                token
+            )
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            // Non-fatal — performance calc continues with whatever is in the DB.
+            log.warn("ensureHistory call failed (continuing): {}", e.message)
+        }
     }
 
     private fun prefetchFxRates(

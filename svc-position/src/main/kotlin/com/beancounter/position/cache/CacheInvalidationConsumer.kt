@@ -27,6 +27,14 @@ class CacheInvalidationConsumer(
                     CacheChangeType.PRICE, CacheChangeType.FX -> {
                         cacheService.invalidateOnDate(event.fromDate)
                     }
+                    // Deep price-history backfill — any portfolio holding the
+                    // asset may need to recompute from fromDate onwards. We
+                    // don't try to filter by portfolio here (svc-position
+                    // doesn't have the asset→portfolio map); a broad sweep
+                    // across all portfolios is correct and rare.
+                    CacheChangeType.PRICE_HISTORY -> {
+                        cacheService.invalidateFromDate(event.fromDate)
+                    }
                 }
             } catch (e: DataAccessException) {
                 log.error("Failed to process cache invalidation event: {}", e.message)

@@ -574,6 +574,37 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
+        fun is_EnsureHistoryEndpointSchedulesPerAsset() {
+            val body =
+                """{"assetIds":["asset-1","asset-2","asset-3"],"fromDate":"2020-01-01"}"""
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/prices/ensure-history")
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(body)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+
+            org.mockito.Mockito
+                .verify(priceBackfillCoordinator)
+                .scheduleBackfill(eq("asset-1"), any())
+            org.mockito.Mockito
+                .verify(priceBackfillCoordinator)
+                .scheduleBackfill(eq("asset-2"), any())
+            org.mockito.Mockito
+                .verify(priceBackfillCoordinator)
+                .scheduleBackfill(eq("asset-3"), any())
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
         fun is_NoBackfillScheduledWhenCachedRangeCoversRequest() {
             // Earliest cached price is already before (or equal to) the requested
             // `from` plus the retry buffer — nothing to fill, no async schedule.

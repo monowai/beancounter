@@ -47,6 +47,19 @@ class CacheInvalidationProducer(
         )
     }
 
+    fun sendPriceHistoryEvent(
+        assetId: String,
+        fromDate: LocalDate
+    ) {
+        send(
+            CacheInvalidationEvent(
+                changeType = CacheChangeType.PRICE_HISTORY,
+                assetId = assetId,
+                fromDate = fromDate
+            )
+        )
+    }
+
     private fun send(event: CacheInvalidationEvent) {
         if (!streamEnabled) return
         try {

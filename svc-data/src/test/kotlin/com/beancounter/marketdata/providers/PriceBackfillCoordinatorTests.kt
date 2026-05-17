@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -71,5 +72,30 @@ internal class PriceBackfillCoordinatorTests {
         coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
 
         verify(backfillService, never()).backFill(eq("asset-2"), any())
+    }
+
+    @Test
+    fun is_PriceHistoryEventPublishedAfterSuccessfulBackfill() {
+        val backfillService = mock<MarketDataBackfillService>()
+        val producer = mock<CacheInvalidationProducer>()
+        val coordinator = PriceBackfillCoordinator(backfillService, producer)
+
+        val fromDate = LocalDate.now().minusYears(5)
+        coordinator.scheduleBackfill("asset-1", fromDate)
+
+        verify(producer).sendPriceHistoryEvent(eq("asset-1"), eq(fromDate))
+    }
+
+    @Test
+    fun is_NoEventPublishedWhenBackfillFails() {
+        val backfillService = mock<MarketDataBackfillService>()
+        whenever(backfillService.backFill(eq("asset-1"), any()))
+            .thenThrow(RuntimeException("provider failure"))
+        val producer = mock<CacheInvalidationProducer>()
+        val coordinator = PriceBackfillCoordinator(backfillService, producer)
+
+        coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
+
+        verify(producer, never()).sendPriceHistoryEvent(any(), any())
     }
 }

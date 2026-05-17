@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
@@ -21,7 +22,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @Service
 class PriceBackfillCoordinator(
-    private val backfillService: MarketDataBackfillService
+    private val backfillService: MarketDataBackfillService,
+    private val cacheInvalidationProducer: CacheInvalidationProducer? = null
 ) {
     private val log = LoggerFactory.getLogger(PriceBackfillCoordinator::class.java)
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
@@ -46,6 +48,10 @@ class PriceBackfillCoordinator(
         try {
             log.info("Async backfill starting for asset={} fromDate={}", assetId, fromDate)
             backfillService.backFill(assetId, fromDate)
+            // Notify downstream caches (e.g. svc-position performance snapshots)
+            // that this asset's history changed so they recompute on the next
+            // request. Producer is optional in tests / cache-disabled profiles.
+            cacheInvalidationProducer?.sendPriceHistoryEvent(assetId, fromDate)
             log.info("Async backfill completed for asset={}", assetId)
         } catch (
             @Suppress("TooGenericExceptionCaught")

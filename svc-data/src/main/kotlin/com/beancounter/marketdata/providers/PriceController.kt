@@ -3,6 +3,8 @@ package com.beancounter.marketdata.providers
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.BulkPriceRequest
 import com.beancounter.common.contracts.BulkPriceResponse
+import com.beancounter.common.contracts.EnsureHistoryRequest
+import com.beancounter.common.contracts.EnsureHistoryResponse
 import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceHistoryResponse
 import com.beancounter.common.contracts.PriceRequest
@@ -417,6 +419,27 @@ class PriceController(
         )
         @PathVariable assetId: String
     ) = marketDataService.backFill(assetId)
+
+    @PostMapping("/ensure-history")
+    @Operation(
+        summary = "Ensure price history coverage for a set of assets",
+        description = """
+            Fire-and-forget hook used by performance / growth views to nudge
+            deep price-history backfills. For each asset, the coordinator
+            schedules an async backfill from the supplied fromDate when the
+            cached earliest is later — concurrent calls are deduplicated and
+            failed backfills back off via a 1h cooldown.
+        """
+    )
+    fun ensureHistory(
+        @RequestBody request: EnsureHistoryRequest
+    ): EnsureHistoryResponse {
+        val targetFrom = request.fromDate.coerceAtLeast(LocalDate.now().minusYears(MAX_BACKFILL_YEARS))
+        request.assetIds.forEach { assetId ->
+            priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
+        }
+        return EnsureHistoryResponse(scheduled = request.assetIds.size)
+    }
 
     @PostMapping("/backfill/{code}")
     @Operation(

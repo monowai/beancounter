@@ -177,6 +177,29 @@ internal class EodhdNewsServiceTest {
     }
 
     @Test
+    fun `blank summary still falls back to content truncation`() {
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 1))
+        )
+        whenever(articleRepo.findByTickersAfter(any(), any()))
+            .thenReturn(
+                listOf(
+                    storedArticle(
+                        polarity = 0.7,
+                        content = "Apple beat Q2 expectations by a wide margin.",
+                        summary = "   "
+                    )
+                )
+            )
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.first()["summary"]).isEqualTo("Apple beat Q2 expectations by a wide margin.")
+    }
+
+    @Test
     fun `unparseable date timestamp falls back to now instead of throwing`() {
         // EODHD has occasionally shipped articles with malformed dates; the service must not
         // crash the request — falls back to `now(UTC)` and stores the row with the rest intact.

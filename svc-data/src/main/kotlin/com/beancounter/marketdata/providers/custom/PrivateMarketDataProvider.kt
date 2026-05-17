@@ -95,8 +95,10 @@ class PrivateMarketDataProvider(
         priceRequest: PriceRequest
     ): LocalDate = dateUtils.getFormattedDate(priceRequest.date)
 
-    override fun backFill(asset: Asset): PriceResponse =
-        throw UnsupportedOperationException("Private market assets do not support backfill requests")
+    override fun backFill(
+        asset: Asset,
+        fromDate: LocalDate
+    ): PriceResponse = throw UnsupportedOperationException("Private market assets do not support backfill requests")
 
     override fun isApiSupported(): Boolean = false
 

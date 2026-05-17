@@ -135,13 +135,14 @@ class MorningstarPriceService(
         priceRequest: PriceRequest
     ): LocalDate = morningstarConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
 
-    override fun backFill(asset: Asset): PriceResponse {
+    override fun backFill(
+        asset: Asset,
+        fromDate: LocalDate
+    ): PriceResponse {
         val priceCode = morningstarConfig.getPriceCode(asset)
         val currencyId = asset.market.currency.code
 
-        // Fetch last year of data
-        val startDate = LocalDate.now().minusYears(1)
-        val json = morningstarProxy.getPrice(priceCode, currencyId, startDate) ?: return PriceResponse(emptyList())
+        val json = morningstarProxy.getPrice(priceCode, currencyId, fromDate) ?: return PriceResponse(emptyList())
 
         val prices = parseHistoricalResponse(json, asset)
         return PriceResponse(prices)

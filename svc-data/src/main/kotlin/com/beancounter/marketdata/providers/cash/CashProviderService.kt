@@ -59,8 +59,10 @@ class CashProviderService(
         priceRequest: PriceRequest
     ): LocalDate = priceDate!!
 
-    override fun backFill(asset: Asset): PriceResponse =
-        throw UnsupportedOperationException("Cash does not support backfill requests")
+    override fun backFill(
+        asset: Asset,
+        fromDate: LocalDate
+    ): PriceResponse = throw UnsupportedOperationException("Cash does not support backfill requests")
 
     companion object {
         const val ID = "CASH"

@@ -27,6 +27,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -74,6 +76,9 @@ internal class PriceControllerTests
 
         @MockitoSpyBean
         private lateinit var marketDataService: MarketDataService
+
+        @MockitoBean
+        private lateinit var priceBackfillCoordinator: PriceBackfillCoordinator
 
         @BeforeEach
         fun setUp() {
@@ -521,7 +526,7 @@ internal class PriceControllerTests
             assertThat(response.prices.first().close).isEqualByComparingTo(BigDecimal("21.00"))
             org.mockito.Mockito
                 .verify(marketDataService)
-                .backFill(asset.id)
+                .backFill(eq(asset.id), any())
         }
 
         @Test
@@ -530,25 +535,18 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
-        fun is_PriceHistoryBackfilledWhenEarliestLaterThanFrom() {
+        fun is_AsyncBackfillScheduledWhenEarliestLaterThanFrom() {
             // The DB only has prices from after a recent purchase, but the user
-            // requests a wider window. Earliest available is well inside the
-            // provider's 2y backfill window, so we should backfill to fill the
-            // gap before the purchase.
+            // requests a wider window. We return what we have immediately and
+            // schedule an async backfill so the next request gets the extended
+            // history without paying provider latency now.
             val today = LocalDate.now()
             val from = today.minusMonths(12)
             val to = today
             val purchaseDate = today.minusMonths(8)
             val initial = listOf(MarketData(asset, close = BigDecimal("10.00"), priceDate = purchaseDate))
-            val backfilled =
-                listOf(
-                    MarketData(asset, close = BigDecimal("5.00"), priceDate = from),
-                    MarketData(asset, close = BigDecimal("10.00"), priceDate = purchaseDate)
-                )
             `when`(assetFinder.find(asset.id)).thenReturn(asset)
-            `when`(marketDataRepo.findPriceHistory(asset.id, from, to))
-                .thenReturn(initial)
-                .thenReturn(backfilled)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(initial)
 
             mockMvc
                 .perform(
@@ -562,8 +560,12 @@ internal class PriceControllerTests
                 ).andExpect(MockMvcResultMatchers.status().isOk)
 
             org.mockito.Mockito
-                .verify(marketDataService)
-                .backFill(asset.id)
+                .verify(priceBackfillCoordinator)
+                .scheduleBackfill(eq(asset.id), any())
+            // Synchronous backfill must NOT happen — we returned what we had.
+            org.mockito.Mockito
+                .verify(marketDataService, org.mockito.Mockito.never())
+                .backFill(eq(asset.id), any())
         }
 
         @Test
@@ -572,14 +574,17 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
-        fun is_PriceHistoryNotBackfilledWhenEarliestBeyondProviderWindow() {
-            // Existing earliest already sits at the provider's 2y backfill floor.
-            // Another backfill cannot reach further back, so don't burn quota.
+        fun is_NoBackfillScheduledWhenCachedRangeCoversRequest() {
+            // Earliest cached price is already before (or equal to) the requested
+            // `from` plus the retry buffer — nothing to fill, no async schedule.
             val today = LocalDate.now()
-            val from = today.minusYears(5)
+            val from = today.minusMonths(12)
             val to = today
-            val earliestExisting = today.minusYears(2).minusDays(30)
-            val history = listOf(MarketData(asset, close = BigDecimal("10.00"), priceDate = earliestExisting))
+            val history =
+                listOf(
+                    MarketData(asset, close = BigDecimal("9.00"), priceDate = from.minusDays(30)),
+                    MarketData(asset, close = BigDecimal("10.00"), priceDate = from.plusMonths(2))
+                )
             `when`(assetFinder.find(asset.id)).thenReturn(asset)
             `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(history)
 
@@ -595,8 +600,11 @@ internal class PriceControllerTests
                 ).andExpect(MockMvcResultMatchers.status().isOk)
 
             org.mockito.Mockito
+                .verify(priceBackfillCoordinator, org.mockito.Mockito.never())
+                .scheduleBackfill(any(), any())
+            org.mockito.Mockito
                 .verify(marketDataService, org.mockito.Mockito.never())
-                .backFill(asset.id)
+                .backFill(any<String>(), any())
         }
 
         @Test

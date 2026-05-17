@@ -52,7 +52,8 @@ class PriceController(
     private val eventService: EventServiceFacade,
     private val priceService: PriceService,
     private val dateUtils: DateUtils,
-    private val portfolioPriceBackfillService: PortfolioPriceBackfillService
+    private val portfolioPriceBackfillService: PortfolioPriceBackfillService,
+    private val priceBackfillCoordinator: PriceBackfillCoordinator
 ) {
     private val log = LoggerFactory.getLogger(PriceController::class.java)
 
@@ -331,38 +332,39 @@ class PriceController(
         val fromDate = dateUtils.getFormattedDate(from)
         val toDate = dateUtils.getFormattedDate(to)
         val initial = priceService.getPriceHistory(assetId, fromDate, toDate)
-        if (!needsBackfill(initial, fromDate)) return initial
-        return try {
-            marketDataService.backFill(assetId)
-            priceService.getPriceHistory(assetId, fromDate, toDate)
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.warn("Price history backfill failed for asset {}: {}", assetId, e.message)
-            initial
-        }
-    }
+        val targetFrom = fromDate.coerceAtLeast(LocalDate.now().minusYears(MAX_BACKFILL_YEARS))
 
-    // Backfill is worth attempting when either we have no data at all, or when
-    // the earliest cached price is later than the requested `from` AND still
-    // sits inside the provider's ~2y backfill window with enough headroom that
-    // another fetch can plausibly extend history earlier. The 7-day buffer
-    // stops us re-hitting the provider once the existing earliest is right at
-    // the 2y floor — no new rows would come back.
-    private fun needsBackfill(
-        response: PriceHistoryResponse,
-        requestedFrom: LocalDate
-    ): Boolean {
-        if (response.prices.isEmpty()) return true
-        val earliest = response.prices.minByOrNull { it.priceDate }?.priceDate ?: return true
-        if (earliest <= requestedFrom) return false
-        val backfillFloor = LocalDate.now().minusYears(BACKFILL_WINDOW_YEARS)
-        return earliest > backfillFloor.plusDays(BACKFILL_RETRY_BUFFER_DAYS)
+        if (initial.prices.isEmpty()) {
+            // Nothing cached at all — block briefly so the chart isn't empty.
+            return try {
+                marketDataService.backFill(assetId, targetFrom)
+                priceService.getPriceHistory(assetId, fromDate, toDate)
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception
+            ) {
+                log.warn("Price history backfill failed for asset {}: {}", assetId, e.message)
+                initial
+            }
+        }
+
+        // We have something to render. If the cached range falls short of what
+        // was asked for, schedule an async backfill so the next request can
+        // return the extended history without paying provider latency now.
+        val earliest = initial.prices.minByOrNull { it.priceDate }?.priceDate
+        if (earliest != null && earliest > targetFrom.plusDays(BACKFILL_RETRY_BUFFER_DAYS)) {
+            priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
+        }
+        return initial
     }
 
     private companion object {
-        const val BACKFILL_WINDOW_YEARS = 2L
+        // Hard cap on how far back we'll ever ask a provider to go. Matches the
+        // longest range the chart UI exposes.
+        const val MAX_BACKFILL_YEARS = 10L
+
+        // Headroom buffer so we don't re-trigger backfills when the cached
+        // earliest already sits right at the provider's reachable floor.
         const val BACKFILL_RETRY_BUFFER_DAYS = 7L
     }
 

@@ -32,8 +32,11 @@ class MarketDataService(
     private val priceService: PriceService,
     private val dateUtils: DateUtils
 ) {
-    fun backFill(assetId: String) {
-        backfillService.backFill(assetId)
+    fun backFill(
+        assetId: String,
+        fromDate: LocalDate = LocalDate.now().minusYears(2)
+    ) {
+        backfillService.backFill(assetId, fromDate)
     }
 
     fun getPriceResponse(

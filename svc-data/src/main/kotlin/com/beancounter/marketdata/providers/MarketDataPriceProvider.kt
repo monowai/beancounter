@@ -30,7 +30,13 @@ interface MarketDataPriceProvider {
         priceRequest: PriceRequest
     ): LocalDate
 
-    fun backFill(asset: Asset): PriceResponse
+    // fromDate caps how far back to fetch when the provider supports a date
+    // range. Providers that always return their full available history
+    // (Alpha) or none at all (cash, custom) may ignore it.
+    fun backFill(
+        asset: Asset,
+        fromDate: LocalDate = LocalDate.now().minusYears(2)
+    ): PriceResponse
 
     // Return true if an external API calls is required
     fun isApiSupported(): Boolean

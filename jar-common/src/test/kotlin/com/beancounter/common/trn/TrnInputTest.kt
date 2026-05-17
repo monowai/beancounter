@@ -13,6 +13,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnDto
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils
 import com.beancounter.common.utils.AssetUtils
@@ -137,16 +138,16 @@ internal class TrnInputTest {
         // Market.aliases are not serialized
         assertThat(fromAsset.market)
             .usingRecursiveComparison()
-            .ignoringFields(
-                "market",
-                "aliases"
-            )
+            .ignoringFields("aliases")
+            .isEqualTo(trn.asset.market)
         assertThat(fromAsset)
             .usingRecursiveComparison()
+            .ignoringFields("market.aliases")
+            .isEqualTo(trn.asset)
         assertThat(fromJson.data.trns).hasSize(1)
         assertThat(fromDto)
             .usingRecursiveComparison()
-            .ignoringFields("assetId")
+            .isEqualTo(TrnDto.from(trn))
     }
 
     private val portfolioProp = "portfolio"

@@ -539,6 +539,42 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
+        fun is_PriceHistoryBackfillFromDateCappedAtTenYears() {
+            // Caller asks for 15y of history. Controller must coerce the backfill
+            // start date to today-10y so a sloppy/malicious caller can't drive
+            // arbitrarily-deep provider calls.
+            val today = LocalDate.now()
+            val from = today.minusYears(15)
+            val to = today
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to))
+                .thenReturn(emptyList())
+                .thenReturn(emptyList())
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/prices/{assetId}/history", asset.id)
+                        .param("from", from.toString())
+                        .param("to", to.toString())
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+
+            val cappedCaptor = argumentCaptor<LocalDate>()
+            org.mockito.Mockito
+                .verify(marketDataService)
+                .backFill(eq(asset.id), cappedCaptor.capture())
+            assertThat(cappedCaptor.firstValue).isEqualTo(today.minusYears(10))
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
         fun is_AsyncBackfillScheduledWhenEarliestLaterThanFrom() {
             // The DB only has prices from after a recent purchase, but the user
             // requests a wider window. We return what we have immediately and

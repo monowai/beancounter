@@ -3,6 +3,8 @@ package com.beancounter.client.services
 import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.BulkPriceRequest
 import com.beancounter.common.contracts.BulkPriceResponse
+import com.beancounter.common.contracts.EnsureHistoryRequest
+import com.beancounter.common.contracts.EnsureHistoryResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
@@ -48,6 +50,20 @@ class PriceService(
             .retrieve()
             .body(BulkPriceResponse::class.java)
             ?: throw BusinessException("Failed to get bulk prices")
+
+    fun ensureHistory(
+        ensureHistoryRequest: EnsureHistoryRequest,
+        token: String = tokenService.bearerToken
+    ): EnsureHistoryResponse =
+        restClient
+            .post()
+            .uri("/prices/ensure-history")
+            .header(HttpHeaders.AUTHORIZATION, token)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(ensureHistoryRequest)
+            .retrieve()
+            .body(EnsureHistoryResponse::class.java)
+            ?: throw BusinessException("Failed to schedule ensure-history")
 
     fun getEvents(assetId: String): PriceResponse =
         restClient

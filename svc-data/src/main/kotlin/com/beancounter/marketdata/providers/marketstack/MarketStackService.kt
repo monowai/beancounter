@@ -107,14 +107,16 @@ class MarketStackService(
             priceRequest.date
         )
 
-    override fun backFill(asset: Asset): PriceResponse {
+    override fun backFill(
+        asset: Asset,
+        fromDate: LocalDate
+    ): PriceResponse {
         val symbol = marketStackConfig.getPriceCode(asset)
         val dateTo = dateUtils.today()
-        val dateFrom = LocalDate.parse(dateTo).minusYears(2).toString()
         val response =
             marketStackGateway.getHistory(
                 symbol,
-                dateFrom,
+                fromDate.toString(),
                 dateTo,
                 marketStackConfig.apiKey
             )

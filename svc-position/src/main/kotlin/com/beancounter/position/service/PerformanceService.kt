@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.AggregatedPerformanceResponse
 import com.beancounter.common.contracts.BulkFxRequest
 import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.BulkPriceRequest
+import com.beancounter.common.contracts.EnsureHistoryRequest
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.PerformanceData
 import com.beancounter.common.contracts.PerformanceDataPoint
@@ -32,11 +33,13 @@ import com.beancounter.position.cache.PerformanceCacheService
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.irr.ValuationSnapshot
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.dao.DataAccessException
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import java.util.concurrent.Executor
 
 /**
  * Calculates portfolio performance using Time-Weighted Return (TWR).
@@ -61,6 +64,8 @@ class PerformanceService(
     private val dateUtils: DateUtils,
     private val tokenService: TokenService,
     private val cacheService: PerformanceCacheService,
+    @Qualifier("performanceNudgeExecutor")
+    private val nudgeExecutor: Executor = Executor(Runnable::run),
     private val cashUtils: CashUtils = CashUtils()
 ) {
     fun calculate(
@@ -107,6 +112,12 @@ class PerformanceService(
         // Collect all unique non-cash assets and currency pairs from transactions
         val allAssets = collectAssets(transactions)
         val allPairs = collectFxPairs(transactions, portfolio)
+
+        // Fire-and-forget — nudge svc-data to backfill deep history for the
+        // assets we're about to value. This lets long-window growth / wealth
+        // charts converge to a complete series across requests without
+        // blocking the current calculation on a multi-year provider call.
+        ensureAssetHistory(allAssets, startDate, token)
 
         // Pre-fetch all prices and FX rates in exactly 2 bulk calls
         val priceCache = prefetchPrices(allAssets, valuationDates, token)
@@ -155,6 +166,40 @@ class PerformanceService(
                 assets = assets
             )
         return priceService.getBulkPrices(request, token).data
+    }
+
+    private fun ensureAssetHistory(
+        assets: List<PriceAsset>,
+        startDate: LocalDate,
+        token: String
+    ) {
+        if (assets.isEmpty()) return
+        val assetIds =
+            assets
+                .mapNotNull {
+                    it.resolvedAsset?.id ?: it.assetId.takeIf { id ->
+                        id.isNotEmpty()
+                    }
+                }.distinct()
+        if (assetIds.isEmpty()) return
+        // Truly fire-and-forget: dispatch the HTTP call onto a dedicated executor so
+        // the request thread doesn't wait on the round-trip to svc-data. svc-data
+        // returns immediately (it only schedules the backfill), but even the bare
+        // RPC adds latency we don't want on every calculate().
+        nudgeExecutor.execute {
+            try {
+                priceService.ensureHistory(
+                    EnsureHistoryRequest(assetIds = assetIds, fromDate = startDate),
+                    token
+                )
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception
+            ) {
+                // Non-fatal — performance calc continues with whatever is in the DB.
+                log.warn("ensureHistory call failed (continuing)", e)
+            }
+        }
     }
 
     private fun prefetchFxRates(

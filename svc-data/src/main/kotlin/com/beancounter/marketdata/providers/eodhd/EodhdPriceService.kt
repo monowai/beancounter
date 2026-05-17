@@ -84,11 +84,13 @@ class EodhdPriceService(
             priceRequest.date
         )
 
-    override fun backFill(asset: Asset): PriceResponse {
+    override fun backFill(
+        asset: Asset,
+        fromDate: LocalDate
+    ): PriceResponse {
         val symbol = eodhdConfig.getPriceCode(asset)
         val dateTo = dateUtils.today()
-        val dateFrom = LocalDate.parse(dateTo).minusYears(2).toString()
-        val rows = eodhdProxy.getHistory(symbol, dateFrom, dateTo, eodhdConfig.apiKey)
+        val rows = eodhdProxy.getHistory(symbol, fromDate.toString(), dateTo, eodhdConfig.apiKey)
         return PriceResponse(eodhdAdapter.toMarketData(asset, LocalDate.parse(dateTo), rows))
     }
 

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.time.LocalDate
 
 /**
  * Facade. AlphaAdvantage - www.alphavantage.co.
@@ -147,7 +148,10 @@ class AlphaPriceService(
         priceRequest: PriceRequest
     ) = alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
 
-    override fun backFill(asset: Asset): PriceResponse {
+    override fun backFill(
+        asset: Asset,
+        fromDate: LocalDate
+    ): PriceResponse {
         // TIME_SERIES_DAILY_ADJUSTED returns an error for index symbols (^GSPC, ^IXIC).
         // Fall back to TIME_SERIES_DAILY which works for indices and never carries
         // dividend/split data.

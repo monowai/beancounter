@@ -33,5 +33,9 @@ interface PerformanceSnapshotRepository : JpaRepository<PerformanceSnapshotEntit
     fun deleteByValuationDate(date: LocalDate)
 
     @Modifying
+    @Query("DELETE FROM PerformanceSnapshotEntity e WHERE e.valuationDate >= :fromDate")
+    fun deleteByValuationDateGreaterThanEqual(fromDate: LocalDate)
+
+    @Modifying
     fun deleteByPortfolioId(portfolioId: String)
 }

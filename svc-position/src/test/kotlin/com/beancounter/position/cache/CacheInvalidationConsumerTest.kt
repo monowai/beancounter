@@ -59,4 +59,20 @@ class CacheInvalidationConsumerTest {
 
         verify(cacheService).invalidateOnDate(LocalDate.of(2024, 6, 15))
     }
+
+    @Test
+    fun `PRICE_HISTORY event invalidates snapshots from date`() {
+        val consumer = CacheInvalidationConsumer(cacheService)
+        val handler = consumer.performanceCacheInvalidation()
+        val event =
+            CacheInvalidationEvent(
+                changeType = CacheChangeType.PRICE_HISTORY,
+                assetId = "asset-1",
+                fromDate = LocalDate.of(2020, 1, 1)
+            )
+
+        handler.accept(event)
+
+        verify(cacheService).invalidateFromDate(LocalDate.of(2020, 1, 1))
+    }
 }

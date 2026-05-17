@@ -47,6 +47,24 @@ class CacheInvalidationProducer(
         )
     }
 
+    /**
+     * Emitted after a deep-history backfill completes for [assetId]. svc-position
+     * uses this to drop cached performance snapshots from [fromDate] onwards so
+     * the next read recomputes against the widened price series.
+     */
+    fun sendPriceHistoryEvent(
+        assetId: String,
+        fromDate: LocalDate
+    ) {
+        send(
+            CacheInvalidationEvent(
+                changeType = CacheChangeType.PRICE_HISTORY,
+                assetId = assetId,
+                fromDate = fromDate
+            )
+        )
+    }
+
     private fun send(event: CacheInvalidationEvent) {
         if (!streamEnabled) return
         try {

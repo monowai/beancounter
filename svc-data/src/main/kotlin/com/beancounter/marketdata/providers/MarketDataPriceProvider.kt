@@ -30,8 +30,24 @@ interface MarketDataPriceProvider {
         priceRequest: PriceRequest
     ): LocalDate
 
-    fun backFill(asset: Asset): PriceResponse
+    // fromDate caps how far back to fetch when the provider supports a date
+    // range. Providers that always return their full available history
+    // (Alpha) or none at all (cash, custom) may ignore it.
+    fun backFill(
+        asset: Asset,
+        fromDate: LocalDate = defaultBackfillFrom()
+    ): PriceResponse
 
     // Return true if an external API calls is required
     fun isApiSupported(): Boolean
+
+    companion object {
+        // Default window when no caller-supplied `fromDate`. Matches the
+        // shortest provider plan (EODHD historical / MarketStack base tier
+        // both cover roughly this range). PriceController + ensureHistory
+        // pass an explicit `targetFrom` for deep-history charts.
+        const val DEFAULT_BACKFILL_YEARS = 2L
+
+        fun defaultBackfillFrom(): LocalDate = LocalDate.now().minusYears(DEFAULT_BACKFILL_YEARS)
+    }
 }

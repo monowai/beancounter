@@ -3,6 +3,8 @@ package com.beancounter.marketdata.providers
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.BulkPriceRequest
 import com.beancounter.common.contracts.BulkPriceResponse
+import com.beancounter.common.contracts.EnsureHistoryRequest
+import com.beancounter.common.contracts.EnsureHistoryResponse
 import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceHistoryResponse
 import com.beancounter.common.contracts.PriceRequest
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 /**
  * Market Data MVC for price management operations.
@@ -51,7 +54,8 @@ class PriceController(
     private val eventService: EventServiceFacade,
     private val priceService: PriceService,
     private val dateUtils: DateUtils,
-    private val portfolioPriceBackfillService: PortfolioPriceBackfillService
+    private val portfolioPriceBackfillService: PortfolioPriceBackfillService,
+    private val priceBackfillCoordinator: PriceBackfillCoordinator
 ) {
     private val log = LoggerFactory.getLogger(PriceController::class.java)
 
@@ -330,17 +334,40 @@ class PriceController(
         val fromDate = dateUtils.getFormattedDate(from)
         val toDate = dateUtils.getFormattedDate(to)
         val initial = priceService.getPriceHistory(assetId, fromDate, toDate)
-        if (initial.prices.isNotEmpty()) return initial
-        return try {
-            marketDataService.backFill(assetId)
-            priceService.getPriceHistory(assetId, fromDate, toDate)
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.warn("Price history backfill failed for asset {}: {}", assetId, e.message)
-            initial
+        val targetFrom = fromDate.coerceAtLeast(LocalDate.now().minusYears(MAX_BACKFILL_YEARS))
+
+        if (initial.prices.isEmpty()) {
+            // Nothing cached at all — block briefly so the chart isn't empty.
+            return try {
+                marketDataService.backFill(assetId, targetFrom)
+                priceService.getPriceHistory(assetId, fromDate, toDate)
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception
+            ) {
+                log.warn("Price history backfill failed for asset {}", assetId, e)
+                initial
+            }
         }
+
+        // We have something to render. If the cached range falls short of what
+        // was asked for, schedule an async backfill so the next request can
+        // return the extended history without paying provider latency now.
+        val earliest = initial.prices.minByOrNull { it.priceDate }?.priceDate
+        if (earliest != null && earliest > targetFrom.plusDays(BACKFILL_RETRY_BUFFER_DAYS)) {
+            priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
+        }
+        return initial
+    }
+
+    private companion object {
+        // Hard cap on how far back we'll ever ask a provider to go. Matches the
+        // longest range the chart UI exposes.
+        const val MAX_BACKFILL_YEARS = 10L
+
+        // Headroom buffer so we don't re-trigger backfills when the cached
+        // earliest already sits right at the provider's reachable floor.
+        const val BACKFILL_RETRY_BUFFER_DAYS = 7L
     }
 
     @PostMapping("/bulk")
@@ -392,6 +419,35 @@ class PriceController(
         )
         @PathVariable assetId: String
     ) = marketDataService.backFill(assetId)
+
+    @PostMapping("/ensure-history")
+    @Operation(
+        summary = "Ensure price history coverage for a set of assets",
+        description = """
+            Fire-and-forget hook used by performance / growth views to nudge
+            deep price-history backfills. For each asset, the coordinator
+            schedules an async backfill from the supplied fromDate when the
+            cached earliest is later — concurrent calls are deduplicated and
+            failed backfills back off via a 1h cooldown.
+        """
+    )
+    fun ensureHistory(
+        @RequestBody request: EnsureHistoryRequest
+    ): EnsureHistoryResponse {
+        val targetFrom = request.fromDate.coerceAtLeast(LocalDate.now().minusYears(MAX_BACKFILL_YEARS))
+        // Trim and de-duplicate so a sloppy caller (e.g. a portfolio with the same asset across
+        // currencies) doesn't blow the per-asset cooldown budget on phantom IDs, and so the
+        // returned `scheduled` count reflects what we actually queued.
+        val cleanAssetIds =
+            request.assetIds
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .distinct()
+        cleanAssetIds.forEach { assetId ->
+            priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
+        }
+        return EnsureHistoryResponse(scheduled = cleanAssetIds.size)
+    }
 
     @PostMapping("/backfill/{code}")
     @Operation(

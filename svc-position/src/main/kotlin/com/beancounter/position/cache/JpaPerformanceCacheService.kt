@@ -83,6 +83,12 @@ class JpaPerformanceCacheService(
     }
 
     @Transactional
+    override fun invalidateFromDate(fromDate: LocalDate) {
+        repository.deleteByValuationDateGreaterThanEqual(fromDate)
+        log.trace("Cache invalidate: from={}", fromDate)
+    }
+
+    @Transactional
     override fun invalidatePortfolio(portfolioId: String) {
         repository.deleteByPortfolioId(portfolioId)
         log.trace("Cache invalidate: portfolio={}", portfolioId)

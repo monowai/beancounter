@@ -34,6 +34,18 @@ class PriceBackfillCoordinator(
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
     private val lastAttempt = ConcurrentHashMap<String, Instant>()
 
+    /**
+     * Queue a deep backfill for [assetId] reaching back to [fromDate]. Returns
+     * immediately — the actual provider call runs on `priceBackfillExecutor`.
+     *
+     * Three guards short-circuit before any work runs:
+     *  - blank [assetId] is dropped (caller bug, don't spam the executor)
+     *  - cooldown: same asset attempted within [ATTEMPT_COOLDOWN] is dropped
+     *  - in-flight: concurrent backfill for same asset is suppressed
+     *
+     * On success a `PRICE_HISTORY` cache-invalidation event is published so
+     * downstream caches (svc-position snapshots) recompute on the next read.
+     */
     @Async("priceBackfillExecutor")
     fun scheduleBackfill(
         assetId: String,

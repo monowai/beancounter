@@ -225,7 +225,11 @@ class PerformanceService(
     }
 
     private fun fetchAndSortTransactions(portfolio: Portfolio): List<Trn> =
-        trnService.query(portfolio, DateUtils.TODAY).data.sortedBy { it.tradeDate }
+        trnService
+            .query(portfolio, DateUtils.TODAY)
+            .data
+            .toTrns()
+            .sortedBy { it.tradeDate }
 
     /**
      * Determines when to value the portfolio: at each external cash flow date

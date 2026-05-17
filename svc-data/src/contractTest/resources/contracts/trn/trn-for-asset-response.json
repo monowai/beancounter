@@ -1,39 +1,140 @@
 {
-  "data": [
-    {
-      "id": "zKF4mEiPQgOymbly35B2qw",
-      "callerRef": {
-        "provider": "BLAH",
-        "batch": "USV",
-        "callerId": "3"
-      },
-      "trnType": "BUY",
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "USV",
-        "code": "USV",
-        "name": "TEST",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
+  "data": {
+    "trns": [
+      {
+        "id": "zKF4mEiPQgOymbly35B2qw",
+        "callerRef": {
+          "provider": "BLAH",
+          "batch": "USV",
+          "callerId": "3"
         },
-        "base": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "owner": {
-          "id": "blah@blah.com",
-          "email": "blah@blah.com",
-          "auth0": "",
-          "active": true,
-          "since": "2020-03-08"
-        }
+        "trnType": "BUY",
+        "status": "PROPOSED",
+        "tradeDate": "2019-03-07",
+        "settleDate": null,
+        "quantity": 80.0,
+        "price": 19.98,
+        "fees": 3.0,
+        "tax": 0.0,
+        "tradeAmount": 1601.4,
+        "cashAmount": 0,
+        "tradeCashRate": 1.0,
+        "tradeBaseRate": 0.67771,
+        "tradePortfolioRate": 1.0,
+        "version": "1",
+        "comments": null,
+        "assetId": "KMI",
+        "portfolioId": "USV",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD"
       },
-      "asset": {
+      {
+        "id": "JPFF3k0kRn2SErhZQrkfig",
+        "callerRef": {
+          "provider": "2-yXnKQNQQqpt48DdOt1Hw",
+          "batch": "USV",
+          "callerId": "1149"
+        },
+        "trnType": "DIVI",
+        "status": "PROPOSED",
+        "tradeDate": "2019-05-15",
+        "settleDate": null,
+        "quantity": 0.0,
+        "price": 0.0,
+        "fees": 0.0,
+        "tax": 0.0,
+        "tradeAmount": 20.0,
+        "cashAmount": 20.0,
+        "tradeCashRate": 1.0,
+        "tradeBaseRate": 0.655241,
+        "tradePortfolioRate": 1.0,
+        "version": "1",
+        "comments": "share",
+        "assetId": "KMI",
+        "portfolioId": "USV",
+        "tradeCurrencyCode": "USD"
+      },
+      {
+        "id": "x3NPGGJQSWWfYKJQzI1IaQ",
+        "callerRef": {
+          "provider": "2-yXnKQNQQqpt48DdOt1Hw",
+          "batch": "USV",
+          "callerId": "1150"
+        },
+        "trnType": "DIVI",
+        "status": "PROPOSED",
+        "tradeDate": "2019-08-15",
+        "settleDate": null,
+        "quantity": 0.0,
+        "price": 0.0,
+        "fees": 0.0,
+        "tax": 0.0,
+        "tradeAmount": 20.0,
+        "cashAmount": 20.0,
+        "tradeCashRate": 1.0,
+        "tradeBaseRate": 0.644099,
+        "tradePortfolioRate": 1.0,
+        "version": "1",
+        "comments": "share",
+        "assetId": "KMI",
+        "portfolioId": "USV",
+        "tradeCurrencyCode": "USD"
+      },
+      {
+        "id": "xqqNsklVSz6IgZgwdLHRzQ",
+        "callerRef": {
+          "provider": "2-yXnKQNQQqpt48DdOt1Hw",
+          "batch": "USV",
+          "callerId": "1151"
+        },
+        "trnType": "DIVI",
+        "status": "PROPOSED",
+        "tradeDate": "2019-11-15",
+        "settleDate": null,
+        "quantity": 0.0,
+        "price": 0.0,
+        "fees": 0.0,
+        "tax": 0.0,
+        "tradeAmount": 20.0,
+        "cashAmount": 20.0,
+        "tradeCashRate": 1.0,
+        "tradeBaseRate": 0.639467,
+        "tradePortfolioRate": 1.0,
+        "version": "1",
+        "comments": "share",
+        "assetId": "KMI",
+        "portfolioId": "USV",
+        "tradeCurrencyCode": "USD"
+      },
+      {
+        "id": "TWYn4huHRO-e-hC3yrG8RA",
+        "callerRef": {
+          "provider": "2-yXnKQNQQqpt48DdOt1Hw",
+          "batch": "USV",
+          "callerId": "1152"
+        },
+        "trnType": "DIVI",
+        "status": "PROPOSED",
+        "tradeDate": "2020-02-18",
+        "settleDate": null,
+        "quantity": 0.0,
+        "price": 0.0,
+        "fees": 0.0,
+        "tax": 0.0,
+        "tradeAmount": 20.0,
+        "cashAmount": 20.0,
+        "tradeCashRate": 1.0,
+        "tradeBaseRate": 0.639206,
+        "tradePortfolioRate": 1.0,
+        "version": "1",
+        "comments": "share",
+        "assetId": "KMI",
+        "portfolioId": "USV",
+        "tradeCurrencyCode": "USD"
+      }
+    ],
+    "assets": {
+      "KMI": {
         "id": "KMI",
         "code": "KMI",
         "name": "Kinder Morgan Inc.",
@@ -54,41 +155,10 @@
           "multiplier": 1
         },
         "priceSymbol": "KMI"
-      },
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeDate": "2019-03-07",
-      "settleDate": null,
-      "quantity": 80.000000,
-      "price": 19.980000,
-      "fees": 3.00,
-      "tax": 0.00,
-      "tradeAmount": 1601.40,
-      "cashAmount": 0,
-      "tradeCashRate": 1.000000,
-      "tradeBaseRate": 0.677710,
-      "tradePortfolioRate": 1.000000,
-      "version": "1",
-      "comments": null
+      }
     },
-    {
-      "id": "JPFF3k0kRn2SErhZQrkfig",
-      "callerRef": {
-        "provider": "2-yXnKQNQQqpt48DdOt1Hw",
-        "batch": "USV",
-        "callerId": "1149"
-      },
-      "trnType": "DIVI",
-      "status": "PROPOSED",
-      "portfolio": {
+    "portfolios": {
+      "USV": {
         "id": "USV",
         "code": "USV",
         "name": "TEST",
@@ -111,273 +181,15 @@
           "active": true,
           "since": "2020-03-08"
         }
-      },
-      "asset": {
-        "id": "KMI",
-        "code": "KMI",
-        "name": "Kinder Morgan Inc.",
-        "status": "Active",
-        "version": "1",
-        "assetCategory": {
-          "id": "Equity",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NYSE",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "timezone": "US/Eastern",
-          "multiplier": 1
-        },
-        "priceSymbol": "KMI"
-      },
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": null,
-      "tradeDate": "2019-05-15",
-      "settleDate": null,
-      "quantity": 0.00,
-      "price": 0.0,
-      "fees": 0.00,
-      "tax": 0.00,
-      "tradeAmount": 20.00,
-      "cashAmount": 20.00,
-      "tradeCashRate": 1.000000,
-      "tradeBaseRate": 0.655241,
-      "tradePortfolioRate": 1.000000,
-      "version": "1",
-      "comments": "share"
+      }
     },
-    {
-      "id": "x3NPGGJQSWWfYKJQzI1IaQ",
-      "callerRef": {
-        "provider": "2-yXnKQNQQqpt48DdOt1Hw",
-        "batch": "USV",
-        "callerId": "1150"
-      },
-      "trnType": "DIVI",
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "USV",
-        "code": "USV",
-        "name": "TEST",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "owner": {
-          "id": "blah@blah.com",
-          "email": "blah@blah.com",
-          "auth0": "",
-          "active": true,
-          "since": "2020-03-08"
-        }
-      },
-      "asset": {
-        "id": "KMI",
-        "code": "KMI",
-        "name": "Kinder Morgan Inc.",
-        "status": "Active",
-        "version": "1",
-        "assetCategory": {
-          "id": "Equity",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NYSE",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "timezone": "US/Eastern",
-          "multiplier": 1
-        },
-        "priceSymbol": "KMI"
-      },
-      "tradeCurrency": {
+    "currencies": {
+      "USD": {
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"
-      },
-      "cashCurrency": null,
-      "tradeDate": "2019-08-15",
-      "settleDate": null,
-      "quantity": 0.00,
-      "price": 0.0,
-      "fees": 0.00,
-      "tax": 0.00,
-      "tradeAmount": 20.00,
-      "cashAmount": 20.00,
-      "tradeCashRate": 1.000000,
-      "tradeBaseRate": 0.644099,
-      "tradePortfolioRate": 1.000000,
-      "version": "1",
-      "comments": "share"
+      }
     },
-    {
-      "id": "xqqNsklVSz6IgZgwdLHRzQ",
-      "callerRef": {
-        "provider": "2-yXnKQNQQqpt48DdOt1Hw",
-        "batch": "USV",
-        "callerId": "1151"
-      },
-      "trnType": "DIVI",
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "USV",
-        "code": "USV",
-        "name": "TEST",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "owner": {
-          "id": "blah@blah.com",
-          "email": "blah@blah.com",
-          "auth0": "",
-          "active": true,
-          "since": "2020-03-08"
-        }
-      },
-      "asset": {
-        "id": "KMI",
-        "code": "KMI",
-        "name": "Kinder Morgan Inc.",
-        "status": "Active",
-        "version": "1",
-        "assetCategory": {
-          "id": "Equity",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NYSE",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "timezone": "US/Eastern",
-          "multiplier": 1
-        },
-        "priceSymbol": "KMI"
-      },
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": null,
-      "tradeDate": "2019-11-15",
-      "settleDate": null,
-      "quantity": 0.00,
-      "price": 0.0,
-      "fees": 0.00,
-      "tax": 0.00,
-      "tradeAmount": 20.00,
-      "cashAmount": 20.00,
-      "tradeCashRate": 1.000000,
-      "tradeBaseRate": 0.639467,
-      "tradePortfolioRate": 1.000000,
-      "version": "1",
-      "comments": "share"
-    },
-    {
-      "id": "TWYn4huHRO-e-hC3yrG8RA",
-      "callerRef": {
-        "provider": "2-yXnKQNQQqpt48DdOt1Hw",
-        "batch": "USV",
-        "callerId": "1152"
-      },
-      "trnType": "DIVI",
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "USV",
-        "code": "USV",
-        "name": "TEST",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "owner": {
-          "id": "blah@blah.com",
-          "email": "blah@blah.com",
-          "auth0": "",
-          "active": true,
-          "since": "2020-03-08"
-        }
-      },
-      "asset": {
-        "id": "KMI",
-        "code": "KMI",
-        "name": "Kinder Morgan Inc.",
-        "status": "Active",
-        "version": "1",
-        "assetCategory": {
-          "id": "Equity",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NYSE",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "timezone": "US/Eastern",
-          "multiplier": 1
-        },
-        "priceSymbol": "KMI"
-      },
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": null,
-      "tradeDate": "2020-02-18",
-      "settleDate": null,
-      "quantity": 0.00,
-      "price": 0.0,
-      "fees": 0.00,
-      "tax": 0.00,
-      "tradeAmount": 20.00,
-      "cashAmount": 20.00,
-      "tradeCashRate": 1.000000,
-      "tradeBaseRate": 0.639206,
-      "tradePortfolioRate": 1.000000,
-      "version": "1",
-      "comments": "share"
-    }
-  ]
+    "brokers": {}
+  }
 }

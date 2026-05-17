@@ -132,11 +132,8 @@ internal class TrnInputTest {
                 BcJson.objectMapper.writeValueAsString(trnResponse),
                 TrnResponse::class.java
             )
-        val fromAsset: Asset =
-            fromJson.data
-                .iterator()
-                .next()
-                .asset
+        val fromDto = fromJson.data.trns.first()
+        val fromAsset: Asset = fromJson.data.assets.getValue(fromDto.assetId)
         // Market.aliases are not serialized
         assertThat(fromAsset.market)
             .usingRecursiveComparison()
@@ -146,10 +143,10 @@ internal class TrnInputTest {
             )
         assertThat(fromAsset)
             .usingRecursiveComparison()
-        assertThat(fromJson.data).hasSize(1)
-        assertThat(fromJson.data.iterator().next())
+        assertThat(fromJson.data.trns).hasSize(1)
+        assertThat(fromDto)
             .usingRecursiveComparison()
-            .ignoringFields("asset")
+            .ignoringFields("assetId")
     }
 
     private val portfolioProp = "portfolio"

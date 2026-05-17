@@ -1,8 +1,901 @@
 {
-  "data": [
-    {
-      "trnType": "BUY",
-      "asset": {
+  "data": {
+    "trns": [
+      {
+        "trnType": "BUY",
+        "quantity": 2.0,
+        "price": 475.0,
+        "tradeAmount": 952.5,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2013-02-12",
+        "version": "3",
+        "id": "7BgiM5NRSAiLGikinXWoPQ",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "YT-Onzh8RreP3mMkld80yg"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 2.5,
+        "tax": 0.0,
+        "cashAmount": -952.5,
+        "tradeBaseRate": 0.839364,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "BUY",
+        "quantity": 1.0,
+        "price": 460.04,
+        "tradeAmount": 461.19,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2013-02-15",
+        "version": "3",
+        "id": "_nbjjW1cQr2pDyFRKqIUUw",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "cvo6VEfcTaaCIbIHmwt8Ow"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 1.15,
+        "tax": 0.0,
+        "cashAmount": -461.19,
+        "tradeBaseRate": 0.846339,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.41,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2013-05-16",
+        "version": "3",
+        "id": "DSULz_8CSwmMEtGWSfY3Ow",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "DKlZ_gt_TIiEqeizuXm_hw"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.41,
+        "tradeBaseRate": 0.816451,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.41,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2013-08-15",
+        "version": "3",
+        "id": "UG12NnqUQ2-QIhaIWMZl3w",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "4IJ5cQcBS4Cnc4soLpWpuA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.41,
+        "tradeBaseRate": 0.80762,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.41,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2013-11-14",
+        "version": "3",
+        "id": "H1eZT3ggTjWP0eA3lSCfQw",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "btibGdLUTqOZkLbPUvP-Wg"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.41,
+        "tradeBaseRate": 0.827505,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.41,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2014-02-13",
+        "version": "3",
+        "id": "mnM0UQsMQmmHRDzufgxl-w",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "NA0hM48MRR2dIAL1JWyW7g"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.41,
+        "tradeBaseRate": 0.834188,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.91,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2014-05-15",
+        "version": "3",
+        "id": "A2hEjRdtS1O7fGV0YrolOA",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "7N2JDoSdTJm7n5ARIq4Sew"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.91,
+        "tradeBaseRate": 0.864916,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "SPLIT",
+        "quantity": 7.0,
+        "price": 0.0,
+        "tradeAmount": 0.0,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2014-06-19",
+        "version": "3",
+        "id": "INuDnQ30RFKJYeG31lteyw",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "VjlWqUIwTxOUVZO_NBvFlA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 0.0,
+        "tradeBaseRate": 0.871055,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.91,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2014-08-14",
+        "version": "3",
+        "id": "-qyDHWOuTHudImzPeAs25Q",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "0qDdnv5mQTmG8OelVTp0vA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.91,
+        "tradeBaseRate": 0.848798,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.91,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2014-11-13",
+        "version": "3",
+        "id": "E2522JKCQauJyZfoY4GxpQ",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "ncRi5UpWQI632lFTlSdrtA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.91,
+        "tradeBaseRate": 0.787173,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.91,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2015-02-12",
+        "version": "3",
+        "id": "iq444HfDTiGQlE30TBGSug",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "Z9-Ot7F5TUeGuquN-5y6Qw"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.91,
+        "tradeBaseRate": 0.742009,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 7.64,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2015-05-14",
+        "version": "3",
+        "id": "7S7v8RgYR5Ofm8o3kgHUqA",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "Aww2J7hLR5iZdwvvJLb-Zg"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 7.64,
+        "tradeBaseRate": 0.749797,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 7.64,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2015-08-13",
+        "version": "3",
+        "id": "MzosXplbRCqJqRXFD6IKRQ",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "jjV20vuuQF6JEDu0SeuErA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 7.64,
+        "tradeBaseRate": 0.656574,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 7.64,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2015-11-12",
+        "version": "3",
+        "id": "OVjL79svSrWK2VEL7gPLzw",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "unxiwFEWRDS8fFNitsv0Ww"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 7.64,
+        "tradeBaseRate": 0.654277,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "SELL",
+        "quantity": -11.0,
+        "price": 97.17,
+        "tradeAmount": 1071.87,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2016-01-07",
+        "version": "3",
+        "id": "3dhFOqw7SeG9h5wjyJZtyA",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "bQGz3pA-S-alHXQtKRAnBA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 3.0,
+        "tax": 0.0,
+        "cashAmount": 1071.87,
+        "tradeBaseRate": 0.662691,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "SELL",
+        "quantity": -10.0,
+        "price": 95.8,
+        "tradeAmount": 961.0,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2016-01-19",
+        "version": "3",
+        "id": "vJvLv0avQc2xGRa-fEQ9vQ",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "QLLk0-FSSJ29h3RcxhQwRA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 3.0,
+        "tax": 0.0,
+        "cashAmount": 961.0,
+        "tradeBaseRate": 0.639871,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "BUY",
+        "quantity": 12.0,
+        "price": 166.0,
+        "tradeAmount": 1995.0,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2018-04-23",
+        "version": "3",
+        "id": "HHm_fUVmQrugd7JAW8euTA",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "x682R3O5SXGxZzK9BxHu2g"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 3.0,
+        "tax": 0.0,
+        "cashAmount": -1995.0,
+        "tradeBaseRate": 0.715358,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.13,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2018-05-17",
+        "version": "3",
+        "id": "6fBkBXIZTwS_vtg9kqCd_Q",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "hloTiBcdRmi58LTlhdgR2Q"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.13,
+        "tradeBaseRate": 0.688561,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.13,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2018-08-16",
+        "version": "3",
+        "id": "9Tw7UanCSV-P2N18whs_zA",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "TMFtya1fRNuBtszRtCBjcQ"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.13,
+        "tradeBaseRate": 0.658488,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.13,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2018-11-15",
+        "version": "3",
+        "id": "aZz_2DxLRWue9CnZSbhd_w",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "CWXaw8DQQLaHON46hEazUA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.13,
+        "tradeBaseRate": 0.682391,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.13,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2019-02-14",
+        "version": "3",
+        "id": "cZ-c4PANRYSeXrDB_ArJyQ",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "OmzKWQ7YQYa8-1N4LTfbng"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.13,
+        "tradeBaseRate": 0.68316,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.47,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2019-05-16",
+        "version": "3",
+        "id": "E0nuFegZQ86PTqQ6mIxxgA",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "3o6px5FDQDSH0-WwasLFzw"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.47,
+        "tradeBaseRate": 0.653441,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.47,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2019-08-15",
+        "version": "3",
+        "id": "RTO7DmYjQbKR4TzaiBx3zg",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "uBKBd9rERCWZ1birOoVrfg"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.47,
+        "tradeBaseRate": 0.64342,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 0.0,
+        "price": 0.0,
+        "tradeAmount": 6.47,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2019-11-14",
+        "version": "3",
+        "id": "UYu3hXFuSRmQXiDOuzzimA",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "Mi6Pm3eFQaq7nfhPcv0kpw"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 6.47,
+        "tradeBaseRate": 0.638089,
+        "tradePortfolioRate": 1.0,
+        "comments": "share",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "SELL",
+        "quantity": -12.0,
+        "price": 316.76,
+        "tradeAmount": 3807.12,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2020-01-14",
+        "version": "3",
+        "id": "q-xefcCiRaSWM6yuvMQATg",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "iEIEB3fERHy6OfV1arNbGg"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 6.0,
+        "tax": 0.0,
+        "cashAmount": 3807.12,
+        "tradeBaseRate": 0.66088,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "BUY",
+        "quantity": 6.0,
+        "price": 333.12,
+        "tradeAmount": 1998.72,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2020-06-15",
+        "version": "3",
+        "id": "9q1FwXOkTUWayamFikFSOg",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "VIw9Ju0fRcmnJdrrwsQBCA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": -1998.72,
+        "tradeBaseRate": 0.64983,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 6.0,
+        "price": 0.82,
+        "tradeAmount": 3.44,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2020-08-25",
+        "version": "3",
+        "id": "k9yJqn3MQY2HgphKWRBMVw",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "l0Zv4LqGThu3mFH2B7kkvg"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 3.44,
+        "tradeBaseRate": 0.655209,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "SPLIT",
+        "quantity": 4.0,
+        "price": 0.0,
+        "tradeAmount": 0.0,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2020-08-31",
+        "version": "3",
+        "id": "lMlB-K0FTbiJ_fbhy2LEow",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "XGLIrgkTR4ajHK0UryioiQ"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 0.0,
+        "tradeBaseRate": 0.67324,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 24.0,
+        "price": 0.205,
+        "tradeAmount": 3.44,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2020-11-24",
+        "version": "3",
+        "id": "9ql2P0dcQUiJrpEAUe-y8Q",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "EgbQj2D7QCWit60mcod7QA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 3.44,
+        "tradeBaseRate": 0.69782,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 24.0,
+        "price": 0.205,
+        "tradeAmount": 3.44,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2021-02-23",
+        "version": "3",
+        "id": "Glg5pSvbT0yiEgjIN4Tuiw",
+        "callerRef": {
+          "provider": "BC",
+          "batch": "USV",
+          "callerId": "tjvVsy5qQt--VvbIkeHJXQ"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 0.0,
+        "cashAmount": 3.44,
+        "tradeBaseRate": 0.73385,
+        "tradePortfolioRate": 1.0,
+        "comments": "",
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 24.0,
+        "price": 0.22,
+        "tradeAmount": 3.7,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2021-05-25",
+        "version": "3",
+        "id": "T5UvwNehS3yAxwSuP3RmVg",
+        "callerRef": {
+          "provider": "ALPHA",
+          "batch": "OcbsqklKTVCpV7cgOcvm8g",
+          "callerId": "QhcMY852SJyI_MYOblBtrw"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 1.58,
+        "cashAmount": 3.7,
+        "tradeBaseRate": 0.72235,
+        "tradePortfolioRate": 1.0,
+        "comments": null,
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      },
+      {
+        "trnType": "DIVI",
+        "quantity": 24.0,
+        "price": 0.22,
+        "tradeAmount": 3.7,
+        "tradeCashRate": 1.0,
+        "tradeDate": "2021-08-24",
+        "version": "3",
+        "id": "Mis2ljnQT2C6huoZo2FjFg",
+        "callerRef": {
+          "provider": "ALPHA",
+          "batch": "lslf1mA2TOyUHAPrg2gnPQ",
+          "callerId": "bjkDTMXBRLqYUAafxjZqeA"
+        },
+        "status": "PROPOSED",
+        "settleDate": null,
+        "fees": 0.0,
+        "tax": 1.58,
+        "cashAmount": 3.7,
+        "tradeBaseRate": 0.693675,
+        "tradePortfolioRate": 1.0,
+        "comments": null,
+        "assetId": "AAPL",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "USD",
+        "cashAssetId": "USD"
+      }
+    ],
+    "assets": {
+      "AAPL": {
         "code": "AAPL",
         "id": "AAPL",
         "name": "Apple Inc",
@@ -21,7 +914,6 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -33,47 +925,7 @@
         "version": "1",
         "status": "Active"
       },
-      "quantity": 2.000000,
-      "price": 475.000000,
-      "tradeAmount": 952.50,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2013-02-12",
-      "version": "3",
-      "id": "7BgiM5NRSAiLGikinXWoPQ",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "YT-Onzh8RreP3mMkld80yg"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
+      "USD": {
         "code": "USD",
         "id": "USD",
         "name": "USD Balance",
@@ -87,10 +939,8 @@
           "timezoneId": "UTC",
           "priceTime": "19:00",
           "daysToSubtract": 1,
-          "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -101,72 +951,10 @@
         "priceSymbol": "USD",
         "version": "1",
         "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 2.50,
-      "tax": 0.00,
-      "cashAmount": -952.50,
-      "tradeBaseRate": 0.839364,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
+      }
     },
-    {
-      "trnType": "BUY",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 1.000000,
-      "price": 460.040000,
-      "tradeAmount": 461.19,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2013-02-15",
-      "version": "3",
-      "id": "_nbjjW1cQr2pDyFRKqIUUw",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "cvo6VEfcTaaCIbIHmwt8Ow"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
+    "portfolios": {
+      "TEST": {
         "id": "TEST",
         "code": "TEST",
         "name": "NZD Portfolio",
@@ -182,3279 +970,15 @@
           "name": "Dollar",
           "symbol": "$"
         }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 1.15,
-      "tax": 0.00,
-      "cashAmount": -461.19,
-      "tradeBaseRate": 0.846339,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
+      }
     },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.41,
-      "tradeCurrency": {
+    "currencies": {
+      "USD": {
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2013-05-16",
-      "version": "3",
-      "id": "DSULz_8CSwmMEtGWSfY3Ow",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "DKlZ_gt_TIiEqeizuXm_hw"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.41,
-      "tradeBaseRate": 0.816451,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
+      }
     },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.41,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2013-08-15",
-      "version": "3",
-      "id": "UG12NnqUQ2-QIhaIWMZl3w",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "4IJ5cQcBS4Cnc4soLpWpuA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.41,
-      "tradeBaseRate": 0.807620,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.41,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2013-11-14",
-      "version": "3",
-      "id": "H1eZT3ggTjWP0eA3lSCfQw",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "btibGdLUTqOZkLbPUvP-Wg"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.41,
-      "tradeBaseRate": 0.827505,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.41,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2014-02-13",
-      "version": "3",
-      "id": "mnM0UQsMQmmHRDzufgxl-w",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "NA0hM48MRR2dIAL1JWyW7g"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.41,
-      "tradeBaseRate": 0.834188,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.91,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2014-05-15",
-      "version": "3",
-      "id": "A2hEjRdtS1O7fGV0YrolOA",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "7N2JDoSdTJm7n5ARIq4Sew"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.91,
-      "tradeBaseRate": 0.864916,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "SPLIT",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 7.000000,
-      "price": 0.000000,
-      "tradeAmount": 0.00,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": null,
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2014-06-19",
-      "version": "3",
-      "id": "INuDnQ30RFKJYeG31lteyw",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "VjlWqUIwTxOUVZO_NBvFlA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": null,
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 0.00,
-      "tradeBaseRate": 0.871055,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.91,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2014-08-14",
-      "version": "3",
-      "id": "-qyDHWOuTHudImzPeAs25Q",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "0qDdnv5mQTmG8OelVTp0vA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.91,
-      "tradeBaseRate": 0.848798,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.91,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2014-11-13",
-      "version": "3",
-      "id": "E2522JKCQauJyZfoY4GxpQ",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "ncRi5UpWQI632lFTlSdrtA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.91,
-      "tradeBaseRate": 0.787173,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.91,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2015-02-12",
-      "version": "3",
-      "id": "iq444HfDTiGQlE30TBGSug",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "Z9-Ot7F5TUeGuquN-5y6Qw"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.91,
-      "tradeBaseRate": 0.742009,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 7.64,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2015-05-14",
-      "version": "3",
-      "id": "7S7v8RgYR5Ofm8o3kgHUqA",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "Aww2J7hLR5iZdwvvJLb-Zg"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 7.64,
-      "tradeBaseRate": 0.749797,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 7.64,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2015-08-13",
-      "version": "3",
-      "id": "MzosXplbRCqJqRXFD6IKRQ",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "jjV20vuuQF6JEDu0SeuErA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 7.64,
-      "tradeBaseRate": 0.656574,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 7.64,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2015-11-12",
-      "version": "3",
-      "id": "OVjL79svSrWK2VEL7gPLzw",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "unxiwFEWRDS8fFNitsv0Ww"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 7.64,
-      "tradeBaseRate": 0.654277,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "SELL",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": -11.000000,
-      "price": 97.170000,
-      "tradeAmount": 1071.87,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2016-01-07",
-      "version": "3",
-      "id": "3dhFOqw7SeG9h5wjyJZtyA",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "bQGz3pA-S-alHXQtKRAnBA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 3.00,
-      "tax": 0.00,
-      "cashAmount": 1071.87,
-      "tradeBaseRate": 0.662691,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "SELL",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": -10.000000,
-      "price": 95.800000,
-      "tradeAmount": 961.00,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2016-01-19",
-      "version": "3",
-      "id": "vJvLv0avQc2xGRa-fEQ9vQ",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "QLLk0-FSSJ29h3RcxhQwRA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 3.00,
-      "tax": 0.00,
-      "cashAmount": 961.00,
-      "tradeBaseRate": 0.639871,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "BUY",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 12.000000,
-      "price": 166.000000,
-      "tradeAmount": 1995.00,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2018-04-23",
-      "version": "3",
-      "id": "HHm_fUVmQrugd7JAW8euTA",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "x682R3O5SXGxZzK9BxHu2g"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 3.00,
-      "tax": 0.00,
-      "cashAmount": -1995.00,
-      "tradeBaseRate": 0.715358,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.13,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2018-05-17",
-      "version": "3",
-      "id": "6fBkBXIZTwS_vtg9kqCd_Q",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "hloTiBcdRmi58LTlhdgR2Q"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.13,
-      "tradeBaseRate": 0.688561,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.13,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2018-08-16",
-      "version": "3",
-      "id": "9Tw7UanCSV-P2N18whs_zA",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "TMFtya1fRNuBtszRtCBjcQ"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.13,
-      "tradeBaseRate": 0.658488,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.13,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2018-11-15",
-      "version": "3",
-      "id": "aZz_2DxLRWue9CnZSbhd_w",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "CWXaw8DQQLaHON46hEazUA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.13,
-      "tradeBaseRate": 0.682391,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.13,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2019-02-14",
-      "version": "3",
-      "id": "cZ-c4PANRYSeXrDB_ArJyQ",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "OmzKWQ7YQYa8-1N4LTfbng"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.13,
-      "tradeBaseRate": 0.683160,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.47,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2019-05-16",
-      "version": "3",
-      "id": "E0nuFegZQ86PTqQ6mIxxgA",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "3o6px5FDQDSH0-WwasLFzw"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.47,
-      "tradeBaseRate": 0.653441,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.47,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2019-08-15",
-      "version": "3",
-      "id": "RTO7DmYjQbKR4TzaiBx3zg",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "uBKBd9rERCWZ1birOoVrfg"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.47,
-      "tradeBaseRate": 0.643420,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 0.000000,
-      "price": 0.000000,
-      "tradeAmount": 6.47,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2019-11-14",
-      "version": "3",
-      "id": "UYu3hXFuSRmQXiDOuzzimA",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "Mi6Pm3eFQaq7nfhPcv0kpw"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 6.47,
-      "tradeBaseRate": 0.638089,
-      "tradePortfolioRate": 1.000000,
-      "comments": "share"
-    },
-    {
-      "trnType": "SELL",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": -12.000000,
-      "price": 316.760000,
-      "tradeAmount": 3807.12,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2020-01-14",
-      "version": "3",
-      "id": "q-xefcCiRaSWM6yuvMQATg",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "iEIEB3fERHy6OfV1arNbGg"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 6.00,
-      "tax": 0.00,
-      "cashAmount": 3807.12,
-      "tradeBaseRate": 0.660880,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "BUY",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 6.000000,
-      "price": 333.120000,
-      "tradeAmount": 1998.72,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2020-06-15",
-      "version": "3",
-      "id": "9q1FwXOkTUWayamFikFSOg",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "VIw9Ju0fRcmnJdrrwsQBCA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": -1998.72,
-      "tradeBaseRate": 0.649830,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 6.000000,
-      "price": 0.820000,
-      "tradeAmount": 3.44,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2020-08-25",
-      "version": "3",
-      "id": "k9yJqn3MQY2HgphKWRBMVw",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "l0Zv4LqGThu3mFH2B7kkvg"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 3.44,
-      "tradeBaseRate": 0.655209,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "SPLIT",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 4.000000,
-      "price": 0.000000,
-      "tradeAmount": 0.00,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": null,
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2020-08-31",
-      "version": "3",
-      "id": "lMlB-K0FTbiJ_fbhy2LEow",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "XGLIrgkTR4ajHK0UryioiQ"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": null,
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 0.00,
-      "tradeBaseRate": 0.673240,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 24.000000,
-      "price": 0.205000,
-      "tradeAmount": 3.44,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2020-11-24",
-      "version": "3",
-      "id": "9ql2P0dcQUiJrpEAUe-y8Q",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "EgbQj2D7QCWit60mcod7QA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 3.44,
-      "tradeBaseRate": 0.697820,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 24.000000,
-      "price": 0.205000,
-      "tradeAmount": 3.44,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2021-02-23",
-      "version": "3",
-      "id": "Glg5pSvbT0yiEgjIN4Tuiw",
-      "callerRef": {
-        "provider": "BC",
-        "batch": "USV",
-        "callerId": "tjvVsy5qQt--VvbIkeHJXQ"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 0.00,
-      "cashAmount": 3.44,
-      "tradeBaseRate": 0.733850,
-      "tradePortfolioRate": 1.000000,
-      "comments": ""
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 24.000000,
-      "price": 0.220000,
-      "tradeAmount": 3.70,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2021-05-25",
-      "version": "3",
-      "id": "T5UvwNehS3yAxwSuP3RmVg",
-      "callerRef": {
-        "provider": "ALPHA",
-        "batch": "OcbsqklKTVCpV7cgOcvm8g",
-        "callerId": "QhcMY852SJyI_MYOblBtrw"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 1.58,
-      "cashAmount": 3.70,
-      "tradeBaseRate": 0.722350,
-      "tradePortfolioRate": 1.000000,
-      "comments": null
-    },
-    {
-      "trnType": "DIVI",
-      "asset": {
-        "code": "AAPL",
-        "id": "AAPL",
-        "name": "Apple Inc",
-        "assetCategory": {
-          "id": "EQUITY",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currencyId": "USD",
-          "timezoneId": "US/Eastern",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {
-            "SHARESIGHT": "NAS",
-            "FIGI": "US"
-          },
-          "multiplier": 1.0,
-
-          "timezone": "US/Eastern",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "AAPL",
-        "version": "1",
-        "status": "Active"
-      },
-      "quantity": 24.000000,
-      "price": 0.220000,
-      "tradeAmount": 3.70,
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "tradeCashRate": 1.000000,
-      "tradeDate": "2021-08-24",
-      "version": "3",
-      "id": "Mis2ljnQT2C6huoZo2FjFg",
-      "callerRef": {
-        "provider": "ALPHA",
-        "batch": "lslf1mA2TOyUHAPrg2gnPQ",
-        "callerId": "bjkDTMXBRLqYUAafxjZqeA"
-      },
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "NZD Portfolio",
-        "marketValue": 0,
-        "irr": 0,
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        }
-      },
-      "cashAsset": {
-        "code": "USD",
-        "id": "USD",
-        "name": "USD Balance",
-        "assetCategory": {
-          "id": "CASH",
-          "name": "Cash"
-        },
-        "market": {
-          "code": "CASH",
-          "currencyId": "USD",
-          "timezoneId": "UTC",
-          "priceTime": "19:00",
-          "daysToSubtract": 1,
-          "aliases": {},
-          "enricher": "ECHO",
-          "multiplier": 1.0,
-
-          "timezone": "UTC",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          }
-        },
-        "priceSymbol": "USD",
-        "version": "1",
-        "status": "Active"
-      },
-      "settleDate": null,
-      "fees": 0.00,
-      "tax": 1.58,
-      "cashAmount": 3.70,
-      "tradeBaseRate": 0.693675,
-      "tradePortfolioRate": 1.000000,
-      "comments": null
-    }
-  ]
+    "brokers": {}
+  }
 }

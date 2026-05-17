@@ -197,14 +197,14 @@ class TrnTest {
         // Deserialize back
         val deserialized = BcJson.objectMapper.readValue<TrnResponse>(json)
         Assertions.assertThat(deserialized).isNotNull
-        Assertions.assertThat(deserialized.data).hasSize(1)
+        Assertions.assertThat(deserialized.data.trns).hasSize(1)
         Assertions
-            .assertThat(deserialized.data.first())
+            .assertThat(deserialized.data.trns.first())
             .hasFieldOrPropertyWithValue("trnType", TrnType.SPLIT)
             .hasFieldOrPropertyWithValue("price", BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("cashAsset", null)
-            .hasFieldOrPropertyWithValue("cashCurrency", null)
+            .hasFieldOrPropertyWithValue("cashAssetId", null)
+            .hasFieldOrPropertyWithValue("cashCurrencyCode", null)
     }
 
     @Test
@@ -248,9 +248,9 @@ class TrnTest {
         val json = BcJson.objectMapper.writeValueAsString(trnResponse)
         val deserialized = BcJson.objectMapper.readValue<TrnResponse>(json)
 
-        Assertions.assertThat(deserialized.data).hasSize(2)
+        Assertions.assertThat(deserialized.data.trns).hasSize(2)
         Assertions
-            .assertThat(deserialized.data.map { it.trnType })
+            .assertThat(deserialized.data.trns.map { it.trnType })
             .containsExactly(TrnType.BUY, TrnType.SPLIT)
     }
 }

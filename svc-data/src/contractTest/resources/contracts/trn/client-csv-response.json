@@ -1,15 +1,81 @@
 {
-  "data": [
-    {
-      "id": "cn9NIrvHStWEbFB14c9zUw",
-      "callerRef": {
-        "provider": "SHEETS",
-        "batch": "2020-03-24",
-        "callerId": "cn9NIrvHStWEbFB14c9zUw"
+  "data": {
+    "trns": [
+      {
+        "id": "cn9NIrvHStWEbFB14c9zUw",
+        "callerRef": {
+          "provider": "SHEETS",
+          "batch": "2020-03-24",
+          "callerId": "cn9NIrvHStWEbFB14c9zUw"
+        },
+        "trnType": "BUY",
+        "status": "PROPOSED",
+        "tradeDate": "2019-07-26",
+        "settleDate": null,
+        "quantity": 80,
+        "price": 25.83,
+        "fees": 4.42,
+        "tax": 0,
+        "tradeAmount": 2,
+        "cashAmount": 0,
+        "tradeCashRate": 1.5053869635,
+        "tradeBaseRate": 1,
+        "tradePortfolioRate": 1.5053869635,
+        "comments": "646.08",
+        "assetId": "BguoVZpoRxWjWrITp7DEuw",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD",
+        "cashCurrencyCode": "NZD"
       },
-      "trnType": "BUY",
-      "status": "PROPOSED",
-      "portfolio": {
+      {
+        "id": "bDd4TTiETSOUy5sgJG79bg",
+        "callerRef": {
+          "provider": "SHEETS",
+          "batch": "2020-03-24",
+          "callerId": "bDd4TTiETSOUy5sgJG79bg"
+        },
+        "trnType": "DIVI",
+        "status": "PROPOSED",
+        "tradeDate": "2019-07-26",
+        "settleDate": null,
+        "quantity": 0.0,
+        "price": null,
+        "fees": 0,
+        "tax": 0.0,
+        "tradeAmount": 15.85,
+        "cashAmount": 15.85,
+        "tradeCashRate": 1,
+        "tradeBaseRate": 1,
+        "tradePortfolioRate": 1.5053869635,
+        "comments": "Dividend",
+        "assetId": "BguoVZpoRxWjWrITp7DEuw",
+        "portfolioId": "TEST",
+        "tradeCurrencyCode": "USD"
+      }
+    ],
+    "assets": {
+      "BguoVZpoRxWjWrITp7DEuw": {
+        "id": "BguoVZpoRxWjWrITp7DEuw",
+        "code": "MSFT",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      }
+    },
+    "portfolios": {
+      "TEST": {
         "id": "TEST",
         "code": "TEST",
         "name": "SGD Balanced",
@@ -30,117 +96,20 @@
           "active": true,
           "since": "2020-03-24"
         }
-      },
-      "asset": {
-        "id": "BguoVZpoRxWjWrITp7DEuw",
-        "code": "MSFT",
-        "status": "Active",
-        "version": "1",
-        "assetCategory": {
-          "id": "Equity",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "timezone": "US/Eastern"
-        }
-      },
-      "tradeCurrency": {
+      }
+    },
+    "currencies": {
+      "USD": {
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": {
+      "NZD": {
         "code": "NZD",
         "name": "Dollar",
         "symbol": "$"
-      },
-      "tradeDate": "2019-07-26",
-      "settleDate": null,
-      "quantity": 80,
-      "price": 25.83,
-      "fees": 4.42,
-      "tax": 0,
-      "tradeAmount": 2,
-      "cashAmount": 0,
-      "tradeCashRate": 1.5053869635,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1.5053869635,
-      "comments": "646.08"
+      }
     },
-    {
-      "id": "bDd4TTiETSOUy5sgJG79bg",
-      "callerRef": {
-        "provider": "SHEETS",
-        "batch": "2020-03-24",
-        "callerId": "bDd4TTiETSOUy5sgJG79bg"
-      },
-      "trnType": "DIVI",
-      "status": "PROPOSED",
-      "portfolio": {
-        "id": "TEST",
-        "code": "TEST",
-        "name": "SGD Balanced",
-        "currency": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "base": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "owner": {
-          "id": "fc542db9-0bf5-4b37-a5e8-d2f2c1372f23",
-          "email": "mike@nowhere.com",
-          "auth0": "",
-          "active": true,
-          "since": "2020-03-24"
-        }
-      },
-      "asset": {
-        "id": "BguoVZpoRxWjWrITp7DEuw",
-        "code": "MSFT",
-        "status": "Active",
-        "version": "1",
-        "assetCategory": {
-          "id": "Equity",
-          "name": "Equity"
-        },
-        "market": {
-          "code": "NASDAQ",
-          "currency": {
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "timezone": "US/Eastern"
-        }
-      },
-      "tradeCurrency": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "cashCurrency": null,
-      "tradeDate": "2019-07-26",
-      "settleDate": null,
-      "quantity": 0.00,
-      "price": null,
-      "fees": 0,
-      "tax": 0.00,
-      "tradeAmount": 15.85,
-      "cashAmount": 15.85,
-      "tradeCashRate": 1,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1.5053869635,
-      "comments": "Dividend"
-    }
-  ]
+    "brokers": {}
+  }
 }

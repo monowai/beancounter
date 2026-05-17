@@ -40,7 +40,7 @@ class TestTrnService {
     fun `should return transactions for portfolio ID`() {
         val trnResponse = trnService.query(portfolio)
         assertThat(trnResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
-        assertThat(trnResponse.data).isNotEmpty // Don't care about the contents here.
+        assertThat(trnResponse.data.trns).isNotEmpty // Don't care about the contents here.
     }
 
     @Test
@@ -53,6 +53,6 @@ class TestTrnService {
             )
         val queryResults = trnService.query(query)
         assertThat(queryResults).isNotNull.hasFieldOrProperty(Payload.DATA)
-        assertThat(queryResults.data).isNotEmpty // Don't care about the contents here.
+        assertThat(queryResults.data.trns).isNotEmpty // Don't care about the contents here.
     }
 }

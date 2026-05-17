@@ -147,7 +147,7 @@ class TrnControllerTest {
         val body = mvcResult.response.contentAsString
         assertThat(body).isNotNull()
         assertThat(
-            objectMapper.readValue(body, TrnResponse::class.java).data
+            objectMapper.readValue(body, TrnResponse::class.java).data.trns
         ).isNotNull().hasSize(0)
     }
 
@@ -200,7 +200,7 @@ class TrnControllerTest {
                 findByAsset.response.contentAsString,
                 TrnResponse::class.java
             )
-        assertThat(trnResponse.data).isNotEmpty().hasSize(1) // 1 MSFT dividend
+        assertThat(trnResponse.data.trns).isNotEmpty().hasSize(1) // 1 MSFT dividend
     }
 
     @Test

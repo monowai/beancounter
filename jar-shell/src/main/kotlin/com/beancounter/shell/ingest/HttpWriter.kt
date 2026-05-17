@@ -59,7 +59,7 @@ class HttpWriter(
                 val (data) = trnService.write(trnRequest)
                 log.info(
                     "Wrote {}",
-                    data.size
+                    data.trns.size
                 )
             }
             log.info("Complete!")

@@ -90,7 +90,7 @@ class ValuationService
             val positionRequest =
                 PositionRequest(
                     portfolio.id,
-                    trnResponse.data
+                    trnResponse.data.toTrns()
                 )
             val positionResponse =
                 positionService.build(
@@ -152,7 +152,7 @@ class ValuationService
             // Sorting is required because the Accumulator validates date sequence
             val combinedTransactions =
                 allTransactions
-                    .flatMap { it.data }
+                    .flatMap { it.data.toTrns() }
                     .sortedBy { it.tradeDate }
 
             if (combinedTransactions.isEmpty()) {

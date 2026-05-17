@@ -89,12 +89,13 @@ class PatchTrnTest {
                 )
             )
         val originalTransaction = createAndPostTransaction(portfolio)
-        assertThat(originalTransaction.data).hasSize(1)
+        assertThat(originalTransaction.data.toTrns()).hasSize(1)
         // Patch the transaction
         val patchedTransaction =
             patchTransaction(
                 portfolio.id,
                 originalTransaction.data
+                    .toTrns()
                     .iterator()
                     .next()
                     .id
@@ -165,19 +166,21 @@ class PatchTrnTest {
         originalTransaction: TrnResponse,
         patchedTransaction: TrnResponse
     ) {
-        assertThat(patchedTransaction.data.size).isEqualTo(1)
+        assertThat(patchedTransaction.data.trns.size).isEqualTo(1)
         val updatedTrn =
             objectMapper
                 .readValue(
                     bcMvcHelper
                         .getTrnById(
                             originalTransaction.data
+                                .toTrns()
                                 .iterator()
                                 .next()
                                 .id
                         ).response.contentAsString,
                     TrnResponse::class.java
                 ).data
+                .toTrns()
                 .iterator()
                 .next()
 
@@ -186,12 +189,14 @@ class PatchTrnTest {
             .hasFieldOrPropertyWithValue(
                 "id",
                 originalTransaction.data
+                    .toTrns()
                     .iterator()
                     .next()
                     .id
             ).hasFieldOrPropertyWithValue(
                 "comments",
                 originalTransaction.data
+                    .toTrns()
                     .iterator()
                     .next()
                     .comments

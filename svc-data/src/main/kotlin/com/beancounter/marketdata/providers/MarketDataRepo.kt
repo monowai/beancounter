@@ -66,6 +66,16 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         priceDate: LocalDate
     ): Long
 
+    @Query("SELECT MIN(md.priceDate) FROM MarketData md WHERE md.asset.id = :assetId")
+    fun findEarliestPriceDateByAssetId(
+        @Param("assetId") assetId: String
+    ): LocalDate?
+
+    @Query("SELECT MAX(md.priceDate) FROM MarketData md WHERE md.asset.id = :assetId")
+    fun findLatestPriceDateByAssetId(
+        @Param("assetId") assetId: String
+    ): LocalDate?
+
     /**
      * Find stored prices that represent corporate events (dividend or split).
      */

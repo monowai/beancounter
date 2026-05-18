@@ -11,6 +11,7 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
+import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.MAX_BACKFILL_YEARS
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -361,10 +362,6 @@ class PriceController(
     }
 
     private companion object {
-        // Hard cap on how far back we'll ever ask a provider to go. Matches the
-        // longest range the chart UI exposes.
-        const val MAX_BACKFILL_YEARS = 10L
-
         // Headroom buffer so we don't re-trigger backfills when the cached
         // earliest already sits right at the provider's reachable floor.
         const val BACKFILL_RETRY_BUFFER_DAYS = 7L

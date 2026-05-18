@@ -48,6 +48,12 @@ interface MarketDataPriceProvider {
         // pass an explicit `targetFrom` for deep-history charts.
         const val DEFAULT_BACKFILL_YEARS = 2L
 
+        // Hard floor for any backfill request. Matches the longest range
+        // the chart UI exposes and caps how far back providers will be
+        // asked to reach. MarketDataBackfillService enforces this floor
+        // after anchoring to earliest cross-portfolio tradeDate.
+        const val MAX_BACKFILL_YEARS = 10L
+
         fun defaultBackfillFrom(): LocalDate = LocalDate.now().minusYears(DEFAULT_BACKFILL_YEARS)
     }
 }

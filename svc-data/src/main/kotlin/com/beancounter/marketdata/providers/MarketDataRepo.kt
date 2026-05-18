@@ -77,6 +77,23 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
     ): LocalDate?
 
     /**
+     * Bulk window load used by getBulkMarketData to eliminate N+1 nearest-prior fallback
+     * queries. Returns every price row for the given assets between [from] and [to] inclusive
+     * in a single query, ordered ascending. Caller resolves exact-date hits + nearest-prior
+     * fallback (weekends/holidays) in memory.
+     */
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset a " +
+            "WHERE a IN :assets AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.priceDate ASC"
+    )
+    fun findByAssetInAndPriceDateBetween(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<MarketData>
+
+    /**
      * Find stored prices that represent corporate events (dividend or split).
      */
     @Query(

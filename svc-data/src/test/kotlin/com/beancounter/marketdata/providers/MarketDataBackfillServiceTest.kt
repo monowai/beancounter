@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -31,6 +32,7 @@ class MarketDataBackfillServiceTest {
     private lateinit var assetFinder: AssetFinder
     private lateinit var marketDataRepo: MarketDataRepo
     private lateinit var trnRepository: TrnRepository
+    private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
     private lateinit var provider: MarketDataPriceProvider
     private lateinit var service: MarketDataBackfillService
 
@@ -44,6 +46,7 @@ class MarketDataBackfillServiceTest {
         assetFinder = mock()
         marketDataRepo = mock()
         trnRepository = mock()
+        cacheInvalidationProducer = mock()
         provider = mock()
 
         whenever(providerUtils.getInputs(eq(listOf(asset))))
@@ -59,6 +62,7 @@ class MarketDataBackfillServiceTest {
                 assetFinder,
                 marketDataRepo,
                 trnRepository,
+                cacheInvalidationProducer,
                 maxBackfillYears = 10
             )
     }
@@ -140,5 +144,24 @@ class MarketDataBackfillServiceTest {
         service.backFill(asset, requested)
 
         verify(provider).backFill(eq(asset), eq(requested))
+    }
+
+    @Test
+    fun `never fires PRICE_HISTORY invalidation from backFill path`() {
+        // Backfill only inserts dates that aren't already present (PriceService.handle dedups
+        // on (assetId, priceDate)). It can't modify a price inside the existing svc-position
+        // snapshot range, so the event would always be a false invalidation. The OOM incident
+        // (POSITION-3T..3V, 2026-05-18) was caused by sending the event with the widened
+        // fromDate, which wiped years of snapshots. This test guards against regression by
+        // asserting NO event fires regardless of dbMin/dbMax shape.
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(today.minusYears(7))
+        whenever(marketDataRepo.findEarliestPriceDateByAssetId(asset.id)).thenReturn(today.minusYears(3))
+        whenever(marketDataRepo.findLatestPriceDateByAssetId(asset.id)).thenReturn(today)
+
+        service.backFill(asset, today.minusYears(3))
+
+        verify(provider).backFill(eq(asset), eq(today.minusYears(7)))
+        verify(cacheInvalidationProducer, never()).sendPriceHistoryEvent(any(), any())
+        verify(cacheInvalidationProducer, never()).sendPriceEvent(any())
     }
 }

@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -43,8 +42,7 @@ import java.util.concurrent.Semaphore
 class PriceBackfillCoordinator(
     private val backfillService: MarketDataBackfillService,
     @Qualifier("priceBackfillScope") private val scope: CoroutineScope,
-    @Value("\${price.backfill.max-permits:68}") maxPermits: Int,
-    private val cacheInvalidationProducer: CacheInvalidationProducer? = null
+    @Value("\${price.backfill.max-permits:68}") maxPermits: Int
 ) {
     private val log = LoggerFactory.getLogger(PriceBackfillCoordinator::class.java)
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
@@ -101,11 +99,13 @@ class PriceBackfillCoordinator(
     ) {
         try {
             log.info("Async backfill starting for asset={} fromDate={}", assetId, fromDate)
+            // MarketDataBackfillService now owns the svc-position cache
+            // invalidation decision — it has the pre/post DB price range
+            // and can scope the event to dates that actually overlap
+            // existing snapshots. Sending it from here with the raw
+            // anchored fromDate wiped years of snapshots and caused OOM
+            // cascades on bc-position (POSITION-3T..3V, 2026-05-18).
             backfillService.backFill(assetId, fromDate)
-            // Notify downstream caches (e.g. svc-position performance snapshots)
-            // that this asset's history changed so they recompute on the next
-            // request. Producer is optional in tests / cache-disabled profiles.
-            cacheInvalidationProducer?.sendPriceHistoryEvent(assetId, fromDate)
             log.info("Async backfill completed for asset={}", assetId)
         } catch (
             @Suppress("TooGenericExceptionCaught")

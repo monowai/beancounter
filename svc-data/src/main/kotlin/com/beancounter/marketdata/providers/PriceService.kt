@@ -340,6 +340,13 @@ class PriceService(
      * Get market data for multiple assets across multiple dates (DB-only, no provider calls).
      * For dates without exact matches (weekends/holidays), falls back to the nearest prior price.
      * Returns a map keyed by date string.
+     *
+     * Implementation note: a single window query loads every row for the requested assets
+     * between [min(dates) - FALLBACK_LOOKBACK_DAYS] and [max(dates)]. Exact + nearest-prior
+     * resolution then runs in memory. The prior implementation issued a per-(asset, date)
+     * `findTop1...` fallback query for every weekend/holiday slot, which timed out under
+     * the wealth-performance "ALL" chart load (assets × ~50 monthly dates → hundreds of DB
+     * roundtrips, > 30s read-timeout on bc-position → /api/prices/bulk).
      */
     @Transactional
     fun getBulkMarketData(
@@ -348,37 +355,44 @@ class PriceService(
     ): Map<String, List<MarketData>> {
         if (assets.isEmpty() || dates.isEmpty()) return emptyMap()
 
-        // Single query for all exact matches
-        val exactMatches = marketDataRepo.findByAssetInAndPriceDateIn(assets, dates)
-        val exactByDateAsset =
-            exactMatches.groupBy { it.priceDate }.mapValues { (_, mds) ->
-                mds.associateBy { it.asset.id }
-            }
+        val minDate = dates.min()
+        val maxDate = dates.max()
+        val window =
+            marketDataRepo.findByAssetInAndPriceDateBetween(
+                assets,
+                minDate.minusDays(FALLBACK_LOOKBACK_DAYS),
+                maxDate
+            )
+        // Per-asset chronological list — already ascending from the query's ORDER BY.
+        val byAsset = window.groupBy { it.asset.id }
 
         val result = mutableMapOf<String, List<MarketData>>()
         for (date in dates) {
-            val exactForDate = exactByDateAsset[date] ?: emptyMap()
             val mdList = mutableListOf<MarketData>()
-
             for (asset in assets) {
-                val exact = exactForDate[asset.id]
-                if (exact != null) {
-                    mdList.add(exact)
-                } else {
-                    // Fallback: nearest price on or before this date
-                    val nearest =
-                        marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
-                            asset,
-                            date
-                        )
-                    if (nearest.isPresent) {
-                        mdList.add(nearest.get())
-                    }
-                }
+                val series = byAsset[asset.id] ?: continue
+                val resolved = nearestOnOrBefore(series, date)
+                if (resolved != null) mdList.add(resolved)
             }
             result[date.toString()] = mdList
         }
         return result
+    }
+
+    /**
+     * Find the latest entry with `priceDate <= target` in an ascending-sorted series.
+     * Linear scan from the end — series is typically short (the FALLBACK_LOOKBACK_DAYS
+     * window keeps it bounded) so a binary-search complication isn't worth it.
+     */
+    private fun nearestOnOrBefore(
+        seriesAsc: List<MarketData>,
+        target: LocalDate
+    ): MarketData? {
+        for (i in seriesAsc.indices.reversed()) {
+            val md = seriesAsc[i]
+            if (!md.priceDate.isAfter(target)) return md
+        }
+        return null
     }
 
     /**
@@ -530,5 +544,11 @@ class PriceService(
         // Alpha. 0.70 catches 2:1 splits (50% drop) with comfortable headroom
         // over any realistic organic single-day move.
         private val MISSING_SPLIT_DROP_THRESHOLD = BigDecimal("0.70")
+
+        // How far before the earliest requested date to extend the bulk window
+        // load. Covers long weekends + bank-holiday clusters so the in-memory
+        // nearest-prior fallback has something to resolve to. 10 days is plenty
+        // for any developed market.
+        private const val FALLBACK_LOOKBACK_DAYS = 10L
     }
 }

@@ -127,7 +127,7 @@ class PerformanceService(
 
         // Pre-fetch all prices and FX rates in exactly 2 bulk calls
         val priceCache = prefetchPrices(allAssets, valuationDates, token)
-        val fxCache = prefetchFxRates(allPairs, startDate, endDate, token)
+        val fxCache = prefetchFxRates(allPairs, valuationDates, startDate, endDate, token)
 
         val (snapshots, netContributions, cumulativeDividends) =
             buildSnapshots(
@@ -210,6 +210,7 @@ class PerformanceService(
 
     private fun prefetchFxRates(
         pairs: Set<IsoCurrencyPair>,
+        valuationDates: List<LocalDate>,
         startDate: LocalDate,
         endDate: LocalDate,
         token: String
@@ -219,7 +220,12 @@ class PerformanceService(
             BulkFxRequest(
                 startDate = startDate.toString(),
                 endDate = endDate.toString(),
-                pairs = pairs
+                pairs = pairs,
+                // Send the exact valuation dates so svc-data narrows its DB load to
+                // those + a small lookback. Sending only [startDate, endDate] would
+                // eager-load every cached FxRate in range (10y for the "ALL" wealth
+                // chart) and OOM bc-data — DATA-45, 2026-05-18.
+                dates = valuationDates.map { it.toString() }
             )
         return fxRateService.getBulkRates(request, token).data
     }
@@ -656,7 +662,12 @@ class PerformanceService(
         val token = tokenService.bearerToken
         val response: BulkFxResponse =
             fxRateService.getBulkRates(
-                BulkFxRequest(startDate = today, endDate = today, pairs = pairs),
+                BulkFxRequest(
+                    startDate = today,
+                    endDate = today,
+                    pairs = pairs,
+                    dates = listOf(today)
+                ),
                 token
             )
 

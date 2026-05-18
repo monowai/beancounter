@@ -156,11 +156,22 @@ class FxRateService(
     fun getBulkRates(request: BulkFxRequest): BulkFxResponse {
         if (request.pairs.isEmpty()) return BulkFxResponse()
 
-        val startDate = dateUtils.getDate(request.startDate)
-        val endDate = dateUtils.getDate(request.endDate)
+        val requestedDates = request.dates.map(dateUtils::getDate)
+        val (windowStart, windowEnd) =
+            if (requestedDates.isNotEmpty()) {
+                // Narrow window: minimum cluster of dates the caller actually needs,
+                // plus a small lookback so nearest-prior fallback (weekends, holidays)
+                // can resolve. Avoids the 10y all-rates load that OOM'd bc-data on the
+                // wealth-performance "ALL" chart (DATA-45, 2026-05-18).
+                val minDate = requestedDates.min().minusDays(FALLBACK_LOOKBACK_DAYS)
+                val maxDate = requestedDates.max()
+                minDate to maxDate
+            } else {
+                // Back-compat path for callers that still send only startDate/endDate.
+                dateUtils.getDate(request.startDate) to dateUtils.getDate(request.endDate)
+            }
 
-        // Single query for all rates in the date range
-        val allRates = fxRateRepository.findByDateBetween(startDate, endDate)
+        val allRates = fxRateRepository.findByDateBetween(windowStart, windowEnd)
 
         // Also fetch the base currency rate (USD->USD = 1.0)
         val baseCurrency = currencyService.currencyConfig.baseCurrency
@@ -169,13 +180,30 @@ class FxRateService(
         // Group rates by date
         val ratesByDate = allRates.groupBy { it.date }
 
-        // Collect all unique dates we need rates for
-        val allDates = collectUniqueDates(startDate, endDate, ratesByDate.keys)
+        // Iterate exactly the dates the caller cares about when supplied; otherwise
+        // fall back to the cached-dates-in-range behaviour for legacy callers.
+        val datesToResolve =
+            if (requestedDates.isNotEmpty()) {
+                requestedDates.sorted()
+            } else {
+                collectUniqueDates(windowStart, windowEnd, ratesByDate.keys)
+            }
 
         val result = mutableMapOf<String, FxPairResults>()
         var lastKnownRates: Map<String, FxRate>? = null
+        // Pre-seed lastKnownRates from anything in the lookback window so the first
+        // requested date can use it even if it falls on a weekend/holiday.
+        val priorRates =
+            ratesByDate
+                .filterKeys { it.isBefore(datesToResolve.firstOrNull() ?: windowStart) }
+                .toSortedMap()
+        priorRates.values.lastOrNull()?.let { latest ->
+            val mapped = latest.associateBy { it.to.code }.toMutableMap()
+            if (baseRate != null) mapped.putIfAbsent(baseCurrency.code, baseRate)
+            lastKnownRates = mapped
+        }
 
-        for (date in allDates) {
+        for (date in datesToResolve) {
             val ratesForDate = ratesByDate[date]
             val mappedRates =
                 if (ratesForDate != null) {
@@ -315,4 +343,11 @@ class FxRateService(
             marketService.getMarket("US"),
             dateUtils.isToday(date)
         )
+
+    private companion object {
+        // Lookback window prepended to the earliest requested date so the
+        // in-memory nearest-prior fallback can resolve weekend / holiday gaps.
+        // 10 days covers any plausible bank-holiday cluster in developed markets.
+        const val FALLBACK_LOOKBACK_DAYS = 10L
+    }
 }

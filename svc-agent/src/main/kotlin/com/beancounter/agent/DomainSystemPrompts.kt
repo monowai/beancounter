@@ -37,6 +37,15 @@ object DomainSystemPrompts {
         - **Don't repeat what's on screen** — if context says the user is
           viewing data, provide analysis, outliers, or observations instead
           of re-listing the same rows.
+        - **Conclusions only, no workings.** When computing weighted
+          contributions, sums, weighted averages, implied growth, or any
+          other derived figure, do the arithmetic silently and present only
+          the final answer (the conclusion + the named drivers). Never
+          show intermediate multiplications (`0.018 × 0.032 = 0.0006`),
+          per-position tables of products, running totals
+          ("Summing positives: …"), self-correction asides ("Hmm, let me
+          recalculate"), or any other chain-of-thought. The user wants
+          the verdict, not the spreadsheet.
 
         ## Identifiers
 

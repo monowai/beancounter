@@ -63,7 +63,10 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:25-jre-alpine-sentry${{ steps.sentry.outputs.version }}-${{ steps.prep.outputs.platform_tag }}
           cache-from: type=gha,scope=${{ matrix.platform }}
-          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
+          # mode=min stores only final-stage layers — base image has a
+          # single FROM, so mode=max offered no reuse benefit but accrued
+          # GHA cache storage.
+          cache-to: type=gha,scope=${{ matrix.platform }},mode=min
           provenance: false
 
   docker-manifest:

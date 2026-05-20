@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.AggregatedPerformanceRequest
 import com.beancounter.common.contracts.AggregatedPerformanceResponse
 import com.beancounter.common.contracts.PerformanceResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Portfolio
 import com.beancounter.position.cache.PerformanceCacheService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -43,6 +44,21 @@ class PerformanceController(
 ) {
     private val log = LoggerFactory.getLogger(PerformanceController::class.java)
 
+    /**
+     * Accept either a portfolio code or its id in the `code` path slot. The
+     * holdings page passes `portfolio.id` so that managed/shared portfolios
+     * resolve — `getPortfolioByCode` is owner-scoped (`findByCodeAndOwner`)
+     * and 404s when the caller is the manager rather than the owner.
+     * `getPortfolioById` goes through `find(id)` on svc-data which applies
+     * the `canView` access check, so both owner and shared-with-me cases
+     * succeed. By-id first; fall back to by-code so existing callers that
+     * still send codes continue to work.
+     */
+    private fun resolvePortfolio(idOrCode: String): Portfolio =
+        runCatching { portfolioServiceClient.getPortfolioById(idOrCode) }
+            .getOrNull()
+            ?: portfolioServiceClient.getPortfolioByCode(idOrCode)
+
     @GetMapping("/{code}/performance")
     @Operation(
         summary = "Get portfolio performance",
@@ -57,7 +73,7 @@ class PerformanceController(
         months: Int
     ): PerformanceResponse {
         log.debug("Performance request for portfolio={}, months={}", code, months)
-        val portfolio = portfolioServiceClient.getPortfolioByCode(code)
+        val portfolio = resolvePortfolio(code)
         return performanceService.calculate(portfolio, months)
     }
 
@@ -85,7 +101,7 @@ class PerformanceController(
             indexAssetId,
             months
         )
-        val portfolio = portfolioServiceClient.getPortfolioByCode(code)
+        val portfolio = resolvePortfolio(code)
         return benchmarkService.benchmark(portfolio, indexAssetId, months)
     }
 
@@ -104,7 +120,7 @@ class PerformanceController(
         val displayCurrency =
             staticService.getCurrency(request.displayCurrency)
                 ?: throw BusinessException("Unknown display currency ${request.displayCurrency}")
-        val portfolios = request.portfolioCodes.map { portfolioServiceClient.getPortfolioByCode(it) }
+        val portfolios = request.portfolioCodes.map { resolvePortfolio(it) }
         log.debug(
             "Aggregate performance: portfolios={}, months={}, displayCurrency={}",
             request.portfolioCodes,
@@ -121,7 +137,7 @@ class PerformanceController(
         @PathVariable
         code: String
     ): Map<String, String> {
-        val portfolio = portfolioServiceClient.getPortfolioByCode(code)
+        val portfolio = resolvePortfolio(code)
         performanceCacheService.invalidatePortfolio(portfolio.id)
         log.info("Performance cache reset for portfolio={}", code)
         return mapOf("status" to "ok", "portfolio" to code)

@@ -250,4 +250,36 @@ class PerformanceControllerTest {
         assertThat(result["status"]).isEqualTo("ok")
         assertThat(result["portfolio"]).isEqualTo("TEST")
     }
+
+    @Test
+    fun `resolves managed portfolio by id when by-code lookup fails`() {
+        // Managed portfolios are owned by another SystemUser; the holdings
+        // page sends `portfolio.id` to the performance endpoint. svc-data's
+        // `findByCode(code, owner)` is owner-scoped and would 404, while
+        // `find(id)` applies `canView` and succeeds for shared portfolios.
+        val managedId = "managed-pf-uuid"
+        whenever(portfolioServiceClient.getPortfolioById(managedId)).thenReturn(portfolio)
+        val expectedResponse =
+            PerformanceResponse(
+                PerformanceData(
+                    currency = USD,
+                    series =
+                        listOf(
+                            PerformanceDataPoint(
+                                date = LocalDate.of(2024, 1, 1),
+                                growthOf1000 = BigDecimal("1000"),
+                                marketValue = BigDecimal("10000"),
+                                netContributions = BigDecimal("10000"),
+                                cumulativeReturn = BigDecimal.ZERO
+                            )
+                        )
+                )
+            )
+        whenever(performanceService.calculate(portfolio, 12)).thenReturn(expectedResponse)
+
+        val result = controller.getPerformance(managedId, 12)
+
+        assertThat(result.data.series).hasSize(1)
+        verify(performanceService).calculate(portfolio, 12)
+    }
 }

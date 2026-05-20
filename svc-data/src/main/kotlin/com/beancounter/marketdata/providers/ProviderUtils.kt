@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
-import com.beancounter.marketdata.markets.MarketService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -11,29 +11,34 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ProviderUtils(
-    private val mdFactory: MdFactory,
-    private val marketService: MarketService
+    private val mdFactory: MdFactory
 ) {
+    private val log = LoggerFactory.getLogger(ProviderUtils::class.java)
+
+    /**
+     * Groups resolved assets by their data provider. Callers MUST pre-resolve
+     * `priceAsset.resolvedAsset` (see [com.beancounter.marketdata.assets.AssetService.resolveAssets]).
+     * Unresolved entries are skipped with a warning — the previous behaviour
+     * of fabricating `Asset(code, market)` produced a phantom row with
+     * `id = code` that crashed the async persistence path when no matching
+     * DB row existed (DATA-4G).
+     */
     fun splitProviders(priceAssets: Collection<PriceAsset>): Map<MarketDataPriceProvider, MutableCollection<Asset>> {
         val mdpAssetResults: MutableMap<MarketDataPriceProvider, MutableCollection<Asset>> =
             mutableMapOf()
         priceAssets.forEach { priceAsset ->
-            val market =
-                priceAsset.resolvedAsset?.market ?: marketService
-                    .getMarket(priceAsset.market)
-                    .also { market ->
-                        priceAsset.resolvedAsset =
-                            Asset(
-                                code = priceAsset.code,
-                                market = market
-                            )
-                    }
-            val marketDataProvider = mdFactory.getMarketDataProvider(market)
-
-            if (priceAsset.resolvedAsset!!.status == Status.Active) {
-                val mdpAssets = mdpAssetResults.getOrPut(marketDataProvider) { mutableListOf() }
-                mdpAssets.add(priceAsset.resolvedAsset!!)
+            val resolved = priceAsset.resolvedAsset
+            if (resolved == null) {
+                log.warn(
+                    "Skipping price lookup for unresolved asset: market={}, code={}",
+                    priceAsset.market,
+                    priceAsset.code
+                )
+                return@forEach
             }
+            if (resolved.status != Status.Active) return@forEach
+            val marketDataProvider = mdFactory.getMarketDataProvider(resolved.market)
+            mdpAssetResults.getOrPut(marketDataProvider) { mutableListOf() }.add(resolved)
         }
         return mdpAssetResults
     }

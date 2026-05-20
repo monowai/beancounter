@@ -42,10 +42,12 @@ object DomainSystemPrompts {
           other derived figure, do the arithmetic silently and present only
           the final answer (the conclusion + the named drivers). Never
           show intermediate multiplications (`0.018 × 0.032 = 0.0006`),
-          per-position tables of products, running totals
-          ("Summing positives: …"), self-correction asides ("Hmm, let me
-          recalculate"), or any other chain-of-thought. The user wants
-          the verdict, not the spreadsheet.
+          per-position tables of products (Holding | Weight | Change% |
+          Contribution), running totals ("Summing positives: …"),
+          self-correction asides ("Hmm, let me recalculate"), or any
+          other chain-of-thought. No "Weighted daily return calculation"
+          tables, no "Contribution" columns — the user wants the
+          verdict, not the spreadsheet.
 
         ## Identifiers
 
@@ -110,6 +112,17 @@ object DomainSystemPrompts {
             most accurate when positions are held over varying periods.
           - `weight` — portfolio weight (decimal; 0.125 = 12.5%).
           - `category` — asset class, useful for grouping.
+          - `opened` — ISO date the position opened. **Always check
+            this before commenting on returns.** A position opened in
+            the last few days will legitimately show near-zero XIRR /
+            change — say "recently opened (YYYY-MM-DD), insufficient
+            history to judge return" instead of flagging it as
+            underperformance. Mention age (days/weeks/months held)
+            when it materially affects the conclusion.
+          - `lastTrade` — ISO date of the most recent transaction.
+            Useful when explaining stale or dormant holdings.
+          - `lastDividend` — ISO date of the most recent dividend
+            (null if never paid one). Useful for income commentary.
           - `closed` — true when quantity is zero.
           Show ratios as percentages when discussing performance. ROI,
           dividend yield, and trade currency are not exposed — never

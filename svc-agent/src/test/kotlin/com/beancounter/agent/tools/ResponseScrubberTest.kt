@@ -16,7 +16,7 @@ import java.time.LocalDate
 
 /**
  * Verify [ResponseScrubber] emits the compact columnar position shape, strips
- * absolute monetary values, and exposes only the 9-column field set the LLM
+ * absolute monetary values, and exposes the documented column set the LLM
  * needs.
  */
 class ResponseScrubberTest {
@@ -47,7 +47,7 @@ class ResponseScrubberTest {
     }
 
     @Test
-    fun `position response is columnar with the 9 documented columns`() {
+    fun `position response is columnar with the documented columns`() {
         val asset =
             Asset(
                 code = "AAPL",
@@ -72,6 +72,9 @@ class ResponseScrubberTest {
                 changePercent = BigDecimal("0.012")
             )
         position.quantityValues.purchased = BigDecimal("50")
+        position.dateValues.opened = LocalDate.parse("2025-09-01")
+        position.dateValues.last = LocalDate.parse("2026-04-10")
+        position.dateValues.lastDividend = LocalDate.parse("2026-02-15")
 
         val positions = Positions(portfolio)
         positions.add(position)
@@ -101,7 +104,10 @@ class ResponseScrubberTest {
                 "changePercent",
                 "xirr",
                 "weight",
-                "category"
+                "category",
+                "opened",
+                "lastTrade",
+                "lastDividend"
             )
         assertThat(scrubbed.rows).hasSize(1)
         assertThat(scrubbed.rows.first())
@@ -113,8 +119,33 @@ class ResponseScrubberTest {
                 0.012,
                 0.14,
                 0.125,
-                "Equity"
+                "Equity",
+                "2025-09-01",
+                "2026-04-10",
+                "2026-02-15"
             )
+    }
+
+    @Test
+    fun `null key dates serialise as null in row`() {
+        // New / freshly-imported holdings may have opened set but no
+        // dividend yet — null must pass through, not crash.
+        val asset = Asset(code = "NEW", market = nasdaq, category = "Equity")
+        val position = Position(asset, portfolio)
+        position.quantityValues.purchased = BigDecimal("10")
+        position.dateValues.opened = LocalDate.parse("2026-05-17")
+        // last + lastDividend left null
+
+        val positions = Positions(portfolio).apply { add(position) }
+        val scrubbed = scrubber.scrub(PositionResponse(positions))
+
+        val openedIdx = scrubbed.cols.indexOf("opened")
+        val lastTradeIdx = scrubbed.cols.indexOf("lastTrade")
+        val lastDividendIdx = scrubbed.cols.indexOf("lastDividend")
+        val row = scrubbed.rows.single()
+        assertThat(row[openedIdx]).isEqualTo("2026-05-17")
+        assertThat(row[lastTradeIdx]).isNull()
+        assertThat(row[lastDividendIdx]).isNull()
     }
 
     @Test

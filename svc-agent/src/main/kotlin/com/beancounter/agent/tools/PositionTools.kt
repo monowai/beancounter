@@ -54,7 +54,15 @@ class PositionTools(
                 "`xirr` (annualised money-weighted return, decimal — 0.12 = 12% p.a.; " +
                 "the most accurate performance measure across holdings); " +
                 "`weight` (portfolio weight, decimal — 0.125 = 12.5%); " +
-                "`category` (asset class, useful for grouping). " +
+                "`category` (asset class, useful for grouping); " +
+                "`opened` (ISO date YYYY-MM-DD the position was opened — use this " +
+                "to age the holding before commenting on returns; a position " +
+                "opened in the last few days will legitimately show near-zero " +
+                "XIRR or change); " +
+                "`lastTrade` (ISO date of the most recent transaction — useful " +
+                "for detecting dormant holdings); " +
+                "`lastDividend` (ISO date of the most recent dividend, or null " +
+                "if the holding has never paid a dividend). " +
                 "Closed (zero-quantity) positions are filtered out before " +
                 "the response is built, so every row represents an open " +
                 "holding — there is no `closed` column to inspect. " +

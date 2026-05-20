@@ -43,6 +43,10 @@ data class ScrubbedPortfolio(
  *   xirr                           — annualised money-weighted return
  *   weight                         — portfolio weight (0.125 = 12.5%)
  *   category                       — asset class
+ *   opened                         — ISO date this position opened (YYYY-MM-DD,
+ *                                    cleared on close, reset on reopen)
+ *   lastTrade                      — ISO date of most recent transaction
+ *   lastDividend                   — ISO date of most recent dividend
  */
 data class ScrubbedPositionResponse(
     val portfolioCode: String,
@@ -64,7 +68,10 @@ data class ScrubbedPositionResponse(
                 "changePercent",
                 "xirr",
                 "weight",
-                "category"
+                "category",
+                "opened",
+                "lastTrade",
+                "lastDividend"
             )
     }
 }
@@ -121,7 +128,10 @@ class ResponseScrubber {
             price?.changePercent?.toNullableDouble(),
             portfolioBucket?.irr?.toNullableDouble(),
             portfolioBucket?.weight?.toDouble() ?: 0.0,
-            asset.category
+            asset.category,
+            position.dateValues.opened?.toString(),
+            position.dateValues.last?.toString(),
+            position.dateValues.lastDividend?.toString()
         )
     }
 }

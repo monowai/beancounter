@@ -123,27 +123,48 @@ class AssetService(
         }
 
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
-        val assetIds = priceRequest.assets.map { it.assetId }
-        val assets = assetRepository.findAllById(assetIds)
-        val resolvedCount =
-            priceRequest.assets.count { priceAsset ->
-                assets.find { it.id == priceAsset.assetId } != null
-            }
-        if (resolvedCount < assetIds.size) {
-            log.warn(
-                "Resolved {} of {} assets from database",
-                resolvedCount,
-                assetIds.size
-            )
-        }
+        // Two-stage resolution: prefer bulk lookup by assetId (cheap, single
+        // round-trip), then fall back to market+code lookup for entries whose
+        // caller only supplied the ticker. The svc-agent `getCurrentPrice`
+        // tool, for example, sends `PriceAsset(market, code)` with no id
+        // (see DATA-4G: phantom Asset(id=code) propagated into the persistence
+        // path and crashed the async save).
+        val assetIds =
+            priceRequest.assets
+                .map { it.assetId }
+                .filter { it.isNotBlank() }
+        val byId = assetRepository.findAllById(assetIds).associateBy { it.id }
+
         val resolvedAssets =
             priceRequest.assets.map { priceAsset ->
-                val asset = assets.find { it.id == priceAsset.assetId }
+                if (priceAsset.resolvedAsset != null) return@map priceAsset
+                val byIdMatch = byId[priceAsset.assetId]
+                val asset =
+                    byIdMatch
+                        ?: if (priceAsset.market.isNotBlank() && priceAsset.code.isNotBlank()) {
+                            try {
+                                assetFinder.findLocally(
+                                    AssetInput(priceAsset.market, priceAsset.code)
+                                )
+                            } catch (_: Exception) {
+                                null
+                            }
+                        } else {
+                            null
+                        }
                 if (asset != null) {
                     priceAsset.resolvedAsset = assetFinder.hydrateAsset(asset)
                 }
                 priceAsset
             }
+        val resolvedCount = resolvedAssets.count { it.resolvedAsset != null }
+        if (resolvedCount < priceRequest.assets.size) {
+            log.warn(
+                "Resolved {} of {} assets from database",
+                resolvedCount,
+                priceRequest.assets.size
+            )
+        }
         return priceRequest.copy(assets = resolvedAssets)
     }
 

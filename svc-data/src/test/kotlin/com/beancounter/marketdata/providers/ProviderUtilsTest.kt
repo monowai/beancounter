@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.markets.MarketService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -15,11 +14,7 @@ import org.mockito.Mockito
 class ProviderUtilsTest {
     @Test
     fun inactiveAssetsIgnored() {
-        val providerUtils =
-            ProviderUtils(
-                Mockito.mock(MdFactory::class.java),
-                Mockito.mock(MarketService::class.java)
-            )
+        val providerUtils = ProviderUtils(Mockito.mock(MdFactory::class.java))
         val activeAsset =
             Asset(
                 code = "FindMe",
@@ -40,5 +35,17 @@ class ProviderUtilsTest {
                 )
             )
         ).containsExactly(PriceAsset(activeAsset))
+    }
+
+    @Test
+    fun unresolvedPriceAssetsSkipped() {
+        // DATA-4G regression: PriceAsset(market, code) with no resolvedAsset
+        // must NOT be fabricated into a phantom Asset(id=code) — that crashed
+        // the async persistence path when no DB row existed. Such entries are
+        // dropped silently (with a warn) before reaching the provider.
+        val providerUtils = ProviderUtils(Mockito.mock(MdFactory::class.java))
+        val unresolved = PriceAsset(market = NASDAQ.code, code = "SPY")
+        val split = providerUtils.splitProviders(listOf(unresolved))
+        assertThat(split).isEmpty()
     }
 }

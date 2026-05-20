@@ -12,7 +12,6 @@ import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
-import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import org.assertj.core.api.Assertions.assertThat
@@ -214,16 +213,9 @@ internal class DataProviderArgumentsTest {
     }
 
     private fun getProviderUtils(market: Market): ProviderUtils {
-        val marketService = Mockito.mock(MarketService::class.java)
-        Mockito
-            .`when`(marketService.getMarket(market.code))
-            .thenReturn(market)
         val mdFactory = Mockito.mock(MdFactory::class.java)
         Mockito.`when`(mdFactory.getMarketDataProvider(market)).thenReturn(CashProviderService())
-        return ProviderUtils(
-            mdFactory,
-            marketService
-        )
+        return ProviderUtils(mdFactory)
     }
 
     private class TestConfig(

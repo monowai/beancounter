@@ -92,4 +92,52 @@ class AssetsTest {
 
         // val byProviders = ProviderUtils().splitProviders(priceRequest.assets)
     }
+
+    @Test
+    fun `resolveAssets falls back to market and code when assetId blank`() {
+        // DATA-4G regression: callers such as svc-agent's getCurrentPrice
+        // tool only know the market + ticker, never the internal assetId.
+        // Resolution must succeed via findLocally(market, code) so the
+        // pipeline does not fabricate a phantom Asset(id=code).
+        val msft = "MSFT"
+        assetService.handle(
+            AssetRequest(
+                mapOf(
+                    msft to
+                        AssetInput(
+                            NASDAQ.code,
+                            msft,
+                            name = "Microsoft Corp."
+                        )
+                )
+            )
+        )
+        val priceRequest =
+            PriceRequest(
+                assets = listOf(PriceAsset(market = NASDAQ.code, code = msft))
+            )
+
+        val result = assetService.resolveAssets(priceRequest)
+
+        assertThat(result.assets).hasSize(1)
+        assertThat(result.assets[0].resolvedAsset)
+            .isNotNull
+            .extracting("code", "market.code")
+            .containsExactly(msft, NASDAQ.code)
+    }
+
+    @Test
+    fun `resolveAssets leaves resolvedAsset null when asset unknown`() {
+        // Unknown ticker — no DB row, no phantom. resolvedAsset stays null
+        // so splitProviders drops the entry rather than crashing later.
+        val priceRequest =
+            PriceRequest(
+                assets = listOf(PriceAsset(market = NASDAQ.code, code = "NEVER_LISTED"))
+            )
+
+        val result = assetService.resolveAssets(priceRequest)
+
+        assertThat(result.assets).hasSize(1)
+        assertThat(result.assets[0].resolvedAsset).isNull()
+    }
 }

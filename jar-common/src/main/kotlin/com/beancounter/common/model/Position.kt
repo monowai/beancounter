@@ -36,6 +36,14 @@ class Position(
     var subAccounts: MutableMap<String, java.math.BigDecimal> = mutableMapOf()
 
     /**
+     * Per-portfolio contribution for aggregated views.
+     * Empty for single-portfolio positions; populated only by the aggregated
+     * holdings endpoint so the UI can list the underlying portfolios holding
+     * this asset.
+     */
+    var portfolioBreakdown: List<PortfolioBreakdown> = emptyList()
+
+    /**
      * View currencies that cost is tracked in.
      */
     enum class In {

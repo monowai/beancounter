@@ -146,6 +146,28 @@ internal class EodhdApiTest {
     }
 
     @Test
+    fun `maps adjusted_close to MarketData close so historical prices are split-adjusted`() {
+        // EODHD's `/api/eod` ships both `close` (raw) and `adjusted_close` (split- and dividend-
+        // adjusted). Beancounter stores MarketData.close as the *adjusted* price so historical
+        // series remain comparable across splits. Regression: previously the adapter copied
+        // `close` (raw), so pre-split prices showed as N× higher than current quotes, breaking
+        // TWR / wealth charts after any split event.
+        stubEod("AAPL.US", "mock/eodhd/AAPL-US-split.json")
+
+        val result =
+            eodhdPriceService.getMarketData(
+                PriceRequest(
+                    "2020-08-31",
+                    listOf(PriceAsset(AAPL))
+                )
+            )
+
+        assertThat(result).hasSize(1)
+        // Fixture mirrors AAPL's 4-for-1 split on 2020-08-31: close=499.23, adjusted=124.81.
+        assertThat(result.first().close).isEqualByComparingTo(BigDecimal("124.81"))
+    }
+
+    @Test
     fun `returns a zero-close row when EODHD has no data for the symbol`() {
         stubEod("MSFT.US", "mock/eodhd/no-data.json")
 

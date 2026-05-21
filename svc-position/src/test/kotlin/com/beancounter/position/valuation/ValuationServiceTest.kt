@@ -248,6 +248,97 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions populates portfolioBreakdown per contributing portfolio`() {
+        // Given - two portfolios both holding the same asset
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        val portfolios = listOf(portfolio, portfolio2)
+
+        val asset = TestHelpers.createTestAsset("AAPL", "US")
+        val trn1 =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = portfolio,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("10"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 15)
+            )
+        val trn2 =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = portfolio2,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("5"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 16)
+            )
+
+        whenever(trnService.query(argThat { id == portfolio.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(trn1)))
+        whenever(trnService.query(argThat { id == portfolio2.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(trn2)))
+
+        val p1Positions =
+            Positions(portfolio).apply {
+                add(
+                    Position(asset, portfolio).apply {
+                        quantityValues.purchased = BigDecimal("10")
+                    }
+                )
+            }
+        val p2Positions =
+            Positions(portfolio2).apply {
+                add(
+                    Position(asset, portfolio2).apply {
+                        quantityValues.purchased = BigDecimal("5")
+                    }
+                )
+            }
+        val aggPositions =
+            Positions(portfolio).apply {
+                add(
+                    Position(asset, portfolio).apply {
+                        quantityValues.purchased = BigDecimal("15")
+                    }
+                )
+            }
+
+        whenever(
+            positionService.build(
+                argThat { id == portfolio.id },
+                argThat { trns.size == 1 }
+            )
+        ).thenReturn(PositionResponse(p1Positions))
+        whenever(
+            positionService.build(
+                argThat { id == portfolio2.id },
+                argThat { trns.size == 1 }
+            )
+        ).thenReturn(PositionResponse(p2Positions))
+        whenever(
+            positionService.build(
+                argThat { id == portfolio.id },
+                argThat { trns.size == 2 }
+            )
+        ).thenReturn(PositionResponse(aggPositions))
+
+        // When
+        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+
+        // Then
+        val agg =
+            result.data.positions.values
+                .first()
+        assertThat(agg.portfolioBreakdown).hasSize(2)
+        assertThat(agg.portfolioBreakdown.map { it.portfolioId })
+            .containsExactlyInAnyOrder(portfolio.id, portfolio2.id)
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio.id }.quantity)
+            .isEqualByComparingTo(BigDecimal("10"))
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio2.id }.quantity)
+            .isEqualByComparingTo(BigDecimal("5"))
+    }
+
+    @Test
     fun `getAggregatedPositions skips market value update for aggregated positions`() {
         // Given - aggregated positions that would normally trigger market value update
         val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")

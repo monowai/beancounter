@@ -9,6 +9,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.PortfolioBreakdown
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.setMarketValue
@@ -132,15 +133,17 @@ class ValuationService
             // Capture the security context to propagate to coroutines
             val securityContext = SecurityContextHolder.getContext()
 
-            // Concurrently fetch transactions for all portfolios
-            val allTransactions =
+            // Concurrently fetch transactions for all portfolios, retaining the
+            // portfolio each response belongs to so we can build a per-portfolio
+            // breakdown alongside the aggregated view.
+            val portfolioTransactions =
                 runBlocking(Dispatchers.IO) {
                     portfolios
                         .map { portfolio ->
                             async {
                                 SecurityContextHolder.setContext(securityContext)
                                 try {
-                                    trnService.query(portfolio, valuationDate)
+                                    portfolio to trnService.query(portfolio, valuationDate)
                                 } finally {
                                     SecurityContextHolder.clearContext()
                                 }
@@ -151,8 +154,8 @@ class ValuationService
             // Combine all transactions and sort by trade date
             // Sorting is required because the Accumulator validates date sequence
             val combinedTransactions =
-                allTransactions
-                    .flatMap { it.data.toTrns() }
+                portfolioTransactions
+                    .flatMap { it.second.data.toTrns() }
                     .sortedBy { it.tradeDate }
 
             if (combinedTransactions.isEmpty()) {
@@ -172,6 +175,11 @@ class ValuationService
                 )
             val positionResponse = positionService.build(contextPortfolio, positionRequest)
 
+            // Attach per-portfolio breakdown so the UI can list which portfolios
+            // hold each asset. Cost/quantity accumulation on the aggregated
+            // position itself is unchanged.
+            applyPortfolioBreakdown(positionResponse.data, portfolioTransactions)
+
             if (!valuationDate.equals(DateUtils.TODAY, ignoreCase = true)) {
                 positionResponse.data.asAt = valuationDate
             }
@@ -185,6 +193,46 @@ class ValuationService
                 )
             } else {
                 positionResponse
+            }
+        }
+
+        /**
+         * For each contributing portfolio, build its own positions and record the
+         * asset quantity it holds, then attach that list to the matching aggregated
+         * position. Portfolios with zero net quantity in an asset are skipped.
+         */
+        private fun applyPortfolioBreakdown(
+            aggregated: Positions,
+            portfolioTransactions: List<Pair<Portfolio, TrnResponse>>
+        ) {
+            if (!aggregated.hasPositions()) return
+
+            val breakdownByAsset = mutableMapOf<String, MutableList<PortfolioBreakdown>>()
+            portfolioTransactions.forEach { (portfolio, trnResponse) ->
+                val trns = trnResponse.data.toTrns()
+                if (trns.isEmpty()) return@forEach
+                val perPortfolio =
+                    positionService
+                        .build(portfolio, PositionRequest(portfolio.id, trns))
+                        .data
+                perPortfolio.positions.values.forEach { position ->
+                    val quantity = position.quantityValues.getTotal()
+                    if (quantity.signum() == 0) return@forEach
+                    breakdownByAsset
+                        .getOrPut(position.asset.id) { mutableListOf() }
+                        .add(
+                            PortfolioBreakdown(
+                                portfolioId = portfolio.id,
+                                portfolioCode = portfolio.code,
+                                portfolioName = portfolio.name,
+                                quantity = quantity
+                            )
+                        )
+                }
+            }
+
+            aggregated.positions.values.forEach { position ->
+                breakdownByAsset[position.asset.id]?.let { position.portfolioBreakdown = it.toList() }
             }
         }
 

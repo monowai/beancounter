@@ -29,11 +29,14 @@ class EodhdAdapter {
             return listOf(zeroPrice(asset, priceDate))
         }
         return rows.map { row ->
+            // EODHD ships both `close` (raw) and `adjusted_close` (split- and dividend-adjusted).
+            // Use the adjusted figure so historical series stay comparable across splits — raw
+            // close would leave pre-split prices N× higher than current quotes and break TWR.
             MarketData(
                 asset = asset,
                 priceDate = row.date,
                 open = row.open,
-                close = row.close,
+                close = row.adjustedClose,
                 source = EodhdPriceService.ID
             ).also {
                 it.high = row.high

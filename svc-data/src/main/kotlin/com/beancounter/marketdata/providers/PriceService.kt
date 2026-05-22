@@ -598,20 +598,26 @@ class PriceService(
         var missingRows = 0
         var earliest: LocalDate? = null
         for (event in events) {
-            val existing = marketDataRepo.findByAssetIdAndPriceDate(asset.id, event.priceDate)
-            if (existing.isEmpty) {
+            // A split impacts the asset regardless of provider: stamp every
+            // row on the ex-date so multi-source coverage stays in sync (the
+            // unique key is (source, asset_id, price_date)).
+            val rows = marketDataRepo.findAllByAssetIdAndPriceDate(asset.id, event.priceDate)
+            if (rows.isEmpty()) {
                 missingRows++
                 continue
             }
-            val row = existing.get()
-            if (row.split.compareTo(event.split) == 0) {
-                alreadyStamped++
-                continue
+            var stampedThisEvent = false
+            for (row in rows) {
+                if (row.split.compareTo(event.split) == 0) {
+                    alreadyStamped++
+                    continue
+                }
+                row.split = event.split
+                marketDataRepo.save(row)
+                stamped++
+                stampedThisEvent = true
             }
-            row.split = event.split
-            marketDataRepo.save(row)
-            stamped++
-            if (earliest == null || event.priceDate.isBefore(earliest)) {
+            if (stampedThisEvent && (earliest == null || event.priceDate.isBefore(earliest))) {
                 earliest = event.priceDate
             }
         }

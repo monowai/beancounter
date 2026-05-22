@@ -15,7 +15,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.Optional
 
 /**
  * Repair endpoint stamps the `split` column on existing `MarketData` rows so
@@ -50,8 +49,8 @@ class PriceRepairServiceTest {
 
         val existing =
             MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal("125.00"))
-        whenever(marketDataRepo.findByAssetIdAndPriceDate(AAPL.id, exDate))
-            .thenReturn(Optional.of(existing))
+        whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
+            .thenReturn(listOf(existing))
 
         val response = priceService.repairSplits(AAPL.id)
 
@@ -61,6 +60,34 @@ class PriceRepairServiceTest {
         val saved = ArgumentCaptor.forClass(MarketData::class.java)
         verify(marketDataRepo).save(saved.capture())
         assertThat(saved.value.split).isEqualByComparingTo(BigDecimal("4"))
+    }
+
+    @Test
+    fun `repairSplits stamps every provider's row on the same ex-date`() {
+        // A split affects the asset regardless of provider. With EODHD + ALPHA
+        // both holding rows for the ex-date, repair has to update both so the
+        // SplitAdjuster column-transition detector fires on whichever source
+        // wins resolution on a given read.
+        val exDate = LocalDate.of(2024, 10, 11)
+        val splitEvent =
+            MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal.ZERO).apply {
+                split = BigDecimal("4")
+            }
+        whenever(eventServiceFacade.getEvents(AAPL.id))
+            .thenReturn(PriceResponse(listOf(splitEvent)))
+
+        val alpha = MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal("26.42"), source = "ALPHA")
+        val eodhd = MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal("26.42"), source = "EODHD")
+        whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
+            .thenReturn(listOf(alpha, eodhd))
+
+        val response = priceService.repairSplits(AAPL.id)
+
+        assertThat(response.stamped).isEqualTo(2)
+        assertThat(alpha.split).isEqualByComparingTo(BigDecimal("4"))
+        assertThat(eodhd.split).isEqualByComparingTo(BigDecimal("4"))
+        verify(marketDataRepo).save(alpha)
+        verify(marketDataRepo).save(eodhd)
     }
 
     @Test
@@ -77,8 +104,8 @@ class PriceRepairServiceTest {
             MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal("125.00")).apply {
                 split = BigDecimal("4")
             }
-        whenever(marketDataRepo.findByAssetIdAndPriceDate(AAPL.id, exDate))
-            .thenReturn(Optional.of(existing))
+        whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
+            .thenReturn(listOf(existing))
 
         val response = priceService.repairSplits(AAPL.id)
 
@@ -96,8 +123,8 @@ class PriceRepairServiceTest {
             }
         whenever(eventServiceFacade.getEvents(AAPL.id))
             .thenReturn(PriceResponse(listOf(splitEvent)))
-        whenever(marketDataRepo.findByAssetIdAndPriceDate(AAPL.id, exDate))
-            .thenReturn(Optional.empty())
+        whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
+            .thenReturn(emptyList())
 
         val response = priceService.repairSplits(AAPL.id)
 

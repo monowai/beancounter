@@ -17,6 +17,18 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
         date: LocalDate?
     ): Optional<MarketData>
 
+    /**
+     * Every row for an asset on a given date, across all sources. The unique
+     * key on `MarketData` is `(source, asset_id, price_date)`, so a single
+     * (asset_id, price_date) tuple can have multiple rows when more than one
+     * provider supplies the asset. Splits / dividends apply to the asset
+     * regardless of provider, so the repair endpoint stamps every match.
+     */
+    fun findAllByAssetIdAndPriceDate(
+        assetId: String,
+        priceDate: LocalDate
+    ): List<MarketData>
+
     fun findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
         asset: Asset,
         priceDate: LocalDate

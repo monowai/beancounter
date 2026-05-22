@@ -39,7 +39,8 @@ object SplitAdjuster {
 
     fun adjust(
         prices: List<PricePoint>,
-        events: List<SplitEvent> = emptyList()
+        events: List<SplitEvent> = emptyList(),
+        adjustedSources: Set<String> = emptySet()
     ): List<PricePoint> {
         if (prices.isEmpty()) return prices
 
@@ -71,6 +72,14 @@ object SplitAdjuster {
                     factor = factor.multiply(eventFactor)
                 }
             }
+            // `shipsAdjustedClose()` providers (e.g. EODHD post-#875) persist
+            // `MarketData.close = adjusted_close` but leave `open/high/low` on
+            // the raw basis (the EODHD response carries no adjusted variants
+            // of those fields). Skip the factor only for `close` so the
+            // adjusted figure isn't divided again; keep dividing `open/high/
+            // low/previousClose` so the row lands fully on one basis.
+            val closeIsAdjusted = adjustedSources.contains(p.source)
+            val closeFactor = if (closeIsAdjusted) BigDecimal.ONE else factor
             val canonicalSplit = merged[p.priceDate] ?: BigDecimal.ONE
             // previousClose on the ex-date row lives on the previous trading
             // day. Some upstream paths leave it raw pre-split (so it needs
@@ -82,13 +91,14 @@ object SplitAdjuster {
             val previousCloseFactor =
                 resolvePreviousCloseFactor(p, factor, canonicalSplit)
             if (factor.compareTo(BigDecimal.ONE) == 0 &&
+                closeFactor.compareTo(BigDecimal.ONE) == 0 &&
                 previousCloseFactor.compareTo(BigDecimal.ONE) == 0 &&
                 canonicalSplit == p.split
             ) {
                 p
             } else {
                 p.copy(
-                    close = divideIfPositive(p.close, factor),
+                    close = divideIfPositive(p.close, closeFactor),
                     open = divideIfPositive(p.open, factor),
                     high = divideIfPositive(p.high, factor),
                     low = divideIfPositive(p.low, factor),

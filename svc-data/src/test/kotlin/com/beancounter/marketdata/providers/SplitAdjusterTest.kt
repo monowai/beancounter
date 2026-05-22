@@ -32,12 +32,20 @@ class SplitAdjusterTest {
         date: LocalDate,
         close: Double,
         split: Double = 1.0,
-        previousClose: Double = 0.0
+        previousClose: Double = 0.0,
+        source: String = "",
+        open: Double = 0.0,
+        high: Double = 0.0,
+        low: Double = 0.0
     ) = PricePoint(
         priceDate = date,
         close = bd(close),
+        open = bd(open),
+        high = bd(high),
+        low = bd(low),
         previousClose = bd(previousClose),
-        split = bd(split)
+        split = bd(split),
+        source = source
     )
 
     @Test
@@ -223,6 +231,51 @@ class SplitAdjusterTest {
 
         assertThat(adjusted[0].previousClose)
             .isEqualByComparingTo(BigDecimal.valueOf(rebasedPreviousClose))
+    }
+
+    @Test
+    fun `adjusted-source skip applies to close only - OHL still divided`() {
+        // EODHD (post-#875) persists `adjusted_close` as MarketData.close but
+        // leaves open/high/low on the raw basis — the response has no
+        // adjusted_* variants for OHL. Skipping the factor only on close
+        // keeps the row on a single basis after rebasement; an over-broad
+        // skip would leave a mixed-basis row (adjusted close + raw OHL).
+        val prices =
+            listOf(
+                point(
+                    date20260403,
+                    close = 100.0,
+                    source = "EODHD",
+                    open = 400.0,
+                    high = 420.0,
+                    low = 380.0
+                ),
+                point(
+                    date20260403,
+                    close = 5000.0,
+                    source = "ALPHA",
+                    open = 4900.0,
+                    high = 5100.0,
+                    low = 4800.0
+                ),
+                point(date20260407, close = 205.0, source = "ALPHA")
+            )
+        val events = listOf(SplitAdjuster.SplitEvent(date20260406, BigDecimal("25")))
+
+        val adjusted =
+            SplitAdjuster.adjust(prices, events, adjustedSources = setOf("EODHD"))
+
+        // EODHD: close untouched (already adjusted) ...
+        assertThat(adjusted[0].close).isEqualByComparingTo(BigDecimal("100"))
+        // ... but raw OHL still divided so the row lands on a single basis.
+        assertThat(adjusted[0].open).isEqualByComparingTo(BigDecimal("16"))
+        assertThat(adjusted[0].high).isEqualByComparingTo(BigDecimal("16.8"))
+        assertThat(adjusted[0].low).isEqualByComparingTo(BigDecimal("15.2"))
+        // ALPHA raw row pre-split: all fields divided by 25.
+        assertThat(adjusted[1].close).isEqualByComparingTo(BigDecimal("200"))
+        assertThat(adjusted[1].open).isEqualByComparingTo(BigDecimal("196"))
+        // ALPHA row on/after split: no events later, no divide.
+        assertThat(adjusted[2].close).isEqualByComparingTo(BigDecimal("205"))
     }
 
     @Test

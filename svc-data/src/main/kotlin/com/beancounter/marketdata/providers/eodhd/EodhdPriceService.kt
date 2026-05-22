@@ -96,6 +96,11 @@ class EodhdPriceService(
 
     override fun isApiSupported(): Boolean = true
 
+    // EODHD `/api/eod` ships `adjusted_close` per row; `EodhdAdapter` persists
+    // that value as `MarketData.close` (see PR #875). SplitAdjuster must skip
+    // dividing EODHD rows so corporate_event splits don't double-adjust them.
+    override fun shipsAdjustedClose(): Boolean = true
+
     companion object {
         const val ID = "EODHD"
     }

@@ -16,6 +16,10 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: monowai/eclipse-temurin
+  # Force JS actions still pinned to Node 20 onto Node 24 — Node 20 is
+  # being removed from GHA runners. See:
+  # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   docker:

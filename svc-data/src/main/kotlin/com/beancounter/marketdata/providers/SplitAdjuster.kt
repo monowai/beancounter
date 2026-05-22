@@ -66,18 +66,20 @@ object SplitAdjuster {
         val sortedEvents = merged.entries.sortedBy { it.key }
 
         return prices.map { p ->
-            // Providers that persist `adjusted_close` (e.g. EODHD post-#875)
-            // ship rows already on the post-split basis. Dividing again would
-            // double-adjust. Skip the factor application for those sources.
-            val alreadyAdjusted = adjustedSources.contains(p.source)
             var factor = BigDecimal.ONE
-            if (!alreadyAdjusted) {
-                for ((date, eventFactor) in sortedEvents) {
-                    if (date.isAfter(p.priceDate)) {
-                        factor = factor.multiply(eventFactor)
-                    }
+            for ((date, eventFactor) in sortedEvents) {
+                if (date.isAfter(p.priceDate)) {
+                    factor = factor.multiply(eventFactor)
                 }
             }
+            // `shipsAdjustedClose()` providers (e.g. EODHD post-#875) persist
+            // `MarketData.close = adjusted_close` but leave `open/high/low` on
+            // the raw basis (the EODHD response carries no adjusted variants
+            // of those fields). Skip the factor only for `close` so the
+            // adjusted figure isn't divided again; keep dividing `open/high/
+            // low/previousClose` so the row lands fully on one basis.
+            val closeIsAdjusted = adjustedSources.contains(p.source)
+            val closeFactor = if (closeIsAdjusted) BigDecimal.ONE else factor
             val canonicalSplit = merged[p.priceDate] ?: BigDecimal.ONE
             // previousClose on the ex-date row lives on the previous trading
             // day. Some upstream paths leave it raw pre-split (so it needs
@@ -85,23 +87,18 @@ object SplitAdjuster {
             // (svc-data's enrichWithPreviousClose) already rebase it. We
             // distinguish by magnitude: if it sits at roughly the raw
             // pre-split level (≥ half of close × canonicalSplit) treat it as
-            // raw, otherwise leave it alone. Adjusted-close providers ship
-            // previousClose on the adjusted basis already, so skip the heuristic
-            // entirely for those rows.
+            // raw, otherwise leave it alone.
             val previousCloseFactor =
-                if (alreadyAdjusted) {
-                    BigDecimal.ONE
-                } else {
-                    resolvePreviousCloseFactor(p, factor, canonicalSplit)
-                }
+                resolvePreviousCloseFactor(p, factor, canonicalSplit)
             if (factor.compareTo(BigDecimal.ONE) == 0 &&
+                closeFactor.compareTo(BigDecimal.ONE) == 0 &&
                 previousCloseFactor.compareTo(BigDecimal.ONE) == 0 &&
                 canonicalSplit == p.split
             ) {
                 p
             } else {
                 p.copy(
-                    close = divideIfPositive(p.close, factor),
+                    close = divideIfPositive(p.close, closeFactor),
                     open = divideIfPositive(p.open, factor),
                     high = divideIfPositive(p.high, factor),
                     low = divideIfPositive(p.low, factor),

@@ -41,6 +41,19 @@ interface MarketDataPriceProvider {
     // Return true if an external API calls is required
     fun isApiSupported(): Boolean
 
+    /**
+     * `true` when this provider persists rows whose `close` is already
+     * split- and dividend-adjusted (e.g. EODHD via `adjusted_close`,
+     * Alpha `TIME_SERIES_DAILY_ADJUSTED`). Drives [SplitAdjuster] to
+     * skip dividing rows from this source so the read path doesn't
+     * double-adjust on top of provider-side adjustment.
+     *
+     * Default is `false`: most legacy providers (Alpha `TIME_SERIES_DAILY`,
+     * MarketStack raw close, Morningstar, Cash, Private) ship raw closes
+     * and need read-time rebasement.
+     */
+    fun shipsAdjustedClose(): Boolean = false
+
     companion object {
         // Default window when no caller-supplied `fromDate`. Matches the
         // shortest provider plan (EODHD historical / MarketStack base tier

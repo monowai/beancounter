@@ -37,6 +37,7 @@ class PriceService(
     private var cacheInvalidationProducer: CacheInvalidationProducer? = null
     private var alphaEventService: AlphaEventService? = null
     private var eventServiceFacade: EventServiceFacade? = null
+    private var adjustedSources: Set<String> = emptySet()
 
     @Autowired(required = false)
     fun setAlphaEventService(alphaEventService: AlphaEventService?) {
@@ -46,6 +47,23 @@ class PriceService(
     @Autowired(required = false)
     fun setEventServiceFacade(eventServiceFacade: EventServiceFacade?) {
         this.eventServiceFacade = eventServiceFacade
+    }
+
+    /**
+     * Discover which provider IDs persist already-adjusted close prices.
+     * Built once at startup from every [MarketDataPriceProvider] bean and
+     * handed to [SplitAdjuster] to suppress double-adjustment.
+     */
+    @Autowired(required = false)
+    fun setPriceProviders(providers: List<MarketDataPriceProvider>) {
+        adjustedSources =
+            providers
+                .filter { it.shipsAdjustedClose() }
+                .map { it.getId() }
+                .toSet()
+        if (adjustedSources.isNotEmpty()) {
+            log.info("SplitAdjuster will skip already-adjusted sources: {}", adjustedSources)
+        }
     }
 
     @Autowired(required = false)
@@ -405,7 +423,7 @@ class PriceService(
         val from = series.first().priceDate
         val to = series.last().priceDate
         val splitEvents = collectSplitEvents(asset, from, to)
-        val adjusted = SplitAdjuster.adjust(series.map(PricePoint::from), splitEvents)
+        val adjusted = SplitAdjuster.adjust(series.map(PricePoint::from), splitEvents, adjustedSources)
         if (adjusted === series) return series
         return series.zip(adjusted).map { (md, point) ->
             if (point.close.compareTo(md.close) == 0 &&
@@ -483,7 +501,7 @@ class PriceService(
         val splitEvents = collectSplitEvents(asset, from, to)
         return PriceHistoryResponse(
             asset = asset,
-            prices = SplitAdjuster.adjust(rawPrices, splitEvents)
+            prices = SplitAdjuster.adjust(rawPrices, splitEvents, adjustedSources)
         )
     }
 

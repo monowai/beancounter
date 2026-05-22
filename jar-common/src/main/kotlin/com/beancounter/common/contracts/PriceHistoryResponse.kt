@@ -40,7 +40,13 @@ data class PricePoint(
     /** Split ratio applied on this date (1 = no split). Enables split-adjusted charts. */
     val split: BigDecimal = BigDecimal.ONE,
     /** Dividend amount per share paid on this date (0 = none). */
-    val dividend: BigDecimal = BigDecimal.ZERO
+    val dividend: BigDecimal = BigDecimal.ZERO,
+    /**
+     * Provider identifier that supplied the row (matches [MarketData.source]).
+     * Carried through so [SplitAdjuster] can skip dividing rows whose
+     * provider already persists adjusted close (e.g. EODHD post-#875).
+     */
+    val source: String = ""
 ) {
     companion object {
         fun from(md: MarketData): PricePoint =
@@ -55,7 +61,8 @@ data class PricePoint(
                 changePercent = md.changePercent,
                 volume = md.volume,
                 split = md.split,
-                dividend = md.dividend
+                dividend = md.dividend,
+                source = md.source
             )
     }
 }

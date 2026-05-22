@@ -32,12 +32,14 @@ class SplitAdjusterTest {
         date: LocalDate,
         close: Double,
         split: Double = 1.0,
-        previousClose: Double = 0.0
+        previousClose: Double = 0.0,
+        source: String = ""
     ) = PricePoint(
         priceDate = date,
         close = bd(close),
         previousClose = bd(previousClose),
-        split = bd(split)
+        split = bd(split),
+        source = source
     )
 
     @Test
@@ -223,6 +225,31 @@ class SplitAdjusterTest {
 
         assertThat(adjusted[0].previousClose)
             .isEqualByComparingTo(BigDecimal.valueOf(rebasedPreviousClose))
+    }
+
+    @Test
+    fun `skips dividing rows whose source already ships adjusted close`() {
+        // Regression guard: EODHD (post-#875) persists `adjusted_close` so its
+        // rows are already on the post-split basis. A corporate_event split
+        // would double-adjust them. ALPHA rows on the same window are raw and
+        // must still be divided.
+        val prices =
+            listOf(
+                point(date20260403, 100.0, source = "EODHD"),
+                point(date20260403, 5000.0, source = "ALPHA"),
+                point(date20260407, 205.0, source = "ALPHA")
+            )
+        val events = listOf(SplitAdjuster.SplitEvent(date20260406, BigDecimal("25")))
+
+        val adjusted =
+            SplitAdjuster.adjust(prices, events, adjustedSources = setOf("EODHD"))
+
+        // EODHD already-adjusted row: untouched.
+        assertThat(adjusted[0].close).isEqualByComparingTo(BigDecimal("100"))
+        // ALPHA raw row pre-split: divided by 25.
+        assertThat(adjusted[1].close).isEqualByComparingTo(BigDecimal("200"))
+        // ALPHA row on/after split: no events later, no divide.
+        assertThat(adjusted[2].close).isEqualByComparingTo(BigDecimal("205"))
     }
 
     @Test

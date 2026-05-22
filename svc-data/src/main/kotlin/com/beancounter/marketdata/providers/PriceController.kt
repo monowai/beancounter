@@ -470,6 +470,9 @@ class PriceController(
     ): Map<String, Any> = portfolioPriceBackfillService.backfill(code)
 
     @PostMapping("/{assetId}/repair-splits")
+    @PreAuthorize(
+        "hasAnyAuthority('" + AuthConstants.SCOPE_ADMIN + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
+    )
     @Operation(
         summary = "Stamp the split column on existing rows from provider events",
         description = """
@@ -477,7 +480,8 @@ class PriceController(
             to its configured provider) and stamps the `split` column on each ex-date MarketData row
             that still carries the default `1`. After repair, SplitAdjuster rebases historical OHLC
             via column-transition detection on every read path without re-querying the provider per
-            call. Idempotent.
+            call. Idempotent. Restricted to admin / system scope — write operation on shared
+            historical data.
         """
     )
     fun repairSplits(

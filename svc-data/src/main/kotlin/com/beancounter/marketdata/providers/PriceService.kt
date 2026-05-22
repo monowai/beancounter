@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceHistoryResponse
 import com.beancounter.common.contracts.PricePoint
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.contracts.RepairSplitsResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
@@ -35,10 +36,16 @@ class PriceService(
     private var eventProducer: EventProducer? = null
     private var cacheInvalidationProducer: CacheInvalidationProducer? = null
     private var alphaEventService: AlphaEventService? = null
+    private var eventServiceFacade: EventServiceFacade? = null
 
     @Autowired(required = false)
     fun setAlphaEventService(alphaEventService: AlphaEventService?) {
         this.alphaEventService = alphaEventService
+    }
+
+    @Autowired(required = false)
+    fun setEventServiceFacade(eventServiceFacade: EventServiceFacade?) {
+        this.eventServiceFacade = eventServiceFacade
     }
 
     @Autowired(required = false)
@@ -495,22 +502,21 @@ class PriceService(
         return marketData.close.compareTo(anomalyThreshold) < 0
     }
 
-    // Returns Alpha's known split factor for the asset on `date` when one
+    // Returns the provider's known split factor for the asset on `date` when one
     // exists, or null otherwise. Lets enrichWithPreviousClose recover from
     // providers that omit the split flag on the ex-date row (e.g. MarketStack
-    // on VUG 2026-04-21).
+    // on VUG 2026-04-21). Routes via [EventServiceFacade] so US assets covered
+    // by EODHD pick up splits Alpha misses (e.g. SCHG 4:1 on 2024-10-11).
     private fun knownSplitFor(
         asset: Asset,
         date: LocalDate
-    ): BigDecimal? {
-        val service = alphaEventService ?: return null
-        return try {
-            service
-                .getEvents(asset)
-                .data
-                .asSequence()
-                .filter(::isSplit)
-                .firstOrNull { it.priceDate == date }
+    ): BigDecimal? =
+        try {
+            providerEvents(asset)
+                ?.data
+                ?.asSequence()
+                ?.filter(::isSplit)
+                ?.firstOrNull { it.priceDate == date }
                 ?.split
                 ?.takeIf { it.compareTo(BigDecimal.ONE) != 0 && it.signum() > 0 }
         } catch (
@@ -525,7 +531,6 @@ class PriceService(
             )
             null
         }
-    }
 
     /**
      * Pulls known split events for the asset within the requested range.
@@ -541,17 +546,16 @@ class PriceService(
         asset: Asset,
         from: LocalDate,
         to: LocalDate
-    ): List<SplitAdjuster.SplitEvent> {
-        val service = alphaEventService ?: return emptyList()
-        return try {
-            service
-                .getEvents(asset)
-                .data
-                .asSequence()
-                .filter(::isSplit)
-                .filter { !it.priceDate.isBefore(from) && !it.priceDate.isAfter(to) }
-                .map { SplitAdjuster.SplitEvent(it.priceDate, it.split) }
-                .toList()
+    ): List<SplitAdjuster.SplitEvent> =
+        try {
+            providerEvents(asset)
+                ?.data
+                ?.asSequence()
+                ?.filter(::isSplit)
+                ?.filter { !it.priceDate.isBefore(from) && !it.priceDate.isAfter(to) }
+                ?.map { SplitAdjuster.SplitEvent(it.priceDate, it.split) }
+                ?.toList()
+                ?: emptyList()
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: Exception
@@ -563,6 +567,62 @@ class PriceService(
             )
             emptyList()
         }
+
+    // Source of corporate events for an asset. Prefer [EventServiceFacade] so
+    // each market routes to its configured provider (EODHD covers SCHG splits
+    // Alpha doesn't); fall back to [AlphaEventService] for unit tests that
+    // wire only the legacy collaborator.
+    private fun providerEvents(asset: Asset): PriceResponse? =
+        eventServiceFacade?.getEvents(asset.id)
+            ?: alphaEventService?.getEvents(asset)
+
+    /**
+     * Stamp the `split` column on each ex-date `MarketData` row from the
+     * provider's known split events. After repair, `SplitAdjuster` can rebase
+     * historical OHLC via column-transition detection on every read path
+     * without re-querying the provider on each call.
+     *
+     * Idempotent: rows already carrying the matching factor are left alone.
+     */
+    @Transactional
+    fun repairSplits(assetId: String): RepairSplitsResponse {
+        val asset = assetFinder.find(assetId)
+        val events =
+            providerEvents(asset)
+                ?.data
+                ?.filter(::isSplit)
+                ?.filter { it.split.compareTo(BigDecimal.ONE) != 0 && it.split.signum() > 0 }
+                ?: return RepairSplitsResponse()
+        var stamped = 0
+        var alreadyStamped = 0
+        var missingRows = 0
+        var earliest: LocalDate? = null
+        for (event in events) {
+            val existing = marketDataRepo.findByAssetIdAndPriceDate(asset.id, event.priceDate)
+            if (existing.isEmpty) {
+                missingRows++
+                continue
+            }
+            val row = existing.get()
+            if (row.split.compareTo(event.split) == 0) {
+                alreadyStamped++
+                continue
+            }
+            row.split = event.split
+            marketDataRepo.save(row)
+            stamped++
+            if (earliest == null || event.priceDate.isBefore(earliest)) {
+                earliest = event.priceDate
+            }
+        }
+        if (stamped > 0 && earliest != null) {
+            cacheInvalidationProducer?.sendPriceHistoryEvent(asset.id, earliest)
+        }
+        return RepairSplitsResponse(
+            stamped = stamped,
+            alreadyStamped = alreadyStamped,
+            missingRows = missingRows
+        )
     }
 
     /**

@@ -9,6 +9,7 @@ import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceHistoryResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.contracts.RepairSplitsResponse
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.MAX_BACKFILL_YEARS
@@ -467,4 +468,23 @@ class PriceController(
         )
         @PathVariable code: String
     ): Map<String, Any> = portfolioPriceBackfillService.backfill(code)
+
+    @PostMapping("/{assetId}/repair-splits")
+    @Operation(
+        summary = "Stamp the split column on existing rows from provider events",
+        description = """
+            Walks corporate-event splits for the asset (via EventServiceFacade so each market routes
+            to its configured provider) and stamps the `split` column on each ex-date MarketData row
+            that still carries the default `1`. After repair, SplitAdjuster rebases historical OHLC
+            via column-transition detection on every read path without re-querying the provider per
+            call. Idempotent.
+        """
+    )
+    fun repairSplits(
+        @Parameter(
+            description = "Internal asset identifier",
+            example = "asset-123"
+        )
+        @PathVariable assetId: String
+    ): RepairSplitsResponse = priceService.repairSplits(assetId)
 }

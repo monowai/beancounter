@@ -84,6 +84,8 @@ class PriceRepairServiceTest {
         val response = priceService.repairSplits(AAPL.id)
 
         assertThat(response.stamped).isEqualTo(2)
+        assertThat(response.alreadyStamped).isEqualTo(0)
+        assertThat(response.missingRows).isEqualTo(0)
         assertThat(alpha.split).isEqualByComparingTo(BigDecimal("4"))
         assertThat(eodhd.split).isEqualByComparingTo(BigDecimal("4"))
         verify(marketDataRepo).save(alpha)
@@ -111,6 +113,7 @@ class PriceRepairServiceTest {
 
         assertThat(response.stamped).isEqualTo(0)
         assertThat(response.alreadyStamped).isEqualTo(1)
+        assertThat(response.missingRows).isEqualTo(0)
         verify(marketDataRepo, org.mockito.Mockito.never()).save(any<MarketData>())
     }
 
@@ -129,6 +132,7 @@ class PriceRepairServiceTest {
         val response = priceService.repairSplits(AAPL.id)
 
         assertThat(response.stamped).isEqualTo(0)
+        assertThat(response.alreadyStamped).isEqualTo(0)
         assertThat(response.missingRows).isEqualTo(1)
         verify(marketDataRepo, org.mockito.Mockito.never()).save(any<MarketData>())
     }

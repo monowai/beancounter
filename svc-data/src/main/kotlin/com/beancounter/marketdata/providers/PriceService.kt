@@ -364,7 +364,14 @@ class PriceService(
                 maxDate
             )
         // Per-asset chronological list — already ascending from the query's ORDER BY.
-        val byAsset = window.groupBy { it.asset.id }
+        // Rebase onto the latest post-split basis before resolution so wealth / TWR
+        // charts don't span split dates with raw pre-split closes (the DB stores raw
+        // closes for any provider that doesn't carry split coefficients on each row,
+        // e.g. Alpha TIME_SERIES_DAILY).
+        val byAsset =
+            window
+                .groupBy { it.asset.id }
+                .mapValues { (_, series) -> adjustSeriesForSplits(series) }
 
         val result = mutableMapOf<String, List<MarketData>>()
         for (date in dates) {
@@ -377,6 +384,48 @@ class PriceService(
             result[date.toString()] = mdList
         }
         return result
+    }
+
+    /**
+     * Apply [SplitAdjuster] to a chronological [MarketData] series and write the
+     * adjusted OHLC back into the returned rows. Mirrors what [getPriceHistory]
+     * does for the `/prices/{id}/history` endpoint so the bulk read path that
+     * feeds `svc-position` performance charts sees the same rebased basis.
+     */
+    private fun adjustSeriesForSplits(series: List<MarketData>): List<MarketData> {
+        if (series.size < 2) return series
+        val asset = series.first().asset
+        val from = series.first().priceDate
+        val to = series.last().priceDate
+        val splitEvents = collectSplitEvents(asset, from, to)
+        val adjusted = SplitAdjuster.adjust(series.map(PricePoint::from), splitEvents)
+        if (adjusted === series) return series
+        return series.zip(adjusted).map { (md, point) ->
+            if (point.close.compareTo(md.close) == 0 &&
+                point.open.compareTo(md.open) == 0 &&
+                point.high.compareTo(md.high) == 0 &&
+                point.low.compareTo(md.low) == 0
+            ) {
+                md
+            } else {
+                MarketData(
+                    asset = md.asset,
+                    priceDate = md.priceDate,
+                    open = point.open,
+                    close = point.close,
+                    source = md.source
+                ).also {
+                    it.high = point.high
+                    it.low = point.low
+                    it.previousClose = point.previousClose
+                    it.change = md.change
+                    it.changePercent = md.changePercent
+                    it.volume = md.volume
+                    it.split = point.split
+                    it.dividend = md.dividend
+                }
+            }
+        }
     }
 
     /**

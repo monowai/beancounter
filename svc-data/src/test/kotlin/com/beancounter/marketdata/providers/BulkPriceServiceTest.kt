@@ -104,6 +104,38 @@ class BulkPriceServiceTest {
     }
 
     @Test
+    fun `getBulkMarketData rebases pre-split closes via SplitAdjuster`() {
+        // Pre-split AAPL @ $500 should appear in the bulk response as the post-split
+        // basis ($125) once a known 4-for-1 ex-date sits later in the window. Without
+        // this, wealth/TWR charts span split dates with raw pre-split closes and show
+        // an N× drop on the ex-date that never recovers.
+        val preSplit = LocalDate.of(2020, 8, 28)
+        val exDate = LocalDate.of(2020, 8, 31)
+        val postSplit = LocalDate.of(2020, 9, 1)
+        val assets = listOf(AAPL)
+        val dates = listOf(preSplit, exDate, postSplit)
+
+        val pre = MarketData(asset = AAPL, priceDate = preSplit, close = BigDecimal("500.00"))
+        val ex =
+            MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal("125.00")).apply {
+                split = BigDecimal("4")
+            }
+        val post = MarketData(asset = AAPL, priceDate = postSplit, close = BigDecimal("130.00"))
+
+        whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
+            .thenReturn(listOf(pre, ex, post))
+
+        val result = priceService.getBulkMarketData(assets, dates)
+
+        assertThat(result["2020-08-28"]!![0].close)
+            .isEqualByComparingTo(BigDecimal("125.00"))
+        assertThat(result["2020-08-31"]!![0].close)
+            .isEqualByComparingTo(BigDecimal("125.00"))
+        assertThat(result["2020-09-01"]!![0].close)
+            .isEqualByComparingTo(BigDecimal("130.00"))
+    }
+
+    @Test
     fun `getBulkMarketData returns empty list for date with no data in window`() {
         val date = LocalDate.of(2024, 1, 1)
         val assets = listOf(AAPL)

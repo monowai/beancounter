@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.eodhd
 
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
@@ -44,6 +45,28 @@ internal class EodhdEventServiceTest {
         verify(repo).findEventsByAssetId(gne.id)
         verify(proxy, never()).getDividends(org.mockito.kotlin.any(), org.mockito.kotlin.any())
         verify(proxy, never()).getSplits(org.mockito.kotlin.any(), org.mockito.kotlin.any())
+    }
+
+    @Test
+    fun `repo fallback surfaces events with the repo-supplied Asset (hydrated by listener)`() {
+        // Production: AssetEntityListener.@PostLoad hydrates Asset.market when the
+        // repo loads the MarketData → asset graph. Here the mocked repo yields a
+        // MarketData whose asset already carries `market`; the service must hand
+        // that row straight through (no re-attachment of the caller's Asset).
+        // Guards against regressing back to the PR #882 manual re-attachment.
+        whenever(config.markets).thenReturn("LON")
+        val cached =
+            MarketData(asset = gne, priceDate = LocalDate.of(2024, 6, 1))
+                .also { it.dividend = BigDecimal("0.10") }
+        whenever(repo.findEventsByAssetId(gne.id)).thenReturn(listOf(cached))
+
+        val response = service.getEvents(gne)
+
+        assertThat(response.data).hasSize(1)
+        val returned = response.data.first()
+        assertThat(returned).isSameAs(cached)
+        assertThat(returned.asset).isSameAs(gne)
+        assertThat(returned.asset.market.code).isEqualTo("NZX")
     }
 
     @Test

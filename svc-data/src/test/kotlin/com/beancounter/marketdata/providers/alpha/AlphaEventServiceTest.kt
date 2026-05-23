@@ -84,6 +84,33 @@ class AlphaEventServiceTest {
     }
 
     @Test
+    fun `repo fallback surfaces events with the repo-supplied Asset (hydrated by listener)`() {
+        // Production: AssetEntityListener.@PostLoad hydrates Asset.market when the
+        // repo loads the MarketData → asset graph. The service must hand cached
+        // events straight through without re-attaching the caller's Asset.
+        // Guards against regressing back to the PR #882 manual re-attachment.
+        val nzxMarket = Market("NZX")
+        val nzxAsset = Asset(id = "gne-id", code = "GNE", market = nzxMarket)
+        val cached =
+            com.beancounter.common.model
+                .MarketData(
+                    asset = nzxAsset,
+                    priceDate = java.time.LocalDate.of(2024, 6, 1)
+                ).also { it.dividend = java.math.BigDecimal("0.10") }
+
+        `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON")
+        `when`(marketDataRepo.findEventsByAssetId(nzxAsset.id)).thenReturn(listOf(cached))
+
+        val response = alphaEventService.getEvents(nzxAsset)
+
+        assertThat(response.data).hasSize(1)
+        val returned = response.data.first()
+        assertThat(returned).isSameAs(cached)
+        assertThat(returned.asset).isSameAs(nzxAsset)
+        assertThat(returned.asset.market.code).isEqualTo("NZX")
+    }
+
+    @Test
     fun `should return empty response when markets config is null`() {
         // Given: An asset with any market
         val market = Market("US")

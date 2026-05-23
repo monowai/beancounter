@@ -107,6 +107,13 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
 
     /**
      * Find stored prices that represent corporate events (dividend or split).
+     *
+     * Callers must hydrate `MarketData.asset` (set `Asset.market` from
+     * `marketCode` via [com.beancounter.marketdata.assets.AssetFinder.hydrateAsset])
+     * before returning to JSON, otherwise Jackson NPEs on the transient `market`
+     * field — see [com.beancounter.marketdata.providers.alpha.AlphaEventService] and
+     * [com.beancounter.marketdata.providers.eodhd.EodhdEventService] for the
+     * reference pattern.
      */
     @Query(
         "SELECT md FROM MarketData md WHERE md.asset.id = :assetId AND (md.dividend > 0 OR md.split <> 1)"

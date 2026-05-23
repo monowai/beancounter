@@ -79,6 +79,11 @@ class AssetEntityListenerIntegrationTest {
                 ).data.values
                 .first()
 
+        // The initial save returns the @PostPersist-hydrated managed instance.
+        assertThat(asset.market.code).isEqualTo(NASDAQ.code)
+        assertThat(asset.market.currency).isNotNull
+        assertThat(asset.assetCategory).isNotNull
+
         // Status change forces an @PostUpdate path via assetService.updateStatus,
         // which calls assetRepository.save on the modified copy.
         val updated = assetService.updateStatus(asset.id, Status.Inactive)

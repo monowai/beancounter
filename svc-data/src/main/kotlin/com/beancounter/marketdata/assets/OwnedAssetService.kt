@@ -34,7 +34,7 @@ class OwnedAssetService(
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserIdAndCategory(user.id, category.uppercase())
         return AssetUpdateResponse(
-            assets.associate { getDisplayCode(it.code) to assetFinder.hydrateAsset(it) }
+            assets.associate { getDisplayCode(it.code) to it }
         )
     }
 
@@ -47,7 +47,7 @@ class OwnedAssetService(
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserId(user.id)
         return AssetUpdateResponse(
-            assets.associate { getDisplayCode(it.code) to assetFinder.hydrateAsset(it) }
+            assets.associate { getDisplayCode(it.code) to it }
         )
     }
 
@@ -129,6 +129,8 @@ class OwnedAssetService(
         }
         // Update expected return rate for retirement projections
         assetInput.expectedReturnRate?.let { asset.expectedReturnRate = it }
+        // save() goes through em.merge() — returned managed instance loses transient
+        // fields. AssetEntityListener.@PostLoad does not fire on merge, so re-hydrate.
         return assetFinder.hydrateAsset(assetRepository.save(asset))
     }
 

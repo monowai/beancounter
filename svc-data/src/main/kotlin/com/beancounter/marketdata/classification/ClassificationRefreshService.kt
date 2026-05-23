@@ -48,8 +48,7 @@ class ClassificationRefreshService(
             return false
         }
 
-        val hydratedAsset = assetFinder.hydrateAsset(asset.get())
-        return classificationEnricher.enrichClassification(hydratedAsset)
+        return classificationEnricher.enrichClassification(asset.get())
     }
 
     /**
@@ -65,8 +64,7 @@ class ClassificationRefreshService(
             return false
         }
 
-        val hydratedAsset = assetFinder.hydrateAsset(asset.get())
-        return classificationEnricher.enrichClassification(hydratedAsset)
+        return classificationEnricher.enrichClassification(asset.get())
     }
 
     private fun processAssets(
@@ -80,8 +78,7 @@ class ClassificationRefreshService(
 
         for (asset in assets) {
             try {
-                val hydratedAsset = assetFinder.hydrateAsset(asset)
-                if (classificationEnricher.enrichClassification(hydratedAsset)) {
+                if (classificationEnricher.enrichClassification(asset)) {
                     processed++
                 }
             } catch (

@@ -31,7 +31,6 @@ class AssetFinder(
     fun find(assetId: String): Asset =
         assetRepository
             .findById(assetId)
-            .map { asset: Asset -> hydrateAsset(asset) }
             .orElseThrow { NotFoundException("Asset not found: $assetId") }
 
     /**
@@ -58,15 +57,17 @@ class AssetFinder(
             .findByMarketCodeAndCode(
                 marketCode.uppercase(Locale.getDefault()),
                 findCode
-            ).map { asset: Asset -> hydrateAsset(asset) }
-            .orElse(null)
+            ).orElse(null)
     }
 
     /**
      * Hydrate an asset by enriching it with market and category information.
      *
-     * @param asset the asset to hydrate
-     * @return the hydrated asset
+     * Kept for the rare case of an Asset constructed in-process (outside
+     * JPA) — anything coming out of a repository is already hydrated by
+     * [com.beancounter.marketdata.assets.AssetEntityListener]'s `@PostLoad`
+     * hook. Prefer the listener; this method exists for callers that mint
+     * a fresh `Asset` from a non-DB source.
      */
     fun hydrateAsset(asset: Asset): Asset {
         asset.market = marketService.getMarket(asset.marketCode)
@@ -80,8 +81,7 @@ class AssetFinder(
      * @param marketCode the market code to search for
      * @return list of assets for the given market
      */
-    fun findByMarketCode(marketCode: String): List<Asset> =
-        assetRepository.findByMarketCode(marketCode).map { hydrateAsset(it) }
+    fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
 
     /**
      * Find all active assets for pricing.
@@ -103,7 +103,7 @@ class AssetFinder(
     /**
      * Index benchmark assets refreshed on schedule regardless of holdings.
      */
-    fun findActiveIndexAssets(): List<Asset> = assetRepository.findActiveIndexAssets().map { hydrateAsset(it) }
+    fun findActiveIndexAssets(): List<Asset> = assetRepository.findActiveIndexAssets()
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetFinder::class.java)

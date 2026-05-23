@@ -30,6 +30,10 @@ class BalanceBehaviourTest {
     @Autowired
     private lateinit var accumulator: Accumulator
 
+    companion object {
+        private const val RUBY_CPF = "RUBY-CPF"
+    }
+
     @Test
     fun `cash Balance with no FX`() {
         val portfolio =
@@ -101,11 +105,11 @@ class BalanceBehaviourTest {
             )
         val cpfAsset =
             Asset(
-                code = "RUBY-CPF",
-                id = "RUBY-CPF",
+                code = RUBY_CPF,
+                id = RUBY_CPF,
                 name = "Ruby CPF",
                 market = Market("PRIVATE"),
-                priceSymbol = "RUBY-CPF",
+                priceSymbol = RUBY_CPF,
                 category = AssetCategory.POLICY
             )
         val balance = BigDecimal("250000.00")

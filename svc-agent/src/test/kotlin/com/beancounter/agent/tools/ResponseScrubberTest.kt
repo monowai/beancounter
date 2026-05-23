@@ -205,7 +205,13 @@ class ResponseScrubberTest {
         val row = scrubbed.rows.single()
         assertThat(row).hasSize(scrubbed.cols.size)
         val codeIdx = scrubbed.cols.indexOf("assetCode")
+        val xirrIdx = scrubbed.cols.indexOf("xirr")
+        val categoryIdx = scrubbed.cols.indexOf("category")
+        val priceIdx = scrubbed.cols.indexOf("priceClose")
         assertThat(row[codeIdx]).isEqualTo("AAPL")
+        assertThat(row[xirrIdx]).isEqualTo(0.14)
+        assertThat(row[categoryIdx]).isEqualTo("Equity")
+        assertThat(row[priceIdx]).isEqualTo(178.50)
     }
 
     @Test

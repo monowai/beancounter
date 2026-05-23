@@ -83,6 +83,11 @@ data class PrivateAssetConfig(
     // Regular contribution amount (e.g., pension contributions, insurance premiums)
     @Column(name = "monthly_contribution", precision = 19, scale = 4)
     val monthlyContribution: BigDecimal? = null,
+    // Cadence of pension contributions captured against this asset; the
+    // Work Scenario stores the amount, this resolves how it annualises.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "contribution_frequency", length = 10, nullable = false)
+    val contributionFrequency: ContributionFrequency = ContributionFrequency.MONTHLY,
     @Column(name = "is_pension")
     val isPension: Boolean = false,
     // Composite policy support

@@ -230,6 +230,68 @@ class PrivateAssetConfigServiceTest {
     }
 
     @Test
+    fun `saveConfig persists contributionFrequency ANNUAL`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                isPension = true,
+                monthlyContribution = BigDecimal("8000"),
+                contributionFrequency = ContributionFrequency.ANNUAL
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.contributionFrequency).isEqualTo(ContributionFrequency.ANNUAL)
+    }
+
+    @Test
+    fun `saveConfig defaults contributionFrequency to MONTHLY when omitted`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                isPension = true,
+                monthlyContribution = BigDecimal("500")
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.contributionFrequency).isEqualTo(ContributionFrequency.MONTHLY)
+    }
+
+    @Test
+    fun `saveConfig preserves existing contributionFrequency when request omits it`() {
+        val asset = createTestAsset()
+        val existing =
+            PrivateAssetConfig(
+                assetId = assetId,
+                contributionFrequency = ContributionFrequency.ANNUAL
+            )
+        val request =
+            PrivateAssetConfigRequest(
+                monthlyContribution = BigDecimal("8500")
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(existing))
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.contributionFrequency).isEqualTo(ContributionFrequency.ANNUAL)
+    }
+
+    @Test
     fun `saveConfig sets rental to zero for primary residence`() {
         val asset = createTestAsset()
         val request =

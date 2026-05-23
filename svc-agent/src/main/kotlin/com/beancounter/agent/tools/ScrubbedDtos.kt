@@ -73,6 +73,13 @@ data class ScrubbedPositionResponse(
                 "lastTrade",
                 "lastDividend"
             )
+
+        // Aggregated reviews drop `weight` — once positions are merged across
+        // portfolios the per-position weight has no single denominator, and
+        // the LLM was burning tokens narrating per-portfolio breakdowns.
+        // The remaining columns match COLS in order so prompts can describe
+        // the schema once and reference both views.
+        val COLS_AGGREGATED: List<String> = COLS.filterNot { it == "weight" }
     }
 }
 
@@ -92,7 +99,20 @@ class ResponseScrubber {
 
     fun scrub(response: PortfoliosResponse): List<ScrubbedPortfolio> = response.data.map(::scrub)
 
-    fun scrub(response: PositionResponse): ScrubbedPositionResponse {
+    fun scrub(response: PositionResponse): ScrubbedPositionResponse = scrubInternal(response, includeWeight = true)
+
+    /**
+     * Aggregated-portfolio variant. Drops the `weight` column from both
+     * `cols` and every row — see [ScrubbedPositionResponse.COLS_AGGREGATED]
+     * for the rationale.
+     */
+    fun scrubAggregated(response: PositionResponse): ScrubbedPositionResponse =
+        scrubInternal(response, includeWeight = false)
+
+    private fun scrubInternal(
+        response: PositionResponse,
+        includeWeight: Boolean
+    ): ScrubbedPositionResponse {
         val positions = response.data
         // Drop closed (zero-quantity) rows server-side so the LLM never sees
         // them. Earlier the system prompt asked the LLM to filter silently;
@@ -101,7 +121,7 @@ class ResponseScrubber {
         val openRows =
             positions.positions.values
                 .filter { it.quantityValues.getTotal().signum() != 0 }
-                .map(::scrubPositionRow)
+                .map { scrubPositionRow(it, includeWeight) }
         return ScrubbedPositionResponse(
             portfolioCode = positions.portfolio.code,
             portfolioName = positions.portfolio.name,
@@ -112,27 +132,46 @@ class ResponseScrubber {
                 positions.totals[Position.In.PORTFOLIO]
                     ?.irr
                     ?.toNullableDouble(),
+            cols =
+                if (includeWeight) {
+                    ScrubbedPositionResponse.COLS
+                } else {
+                    ScrubbedPositionResponse.COLS_AGGREGATED
+                },
             rows = openRows
         )
     }
 
-    private fun scrubPositionRow(position: Position): List<Any?> {
+    private fun scrubPositionRow(
+        position: Position,
+        includeWeight: Boolean = true
+    ): List<Any?> {
         val portfolioBucket = position.moneyValues[Position.In.PORTFOLIO]
         val price = portfolioBucket?.priceData
         val asset = position.asset
-        return listOf(
-            asset.code,
-            asset.name,
-            asset.market.code,
-            price?.close?.toNullableDouble(),
-            price?.changePercent?.toNullableDouble(),
-            portfolioBucket?.irr?.toNullableDouble(),
-            portfolioBucket?.weight?.toDouble() ?: 0.0,
-            asset.category,
-            position.dateValues.opened?.toString(),
-            position.dateValues.last?.toString(),
-            position.dateValues.lastDividend?.toString()
-        )
+        val base =
+            listOf(
+                asset.code,
+                asset.name,
+                asset.market.code,
+                price?.close?.toNullableDouble(),
+                price?.changePercent?.toNullableDouble(),
+                portfolioBucket?.irr?.toNullableDouble()
+            )
+        val weightCol: List<Any?> =
+            if (includeWeight) {
+                listOf(portfolioBucket?.weight?.toDouble() ?: 0.0)
+            } else {
+                emptyList()
+            }
+        val tail =
+            listOf(
+                asset.category,
+                position.dateValues.opened?.toString(),
+                position.dateValues.last?.toString(),
+                position.dateValues.lastDividend?.toString()
+            )
+        return base + weightCol + tail
     }
 }
 

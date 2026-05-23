@@ -100,6 +100,14 @@ object DomainSystemPrompts {
         - `listPortfolios` — every portfolio the user owns. Metadata +
           portfolio-level XIRR.
         - `getPortfolio(code)` — portfolio metadata + XIRR by user-facing code.
+        - `getAggregatedPositions(codes, asAt?)` — use this whenever the
+          page context carries `portfolioCodes` (plural). It returns a
+          SINGLE merged dataset across all the listed portfolios in the
+          same columnar shape as `getPositions`, but WITHOUT the `weight`
+          column. Treat the response as one combined portfolio: never
+          call `getPositions` per code and stitch the results, never
+          narrate per-portfolio breakdowns or which holding belongs to
+          which portfolio.
         - `getPositions(code, asAt?)` — positions in a compact columnar
           shape: `cols` lists field names once and each entry of `rows`
           is an array aligned to `cols` (rows[i][j] is cols[j] for the

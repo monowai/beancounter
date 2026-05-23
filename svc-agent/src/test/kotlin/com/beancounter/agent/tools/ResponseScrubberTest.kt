@@ -163,6 +163,52 @@ class ResponseScrubberTest {
     }
 
     @Test
+    fun `scrubAggregated drops weight column from cols and rows`() {
+        // Aggregated reviews collapse N portfolios into a single dataset
+        // for the LLM. The per-position portfolio weight is meaningless
+        // once positions are aggregated across portfolios (each position
+        // can have a different denominator), and the LLM was observed
+        // wasting tokens narrating per-portfolio breakdowns. Drop weight
+        // server-side so the input matches a single-portfolio view.
+        val asset = Asset(code = "AAPL", market = nasdaq, category = "Equity")
+        val position = Position(asset, portfolio)
+        position.quantityValues.purchased = BigDecimal("50")
+        val money = position.getMoneyValues(Position.In.PORTFOLIO)
+        money.weight = BigDecimal("0.125")
+        money.irr = BigDecimal("0.14")
+        money.priceData =
+            PriceData(
+                priceDate = LocalDate.parse("2026-04-15"),
+                close = BigDecimal("178.50"),
+                changePercent = BigDecimal("0.012")
+            )
+
+        val positions = Positions(portfolio).apply { add(position) }
+        positions.asAt = "2026-04-16"
+
+        val scrubbed = scrubber.scrubAggregated(PositionResponse(positions))
+
+        assertThat(scrubbed.cols).doesNotContain("weight")
+        assertThat(scrubbed.cols)
+            .containsExactly(
+                "assetCode",
+                "assetName",
+                "market",
+                "priceClose",
+                "changePercent",
+                "xirr",
+                "category",
+                "opened",
+                "lastTrade",
+                "lastDividend"
+            )
+        val row = scrubbed.rows.single()
+        assertThat(row).hasSize(scrubbed.cols.size)
+        val codeIdx = scrubbed.cols.indexOf("assetCode")
+        assertThat(row[codeIdx]).isEqualTo("AAPL")
+    }
+
+    @Test
     fun `zero-quantity positions are filtered out before reaching the LLM`() {
         // Closed (zero-quantity) positions clutter analysis prompts and the
         // LLM has been observed surfacing them in commentary even when the

@@ -41,6 +41,29 @@ class PositionTools(
     ): ScrubbedPositionResponse =
         scrubber.scrub(positionClient.getPositionsById(portfolioId, asAt, includeValues = true))
 
+    @Tool(description = POSITIONS_AGGREGATED_DESC)
+    fun getAggregatedPositions(
+        @ToolParam(
+            description =
+                "Comma-separated list of portfolio codes to aggregate, e.g. 'TYLER,PSE'. " +
+                    "Empty string aggregates EVERY portfolio the user owns. " +
+                    "Use this whenever the page context exposes `portfolioCodes` (plural). " +
+                    "The response merges positions for the same asset across all listed " +
+                    "portfolios — treat it as a single combined dataset and do NOT narrate " +
+                    "per-portfolio breakdowns; the `weight` column is intentionally absent."
+        ) portfolioCodes: String,
+        @ToolParam(description = "Valuation date YYYY-MM-DD or 'today'") asAt: String = "today"
+    ): ScrubbedPositionResponse {
+        val codes =
+            portfolioCodes
+                .split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+        return scrubber.scrubAggregated(
+            positionClient.getAggregatedPositions(codes, asAt, includeValues = true)
+        )
+    }
+
     companion object {
         const val POSITIONS_DESC =
             "Get the positions for a portfolio identified by its code. " +
@@ -77,5 +100,13 @@ class PositionTools(
                 "the page context exposes `portfolioId` (managed/shared portfolios). " +
                 "The by-code tool 404s for shared portfolios because portfolio " +
                 "code is unique only within an owner."
+        const val POSITIONS_AGGREGATED_DESC =
+            "Get a SINGLE merged position dataset across the listed portfolios. " +
+                "Same columnar shape as getPositions BUT the `weight` column is " +
+                "absent — per-position portfolio weight has no single denominator " +
+                "once positions are aggregated. Use this tool whenever the page " +
+                "context carries `portfolioCodes` (plural); never loop getPositions " +
+                "per code and stitch the results yourself. The response represents " +
+                "ONE combined portfolio — do not narrate per-portfolio breakdowns."
     }
 }

@@ -49,4 +49,31 @@ class PositionClient(
             .retrieve()
             .body<PositionResponse>()
             ?: PositionResponse()
+
+    /**
+     * Aggregated positions across the listed portfolio codes (or every
+     * portfolio the user owns when [codes] is empty). svc-position merges
+     * positions for the same asset across all selected portfolios server-
+     * side, so the response shape matches a single-portfolio call.
+     */
+    fun getAggregatedPositions(
+        codes: List<String>,
+        asAt: String = "today",
+        includeValues: Boolean = true
+    ): PositionResponse {
+        val joined = codes.joinToString(",")
+        return restClient
+            .get()
+            .uri { builder ->
+                builder
+                    .path("/aggregated")
+                    .queryParam("asAt", asAt)
+                    .queryParam("value", includeValues)
+                    .also { if (joined.isNotEmpty()) it.queryParam("codes", joined) }
+                    .build()
+            }.header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body<PositionResponse>()
+            ?: PositionResponse()
+    }
 }

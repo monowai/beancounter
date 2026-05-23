@@ -36,6 +36,9 @@ data class PrivateAssetConfigRequest(
     val lumpSum: Boolean? = null,
     // Regular contribution amount (e.g., pension contributions, insurance premiums)
     val monthlyContribution: BigDecimal? = null,
+    // Cadence of the contribution amount on this asset (MONTHLY or ANNUAL).
+    // Defaults MONTHLY on first save so existing callers keep their semantics.
+    val contributionFrequency: ContributionFrequency? = null,
     val isPension: Boolean? = null,
     // Composite policy support
     val policyType: PolicyType? = null,

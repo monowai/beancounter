@@ -186,6 +186,7 @@ class PrivateAssetConfigService(
             monthlyPayoutAmount = request.monthlyPayoutAmount ?: monthlyPayoutAmount,
             lumpSum = request.lumpSum ?: lumpSum,
             monthlyContribution = request.monthlyContribution ?: monthlyContribution,
+            contributionFrequency = request.contributionFrequency ?: contributionFrequency,
             isPension = request.isPension ?: isPension,
             policyType = request.policyType ?: policyType,
             lockedUntilDate = request.lockedUntilDate ?: lockedUntilDate
@@ -226,6 +227,7 @@ class PrivateAssetConfigService(
             monthlyPayoutAmount = request.monthlyPayoutAmount,
             lumpSum = request.lumpSum ?: false,
             monthlyContribution = request.monthlyContribution,
+            contributionFrequency = request.contributionFrequency ?: ContributionFrequency.MONTHLY,
             isPension = request.isPension ?: false,
             policyType = request.policyType,
             lockedUntilDate = request.lockedUntilDate,

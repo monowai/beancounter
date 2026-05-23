@@ -129,9 +129,9 @@ class OwnedAssetService(
         }
         // Update expected return rate for retirement projections
         assetInput.expectedReturnRate?.let { asset.expectedReturnRate = it }
-        // save() goes through em.merge() — returned managed instance loses transient
-        // fields. AssetEntityListener.@PostLoad does not fire on merge, so re-hydrate.
-        return assetFinder.hydrateAsset(assetRepository.save(asset))
+        // saveAndFlush — AssetEntityListener (@PostUpdate) needs an immediate
+        // flush to rehydrate transient fields on the managed instance.
+        return assetRepository.saveAndFlush(asset)
     }
 
     /**

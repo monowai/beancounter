@@ -1,8 +1,8 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.common.model.Asset
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
 import java.util.Optional
 import java.util.stream.Stream
@@ -10,7 +10,7 @@ import java.util.stream.Stream
 /**
  * CRUD interface for Asset details.
  */
-interface AssetRepository : CrudRepository<Asset, String> {
+interface AssetRepository : JpaRepository<Asset, String> {
     @Query(
         "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
             "WHERE a.marketCode = :marketCode"

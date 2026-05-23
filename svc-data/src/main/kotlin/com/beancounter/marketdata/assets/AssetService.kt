@@ -92,11 +92,12 @@ class AssetService(
             )
         if (marketService.canPersist(market)) {
             return try {
-                // save() calls em.merge() because Asset.id is application-assigned;
-                // merge returns a NEW managed instance with transient `market` /
-                // `assetCategory` cleared. AssetEntityListener.@PostLoad does not fire
-                // on merge, so we hydrate explicitly here.
-                assetFinder.hydrateAsset(assetRepository.save(eAsset))
+                // saveAndFlush forces an immediate flush so AssetEntityListener
+                // (@PostPersist / @PostUpdate) fires inline and rehydrates the
+                // managed instance's `@Transient` fields. Plain save() defers the
+                // flush to transaction commit, so callers inside @Transactional
+                // boundaries would see a null `market`.
+                assetRepository.saveAndFlush(eAsset)
             } catch (_: DataIntegrityViolationException) {
                 // Race condition: another request created this asset concurrently
                 // Use new transaction as current one is marked for rollback
@@ -187,8 +188,8 @@ class AssetService(
                         assetInput = assetInput
                     )
             try {
-                // See findOrCreate for save() → merge() rationale.
-                assetFinder.hydrateAsset(assetRepository.save(asset))
+                // saveAndFlush — see findOrCreate above for rationale.
+                assetRepository.saveAndFlush(asset)
             } catch (_: DataIntegrityViolationException) {
                 // Race condition: another request created this asset concurrently
                 // Use new transaction as current one is marked for rollback
@@ -215,9 +216,9 @@ class AssetService(
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
             }
-        // findById is @PostLoad-hydrated; copy preserves transient fields. save()
-        // goes through merge() so we hydrate the returned managed instance.
-        return assetFinder.hydrateAsset(assetRepository.save(asset.copy(status = status)))
+        // saveAndFlush so AssetEntityListener (@PostUpdate) fires inline and
+        // hydrates the managed instance before we hand it back to the caller.
+        return assetRepository.saveAndFlush(asset.copy(status = status))
     }
 
     companion object {

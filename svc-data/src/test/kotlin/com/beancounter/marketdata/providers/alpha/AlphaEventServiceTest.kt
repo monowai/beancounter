@@ -84,6 +84,32 @@ class AlphaEventServiceTest {
     }
 
     @Test
+    fun `repo-fallback events reuse the hydrated caller asset so market is never null`() {
+        // Reproduces the kauri 500 on /api/prices/{assetId}/events for NZX assets.
+        // Asset.market is @Transient, so MarketData rows returned by the repo
+        // arrive with `asset.market == null`. The service must re-attach the
+        // caller's hydrated Asset before returning, otherwise Jackson NPEs.
+        val nzxMarket = Market("NZX")
+        val hydratedAsset = Asset(id = "vct-id", code = "VCT", market = nzxMarket)
+
+        val orphanAsset = Asset(id = "vct-id", code = "VCT", market = Market("UNKNOWN"))
+        val event =
+            com.beancounter.common.model
+                .MarketData(asset = orphanAsset, priceDate = java.time.LocalDate.now())
+                .also { it.dividend = java.math.BigDecimal("0.5") }
+
+        `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON")
+        `when`(marketDataRepo.findEventsByAssetId(hydratedAsset.id)).thenReturn(listOf(event))
+
+        val result = alphaEventService.getEvents(hydratedAsset)
+
+        assertThat(result.data).hasSize(1)
+        val returned = result.data.first()
+        assertThat(returned.asset).isSameAs(hydratedAsset)
+        assertThat(returned.asset.market).isEqualTo(nzxMarket)
+    }
+
+    @Test
     fun `should return empty response when markets config is null`() {
         // Given: An asset with any market
         val market = Market("US")

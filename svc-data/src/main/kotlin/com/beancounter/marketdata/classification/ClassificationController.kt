@@ -89,8 +89,7 @@ class ClassificationController(
 
         for (asset in assets) {
             try {
-                val hydratedAsset = assetFinder.hydrateAsset(asset)
-                if (classificationEnricher.enrichClassification(hydratedAsset)) {
+                if (classificationEnricher.enrichClassification(asset)) {
                     processed++
                 }
             } catch (

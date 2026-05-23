@@ -44,12 +44,7 @@ class AlphaEventService(
         // Only fetch events for markets supported by Alpha Vantage
         if (!isMarketSupported(asset.market.code)) {
             log.debug("Market {} not supported by Alpha, checking stored prices for {}", asset.market.code, asset.code)
-            val events = marketDataRepo.findEventsByAssetId(asset.id)
-            // Reuse the caller's already-hydrated Asset — the entities returned by the
-            // repo carry an Asset where `market` is null (transient field), which would
-            // NPE during Jackson serialization on the events endpoint.
-            events.forEach { it.asset = asset }
-            return PriceResponse(events)
+            return PriceResponse(marketDataRepo.findEventsByAssetId(asset.id))
         }
         val json =
             alphaGateway.getAdjusted(

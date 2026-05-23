@@ -65,10 +65,8 @@ class TrnService(
             trnRepository.saveAll(
                 trnInputMapper.convert(portfolio, trnRequest)
             )
-        saved.forEach { trn ->
-            trn.asset = assetFinder.hydrateAsset(trn.asset)
-            trn.cashAsset = trn.cashAsset?.let { assetFinder.hydrateAsset(it) }
-        }
+        // Asset hydration happens via AssetEntityListener @PostLoad on every load —
+        // saveAll returns entities whose asset reference was already hydrated upstream.
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
         if (trnRequest.data.size == 1) {
@@ -334,18 +332,9 @@ class TrnService(
 
     private fun postProcess(trns: List<Trn>): List<Trn> {
         log.trace("PostProcess ${trns.size} transactions")
-        val assets =
-            trns
-                .flatMap {
-                    listOfNotNull(
-                        assetFinder.hydrateAsset(it.asset),
-                        it.cashAsset?.let { cashAsset -> assetFinder.hydrateAsset(cashAsset) }
-                    )
-                }.associateBy { it.id }
-        log.trace("PostProcess ${assets.size} assets")
+        // Asset hydration happens via AssetEntityListener @PostLoad — Trn.asset and
+        // Trn.cashAsset arrive populated from JPA. Only the version-upgrade step here.
         for (trn in trns) {
-            trn.asset = assets[trn.asset.id]!!
-            trn.cashAsset = trn.cashAsset?.let { assets[it.id] }
             val upgraded = trnMigrator.upgrade(trn)
             if (upgraded.version != trn.version) {
                 trnRepository.save(upgraded)

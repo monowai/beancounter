@@ -92,6 +92,10 @@ class AssetService(
             )
         if (marketService.canPersist(market)) {
             return try {
+                // save() calls em.merge() because Asset.id is application-assigned;
+                // merge returns a NEW managed instance with transient `market` /
+                // `assetCategory` cleared. AssetEntityListener.@PostLoad does not fire
+                // on merge, so we hydrate explicitly here.
                 assetFinder.hydrateAsset(assetRepository.save(eAsset))
             } catch (_: DataIntegrityViolationException) {
                 // Race condition: another request created this asset concurrently
@@ -153,7 +157,7 @@ class AssetService(
                             null
                         }
                 if (asset != null) {
-                    priceAsset.resolvedAsset = assetFinder.hydrateAsset(asset)
+                    priceAsset.resolvedAsset = asset
                 }
                 priceAsset
             }
@@ -183,6 +187,7 @@ class AssetService(
                         assetInput = assetInput
                     )
             try {
+                // See findOrCreate for save() → merge() rationale.
                 assetFinder.hydrateAsset(assetRepository.save(asset))
             } catch (_: DataIntegrityViolationException) {
                 // Race condition: another request created this asset concurrently
@@ -210,10 +215,9 @@ class AssetService(
             assetRepository.findById(assetId).orElseThrow {
                 NotFoundException("Asset not found: $assetId")
             }
-        // Hydrate first to get the transient market field, then create updated copy
-        val hydratedAsset = assetFinder.hydrateAsset(asset)
-        val updatedAsset = hydratedAsset.copy(status = status)
-        return assetFinder.hydrateAsset(assetRepository.save(updatedAsset))
+        // findById is @PostLoad-hydrated; copy preserves transient fields. save()
+        // goes through merge() so we hydrate the returned managed instance.
+        return assetFinder.hydrateAsset(assetRepository.save(asset.copy(status = status)))
     }
 
     companion object {

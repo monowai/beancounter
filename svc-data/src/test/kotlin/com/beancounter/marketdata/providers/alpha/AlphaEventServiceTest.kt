@@ -84,29 +84,30 @@ class AlphaEventServiceTest {
     }
 
     @Test
-    fun `repo-fallback events reuse the hydrated caller asset so market is never null`() {
-        // Reproduces the kauri 500 on /api/prices/{assetId}/events for NZX assets.
-        // Asset.market is @Transient, so MarketData rows returned by the repo
-        // arrive with `asset.market == null`. The service must re-attach the
-        // caller's hydrated Asset before returning, otherwise Jackson NPEs.
+    fun `repo fallback surfaces events with the repo-supplied Asset (hydrated by listener)`() {
+        // Production: AssetEntityListener.@PostLoad hydrates Asset.market when the
+        // repo loads the MarketData → asset graph. The service must hand cached
+        // events straight through without re-attaching the caller's Asset.
+        // Guards against regressing back to the PR #882 manual re-attachment.
         val nzxMarket = Market("NZX")
-        val hydratedAsset = Asset(id = "vct-id", code = "VCT", market = nzxMarket)
-
-        val orphanAsset = Asset(id = "vct-id", code = "VCT", market = Market("UNKNOWN"))
-        val event =
+        val nzxAsset = Asset(id = "gne-id", code = "GNE", market = nzxMarket)
+        val cached =
             com.beancounter.common.model
-                .MarketData(asset = orphanAsset, priceDate = java.time.LocalDate.now())
-                .also { it.dividend = java.math.BigDecimal("0.5") }
+                .MarketData(
+                    asset = nzxAsset,
+                    priceDate = java.time.LocalDate.of(2024, 6, 1)
+                ).also { it.dividend = java.math.BigDecimal("0.10") }
 
         `when`(alphaConfig.markets).thenReturn("US,NASDAQ,AMEX,NYSE,LON")
-        `when`(marketDataRepo.findEventsByAssetId(hydratedAsset.id)).thenReturn(listOf(event))
+        `when`(marketDataRepo.findEventsByAssetId(nzxAsset.id)).thenReturn(listOf(cached))
 
-        val result = alphaEventService.getEvents(hydratedAsset)
+        val response = alphaEventService.getEvents(nzxAsset)
 
-        assertThat(result.data).hasSize(1)
-        val returned = result.data.first()
-        assertThat(returned.asset).isSameAs(hydratedAsset)
-        assertThat(returned.asset.market).isEqualTo(nzxMarket)
+        assertThat(response.data).hasSize(1)
+        val returned = response.data.first()
+        assertThat(returned).isSameAs(cached)
+        assertThat(returned.asset).isSameAs(nzxAsset)
+        assertThat(returned.asset.market.code).isEqualTo("NZX")
     }
 
     @Test

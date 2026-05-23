@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Registers AssetEntityListener for com.beancounter.common.model.Asset.
+    Kept in svc-data so jar-common stays free of svc-data dependencies —
+    other consumers of the Asset DTO (svc-position, svc-event, svc-retire,
+    svc-rebalance) do not load Asset from a database, so they neither need
+    nor want the listener wired.
+-->
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm
+                                     https://jakarta.ee/xml/ns/persistence/orm/orm_3_0.xsd"
+                 version="3.0">
+    <entity class="com.beancounter.common.model.Asset">
+        <entity-listeners>
+            <entity-listener class="com.beancounter.marketdata.assets.AssetEntityListener"/>
+        </entity-listeners>
+    </entity>
+</entity-mappings>

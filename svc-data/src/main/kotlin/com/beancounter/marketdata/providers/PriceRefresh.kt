@@ -59,17 +59,16 @@ class PriceRefresh(
 
         for (asset in assets) {
             totalAssets.getAndIncrement()
-            val hydratedAsset = assetFinder.hydrateAsset(asset)
 
             // Skip if we already have today's price
-            if (hasTodaysPrice(hydratedAsset)) {
+            if (hasTodaysPrice(asset)) {
                 skipped.getAndIncrement()
                 continue
             }
 
             // Fetch price for this asset
             try {
-                val priceRequest = PriceRequest.of(hydratedAsset, TODAY)
+                val priceRequest = PriceRequest.of(asset, TODAY)
                 val response = marketDataService.getPriceResponse(priceRequest)
 
                 if (response.data.isNotEmpty() &&
@@ -81,7 +80,7 @@ class PriceRefresh(
                     fetched.getAndIncrement()
                 } else {
                     failed.getAndIncrement()
-                    log.debug("No valid price returned for {}", hydratedAsset.code)
+                    log.debug("No valid price returned for {}", asset.code)
                 }
             } catch (
                 @Suppress("TooGenericExceptionCaught")
@@ -89,7 +88,7 @@ class PriceRefresh(
             ) {
                 // Continue processing other assets even if one fails
                 failed.getAndIncrement()
-                log.warn("Failed to fetch price for {}: {}", hydratedAsset.code, e.message)
+                log.warn("Failed to fetch price for {}: {}", asset.code, e.message)
             }
         }
 

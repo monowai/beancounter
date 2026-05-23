@@ -100,6 +100,14 @@ object DomainSystemPrompts {
         - `listPortfolios` — every portfolio the user owns. Metadata +
           portfolio-level XIRR.
         - `getPortfolio(code)` — portfolio metadata + XIRR by user-facing code.
+        - `getAggregatedPositions(codes, asAt?)` — use this whenever the
+          page context carries `portfolioCodes` (plural). It returns a
+          SINGLE merged dataset across all the listed portfolios in the
+          same columnar shape as `getPositions`, but WITHOUT the `weight`
+          column. Treat the response as one combined portfolio: never
+          call `getPositions` per code and stitch the results, never
+          narrate per-portfolio breakdowns or which holding belongs to
+          which portfolio.
         - `getPositions(code, asAt?)` — positions in a compact columnar
           shape: `cols` lists field names once and each entry of `rows`
           is an array aligned to `cols` (rows[i][j] is cols[j] for the
@@ -123,7 +131,6 @@ object DomainSystemPrompts {
             Useful when explaining stale or dormant holdings.
           - `lastDividend` — ISO date of the most recent dividend
             (null if never paid one). Useful for income commentary.
-          - `closed` — true when quantity is zero.
           Show ratios as percentages when discussing performance. ROI,
           dividend yield, and trade currency are not exposed — never
           claim them.
@@ -156,13 +163,16 @@ object DomainSystemPrompts {
 
         ### Closed positions
 
-        Never mention, count, list, or comment on closed positions
-        (`closed = true`) — not even in passing, not even as a count or
-        footnote. Filter them out silently before any analysis.
+        Closed (zero-quantity) positions are filtered out before the tool
+        result reaches you — every row in `rows` represents an open
+        holding. Do not infer, list, count, or comment on closed
+        holdings; the absence of a holding from the response does NOT
+        mean it was sold.
 
         The only exception: the user has explicitly asked about closed,
-        sold, exited, or historical holdings. In that case, address those
-        positions directly.
+        sold, exited, or historical holdings. In that case, say plainly
+        that the positions tool returns only open holdings and that
+        closed history is not available in this view.
         """.trimIndent()
 
     /**

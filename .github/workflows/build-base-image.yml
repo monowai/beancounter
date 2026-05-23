@@ -34,7 +34,7 @@ jobs:
             runner: ubuntu-24.04-arm
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Extract Sentry version from Dockerfile
         id: sentry
@@ -79,7 +79,7 @@ jobs:
     needs: docker
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Extract Sentry version from Dockerfile
         id: sentry

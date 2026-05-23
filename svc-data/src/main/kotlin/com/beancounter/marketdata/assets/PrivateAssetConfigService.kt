@@ -2,6 +2,9 @@ package com.beancounter.marketdata.assets
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.model.ShareStatus
+import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.portfolio.PortfolioShareRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
@@ -22,7 +25,8 @@ class PrivateAssetConfigService(
     private val configRepository: PrivateAssetConfigRepository,
     private val assetRepository: AssetRepository,
     private val systemUserService: SystemUserService,
-    private val trnRepository: TrnRepository
+    private val trnRepository: TrnRepository,
+    private val portfolioShareRepository: PortfolioShareRepository
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -57,9 +61,13 @@ class PrivateAssetConfigService(
     /**
      * Get config for a specific asset.
      * Returns null if no config exists.
+     *
+     * Read access is allowed for either the asset owner OR a viewer of any
+     * portfolio that holds transactions for the asset (active share). Writes
+     * remain owner-only via [verifyAssetOwnership].
      */
     fun getConfig(assetId: String): PrivateAssetConfigResponse? {
-        verifyAssetOwnership(assetId)
+        verifyAssetReadAccess(assetId)
         val config = configRepository.findById(assetId).orElse(null) ?: return null
         return PrivateAssetConfigResponse(config)
     }
@@ -346,5 +354,45 @@ class PrivateAssetConfigService(
         if (asset.systemUser?.id != user.id) {
             throw BusinessException("Asset not owned by current user")
         }
+    }
+
+    /**
+     * Read-only counterpart to [verifyAssetOwnership]. Allows the asset
+     * owner OR any user with an ACTIVE portfolio share covering a portfolio
+     * that holds transactions for this asset. Write paths must still call
+     * [verifyAssetOwnership].
+     */
+    private fun verifyAssetReadAccess(assetId: String) {
+        val user =
+            systemUserService.getActiveUser()
+                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
+
+        val asset =
+            assetRepository.findById(assetId).orElseThrow {
+                NotFoundException("Asset not found: $assetId")
+            }
+
+        if (asset.systemUser?.id == user.id) return
+        if (hasSharedPortfolioReadAccess(assetId, user)) return
+        throw BusinessException("Asset not accessible to current user")
+    }
+
+    private fun hasSharedPortfolioReadAccess(
+        assetId: String,
+        user: SystemUser
+    ): Boolean {
+        val sharedPortfolioIds =
+            portfolioShareRepository
+                .findBySharedWithAndStatus(
+                    user,
+                    ShareStatus.ACTIVE
+                ).mapNotNull { it.portfolio?.id }
+                .toSet()
+        if (sharedPortfolioIds.isEmpty()) return false
+        val assetIdsInSharedPortfolios =
+            trnRepository
+                .findDistinctAssetIdsByPortfolioIds(sharedPortfolioIds)
+                .toSet()
+        return assetId in assetIdsInSharedPortfolios
     }
 }

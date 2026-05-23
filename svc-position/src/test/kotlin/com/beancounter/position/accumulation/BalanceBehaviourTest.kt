@@ -1,5 +1,8 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -11,6 +14,7 @@ import com.beancounter.position.Constants.Companion.PROP_COST_BASIS
 import com.beancounter.position.Constants.Companion.PROP_COST_VALUE
 import com.beancounter.position.Constants.Companion.PROP_CURRENCY
 import com.beancounter.position.Constants.Companion.PROP_SALES
+import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.USD
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -79,6 +83,69 @@ class BalanceBehaviourTest {
         ).hasFieldOrPropertyWithValue(
             PROP_SALES,
             BigDecimal.ZERO
+        )
+    }
+
+    @Test
+    fun `policy Balance tracks cost equal to tradeAmount so gain is zero`() {
+        // Regression: pension/CPF positions loaded via a single BALANCE
+        // transaction reported a 100% gain because CashCost reset cost
+        // to zero. For non-cash assets, a BALANCE snapshot is both the
+        // contribution-to-date and the current value, so cost must equal
+        // tradeAmount (gain = MV - cost = 0).
+        val portfolio =
+            Portfolio(
+                Constants.TEST,
+                currency = SGD,
+                base = SGD
+            )
+        val cpfAsset =
+            Asset(
+                code = "RUBY-CPF",
+                id = "RUBY-CPF",
+                name = "Ruby CPF",
+                market = Market("PRIVATE"),
+                priceSymbol = "RUBY-CPF",
+                category = AssetCategory.POLICY
+            )
+        val balance = BigDecimal("250000.00")
+        val trn =
+            Trn(
+                trnType = TrnType.BALANCE,
+                asset = cpfAsset,
+                quantity = balance,
+                tradeAmount = balance,
+                cashCurrency = SGD,
+                tradeCurrency = SGD,
+                tradeCashRate = BigDecimal.ONE,
+                tradeBaseRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal.ONE,
+                portfolio = portfolio
+            )
+        val positions = Positions(portfolio)
+        val position =
+            accumulator.accumulate(
+                trn,
+                positions
+            )
+
+        assertThat(
+            position.getMoneyValues(Position.In.PORTFOLIO)
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            balance
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            balance
+        )
+        assertThat(
+            position.getMoneyValues(Position.In.BASE)
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            balance
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            balance
         )
     }
 }

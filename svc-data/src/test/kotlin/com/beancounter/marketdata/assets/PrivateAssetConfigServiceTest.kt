@@ -4,9 +4,15 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.PortfolioShare
+import com.beancounter.common.model.ShareAccessLevel
+import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.portfolio.PortfolioShareRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
+import org.mockito.kotlin.eq
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -24,6 +30,7 @@ class PrivateAssetConfigServiceTest {
     private lateinit var assetRepository: AssetRepository
     private lateinit var systemUserService: SystemUserService
     private lateinit var trnRepository: TrnRepository
+    private lateinit var portfolioShareRepository: PortfolioShareRepository
     private lateinit var configService: PrivateAssetConfigService
 
     private val userId = "user-123"
@@ -37,12 +44,14 @@ class PrivateAssetConfigServiceTest {
         assetRepository = mock()
         systemUserService = mock()
         trnRepository = mock()
+        portfolioShareRepository = mock()
         configService =
             PrivateAssetConfigService(
                 configRepository,
                 assetRepository,
                 systemUserService,
-                trnRepository
+                trnRepository,
+                portfolioShareRepository
             )
     }
 
@@ -366,6 +375,78 @@ class PrivateAssetConfigServiceTest {
 
         // $300 + $400 + $200 + $100 + $50 = $1050
         assertThat(totalExpenses).isEqualByComparingTo(BigDecimal("1050"))
+    }
+
+    @Test
+    fun `getConfig allows viewer of a shared portfolio that holds the asset`() {
+        // Regression: Edit Asset opened blank when adviser/share viewer
+        // opened a CPF/policy asset from a portfolio shared with them,
+        // because ownership-only verifyAssetOwnership threw on the GET.
+        val owner = SystemUser(id = "owner-789", email = "ruby@test.com")
+        val viewer = user
+        val asset = createTestAsset(ownerId = owner.id)
+        val sharedPortfolio =
+            Portfolio(
+                id = "pf-1",
+                code = "RUBY-SGD",
+                owner = owner,
+                currency = privateMarket.currency,
+                base = privateMarket.currency
+            )
+        val savedConfig =
+            PrivateAssetConfig(
+                assetId = assetId,
+                monthlyRentalIncome = BigDecimal("0"),
+                rentalCurrency = "SGD"
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(viewer)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(
+            portfolioShareRepository.findBySharedWithAndStatus(
+                eq(viewer),
+                eq(ShareStatus.ACTIVE),
+                any()
+            )
+        ).thenReturn(
+            listOf(
+                PortfolioShare(
+                    portfolio = sharedPortfolio,
+                    sharedWith = viewer,
+                    accessLevel = ShareAccessLevel.VIEW,
+                    status = ShareStatus.ACTIVE,
+                    createdBy = owner
+                )
+            )
+        )
+        whenever(trnRepository.findDistinctAssetIdsByPortfolioIds(setOf("pf-1")))
+            .thenReturn(listOf(assetId))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(savedConfig))
+
+        val response = configService.getConfig(assetId)
+
+        assertThat(response).isNotNull
+        assertThat(response!!.data.assetId).isEqualTo(assetId)
+    }
+
+    @Test
+    fun `getConfig throws when caller is neither owner nor active share viewer`() {
+        val owner = SystemUser(id = "owner-789", email = "ruby@test.com")
+        val viewer = user
+        val asset = createTestAsset(ownerId = owner.id)
+
+        whenever(systemUserService.getActiveUser()).thenReturn(viewer)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(
+            portfolioShareRepository.findBySharedWithAndStatus(
+                eq(viewer),
+                eq(ShareStatus.ACTIVE),
+                any()
+            )
+        ).thenReturn(emptyList())
+
+        assertThatThrownBy { configService.getConfig(assetId) }
+            .isInstanceOf(BusinessException::class.java)
     }
 
     @Test

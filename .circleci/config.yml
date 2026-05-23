@@ -551,9 +551,13 @@ jobs:
           at: ~/workspace
       - run:
           name: Codacy Coverage
+          # Best-effort: a Codacy 503/network blip should not block the
+          # whole pipeline (pipeline 3274 broke main this way on 2026-05-23).
+          # `|| echo` swallows the non-zero so the step is informative only.
           command: |
             cd ~/workspace
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find -name 'jacoco*.xml' -printf '-r %p ')
+            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find -name 'jacoco*.xml' -printf '-r %p ') \
+              || echo "Codacy coverage upload failed (non-fatal) — see log above"
 
 workflows:
   version: 2

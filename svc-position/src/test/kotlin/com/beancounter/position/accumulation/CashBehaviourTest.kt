@@ -70,6 +70,61 @@ internal class CashBehaviourTest {
     }
 
     @Test
+    fun `DEPOSIT into a non-cash POLICY asset tracks cost equal to quantity`() {
+        // Regression: a CPF / pension policy seeded via DEPOSIT (the wizard's
+        // current path) was reporting a phantom 100% gain because the
+        // CashAccumulator path keeps costBasis at zero for cash semantics.
+        // For non-cash assets the snapshot IS the cost, so cost must equal
+        // the absolute quantity — gain = MV - cost = 0.
+        val cpfAsset =
+            com.beancounter.common.model
+                .Asset(
+                    code = "RUBY-CPF-DEPOSIT",
+                    id = "RUBY-CPF-DEPOSIT",
+                    name = "Ruby CPF",
+                    market = com.beancounter.common.model.Market("PRIVATE"),
+                    priceSymbol = "RUBY-CPF-DEPOSIT",
+                    category = com.beancounter.common.model.AssetCategory.POLICY,
+                )
+        val balance = BigDecimal("250000.00")
+        val trn =
+            Trn(
+                trnType = TrnType.DEPOSIT,
+                asset = cpfAsset,
+                quantity = balance,
+                cashCurrency = USD,
+                tradeCurrency = USD,
+                tradeCashRate = ONE,
+                tradeBaseRate = ONE,
+                tradePortfolioRate = ONE,
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
+        val position =
+            accumulator.accumulate(
+                trn,
+                Positions(),
+            )
+        assertThat(
+            position.getMoneyValues(Position.In.PORTFOLIO),
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            balance,
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            balance,
+        )
+        assertThat(
+            position.getMoneyValues(Position.In.BASE),
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_BASIS,
+            balance,
+        ).hasFieldOrPropertyWithValue(
+            PROP_COST_VALUE,
+            balance,
+        )
+    }
+
+    @Test
     fun `should accumulate deposit for sell transaction`() {
         val asset =
             getTestAsset(

@@ -82,9 +82,11 @@ internal class CashBehaviourTest {
                     code = "RUBY-CPF-DEPOSIT",
                     id = "RUBY-CPF-DEPOSIT",
                     name = "Ruby CPF",
-                    market = com.beancounter.common.model.Market("PRIVATE"),
+                    market =
+                        com.beancounter.common.model
+                            .Market("PRIVATE"),
                     priceSymbol = "RUBY-CPF-DEPOSIT",
-                    category = com.beancounter.common.model.AssetCategory.POLICY,
+                    category = com.beancounter.common.model.AssetCategory.POLICY
                 )
         val balance = BigDecimal("250000.00")
         val trn =
@@ -97,30 +99,30 @@ internal class CashBehaviourTest {
                 tradeCashRate = ONE,
                 tradeBaseRate = ONE,
                 tradePortfolioRate = ONE,
-                portfolio = PortfolioUtils.getPortfolio(),
+                portfolio = PortfolioUtils.getPortfolio()
             )
         val position =
             accumulator.accumulate(
                 trn,
-                Positions(),
+                Positions()
             )
         assertThat(
-            position.getMoneyValues(Position.In.PORTFOLIO),
+            position.getMoneyValues(Position.In.PORTFOLIO)
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            balance,
+            balance
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            balance,
+            balance
         )
         assertThat(
-            position.getMoneyValues(Position.In.BASE),
+            position.getMoneyValues(Position.In.BASE)
         ).hasFieldOrPropertyWithValue(
             PROP_COST_BASIS,
-            balance,
+            balance
         ).hasFieldOrPropertyWithValue(
             PROP_COST_VALUE,
-            balance,
+            balance
         )
     }
 

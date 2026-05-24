@@ -47,7 +47,20 @@ class CashAccumulator(
         // since the asset IS the cash. For other transactions, use cashCurrency.
         val effectiveCashCurrency = trn.cashCurrency ?: trn.tradeCurrency
 
-        val isCash = cashUtils.isCash(cashPosition.asset)
+        // Snapshot cost is only relevant when this CashAccumulator call IS
+        // the side that mutates the asset position — i.e. DEPOSIT /
+        // WITHDRAWAL / DEDUCTION where the asset itself is being acted on
+        // (cashPosition === position). For the cash-side leg of a BUY/SELL
+        // the cashPosition is a separate cash asset and CashCost's zeros
+        // are the right behaviour. Also requires the position's asset to
+        // be non-cash (POLICY/RE), captured by either CashUtils.isCash or
+        // a CASH market code (some test fixtures construct Assets without
+        // setting category, so isCash alone is not enough).
+        val isCashSide = cashPosition !== position
+        val isCashAsset =
+            cashUtils.isCash(cashPosition.asset) ||
+                cashPosition.asset.market.code == "CASH"
+        val needsSnapshot = !isCashSide && !isCashAsset
         applyPool(
             Position.In.TRADE,
             effectiveCashCurrency,
@@ -56,7 +69,7 @@ class CashAccumulator(
             cashPosition,
             signedQuantity,
             BigDecimal.ONE,
-            isCash
+            needsSnapshot
         )
         applyPool(
             Position.In.BASE,
@@ -66,7 +79,7 @@ class CashAccumulator(
             cashPosition,
             signedQuantity,
             trn.tradeBaseRate,
-            isCash
+            needsSnapshot
         )
         applyPool(
             Position.In.PORTFOLIO,
@@ -76,7 +89,7 @@ class CashAccumulator(
             cashPosition,
             signedQuantity,
             trn.tradePortfolioRate,
-            isCash
+            needsSnapshot
         )
         return position
     }
@@ -89,7 +102,7 @@ class CashAccumulator(
         cashPosition: Position,
         signedQuantity: BigDecimal,
         rate: BigDecimal,
-        isCash: Boolean
+        applySnapshot: Boolean
     ) {
         val moneyValues =
             currencyResolver.getMoneyValues(
@@ -104,28 +117,30 @@ class CashAccumulator(
             signedQuantity,
             rate
         )
-        if (!isCash) {
-            // DEPOSIT/WITHDRAWAL targeting a non-cash position (POLICY, RE
-            // and friends) is the wizard's "set current balance" path: the
-            // user-entered quantity IS both market value AND cost basis, so
-            // gain = MV - cost = 0 by construction. Without this CashCost
-            // resets cost to zero (cash semantics) and the UI reports a
-            // phantom 100% gain.
-            applySnapshotCost(moneyValues, rate)
+        if (applySnapshot) {
+            // Non-cash DEPOSIT/WITHDRAWAL targeting this asset's position —
+            // the wizard's "set current balance" path. Snapshot cost so MV
+            // − cost = 0 by construction instead of the phantom 100% gain
+            // CashCost's zero-cost cash semantics produced.
+            applySnapshotCost(moneyValues, cashPosition.quantityValues.getTotal())
         }
     }
 
     private fun applySnapshotCost(
         moneyValues: MoneyValues,
-        rate: BigDecimal
+        totalQuantity: BigDecimal
     ) {
-        val net = moneyValues.purchases.subtract(moneyValues.sales).abs()
-        val costBasis =
-            if (rate == BigDecimal.ZERO) net else net.multiply(BigDecimal.ONE)
-        // moneyValues.purchases / sales are already in the pool currency
-        // (cashCost.value applied the rate when adding), so just mirror.
-        moneyValues.costBasis = costBasis
-        moneyValues.costValue = costBasis
-        moneyValues.averageCost = if (costBasis > BigDecimal.ZERO) BigDecimal.ONE else BigDecimal.ZERO
+        // sales is already stored as a signed-negative figure for
+        // WITHDRAWAL/DEDUCTION, so the net is purchases + sales (not
+        // purchases - sales which double-counts the outflow).
+        val net = moneyValues.purchases.add(moneyValues.sales).abs()
+        moneyValues.costBasis = net
+        moneyValues.costValue = net
+        moneyValues.averageCost =
+            if (totalQuantity.signum() != 0) {
+                net.divide(totalQuantity.abs(), 10, java.math.RoundingMode.HALF_UP)
+            } else {
+                BigDecimal.ZERO
+            }
     }
 }

@@ -19,5 +19,8 @@ data class UserPreferencesRequest(
     val showWeightedIrr: Boolean? = null,
     val enableTwr: Boolean? = null,
     val milestoneMode: MilestoneMode? = null,
-    val autoSettle: Boolean? = null
+    val autoSettle: Boolean? = null,
+    val yearOfBirth: Int? = null,
+    val monthOfBirth: Int? = null,
+    val lifeExpectancy: Int? = null
 )

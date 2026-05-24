@@ -51,6 +51,9 @@ class UserPreferencesService(
         request.enableTwr?.let { preferences.enableTwr = it }
         request.milestoneMode?.let { preferences.milestoneMode = it }
         request.autoSettle?.let { preferences.autoSettle = it }
+        request.yearOfBirth?.let { preferences.yearOfBirth = it }
+        request.monthOfBirth?.let { preferences.monthOfBirth = it }
+        request.lifeExpectancy?.let { preferences.lifeExpectancy = it }
         return userPreferencesRepository.save(preferences)
     }
 }

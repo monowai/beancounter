@@ -3,6 +3,7 @@ package com.beancounter.marketdata.registration
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.RegistrationResponse
+import com.beancounter.common.contracts.UserPreferencesRequest
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants
@@ -204,6 +205,98 @@ class RegistrationControllerTest {
                 ).andExpect(MockMvcResultMatchers.status().isBadRequest)
                 .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
+    }
+
+    @Test
+    fun `M2M can patch a target user's preferences via sub`() {
+        val target =
+            SystemUser(
+                email = "m2m-patch-sub@testing.com",
+                auth0 = "auth0|m2m-patch-sub"
+            )
+        registerUser(mockMvc, mockAuthConfig.tokenUtils.getAuth0Token(target))
+
+        val m2m = mockAuthConfig.tokenUtils.getSystemToken(Constants.systemUser)
+        val body =
+            UserPreferencesRequest(
+                yearOfBirth = 1972,
+                monthOfBirth = 4,
+                lifeExpectancy = 92
+            )
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .patch("/me")
+                    .param("sub", "auth0|m2m-patch-sub")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(m2m))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(body))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        val verify =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/me")
+                        .param("sub", "auth0|m2m-patch-sub")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(m2m))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        val response =
+            objectMapper.readValue(
+                verify.response.contentAsByteArray,
+                RegistrationResponse::class.java
+            )
+        assertThat(response.preferences?.yearOfBirth).isEqualTo(1972)
+        assertThat(response.preferences?.monthOfBirth).isEqualTo(4)
+        assertThat(response.preferences?.lifeExpectancy).isEqualTo(92)
+    }
+
+    @Test
+    fun `M2M patch without sub or email returns 400`() {
+        val m2m = mockAuthConfig.tokenUtils.getSystemToken(Constants.systemUser)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .patch("/me")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(m2m))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(UserPreferencesRequest()))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+    }
+
+    @Test
+    fun `M2M patch returns 404 when sub has no SystemUser`() {
+        val m2m = mockAuthConfig.tokenUtils.getSystemToken(Constants.systemUser)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .patch("/me")
+                    .param("sub", "auth0|never-registered-patch")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(m2m))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(UserPreferencesRequest(yearOfBirth = 1980)))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
+    }
+
+    @Test
+    fun `user-token patch with sub query param returns 400`() {
+        val token = mockAuthConfig.getUserToken(Constants.systemUser)
+        registerUser(mockMvc, token)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .patch("/me")
+                    .param("sub", "auth0|someone-else")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(UserPreferencesRequest(yearOfBirth = 1980)))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
     }
 
     @Test

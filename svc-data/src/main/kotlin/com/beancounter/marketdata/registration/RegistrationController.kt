@@ -67,10 +67,30 @@ class RegistrationController internal constructor(
     }
 
     @PatchMapping("/me")
-    @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_USER + "')")
+    @PreAuthorize(
+        "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
+    )
     fun updatePreferences(
-        @RequestBody request: UserPreferencesRequest
+        @RequestBody request: UserPreferencesRequest,
+        @RequestParam(required = false) sub: String?,
+        @RequestParam(required = false) email: String?
     ): RegistrationResponse {
+        if (tokenService.isServiceToken) {
+            // Service callers (e.g. svc-retire backfill) must identify the
+            // target SystemUser explicitly — same contract as getMe.
+            if (sub.isNullOrBlank() && email.isNullOrBlank()) {
+                throw BusinessException("Service callers must supply 'sub' or 'email'")
+            }
+            val target =
+                systemUserService.findByExternal(sub, email)
+                    ?: throw NotFoundException("No SystemUser for the supplied sub/email")
+            val preferences = userPreferencesService.update(target, request)
+            return RegistrationResponse(target, preferences)
+        }
+
+        if (!sub.isNullOrBlank() || !email.isNullOrBlank()) {
+            throw BusinessException("User callers must not supply 'sub' or 'email'")
+        }
         val user = systemUserService.getOrThrow()
         val preferences = userPreferencesService.update(user, request)
         return RegistrationResponse(user, preferences)

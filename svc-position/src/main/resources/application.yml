@@ -41,6 +41,14 @@ sentry:
   environment: local
   traces-sample-rate: 1
   debug: false
+  # Drop the high-frequency RabbitMQ noise from the Most Frequent
+  # Transactions report: AMQP basic.ack fires per consumer ack (8.9k/day),
+  # the bc-perf-invalidate-demo topic fires per portfolio mutation
+  # (8.4-8.5k/day). None tell us anything useful about request latency.
+  # Entries are FilterString regexes.
+  ignored-transactions:
+    - "basic\\.ack"
+    - "bc-perf-invalidate-.*"
 
 otel:
   traces:

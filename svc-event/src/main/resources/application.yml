@@ -13,6 +13,10 @@ sentry:
   environment: local
   traces-sample-rate: 1
   debug: false
+  # Drop high-frequency RabbitMQ noise from APM (see svc-position application.yml).
+  ignored-transactions:
+    - "basic\\.ack"
+    - "bc-perf-invalidate-.*"
 
 springdoc:
   use-management-port: true

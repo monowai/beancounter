@@ -302,6 +302,46 @@ class InterestAccrualTest {
     }
 
     @Test
+    fun `ACT_ACT year-fraction inside a leap year is divided by 366`() {
+        // Same calendar year, leap: tailDays > 0 AND cursor.isLeapYear == true.
+        // Drives the final-year leap branch in actActYearFraction (line 125).
+        // Q1 2024 has 91 days (Jan 31 + Feb 29 + Mar 31). 91 / 366 ≈ 0.2486.
+        val yf =
+            accrual.yearFraction(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 4, 1),
+                DayCountConvention.ACT_ACT
+            )
+        assertThat(yf.toDouble()).isCloseTo(
+            91.0 / 366.0,
+            org.assertj.core.data.Offset
+                .offset(0.0001)
+        )
+    }
+
+    @Test
+    fun `ACT_ACT year-fraction spanning three years exercises both isLeapYear branches`() {
+        // 2023 (non-leap, partial), 2024 (leap, full), 2025 (non-leap, partial).
+        // Forces the while-loop to iterate twice and the final-year branch
+        // to fire — exercises cursor.isLeapYear on both leap and non-leap.
+        val yf =
+            accrual.yearFraction(
+                LocalDate.of(2023, 7, 1),
+                LocalDate.of(2025, 7, 1),
+                DayCountConvention.ACT_ACT
+            )
+        // 2023-07-01 → 2024-01-01 = 184 / 365 ≈ 0.5041
+        // 2024-01-01 → 2025-01-01 = 366 / 366 = 1.0
+        // 2025-01-01 → 2025-07-01 = 181 / 365 ≈ 0.4959
+        // total ≈ 2.0000
+        assertThat(yf.toDouble()).isCloseTo(
+            2.0,
+            org.assertj.core.data.Offset
+                .offset(0.001)
+        )
+    }
+
+    @Test
     fun `THIRTY_360 year-fraction caps both endpoints at day 30`() {
         // start day 31 → d1 caps to 30; end day 31 → d2 caps to 30 (because d1==30 triggers cap).
         // 2025-01-31 → 2025-12-31 under 30/360:

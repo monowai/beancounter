@@ -117,12 +117,12 @@ class InterestAccrual {
         var cursor = start
         while (cursor.year < end.year) {
             val yearEnd = LocalDate.of(cursor.year + 1, 1, 1)
-            val daysInYear = if (cursor.isLeapYear) 366 else 365
+            val daysInYear = daysInYearOf(cursor)
             val days = ChronoUnit.DAYS.between(cursor, yearEnd)
             total = total.add(BigDecimal(days).divide(BigDecimal(daysInYear), SCALE, RoundingMode.HALF_UP))
             cursor = yearEnd
         }
-        val daysInFinalYear = if (cursor.isLeapYear) 366 else 365
+        val daysInFinalYear = daysInYearOf(cursor)
         val tailDays = ChronoUnit.DAYS.between(cursor, end)
         total =
             total.add(BigDecimal(tailDays).divide(BigDecimal(daysInFinalYear), SCALE, RoundingMode.HALF_UP))
@@ -139,10 +139,15 @@ class InterestAccrual {
         return BigDecimal(days).divide(BigDecimal(360), SCALE, RoundingMode.HALF_UP)
     }
 
-    private val LocalDate.isLeapYear: Boolean get() =
-        java.time.Year
-            .of(year)
-            .isLeap
+    private fun daysInYearOf(date: LocalDate): Int =
+        if (java.time.Year
+                .of(date.year)
+                .isLeap
+        ) {
+            366
+        } else {
+            365
+        }
 
     companion object {
         private val MC = MathContext.DECIMAL128

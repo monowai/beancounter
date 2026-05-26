@@ -141,5 +141,7 @@
     "commitMessageExtra": "to {{newVersion}}",
     "prTitle": "{{commitMessagePrefix}} {{commitMessageAction}} {{commitMessageTopic}} {{commitMessageExtra}}",
     "prBodyTemplate": "This PR updates {{depName}} from `{{currentVersion}}` to `{{newVersion}}`.\n\n{{#if hasReleaseNotes}}**Release Notes:**\n{{{releaseNotes}}}{{/if}}\n\n{{#if hasChangelog}}**Changelog:**\n{{{changelog}}}{{/if}}\n\n---\n*This PR was generated automatically by Renovate Bot.*",
-    "rangeStrategy": "bump"
+    "rangeStrategy": "bump",
+    "ignoreTests": false,
+    "automergeStrategy": "squash"
 }

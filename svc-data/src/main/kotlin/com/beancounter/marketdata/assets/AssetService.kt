@@ -37,6 +37,8 @@ class AssetService(
     private val marketService: MarketService,
     private val keyGenUtils: KeyGenUtils,
     private val assetFinder: AssetFinder,
+    private val assetCategoryConfig: AssetCategoryConfig,
+    private val accountingTypeService: AccountingTypeService,
     transactionManager: PlatformTransactionManager
 ) : Assets {
     // New transaction template for recovery lookups after constraint violations
@@ -201,6 +203,53 @@ class AssetService(
         } else {
             foundAsset
         }
+    }
+
+    /**
+     * Admin-only update: rewrite an asset's category and/or display name
+     * regardless of ownership. The asset's currency is sourced from the
+     * existing accountingType — admin classification edits must not silently
+     * re-denominate a public asset. The matching AccountingType row is
+     * upserted via AccountingTypeService so existing report-grouping joins
+     * stay valid.
+     * @throws NotFoundException if asset not found
+     */
+    fun updateAsset(
+        assetId: String,
+        input: AssetInput
+    ): Asset {
+        val asset =
+            assetRepository.findById(assetId).orElseThrow {
+                NotFoundException("Asset not found: $assetId")
+            }
+        input.name?.let { asset.name = it }
+        if (input.category.isNotBlank()) {
+            val newCategoryId = input.category.uppercase()
+            val currency =
+                asset.accountingType?.currency
+                    ?: throw BusinessException(
+                        "Cannot resolve currency for asset $assetId — asset has no accountingType"
+                    )
+            val newAccountingType =
+                accountingTypeService.getOrCreate(
+                    category = newCategoryId,
+                    currency = currency
+                )
+            asset.accountingType = newAccountingType
+            asset.category = newAccountingType.category
+            assetCategoryConfig.get(newAccountingType.category)?.let {
+                asset.assetCategory = it
+            }
+        }
+        log.info(
+            "Admin updated asset {} name='{}' category={}",
+            assetId,
+            asset.name,
+            asset.category
+        )
+        // saveAndFlush — AssetEntityListener (@PostUpdate) needs an immediate
+        // flush to rehydrate transient fields on the managed instance.
+        return assetRepository.saveAndFlush(asset)
     }
 
     /**

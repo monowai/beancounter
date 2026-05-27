@@ -9,6 +9,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Status
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
@@ -527,5 +528,87 @@ internal class AssetControllerTest {
         assertThat(result.andReturn().resolvedException!!)
             .isNotNull
             .isInstanceOfAny(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `admin can patch any asset category and name`() {
+        // Create a public-market asset (not user-owned)
+        val asset = getTestAsset(market = NASDAQ, code = "ADMINEDIT")
+        val createMap = mapOf(toKey(asset) to getAssetInput(NASDAQ.code, asset.code))
+        val createResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post(ASSET_ROOT)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).with(csrf())
+                        .content(objectMapper.writeValueAsString(AssetRequest(createMap)))
+                        .contentType(APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+        val created =
+            objectMapper
+                .readValue<AssetUpdateResponse>(createResult.response.contentAsString)
+                .data[toKey(asset)]!!
+
+        val update =
+            AssetInput(
+                market = NASDAQ.code,
+                code = asset.code,
+                name = "Updated Admin Name",
+                category = "ETF"
+            )
+
+        val mvcResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .patch("$ASSET_ROOT/admin/{assetId}", created.id)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).with(csrf())
+                        .content(objectMapper.writeValueAsString(update))
+                        .contentType(APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andReturn()
+
+        val response = objectMapper.readValue<AssetResponse>(mvcResult.response.contentAsString)
+        assertThat(response.data.id).isEqualTo(created.id)
+        assertThat(response.data.name).isEqualTo("Updated Admin Name")
+        assertThat(response.data.assetCategory.id).isEqualTo("ETF")
+    }
+
+    @Test
+    fun `non-admin cannot patch admin asset endpoint`() {
+        val noRoles =
+            mockAuthConfig.tokenUtils.getNoRolesToken(
+                SystemUser(email = "noroles@testing.com")
+            )
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .patch("$ASSET_ROOT/admin/{assetId}", "any-id")
+                    .with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
+                            .jwt(noRoles)
+                    ).with(csrf())
+                    .content(
+                        objectMapper.writeValueAsString(
+                            AssetInput(
+                                market = NASDAQ.code,
+                                code = "X",
+                                category = "ETF"
+                            )
+                        )
+                    ).contentType(APPLICATION_JSON)
+            ).andExpect(status().isForbidden)
     }
 }

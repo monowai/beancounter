@@ -499,6 +499,44 @@ class AssetController(
         @RequestBody assetInput: AssetInput
     ): AssetResponse = AssetResponse(ownedAssetService.updateOwnedAsset(assetId, assetInput))
 
+    @PatchMapping(
+        value = ["/admin/{assetId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
+    @Operation(
+        summary = "Admin: update any asset's category and/or name",
+        description = """
+            Admin-only escalation of PATCH /assets/me/{assetId} that bypasses
+            ownership and allows editing the classification (category) and
+            display name of ANY asset — including public-market assets such as
+            a Mutual Fund whose category needs correcting to ETF.
+
+            Currency is NOT editable here on purpose: changing a public asset's
+            currency would silently re-denominate every user's holdings of it.
+            Use a dedicated migration path for that case.
+
+            Sector classification lives on a separate endpoint
+            (PUT /classifications/{assetId}) and is unaffected by this call.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Asset updated successfully",
+                content = [Content(schema = Schema(implementation = AssetResponse::class))]
+            ),
+            ApiResponse(responseCode = "403", description = "Caller lacks the admin role"),
+            ApiResponse(responseCode = "404", description = "Asset not found")
+        ]
+    )
+    fun updateAnyAsset(
+        @Parameter(description = "Asset ID to update", example = "abc123")
+        @PathVariable assetId: String,
+        @RequestBody assetInput: AssetInput
+    ): AssetResponse = AssetResponse(assetService.updateAsset(assetId, assetInput))
+
     @GetMapping(
         value = ["/me/export"],
         produces = [MediaType.TEXT_PLAIN_VALUE]

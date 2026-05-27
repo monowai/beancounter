@@ -5,6 +5,7 @@ import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.contracts.TrnSaveResult
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
@@ -189,21 +190,21 @@ class TrnBase {
     }
 
     fun mockTrnPostResponse(portfolio: Portfolio) {
+        val trns =
+            objectMapper
+                .readValue<TrnResponse>(
+                    ClassPathResource("contracts/trn/client-csv-response.json").file
+                ).data
+                .toTrns()
         Mockito
             .`when`(
-                trnService.save(
+                trnService.saveWithResult(
                     portfolio.id,
                     objectMapper.readValue(
                         ClassPathResource("contracts/trn/client-csv-request.json").file,
                         TrnRequest::class.java
                     )
                 )
-            ).thenReturn(
-                objectMapper
-                    .readValue<TrnResponse>(
-                        ClassPathResource("contracts/trn/client-csv-response.json").file
-                    ).data
-                    .toTrns()
-            )
+            ).thenReturn(TrnSaveResult(trns, emptyList()))
     }
 }

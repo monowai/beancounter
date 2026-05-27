@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.contracts.TrnSaveResult
 import com.beancounter.common.contracts.TrnStatusUpdateResponse
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrnInput
@@ -64,7 +65,24 @@ class TrnService(
     fun save(
         portfolio: Portfolio,
         trnRequest: TrnRequest
-    ): Collection<Trn> {
+    ): Collection<Trn> = saveWithResult(portfolio, trnRequest).trns
+
+    fun saveWithResult(
+        portfolioId: String,
+        trnRequest: TrnRequest
+    ): TrnSaveResult = saveWithResult(portfolioService.find(portfolioId), trnRequest)
+
+    /**
+     * Persist trns and return them along with any non-fatal warnings raised
+     * during auto-settle (e.g. cash funding portfolio has no balance in the
+     * trade currency). Controllers wrap the warnings into [TrnResponse] so
+     * the UI can surface them; legacy callers (CashTransferService etc.)
+     * use the [save] overload that only returns the trns.
+     */
+    fun saveWithResult(
+        portfolio: Portfolio,
+        trnRequest: TrnRequest
+    ): TrnSaveResult {
         val saved =
             trnRepository.saveAll(
                 trnInputMapper.convert(portfolio, trnRequest)
@@ -75,8 +93,10 @@ class TrnService(
         saved.forEach(Consumer { e: Trn -> results.add(e) })
         // Auto-settle cash to the linked funding portfolio. Skips non-trigger
         // types (DEPOSIT/WITHDRAWAL etc.) — no recursion risk.
+        val warnings = mutableListOf<String>()
         for (trn in results.toList()) {
-            cashAutoSettleService.emitCompensatingTransfer(trn)
+            val res = cashAutoSettleService.emitCompensatingTransfer(trn)
+            warnings.addAll(res.warnings)
         }
         if (trnRequest.data.size == 1) {
             log.trace(
@@ -91,7 +111,7 @@ class TrnService(
         if (earliestDate != null) {
             cacheInvalidationProducer.sendTransactionEvent(portfolio.id, earliestDate)
         }
-        return results
+        return TrnSaveResult(results.toList(), warnings.toList())
     }
 
     fun findForPortfolio(

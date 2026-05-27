@@ -216,13 +216,10 @@ class TrnController(
         @Parameter(
             description = "Transaction request containing portfolio and transaction data"
         ) @RequestBody trnRequest: TrnRequest
-    ): TrnResponse =
-        TrnResponse(
-            trnService.save(
-                trnRequest.portfolioId,
-                trnRequest
-            )
-        )
+    ): TrnResponse {
+        val result = trnService.saveWithResult(trnRequest.portfolioId, trnRequest)
+        return TrnResponse(result.trns, result.warnings)
+    }
 
     @PatchMapping(
         value = ["/{portfolioId}/{trnId}"],

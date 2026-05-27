@@ -76,7 +76,7 @@ class TrnExportController(
         response.contentType = MediaType.TEXT_PLAIN_VALUE
         response.setHeader(
             HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"$portfolioId.csv\""
+            "attachment; filename=\"${sanitizeFilename(portfolioId)}.csv\""
         )
         val trnResponse =
             trnService.findForPortfolio(
@@ -96,5 +96,11 @@ class TrnExportController(
             )
         }
         csvWriter.close()
+    }
+
+    companion object {
+        private val UNSAFE_FILENAME_CHARS = Regex("[^A-Za-z0-9._-]")
+
+        fun sanitizeFilename(value: String): String = value.replace(UNSAFE_FILENAME_CHARS, "_")
     }
 }

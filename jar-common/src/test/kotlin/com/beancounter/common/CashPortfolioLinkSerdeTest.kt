@@ -1,6 +1,7 @@
 package com.beancounter.common
 
 import com.beancounter.common.contracts.PortfolioResponse
+import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
@@ -58,6 +59,30 @@ class CashPortfolioLinkSerdeTest {
         val json = objectMapper.writeValueAsString(user)
         val back = objectMapper.readValue(json, SystemUser::class.java)
         assertThat(back.cashPortfolioId).isNull()
+    }
+
+    @Test
+    fun `PortfolioInput cashPortfolioId defaults to null and round-trips`() {
+        val input = PortfolioInput(code = "INV", base = "USD", currency = "USD")
+        assertThat(input.cashPortfolioId).isNull()
+
+        val json = objectMapper.writeValueAsString(input)
+        val back = objectMapper.readValue(json, PortfolioInput::class.java)
+        assertThat(back.cashPortfolioId).isNull()
+    }
+
+    @Test
+    fun `PortfolioInput cashPortfolioId carries through when set`() {
+        val input =
+            PortfolioInput(
+                code = "SCB-USD",
+                base = "USD",
+                currency = "USD",
+                cashPortfolioId = "sgd-master-id"
+            )
+        val json = objectMapper.writeValueAsString(input)
+        val back = objectMapper.readValue(json, PortfolioInput::class.java)
+        assertThat(back.cashPortfolioId).isEqualTo("sgd-master-id")
     }
 
     @Test

@@ -24,7 +24,6 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.fx.FxRateService
-import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
@@ -71,9 +70,6 @@ class CashAutoSettleServiceTest {
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
-
-    @Autowired
-    private lateinit var portfolioRepository: PortfolioRepository
 
     @Autowired
     private lateinit var autoSettleService: CashAutoSettleService
@@ -131,14 +127,10 @@ class CashAutoSettleServiceTest {
                 PortfolioInput(
                     code = "INV_$uniqueId",
                     base = "USD",
-                    currency = "USD"
+                    currency = "USD",
+                    cashPortfolioId = master.id
                 )
             )
-        // Link the invest portfolio to the master as its funding source.
-        portfolioRepository.findById(invest.id).ifPresent {
-            it.cashPortfolioId = master.id
-            portfolioRepository.save(it)
-        }
         // Seed master with a USD deposit so the balance check passes.
         mockAuthConfig.login(testUser, systemUserService)
         trnService.save(
@@ -331,13 +323,10 @@ class CashAutoSettleServiceTest {
                 PortfolioInput(
                     code = "NEW_INV_$uniqueId",
                     base = "USD",
-                    currency = "USD"
+                    currency = "USD",
+                    cashPortfolioId = emptyMaster.id
                 )
             )
-        portfolioRepository.findById(newInvest.id).ifPresent {
-            it.cashPortfolioId = emptyMaster.id
-            portfolioRepository.save(it)
-        }
 
         mockAuthConfig.login(testUser, systemUserService)
         val result =
@@ -367,13 +356,10 @@ class CashAutoSettleServiceTest {
                 PortfolioInput(
                     code = "DIV_INV_$uniqueId",
                     base = "USD",
-                    currency = "USD"
+                    currency = "USD",
+                    cashPortfolioId = divMaster.id
                 )
             )
-        portfolioRepository.findById(divInvest.id).ifPresent {
-            it.cashPortfolioId = divMaster.id
-            portfolioRepository.save(it)
-        }
 
         // Seed master with a DIVI (asset = security, cashAsset = USD).
         // The old query (asset.id == cashAssetId) would miss this — the fix

@@ -48,7 +48,8 @@ class PortfolioInputAdapter internal constructor(
             active = portfolioInput.active,
             currency = currencyService.getCode(portfolioInput.currency),
             base = currencyService.getCode(portfolioInput.base),
-            owner = owner
+            owner = owner,
+            cashPortfolioId = portfolioInput.cashPortfolioId
         )
     }
 
@@ -63,7 +64,8 @@ class PortfolioInputAdapter internal constructor(
             active = data.active,
             currency = currencyService.getCode(data.currency),
             base = currencyService.getCode(data.base),
-            owner = existing.owner
+            owner = existing.owner,
+            cashPortfolioId = data.cashPortfolioId
         )
 
     companion object {

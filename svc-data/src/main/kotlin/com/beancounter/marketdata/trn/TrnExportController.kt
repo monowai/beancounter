@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
@@ -73,7 +72,7 @@ class TrnExportController(
             example = "portfolio-123"
         ) @PathVariable("portfolioId") portfolioId: String
     ) {
-        response.contentType = MediaType.TEXT_PLAIN_VALUE
+        response.contentType = "text/csv"
         response.setHeader(
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"${sanitizeFilename(portfolioId)}.csv\""

@@ -101,7 +101,13 @@ internal class PortfolioControllerOwnershipTests {
                 mockMvc,
                 tokenA
             )
-        ).hasNoNullFieldsOrPropertiesExcept("gainOnDay", "assetClassification", "valuedAt", "lastUpdated")
+        ).hasNoNullFieldsOrPropertiesExcept(
+            "gainOnDay",
+            "assetClassification",
+            "valuedAt",
+            "lastUpdated",
+            "cashPortfolioId"
+        )
 
         // All users portfolios
         assertThat(

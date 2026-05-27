@@ -6,8 +6,11 @@ import com.beancounter.common.contracts.PositionMoveResponse
 import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.contracts.TrnStatusUpdateRequest
+import com.beancounter.common.contracts.TrnStatusUpdateResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.utils.DateUtils
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -342,7 +345,35 @@ class TrnController(
             description = "Transaction identifier to delete",
             example = "trn-123"
         ) @PathVariable("trnId") trnId: String
-    ): TrnDeleteResponse = TrnDeleteResponse(trnService.delete(trnId))
+    ): TrnDeleteResponse = trnService.deleteWithSiblings(trnId)
+
+    @PatchMapping(
+        value = ["/{trnId}/status"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Update transaction status",
+        description = """
+            Change a transaction's status (e.g. SETTLED → PROPOSED to Unsettle).
+            For Unsettle, the response includes the ids of any auto-settled
+            sibling transactions (the WITHDRAWAL + DEPOSIT cash legs) so the
+            UI can prompt the user to delete them. The server does NOT
+            cascade.
+        """
+    )
+    fun updateStatus(
+        @Parameter(
+            description = "Transaction identifier",
+            example = "trn-123"
+        ) @PathVariable("trnId") trnId: String,
+        @RequestBody request: TrnStatusUpdateRequest
+    ): TrnStatusUpdateResponse {
+        require(request.status == TrnStatus.PROPOSED) {
+            "Only PROPOSED is supported via this endpoint (Unsettle). Use POST /trns/settle for SETTLED."
+        }
+        return trnService.unsettle(trnId)
+    }
 
     @GetMapping(
         value = ["/{portfolioId}/asset/{assetId}/events"],

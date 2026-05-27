@@ -8,7 +8,16 @@ import com.beancounter.common.model.Trn
  * by the contained trns.
  */
 data class TrnResponse(
-    override val data: TrnPayload = TrnPayload()
+    override val data: TrnPayload = TrnPayload(),
+    // Non-fatal hints raised while persisting / settling the transactions
+    // (e.g. auto-settle skipped because the funding portfolio has no balance
+    // in the trade's settlement currency). UI surfaces these to the user.
+    val warnings: List<String> = emptyList()
 ) : Payload<TrnPayload> {
     constructor(trns: Collection<Trn>) : this(TrnPayload.from(trns))
+
+    constructor(
+        trns: Collection<Trn>,
+        warnings: List<String>
+    ) : this(TrnPayload.from(trns), warnings)
 }

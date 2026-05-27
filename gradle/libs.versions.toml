@@ -4,11 +4,11 @@
 [versions]
 kotlin = "2.3.20"
 kotlinter = "5.4.2"
-spring-boot = "3.5.13"
+spring-boot = "3.5.14"
 spring-cloud = "2025.0.2"
 spring-cloud-contract = "4.3.1"
 spring-data-bom = "2025.0.8"
-spring-security = "6.5.9"
+spring-security = "6.5.10"
 spring-doc = "2.8.15"
 jackson = "2.21.1"
 mockitoKotlin = '5.4.0'

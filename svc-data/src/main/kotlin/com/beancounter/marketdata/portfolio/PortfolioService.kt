@@ -22,7 +22,7 @@ import java.util.function.Consumer
  */
 @Service
 @Transactional
-@Suppress("TooManyFunctions") // PortfolioService has 11 functions, threshold is 11
+@Suppress("TooManyFunctions") // PortfolioService has 12 functions, threshold is 11
 class PortfolioService(
     private val portfolioInputAdapter: PortfolioInputAdapter,
     private val portfolioRepository: PortfolioRepository,
@@ -123,6 +123,10 @@ class PortfolioService(
         }
         throw NotFoundException("Portfolio not found: $id")
     }
+
+    // Unauthenticated lookup for system-internal callers (stream consumers).
+    // Skips canView — no JWT in scope on the stream thread.
+    fun findOrNull(id: String): Portfolio? = portfolioRepository.findById(id).orElse(null)
 
     fun findByCode(code: String): Portfolio {
         val systemUser = systemUserService.getOrThrow()

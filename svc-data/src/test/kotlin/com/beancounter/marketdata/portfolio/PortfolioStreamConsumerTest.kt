@@ -3,9 +3,12 @@ package com.beancounter.marketdata.portfolio
 import com.beancounter.common.model.Portfolio
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 
 /**
@@ -14,31 +17,56 @@ import java.math.BigDecimal
  */
 class PortfolioStreamConsumerTest {
     @Test
-    fun `portfolioConsumer should call portfolioService maintain with lastUpdated set`() {
-        // Given
+    fun `portfolioConsumer applies valuation but preserves identity from DB`() {
         val portfolioService = mock<PortfolioService>()
         val consumer = PortfolioStreamConsumer(portfolioService)
 
-        val portfolio =
+        // DB state has the user's most recent edit (cashPortfolioId set, custom name).
+        val existing =
             Portfolio(
                 id = "1",
                 code = "TEST",
-                name = "Test Portfolio",
+                name = "User Renamed",
+                cashPortfolioId = "FUNDING-1"
+            )
+        whenever(portfolioService.findOrNull("1")).thenReturn(existing)
+
+        // Stream payload from bc-position carries stale identity but fresh valuation.
+        val incoming =
+            Portfolio(
+                id = "1",
+                code = "STALE",
+                name = "Stale Name",
                 marketValue = BigDecimal.TEN,
-                irr = BigDecimal.ONE
+                irr = BigDecimal.ONE,
+                cashPortfolioId = null
             )
 
-        // When
-        consumer.portfolioConsumer().accept(portfolio)
+        consumer.portfolioConsumer().accept(incoming)
 
-        // Then - verify maintain is called with a portfolio that has lastUpdated set
         val captor = argumentCaptor<Portfolio>()
         verify(portfolioService).maintain(captor.capture())
 
-        val savedPortfolio = captor.firstValue
-        assertThat(savedPortfolio.id).isEqualTo(portfolio.id)
-        assertThat(savedPortfolio.code).isEqualTo(portfolio.code)
-        assertThat(savedPortfolio.name).isEqualTo(portfolio.name)
-        assertThat(savedPortfolio.lastUpdated).isNotNull()
+        val saved = captor.firstValue
+        // Identity comes from the DB — stale stream values are ignored.
+        assertThat(saved.code).isEqualTo("TEST")
+        assertThat(saved.name).isEqualTo("User Renamed")
+        assertThat(saved.cashPortfolioId).isEqualTo("FUNDING-1")
+        // Valuation comes from the stream.
+        assertThat(saved.marketValue).isEqualTo(BigDecimal.TEN)
+        assertThat(saved.irr).isEqualTo(BigDecimal.ONE)
+        assertThat(saved.lastUpdated).isNotNull()
+    }
+
+    @Test
+    fun `portfolioConsumer skips when portfolio no longer exists`() {
+        val portfolioService = mock<PortfolioService>()
+        val consumer = PortfolioStreamConsumer(portfolioService)
+        whenever(portfolioService.findOrNull("gone")).thenReturn(null)
+
+        consumer.portfolioConsumer().accept(Portfolio(id = "gone"))
+
+        verify(portfolioService).findOrNull("gone")
+        verify(portfolioService, never()).maintain(any())
     }
 }

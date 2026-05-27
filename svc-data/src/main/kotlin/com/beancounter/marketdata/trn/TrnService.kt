@@ -1,7 +1,10 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.contracts.TrnSaveResult
+import com.beancounter.common.contracts.TrnStatusUpdateResponse
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
@@ -11,6 +14,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
+import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.portfolio.PortfolioShareRepository
 import com.beancounter.marketdata.registration.SystemUserService
@@ -36,7 +40,8 @@ class TrnService(
     private val assetFinder: AssetFinder,
     private val systemUserService: SystemUserService,
     private val cacheInvalidationProducer: CacheInvalidationProducer,
-    private val portfolioShareRepository: PortfolioShareRepository
+    private val portfolioShareRepository: PortfolioShareRepository,
+    private val cashAutoSettleService: CashAutoSettleService
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
 
@@ -60,7 +65,24 @@ class TrnService(
     fun save(
         portfolio: Portfolio,
         trnRequest: TrnRequest
-    ): Collection<Trn> {
+    ): Collection<Trn> = saveWithResult(portfolio, trnRequest).trns
+
+    fun saveWithResult(
+        portfolioId: String,
+        trnRequest: TrnRequest
+    ): TrnSaveResult = saveWithResult(portfolioService.find(portfolioId), trnRequest)
+
+    /**
+     * Persist trns and return them along with any non-fatal warnings raised
+     * during auto-settle (e.g. cash funding portfolio has no balance in the
+     * trade currency). Controllers wrap the warnings into [TrnResponse] so
+     * the UI can surface them; legacy callers (CashTransferService etc.)
+     * use the [save] overload that only returns the trns.
+     */
+    fun saveWithResult(
+        portfolio: Portfolio,
+        trnRequest: TrnRequest
+    ): TrnSaveResult {
         val saved =
             trnRepository.saveAll(
                 trnInputMapper.convert(portfolio, trnRequest)
@@ -69,6 +91,13 @@ class TrnService(
         // saveAll returns entities whose asset reference was already hydrated upstream.
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
+        // Auto-settle cash to the linked funding portfolio. Skips non-trigger
+        // types (DEPOSIT/WITHDRAWAL etc.) — no recursion risk.
+        val warnings = mutableListOf<String>()
+        for (trn in results.toList()) {
+            val res = cashAutoSettleService.emitCompensatingTransfer(trn)
+            warnings.addAll(res.warnings)
+        }
         if (trnRequest.data.size == 1) {
             log.trace(
                 "Wrote 1 transaction asset: ${trnRequest.data[0].assetId}, portfolio: ${portfolio.code}"
@@ -82,7 +111,7 @@ class TrnService(
         if (earliestDate != null) {
             cacheInvalidationProducer.sendTransactionEvent(portfolio.id, earliestDate)
         }
-        return results
+        return TrnSaveResult(results.toList(), warnings.toList())
     }
 
     fun findForPortfolio(
@@ -302,6 +331,53 @@ class TrnService(
             cacheInvalidationProducer.sendTransactionEvent(result.portfolio.id, result.tradeDate)
         }
         return deleted.map { it.id }
+    }
+
+    /**
+     * Delete one trn and surface its auto-settled siblings (without cascading).
+     * The UI uses [TrnDeleteResponse.siblings] to prompt the user before
+     * issuing follow-up DELETEs for the W+D cash legs.
+     */
+    fun deleteWithSiblings(trnId: String): TrnDeleteResponse {
+        val parent =
+            trnRepository.findById(trnId).orElseThrow {
+                NotFoundException("Transaction not found: $trnId")
+            }
+        if (!portfolioService.canView(parent.portfolio)) {
+            // Match unsettle / delete-existing behaviour — surface as 404
+            // rather than a silent empty success.
+            throw NotFoundException("Transaction not found: $trnId")
+        }
+        val siblings = cashAutoSettleService.findSiblings(parent).map { it.id }
+        trnRepository.delete(parent)
+        cacheInvalidationProducer.sendTransactionEvent(parent.portfolio.id, parent.tradeDate)
+        return TrnDeleteResponse(listOf(parent.id), siblings)
+    }
+
+    /**
+     * Toggle a trn from SETTLED to PROPOSED. Surfaces auto-settled siblings
+     * for the caller to optionally delete via follow-up requests.
+     *
+     * Idempotency: callers must check status first. Calling unsettle on a trn
+     * that isn't SETTLED throws — there's no useful "transition to PROPOSED
+     * from PROPOSED" semantic.
+     */
+    fun unsettle(trnId: String): TrnStatusUpdateResponse {
+        val parent =
+            trnRepository.findById(trnId).orElseThrow {
+                NotFoundException("Transaction not found: $trnId")
+            }
+        if (!portfolioService.canView(parent.portfolio)) {
+            throw NotFoundException("Transaction not found: $trnId")
+        }
+        require(parent.status == TrnStatus.SETTLED) {
+            "Cannot unsettle trn $trnId: status is ${parent.status}, expected SETTLED"
+        }
+        val siblings = cashAutoSettleService.findSiblings(parent).map { it.id }
+        parent.status = TrnStatus.PROPOSED
+        val saved = trnRepository.save(parent)
+        cacheInvalidationProducer.sendTransactionEvent(parent.portfolio.id, parent.tradeDate)
+        return TrnStatusUpdateResponse(updated = saved, siblings = siblings)
     }
 
     fun patch(

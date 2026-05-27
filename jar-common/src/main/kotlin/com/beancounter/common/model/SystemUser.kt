@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
@@ -33,5 +34,9 @@ data class SystemUser(
     )
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    val since: LocalDate = LocalDate.now()
+    val since: LocalDate = LocalDate.now(),
+    // Per-user default funding portfolio. Used by auto-settle when a
+    // Portfolio.cashPortfolioId override is not set. null disables auto-settle.
+    @Column(name = "cash_portfolio_id")
+    var cashPortfolioId: String? = null
 )

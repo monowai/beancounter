@@ -321,6 +321,26 @@ interface TrnRepository :
     fun findDistinctAssetIdsByPortfolioIds(portfolioIds: Collection<String>): Collection<String>
 
     /**
+     * Find sibling transactions grouped under the same caller_ref provider + batch.
+     * Used by auto-settle to find the WITHDRAWAL + DEPOSIT pair it emitted for a
+     * given parent trade (parent.callerId stamped as the batch on the children).
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.callerRef.provider = :provider " +
+            "and t.callerRef.batch = :batch"
+    )
+    fun findByCallerRefProviderAndCallerRefBatch(
+        @Param("provider") provider: String,
+        @Param("batch") batch: String
+    ): List<Trn>
+
+    /**
      * Earliest SETTLED tradeDate for this asset across every portfolio that has ever held it.
      * Anchors price backfill: if portfolio A imported trades since 2020 and portfolio B since 2010,
      * backfill must reach 2010 for the wealth-performance "ALL" chart to be drawable.

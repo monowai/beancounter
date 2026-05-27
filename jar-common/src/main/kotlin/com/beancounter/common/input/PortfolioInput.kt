@@ -9,5 +9,9 @@ data class PortfolioInput(
     var name: String = code,
     var base: String = "USD",
     var currency: String = base,
-    var active: Boolean = true
+    var active: Boolean = true,
+    // Funding portfolio for cash auto-settle. See Portfolio.cashPortfolioId.
+    // null = no override (fall back to owner.cashPortfolioId; null on both
+    // disables auto-settle).
+    var cashPortfolioId: String? = null
 )

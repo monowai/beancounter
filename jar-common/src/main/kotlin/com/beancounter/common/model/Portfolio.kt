@@ -46,5 +46,10 @@ data class Portfolio(
     val lastUpdated: Instant? = null,
     @ManyToOne val currency: Currency = Currency("USD"),
     @ManyToOne val base: Currency = currency,
-    @ManyToOne var owner: SystemUser = SystemUser(id)
+    @ManyToOne var owner: SystemUser = SystemUser(id),
+    // Funding portfolio used by auto-settle to emit compensating cash
+    // transfers for cash-impacting trades (BUY/SELL/DIVI/...). Overrides the
+    // per-user default on SystemUser.cashPortfolioId. null disables auto-settle.
+    @Column(name = "cash_portfolio_id")
+    var cashPortfolioId: String? = null
 )

@@ -21,7 +21,19 @@ class PortfolioStreamConsumer(
     fun portfolioConsumer(): Consumer<Portfolio> =
         Consumer { portfolio ->
             log.trace("Received portfolio update: {}", portfolio.code)
-            val updatedPortfolio = portfolio.copy(lastUpdated = Instant.now())
+            // Only apply valuation fields from the producer; identity/config
+            // (code/name/active/currency/base/owner/cashPortfolioId) comes
+            // from the DB to avoid stale values overwriting recent user edits.
+            val existing = portfolioService.findOrNull(portfolio.id) ?: return@Consumer
+            val updatedPortfolio =
+                existing.copy(
+                    marketValue = portfolio.marketValue,
+                    irr = portfolio.irr,
+                    gainOnDay = portfolio.gainOnDay,
+                    assetClassification = portfolio.assetClassification,
+                    valuedAt = portfolio.valuedAt,
+                    lastUpdated = Instant.now()
+                )
             portfolioService.maintain(updatedPortfolio)
         }
 }

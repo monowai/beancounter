@@ -79,4 +79,53 @@ class PortfolioServiceTest {
                 BigDecimal.ONE
             )
     }
+
+    @Test
+    fun `update preserves valuation fields and applies cashPortfolioId`() {
+        Mockito.`when`(tokenService.isServiceToken).thenReturn(true)
+        assertThat(systemUserService.registerSystemAccount("beancounter:system")).isNotNull
+
+        val created =
+            portfolioService
+                .save(
+                    listOf(
+                        PortfolioInput(
+                            code = "UPDP",
+                            name = "Update Portfolio",
+                            currency = "USD",
+                            base = "USD"
+                        )
+                    )
+                ).iterator()
+                .next()
+
+        // Simulate bc-position stream having written valuation back to the DB.
+        portfolioService.maintain(
+            created.copy(
+                marketValue = BigDecimal("1234.56"),
+                irr = BigDecimal("0.05"),
+                gainOnDay = BigDecimal("12.34"),
+                valuedAt = java.time.LocalDate.of(2026, 5, 27)
+            )
+        )
+
+        // Now user edits the portfolio and assigns a cash funding portfolio.
+        val updated =
+            portfolioService.update(
+                created.id,
+                PortfolioInput(
+                    code = "UPDP",
+                    name = "Update Portfolio",
+                    currency = "USD",
+                    base = "USD",
+                    cashPortfolioId = "FUNDING-1"
+                )
+            )
+
+        assertThat(updated.cashPortfolioId).isEqualTo("FUNDING-1")
+        assertThat(updated.marketValue).isEqualByComparingTo(BigDecimal("1234.56"))
+        assertThat(updated.irr).isEqualByComparingTo(BigDecimal("0.05"))
+        assertThat(updated.gainOnDay).isEqualByComparingTo(BigDecimal("12.34"))
+        assertThat(updated.valuedAt).isEqualTo(java.time.LocalDate.of(2026, 5, 27))
+    }
 }

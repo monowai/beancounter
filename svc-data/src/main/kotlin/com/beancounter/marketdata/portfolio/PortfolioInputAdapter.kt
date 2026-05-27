@@ -57,14 +57,12 @@ class PortfolioInputAdapter internal constructor(
         data: PortfolioInput,
         existing: Portfolio
     ): Portfolio =
-        Portfolio(
-            existing.id,
-            data.code.uppercase(Locale.getDefault()),
-            data.name,
+        existing.copy(
+            code = data.code.uppercase(Locale.getDefault()),
+            name = data.name,
             active = data.active,
             currency = currencyService.getCode(data.currency),
             base = currencyService.getCode(data.base),
-            owner = existing.owner,
             cashPortfolioId = data.cashPortfolioId
         )
 

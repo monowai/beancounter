@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
@@ -241,6 +242,44 @@ class AssetSearchPublicFallbackTest {
         verify(provider).searchAssets(eq("HYSA"), isNull())
         // Header-bar search must not hit AlphaVantage as a side effect of the fan-out.
         verify(alphaProxy, never()).search(any(), any())
+    }
+
+    @Test
+    fun `null-market fan-out keeps healthy provider results when sibling throws`() {
+        // Regression guard for the supervisorScope wrapper: a thrown provider must not
+        // cancel siblings or propagate up. Real-world trigger: EODHD connect-timeout while
+        // FIGI/Alpha are healthy.
+        val healthy =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "HYSA",
+                            name = HYSA_NAME,
+                            type = "ETF",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val broken =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doThrow RuntimeException("upstream down")
+                on { getId() } doReturn "BROKEN"
+            }
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(broken, healthy)
+            )
+
+        val results = service.search("HYSA", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .contains("HYSA")
     }
 
     companion object {

@@ -15,6 +15,13 @@ import com.beancounter.marketdata.providers.alpha.AlphaProxy
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
 import com.beancounter.marketdata.providers.marketstack.MarketStackGateway
 import com.beancounter.marketdata.registration.SystemUserService
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -106,21 +113,26 @@ class AssetSearchService(
      * Ask the market's configured price provider to search for matching assets. Mirrors price
      * routing — whichever provider [MdFactory] hands back for `market` is the same one that will
      * be priced from, so the search surface and the price surface agree. Returns empty if the
-     * market is unknown or the provider has no search wired (default interface impl).
+     * market is unknown, the provider has no search wired (default interface impl), or the
+     * provider call exceeds [SEARCH_TIMEOUT_MS].
+     *
+     * The wall-clock cap exists because EODHD's RestClient is sized for batch price downloads
+     * (5s connect / 30s read); an interactive header keystroke can't wait that long for one
+     * stuck provider while the rest of the chain is alive.
      */
     private fun searchViaConfiguredProvider(
         keyword: String,
         market: String
     ): List<AssetSearchResult> =
-        try {
-            val resolved = marketService.getMarket(market)
-            mdFactory.getMarketDataProvider(resolved).searchAssets(keyword, market)
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.debug("Provider search for '{}' on {} failed: {}", keyword, market, e.message)
-            emptyList()
+        runBlocking {
+            withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                runCatching {
+                    val resolved = marketService.getMarket(market)
+                    mdFactory.getMarketDataProvider(resolved).searchAssets(keyword, market)
+                }.onFailure {
+                    log.debug("Provider search for '{}' on {} failed: {}", keyword, market, it.message)
+                }.getOrDefault(emptyList())
+            } ?: emptyList()
         }
 
     private fun searchPrivateAssets(keyword: String): AssetSearchResponse {
@@ -147,27 +159,49 @@ class AssetSearchService(
         val results = searchLocalDbAssets(keyword)
         if (results.isNotEmpty()) return AssetSearchResponse(results)
 
-        val providerHits =
-            mdFactory.getAllProviders().flatMap { provider ->
-                try {
-                    provider.searchAssets(keyword, null)
-                } catch (
-                    @Suppress("TooGenericExceptionCaught")
-                    e: Exception
-                ) {
-                    log.debug(
-                        "Provider {} search for '{}' failed: {}",
-                        provider.getId(),
-                        keyword,
-                        e.message
-                    )
-                    emptyList()
-                }
-            }
-        val figiHits = if (figiConfig.enabled) searchFigiGlobal(keyword).data else emptyList()
+        // Fan out concurrently — one slow provider (e.g. EODHD with a 5s connect timeout) must
+        // not block FIGI/Alpha behind it. supervisorScope isolates failures so a thrown
+        // provider doesn't cancel its siblings; withTimeoutOrNull caps the wall-clock wait per
+        // provider at SEARCH_TIMEOUT_MS so the user response can't drift beyond that even when
+        // the underlying RestClient is configured for longer batch reads.
         val merged =
-            (providerHits + figiHits).distinctBy {
-                "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
+            runBlocking {
+                supervisorScope {
+                    val providerTasks =
+                        mdFactory.getAllProviders().map { provider ->
+                            async(Dispatchers.IO) {
+                                withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                                    runCatching {
+                                        provider.searchAssets(keyword, null)
+                                    }.onFailure {
+                                        log.debug(
+                                            "Provider {} search for '{}' failed: {}",
+                                            provider.getId(),
+                                            keyword,
+                                            it.message
+                                        )
+                                    }.getOrDefault(emptyList())
+                                } ?: emptyList()
+                            }
+                        }
+                    val figiTask: Deferred<List<AssetSearchResult>>? =
+                        if (figiConfig.enabled) {
+                            async(Dispatchers.IO) {
+                                withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                                    runCatching {
+                                        searchFigiGlobal(keyword).data.toList()
+                                    }.getOrDefault(emptyList())
+                                } ?: emptyList()
+                            }
+                        } else {
+                            null
+                        }
+                    val providerHits = providerTasks.awaitAll().flatten()
+                    val figiHits = figiTask?.await() ?: emptyList()
+                    (providerHits + figiHits).distinctBy {
+                        "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
+                    }
+                }
             }
         return AssetSearchResponse(merged)
     }
@@ -399,6 +433,11 @@ class AssetSearchService(
         }
 
     companion object {
+        // Per-provider wall-clock cap for interactive asset search. External provider
+        // RestClients are sized for batch price downloads (EODHD: 5s connect / 30s read);
+        // header-bar keystrokes can't tolerate that latency when one provider is stalled.
+        private const val SEARCH_TIMEOUT_MS = 3000L
+
         private val ALLOWED_SECURITY_TYPES =
             setOf(
                 "COMMON STOCK",

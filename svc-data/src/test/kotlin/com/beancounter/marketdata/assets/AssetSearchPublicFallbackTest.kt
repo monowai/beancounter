@@ -245,6 +245,44 @@ class AssetSearchPublicFallbackTest {
     }
 
     @Test
+    fun `null-market fan-out returns US-market hits before non-US`() {
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "ABC",
+                            name = "ABC London",
+                            type = "Equity",
+                            region = "LON",
+                            currency = "GBP",
+                            market = "LON"
+                        ),
+                        AssetSearchResult(
+                            symbol = "ABC",
+                            name = "ABC US",
+                            type = "Equity",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider)
+            )
+
+        val results = service.search("ABC", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.market }
+            .containsExactly("US", "LON")
+    }
+
+    @Test
     fun `null-market fan-out keeps healthy provider results when sibling throws`() {
         // Regression guard for the supervisorScope wrapper: a thrown provider must not
         // cancel siblings or propagate up. Real-world trigger: EODHD connect-timeout while

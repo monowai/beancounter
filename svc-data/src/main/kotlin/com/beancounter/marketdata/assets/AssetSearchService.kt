@@ -198,9 +198,16 @@ class AssetSearchService(
                         }
                     val providerHits = providerTasks.awaitAll().flatten()
                     val figiHits = figiTask?.await() ?: emptyList()
-                    (providerHits + figiHits).distinctBy {
-                        "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
-                    }
+                    (providerHits + figiHits)
+                        .distinctBy {
+                            "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
+                        }
+                        // US-first ordering — header users overwhelmingly look up US tickers,
+                        // so surface those before LON/ASX/etc duplicates. Stable sort keeps
+                        // intra-group ordering from the concurrent fan-out.
+                        .sortedBy {
+                            if ((it.market ?: "").uppercase() in US_MARKETS) 0 else 1
+                        }
                 }
             }
         return AssetSearchResponse(merged)
@@ -437,6 +444,9 @@ class AssetSearchService(
         // RestClients are sized for batch price downloads (EODHD: 5s connect / 30s read);
         // header-bar keystrokes can't tolerate that latency when one provider is stalled.
         private const val SEARCH_TIMEOUT_MS = 3000L
+
+        // Markets that float to the top of header-bar fan-out results.
+        private val US_MARKETS = setOf("US", "NYSE", "NASDAQ", "AMEX")
 
         private val ALLOWED_SECURITY_TYPES =
             setOf(

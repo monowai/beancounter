@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers.eodhd
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
+import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSplit
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
@@ -134,6 +135,26 @@ class EodhdGateway(
             ?.toList()
             ?: emptyList()
     }
+
+    /**
+     * Asset search by ticker code or name fragment.
+     *
+     * GET /api/search/{query}?api_token={apiKey}&fmt=json
+     *
+     * EODHD returns a JSON array of asset descriptors. Used by [EodhdPriceService.searchAssets]
+     * so the asset-lookup UI surfaces tickers EODHD will go on to price.
+     */
+    fun searchAssets(
+        query: String,
+        apiKey: String = DEMO_KEY
+    ): List<EodhdSearchResult> =
+        restClient
+            .get()
+            .uri("/api/search/{query}?api_token={apiKey}&fmt=json", query, apiKey)
+            .retrieve()
+            .body<Array<EodhdSearchResult>>()
+            ?.toList()
+            ?: emptyList()
 
     companion object {
         const val DEMO_KEY = "demo"

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson
@@ -10,6 +11,8 @@ import com.beancounter.marketdata.assets.figi.FigiFilterResult
 import com.beancounter.marketdata.assets.figi.FigiGateway
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
@@ -18,7 +21,9 @@ import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -45,7 +50,10 @@ class AssetSearchPublicFallbackTest {
         figiTickerHits: Collection<FigiResponse> = emptyList(),
         figiFilterHits: FigiFilterResponse = FigiFilterResponse(),
         alphaResponse: String = alphaJson,
-        alphaProxy: AlphaProxy = mock { on { search(any(), any()) } doReturn alphaResponse }
+        alphaProxy: AlphaProxy = mock { on { search(any(), any()) } doReturn alphaResponse },
+        marketProvider: MarketDataPriceProvider =
+            mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+        allProviders: Collection<MarketDataPriceProvider> = listOf(marketProvider)
     ): Pair<AssetSearchService, AlphaProxy> {
         val alphaConfig =
             mock<AlphaConfig> {
@@ -64,6 +72,11 @@ class AssetSearchPublicFallbackTest {
                 enabled = true
                 searchMarkets = "US"
             }
+        val mdFactory =
+            mock<MdFactory> {
+                on { getMarketDataProvider(any<Market>()) } doReturn marketProvider
+                on { getAllProviders() } doReturn allProviders
+            }
         val service =
             AssetSearchService(
                 assetRepository =
@@ -80,7 +93,8 @@ class AssetSearchPublicFallbackTest {
                 figiConfig = figiConfig,
                 marketService =
                     mock<MarketService> { on { getMarket(any()) } doReturn usMarket },
-                systemUserService = mock<SystemUserService>()
+                systemUserService = mock<SystemUserService>(),
+                mdFactory = mdFactory
             )
         return service to alphaProxy
     }
@@ -162,6 +176,65 @@ class AssetSearchPublicFallbackTest {
         assertThat(results.data).isNotEmpty
         assertThat(results.data.first().symbol).isEqualTo("COWZ")
         verify(alphaProxy, never()).search(any(), any())
+    }
+
+    @Test
+    fun `market search routes through configured price provider before legacy chain`() {
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "HYSA",
+                            name = "Pacer International HY Corp Bond ETF",
+                            type = "ETF",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val alphaProxy = mock<AlphaProxy>()
+        val (service, _) = buildService(marketProvider = provider, alphaProxy = alphaProxy)
+
+        val results = service.search("HYSA", "US")
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .containsExactly("HYSA")
+        verify(provider).searchAssets(eq("HYSA"), eq("US"))
+        verify(alphaProxy, never()).search(any(), any())
+    }
+
+    @Test
+    fun `null-market search fans out across all registered providers`() {
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "HYSA",
+                            name = "Pacer International HY Corp Bond ETF",
+                            type = "ETF",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider)
+            )
+
+        val results = service.search("HYSA", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .contains("HYSA")
+        verify(provider).searchAssets(eq("HYSA"), anyOrNull())
     }
 
     companion object {

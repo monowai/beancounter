@@ -72,6 +72,13 @@ class MdFactory internal constructor(
     fun getMarketDataProvider(provider: String): MarketDataPriceProvider =
         providers[provider.uppercase(Locale.getDefault())]!!
 
+    /**
+     * Registered providers in declaration order. Used by asset-search fan-out so a header-bar
+     * keyword with no market still reaches every provider's search surface (e.g. EODHD when
+     * configured, regardless of FIGI's coverage).
+     */
+    fun getAllProviders(): Collection<MarketDataPriceProvider> = providers.values
+
     private fun resolveProvider(market: Market): MarketDataPriceProvider {
         // ToDo: Map Market to Provider
         for (key in providers.keys) {

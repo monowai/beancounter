@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers.eodhd
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
+import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSplit
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.stereotype.Service
@@ -74,6 +75,16 @@ class EodhdProxy(
             symbol,
             limit,
             from,
+            apiKey
+        )
+
+    @RateLimiter(name = "eodhd")
+    fun searchAssets(
+        query: String,
+        apiKey: String
+    ): List<EodhdSearchResult> =
+        eodhdGateway.searchAssets(
+            query,
             apiKey
         )
 }

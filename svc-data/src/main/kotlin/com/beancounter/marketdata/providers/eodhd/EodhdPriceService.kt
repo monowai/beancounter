@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
@@ -100,6 +101,39 @@ class EodhdPriceService(
     // that value as `MarketData.close` (see PR #875). SplitAdjuster must skip
     // dividing EODHD rows so corporate_event splits don't double-adjust them.
     override fun shipsAdjustedClose(): Boolean = true
+
+    /**
+     * Search EODHD `/api/search/{query}` for matches. Gated on the EODHD markets allowlist —
+     * an unconfigured deployment returns empty so [AssetSearchService] falls back to the legacy
+     * FIGI / AlphaVantage chain. `market` is informational only at this layer (EODHD searches
+     * globally and returns the exchange per result); the caller decides whether to filter.
+     */
+    override fun searchAssets(
+        keyword: String,
+        market: String?
+    ): List<AssetSearchResult> {
+        if (eodhdConfig.markets.isNullOrBlank()) return emptyList()
+        return try {
+            eodhdProxy
+                .searchAssets(keyword, eodhdConfig.apiKey)
+                .map { row ->
+                    AssetSearchResult(
+                        symbol = row.code,
+                        name = row.name,
+                        type = row.type ?: "Equity",
+                        region = row.exchange,
+                        currency = row.currency,
+                        market = row.exchange
+                    )
+                }
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("EODHD search for '{}' failed: {}", keyword, e.message)
+            emptyList()
+        }
+    }
 
     companion object {
         const val ID = "EODHD"

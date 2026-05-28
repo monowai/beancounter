@@ -9,6 +9,7 @@ import com.beancounter.marketdata.assets.figi.FigiFilterRequest
 import com.beancounter.marketdata.assets.figi.FigiGateway
 import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
@@ -32,7 +33,8 @@ class AssetSearchService(
     private val figiGateway: FigiGateway,
     private val figiConfig: FigiConfig,
     private val marketService: MarketService,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val mdFactory: MdFactory
 ) {
     private val log = LoggerFactory.getLogger(AssetSearchService::class.java)
 
@@ -97,6 +99,27 @@ class AssetSearchService(
         return AssetSearchResponse(filtered + newFromExternal)
     }
 
+    /**
+     * Ask the market's configured price provider to search for matching assets. Mirrors price
+     * routing — whichever provider [MdFactory] hands back for `market` is the same one that will
+     * be priced from, so the search surface and the price surface agree. Returns empty if the
+     * market is unknown or the provider has no search wired (default interface impl).
+     */
+    private fun searchViaConfiguredProvider(
+        keyword: String,
+        market: String
+    ): List<AssetSearchResult> =
+        try {
+            val resolved = marketService.getMarket(market)
+            mdFactory.getMarketDataProvider(resolved).searchAssets(keyword, market)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug("Provider search for '{}' on {} failed: {}", keyword, market, e.message)
+            emptyList()
+        }
+
     private fun searchPrivateAssets(keyword: String): AssetSearchResponse {
         val user = systemUserService.getActiveUser()
         if (user == null) {
@@ -129,13 +152,36 @@ class AssetSearchService(
                 }
         val results = deduped.take(50).map { toLocalSearchResult(it) }
 
-        // Fall back to FIGI global search when local results are empty
-        if (results.isEmpty() && figiConfig.enabled) {
-            log.debug("No local results for '{}', falling back to FIGI global search", keyword)
-            return searchFigiGlobal(keyword)
-        }
+        if (results.isNotEmpty()) return AssetSearchResponse(results)
 
-        return AssetSearchResponse(results)
+        // No DB hit. Fan out across every registered price provider's search surface so a
+        // keyword from the header bar (no market) reaches EODHD / Alpha / MarketStack / etc.
+        // Providers that don't honour null-market simply contribute nothing (default impl
+        // returns empty). FIGI global runs alongside, then results are merged + deduped by
+        // (symbol, market).
+        val providerHits =
+            mdFactory.getAllProviders().flatMap { provider ->
+                try {
+                    provider.searchAssets(keyword, null)
+                } catch (
+                    @Suppress("TooGenericExceptionCaught")
+                    e: Exception
+                ) {
+                    log.debug(
+                        "Provider {} search for '{}' failed: {}",
+                        provider.getId(),
+                        keyword,
+                        e.message
+                    )
+                    emptyList()
+                }
+            }
+        val figiHits = if (figiConfig.enabled) searchFigiGlobal(keyword).data else emptyList()
+        val merged =
+            (providerHits + figiHits).distinctBy {
+                "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
+            }
+        return AssetSearchResponse(merged)
     }
 
     // Markets that use FIGI for search (configured via figi.search.markets)
@@ -147,6 +193,17 @@ class AssetSearchService(
         keyword: String,
         market: String?
     ): AssetSearchResponse {
+        // First ask the market's configured price provider. Symmetric with price routing —
+        // EODHD (on kauri) and any other provider that wires `searchAssets` answers here before
+        // the FIGI/MarketStack/Alpha chain runs. Non-search providers (cash, custom, morningstar)
+        // return empty via the interface default and fall through unchanged.
+        if (market != null) {
+            val providerHits = searchViaConfiguredProvider(keyword, market)
+            if (providerHits.isNotEmpty()) {
+                return AssetSearchResponse(providerHits)
+            }
+        }
+
         // Use FIGI for markets configured in figi.search.markets.
         // FIGI's filter endpoint returns exact-ticker hits and full-name
         // matches but does poorly on short ticker prefixes (e.g. "COW")

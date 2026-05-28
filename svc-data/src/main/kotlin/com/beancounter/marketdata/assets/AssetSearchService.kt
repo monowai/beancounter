@@ -111,14 +111,14 @@ class AssetSearchService(
 
     /**
      * Ask the market's configured price provider to search for matching assets. Mirrors price
-     * routing — whichever provider [MdFactory] hands back for `market` is the same one that will
-     * be priced from, so the search surface and the price surface agree. Returns empty if the
-     * market is unknown, the provider has no search wired (default interface impl), or the
-     * provider call exceeds [SEARCH_TIMEOUT_MS].
+     * routing — whichever provider [MdFactory] hands back for `market` is the same one that
+     * will be priced from, so the search surface and the price surface agree.
      *
-     * The wall-clock cap exists because EODHD's RestClient is sized for batch price downloads
-     * (5s connect / 30s read); an interactive header keystroke can't wait that long for one
-     * stuck provider while the rest of the chain is alive.
+     * Note on the [withTimeoutOrNull] wrapper: it can only cancel suspending code. Blocking
+     * Spring `RestClient` calls inside the provider don't poll the cancellation flag, so the
+     * real wall-clock cap is enforced at the HTTP layer — see `eodhdSearchRestClient` in
+     * [com.beancounter.marketdata.config.ExternalApiRestClientConfig]. The coroutine timeout
+     * stays as belt-and-suspenders for any future provider with short suspension points.
      */
     private fun searchViaConfiguredProvider(
         keyword: String,
@@ -164,11 +164,11 @@ class AssetSearchService(
         val hasExactCode = dbResults.any { it.symbol.equals(keyword, ignoreCase = true) }
         if (hasExactCode) return AssetSearchResponse(dbResults)
 
-        // Fan out concurrently — one slow provider (e.g. EODHD with a 5s connect timeout) must
-        // not block FIGI/Alpha behind it. supervisorScope isolates failures so a thrown
-        // provider doesn't cancel its siblings; withTimeoutOrNull caps the wall-clock wait per
-        // provider at SEARCH_TIMEOUT_MS so the user response can't drift beyond that even when
-        // the underlying RestClient is configured for longer batch reads.
+        // Fan out concurrently — one slow provider must not block FIGI/Alpha behind it.
+        // supervisorScope isolates failures so a thrown provider doesn't cancel its siblings.
+        // The withTimeoutOrNull wrapper is best-effort — blocking RestClient calls inside the
+        // providers don't cooperatively cancel, so the real wall-clock cap comes from the
+        // per-client HTTP timeouts (see `eodhdSearchRestClient`).
         val external =
             runBlocking {
                 supervisorScope {

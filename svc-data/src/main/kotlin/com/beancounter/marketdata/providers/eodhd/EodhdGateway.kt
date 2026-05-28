@@ -19,7 +19,14 @@ import org.springframework.web.client.body
 @Component
 class EodhdGateway(
     @Qualifier("eodhdRestClient")
-    private val restClient: RestClient
+    private val restClient: RestClient,
+    // Search calls fire from the header bar on every keystroke. Use the dedicated
+    // short-timeout client (2s connect / 3s read) so a stalled EODHD edge can't drag
+    // the user response out for the 5s/30s price-tier defaults — the coroutine
+    // withTimeoutOrNull wrapper is cosmetic without a real HTTP-layer cap because
+    // blocking RestClient calls aren't cooperatively cancellable.
+    @Qualifier("eodhdSearchRestClient")
+    private val searchRestClient: RestClient
 ) {
     /**
      * Single-day EOD price for one symbol.
@@ -148,7 +155,7 @@ class EodhdGateway(
         query: String,
         apiKey: String = DEMO_KEY
     ): List<EodhdSearchResult> =
-        restClient
+        searchRestClient
             .get()
             .uri("/api/search/{query}?api_token={apiKey}&fmt=json", query, apiKey)
             .retrieve()

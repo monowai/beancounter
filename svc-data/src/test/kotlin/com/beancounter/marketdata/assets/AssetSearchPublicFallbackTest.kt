@@ -24,6 +24,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -222,11 +223,13 @@ class AssetSearchPublicFallbackTest {
                         )
                     )
             }
+        val alphaProxy = mock<AlphaProxy>()
         val (service, _) =
             buildService(
                 marketProvider =
                     mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
-                allProviders = listOf(provider)
+                allProviders = listOf(provider),
+                alphaProxy = alphaProxy
             )
 
         val results = service.search("HYSA", null)
@@ -234,7 +237,10 @@ class AssetSearchPublicFallbackTest {
         assertThat(results.data)
             .extracting<String> { it.symbol }
             .contains("HYSA")
-        verify(provider).searchAssets(eq("HYSA"), anyOrNull())
+        // Forwarded market must be null — anyOrNull() would mask a leaked non-null.
+        verify(provider).searchAssets(eq("HYSA"), isNull())
+        // Header-bar search must not hit AlphaVantage as a side effect of the fan-out.
+        verify(alphaProxy, never()).search(any(), any())
     }
 
     companion object {

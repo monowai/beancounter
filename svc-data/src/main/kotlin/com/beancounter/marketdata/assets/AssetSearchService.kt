@@ -83,9 +83,12 @@ class AssetSearchService(
         keyword: String,
         market: String
     ): AssetSearchResponse {
-        val localResults = searchLocalAssets(keyword)
+        // Use the DB-only lookup here. Market-scoped searches go through
+        // `searchPublicAssets(market)` for external routing — the broader null-market fan-out
+        // inside `searchLocalAssets` would fire scoped + unscoped external calls on the same
+        // request, doubling latency and rate-limit pressure for no extra coverage.
         val filtered =
-            localResults.data.filter {
+            searchLocalDbAssets(keyword).filter {
                 it.market.equals(market, ignoreCase = true)
             }
 
@@ -133,32 +136,17 @@ class AssetSearchService(
     }
 
     /**
-     * Search all assets in the local database by code or name.
-     * Falls back to FIGI global search when local results are empty.
-     * De-duplicates by code, preferring US market when duplicates exist.
+     * Null-market (header bar) entry point: DB lookup first; on miss, fan out across every
+     * registered price provider's search surface plus FIGI global, merge + dedupe by
+     * `(symbol, market)`.
+     *
+     * Market-scoped searches must call [searchLocalDbAssets] directly — the fan-out here is
+     * intentionally null-market only.
      */
     private fun searchLocalAssets(keyword: String): AssetSearchResponse {
-        val assets = assetRepository.searchByCodeOrName(keyword)
-        // Group by code and pick the preferred market variant (US preferred)
-        val marketPriority = listOf("US", "NYSE", "NASDAQ", "ASX", "NZX")
-        val deduped =
-            assets
-                .groupBy { it.code.uppercase() }
-                .map { (_, variants) ->
-                    variants.minByOrNull { asset ->
-                        val idx = marketPriority.indexOf(asset.marketCode)
-                        if (idx >= 0) idx else marketPriority.size
-                    } ?: variants.first()
-                }
-        val results = deduped.take(50).map { toLocalSearchResult(it) }
-
+        val results = searchLocalDbAssets(keyword)
         if (results.isNotEmpty()) return AssetSearchResponse(results)
 
-        // No DB hit. Fan out across every registered price provider's search surface so a
-        // keyword from the header bar (no market) reaches EODHD / Alpha / MarketStack / etc.
-        // Providers that don't honour null-market simply contribute nothing (default impl
-        // returns empty). FIGI global runs alongside, then results are merged + deduped by
-        // (symbol, market).
         val providerHits =
             mdFactory.getAllProviders().flatMap { provider ->
                 try {
@@ -182,6 +170,26 @@ class AssetSearchService(
                 "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
             }
         return AssetSearchResponse(merged)
+    }
+
+    /**
+     * Pure DB-only lookup with the US-preferred dedupe. Used by both the null-market entry
+     * (`searchLocalAssets`) and market-scoped lookups (`searchMarketAssets`) so neither has to
+     * pay for the other's external fan-out.
+     */
+    private fun searchLocalDbAssets(keyword: String): List<AssetSearchResult> {
+        val assets = assetRepository.searchByCodeOrName(keyword)
+        val marketPriority = listOf("US", "NYSE", "NASDAQ", "ASX", "NZX")
+        val deduped =
+            assets
+                .groupBy { it.code.uppercase() }
+                .map { (_, variants) ->
+                    variants.minByOrNull { asset ->
+                        val idx = marketPriority.indexOf(asset.marketCode)
+                        if (idx >= 0) idx else marketPriority.size
+                    } ?: variants.first()
+                }
+        return deduped.take(50).map { toLocalSearchResult(it) }
     }
 
     // Markets that use FIGI for search (configured via figi.search.markets)

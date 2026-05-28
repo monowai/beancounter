@@ -55,7 +55,8 @@ class AssetSearchPublicFallbackTest {
         alphaProxy: AlphaProxy = mock { on { search(any(), any()) } doReturn alphaResponse },
         marketProvider: MarketDataPriceProvider =
             mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
-        allProviders: Collection<MarketDataPriceProvider> = listOf(marketProvider)
+        allProviders: Collection<MarketDataPriceProvider> = listOf(marketProvider),
+        dbAssets: List<com.beancounter.common.model.Asset> = emptyList()
     ): Pair<AssetSearchService, AlphaProxy> {
         val alphaConfig =
             mock<AlphaConfig> {
@@ -82,7 +83,7 @@ class AssetSearchPublicFallbackTest {
         val service =
             AssetSearchService(
                 assetRepository =
-                    mock { on { searchByCodeOrName(any()) } doReturn emptyList() },
+                    mock { on { searchByCodeOrName(any()) } doReturn dbAssets },
                 alphaProxy = alphaProxy,
                 alphaConfig = alphaConfig,
                 marketStackGateway = mock<MarketStackGateway>(),
@@ -242,6 +243,84 @@ class AssetSearchPublicFallbackTest {
         verify(provider).searchAssets(eq("HYSA"), isNull())
         // Header-bar search must not hit AlphaVantage as a side effect of the fan-out.
         verify(alphaProxy, never()).search(any(), any())
+    }
+
+    @Test
+    fun `DB substring-only match does not shadow provider exact-code match`() {
+        // Regression: searching "TSM" only returned "Huntsman" (DB substring on name) and never
+        // surfaced Taiwan Semiconductor from the provider fan-out. Fix: short-circuit on
+        // exact-code DB match only; otherwise merge DB + fan-out.
+        val huntsman =
+            com.beancounter.common.model.Asset(
+                id = "huntsman-us",
+                code = "HUN",
+                name = "Huntsman Corporation",
+                market =
+                    com.beancounter.common.model
+                        .Market("NYSE", currencyId = "USD"),
+                marketCode = "NYSE",
+                category = "Equity"
+            )
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "TSM",
+                            name = "Taiwan Semiconductor Manufacturing",
+                            type = "ADR",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider),
+                dbAssets = listOf(huntsman)
+            )
+
+        val results = service.search("TSM", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .contains("TSM", "HUN")
+        verify(provider).searchAssets(eq("TSM"), isNull())
+    }
+
+    @Test
+    fun `exact-code DB match short-circuits the provider fan-out`() {
+        // Inverse of the TSM/Huntsman regression: when the DB already has an exact code match,
+        // don't burn external provider calls on every keystroke.
+        val tsm =
+            com.beancounter.common.model.Asset(
+                id = "tsm-us",
+                code = "TSM",
+                name = "Taiwan Semiconductor ADR",
+                market =
+                    com.beancounter.common.model
+                        .Market("NYSE", currencyId = "USD"),
+                marketCode = "NYSE",
+                category = "Equity"
+            )
+        val provider = mock<MarketDataPriceProvider>()
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider),
+                dbAssets = listOf(tsm)
+            )
+
+        val results = service.search("TSM", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .containsExactly("TSM")
+        verify(provider, never()).searchAssets(any(), anyOrNull())
     }
 
     @Test

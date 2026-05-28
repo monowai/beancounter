@@ -156,15 +156,20 @@ class AssetSearchService(
      * intentionally null-market only.
      */
     private fun searchLocalAssets(keyword: String): AssetSearchResponse {
-        val results = searchLocalDbAssets(keyword)
-        if (results.isNotEmpty()) return AssetSearchResponse(results)
+        val dbResults = searchLocalDbAssets(keyword)
+
+        // Short-circuit only when the DB has an exact ticker match — otherwise a name-only
+        // substring hit (e.g. "TSM" matching "Huntsman") would shadow real ticker results
+        // from providers (Taiwan Semi). Substring-only DB hits get merged with the fan-out.
+        val hasExactCode = dbResults.any { it.symbol.equals(keyword, ignoreCase = true) }
+        if (hasExactCode) return AssetSearchResponse(dbResults)
 
         // Fan out concurrently — one slow provider (e.g. EODHD with a 5s connect timeout) must
         // not block FIGI/Alpha behind it. supervisorScope isolates failures so a thrown
         // provider doesn't cancel its siblings; withTimeoutOrNull caps the wall-clock wait per
         // provider at SEARCH_TIMEOUT_MS so the user response can't drift beyond that even when
         // the underlying RestClient is configured for longer batch reads.
-        val merged =
+        val external =
             runBlocking {
                 supervisorScope {
                     val providerTasks =
@@ -196,20 +201,20 @@ class AssetSearchService(
                         } else {
                             null
                         }
-                    val providerHits = providerTasks.awaitAll().flatten()
-                    val figiHits = figiTask?.await() ?: emptyList()
-                    (providerHits + figiHits)
-                        .distinctBy {
-                            "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
-                        }
-                        // US-first ordering — header users overwhelmingly look up US tickers,
-                        // so surface those before LON/ASX/etc duplicates. Stable sort keeps
-                        // intra-group ordering from the concurrent fan-out.
-                        .sortedBy {
-                            if ((it.market ?: "").uppercase() in US_MARKETS) 0 else 1
-                        }
+                    providerTasks.awaitAll().flatten() + (figiTask?.await() ?: emptyList())
                 }
             }
+        val merged =
+            (dbResults + external)
+                .distinctBy {
+                    "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
+                }
+                // US-first ordering — header users overwhelmingly look up US tickers,
+                // so surface those before LON/ASX/etc duplicates. Stable sort keeps
+                // intra-group ordering from the DB-then-fan-out merge.
+                .sortedBy {
+                    if ((it.market ?: "").uppercase() in US_MARKETS) 0 else 1
+                }
         return AssetSearchResponse(merged)
     }
 

@@ -186,7 +186,7 @@ class AssetSearchPublicFallbackTest {
                     listOf(
                         AssetSearchResult(
                             symbol = "HYSA",
-                            name = "Pacer International HY Corp Bond ETF",
+                            name = HYSA_NAME,
                             type = "ETF",
                             region = "US",
                             currency = "USD",
@@ -214,7 +214,7 @@ class AssetSearchPublicFallbackTest {
                     listOf(
                         AssetSearchResult(
                             symbol = "HYSA",
-                            name = "Pacer International HY Corp Bond ETF",
+                            name = HYSA_NAME,
                             type = "ETF",
                             region = "US",
                             currency = "USD",
@@ -239,5 +239,6 @@ class AssetSearchPublicFallbackTest {
 
     companion object {
         private const val MUTUAL_FUND = "Mutual Fund"
+        private const val HYSA_NAME = "Pacer International HY Corp Bond ETF"
     }
 }

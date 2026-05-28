@@ -38,7 +38,7 @@ internal class EodhdPriceServiceSearchTest {
                 EodhdSearchResult(
                     code = "HYSA",
                     exchange = "US",
-                    name = "Pacer International HY Corp Bond ETF",
+                    name = HYSA_NAME,
                     type = "ETF",
                     country = "USA",
                     currency = "USD",
@@ -52,7 +52,7 @@ internal class EodhdPriceServiceSearchTest {
         assertThat(results).hasSize(1)
         val hysa = results.first()
         assertThat(hysa.symbol).isEqualTo("HYSA")
-        assertThat(hysa.name).isEqualTo("Pacer International HY Corp Bond ETF")
+        assertThat(hysa.name).isEqualTo(HYSA_NAME)
         assertThat(hysa.market).isEqualTo("US")
         assertThat(hysa.currency).isEqualTo("USD")
         assertThat(hysa.type).isEqualTo("ETF")
@@ -76,7 +76,7 @@ internal class EodhdPriceServiceSearchTest {
                 EodhdSearchResult(
                     code = "HYSA",
                     exchange = "US",
-                    name = "Pacer International HY Corp Bond ETF",
+                    name = HYSA_NAME,
                     type = "ETF",
                     country = "USA",
                     currency = "USD",
@@ -89,6 +89,10 @@ internal class EodhdPriceServiceSearchTest {
 
         assertThat(results).extracting<String> { it.symbol }.containsExactly("HYSA")
         verify(proxy).searchAssets("HYSA", "demo")
+    }
+
+    companion object {
+        private const val HYSA_NAME = "Pacer International HY Corp Bond ETF"
     }
 
     @Test

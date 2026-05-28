@@ -9,11 +9,19 @@ import com.beancounter.marketdata.assets.figi.FigiFilterRequest
 import com.beancounter.marketdata.assets.figi.FigiGateway
 import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
 import com.beancounter.marketdata.providers.marketstack.MarketStackGateway
 import com.beancounter.marketdata.registration.SystemUserService
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -32,7 +40,8 @@ class AssetSearchService(
     private val figiGateway: FigiGateway,
     private val figiConfig: FigiConfig,
     private val marketService: MarketService,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val mdFactory: MdFactory
 ) {
     private val log = LoggerFactory.getLogger(AssetSearchService::class.java)
 
@@ -81,9 +90,12 @@ class AssetSearchService(
         keyword: String,
         market: String
     ): AssetSearchResponse {
-        val localResults = searchLocalAssets(keyword)
+        // Use the DB-only lookup here. Market-scoped searches go through
+        // `searchPublicAssets(market)` for external routing — the broader null-market fan-out
+        // inside `searchLocalAssets` would fire scoped + unscoped external calls on the same
+        // request, doubling latency and rate-limit pressure for no extra coverage.
         val filtered =
-            localResults.data.filter {
+            searchLocalDbAssets(keyword).filter {
                 it.market.equals(market, ignoreCase = true)
             }
 
@@ -96,6 +108,32 @@ class AssetSearchService(
 
         return AssetSearchResponse(filtered + newFromExternal)
     }
+
+    /**
+     * Ask the market's configured price provider to search for matching assets. Mirrors price
+     * routing — whichever provider [MdFactory] hands back for `market` is the same one that
+     * will be priced from, so the search surface and the price surface agree.
+     *
+     * Note on the [withTimeoutOrNull] wrapper: it can only cancel suspending code. Blocking
+     * Spring `RestClient` calls inside the provider don't poll the cancellation flag, so the
+     * real wall-clock cap is enforced at the HTTP layer — see `eodhdSearchRestClient` in
+     * [com.beancounter.marketdata.config.ExternalApiRestClientConfig]. The coroutine timeout
+     * stays as belt-and-suspenders for any future provider with short suspension points.
+     */
+    private fun searchViaConfiguredProvider(
+        keyword: String,
+        market: String
+    ): List<AssetSearchResult> =
+        runBlocking {
+            withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                runCatching {
+                    val resolved = marketService.getMarket(market)
+                    mdFactory.getMarketDataProvider(resolved).searchAssets(keyword, market)
+                }.onFailure {
+                    log.debug("Provider search for '{}' on {} failed: {}", keyword, market, it.message)
+                }.getOrDefault(emptyList())
+            } ?: emptyList()
+        }
 
     private fun searchPrivateAssets(keyword: String): AssetSearchResponse {
         val user = systemUserService.getActiveUser()
@@ -110,13 +148,83 @@ class AssetSearchService(
     }
 
     /**
-     * Search all assets in the local database by code or name.
-     * Falls back to FIGI global search when local results are empty.
-     * De-duplicates by code, preferring US market when duplicates exist.
+     * Null-market (header bar) entry point: DB lookup first; on miss, fan out across every
+     * registered price provider's search surface plus FIGI global, merge + dedupe by
+     * `(symbol, market)`.
+     *
+     * Market-scoped searches must call [searchLocalDbAssets] directly — the fan-out here is
+     * intentionally null-market only.
      */
     private fun searchLocalAssets(keyword: String): AssetSearchResponse {
+        val dbResults = searchLocalDbAssets(keyword)
+
+        // Short-circuit only when the DB has an exact ticker match — otherwise a name-only
+        // substring hit (e.g. "TSM" matching "Huntsman") would shadow real ticker results
+        // from providers (Taiwan Semi). Substring-only DB hits get merged with the fan-out.
+        val hasExactCode = dbResults.any { it.symbol.equals(keyword, ignoreCase = true) }
+        if (hasExactCode) return AssetSearchResponse(dbResults)
+
+        // Fan out concurrently — one slow provider must not block FIGI/Alpha behind it.
+        // supervisorScope isolates failures so a thrown provider doesn't cancel its siblings.
+        // The withTimeoutOrNull wrapper is best-effort — blocking RestClient calls inside the
+        // providers don't cooperatively cancel, so the real wall-clock cap comes from the
+        // per-client HTTP timeouts (see `eodhdSearchRestClient`).
+        val external =
+            runBlocking {
+                supervisorScope {
+                    val providerTasks =
+                        mdFactory.getAllProviders().map { provider ->
+                            async(Dispatchers.IO) {
+                                withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                                    runCatching {
+                                        provider.searchAssets(keyword, null)
+                                    }.onFailure {
+                                        log.debug(
+                                            "Provider {} search for '{}' failed: {}",
+                                            provider.getId(),
+                                            keyword,
+                                            it.message
+                                        )
+                                    }.getOrDefault(emptyList())
+                                } ?: emptyList()
+                            }
+                        }
+                    val figiTask: Deferred<List<AssetSearchResult>>? =
+                        if (figiConfig.enabled) {
+                            async(Dispatchers.IO) {
+                                withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                                    runCatching {
+                                        searchFigiGlobal(keyword).data.toList()
+                                    }.getOrDefault(emptyList())
+                                } ?: emptyList()
+                            }
+                        } else {
+                            null
+                        }
+                    providerTasks.awaitAll().flatten() + (figiTask?.await() ?: emptyList())
+                }
+            }
+        val merged =
+            (dbResults + external)
+                .distinctBy {
+                    "${it.symbol.uppercase()}|${(it.market ?: "").uppercase()}"
+                }
+                // US-first ordering — header users overwhelmingly look up US tickers,
+                // so surface those before LON/ASX/etc duplicates. Stable sort keeps
+                // intra-group ordering from the DB-then-fan-out merge.
+                .sortedBy {
+                    if ((it.market ?: "").uppercase() in US_MARKETS) 0 else 1
+                }
+        return AssetSearchResponse(merged)
+    }
+
+    /**
+     * Pure DB-only lookup with the US-preferred dedupe. Used by both the null-market entry
+     * (`searchLocalAssets`) and market-scoped lookups (`searchMarketAssets`) so neither has to
+     * pay for the other's external fan-out.
+     */
+    private fun searchLocalDbAssets(keyword: String): List<AssetSearchResult> {
         val assets = assetRepository.searchByCodeOrName(keyword)
-        // Group by code and pick the preferred market variant (US preferred)
         val marketPriority = listOf("US", "NYSE", "NASDAQ", "ASX", "NZX")
         val deduped =
             assets
@@ -127,15 +235,7 @@ class AssetSearchService(
                         if (idx >= 0) idx else marketPriority.size
                     } ?: variants.first()
                 }
-        val results = deduped.take(50).map { toLocalSearchResult(it) }
-
-        // Fall back to FIGI global search when local results are empty
-        if (results.isEmpty() && figiConfig.enabled) {
-            log.debug("No local results for '{}', falling back to FIGI global search", keyword)
-            return searchFigiGlobal(keyword)
-        }
-
-        return AssetSearchResponse(results)
+        return deduped.take(50).map { toLocalSearchResult(it) }
     }
 
     // Markets that use FIGI for search (configured via figi.search.markets)
@@ -147,6 +247,17 @@ class AssetSearchService(
         keyword: String,
         market: String?
     ): AssetSearchResponse {
+        // First ask the market's configured price provider. Symmetric with price routing —
+        // EODHD (on kauri) and any other provider that wires `searchAssets` answers here before
+        // the FIGI/MarketStack/Alpha chain runs. Non-search providers (cash, custom, morningstar)
+        // return empty via the interface default and fall through unchanged.
+        if (market != null) {
+            val providerHits = searchViaConfiguredProvider(keyword, market)
+            if (providerHits.isNotEmpty()) {
+                return AssetSearchResponse(providerHits)
+            }
+        }
+
         // Use FIGI for markets configured in figi.search.markets.
         // FIGI's filter endpoint returns exact-ticker hits and full-name
         // matches but does poorly on short ticker prefixes (e.g. "COW")
@@ -334,6 +445,14 @@ class AssetSearchService(
         }
 
     companion object {
+        // Per-provider wall-clock cap for interactive asset search. External provider
+        // RestClients are sized for batch price downloads (EODHD: 5s connect / 30s read);
+        // header-bar keystrokes can't tolerate that latency when one provider is stalled.
+        private const val SEARCH_TIMEOUT_MS = 3000L
+
+        // Markets that float to the top of header-bar fan-out results.
+        private val US_MARKETS = setOf("US", "NYSE", "NASDAQ", "AMEX")
+
         private val ALLOWED_SECURITY_TYPES =
             setOf(
                 "COMMON STOCK",

@@ -103,7 +103,6 @@ class AssetService(
             } catch (_: DataIntegrityViolationException) {
                 // Race condition: another request created this asset concurrently
                 // Use new transaction as current one is marked for rollback
-                log.debug("Asset {} already exists, fetching existing", assetInput.code)
                 newTxTemplate.execute {
                     assetFinder.findLocally(assetInput)
                 } ?: throw BusinessException("Unable to resolve asset ${assetInput.code}")

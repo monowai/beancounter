@@ -15,19 +15,34 @@ class ExternalApiRestClientConfig {
     companion object {
         private const val CONNECT_TIMEOUT_MS = 5000
         private const val READ_TIMEOUT_MS = 30000
+
+        // Interactive asset-search calls (header bar). withTimeoutOrNull in the coroutine
+        // fan-out can't cancel a blocking RestClient call cooperatively, so the only way to
+        // cap user-visible latency is to set the underlying HTTP timeouts low. EODHD search
+        // returns a small JSON array — 2s connect / 3s read is plenty when the provider is
+        // healthy and forces a fast failure when it isn't.
+        private const val SEARCH_CONNECT_TIMEOUT_MS = 2000
+        private const val SEARCH_READ_TIMEOUT_MS = 3000
     }
 
-    private fun createRequestFactory(): SimpleClientHttpRequestFactory =
+    private fun createRequestFactory(
+        connectTimeoutMs: Int = CONNECT_TIMEOUT_MS,
+        readTimeoutMs: Int = READ_TIMEOUT_MS
+    ): SimpleClientHttpRequestFactory =
         SimpleClientHttpRequestFactory().apply {
-            setConnectTimeout(CONNECT_TIMEOUT_MS)
-            setReadTimeout(READ_TIMEOUT_MS)
+            setConnectTimeout(connectTimeoutMs)
+            setReadTimeout(readTimeoutMs)
         }
 
-    private fun buildRestClient(baseUrl: String): RestClient =
+    private fun buildRestClient(
+        baseUrl: String,
+        connectTimeoutMs: Int = CONNECT_TIMEOUT_MS,
+        readTimeoutMs: Int = READ_TIMEOUT_MS
+    ): RestClient =
         RestClient
             .builder()
             .baseUrl(baseUrl)
-            .requestFactory(createRequestFactory())
+            .requestFactory(createRequestFactory(connectTimeoutMs, readTimeoutMs))
             .requestInterceptor(SentryTracingInterceptor())
             .build()
 
@@ -60,4 +75,14 @@ class ExternalApiRestClientConfig {
     fun eodhdRestClient(
         @Value($$"${beancounter.market.providers.eodhd.url:https://eodhd.com}") baseUrl: String
     ): RestClient = buildRestClient(baseUrl)
+
+    @Bean
+    fun eodhdSearchRestClient(
+        @Value($$"${beancounter.market.providers.eodhd.url:https://eodhd.com}") baseUrl: String
+    ): RestClient =
+        buildRestClient(
+            baseUrl,
+            connectTimeoutMs = SEARCH_CONNECT_TIMEOUT_MS,
+            readTimeoutMs = SEARCH_READ_TIMEOUT_MS
+        )
 }

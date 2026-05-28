@@ -184,6 +184,32 @@ internal class EodhdApiTest {
         assertThat(result.first().source).isEqualTo(ID)
     }
 
+    @Test
+    fun `searchAssets surfaces EODHD search hits end-to-end`() {
+        // Covers EodhdPriceService.searchAssets → EodhdProxy.searchAssets → EodhdGateway
+        // through the real RestClient + WireMock, so all three layers see actual HTTP traffic
+        // instead of unit-level mocks.
+        val body = ClassPathResource("mock/eodhd/search-HYSA.json").file.readText()
+        stubFor(
+            get(urlPathEqualTo("/api/search/HYSA"))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(body)
+                        .withStatus(200)
+                )
+        )
+
+        val results = eodhdPriceService.searchAssets("HYSA", "US")
+
+        assertThat(results).hasSize(1)
+        val hit = results.first()
+        assertThat(hit.symbol).isEqualTo("HYSA")
+        assertThat(hit.market).isEqualTo("US")
+        assertThat(hit.currency).isEqualTo("USD")
+        assertThat(hit.type).isEqualTo("ETF")
+    }
+
     private fun stubEod(
         symbol: String,
         fixturePath: String

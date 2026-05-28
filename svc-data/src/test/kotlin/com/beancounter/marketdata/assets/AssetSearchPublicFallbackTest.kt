@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson
@@ -10,6 +11,8 @@ import com.beancounter.marketdata.assets.figi.FigiFilterResult
 import com.beancounter.marketdata.assets.figi.FigiGateway
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
@@ -18,7 +21,11 @@ import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -45,7 +52,11 @@ class AssetSearchPublicFallbackTest {
         figiTickerHits: Collection<FigiResponse> = emptyList(),
         figiFilterHits: FigiFilterResponse = FigiFilterResponse(),
         alphaResponse: String = alphaJson,
-        alphaProxy: AlphaProxy = mock { on { search(any(), any()) } doReturn alphaResponse }
+        alphaProxy: AlphaProxy = mock { on { search(any(), any()) } doReturn alphaResponse },
+        marketProvider: MarketDataPriceProvider =
+            mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+        allProviders: Collection<MarketDataPriceProvider> = listOf(marketProvider),
+        dbAssets: List<com.beancounter.common.model.Asset> = emptyList()
     ): Pair<AssetSearchService, AlphaProxy> {
         val alphaConfig =
             mock<AlphaConfig> {
@@ -64,10 +75,15 @@ class AssetSearchPublicFallbackTest {
                 enabled = true
                 searchMarkets = "US"
             }
+        val mdFactory =
+            mock<MdFactory> {
+                on { getMarketDataProvider(any<Market>()) } doReturn marketProvider
+                on { getAllProviders() } doReturn allProviders
+            }
         val service =
             AssetSearchService(
                 assetRepository =
-                    mock { on { searchByCodeOrName(any()) } doReturn emptyList() },
+                    mock { on { searchByCodeOrName(any()) } doReturn dbAssets },
                 alphaProxy = alphaProxy,
                 alphaConfig = alphaConfig,
                 marketStackGateway = mock<MarketStackGateway>(),
@@ -80,7 +96,8 @@ class AssetSearchPublicFallbackTest {
                 figiConfig = figiConfig,
                 marketService =
                     mock<MarketService> { on { getMarket(any()) } doReturn usMarket },
-                systemUserService = mock<SystemUserService>()
+                systemUserService = mock<SystemUserService>(),
+                mdFactory = mdFactory
             )
         return service to alphaProxy
     }
@@ -164,7 +181,226 @@ class AssetSearchPublicFallbackTest {
         verify(alphaProxy, never()).search(any(), any())
     }
 
+    @Test
+    fun `market search routes through configured price provider before legacy chain`() {
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "HYSA",
+                            name = HYSA_NAME,
+                            type = "ETF",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val alphaProxy = mock<AlphaProxy>()
+        val (service, _) = buildService(marketProvider = provider, alphaProxy = alphaProxy)
+
+        val results = service.search("HYSA", "US")
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .containsExactly("HYSA")
+        verify(provider).searchAssets(eq("HYSA"), eq("US"))
+        verify(alphaProxy, never()).search(any(), any())
+    }
+
+    @Test
+    fun `null-market search fans out across all registered providers`() {
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "HYSA",
+                            name = HYSA_NAME,
+                            type = "ETF",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val alphaProxy = mock<AlphaProxy>()
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider),
+                alphaProxy = alphaProxy
+            )
+
+        val results = service.search("HYSA", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .contains("HYSA")
+        // Forwarded market must be null — anyOrNull() would mask a leaked non-null.
+        verify(provider).searchAssets(eq("HYSA"), isNull())
+        // Header-bar search must not hit AlphaVantage as a side effect of the fan-out.
+        verify(alphaProxy, never()).search(any(), any())
+    }
+
+    @Test
+    fun `DB substring-only match does not shadow provider exact-code match`() {
+        // Regression: searching "TSM" only returned "Huntsman" (DB substring on name) and never
+        // surfaced Taiwan Semiconductor from the provider fan-out. Fix: short-circuit on
+        // exact-code DB match only; otherwise merge DB + fan-out.
+        val huntsman =
+            com.beancounter.common.model.Asset(
+                id = "huntsman-us",
+                code = "HUN",
+                name = "Huntsman Corporation",
+                market =
+                    com.beancounter.common.model
+                        .Market("NYSE", currencyId = "USD"),
+                marketCode = "NYSE",
+                category = "Equity"
+            )
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "TSM",
+                            name = "Taiwan Semiconductor Manufacturing",
+                            type = "ADR",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider),
+                dbAssets = listOf(huntsman)
+            )
+
+        val results = service.search("TSM", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .contains("TSM", "HUN")
+        verify(provider).searchAssets(eq("TSM"), isNull())
+    }
+
+    @Test
+    fun `exact-code DB match short-circuits the provider fan-out`() {
+        // Inverse of the TSM/Huntsman regression: when the DB already has an exact code match,
+        // don't burn external provider calls on every keystroke.
+        val tsm =
+            com.beancounter.common.model.Asset(
+                id = "tsm-us",
+                code = "TSM",
+                name = "Taiwan Semiconductor ADR",
+                market =
+                    com.beancounter.common.model
+                        .Market("NYSE", currencyId = "USD"),
+                marketCode = "NYSE",
+                category = "Equity"
+            )
+        val provider = mock<MarketDataPriceProvider>()
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider),
+                dbAssets = listOf(tsm)
+            )
+
+        val results = service.search("TSM", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .containsExactly("TSM")
+        verify(provider, never()).searchAssets(any(), anyOrNull())
+    }
+
+    @Test
+    fun `null-market fan-out returns US-market hits before non-US`() {
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "ABC",
+                            name = "ABC London",
+                            type = "Equity",
+                            region = "LON",
+                            currency = "GBP",
+                            market = "LON"
+                        ),
+                        AssetSearchResult(
+                            symbol = "ABC",
+                            name = "ABC US",
+                            type = "Equity",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(provider)
+            )
+
+        val results = service.search("ABC", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.market }
+            .containsExactly("US", "LON")
+    }
+
+    @Test
+    fun `null-market fan-out keeps healthy provider results when sibling throws`() {
+        // Regression guard for the supervisorScope wrapper: a thrown provider must not
+        // cancel siblings or propagate up. Real-world trigger: EODHD connect-timeout while
+        // FIGI/Alpha are healthy.
+        val healthy =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn
+                    listOf(
+                        AssetSearchResult(
+                            symbol = "HYSA",
+                            name = HYSA_NAME,
+                            type = "ETF",
+                            region = "US",
+                            currency = "USD",
+                            market = "US"
+                        )
+                    )
+            }
+        val broken =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doThrow RuntimeException("upstream down")
+                on { getId() } doReturn "BROKEN"
+            }
+        val (service, _) =
+            buildService(
+                marketProvider =
+                    mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                allProviders = listOf(broken, healthy)
+            )
+
+        val results = service.search("HYSA", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.symbol }
+            .contains("HYSA")
+    }
+
     companion object {
         private const val MUTUAL_FUND = "Mutual Fund"
+        private const val HYSA_NAME = "Pacer International HY Corp Bond ETF"
     }
 }

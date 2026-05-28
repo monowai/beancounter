@@ -70,19 +70,40 @@ jobs:
       - name: Run Codacy (best-effort, non-blocking)
         id: codacy
         if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip != 'true'
+        # Keep continue-on-error so this never blocks the workflow — we want a
+        # visible red ✗ on the step plus a warning annotation when Codacy
+        # errors or reports findings, without gating the Claude review or PR.
         continue-on-error: true
         env:
           BASE_SHA: ${{ steps.diff.outputs.base_sha }}
         run: |
+          EXIT_CODE=0
           if [ -x .codacy/cli.sh ]; then
             # Limit Codacy to the changed files — full-repo scans take minutes.
             mapfile -t CHANGED < <(git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD)
             if [ "${#CHANGED[@]}" -gt 0 ]; then
-              .codacy/cli.sh analyze --format sarif "${CHANGED[@]}" > codacy.sarif 2>codacy.log || true
+              .codacy/cli.sh analyze --format sarif "${CHANGED[@]}" > codacy.sarif 2>codacy.log || EXIT_CODE=$?
             fi
           fi
           # Always emit the file (even empty) so the next step can read unconditionally.
           test -f codacy.sarif || echo '{}' > codacy.sarif
+
+          # CLI itself errored — surface as a warning annotation and fail the
+          # step (continue-on-error keeps the workflow green).
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::warning::Codacy CLI exited $EXIT_CODE — see step log for details."
+            echo "--- codacy.log (tail) ---"
+            tail -n 50 codacy.log 2>/dev/null || true
+            exit "$EXIT_CODE"
+          fi
+
+          # CLI succeeded; count SARIF findings on changed files and warn
+          # (but don't fail) when any are present.
+          FINDINGS=$(jq '[.runs[]?.results[]?] | length' codacy.sarif 2>/dev/null || echo 0)
+          if [ "$FINDINGS" -gt 0 ]; then
+            echo "::warning::Codacy reported $FINDINGS finding(s) on changed files — see codacy.sarif."
+            exit 1
+          fi
 
       - name: Claude review
         if: steps.gate.outputs.skip != 'true' && steps.diff.outputs.skip != 'true'

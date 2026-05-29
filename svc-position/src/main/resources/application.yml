@@ -60,6 +60,12 @@ otel:
 
 marketdata:
   url: "http://localhost:9510/api"
+  client:
+    # Bulk price valuation can be slow on cold-cache portfolios with many
+    # historical gaps. 60s gives bc-data room before the coroutine bails;
+    # Resilience4j @Retry on PriceService handles transient read timeouts.
+    connect-timeout-ms: 5000
+    read-timeout-ms: 60000
 beancounter:
   irr: 365
   valuation:

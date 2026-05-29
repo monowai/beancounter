@@ -41,6 +41,11 @@ sentry:
   environment: local
   traces-sample-rate: 1
   debug: false
+  # Ship ERROR-level slf4j logs as Sentry Log records (see svc-data).
+  logs:
+    enabled: ${SENTRY_LOGS_ENABLED:false}
+  logging:
+    minimum-level: error
   # Drop the high-frequency RabbitMQ noise from the Most Frequent
   # Transactions report: AMQP basic.ack fires per consumer ack (8.9k/day),
   # the bc-perf-invalidate-demo topic fires per portfolio mutation

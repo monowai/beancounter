@@ -13,6 +13,11 @@ sentry:
   environment: local
   traces-sample-rate: 1
   debug: false
+  # Ship ERROR-level slf4j logs as Sentry Log records (see svc-data).
+  logs:
+    enabled: ${SENTRY_LOGS_ENABLED:false}
+  logging:
+    minimum-level: error
   # Drop high-frequency RabbitMQ noise from APM (see svc-position application.yml).
   ignored-transactions:
     - "basic\\.ack"

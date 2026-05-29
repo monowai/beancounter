@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.EnsureHistoryResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
+import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -23,6 +24,7 @@ class PriceService(
     private val restClient: RestClient,
     private val tokenService: TokenService
 ) {
+    @Retry(name = "bcData")
     fun getPrices(
         priceRequest: PriceRequest,
         token: String = tokenService.bearerToken
@@ -37,6 +39,7 @@ class PriceService(
             .body(PriceResponse::class.java)
             ?: throw BusinessException("Failed to get prices")
 
+    @Retry(name = "bcData")
     fun getBulkPrices(
         bulkPriceRequest: BulkPriceRequest,
         token: String = tokenService.bearerToken

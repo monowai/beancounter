@@ -44,7 +44,16 @@ class RestClientErrorHandler : ResponseErrorHandler {
                 "Failed to read response body"
             }
 
-        log.error("HTTP error [$statusCode] $reason")
+        // 4xx is caller fault (bad id, missing portfolio, expired token). Logged
+        // at WARN so it doesn't trip Sentry's ERROR filter — callers that
+        // probe-and-fallback (e.g. PerformanceController.resolvePortfolio) would
+        // otherwise generate a Sentry event per fallback. 5xx is a real
+        // server-side problem and stays at ERROR.
+        if (response.statusCode.is4xxClientError) {
+            log.warn("HTTP error [$statusCode] $reason")
+        } else {
+            log.error("HTTP error [$statusCode] $reason")
+        }
 
         throw when (statusCode) {
             HttpStatus.UNAUTHORIZED.value() -> UnauthorizedException(reason)

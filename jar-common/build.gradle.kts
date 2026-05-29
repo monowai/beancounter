@@ -13,6 +13,10 @@ dependencies {
     api(libs.jackson.kotlin)
     api(libs.sentry.opentelemetry)
     api(libs.sentry.spring.boot)
+    // Logback appender: ships ERROR+ events as Sentry Log records when
+    // sentry.logs.enabled=true. Auto-registered by sentry-spring-boot
+    // starter; no logback-spring.xml changes needed.
+    api(libs.sentry.logback)
     // Bridges Micrometer Observations -> OTel spans so every Beancounter
     // service that pulls jar-common emits Spring AI / Spring MVC / Hikari
     // / Resilience4j / Spring Data observations as OTel spans, which the

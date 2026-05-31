@@ -2,6 +2,7 @@ package com.beancounter.marketdata.portfolio
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PortfoliosResponse
+import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
@@ -81,9 +82,7 @@ class PortfolioService(
         val systemUser =
             if (systemUserId != null) {
                 if (!systemUserService.isServiceAccount()) {
-                    throw com.beancounter.common.exception.ForbiddenException(
-                        "systemUserId parameter requires service authentication"
-                    )
+                    throw ForbiddenException("systemUserId parameter requires service authentication")
                 }
                 systemUserService.findById(systemUserId) ?: return emptyList()
             } else {

@@ -82,6 +82,42 @@ class BenchmarkServiceTest {
         assertThat(dates.last()).isEqualTo(end)
     }
 
+    /**
+     * Month-end anchor: cursor.plusMonths(1) drifts forward by a day after
+     * the first short month (e.g. 2026-03-31 → 2026-04-30 → 2026-05-30).
+     * Snap each cursor to last-day-of-month so the grid stays on month-ends
+     * and doesn't emit a spurious extra point alongside `endDate`.
+     */
+    @Test
+    fun `monthlyDates snaps to month-end when anchor is the last day of its month`() {
+        val start = LocalDate.of(2026, 3, 31)
+        val end = LocalDate.of(2026, 5, 31)
+        val dates = benchmarkService.monthlyDates(start, end)
+        assertThat(dates)
+            .containsExactly(
+                LocalDate.of(2026, 3, 31),
+                LocalDate.of(2026, 4, 30),
+                LocalDate.of(2026, 5, 31)
+            )
+    }
+
+    /**
+     * Endpoint coincides with a month-end cadence point: it should appear
+     * exactly once (no duplicate trailing append).
+     */
+    @Test
+    fun `monthlyDates does not duplicate endDate when it lands on a cadence point`() {
+        val start = LocalDate.of(2024, 1, 31)
+        val end = LocalDate.of(2024, 3, 31)
+        val dates = benchmarkService.monthlyDates(start, end)
+        assertThat(dates)
+            .containsExactly(
+                LocalDate.of(2024, 1, 31),
+                LocalDate.of(2024, 2, 29), // leap year
+                LocalDate.of(2024, 3, 31)
+            )
+    }
+
     @Test
     fun `series rebases first close to 1000 and scales subsequent closes`() {
         val today = dateUtils.date

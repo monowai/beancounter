@@ -46,7 +46,11 @@ class PrivateAssetConfigController(
     )
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "Configs retrieved successfully")
+            ApiResponse(responseCode = "200", description = "Configs retrieved successfully"),
+            ApiResponse(
+                responseCode = "403",
+                description = "systemUserId parameter supplied without a SCOPE_SYSTEM token"
+            )
         ]
     )
     fun getMyConfigs(
@@ -54,8 +58,19 @@ class PrivateAssetConfigController(
             description = "Comma-separated portfolio IDs to exclude assets from",
             example = "portfolio-1,portfolio-2"
         )
-        @RequestParam(required = false) excludePortfolios: String? = null
-    ): PrivateAssetConfigsResponse = configService.getMyConfigs(excludePortfolios?.split(",")?.toSet())
+        @RequestParam(required = false) excludePortfolios: String? = null,
+        @Parameter(
+            description =
+                "Return configs for this SystemUser.id instead of the caller. " +
+                    "Requires a service-account (SCOPE_SYSTEM) token; rejected for user tokens. " +
+                    "Used by svc-retire to project shared plans with the owner's data."
+        )
+        @RequestParam(required = false) systemUserId: String? = null
+    ): PrivateAssetConfigsResponse =
+        configService.getMyConfigs(
+            excludePortfolioIds = excludePortfolios?.split(",")?.toSet(),
+            systemUserId = systemUserId
+        )
 
     @GetMapping(
         value = ["/{assetId}"],

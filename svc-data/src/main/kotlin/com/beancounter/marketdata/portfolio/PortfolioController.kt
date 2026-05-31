@@ -92,6 +92,10 @@ class PortfolioController internal constructor(
                         ]
                     )
                 ]
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "systemUserId parameter supplied without a SCOPE_SYSTEM token"
             )
         ]
     )
@@ -103,8 +107,15 @@ class PortfolioController internal constructor(
         @RequestParam(
             value = "inactive",
             defaultValue = "false"
-        ) inactive: Boolean
-    ): PortfoliosResponse = PortfoliosResponse(portfolioService.portfolios(inactive))
+        ) inactive: Boolean,
+        @Parameter(
+            description =
+                "List portfolios owned by this SystemUser.id instead of the caller. " +
+                    "Requires a service-account (SCOPE_SYSTEM) token; rejected for user tokens. " +
+                    "Used by svc-retire to project shared plans with the owner's data."
+        )
+        @RequestParam(required = false) systemUserId: String? = null
+    ): PortfoliosResponse = PortfoliosResponse(portfolioService.portfolios(inactive, systemUserId))
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_SYSTEM + "')")

@@ -172,6 +172,59 @@ class PrivateAssetConfigServiceTest {
         assertThat(response.data).isEmpty()
     }
 
+    /**
+     * Service-account caller passes systemUserId to project a shared plan;
+     * the lookup must resolve to that user's configs, not the caller's
+     * (the caller is a machine token with no portfolio of its own).
+     */
+    @Test
+    fun `getMyConfigs returns target user configs when service caller supplies systemUserId`() {
+        val targetUserId = "owner-ruby-id"
+        val targetUser = SystemUser(id = targetUserId, email = "ruby@example.com")
+        val rubyConfigs =
+            listOf(
+                PrivateAssetConfig(
+                    assetId = "ruby-asset-1",
+                    monthlyRentalIncome = BigDecimal.ZERO,
+                    rentalCurrency = "SGD",
+                    countryCode = "SG"
+                )
+            )
+        whenever(systemUserService.isServiceAccount()).thenReturn(true)
+        whenever(systemUserService.findById(targetUserId)).thenReturn(targetUser)
+        whenever(configRepository.findByUserId(targetUserId)).thenReturn(rubyConfigs)
+        whenever(assetRepository.findById(any<String>())).thenReturn(Optional.empty())
+
+        val response = configService.getMyConfigs(systemUserId = targetUserId)
+
+        assertThat(response.data).hasSize(1)
+        assertThat(response.data.first().assetId).isEqualTo("ruby-asset-1")
+        // Must look up the target user via findById and NOT fall back to active-user lookup.
+        verify(systemUserService).findById(targetUserId)
+        verify(systemUserService, org.mockito.kotlin.never()).getActiveUser()
+    }
+
+    @Test
+    fun `getMyConfigs rejects systemUserId when caller is not a service account`() {
+        whenever(systemUserService.isServiceAccount()).thenReturn(false)
+
+        assertThatThrownBy {
+            configService.getMyConfigs(systemUserId = "owner-ruby-id")
+        }.isInstanceOf(com.beancounter.common.exception.ForbiddenException::class.java)
+            .hasMessageContaining("requires service authentication")
+    }
+
+    @Test
+    fun `getMyConfigs returns empty when service caller supplies unknown systemUserId`() {
+        val missingUserId = "owner-nobody"
+        whenever(systemUserService.isServiceAccount()).thenReturn(true)
+        whenever(systemUserService.findById(missingUserId)).thenReturn(null)
+
+        val response = configService.getMyConfigs(systemUserId = missingUserId)
+
+        assertThat(response.data).isEmpty()
+    }
+
     @Test
     fun `saveConfig creates new config`() {
         val asset = createTestAsset()

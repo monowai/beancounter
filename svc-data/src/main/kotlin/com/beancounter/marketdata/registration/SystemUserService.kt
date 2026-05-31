@@ -124,6 +124,13 @@ class SystemUserService(
 
     fun findByEmail(email: String): SystemUser? = systemUserRepository.findByEmail(email).orElse(null)
 
+    /**
+     * Find a SystemUser by its primary key (SystemUser.id). Used by
+     * service-to-service callers that pass an owner identifier in their
+     * request (e.g. svc-retire projecting a shared INDEPENDENCE_PLAN).
+     */
+    fun findById(id: String): SystemUser? = systemUserRepository.findById(id).orElse(null)
+
     fun getActiveUser(): SystemUser? = find(tokenService.subject)
 
     fun getOrThrow(): SystemUser {

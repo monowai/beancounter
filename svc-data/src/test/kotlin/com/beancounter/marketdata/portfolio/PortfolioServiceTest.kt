@@ -128,4 +128,63 @@ class PortfolioServiceTest {
         assertThat(updated.gainOnDay).isEqualByComparingTo(BigDecimal("12.34"))
         assertThat(updated.valuedAt).isEqualTo(java.time.LocalDate.of(2026, 5, 27))
     }
+
+    /**
+     * Owner-scoped lookup for service callers: svc-retire passes a target
+     * `SystemUser.id` (the shared plan's owner) so projection can resolve
+     * the owner's portfolios, not the calling adviser's.
+     */
+    @Test
+    fun `portfolios returns target user portfolios when service caller supplies systemUserId`() {
+        Mockito.`when`(tokenService.isServiceToken).thenReturn(true)
+        // Create a system account so portfolioService.save can stamp ownership.
+        systemUserService.registerSystemAccount("beancounter:system")
+        val ownerId = "owner-${java.util.UUID.randomUUID()}"
+        val owner =
+            systemUserService.save(
+                com.beancounter.common.model
+                    .SystemUser(id = ownerId, email = "$ownerId@test")
+            )
+
+        val ownerPortfolio =
+            portfolioService
+                .save(
+                    listOf(
+                        PortfolioInput(
+                            "OWNED-${java.util.UUID.randomUUID()}",
+                            "Owned Portfolio",
+                            "USD",
+                            currency = "USD"
+                        )
+                    )
+                ).first()
+        // Repoint the saved portfolio to the target owner so the test reflects
+        // ownership without needing JWT-context swapping during save.
+        portfolioService.maintain(ownerPortfolio.copy(owner = owner))
+
+        val results = portfolioService.portfolios(systemUserId = ownerId)
+
+        assertThat(results).isNotEmpty
+        assertThat(results.all { it.owner.id == ownerId }).isTrue()
+    }
+
+    @Test
+    fun `portfolios rejects systemUserId for non-service callers`() {
+        Mockito.`when`(tokenService.isServiceToken).thenReturn(false)
+
+        org.assertj.core.api.Assertions
+            .assertThatThrownBy {
+                portfolioService.portfolios(systemUserId = "owner-some-id")
+            }.isInstanceOf(com.beancounter.common.exception.ForbiddenException::class.java)
+            .hasMessageContaining("requires service authentication")
+    }
+
+    @Test
+    fun `portfolios returns empty when service caller supplies unknown systemUserId`() {
+        Mockito.`when`(tokenService.isServiceToken).thenReturn(true)
+
+        val results = portfolioService.portfolios(systemUserId = "owner-nobody-${java.util.UUID.randomUUID()}")
+
+        assertThat(results).isEmpty()
+    }
 }

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.portfolio
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PortfoliosResponse
+import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
@@ -64,13 +65,29 @@ class PortfolioService(
     }
 
     /**
-     * Returns portfolios for the current user.
-     * By default, only active portfolios are returned.
+     * Returns portfolios for the current user, or — when [systemUserId] is
+     * supplied AND the caller is a service account — for that specific
+     * [com.beancounter.common.model.SystemUser]. The owner-scoped path is
+     * used by svc-retire to resolve a shared plan's holdings without
+     * leaking the viewer's data.
      *
      * @param includeInactive if true, includes inactive portfolios
+     * @param systemUserId target owner's SystemUser.id; service-account only.
+     *   Non-service callers receive a [ForbiddenException].
      */
-    fun portfolios(includeInactive: Boolean = false): Collection<Portfolio> {
-        val systemUser = systemUserService.getOrThrow()
+    fun portfolios(
+        includeInactive: Boolean = false,
+        systemUserId: String? = null
+    ): Collection<Portfolio> {
+        val systemUser =
+            if (systemUserId != null) {
+                if (!systemUserService.isServiceAccount()) {
+                    throw ForbiddenException("systemUserId parameter requires service authentication")
+                }
+                systemUserService.findById(systemUserId) ?: return emptyList()
+            } else {
+                systemUserService.getOrThrow()
+            }
         val portfolios =
             if (systemUser.id == "beancounter:system") {
                 if (includeInactive) {

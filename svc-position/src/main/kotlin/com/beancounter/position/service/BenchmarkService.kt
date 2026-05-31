@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 /**
  * Computes a benchmark "Growth of 1000" series for a market index aligned to the
@@ -88,20 +89,33 @@ class BenchmarkService(
         return PerformanceResponse(PerformanceData(portfolio.currency, series))
     }
 
+    /**
+     * Monthly grid from [startDate] to [endDate] inclusive. When the anchor is
+     * the last day of its month, every subsequent point is snapped back to the
+     * last day of its month so the grid stays on month-ends rather than
+     * drifting forward by a day after February. java.time's `plusMonths`
+     * clamps day-of-month to the target month's max once, then keeps the
+     * clamped day forever (e.g. 2026-03-31 → 2026-04-30 → 2026-05-30, never
+     * recovers May 31). The snap reverses that drift.
+     *
+     * `endDate` is always present in the result; deduplicated via the set so
+     * the grid lands exactly on `endDate` when it coincides with a month-end
+     * point instead of being appended as an extra trailing element.
+     */
     internal fun monthlyDates(
         startDate: LocalDate,
         endDate: LocalDate
     ): List<LocalDate> {
-        val dates = mutableListOf<LocalDate>()
+        val anchorIsMonthEnd = startDate == startDate.with(TemporalAdjusters.lastDayOfMonth())
+        val dates = sortedSetOf<LocalDate>()
         var cursor = startDate
         while (!cursor.isAfter(endDate)) {
             dates.add(cursor)
-            cursor = cursor.plusMonths(1)
+            val next = cursor.plusMonths(1)
+            cursor = if (anchorIsMonthEnd) next.with(TemporalAdjusters.lastDayOfMonth()) else next
         }
-        if (dates.last() != endDate) {
-            dates.add(endDate)
-        }
-        return dates
+        dates.add(endDate)
+        return dates.toList()
     }
 
     private fun closesByDate(

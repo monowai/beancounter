@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
@@ -31,15 +32,33 @@ class PrivateAssetConfigService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Get all configs for assets owned by the current user.
+     * Get all configs for assets owned by the current user, or — when
+     * [systemUserId] is supplied AND the caller is a service account — the
+     * configs for that specific [SystemUser]. Used by svc-retire to resolve
+     * a shared plan's pension/policy configs without leaking the viewer's
+     * data.
      *
      * @param excludePortfolioIds If provided, configs for assets that have transactions
      *   in any of the specified portfolios will be excluded from the results.
+     * @param systemUserId If provided, return configs owned by this SystemUser.
+     *   Requires a service-account caller; non-service callers receive a
+     *   [ForbiddenException].
      */
-    fun getMyConfigs(excludePortfolioIds: Set<String>? = null): PrivateAssetConfigsResponse {
+    fun getMyConfigs(
+        excludePortfolioIds: Set<String>? = null,
+        systemUserId: String? = null
+    ): PrivateAssetConfigsResponse {
         val user =
-            systemUserService.getActiveUser()
-                ?: return PrivateAssetConfigsResponse(emptyList())
+            if (systemUserId != null) {
+                if (!systemUserService.isServiceAccount()) {
+                    throw ForbiddenException("systemUserId parameter requires service authentication")
+                }
+                systemUserService.findById(systemUserId)
+                    ?: return PrivateAssetConfigsResponse(emptyList())
+            } else {
+                systemUserService.getActiveUser()
+                    ?: return PrivateAssetConfigsResponse(emptyList())
+            }
         var configs = configRepository.findByUserId(user.id)
 
         if (!excludePortfolioIds.isNullOrEmpty()) {

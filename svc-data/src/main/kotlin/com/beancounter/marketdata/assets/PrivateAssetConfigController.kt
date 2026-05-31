@@ -46,7 +46,11 @@ class PrivateAssetConfigController(
     )
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "Configs retrieved successfully")
+            ApiResponse(responseCode = "200", description = "Configs retrieved successfully"),
+            ApiResponse(
+                responseCode = "403",
+                description = "systemUserId parameter supplied without a SCOPE_SYSTEM token"
+            )
         ]
     )
     fun getMyConfigs(

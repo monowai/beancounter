@@ -92,6 +92,10 @@ class PortfolioController internal constructor(
                         ]
                     )
                 ]
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "systemUserId parameter supplied without a SCOPE_SYSTEM token"
             )
         ]
     )

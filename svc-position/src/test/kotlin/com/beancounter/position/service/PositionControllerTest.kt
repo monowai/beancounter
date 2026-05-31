@@ -320,4 +320,73 @@ class PositionControllerTest {
             eq(true)
         )
     }
+
+    /**
+     * Allocation must resolve `ids` via per-id fetches (`getPortfolioById`)
+     * rather than filtering the caller's `portfolios` list. The old filter
+     * silently dropped any id the caller couldn't see — fatal for service-
+     * account callers like svc-retire that hold no portfolios of their own
+     * but must read another user's (shared INDEPENDENCE_PLAN projection).
+     */
+    @Test
+    fun `allocation fetches each id via getPortfolioById without consulting caller portfolios list`() {
+        val portfolio2 = TestHelpers.createTestPortfolio("portfolio-2")
+        whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
+        whenever(portfolioServiceClient.getPortfolioById("portfolio-2")).thenReturn(portfolio2)
+        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+            .thenReturn(testPositionResponse)
+        whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
+            com.beancounter.common.contracts
+                .AllocationData()
+        )
+
+        positionController.allocation(asAt = "2024-01-15", ids = "test-portfolio,portfolio-2", targetCurrency = null)
+
+        verify(portfolioServiceClient).getPortfolioById("test-portfolio")
+        verify(portfolioServiceClient).getPortfolioById("portfolio-2")
+        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        assertThat(captor.firstValue.map { it.id }.toSet()).isEqualTo(setOf("test-portfolio", "portfolio-2"))
+    }
+
+    @Test
+    fun `allocation skips ids that getPortfolioById rejects (caller cannot see them)`() {
+        whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
+        whenever(portfolioServiceClient.getPortfolioById("not-visible"))
+            .thenThrow(
+                com.beancounter.common.exception
+                    .BusinessException("Unable to find portfolio not-visible")
+            )
+        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+            .thenReturn(testPositionResponse)
+        whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
+            com.beancounter.common.contracts
+                .AllocationData()
+        )
+
+        positionController.allocation(asAt = "2024-01-15", ids = "test-portfolio,not-visible", targetCurrency = null)
+
+        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+    }
+
+    @Test
+    fun `allocation falls back to caller portfolios when no ids supplied`() {
+        val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
+        whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
+        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+            .thenReturn(testPositionResponse)
+        whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
+            com.beancounter.common.contracts
+                .AllocationData()
+        )
+
+        positionController.allocation(asAt = "2024-01-15", ids = null, targetCurrency = null)
+
+        verify(portfolioServiceClient).portfolios
+        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+    }
 }

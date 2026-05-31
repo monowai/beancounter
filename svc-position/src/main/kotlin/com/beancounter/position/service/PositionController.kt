@@ -431,13 +431,41 @@ class PositionController(
             required = false
         ) targetCurrency: String?
     ): AllocationResponse {
-        val allPortfolios = portfolioServiceClient.portfolios.data
-        val selectedPortfolios =
+        // When `ids` is supplied, fetch each portfolio by id directly through
+        // svc-data rather than filtering the caller's `portfolios` list.
+        // The old filter silently dropped any id the caller couldn't see in
+        // their own portfolio list — fatal for M2M callers (svc-retire
+        // projecting a shared INDEPENDENCE_PLAN), whose `portfolios` is empty
+        // and whose intent is to read the plan owner's portfolios. The per-id
+        // path delegates visibility to svc-data's `canView()`, which returns
+        // true for `AuthConstants.SYSTEM` M2M tokens AND for owners / active
+        // shares of regular user tokens. Net effect: M2M with valid ids gets
+        // the owner's portfolios; user tokens behave identically to before
+        // for ids they could already see.
+        val selectedPortfolios: Collection<com.beancounter.common.model.Portfolio> =
             if (ids.isNullOrBlank()) {
-                allPortfolios
+                portfolioServiceClient.portfolios.data
             } else {
-                val idSet = ids.split(",").map { it.trim() }.toSet()
-                allPortfolios.filter { it.id in idSet }
+                ids
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .mapNotNull { id ->
+                        try {
+                            portfolioServiceClient.getPortfolioById(id)
+                        } catch (e: com.beancounter.common.exception.BusinessException) {
+                            // Only "not visible / not found" cases are
+                            // swallowed. Other failures (network, auth)
+                            // propagate so genuine problems aren't silently
+                            // treated as missing ids.
+                            log.debug(
+                                "Skipping portfolio {} (not visible to caller): {}",
+                                id,
+                                e.message
+                            )
+                            null
+                        }
+                    }
             }
 
         if (selectedPortfolios.isEmpty()) {

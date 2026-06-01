@@ -342,6 +342,20 @@ class PositionController(
         ) codes: String?,
         @Parameter(
             description =
+                "Comma-separated portfolio ids to include. Takes precedence over `codes`. " +
+                    "Per-id resolution via portfolioServiceClient.getPortfolioById delegates " +
+                    "visibility to svc-data's canView — so owner / accepted-share callers get " +
+                    "their portfolios and M2M callers get the SYSTEM short-circuit. Use this " +
+                    "when codes can collide across users (a shared-plan viewer may own a " +
+                    "portfolio with the same code as the plan owner's).",
+            example = "id-1,id-2"
+        )
+        @RequestParam(
+            value = "ids",
+            required = false
+        ) ids: String?,
+        @Parameter(
+            description =
                 "Target currency for PORTFOLIO-view values (e.g., SGD, NZD). " +
                     "If not specified, values are returned in the first selected portfolio's currency.",
             example = "SGD"
@@ -351,13 +365,30 @@ class PositionController(
             required = false
         ) targetCurrency: String?
     ): PositionResponse {
-        val allPortfolios = portfolioServiceClient.portfolios.data
-        val selectedPortfolios =
-            if (codes.isNullOrBlank()) {
-                allPortfolios
+        val selectedPortfolios: Collection<com.beancounter.common.model.Portfolio> =
+            if (!ids.isNullOrBlank()) {
+                // Mirror /allocation's per-id fetch (see PR #906). Codes can
+                // collide across users; ids disambiguate.
+                ids
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .mapNotNull { id ->
+                        try {
+                            portfolioServiceClient.getPortfolioById(id)
+                        } catch (e: com.beancounter.common.exception.BusinessException) {
+                            log.debug("Skipping portfolio {} (not visible to caller): {}", id, e.message)
+                            null
+                        }
+                    }
             } else {
-                val codeSet = codes.split(",").map { it.trim() }.toSet()
-                allPortfolios.filter { it.code in codeSet }
+                val allPortfolios = portfolioServiceClient.portfolios.data
+                if (codes.isNullOrBlank()) {
+                    allPortfolios
+                } else {
+                    val codeSet = codes.split(",").map { it.trim() }.toSet()
+                    allPortfolios.filter { it.code in codeSet }
+                }
             }
         val response =
             valuationService.getAggregatedPositions(

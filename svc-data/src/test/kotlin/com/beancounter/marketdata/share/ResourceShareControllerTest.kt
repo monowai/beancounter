@@ -281,6 +281,122 @@ internal class ResourceShareControllerTest {
     }
 
     @Test
+    fun `adviser can revoke their own resource share`() {
+        // Viewer self-revoke is the user-visible "leave shared plan"
+        // action — verifies the adviser side can drop access without
+        // the owner being involved.
+        val inviteRequest =
+            ResourceShareInviteRequest(
+                resourceType = ShareResourceType.INDEPENDENCE_PLAN,
+                resourceIds = listOf("plan-self-revoke"),
+                adviserEmail = "rs-adviser@testing.com"
+            )
+        val inviteResult =
+            mockMvc
+                .perform(
+                    post("$RESOURCE_SHARES_ROOT/invite")
+                        .with(jwt().jwt(clientToken))
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsBytes(inviteRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        val shareId =
+            objectMapper
+                .readValue(
+                    inviteResult.response.contentAsString,
+                    ResourceSharesResponse::class.java
+                ).data
+                .first()
+                .id
+
+        mockMvc
+            .perform(
+                post("$RESOURCE_SHARES_ROOT/$shareId/accept")
+                    .with(jwt().jwt(adviserToken))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        // Adviser revokes their own access.
+        mockMvc
+            .perform(
+                delete("$RESOURCE_SHARES_ROOT/$shareId")
+                    .with(jwt().jwt(adviserToken))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        // Post-revoke: checkAccess must return false. Guards the
+        // shared-plan projection path in svc-retire — once revoked,
+        // the adviser must not still pull owner-scoped data.
+        val recheckResult =
+            mockMvc
+                .perform(
+                    get("$RESOURCE_SHARES_ROOT/check/INDEPENDENCE_PLAN/plan-self-revoke")
+                        .with(jwt().jwt(adviserToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+        val recheck =
+            objectMapper.readValue(
+                recheckResult.response.contentAsString,
+                ShareAccessCheck::class.java
+            )
+        assertThat(recheck.hasAccess).isFalse()
+    }
+
+    @Test
+    fun `unrelated user cannot revoke a resource share`() {
+        val inviteRequest =
+            ResourceShareInviteRequest(
+                resourceType = ShareResourceType.INDEPENDENCE_PLAN,
+                resourceIds = listOf("plan-third-party"),
+                adviserEmail = "rs-adviser@testing.com"
+            )
+        val inviteResult =
+            mockMvc
+                .perform(
+                    post("$RESOURCE_SHARES_ROOT/invite")
+                        .with(jwt().jwt(clientToken))
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsBytes(inviteRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        val shareId =
+            objectMapper
+                .readValue(
+                    inviteResult.response.contentAsString,
+                    ResourceSharesResponse::class.java
+                ).data
+                .first()
+                .id
+
+        val outsiderToken =
+            registerUser(
+                mockMvc,
+                mockAuthConfig.getUserToken(
+                    SystemUser(
+                        id = "rs-outsider",
+                        email = "rs-outsider@testing.com",
+                        auth0 = "auth0|rs-outsider"
+                    )
+                )
+            )
+
+        mockMvc
+            .perform(
+                delete("$RESOURCE_SHARES_ROOT/$shareId")
+                    .with(jwt().jwt(outsiderToken))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().is4xxClientError)
+    }
+
+    @Test
     fun `cannot share resources with yourself`() {
         val request =
             ResourceShareInviteRequest(

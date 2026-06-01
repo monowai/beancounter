@@ -447,6 +447,64 @@ internal class PortfolioShareControllerTest {
     }
 
     @Test
+    fun `portfolio shares listing is owner-only`() {
+        val portfolio =
+            portfolioCreate(
+                PortfolioInput("OWNER_LIST", "Owner List", USD.code, NZD.code),
+                mockMvc,
+                clientToken
+            ).data.first()
+
+        val inviteRequest =
+            ShareInviteRequest(
+                portfolioIds = listOf(portfolio.id),
+                adviserEmail = "adviser@testing.com"
+            )
+        val inviteResult =
+            mockMvc
+                .perform(
+                    post("$SHARES_ROOT/invite")
+                        .with(jwt().jwt(clientToken))
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsBytes(inviteRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+        val shareId =
+            objectMapper
+                .readValue(
+                    inviteResult.response.contentAsString,
+                    PortfolioSharesResponse::class.java
+                ).data
+                .first()
+                .id
+        mockMvc
+            .perform(
+                post("$SHARES_ROOT/$shareId/accept")
+                    .with(jwt().jwt(adviserToken))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        // Owner sees the list.
+        mockMvc
+            .perform(
+                get("$SHARES_ROOT/portfolio/${portfolio.id}")
+                    .with(jwt().jwt(clientToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
+
+        // Adviser with accepted share gets 403 — `canView` lets them
+        // see the portfolio, but they must not enumerate co-share targets.
+        mockMvc
+            .perform(
+                get("$SHARES_ROOT/portfolio/${portfolio.id}")
+                    .with(jwt().jwt(adviserToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isForbidden)
+    }
+
+    @Test
     fun `managed portfolios returns active shares for adviser`() {
         val portfolio =
             portfolioCreate(

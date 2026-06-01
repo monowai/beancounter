@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PendingSharesResponse
 import com.beancounter.common.contracts.ShareInviteRequest
 import com.beancounter.common.contracts.ShareRequestAccess
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.PortfolioShare
@@ -212,9 +213,19 @@ class PortfolioShareService(
 
     /**
      * Get shares for a specific portfolio (owner view).
+     *
+     * Owner-only: a viewer with an accepted share can `find()` the
+     * portfolio via `canView`, but listing every other user the owner
+     * shared with leaks the owner's adviser/collaborator graph. Gate
+     * here rather than at `find()` since `find()` is the shared
+     * cross-service viewability check.
      */
     fun getPortfolioShares(portfolioId: String): Collection<PortfolioShare> {
+        val caller = systemUserService.getOrThrow()
         val portfolio = portfolioService.find(portfolioId)
+        if (portfolio.owner.id != caller.id) {
+            throw ForbiddenException("Only the portfolio owner can list its shares")
+        }
         return portfolioShareRepository
             .findByPortfolioAndStatusNot(
                 portfolio,

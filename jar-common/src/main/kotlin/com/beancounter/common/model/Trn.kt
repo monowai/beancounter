@@ -16,9 +16,11 @@ import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -109,7 +111,13 @@ data class Trn(
     @JdbcTypeCode(SqlTypes.JSON)
     var subAccounts: Map<String, BigDecimal>? = null,
     @ManyToOne
-    var createdBy: SystemUser? = null
+    var createdBy: SystemUser? = null,
+    // Server-generated creation timestamp. Used as the chronological
+    // tie-break within a single tradeDate (e.g. cash-ladder ordering)
+    // because trn ids are random UUIDs and don't sort by time.
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    var createdAt: Instant = Instant.now()
 ) {
     companion object {
         const val VERSION: String = "4"

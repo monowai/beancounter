@@ -233,6 +233,22 @@ class PortfolioShareService(
             ).toList()
     }
 
+    /**
+     * Outbound shares the caller has granted across ALL their portfolios.
+     * Excludes REVOKED. Used by the central "Shares I've granted" surface
+     * so the owner can review + revoke without drilling into each
+     * portfolio individually.
+     */
+    fun getGrantedShares(): Collection<PortfolioShare> {
+        val owner = systemUserService.getOrThrow()
+        return portfolioShareRepository
+            .findByPortfolioOwnerAndStatusNot(
+                owner,
+                ShareStatus.REVOKED
+            ).toList()
+            .filter { it.portfolio != null }
+    }
+
     private fun findShareOrThrow(shareId: String): PortfolioShare =
         portfolioShareRepository.findById(shareId).orElseThrow {
             NotFoundException(shareNotFoundMessage(shareId))

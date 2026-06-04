@@ -199,6 +199,21 @@ class ResourceShareService(
     }
 
     /**
+     * Outbound shares the caller has granted for resources of `resourceType`.
+     * Excludes REVOKED. Mirrors PortfolioShareService.getGrantedShares —
+     * used by the central "Shares I've granted" surface.
+     */
+    fun getGrantedShares(resourceType: ShareResourceType): Collection<ResourceShare> {
+        val owner = systemUserService.getOrThrow()
+        return resourceShareRepository
+            .findByResourceOwnerAndResourceTypeAndStatusNot(
+                owner,
+                resourceType,
+                ShareStatus.REVOKED
+            ).toList()
+    }
+
+    /**
      * Check if the current user has active access to a specific resource.
      */
     fun checkAccess(

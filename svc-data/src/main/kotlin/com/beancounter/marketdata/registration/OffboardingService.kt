@@ -2,6 +2,7 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.marketdata.assets.AssetRepository
+import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.tax.TaxRateRepository
@@ -31,6 +32,7 @@ class OffboardingService(
     private val portfolioRepository: PortfolioRepository,
     private val assetRepository: AssetRepository,
     private val trnRepository: TrnRepository,
+    private val brokerRepository: BrokerRepository,
     private val marketDataRepo: MarketDataRepo,
     private val taxRateRepository: TaxRateRepository,
     private val userPreferencesRepository: UserPreferencesRepository
@@ -48,11 +50,13 @@ class OffboardingService(
         val portfolios = portfolioRepository.findByOwner(user).toList()
         val assets = assetRepository.findBySystemUserId(user.id)
         val taxRates = taxRateRepository.findAllByOwnerId(user.id)
+        val brokers = brokerRepository.findByOwner(user)
 
         return OffboardingSummaryResponse(
             portfolioCount = portfolios.size,
             assetCount = assets.size,
-            taxRateCount = taxRates.size
+            taxRateCount = taxRates.size,
+            brokerCount = brokers.size
         )
     }
 
@@ -192,25 +196,32 @@ class OffboardingService(
             assetRepository.delete(asset)
         }
 
-        // 3. Delete tax rates
+        // 3. Delete brokers — safe to do AFTER trns are gone (trn.broker_id FK).
+        //    findByOwner returns this owner's brokers only; deleteAll respects
+        //    the per-owner unique-name + settlement-account cascades.
+        val brokers = brokerRepository.findByOwner(user)
+        brokerRepository.deleteAll(brokers)
+
+        // 4. Delete tax rates
         taxRateRepository.deleteAllByOwnerId(user.id)
 
-        // 4. Delete user preferences
+        // 5. Delete user preferences
         userPreferencesRepository.findByOwner(user).ifPresent {
             userPreferencesRepository.delete(it)
         }
 
-        // 5. Delete the user record
+        // 6. Delete the user record
         systemUserRepository.delete(user)
 
-        // 6. Evict from cache
+        // 7. Evict from cache
         systemUserCache.evictAll()
 
         log.info(
-            "Deleted account for user {}: {} portfolios, {} assets",
+            "Deleted account for user {}: {} portfolios, {} assets, {} brokers",
             user.id,
             portfolios.size,
-            assets.size
+            assets.size,
+            brokers.size
         )
 
         return OffboardingResult(

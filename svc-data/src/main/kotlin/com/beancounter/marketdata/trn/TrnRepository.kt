@@ -279,7 +279,7 @@ interface TrnRepository :
             "and (t.cashAsset.id = ?2 OR (t.asset.id = ?2 AND t.trnType = 'FX_BUY')) " +
             "and t.tradeDate <= ?3 " +
             "and t.status = ?4 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByPortfolioIdAndCashAssetId(
         portfolioId: String,

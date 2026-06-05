@@ -39,4 +39,23 @@ class PriceScheduleConfig(
         )
         return schedule
     }
+
+    /**
+     * Cron expression for the FX rate pre-fetch job. Default: 17:00 every
+     * weekday — after ECB publishes daily rates (~16:00 CET). Overridable via
+     * `beancounter.fx.schedule.cron`. The schedule warms the DB cache for
+     * the current day so user-driven corporate-action events on the next
+     * trading session don't pay the 600ms+ cold-cache external API call.
+     */
+    @Bean
+    fun fxRateScheduleCron(
+        @Value("\${beancounter.fx.schedule.cron:0 0 17 * * MON-FRI}") schedule: String
+    ): String {
+        log.info(
+            "FX_RATE_SCHEDULE: {}, BEANCOUNTER_ZONE: {}",
+            schedule,
+            dateUtils.zoneId.id
+        )
+        return schedule
+    }
 }

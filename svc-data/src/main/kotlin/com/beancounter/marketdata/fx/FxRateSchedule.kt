@@ -17,9 +17,12 @@ import java.time.LocalDate
  * api.exchangeratesapi.io for a single date on the bc-trn-event-demo
  * handler — see Sentry trace ec26b02a).
  *
- * The job iterates over today plus the configured backfill window and
- * fetches any date that doesn't already have rates cached. Idempotent —
- * existing dates are skipped, re-runs are no-ops.
+ * Coverage: today PLUS `backfillDays` prior calendar days. With the default
+ * `backfillDays = 3` the job touches **4 dates per run** (today and the
+ * previous 3 days), which catches up after long weekends, public holidays,
+ * and svc-data restarts that may have missed the previous trigger.
+ *
+ * Idempotent — dates already cached are skipped, re-runs are no-ops.
  */
 @Service
 @ConditionalOnProperty(
@@ -31,6 +34,8 @@ class FxRateSchedule(
     private val fxProviderService: FxProviderService,
     private val fxRateRepository: FxRateRepository,
     private val dateUtils: DateUtils,
+    // Number of prior calendar days to also fetch alongside today. Total
+    // dates per run = backfillDays + 1. Default 3 → today + 3 prior = 4 dates.
     @Value("\${beancounter.fx.schedule.backfill-days:3}")
     private val backfillDays: Int
 ) {
@@ -46,10 +51,11 @@ class FxRateSchedule(
     fun prefetchRates() {
         val today = LocalDate.now(dateUtils.zoneId)
         log.info(
-            "Scheduled FX pre-fetch starting at {} - {} (backfill={} days)",
+            "Scheduled FX pre-fetch starting at {} - {} (today + {} prior days = {} dates)",
             today,
             dateUtils.zoneId.id,
-            backfillDays
+            backfillDays,
+            backfillDays + 1
         )
 
         var hits = 0

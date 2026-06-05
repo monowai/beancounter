@@ -38,4 +38,15 @@ interface PortfolioShareRepository : CrudRepository<PortfolioShare, String> {
         targetUser: SystemUser,
         status: ShareStatus
     ): Iterable<PortfolioShare>
+
+    /**
+     * Outbound shares where the portfolio's owner is the caller, excluding
+     * REVOKED. Drives the "Shares I've granted" surface so the owner can
+     * see + revoke any active or pending invites they've issued.
+     */
+    fun findByPortfolioOwnerAndStatusNot(
+        owner: SystemUser,
+        status: ShareStatus,
+        sort: Sort = Sort.by(Sort.Order.asc("portfolio.code"))
+    ): Iterable<PortfolioShare>
 }

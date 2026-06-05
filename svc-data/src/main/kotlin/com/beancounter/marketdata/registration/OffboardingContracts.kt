@@ -6,7 +6,8 @@ package com.beancounter.marketdata.registration
 data class OffboardingSummaryResponse(
     val portfolioCount: Int,
     val assetCount: Int,
-    val taxRateCount: Int
+    val taxRateCount: Int,
+    val brokerCount: Int = 0
 )
 
 /**

@@ -64,6 +64,10 @@ class PortfolioShareController internal constructor(
     fun getManagedPortfolios(): PortfolioSharesResponse =
         PortfolioSharesResponse(portfolioShareService.getManagedPortfolios())
 
+    @GetMapping("/granted")
+    @Operation(summary = "Get all shares the current user has granted across their portfolios")
+    fun getGrantedShares(): PortfolioSharesResponse = PortfolioSharesResponse(portfolioShareService.getGrantedShares())
+
     @GetMapping("/portfolio/{portfolioId}")
     @Operation(summary = "Get shares for a specific portfolio (owner view)")
     fun getPortfolioShares(

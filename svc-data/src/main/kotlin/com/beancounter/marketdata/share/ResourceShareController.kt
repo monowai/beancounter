@@ -67,6 +67,12 @@ class ResourceShareController internal constructor(
         @PathVariable resourceType: ShareResourceType
     ): ResourceSharesResponse = ResourceSharesResponse(resourceShareService.getManagedResources(resourceType))
 
+    @GetMapping("/granted/{resourceType}")
+    @Operation(summary = "Get all shares the current user has granted for the given resource type")
+    fun getGrantedShares(
+        @PathVariable resourceType: ShareResourceType
+    ): ResourceSharesResponse = ResourceSharesResponse(resourceShareService.getGrantedShares(resourceType))
+
     @GetMapping("/check/{resourceType}/{resourceId}")
     @Operation(summary = "Check if current user has access to a resource")
     fun checkAccess(

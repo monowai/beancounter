@@ -7,6 +7,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
@@ -16,7 +17,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -72,7 +72,7 @@ class AlphaPriceService(
         val providerArguments = getInstance(priceRequest, alphaConfig)
         val requests = mutableMapOf<Int, Deferred<String>>()
 
-        runBlocking {
+        runBlockingTraced {
             supervisorScope {
                 for (batchId in providerArguments.batch.keys) {
                     requests[batchId] =
@@ -87,7 +87,7 @@ class AlphaPriceService(
             }
         }
 
-        return runBlocking {
+        return runBlockingTraced {
             getMarketData(providerArguments, requests, priceRequest.currentMode)
         }
     }

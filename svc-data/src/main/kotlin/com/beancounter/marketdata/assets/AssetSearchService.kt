@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.marketdata.assets.figi.FigiConfig
 import com.beancounter.marketdata.assets.figi.FigiFilterRequest
 import com.beancounter.marketdata.assets.figi.FigiGateway
@@ -19,7 +20,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
@@ -124,7 +124,7 @@ class AssetSearchService(
         keyword: String,
         market: String
     ): List<AssetSearchResult> =
-        runBlocking {
+        runBlockingTraced {
             withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
                 runCatching {
                     val resolved = marketService.getMarket(market)
@@ -170,7 +170,7 @@ class AssetSearchService(
         // providers don't cooperatively cancel, so the real wall-clock cap comes from the
         // per-client HTTP timeouts (see `eodhdSearchRestClient`).
         val external =
-            runBlocking {
+            runBlockingTraced {
                 supervisorScope {
                     val providerTasks =
                         mdFactory.getAllProviders().map { provider ->

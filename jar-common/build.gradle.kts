@@ -26,9 +26,18 @@ dependencies {
     api(libs.micrometer.tracing.bridge.otel)
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation(platform(libs.spring.boot.dependencies))
-    implementation(platform("io.opentelemetry:opentelemetry-bom:1.54.1"))
+    // BOMs are `api` so downstream modules (jar-shell, svc-data, etc.) inherit
+    // the version constraints for the `api(...)` artifacts below.
+    api(platform(libs.spring.boot.dependencies))
+    api(platform("io.opentelemetry:opentelemetry-bom:1.54.1"))
     implementation("io.opentelemetry:opentelemetry-sdk")
+    // Bridges OTel `Context` to Kotlin coroutine `CoroutineContext` so the
+    // current Span propagates across suspension and dispatcher switches
+    // (e.g. `runBlocking(Dispatchers.IO)` inside a Spring MVC handler).
+    // Exposed as `api` because consumers call `Context.current().asContextElement()`
+    // when wrapping coroutine builders.
+    api("io.opentelemetry:opentelemetry-extension-kotlin")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation(libs.servlet.api)
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")

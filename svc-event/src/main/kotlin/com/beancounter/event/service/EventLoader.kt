@@ -6,9 +6,9 @@ import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.event.config.EventLoaderConfig
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -56,7 +56,7 @@ class EventLoader(
         val portfolio = portfolioService.getPortfolioById(portfolioId)
         val authContext = loginService.loginM2m()
         loginService.setAuthContext(authContext)
-        runBlocking {
+        runBlockingTraced {
             val dates = dateSplitter.dateRange(date, "today")
             log.info("Loading missing events from date: $dates, portfolio: ${portfolio.code}/$portfolioId")
             for (processDate in dates) {

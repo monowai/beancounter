@@ -13,6 +13,7 @@ import com.beancounter.common.model.PortfolioBreakdown
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.setMarketValue
+import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.service.MarketValueUpdateProducer
 import com.beancounter.position.service.PositionService
@@ -20,7 +21,6 @@ import com.beancounter.position.service.PositionValuationService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
@@ -137,7 +137,7 @@ class ValuationService
             // portfolio each response belongs to so we can build a per-portfolio
             // breakdown alongside the aggregated view.
             val portfolioTransactions =
-                runBlocking(Dispatchers.IO) {
+                runBlockingTraced(Dispatchers.IO) {
                     portfolios
                         .map { portfolio ->
                             async {

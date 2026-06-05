@@ -9,6 +9,7 @@ import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
+import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.position.model.ValuationData
 import io.sentry.Breadcrumb
@@ -16,7 +17,6 @@ import io.sentry.Sentry
 import io.sentry.SentryLevel
 import io.sentry.kotlin.SentryContext
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -49,7 +49,7 @@ class PositionValuationService(
         )
 
         val (priceResponse, fxResponse) =
-            runBlocking {
+            runBlockingTraced {
                 getValuationData(positions)
             }
 

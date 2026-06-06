@@ -192,8 +192,10 @@ interface TrnRepository :
     ): Collection<Trn>
 
     /**
-     * Find all transactions with a specific status for portfolios owned by the given user.
-     * Used for cross-portfolio proposed transaction views.
+     * Find transactions with a specific status for portfolios owned by the given user, bounded to
+     * those whose tradeDate is on or before [asAt]. Used for the cross-portfolio proposed-review
+     * view — `asAt` defaults to today at the controller, so not-yet-due (future-dated) proposed
+     * transactions stay hidden until their date arrives.
      */
     @Query(
         "select t from Trn t " +
@@ -204,24 +206,29 @@ interface TrnRepository :
             "left join fetch t.cashCurrency " +
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
+            "and t.tradeDate <= ?3 " +
             "order by t.tradeDate desc"
     )
     fun findByStatusAndPortfolioOwner(
         status: TrnStatus,
-        owner: SystemUser
+        owner: SystemUser,
+        asAt: LocalDate
     ): Collection<Trn>
 
     /**
-     * Count all transactions with a specific status for portfolios owned by the given user.
+     * Count transactions with a specific status for portfolios owned by the given user, bounded to
+     * those whose tradeDate is on or before [asAt].
      */
     @Query(
         "select count(t) from Trn t " +
             "where t.status = ?1 " +
-            "and t.portfolio.owner = ?2"
+            "and t.portfolio.owner = ?2 " +
+            "and t.tradeDate <= ?3"
     )
     fun countByStatusAndPortfolioOwner(
         status: TrnStatus,
-        owner: SystemUser
+        owner: SystemUser,
+        asAt: LocalDate
     ): Long
 
     @Query(
@@ -233,21 +240,25 @@ interface TrnRepository :
             "left join fetch t.cashCurrency " +
             "where t.status = ?1 " +
             "and t.portfolio.id in ?2 " +
+            "and t.tradeDate <= ?3 " +
             "order by t.tradeDate desc"
     )
     fun findByStatusAndPortfolioIdIn(
         status: TrnStatus,
-        portfolioIds: Collection<String>
+        portfolioIds: Collection<String>,
+        asAt: LocalDate
     ): Collection<Trn>
 
     @Query(
         "select count(t) from Trn t " +
             "where t.status = ?1 " +
-            "and t.portfolio.id in ?2"
+            "and t.portfolio.id in ?2 " +
+            "and t.tradeDate <= ?3"
     )
     fun countByStatusAndPortfolioIdIn(
         status: TrnStatus,
-        portfolioIds: Collection<String>
+        portfolioIds: Collection<String>,
+        asAt: LocalDate
     ): Long
 
     /**

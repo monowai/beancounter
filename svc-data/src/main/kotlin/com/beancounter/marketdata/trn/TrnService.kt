@@ -154,19 +154,25 @@ class TrnService(
     }
 
     /**
-     * Find PROPOSED transactions for the current user.
+     * Find PROPOSED transactions for the current user, bounded to those due on or before [asAt]
+     * (defaults to today). Future-dated proposed transactions — e.g. dividends with a forward pay
+     * date — are excluded until [asAt] reaches their tradeDate, so the review list only shows
+     * actionable rows. Widen [asAt] to preview upcoming proposed transactions.
      *
      * - OWNED: portfolios where current user is the owner (default historical behaviour).
      * - MANAGED: portfolios shared with the current user via an ACTIVE PortfolioShare.
      * - ALL: union of both.
      */
-    fun findProposedForUser(scope: ProposedScope = ProposedScope.ALL): Collection<Trn> {
+    fun findProposedForUser(
+        scope: ProposedScope = ProposedScope.ALL,
+        asAt: LocalDate = dateUtils.date
+    ): Collection<Trn> {
         val user = systemUserService.getOrThrow()
         val results = mutableMapOf<String, Trn>()
 
         if (scope == ProposedScope.OWNED || scope == ProposedScope.ALL) {
             trnRepository
-                .findByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
+                .findByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user, asAt)
                 .forEach { results[it.id] = it }
         }
 
@@ -174,34 +180,38 @@ class TrnService(
             val managedPortfolioIds = managedPortfolioIdsFor(user)
             if (managedPortfolioIds.isNotEmpty()) {
                 trnRepository
-                    .findByStatusAndPortfolioIdIn(TrnStatus.PROPOSED, managedPortfolioIds)
+                    .findByStatusAndPortfolioIdIn(TrnStatus.PROPOSED, managedPortfolioIds, asAt)
                     .forEach { results[it.id] = it }
             }
         }
 
-        log.trace("proposed trns: ${results.size} (scope=$scope)")
+        log.trace("proposed trns: ${results.size} (scope=$scope, asAt=$asAt)")
         return postProcess(results.values.toList())
     }
 
     /**
-     * Count PROPOSED transactions for the current user under the given scope.
+     * Count PROPOSED transactions for the current user under the given scope, bounded to those due
+     * on or before [asAt] (defaults to today) so the badge tracks the same set as the review list.
      */
-    fun countProposedForUser(scope: ProposedScope = ProposedScope.ALL): Long {
+    fun countProposedForUser(
+        scope: ProposedScope = ProposedScope.ALL,
+        asAt: LocalDate = dateUtils.date
+    ): Long {
         val user = systemUserService.getOrThrow()
         var count = 0L
 
         if (scope == ProposedScope.OWNED || scope == ProposedScope.ALL) {
-            count += trnRepository.countByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user)
+            count += trnRepository.countByStatusAndPortfolioOwner(TrnStatus.PROPOSED, user, asAt)
         }
 
         if (scope == ProposedScope.MANAGED || scope == ProposedScope.ALL) {
             val managedPortfolioIds = managedPortfolioIdsFor(user)
             if (managedPortfolioIds.isNotEmpty()) {
-                count += trnRepository.countByStatusAndPortfolioIdIn(TrnStatus.PROPOSED, managedPortfolioIds)
+                count += trnRepository.countByStatusAndPortfolioIdIn(TrnStatus.PROPOSED, managedPortfolioIds, asAt)
             }
         }
 
-        log.trace("proposed count: $count (scope=$scope)")
+        log.trace("proposed count: $count (scope=$scope, asAt=$asAt)")
         return count
     }
 

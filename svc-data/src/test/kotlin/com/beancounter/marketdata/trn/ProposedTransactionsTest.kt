@@ -339,6 +339,71 @@ class ProposedTransactionsTest {
     }
 
     @Test
+    fun `proposed list bounds by asAt date — future-dated trns hidden by default, shown when asAt covers them`() {
+        val msft = bcMvcHelper.asset(AssetRequest(msftInput))
+        val portfolio =
+            bcMvcHelper.portfolio(
+                PortfolioInput("PROPOSED-FUTURE", "Future-dated proposed", currency = USD.code)
+            )
+        // A DIVI whose pay date (tradeDate) is in the future — not yet due for review.
+        val futureDate = dateUtils.date.plusDays(8)
+        val futureTrn =
+            TrnInput(
+                CallerRef(batch = "FUTURE-PROPOSED", callerId = "1"),
+                msft.id,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal.TEN,
+                tradeCurrency = USD.code,
+                tradeDate = futureDate,
+                price = BigDecimal("1.50"),
+                status = TrnStatus.PROPOSED
+            )
+        trnService.save(portfolio, TrnRequest(portfolio.id, listOf(futureTrn)))
+
+        // Default (asAt = today) excludes the future-dated trn.
+        val defaultTrns = proposedFor(portfolio.id, asAt = null)
+        assertThat(defaultTrns).isEmpty()
+
+        // asAt on/after the trade date includes it.
+        val futureTrns = proposedFor(portfolio.id, asAt = futureDate.toString())
+        assertThat(futureTrns).hasSize(1)
+
+        // The count badge tracks the same default-today bound.
+        val defaultCount = proposedCount(asAt = null)
+        val futureCount = proposedCount(asAt = futureDate.toString())
+        assertThat(futureCount).isGreaterThan(defaultCount)
+    }
+
+    private fun proposedFor(
+        portfolioId: String,
+        asAt: String?
+    ): List<com.beancounter.common.model.Trn> {
+        val url = "$TRNS_ROOT/proposed" + (asAt?.let { "?asAt=$it" } ?: "")
+        val body =
+            mockMvc
+                .perform(get(url).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)))
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+                .response.contentAsString
+        return objectMapper
+            .readValue(body, TrnResponse::class.java)
+            .data
+            .toTrns()
+            .filter { it.portfolio.id == portfolioId }
+    }
+
+    private fun proposedCount(asAt: String?): Int {
+        val url = "$TRNS_ROOT/proposed/count" + (asAt?.let { "?asAt=$it" } ?: "")
+        val body =
+            mockMvc
+                .perform(get(url).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)))
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+                .response.contentAsString
+        return objectMapper.readTree(body).get("count").asInt()
+    }
+
+    @Test
     fun `should not include SETTLED transactions in proposed list`() {
         // Given: A portfolio with both PROPOSED and SETTLED transactions
         val msft = bcMvcHelper.asset(AssetRequest(msftInput))

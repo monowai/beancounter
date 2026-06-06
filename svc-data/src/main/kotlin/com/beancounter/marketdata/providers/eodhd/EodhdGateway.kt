@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
@@ -48,6 +49,35 @@ class EodhdGateway(
                 apiKey
             ).retrieve()
             .body<Array<EodhdPrice>>()
+            ?.toList()
+            ?: emptyList()
+
+    /**
+     * Bulk last-day EOD prices for multiple symbols on a single exchange.
+     *
+     * GET /api/eod-bulk-last-day/{exchange}?symbols={csv}&date={date}&api_token={apiKey}&fmt=json
+     *
+     * `symbols` is a comma-separated list of raw codes (the EXCHANGE in the path is the default
+     * suffix). One HTTP round-trip replaces N per-symbol [getPrice] calls for the scheduled
+     * portfolio-valuation fan-out; per-symbol quota is identical (1 API call per ticker) but
+     * wall-clock collapses from N × ~1s to 1 × ~1s.
+     */
+    fun getBulkPrices(
+        exchange: String,
+        symbols: String,
+        date: String,
+        apiKey: String = DEMO_KEY
+    ): List<EodhdBulkPrice> =
+        restClient
+            .get()
+            .uri(
+                "/api/eod-bulk-last-day/{exchange}?symbols={symbols}&date={date}&api_token={apiKey}&fmt=json",
+                exchange,
+                symbols,
+                date,
+                apiKey
+            ).retrieve()
+            .body<Array<EodhdBulkPrice>>()
             ?.toList()
             ?: emptyList()
 

@@ -552,7 +552,10 @@ beancounter:
       # Plan reference: https://eodhd.com/pricing
       eodhd:
         url: https://eodhd.com
-        batchSize: 1
+        # batchSize > 1 routes through `/api/eod-bulk-last-day/{exchange}` so the
+        # nightly PortfolioValuationSchedule collapses N per-symbol round-trips
+        # into a single HTTP call (per-symbol quota is unchanged at 1 call each).
+        batchSize: 50
         markets: ""
         news:
           # Top-N articles returned to the caller after ranking. Keep small —

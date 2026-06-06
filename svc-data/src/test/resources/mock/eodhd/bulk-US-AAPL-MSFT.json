@@ -1,0 +1,24 @@
+[
+  {
+    "code": "AAPL",
+    "exchange_short_name": "US",
+    "date": "2024-11-29",
+    "open": 234.81,
+    "high": 237.81,
+    "low": 233.97,
+    "close": 237.33,
+    "adjusted_close": 237.33,
+    "volume": 28481377
+  },
+  {
+    "code": "MSFT",
+    "exchange_short_name": "US",
+    "date": "2024-11-29",
+    "open": 423.18,
+    "high": 425.20,
+    "low": 421.04,
+    "close": 423.46,
+    "adjusted_close": 423.46,
+    "volume": 13157487
+  }
+]

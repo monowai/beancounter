@@ -73,12 +73,27 @@ class AssetSearchService(
             return AssetSearchResponse(emptyList())
         }
 
-        return when {
-            market.equals("PRIVATE", ignoreCase = true) -> searchPrivateAssets(keyword)
-            market.equals("FIGI", ignoreCase = true) -> searchFigiGlobal(keyword)
-            market.isNullOrBlank() -> searchLocalAssets(keyword)
-            else -> searchMarketAssets(keyword, market)
-        }
+        val response =
+            when {
+                market.equals("PRIVATE", ignoreCase = true) -> searchPrivateAssets(keyword)
+                market.equals("FIGI", ignoreCase = true) -> searchFigiGlobal(keyword)
+                market.isNullOrBlank() -> searchLocalAssets(keyword)
+                else -> searchMarketAssets(keyword, market)
+            }
+        return AssetSearchResponse(response.data.filter { onSupportedMarket(it) })
+    }
+
+    /**
+     * Final guard: only surface results that sit on a resolvable Beancounter market. The lookup UI
+     * posts a result's `market` to `/api/assets`, which rejects unknown codes with a 404 — so a
+     * result the system can't place on a BC market is unusable noise. Per-provider mapping (EODHD,
+     * FIGI) already emits BC codes; this is the central net that catches anything slipping past them,
+     * including future providers that return their own venue codes.
+     */
+    private fun onSupportedMarket(result: AssetSearchResult): Boolean {
+        val code = result.market
+        if (code.isNullOrBlank()) return false
+        return runCatching { marketService.getMarket(code) }.isSuccess
     }
 
     /**

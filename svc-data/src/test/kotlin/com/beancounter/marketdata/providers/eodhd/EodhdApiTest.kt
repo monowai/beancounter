@@ -139,7 +139,7 @@ internal class EodhdApiTest {
         // change holds AND both symbols' prices come back mapped to the right assets.
         val body = ClassPathResource("mock/eodhd/bulk-US-AAPL-MSFT.json").file.readText()
         stubFor(
-            get(urlPathEqualTo("/api/eod-bulk-last-day/US"))
+            get(urlPathEqualTo(BULK_LAST_DAY_US))
                 .willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -159,7 +159,7 @@ internal class EodhdApiTest {
         // Bulk endpoint called once with both symbols and the requested date as query params.
         WireMock.verify(
             1,
-            getRequestedFor(urlPathEqualTo("/api/eod-bulk-last-day/US"))
+            getRequestedFor(urlPathEqualTo(BULK_LAST_DAY_US))
                 .withQueryParam("symbols", equalTo("AAPL.US,MSFT.US"))
                 .withQueryParam("date", equalTo("2024-11-29"))
         )
@@ -194,7 +194,7 @@ internal class EodhdApiTest {
             }
         ]"""
         stubFor(
-            get(urlPathEqualTo("/api/eod-bulk-last-day/US"))
+            get(urlPathEqualTo(BULK_LAST_DAY_US))
                 .willReturn(
                     aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -321,5 +321,9 @@ internal class EodhdApiTest {
                         .withStatus(200)
                 )
         )
+    }
+
+    private companion object {
+        const val BULK_LAST_DAY_US = "/api/eod-bulk-last-day/US"
     }
 }

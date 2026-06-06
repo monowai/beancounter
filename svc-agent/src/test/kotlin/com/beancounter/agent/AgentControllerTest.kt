@@ -138,19 +138,19 @@ class AgentControllerTest {
         // DeepSeek answered with a 2025 frame because nothing in the prompt bound "today" to a real
         // date. The user message must state the current date for every query.
         val fixed = java.time.Clock.fixed(java.time.Instant.parse("2026-06-06T10:00:00Z"), java.time.ZoneOffset.UTC)
+        val question = "how is the market today?"
 
         val withContext =
             controller(clock = fixed)
-                .buildUserMessage(AgentQuery("how is the market today?", context = mapOf("portfolioCode" to "VOO")))
-        val withoutContext =
-            controller(clock = fixed).buildUserMessage(AgentQuery("how is the market today?"))
+                .buildUserMessage(AgentQuery(question, context = mapOf("portfolioCode" to "VOO")))
+        val withoutContext = controller(clock = fixed).buildUserMessage(AgentQuery(question))
 
         assertThat(withContext).contains("2026-06-06")
         assertThat(withContext).contains("portfolioCode: VOO")
-        assertThat(withContext).contains("how is the market today?")
+        assertThat(withContext).contains(question)
         // Even with no page context, the date must still be present.
         assertThat(withoutContext).contains("2026-06-06")
-        assertThat(withoutContext).contains("how is the market today?")
+        assertThat(withoutContext).contains(question)
     }
 
     @Test

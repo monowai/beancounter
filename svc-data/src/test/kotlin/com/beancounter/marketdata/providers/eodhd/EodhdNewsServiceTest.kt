@@ -70,22 +70,25 @@ internal class EodhdNewsServiceTest {
     fun `market news fetches verbatim proxy symbols without ticker-market resolution`() {
         // Index/sector proxies arrive already exchange-qualified (GSPC.INDX). They must be queried
         // verbatim — NOT re-suffixed to GSPC.INDX.US the way resolveSymbols treats held tickers.
-        whenever(fetchRepo.findById("GSPC.INDX")).thenReturn(Optional.empty())
-        whenever(fetchRepo.findById("XLK.US")).thenReturn(Optional.empty())
+        val index = "GSPC.INDX"
+        val sector = "XLK.US"
+        val headline = "Tech Wreck"
+        whenever(fetchRepo.findById(index)).thenReturn(Optional.empty())
+        whenever(fetchRepo.findById(sector)).thenReturn(Optional.empty())
         whenever(proxy.getNews(any(), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.6)))
         whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any()))
-            .thenReturn(listOf(storedArticle(polarity = 0.7, title = "Tech Wreck")))
+            .thenReturn(listOf(storedArticle(polarity = 0.7, title = headline)))
 
-        val result = service.getMarketNews(listOf("GSPC.INDX", "xlk.us"), topics = null)
+        val result = service.getMarketNews(listOf(index, "xlk.us"), topics = null)
 
-        verify(proxy).getNews(eq("GSPC.INDX"), any(), anyOrNull(), any())
+        verify(proxy).getNews(eq(index), any(), anyOrNull(), any())
         // Lower-case input is normalised, not re-resolved with an exchange suffix.
-        verify(proxy).getNews(eq("XLK.US"), any(), anyOrNull(), any())
+        verify(proxy).getNews(eq(sector), any(), anyOrNull(), any())
 
         @Suppress("UNCHECKED_CAST")
         val feed = result["feed"] as List<Map<String, Any>>
-        assertThat(feed.first()["title"]).isEqualTo("Tech Wreck")
+        assertThat(feed.first()["title"]).isEqualTo(headline)
     }
 
     @Test

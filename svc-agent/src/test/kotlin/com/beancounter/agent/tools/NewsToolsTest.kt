@@ -12,6 +12,11 @@ import org.mockito.kotlin.verifyNoInteractions
  * Verify that NewsTools delegates to AlphaVantageNewsClient correctly.
  */
 class NewsToolsTest {
+    private companion object {
+        const val MARKET = "market"
+        val INDEX_PROXIES = listOf("GSPC.INDX", "DJI.INDX")
+    }
+
     private val sampleResponse: Map<String, Any> =
         mapOf(
             "feed" to
@@ -98,14 +103,14 @@ class NewsToolsTest {
     fun `getMarketNews maps the market scope to broad index proxies`() {
         val client =
             mock<AlphaVantageNewsClient> {
-                on { getMarketNews(listOf("GSPC.INDX", "DJI.INDX"), null) } doReturn sampleResponse
+                on { getMarketNews(INDEX_PROXIES, null) } doReturn sampleResponse
             }
         val tools = NewsTools(client)
 
-        val result = tools.getMarketNews("market")
+        val result = tools.getMarketNews(MARKET)
 
         assertThat(result).isSameAs(sampleResponse)
-        verify(client).getMarketNews(listOf("GSPC.INDX", "DJI.INDX"), null)
+        verify(client).getMarketNews(INDEX_PROXIES, null)
     }
 
     @Test
@@ -141,11 +146,11 @@ class NewsToolsTest {
     fun `getMarketNews returns no_coverage when the proxy yields an empty feed`() {
         val client =
             mock<AlphaVantageNewsClient> {
-                on { getMarketNews(listOf("GSPC.INDX", "DJI.INDX"), null) } doReturn mapOf("feed" to emptyList<Any>())
+                on { getMarketNews(INDEX_PROXIES, null) } doReturn mapOf("feed" to emptyList<Any>())
             }
         val tools = NewsTools(client)
 
-        val result = tools.getMarketNews("market")
+        val result = tools.getMarketNews(MARKET)
 
         assertThat(result["status"]).isEqualTo("no_coverage")
     }

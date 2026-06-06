@@ -114,13 +114,12 @@ class NewsTools(
         const val UNKNOWN_SCOPE_MESSAGE =
             "Unrecognised scope. Use 'market' for macro news or one of the listed sector names."
 
-        /** Broad-market index proxies — surface macro headlines (jobs, Fed, market-wide moves). */
+        // Proxy symbol maps below: INDEX_PROXIES surface broad-market macro headlines (jobs, Fed,
+        // market-wide moves); SECTOR_ETFS stand in for sector-wide sentiment via SPDR sector ETFs,
+        // which carry strong EODHD news coverage. SECTOR_ETFS keys are the scope vocabulary in
+        // SCOPE_DESC. MARKET_ALIASES are the scope strings that all mean "broad market".
         private val INDEX_PROXIES = listOf("GSPC.INDX", "DJI.INDX")
 
-        /**
-         * Sector → SPDR sector ETF proxy. Sector ETFs carry strong EODHD news coverage, so their
-         * headlines stand in for sector-wide sentiment. Keys are the scope vocabulary in [SCOPE_DESC].
-         */
         private val SECTOR_ETFS =
             mapOf(
                 "technology" to listOf("XLK.US"),
@@ -136,7 +135,6 @@ class NewsTools(
                 "communication" to listOf("XLC.US")
             )
 
-        /** Scope strings that all mean "broad market". */
         private val MARKET_ALIASES = setOf("market", "markets", "macro", "broad", "overall", "index")
     }
 }

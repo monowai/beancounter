@@ -10,6 +10,7 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
+import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -80,6 +81,44 @@ class TestFxTransactions {
                 "tradePortfolioRate",
                 BigDecimal.ONE
             )
+    }
+
+    @Test
+    fun `needsRates is false when tradeDate is in the future`() {
+        // Corporate-event TRNs (DIVI) are created with tradeDate = payDate, which can be
+        // up to ~18 days in the future. FX providers (Frankfurter, ECB) reject forward
+        // dates — calling them logs "Both FX providers failed". Defer FX resolution to
+        // auto-settle when the date actually arrives. (Sentry DATA-51)
+        val fxTransactions =
+            FxTransactions(
+                Mockito.mock(FxService::class.java)
+            )
+        val tomorrow = DateUtils().date.plusDays(1)
+        val trnInput =
+            TrnInput(
+                CallerRef(),
+                "ABC",
+                tradeCurrency = "NZD",
+                tradeDate = tomorrow
+            )
+        assertThat(fxTransactions.needsRates(trnInput)).isFalse()
+    }
+
+    @Test
+    fun `needsRates is true when tradeDate is today and rates are unset`() {
+        val fxTransactions =
+            FxTransactions(
+                Mockito.mock(FxService::class.java)
+            )
+        val today = DateUtils().date
+        val trnInput =
+            TrnInput(
+                CallerRef(),
+                "ABC",
+                tradeCurrency = "NZD",
+                tradeDate = today
+            )
+        assertThat(fxTransactions.needsRates(trnInput)).isTrue()
     }
 
     @Test

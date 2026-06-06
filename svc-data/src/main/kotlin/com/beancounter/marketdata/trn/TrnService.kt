@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -12,6 +13,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashAutoSettleService
@@ -41,7 +43,9 @@ class TrnService(
     private val systemUserService: SystemUserService,
     private val cacheInvalidationProducer: CacheInvalidationProducer,
     private val portfolioShareRepository: PortfolioShareRepository,
-    private val cashAutoSettleService: CashAutoSettleService
+    private val cashAutoSettleService: CashAutoSettleService,
+    private val fxTransactions: FxTransactions,
+    private val dateUtils: DateUtils
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
 
@@ -251,6 +255,27 @@ class TrnService(
             if (trnOptional.isPresent) {
                 val trn = trnOptional.get()
                 if (trn.status == TrnStatus.PROPOSED) {
+                    if (trn.tradeDate.isAfter(dateUtils.date)) {
+                        log.warn(
+                            "Cannot settle transaction {} - tradeDate {} is in the future",
+                            trnId,
+                            trn.tradeDate
+                        )
+                        continue
+                    }
+                    // Resolve FX rates now that user has confirmed settlement.
+                    // Ingest of forward-dated event trns (DIVI payDate) defers FX.
+                    try {
+                        fxTransactions.setRates(portfolio, trn)
+                    } catch (ex: RuntimeException) {
+                        log.warn(
+                            "FX resolution failed for {} on {} — leaving PROPOSED: {}",
+                            trnId,
+                            trn.tradeDate,
+                            ex.message
+                        )
+                        continue
+                    }
                     trn.status = TrnStatus.SETTLED
                     val saved = trnRepository.save(trn)
                     settled.add(saved)

@@ -4,6 +4,7 @@ import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.PositionMoveRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
@@ -328,7 +329,7 @@ class PositionMoveServiceTest {
             )
         )
 
-        verify(fxTransactions).setRates(eq(nzdTargetPortfolio), any())
+        verify(fxTransactions).setRates(eq(nzdTargetPortfolio), any<TrnInput>())
         assertThat(trn.portfolio).isEqualTo(nzdTargetPortfolio)
     }
 
@@ -346,7 +347,7 @@ class PositionMoveServiceTest {
             )
         )
 
-        verify(fxTransactions, never()).setRates(any(), any())
+        verify(fxTransactions, never()).setRates(any(), any<TrnInput>())
     }
 
     @Test

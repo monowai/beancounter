@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
@@ -32,6 +33,7 @@ class AutoSettleServiceTest {
     private lateinit var autoSettleService: AutoSettleService
     private lateinit var dateUtils: DateUtils
     private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var fxTransactions: FxTransactions
     private val today = LocalDate.now()
 
     private val testOwner = SystemUser("test-user", "test@example.com")
@@ -54,6 +56,7 @@ class AutoSettleServiceTest {
         trnRepository = mock(TrnRepository::class.java)
         dateUtils = mock(DateUtils::class.java)
         userPreferencesService = mock(UserPreferencesService::class.java)
+        fxTransactions = mock(FxTransactions::class.java)
         `when`(dateUtils.date).thenReturn(today)
         // Default: every owner opted in.
         `when`(userPreferencesService.getOrCreate(kAny<SystemUser>()))
@@ -61,7 +64,7 @@ class AutoSettleServiceTest {
                 UserPreferences(owner = invocation.getArgument(0))
             }
         autoSettleService =
-            AutoSettleService(trnRepository, dateUtils, userPreferencesService)
+            AutoSettleService(trnRepository, dateUtils, userPreferencesService, fxTransactions)
     }
 
     @Test
@@ -159,6 +162,48 @@ class AutoSettleServiceTest {
         assertThat(result).isEqualTo(0)
         assertThat(proposedTrn.status).isEqualTo(TrnStatus.PROPOSED)
         verify(trnRepository, never()).save(any(Trn::class.java))
+    }
+
+    @Test
+    fun `should resolve FX rates before flipping status to SETTLED`() {
+        // Given: A PROPOSED dividend with tradeDate = today and unset FX rates
+        // (rates were skipped at ingest because tradeDate was a future pay date)
+        val proposedTrn = createProposedTransaction("trn-1", today, TrnType.DIVI)
+        proposedTrn.tradeBaseRate = BigDecimal.ZERO
+        proposedTrn.tradePortfolioRate = BigDecimal.ZERO
+        proposedTrn.tradeCashRate = BigDecimal.ZERO
+        `when`(trnRepository.findDueEventTransactions(TrnStatus.PROPOSED, EVENT_TYPES, today))
+            .thenReturn(listOf(proposedTrn))
+
+        // When: Auto-settle is triggered
+        autoSettleService.autoSettleDueTransactions()
+
+        // Then: FxTransactions.setRates was called with the trn's portfolio + the trn,
+        // and the status flip happened after.
+        val inOrder = org.mockito.Mockito.inOrder(fxTransactions, trnRepository)
+        inOrder.verify(fxTransactions).setRates(testPortfolio, proposedTrn)
+        inOrder.verify(trnRepository).save(proposedTrn)
+        assertThat(proposedTrn.status).isEqualTo(TrnStatus.SETTLED)
+    }
+
+    @Test
+    fun `FX failure on one trn does not stop the batch`() {
+        // Given: two due DIVI trns. The first one's FX resolution throws; the second succeeds.
+        val failing = createProposedTransaction("trn-fail", today, TrnType.DIVI)
+        val succeeding = createProposedTransaction("trn-ok", today, TrnType.DIVI)
+        `when`(trnRepository.findDueEventTransactions(TrnStatus.PROPOSED, EVENT_TYPES, today))
+            .thenReturn(listOf(failing, succeeding))
+        `when`(fxTransactions.setRates(testPortfolio, failing))
+            .thenThrow(IllegalStateException("FX rate missing for USD/EUR"))
+
+        val result = autoSettleService.autoSettleDueTransactions()
+
+        // Then: failing trn stays PROPOSED and is never saved; the other one settles.
+        assertThat(result).isEqualTo(1)
+        assertThat(failing.status).isEqualTo(TrnStatus.PROPOSED)
+        assertThat(succeeding.status).isEqualTo(TrnStatus.SETTLED)
+        verify(trnRepository, never()).save(failing)
+        verify(trnRepository).save(succeeding)
     }
 
     @Test

@@ -11,6 +11,7 @@ import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
+import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -186,16 +187,7 @@ class EodhdPriceService(
         return try {
             eodhdProxy
                 .searchAssets(keyword, eodhdConfig.apiKey)
-                .map { row ->
-                    AssetSearchResult(
-                        symbol = row.code,
-                        name = row.name,
-                        type = row.type ?: "Equity",
-                        region = row.exchange,
-                        currency = row.currency,
-                        market = row.exchange
-                    )
-                }
+                .mapNotNull { row -> toSearchResult(row) }
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: Exception
@@ -203,6 +195,32 @@ class EodhdPriceService(
             log.warn("EODHD search for '{}' failed: {}", keyword, e.message)
             emptyList()
         }
+    }
+
+    /**
+     * Project an EODHD search row onto an [AssetSearchResult], mapping EODHD's exchange code back to
+     * the owning BC market code.
+     *
+     * EODHD reports its own exchange (e.g. `LSE`), but the UI posts the result's `market` to
+     * `/api/assets`, which only accepts BC market codes — posting the raw exchange trips "Unable to
+     * resolve market code" → 404 (asset creation disables alias resolution). [MarketService.getMarket]
+     * resolves the exchange via the alias map (`LSE` → `LON`); rows whose exchange maps to no BC
+     * market are dropped rather than surfaced with an un-postable code — mirroring the FIGI path.
+     */
+    private fun toSearchResult(row: EodhdSearchResult): AssetSearchResult? {
+        val market = runCatching { eodhdConfig.marketService.getMarket(row.exchange) }.getOrNull()
+        if (market == null) {
+            log.debug("Dropping EODHD result {} — exchange {} maps to no BC market", row.code, row.exchange)
+            return null
+        }
+        return AssetSearchResult(
+            symbol = row.code,
+            name = row.name,
+            type = row.type ?: "Equity",
+            region = market.code,
+            currency = row.currency,
+            market = market.code
+        )
     }
 
     companion object {

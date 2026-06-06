@@ -49,6 +49,20 @@ interface TrnRepository :
 
     fun deleteByAssetId(assetId: String): Long
 
+    /**
+     * True if any transaction holds the asset as its trade asset.
+     * Used by admin asset-delete to refuse deletion when the asset is
+     * referenced by trades.
+     */
+    fun existsByAssetId(assetId: String): Boolean
+
+    /**
+     * True if any transaction uses the asset as its cash settlement asset.
+     * Cash-asset references survive `deleteByAssetId` (they reference a
+     * different column) and must be checked separately before delete.
+     */
+    fun existsByCashAssetId(assetId: String): Boolean
+
     @Modifying
     @Query("UPDATE Trn t SET t.cashAsset = null WHERE t.cashAsset.id = :assetId")
     fun clearCashAssetReferences(

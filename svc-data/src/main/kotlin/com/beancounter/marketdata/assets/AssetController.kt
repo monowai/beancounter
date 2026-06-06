@@ -499,6 +499,42 @@ class AssetController(
         @RequestBody assetInput: AssetInput
     ): AssetResponse = AssetResponse(ownedAssetService.updateOwnedAsset(assetId, assetInput))
 
+    @DeleteMapping(
+        value = ["/admin/{assetId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
+    @Operation(
+        summary = "Admin: delete any asset that is not held in any transaction",
+        description = """
+            Admin-only deletion of an arbitrary asset (public-market or
+            user-owned). The asset must not be referenced by any transaction
+            (neither as the trade asset nor as a cash settlement asset). Use
+            for reseeding a stale market asset whose code or market mapping
+            has been corrected upstream and needs re-resolution via the
+            normal lookup flow.
+
+            Cascades the remaining dependents (market data, classifications,
+            exposures, holdings, broker settlement accounts, private asset
+            config) before deleting the asset itself.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Asset deleted successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Asset is referenced by one or more transactions"
+            ),
+            ApiResponse(responseCode = "403", description = "Caller lacks the admin role"),
+            ApiResponse(responseCode = "404", description = "Asset not found")
+        ]
+    )
+    fun deleteAnyAsset(
+        @Parameter(description = "Asset ID to delete", example = "abc123")
+        @PathVariable assetId: String
+    ) = assetService.deleteAsset(assetId)
+
     @PatchMapping(
         value = ["/admin/{assetId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]

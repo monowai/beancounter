@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.marketdata.providers.NewsProvider
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.news.NewsArticle
@@ -8,6 +9,11 @@ import com.beancounter.marketdata.providers.eodhd.news.NewsArticleTicker
 import com.beancounter.marketdata.providers.eodhd.news.NewsFetch
 import com.beancounter.marketdata.providers.eodhd.news.NewsFetchRepo
 import jakarta.transaction.Transactional
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
@@ -40,6 +46,10 @@ class EodhdNewsService(
 ) : NewsProvider {
     private val log = LoggerFactory.getLogger(EodhdNewsService::class.java)
 
+    // Bounds the upstream fan-out so a large holdings list can't fire one EODHD request per ticker
+    // simultaneously — that would amplify load and trip the shared ~1200/day quota in a single burst.
+    private val fetchGate = Semaphore(MAX_CONCURRENT_FETCHES)
+
     @Transactional
     override fun getNewsSentiment(
         tickers: String,
@@ -50,11 +60,7 @@ class EodhdNewsService(
         if (symbols.isEmpty()) return emptyMap()
 
         val refreshCutoff = LocalDateTime.now().minusHours(newsProperties.refreshAfterHours)
-        for (symbol in symbols) {
-            if (shouldRefresh(symbol, refreshCutoff)) {
-                refreshFromUpstream(symbol)
-            }
-        }
+        refreshStaleSymbols(symbols.filter { shouldRefresh(it, refreshCutoff) })
 
         val retentionStart = LocalDateTime.now().minusDays(newsProperties.retentionDays)
         val stored = newsArticleRepo.findByTickersAfter(symbols, retentionStart)
@@ -82,30 +88,77 @@ class EodhdNewsService(
         return meta == null || meta.lastFetchedAt.isBefore(cutoff)
     }
 
-    private fun refreshFromUpstream(symbol: String) {
+    /**
+     * Refresh each stale symbol from EODHD. The upstream HTTP call is the slow part — one network
+     * round-trip per symbol — so the fetches fan out across [Dispatchers.IO] and run concurrently.
+     * A 10-ticker agent query that previously did 10 serial round-trips (~21s observed in Sentry)
+     * collapses to a single round-trip's latency.
+     *
+     * Persistence stays on the calling thread. This method runs inside a `@Transactional` boundary,
+     * and the bound Hibernate session is single-threaded — DB writes must never touch it from a
+     * coroutine dispatcher thread. So coroutines do network-only work; the results are persisted
+     * serially here. [runBlockingTraced] keeps the OTel/Sentry span attached across the dispatcher
+     * switch (see jar-common CoroutineTracing).
+     */
+    private fun refreshStaleSymbols(symbols: List<String>) {
+        if (symbols.isEmpty()) return
+        val fetched =
+            runBlockingTraced {
+                symbols
+                    .map { symbol ->
+                        async(Dispatchers.IO) { fetchGate.withPermit { symbol to fetchUpstream(symbol) } }
+                    }.awaitAll()
+            }
+        for ((symbol, outcome) in fetched) {
+            persist(symbol, outcome)
+        }
+    }
+
+    private fun fetchUpstream(symbol: String): FetchResult =
         try {
-            val fresh =
+            FetchResult.Success(
                 eodhdProxy.getNews(
                     symbol = symbol,
                     limit = newsProperties.providerLimit,
                     from = null,
                     apiKey = eodhdConfig.apiKey
                 )
-            upsertAll(symbol, fresh)
-            newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(), fresh.size))
+            )
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
             log.debug("EODHD news lookup failed for {}: {}", symbol, e.message)
-            // Burn the refresh cooldown even on failure — otherwise a transient EODHD outage
-            // or 429 turns every subsequent request into a quota-amplifying retry storm. Next
-            // attempt waits `refresh-after-hours`, matching the success-path backoff. Articles
-            // already in the DB keep serving in the meantime.
-            val existing = newsFetchRepo.findById(symbol).orElseGet { NewsFetch(symbol) }
-            existing.lastFetchedAt = LocalDateTime.now()
-            newsFetchRepo.save(existing)
+            FetchResult.Failure
         }
+
+    private fun persist(
+        symbol: String,
+        outcome: FetchResult
+    ) {
+        when (outcome) {
+            is FetchResult.Success -> {
+                upsertAll(symbol, outcome.articles)
+                newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(), outcome.articles.size))
+            }
+            FetchResult.Failure -> {
+                // Burn the refresh cooldown even on failure — otherwise a transient EODHD outage
+                // or 429 turns every subsequent request into a quota-amplifying retry storm. Next
+                // attempt waits `refresh-after-hours`, matching the success-path backoff. Articles
+                // already in the DB keep serving in the meantime.
+                val existing = newsFetchRepo.findById(symbol).orElseGet { NewsFetch(symbol) }
+                existing.lastFetchedAt = LocalDateTime.now()
+                newsFetchRepo.save(existing)
+            }
+        }
+    }
+
+    private sealed interface FetchResult {
+        data class Success(
+            val articles: List<EodhdNewsArticle>
+        ) : FetchResult
+
+        data object Failure : FetchResult
     }
 
     private fun upsertAll(
@@ -255,6 +308,9 @@ class EodhdNewsService(
         }
 
     companion object {
+        // Caps simultaneous EODHD news round-trips per request. 8 covers a typical portfolio's
+        // holdings in one wave while leaving headroom under the shared daily quota.
+        private const val MAX_CONCURRENT_FETCHES = 8
         private const val SUMMARY_CHARS = 400
         private const val BULLISH_THRESHOLD = 0.35
         private const val BEARISH_THRESHOLD = -0.35

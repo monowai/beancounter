@@ -76,6 +76,58 @@ class MarketTools(
         )
     }
 
+    @Tool(description = BENCHMARK_DESC)
+    fun getBenchmark(
+        @ToolParam(description = BENCHMARK_SCOPE_DESC) scope: String
+    ): Map<String, Any> {
+        val key = scope.trim().lowercase()
+        val proxies = if (key.isBlank() || key in MARKET_ALIASES) INDEX_PROXIES else SECTOR_PROXIES[key]
+        if (proxies == null) {
+            return mapOf(
+                "status" to "unknown_scope",
+                "scope" to scope,
+                "message" to BENCHMARK_UNKNOWN_SCOPE_MESSAGE,
+                "supportedScopes" to (listOf("market") + SECTOR_PROXIES.keys.sorted())
+            )
+        }
+        val response =
+            priceService.getPrices(
+                PriceRequest(
+                    date = "today",
+                    assets = proxies.map { PriceAsset(market = it.market, code = it.code) },
+                    currentMode = true
+                ),
+                tokenService.bearerToken
+            )
+        val byCode = response.data.associateBy { it.asset.code.uppercase() }
+        val benchmarks =
+            proxies.mapNotNull { proxy ->
+                byCode[proxy.code.uppercase()]?.let { md ->
+                    mapOf(
+                        "name" to proxy.label,
+                        "market" to md.asset.market.code,
+                        "code" to md.asset.code,
+                        "priceClose" to md.close,
+                        "previousClose" to md.previousClose,
+                        "changePercent" to md.changePercent,
+                        "priceDate" to md.priceDate.toString()
+                    )
+                }
+            }
+        return if (benchmarks.isEmpty()) {
+            mapOf("status" to "no_coverage", "scope" to scope, "message" to BENCHMARK_NO_COVERAGE_MESSAGE)
+        } else {
+            mapOf("benchmarks" to benchmarks, "count" to benchmarks.size)
+        }
+    }
+
+    /** Market/sector proxy whose price change stands in for that segment's performance. */
+    private data class BenchmarkProxy(
+        val market: String,
+        val code: String,
+        val label: String
+    )
+
     companion object {
         const val MARKETS_DESC =
             "List every market Beancounter knows about (NASDAQ, NYSE, ASX, NZX, etc.) " +
@@ -90,6 +142,51 @@ class MarketTools(
                 "call this to retrieve the current close so you can frame the implied " +
                 "growth percentage relative to today's price. Never quote a price target " +
                 "without also stating the current close."
+        const val BENCHMARK_DESC =
+            "Get current market or sector benchmark performance (today's price change of a broad " +
+                "index or a sector proxy). Use this to contextualise a portfolio's or holding's " +
+                "move against the market — e.g. when the user asks how their portfolio is doing " +
+                "'versus the market', whether a drop is stock-specific or market-wide, or how a " +
+                "sector is performing. Pair the benchmark's changePercent with a holding's " +
+                "changePercent to say whether it out- or under-performed. Returns name, close, " +
+                "previousClose and changePercent (decimal; -0.026 = -2.6%) per benchmark. NEVER " +
+                "mention the underlying data provider."
+        const val BENCHMARK_SCOPE_DESC =
+            "What to benchmark: 'market' for the broad indices (S&P 500, Nasdaq, Dow), or a sector " +
+                "name. Supported sectors: technology, financials, energy, healthcare, " +
+                "consumer_discretionary, consumer_staples, industrials, materials, utilities, " +
+                "real_estate, communication. One scope per call."
+        const val BENCHMARK_UNKNOWN_SCOPE_MESSAGE =
+            "Unrecognised scope. Use 'market' for the broad indices or one of the listed sector names."
+        const val BENCHMARK_NO_COVERAGE_MESSAGE =
+            "No benchmark price available right now for this scope."
+
+        // Broad-market index proxies (priced on the synthetic INDEX market → EODHD `.INDX`).
+        private val INDEX_PROXIES =
+            listOf(
+                BenchmarkProxy("INDEX", "GSPC", "S&P 500"),
+                BenchmarkProxy("INDEX", "IXIC", "Nasdaq Composite"),
+                BenchmarkProxy("INDEX", "DJI", "Dow Jones Industrial Average")
+            )
+
+        // Sector → SPDR sector ETF proxy (priced on the US market). Keys are the scope vocabulary
+        // in BENCHMARK_SCOPE_DESC; the ETF's daily move stands in for sector-wide performance.
+        private val SECTOR_PROXIES =
+            mapOf(
+                "technology" to listOf(BenchmarkProxy("US", "XLK", "Technology (XLK)")),
+                "financials" to listOf(BenchmarkProxy("US", "XLF", "Financials (XLF)")),
+                "energy" to listOf(BenchmarkProxy("US", "XLE", "Energy (XLE)")),
+                "healthcare" to listOf(BenchmarkProxy("US", "XLV", "Health Care (XLV)")),
+                "consumer_discretionary" to listOf(BenchmarkProxy("US", "XLY", "Consumer Discretionary (XLY)")),
+                "consumer_staples" to listOf(BenchmarkProxy("US", "XLP", "Consumer Staples (XLP)")),
+                "industrials" to listOf(BenchmarkProxy("US", "XLI", "Industrials (XLI)")),
+                "materials" to listOf(BenchmarkProxy("US", "XLB", "Materials (XLB)")),
+                "utilities" to listOf(BenchmarkProxy("US", "XLU", "Utilities (XLU)")),
+                "real_estate" to listOf(BenchmarkProxy("US", "XLRE", "Real Estate (XLRE)")),
+                "communication" to listOf(BenchmarkProxy("US", "XLC", "Communication Services (XLC)"))
+            )
+
+        private val MARKET_ALIASES = setOf("market", "markets", "macro", "broad", "overall", "index")
     }
 }
 

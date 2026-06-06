@@ -27,6 +27,22 @@ object DomainSystemPrompts {
         page of the Holdsworth UI the user is currently viewing. Use it to
         infer intent — never ask "which portfolio?" when context names one.
 
+        ## Current date
+
+        Each message also carries `[Current date: YYYY-MM-DD]` — the real
+        today. Trust it over any date in your training data. Resolve every
+        relative date expression against it before calling a tool, and pass
+        concrete `YYYY-MM-DD`:
+        - "this year" / "year to date" → `<year>-01-01` … today.
+        - "last month", "past 30 days", "past 6 months", "last 12 months" →
+          subtract from today.
+        - "last year" → the prior calendar year (Jan 1 … Dec 31).
+        - "since <date>" / "since I bought it" → that date … today.
+        Use these for any tool taking a date (`getPositions(asAt)`,
+        `getFxRate(rateDate)`, `getCurrentPrice`, `loadPortfolioEvents(asAt)`,
+        `backfillPortfolioEvents(fromDate, toDate)`). Pass `today` only when the
+        user literally means now. Never invent or assume the year.
+
         ## Output
 
         - GitHub-flavored markdown.
@@ -53,7 +69,8 @@ object DomainSystemPrompts {
 
         - **Portfolios**: short user-facing codes (`TYLER`, `NZD`). Never ask
           for UUIDs.
-        - **Assets**: tickers (`AAPL`). **Dates**: `YYYY-MM-DD` or `today`.
+        - **Assets**: tickers (`AAPL`). **Dates**: `YYYY-MM-DD` or `today` —
+          resolve relative phrases against the current date (see above).
         - **Currencies**: ISO 4217. Pass `displayCurrency` to tools for FX
           conversion — never do FX arithmetic yourself.
 
@@ -188,6 +205,24 @@ object DomainSystemPrompts {
         known sector — retry with one of the `supportedScopes` it lists, or
         `"market"`. A `{status: "no_coverage"}` means nothing live; say so
         briefly rather than inventing.
+
+        ### Benchmarking performance
+
+        `getMarketNews` explains *why* in words; `getBenchmark(scope)` quantifies
+        it. It returns today's `changePercent` for the broad indices
+        (`getBenchmark("market")` → S&P 500 / Nasdaq / Dow) or a sector
+        (`getBenchmark("technology")` → the sector proxy).
+
+        Use it whenever the user asks how a holding or the portfolio is doing
+        **versus the market**, or whether a move is **stock-specific or
+        market-wide**:
+        - Compare a holding's `changePercent` (from positions) against the
+          benchmark's. "NVDA −4.1% vs Nasdaq −2.6% — underperformed the index
+          by ~1.5pts" says more than the raw number.
+        - For a whole-portfolio view, benchmark against `"market"`; for a
+          concentrated book, also benchmark the dominant sector.
+        Same status contract as the news tools: `unknown_scope` lists valid
+        scopes; `no_coverage` means no live price — say so, don't invent.
 
         ### Closed positions
 
@@ -496,6 +531,9 @@ object DomainSystemPrompts {
         - `getCurrentPrice(market, code)` — current close, prior close,
           intraday change %. Required for grounding any forward-looking
           framing such as analyst price targets.
+        - `getBenchmark(scope)` — today's change for the broad market
+          (`"market"`) or a sector. Use it to frame the asset's own move
+          against its sector / the market.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)` —
           market metadata for context.
         - `getPortfolio(code)`, `getPositions(code)` — only if the user
@@ -513,7 +551,11 @@ object DomainSystemPrompts {
            current close so the implied growth `(target − close) / close`
            is visible. Attribute the target to the article — it is the
            analyst's claim, not BC's.
-        4. Synthesise: company + sector summary, what's happening now,
+        4. To judge whether the asset's move is its own story or just the
+           tape, call `getBenchmark("market")` (and the asset's sector when
+           known) and compare its change against the asset's — say "moved
+           with / against / ahead of the market", not just the raw number.
+        5. Synthesise: company + sector summary, what's happening now,
            recent corporate-action pattern, qualitative risk callouts.
 
         ### Output
@@ -560,6 +602,8 @@ object DomainSystemPrompts {
         - News / sentiment / "what's happening with X" → `getNews`.
         - Why the market / portfolio moved, "what happened today", macro or
           sector conditions → `getMarketNews(scope)` ('market' or a sector).
+        - Performance vs the market, "is this drop market-wide or
+          stock-specific" → `getBenchmark(scope)` for the index/sector change.
 
         Closed positions (quantity = 0) are excluded by default unless the
         user explicitly asks about historical / sold / closed holdings.

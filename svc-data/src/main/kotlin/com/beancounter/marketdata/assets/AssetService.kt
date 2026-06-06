@@ -285,7 +285,28 @@ class AssetService(
             )
         }
         assetCascadeDeleter.deleteDependents(assetId)
-        assetRepository.delete(asset)
+        // Force the delete to flush inside this try block so any FK race —
+        // a parallel writer adding a referencing row between the
+        // existsBy* checks above and the actual delete — surfaces here as
+        // DataIntegrityViolationException instead of leaking up at
+        // transaction commit time. Translate to BusinessException so the
+        // caller gets a 400 with the same "held in transactions" message
+        // they'd see from the pre-flight guard.
+        try {
+            assetRepository.delete(asset)
+            assetRepository.flush()
+        } catch (e: DataIntegrityViolationException) {
+            log.warn(
+                "FK race deleting asset {} ({}.{}): {}",
+                assetId,
+                asset.market.code,
+                asset.code,
+                e.mostSpecificCause.message
+            )
+            throw BusinessException(
+                "Cannot delete asset $assetId — held in one or more transactions"
+            )
+        }
         log.info("Admin deleted asset {} ({}.{})", assetId, asset.market.code, asset.code)
     }
 

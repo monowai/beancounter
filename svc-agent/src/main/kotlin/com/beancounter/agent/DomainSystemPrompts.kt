@@ -27,6 +27,22 @@ object DomainSystemPrompts {
         page of the Holdsworth UI the user is currently viewing. Use it to
         infer intent — never ask "which portfolio?" when context names one.
 
+        ## Current date
+
+        Each message also carries `[Current date: YYYY-MM-DD]` — the real
+        today. Trust it over any date in your training data. Resolve every
+        relative date expression against it before calling a tool, and pass
+        concrete `YYYY-MM-DD`:
+        - "this year" / "year to date" → `<year>-01-01` … today.
+        - "last month", "past 30 days", "past 6 months", "last 12 months" →
+          subtract from today.
+        - "last year" → the prior calendar year (Jan 1 … Dec 31).
+        - "since <date>" / "since I bought it" → that date … today.
+        Use these for any tool taking a date (`getPositions(asAt)`,
+        `getFxRate(rateDate)`, `getCurrentPrice`, `loadPortfolioEvents(asAt)`,
+        `backfillPortfolioEvents(fromDate, toDate)`). Pass `today` only when the
+        user literally means now. Never invent or assume the year.
+
         ## Output
 
         - GitHub-flavored markdown.
@@ -53,7 +69,8 @@ object DomainSystemPrompts {
 
         - **Portfolios**: short user-facing codes (`TYLER`, `NZD`). Never ask
           for UUIDs.
-        - **Assets**: tickers (`AAPL`). **Dates**: `YYYY-MM-DD` or `today`.
+        - **Assets**: tickers (`AAPL`). **Dates**: `YYYY-MM-DD` or `today` —
+          resolve relative phrases against the current date (see above).
         - **Currencies**: ISO 4217. Pass `displayCurrency` to tools for FX
           conversion — never do FX arithmetic yourself.
 

@@ -19,14 +19,14 @@ class CoroutineTracingTest {
 
     @Test
     fun `bare runBlocking on IO dispatcher loses OTel Context`() {
-        val outer = Context.current().with(traceKey, "outer-value")
+        val outer = Context.current().with(traceKey, OUTER_VALUE)
         val captured =
             outer.makeCurrent().use {
                 runBlocking(Dispatchers.IO) {
                     Context.current().get(traceKey)
                 }
             }
-        // Documents the bug. If this ever starts returning "outer-value"
+        // Documents the bug. If this ever starts returning the outer value
         // the upstream coroutines/OTel libs have started auto-propagating
         // and [runBlockingTraced] becomes a no-op.
         assertThat(captured).isNull()
@@ -34,13 +34,17 @@ class CoroutineTracingTest {
 
     @Test
     fun `runBlockingTraced propagates OTel Context across dispatchers`() {
-        val outer = Context.current().with(traceKey, "outer-value")
+        val outer = Context.current().with(traceKey, OUTER_VALUE)
         val captured =
             outer.makeCurrent().use {
                 runBlockingTraced(Dispatchers.IO) {
                     Context.current().get(traceKey)
                 }
             }
-        assertThat(captured).isEqualTo("outer-value")
+        assertThat(captured).isEqualTo(OUTER_VALUE)
+    }
+
+    private companion object {
+        const val OUTER_VALUE = "outer-value"
     }
 }

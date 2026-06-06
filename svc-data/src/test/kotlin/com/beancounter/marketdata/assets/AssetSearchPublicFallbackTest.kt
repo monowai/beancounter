@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.common.contracts.AssetSearchResult
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson
@@ -56,7 +57,8 @@ class AssetSearchPublicFallbackTest {
         marketProvider: MarketDataPriceProvider =
             mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
         allProviders: Collection<MarketDataPriceProvider> = listOf(marketProvider),
-        dbAssets: List<com.beancounter.common.model.Asset> = emptyList()
+        dbAssets: List<com.beancounter.common.model.Asset> = emptyList(),
+        marketService: MarketService = mock { on { getMarket(any()) } doReturn usMarket }
     ): Pair<AssetSearchService, AlphaProxy> {
         val alphaConfig =
             mock<AlphaConfig> {
@@ -94,8 +96,7 @@ class AssetSearchPublicFallbackTest {
                     },
                 figiGateway = figiGateway,
                 figiConfig = figiConfig,
-                marketService =
-                    mock<MarketService> { on { getMarket(any()) } doReturn usMarket },
+                marketService = marketService,
                 systemUserService = mock<SystemUserService>(),
                 mdFactory = mdFactory
             )
@@ -112,6 +113,36 @@ class AssetSearchPublicFallbackTest {
             .extracting<String> { it.symbol }
             .containsExactly("COWZ")
         verify(alphaProxy).search(any(), any())
+    }
+
+    @Test
+    fun `excludes results that sit on no supported BC market`() {
+        // A provider surfaced a result on a venue BC doesn't model (XETRA). The UI would post that
+        // market to /api/assets and 404 — the central guard must drop it before it ever surfaces.
+        val unsupported = "XETRA"
+        val onXetra =
+            AssetSearchResult(
+                symbol = "XYZ",
+                name = "Some Frankfurt Listing",
+                type = "ETF",
+                region = unsupported,
+                currency = "EUR",
+                market = unsupported
+            )
+        val provider =
+            mock<MarketDataPriceProvider> {
+                on { searchAssets(any(), anyOrNull()) } doReturn listOf(onXetra)
+            }
+        val strictMarkets =
+            mock<MarketService> {
+                on { getMarket("US") } doReturn usMarket
+                on { getMarket(unsupported) } doThrow NotFoundException("Unable to resolve market code $unsupported")
+            }
+        val (service, _) = buildService(marketProvider = provider, marketService = strictMarkets)
+
+        val results = service.search("XYZ", "US")
+
+        assertThat(results.data).isEmpty()
     }
 
     @Test

@@ -1,12 +1,13 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -33,6 +34,7 @@ internal class EodhdPriceServiceSearchTest {
     @Test
     fun `searchAssets returns mapped results from EODHD search`() {
         val service = EodhdPriceService(configWithMarkets("US"), proxy, adapter, dateUtils)
+        whenever(marketService.getMarket("US")).thenReturn(Market("US"))
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(
                 EodhdSearchResult(
@@ -59,6 +61,59 @@ internal class EodhdPriceServiceSearchTest {
     }
 
     @Test
+    fun `searchAssets maps the EODHD exchange to its BC market code`() {
+        // EODHD returns its own exchange ("LSE"); the result must carry the owning BC market code
+        // ("LON") so the UI can POST it to /api/assets without tripping "Unable to resolve market".
+        val service = EodhdPriceService(configWithMarkets("LON"), proxy, adapter, dateUtils)
+        whenever(marketService.getMarket("LSE")).thenReturn(Market(code = "LON", currencyId = "USD"))
+        whenever(proxy.searchAssets(any(), any())).thenReturn(
+            listOf(
+                EodhdSearchResult(
+                    code = "MOTU",
+                    exchange = "LSE",
+                    name = MOTU_NAME,
+                    type = "ETF",
+                    country = "UK",
+                    currency = "USD",
+                    isin = null
+                )
+            )
+        )
+
+        val results = service.searchAssets("MOTU", "LON")
+
+        assertThat(results).hasSize(1)
+        assertThat(results.first().market).isEqualTo("LON")
+        assertThat(results.first().symbol).isEqualTo("MOTU")
+        assertThat(results.first().currency).isEqualTo("USD")
+    }
+
+    @Test
+    fun `searchAssets drops rows whose exchange maps to no BC market`() {
+        // An EODHD exchange with no BC market (e.g. XETRA) must be dropped, not surfaced with a raw
+        // code the UI would post and 404 on.
+        val service = EodhdPriceService(configWithMarkets("LON"), proxy, adapter, dateUtils)
+        whenever(marketService.getMarket("XETRA")).thenThrow(NotFoundException("Unable to resolve market code XETRA"))
+        whenever(proxy.searchAssets(any(), any())).thenReturn(
+            listOf(
+                EodhdSearchResult(
+                    code = "XYZ",
+                    exchange = "XETRA",
+                    name = "Some Frankfurt Listing",
+                    type = "ETF",
+                    country = "DE",
+                    currency = "EUR",
+                    isin = null
+                )
+            )
+        )
+
+        val results = service.searchAssets("XYZ", "LON")
+
+        assertThat(results).isEmpty()
+    }
+
+    @Test
     fun `searchAssets returns empty when EODHD markets allowlist is empty`() {
         val service = EodhdPriceService(configWithMarkets(""), proxy, adapter, dateUtils)
 
@@ -71,6 +126,7 @@ internal class EodhdPriceServiceSearchTest {
     @Test
     fun `searchAssets with null market still queries EODHD when provider is enabled`() {
         val service = EodhdPriceService(configWithMarkets("US"), proxy, adapter, dateUtils)
+        whenever(marketService.getMarket("US")).thenReturn(Market("US"))
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(
                 EodhdSearchResult(
@@ -93,6 +149,7 @@ internal class EodhdPriceServiceSearchTest {
 
     companion object {
         private const val HYSA_NAME = "Pacer International HY Corp Bond ETF"
+        private const val MOTU_NAME = "VanEck Morningstar US Wide Moat UCITS ETF A"
     }
 
     @Test

@@ -17,6 +17,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.dao.DataIntegrityViolationException
@@ -24,6 +25,9 @@ import org.springframework.test.util.ReflectionTestUtils
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.Optional
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Unit tests for [EodhdNewsService] with repos mocked. End-to-end persistence is covered by the
@@ -60,6 +64,34 @@ internal class EodhdNewsServiceTest {
 
         verify(proxy).getNews(eq("AAPL.US"), eq(10), eq(null), eq("demo"))
         verify(fetchRepo).save(any<NewsFetch>())
+    }
+
+    @Test
+    fun `per-symbol upstream refreshes run concurrently`() {
+        // A batch of N stale tickers must fan out to N concurrent EODHD calls, not N serial ones.
+        // Each fetch rendezvous at a CyclicBarrier sized to the batch: the barrier only trips once
+        // every party has arrived, which can only happen if the fetches are genuinely in flight at
+        // the same time. A serial loop leaves a single party waiting until it times out, so the
+        // rendezvous count never reaches the batch size. Deterministic — no sleeps or timing windows.
+        val symbols = listOf("AAPL.US", "MSFT.US", "GOOG.US")
+        symbols.forEach { whenever(fetchRepo.findById(it)).thenReturn(Optional.empty()) }
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        val rendezvous = CyclicBarrier(symbols.size)
+        val arrived = AtomicInteger(0)
+        whenever(proxy.getNews(any(), any(), anyOrNull(), any())).thenAnswer {
+            // Throws TimeoutException (caught by the service → Failure) if the parties never meet,
+            // i.e. if the fetches run serially.
+            rendezvous.await(5, TimeUnit.SECONDS)
+            arrived.incrementAndGet()
+            listOf(eodhArticle(0.5))
+        }
+
+        service.getNewsSentiment("AAPL,MSFT,GOOG")
+
+        assertThat(arrived.get()).isEqualTo(symbols.size)
+        verify(proxy, times(3)).getNews(any(), any(), anyOrNull(), any())
     }
 
     @Test

@@ -564,8 +564,13 @@ class TrnController(
         ]
     )
     fun findProposed(
-        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope
-    ): TrnResponse = TrnResponse(trnService.findProposedForUser(scope))
+        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope,
+        @Parameter(description = "Show proposed transactions due on or before this date (default today)")
+        @RequestParam(value = "asAt", required = false) asAt: String?
+    ): TrnResponse =
+        TrnResponse(
+            trnService.findProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today()))
+        )
 
     @GetMapping(
         value = ["/proposed/count"],
@@ -591,8 +596,11 @@ class TrnController(
         ]
     )
     fun countProposed(
-        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope
-    ): Map<String, Long> = mapOf("count" to trnService.countProposedForUser(scope))
+        @RequestParam(value = "scope", required = false, defaultValue = "ALL") scope: ProposedScope,
+        @Parameter(description = "Count proposed transactions due on or before this date (default today)")
+        @RequestParam(value = "asAt", required = false) asAt: String?
+    ): Map<String, Long> =
+        mapOf("count" to trnService.countProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today())))
 
     @GetMapping(
         value = ["/settled"],

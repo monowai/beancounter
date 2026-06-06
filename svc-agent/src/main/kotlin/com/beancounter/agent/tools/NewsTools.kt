@@ -37,6 +37,35 @@ class NewsTools(
         }
     }
 
+    @Tool(description = MARKET_NEWS_DESC)
+    fun getMarketNews(
+        @ToolParam(description = SCOPE_DESC) scope: String
+    ): Map<String, Any> {
+        val key = scope.trim().lowercase()
+        val symbols = if (key.isBlank() || key in MARKET_ALIASES) INDEX_PROXIES else SECTOR_ETFS[key]
+        if (symbols == null) {
+            log.debug("getMarketNews: unknown scope '{}'", scope)
+            return mapOf(
+                "status" to "unknown_scope",
+                "scope" to scope,
+                "message" to UNKNOWN_SCOPE_MESSAGE,
+                "supportedScopes" to (listOf("market") + SECTOR_ETFS.keys.sorted())
+            )
+        }
+        log.debug("getMarketNews: scope={} -> {}", scope, symbols)
+        val raw = newsClient.getMarketNews(symbols)
+        val feed = raw["feed"] as? List<*>
+        return if (raw.isEmpty() || feed.isNullOrEmpty()) {
+            mapOf(
+                "status" to "no_coverage",
+                "scope" to scope,
+                "message" to NO_COVERAGE_MESSAGE
+            )
+        } else {
+            raw
+        }
+    }
+
     companion object {
         const val NEWS_DESC =
             "Get recent news articles and sentiment analysis for given ticker symbols. " +
@@ -68,5 +97,46 @@ class NewsTools(
         const val NO_COVERAGE_MESSAGE =
             "No live news coverage available for this ticker. This is common for " +
                 "non-US listings. Provide a general-knowledge summary instead — do not retry."
+
+        const val MARKET_NEWS_DESC =
+            "Get market-wide or sector-wide news and sentiment via index/sector proxies — the " +
+                "macro context that per-holding `getNews` misses (e.g. a jobs report, a Fed " +
+                "decision, or a broad sell-off that moves a portfolio but isn't tagged to any one " +
+                "ticker). Returns the same shape as getNews. Use this when the user asks why the " +
+                "market or their portfolio moved, what's happening today, or about a sector's " +
+                "conditions. To attribute a portfolio's move, also call this once per sector the " +
+                "holdings belong to. NEVER mention the underlying data provider."
+        const val SCOPE_DESC =
+            "What to fetch news for: 'market' for broad macro/market-wide news, or a sector name. " +
+                "Supported sectors: technology, financials, energy, healthcare, " +
+                "consumer_discretionary, consumer_staples, industrials, materials, utilities, " +
+                "real_estate, communication. Pass one scope per call."
+        const val UNKNOWN_SCOPE_MESSAGE =
+            "Unrecognised scope. Use 'market' for macro news or one of the listed sector names."
+
+        /** Broad-market index proxies — surface macro headlines (jobs, Fed, market-wide moves). */
+        private val INDEX_PROXIES = listOf("GSPC.INDX", "DJI.INDX")
+
+        /**
+         * Sector → SPDR sector ETF proxy. Sector ETFs carry strong EODHD news coverage, so their
+         * headlines stand in for sector-wide sentiment. Keys are the scope vocabulary in [SCOPE_DESC].
+         */
+        private val SECTOR_ETFS =
+            mapOf(
+                "technology" to listOf("XLK.US"),
+                "financials" to listOf("XLF.US"),
+                "energy" to listOf("XLE.US"),
+                "healthcare" to listOf("XLV.US"),
+                "consumer_discretionary" to listOf("XLY.US"),
+                "consumer_staples" to listOf("XLP.US"),
+                "industrials" to listOf("XLI.US"),
+                "materials" to listOf("XLB.US"),
+                "utilities" to listOf("XLU.US"),
+                "real_estate" to listOf("XLRE.US"),
+                "communication" to listOf("XLC.US")
+            )
+
+        /** Scope strings that all mean "broad market". */
+        private val MARKET_ALIASES = setOf("market", "markets", "macro", "broad", "overall", "index")
     }
 }

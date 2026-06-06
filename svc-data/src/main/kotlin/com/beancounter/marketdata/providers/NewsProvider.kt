@@ -19,4 +19,19 @@ interface NewsProvider {
         market: String? = null,
         topics: String? = null
     ): Map<String, Any>
+
+    /**
+     * Market / sector news by verbatim proxy symbols (e.g. an index `GSPC.INDX` or a sector ETF
+     * `XLK.US`) rather than held tickers — the macro/sector signal that per-holding news misses.
+     *
+     * @param symbols fully-qualified provider symbols, already exchange-suffixed; NOT resolved
+     * @param topics  optional topic filter; provider-defined vocabulary
+     *
+     * Default returns an empty map: only providers with index/ETF news coverage (EODHD) implement
+     * it. AlphaVantage callers get the standard no-coverage signal.
+     */
+    fun getMarketNews(
+        symbols: List<String>,
+        topics: String? = null
+    ): Map<String, Any> = emptyMap()
 }

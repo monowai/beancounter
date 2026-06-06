@@ -42,4 +42,20 @@ class AlphaNewsController(
         @Parameter(description = "Optional topic filter", required = false)
         @RequestParam(required = false) topics: String? = null
     ): Map<String, Any> = newsService.getNewsSentiment(tickers, market, topics)
+
+    @GetMapping("/market", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "Get market / sector news by proxy symbols",
+        description =
+            "Fetches news for verbatim proxy symbols — an index (e.g. GSPC.INDX) for market-wide " +
+                "macro moves, or a sector ETF (e.g. XLK.US) for sector-level moves. Used to surface " +
+                "context that per-holding news misses. Only the EODHD provider has index/ETF news " +
+                "coverage; other providers return no coverage."
+    )
+    fun getMarketNews(
+        @Parameter(description = "Comma-separated EODHD proxy symbols", example = "GSPC.INDX,XLK.US")
+        @RequestParam symbols: String,
+        @Parameter(description = "Optional topic filter", required = false)
+        @RequestParam(required = false) topics: String? = null
+    ): Map<String, Any> = newsService.getMarketNews(symbols.split(","), topics)
 }

@@ -67,6 +67,36 @@ internal class EodhdNewsServiceTest {
     }
 
     @Test
+    fun `market news fetches verbatim proxy symbols without ticker-market resolution`() {
+        // Index/sector proxies arrive already exchange-qualified (GSPC.INDX). They must be queried
+        // verbatim — NOT re-suffixed to GSPC.INDX.US the way resolveSymbols treats held tickers.
+        whenever(fetchRepo.findById("GSPC.INDX")).thenReturn(Optional.empty())
+        whenever(fetchRepo.findById("XLK.US")).thenReturn(Optional.empty())
+        whenever(proxy.getNews(any(), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.6)))
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any()))
+            .thenReturn(listOf(storedArticle(polarity = 0.7, title = "Tech Wreck")))
+
+        val result = service.getMarketNews(listOf("GSPC.INDX", "xlk.us"), topics = null)
+
+        verify(proxy).getNews(eq("GSPC.INDX"), any(), anyOrNull(), any())
+        // Lower-case input is normalised, not re-resolved with an exchange suffix.
+        verify(proxy).getNews(eq("XLK.US"), any(), anyOrNull(), any())
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.first()["title"]).isEqualTo("Tech Wreck")
+    }
+
+    @Test
+    fun `market news with no proxy symbols short-circuits without an upstream call`() {
+        val result = service.getMarketNews(emptyList(), topics = null)
+
+        assertThat(result).isEmpty()
+        verify(proxy, never()).getNews(any(), any(), anyOrNull(), any())
+    }
+
+    @Test
     fun `per-symbol upstream refreshes run concurrently`() {
         // A batch of N stale tickers must fan out to N concurrent EODHD calls, not N serial ones.
         // Each fetch rendezvous at a CyclicBarrier sized to the batch: the barrier only trips once

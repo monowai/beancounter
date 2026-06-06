@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 
@@ -499,10 +501,8 @@ class AssetController(
         @RequestBody assetInput: AssetInput
     ): AssetResponse = AssetResponse(ownedAssetService.updateOwnedAsset(assetId, assetInput))
 
-    @DeleteMapping(
-        value = ["/admin/{assetId}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
+    @DeleteMapping(value = ["/admin/{assetId}"])
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
     @Operation(
         summary = "Admin: delete any asset that is not held in any transaction",
@@ -521,7 +521,7 @@ class AssetController(
     )
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "Asset deleted successfully"),
+            ApiResponse(responseCode = "204", description = "Asset deleted successfully"),
             ApiResponse(
                 responseCode = "400",
                 description = "Asset is referenced by one or more transactions"

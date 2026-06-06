@@ -108,7 +108,7 @@ internal class AdminAssetDeleteTest {
                     .delete(ADMIN_ASSET_PATH, assetId)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adminHelper.token))
                     .with(csrf())
-            ).andExpect(status().isOk)
+            ).andExpect(status().isNoContent)
 
         mockMvc
             .perform(

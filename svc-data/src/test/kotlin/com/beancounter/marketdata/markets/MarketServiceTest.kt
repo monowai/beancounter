@@ -6,6 +6,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.CAD
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
+import com.beancounter.marketdata.Constants.Companion.EUR
 import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
@@ -54,6 +55,21 @@ class MarketServiceTest {
         `when`(currencyService.getCode(SGD.code)).thenReturn(SGD)
         `when`(currencyService.getCode(GBP.code)).thenReturn(GBP)
         `when`(currencyService.getCode(CAD.code)).thenReturn(CAD)
+        `when`(currencyService.getCode(EUR.code)).thenReturn(EUR)
+    }
+
+    @Test
+    fun `should resolve AMS market and its EODHD alias`() {
+        val ams = marketService.getMarket("AMS")
+        assertThat(ams)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("currency.code", EUR.code)
+            .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone("Europe/Amsterdam"))
+        assertThat(ams.getAlias("eodhd")).isEqualTo("AS")
+        // `aliases` map preserves the YAML key casing; FIGI is read by direct
+        // lookup (see FigiProxy.kt:101). `getAlias` lowercases its input and
+        // only matches lowercase-stored keys (e.g. mstack/eodhd).
+        assertThat(ams.aliases["FIGI"]).isEqualTo("NA")
     }
 
     @Test

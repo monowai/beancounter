@@ -492,6 +492,16 @@ beancounter:
           FIGI: "LN"
           eodhd: "LSE"
 
+      - code: "AMS"
+        name: "Euronext Amsterdam"
+        currencyId: "EUR"
+        timezoneId: "Europe/Amsterdam"
+        aliases:
+          FIGI: "NA"
+          # EODHD codes Euronext Amsterdam as "AS" (verified via /api/exchanges-list).
+          # Useful for cross-listed ETFs (e.g. IGSG also trades on LSE in GBX).
+          eodhd: "AS"
+
       - code: "MUTF"
         name: "Mutual Funds"
         currencyId: "GBP"

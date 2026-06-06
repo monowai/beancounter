@@ -33,7 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger
  * Unit tests for [EodhdNewsService] with repos mocked. End-to-end persistence is covered by the
  * Spring + WireMock integration test ([EodhdNewsApiTest]); these specs pin the routing logic, the
  * refresh-gating, and the response shape.
+ *
+ * Repeated domain literals (ticker symbols, the `title`/`feed` projection keys) read clearer inline
+ * across these spec methods than hoisted into constants, so detekt's duplication rule is suppressed.
  */
+@Suppress("StringLiteralDuplication")
 internal class EodhdNewsServiceTest {
     private val proxy = mock<EodhdProxy>()
     private val marketService = mock<MarketService>()

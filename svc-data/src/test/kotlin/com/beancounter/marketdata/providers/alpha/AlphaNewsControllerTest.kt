@@ -19,12 +19,15 @@ internal class AlphaNewsControllerTest {
     @Test
     fun `getNews delegates tickers, market and topics to the facade`() {
         val expected = mapOf<String, Any>("feed" to listOf<Any>(), "count" to 0)
-        whenever(newsService.getNewsSentiment("AAPL", "US", "earnings")).thenReturn(expected)
+        val ticker = "AAPL"
+        val market = "US"
+        val topics = "earnings"
+        whenever(newsService.getNewsSentiment(ticker, market, topics)).thenReturn(expected)
 
-        val result = controller.getNews("AAPL", "US", "earnings")
+        val result = controller.getNews(ticker, market, topics)
 
         assertThat(result).isSameAs(expected)
-        verify(newsService).getNewsSentiment(eq("AAPL"), eq("US"), eq("earnings"))
+        verify(newsService).getNewsSentiment(eq(ticker), eq(market), eq(topics))
     }
 
     @Test

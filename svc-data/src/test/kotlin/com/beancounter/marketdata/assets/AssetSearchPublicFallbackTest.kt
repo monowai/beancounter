@@ -119,14 +119,15 @@ class AssetSearchPublicFallbackTest {
     fun `excludes results that sit on no supported BC market`() {
         // A provider surfaced a result on a venue BC doesn't model (XETRA). The UI would post that
         // market to /api/assets and 404 — the central guard must drop it before it ever surfaces.
+        val unsupported = "XETRA"
         val onXetra =
             AssetSearchResult(
                 symbol = "XYZ",
                 name = "Some Frankfurt Listing",
                 type = "ETF",
-                region = "XETRA",
+                region = unsupported,
                 currency = "EUR",
-                market = "XETRA"
+                market = unsupported
             )
         val provider =
             mock<MarketDataPriceProvider> {
@@ -135,7 +136,7 @@ class AssetSearchPublicFallbackTest {
         val strictMarkets =
             mock<MarketService> {
                 on { getMarket("US") } doReturn usMarket
-                on { getMarket("XETRA") } doThrow NotFoundException("Unable to resolve market code XETRA")
+                on { getMarket(unsupported) } doThrow NotFoundException("Unable to resolve market code $unsupported")
             }
         val (service, _) = buildService(marketProvider = provider, marketService = strictMarkets)
 

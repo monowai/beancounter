@@ -55,8 +55,30 @@ class EodhdNewsService(
         tickers: String,
         market: String?,
         topics: String?
+    ): Map<String, Any> = newsForSymbols(resolveSymbols(tickers, market), topics)
+
+    /**
+     * Market / sector news via proxy symbols. svc-agent passes already-resolved EODHD symbols
+     * (e.g. `GSPC.INDX` for the S&P 500, `XLK.US` for the tech sector SPDR) so macro and sector-wide
+     * moves surface even when no held ticker is tagged in the article. Symbols are verbatim — unlike
+     * [getNewsSentiment] there's no ticker+market resolution step — and otherwise share the same
+     * DB-backed refresh / rank / project pipeline.
+     */
+    @Transactional
+    override fun getMarketNews(
+        symbols: List<String>,
+        topics: String?
+    ): Map<String, Any> = newsForSymbols(symbols.map { it.trim().uppercase() }.filter { it.isNotBlank() }, topics)
+
+    /**
+     * Shared read path: refresh any stale symbols from upstream, then rank the stored articles by
+     * sentiment magnitude and project to the `{feed, count}` shape. Returns an empty map when no
+     * symbols resolve or nothing ranks — the no-coverage signal svc-agent's NewsTools expects.
+     */
+    private fun newsForSymbols(
+        symbols: List<String>,
+        topics: String?
     ): Map<String, Any> {
-        val symbols = resolveSymbols(tickers, market)
         if (symbols.isEmpty()) return emptyMap()
 
         val refreshCutoff = LocalDateTime.now().minusHours(newsProperties.refreshAfterHours)

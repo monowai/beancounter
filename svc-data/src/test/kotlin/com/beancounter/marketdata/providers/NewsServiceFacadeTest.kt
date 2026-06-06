@@ -72,6 +72,18 @@ internal class NewsServiceFacadeTest {
         assertThat(result).isEmpty()
     }
 
+    @Test
+    fun `market news routes to the active provider`() {
+        val (facade, alpha, eodhd) = facade(provider = "eodhd")
+        val symbols = listOf("GSPC.INDX", "XLK.US")
+        whenever(eodhd.getMarketNews(symbols, null)).thenReturn(mapOf("feed" to listOf<Any>()))
+
+        facade.getMarketNews(symbols)
+
+        verify(eodhd).getMarketNews(eq(symbols), eq(null))
+        verifyNoInteractions(alpha)
+    }
+
     private data class FacadeTriple(
         val facade: NewsServiceFacade,
         val alpha: AlphaNewsService,

@@ -25,7 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.HtmlUtils
 import reactor.core.publisher.Flux
+import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
@@ -50,7 +53,10 @@ class AgentController(
     private val environment: Environment,
     private val objectMapper: ObjectMapper,
     private val llmMetrics: LlmMetrics,
-    private val scopeAuthorizer: AgentScopeAuthorizer
+    private val scopeAuthorizer: AgentScopeAuthorizer,
+    // UTC clock for stamping the current date onto each user message. Defaulted so Spring wires it
+    // without a Clock bean; overridden in tests for a fixed date.
+    private val clock: Clock = Clock.systemUTC()
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -455,11 +461,27 @@ class AgentController(
         )
     }
 
-    private fun buildUserMessage(request: AgentQuery): String {
+    /**
+     * Assemble the user message: a current-date stamp, optional page context, then the question.
+     *
+     * The date line is load-bearing — the LLM has no inherent knowledge of today and otherwise
+     * answers from its training-cutoff frame (DeepSeek was dating "current" events to 2025). Stamped
+     * onto the user message rather than the system prompt so the static system prompt stays
+     * cache-stable across requests.
+     *
+     * `internal` for unit testing against a fixed [clock].
+     */
+    internal fun buildUserMessage(request: AgentQuery): String {
+        val dateLine = "[Current date: ${LocalDate.now(clock)}]"
         val ctx = request.context
-        if (ctx.isNullOrEmpty()) return request.query
-        val contextLine = ctx.entries.joinToString(", ") { "${it.key}: ${it.value}" }
-        return "[Page context: $contextLine]\n\n${request.query}"
+        val header =
+            if (ctx.isNullOrEmpty()) {
+                dateLine
+            } else {
+                val contextLine = ctx.entries.joinToString(", ") { "${it.key}: ${it.value}" }
+                "$dateLine\n[Page context: $contextLine]"
+            }
+        return "$header\n\n${request.query}"
     }
 }
 

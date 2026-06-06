@@ -33,7 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger
  * Unit tests for [EodhdNewsService] with repos mocked. End-to-end persistence is covered by the
  * Spring + WireMock integration test ([EodhdNewsApiTest]); these specs pin the routing logic, the
  * refresh-gating, and the response shape.
+ *
+ * Repeated domain literals (ticker symbols, the `title`/`feed` projection keys) read clearer inline
+ * across these spec methods than hoisted into constants, so detekt's duplication rule is suppressed.
  */
+@Suppress("StringLiteralDuplication")
 internal class EodhdNewsServiceTest {
     private val proxy = mock<EodhdProxy>()
     private val marketService = mock<MarketService>()
@@ -64,6 +68,39 @@ internal class EodhdNewsServiceTest {
 
         verify(proxy).getNews(eq("AAPL.US"), eq(10), eq(null), eq("demo"))
         verify(fetchRepo).save(any<NewsFetch>())
+    }
+
+    @Test
+    fun `market news fetches verbatim proxy symbols without ticker-market resolution`() {
+        // Index/sector proxies arrive already exchange-qualified (GSPC.INDX). They must be queried
+        // verbatim — NOT re-suffixed to GSPC.INDX.US the way resolveSymbols treats held tickers.
+        val index = "GSPC.INDX"
+        val sector = "XLK.US"
+        val headline = "Tech Wreck"
+        whenever(fetchRepo.findById(index)).thenReturn(Optional.empty())
+        whenever(fetchRepo.findById(sector)).thenReturn(Optional.empty())
+        whenever(proxy.getNews(any(), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.6)))
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any()))
+            .thenReturn(listOf(storedArticle(polarity = 0.7, title = headline)))
+
+        val result = service.getMarketNews(listOf(index, "xlk.us"), topics = null)
+
+        verify(proxy).getNews(eq(index), any(), anyOrNull(), any())
+        // Lower-case input is normalised, not re-resolved with an exchange suffix.
+        verify(proxy).getNews(eq(sector), any(), anyOrNull(), any())
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.first()["title"]).isEqualTo(headline)
+    }
+
+    @Test
+    fun `market news with no proxy symbols short-circuits without an upstream call`() {
+        val result = service.getMarketNews(emptyList(), topics = null)
+
+        assertThat(result).isEmpty()
+        verify(proxy, never()).getNews(any(), any(), anyOrNull(), any())
     }
 
     @Test

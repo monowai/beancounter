@@ -80,7 +80,8 @@ class AgentControllerTest {
     private fun controller(
         chatClient: ChatClient? = null,
         healthChecker: ServiceHealthChecker = stubChecker(),
-        scopeAuthorizer: AgentScopeAuthorizer = permissiveAuthorizer
+        scopeAuthorizer: AgentScopeAuthorizer = permissiveAuthorizer,
+        clock: java.time.Clock = java.time.Clock.systemUTC()
     ): AgentController =
         AgentController(
             chatClient,
@@ -94,7 +95,8 @@ class AgentControllerTest {
             environment,
             ObjectMapper(),
             LlmMetrics(),
-            scopeAuthorizer
+            scopeAuthorizer,
+            clock
         )
 
     private fun stubChecker(): ServiceHealthChecker =
@@ -129,6 +131,26 @@ class AgentControllerTest {
         org.mockito.kotlin
             .verify(checker)
             .check(llmAvailable = true)
+    }
+
+    @Test
+    fun `user message carries the current date so the model anchors to today not its training cutoff`() {
+        // DeepSeek answered with a 2025 frame because nothing in the prompt bound "today" to a real
+        // date. The user message must state the current date for every query.
+        val fixed = java.time.Clock.fixed(java.time.Instant.parse("2026-06-06T10:00:00Z"), java.time.ZoneOffset.UTC)
+        val question = "how is the market today?"
+
+        val withContext =
+            controller(clock = fixed)
+                .buildUserMessage(AgentQuery(question, context = mapOf("portfolioCode" to "VOO")))
+        val withoutContext = controller(clock = fixed).buildUserMessage(AgentQuery(question))
+
+        assertThat(withContext).contains("2026-06-06")
+        assertThat(withContext).contains("portfolioCode: VOO")
+        assertThat(withContext).contains(question)
+        // Even with no page context, the date must still be present.
+        assertThat(withoutContext).contains("2026-06-06")
+        assertThat(withoutContext).contains(question)
     }
 
     @Test

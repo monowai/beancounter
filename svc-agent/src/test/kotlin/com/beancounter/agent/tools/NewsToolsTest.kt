@@ -6,11 +6,17 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 
 /**
  * Verify that NewsTools delegates to AlphaVantageNewsClient correctly.
  */
 class NewsToolsTest {
+    private companion object {
+        const val MARKET = "market"
+        val INDEX_PROXIES = listOf("GSPC.INDX", "DJI.INDX")
+    }
+
     private val sampleResponse: Map<String, Any> =
         mapOf(
             "feed" to
@@ -89,6 +95,62 @@ class NewsToolsTest {
         val tools = NewsTools(client)
 
         val result = tools.getNews("GNE", "NZX")
+
+        assertThat(result["status"]).isEqualTo("no_coverage")
+    }
+
+    @Test
+    fun `getMarketNews maps the market scope to broad index proxies`() {
+        val client =
+            mock<AlphaVantageNewsClient> {
+                on { getMarketNews(INDEX_PROXIES, null) } doReturn sampleResponse
+            }
+        val tools = NewsTools(client)
+
+        val result = tools.getMarketNews(MARKET)
+
+        assertThat(result).isSameAs(sampleResponse)
+        verify(client).getMarketNews(INDEX_PROXIES, null)
+    }
+
+    @Test
+    fun `getMarketNews maps a sector scope to its SPDR ETF proxy`() {
+        val client =
+            mock<AlphaVantageNewsClient> {
+                on { getMarketNews(listOf("XLK.US"), null) } doReturn sampleResponse
+            }
+        val tools = NewsTools(client)
+
+        // Case-insensitive scope resolution.
+        val result = tools.getMarketNews("Technology")
+
+        assertThat(result).isSameAs(sampleResponse)
+        verify(client).getMarketNews(listOf("XLK.US"), null)
+    }
+
+    @Test
+    fun `getMarketNews returns unknown_scope without hitting the client for a bad scope`() {
+        val client = mock<AlphaVantageNewsClient>()
+        val tools = NewsTools(client)
+
+        val result = tools.getMarketNews("crypto")
+
+        assertThat(result["status"]).isEqualTo("unknown_scope")
+        @Suppress("UNCHECKED_CAST")
+        val supported = result["supportedScopes"] as List<String>
+        assertThat(supported).contains("market", "technology", "energy")
+        verifyNoInteractions(client)
+    }
+
+    @Test
+    fun `getMarketNews returns no_coverage when the proxy yields an empty feed`() {
+        val client =
+            mock<AlphaVantageNewsClient> {
+                on { getMarketNews(INDEX_PROXIES, null) } doReturn mapOf("feed" to emptyList<Any>())
+            }
+        val tools = NewsTools(client)
+
+        val result = tools.getMarketNews(MARKET)
 
         assertThat(result["status"]).isEqualTo("no_coverage")
     }

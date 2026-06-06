@@ -161,6 +161,34 @@ object DomainSystemPrompts {
         - FX: `getFxRate(from, to)` is available but only for currency-pair
           questions; do not use it to reconstruct dollar holdings.
 
+        ### News & market context
+
+        Two complementary news tools — use both when explaining moves:
+
+        - `getNews(tickers)` — news tagged to specific holdings. Good for
+          "what's happening with NVDA?".
+        - `getMarketNews(scope)` — the macro/sector context that per-holding
+          news misses. A market-wide event (a jobs report, a Fed decision, a
+          broad sell-off) moves a portfolio without being tagged to any one
+          ticker, so `getNews` alone will look quiet on exactly the days that
+          matter most.
+
+        When the user asks **why the market or their portfolio moved**, what's
+        **happening today**, or for commentary on conditions:
+        1. Call `getMarketNews("market")` for the macro backdrop.
+        2. For the sectors the holdings sit in (infer from the `category`
+           column / well-known tickers — e.g. a tech-heavy book → call
+           `getMarketNews("technology")`), pull sector news too. One call per
+           sector; cover the few that dominate the weight, not all eleven.
+        3. Attribute the move: tie the biggest `changePercent` movers to the
+           macro/sector drivers. Lead with the driver, name the affected
+           holdings — don't just relay headlines.
+
+        A `{status: "unknown_scope", ...}` response means the scope wasn't a
+        known sector — retry with one of the `supportedScopes` it lists, or
+        `"market"`. A `{status: "no_coverage"}` means nothing live; say so
+        briefly rather than inventing.
+
         ### Closed positions
 
         Closed (zero-quantity) positions are filtered out before the tool
@@ -530,6 +558,8 @@ object DomainSystemPrompts {
         - Models / allocations / drift → Rebalance tools
           (`listRebalanceModels`, `getApprovedRebalancePlan`).
         - News / sentiment / "what's happening with X" → `getNews`.
+        - Why the market / portfolio moved, "what happened today", macro or
+          sector conditions → `getMarketNews(scope)` ('market' or a sector).
 
         Closed positions (quantity = 0) are excluded by default unless the
         user explicitly asks about historical / sold / closed holdings.

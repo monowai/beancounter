@@ -7,7 +7,9 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.NumberUtils
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -17,7 +19,8 @@ import java.math.BigDecimal
  */
 @Service
 class FxTransactions(
-    private val fxClientService: FxService
+    private val fxClientService: FxService,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val numberUtils = NumberUtils()
 
@@ -95,7 +98,10 @@ class FxTransactions(
                 numberUtils.isUnset(trnInput.tradeBaseRate) ||
                 numberUtils.isUnset(trnInput.tradeCashRate)
         ) &&
-            trnInput.trnType != TrnType.SPLIT
+            trnInput.trnType != TrnType.SPLIT &&
+            // Forward tradeDate (e.g. DIVI pay date 18 days out) — FX providers reject
+            // future dates. Auto-settle resolves rates when tradeDate arrives.
+            !trnInput.tradeDate.isAfter(dateUtils.date)
 
     fun setRates(
         portfolio: Portfolio,
@@ -106,5 +112,64 @@ class FxTransactions(
             val (data) = fxClientService.getRates(fxRequest)
             setRates(data, fxRequest, trnInput)
         }
+    }
+
+    /**
+     * Settle-time FX resolution. PROPOSED corporate-event trns (DIVI) are written with
+     * forward-dated tradeDate (= payDate) and their FX rates are deferred (see
+     * `needsRates(TrnInput)`). When auto-settle (or a manual settle) flips PROPOSED → SETTLED
+     * the tradeDate has now arrived, so we resolve and stamp the rates on the persisted Trn.
+     */
+    fun setRates(
+        portfolio: Portfolio,
+        trn: Trn
+    ) {
+        if (!needsRates(trn)) return
+        val fxRequest = getFxRequest(portfolio, trn)
+        val (data) = fxClientService.getRates(fxRequest)
+        // Resolve all three rates into locals first. If the provider returns an
+        // incomplete response, throw before touching the managed entity so the
+        // Trn is not left partially mutated in the JPA persistence context.
+        val pf = resolveRate(fxRequest.tradePf, trn.tradePortfolioRate, data)
+        val base = resolveRate(fxRequest.tradeBase, trn.tradeBaseRate, data)
+        val cash = resolveRate(fxRequest.tradeCash, trn.tradeCashRate, data)
+        trn.tradePortfolioRate = pf
+        trn.tradeBaseRate = base
+        trn.tradeCashRate = cash
+    }
+
+    private fun resolveRate(
+        pair: IsoCurrencyPair?,
+        current: BigDecimal,
+        data: FxPairResults
+    ): BigDecimal {
+        if (pair != null && numberUtils.isUnset(current)) {
+            return data.rates[pair]?.rate
+                ?: throw IllegalStateException("FX rate missing for $pair")
+        }
+        return if (numberUtils.isUnset(current)) BigDecimal.ONE else current
+    }
+
+    fun needsRates(trn: Trn): Boolean =
+        (
+            numberUtils.isUnset(trn.tradePortfolioRate) ||
+                numberUtils.isUnset(trn.tradeBaseRate) ||
+                numberUtils.isUnset(trn.tradeCashRate)
+        ) &&
+            trn.trnType != TrnType.SPLIT &&
+            !trn.tradeDate.isAfter(dateUtils.date)
+
+    private fun getFxRequest(
+        portfolio: Portfolio,
+        trn: Trn
+    ): FxRequest {
+        val tradeDate = trn.tradeDate.toString()
+        val fxRequest = FxRequest(tradeDate, mutableSetOf())
+        fxRequest.addTradePf(pair(trn.tradeCurrency, portfolio.currency, trn.tradePortfolioRate))
+        fxRequest.addTradeBase(pair(trn.tradeCurrency, portfolio.base, trn.tradeBaseRate))
+        trn.cashCurrency?.let { cash ->
+            fxRequest.addTradeCash(pair(trn.tradeCurrency, cash, trn.tradeCashRate))
+        }
+        return fxRequest
     }
 }

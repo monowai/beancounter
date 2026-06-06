@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -24,7 +25,8 @@ import org.springframework.stereotype.Service
 class AutoSettleService(
     private val trnRepository: TrnRepository,
     private val dateUtils: DateUtils,
-    private val userPreferencesService: UserPreferencesService
+    private val userPreferencesService: UserPreferencesService,
+    private val fxTransactions: FxTransactions
 ) {
     private val log = LoggerFactory.getLogger(AutoSettleService::class.java)
 
@@ -71,6 +73,19 @@ class AutoSettleService(
                     "Skipping auto-settle for {} — owner {} has autoSettle disabled",
                     trn.id,
                     owner.id
+                )
+                continue
+            }
+            // Resolve FX rates now that tradeDate has arrived. Ingest of PROPOSED
+            // event trns defers FX (forward payDate; providers reject future dates).
+            try {
+                fxTransactions.setRates(trn.portfolio, trn)
+            } catch (ex: RuntimeException) {
+                log.warn(
+                    "FX resolution failed for {} on {} — leaving PROPOSED for retry: {}",
+                    trn.id,
+                    trn.tradeDate,
+                    ex.message
                 )
                 continue
             }

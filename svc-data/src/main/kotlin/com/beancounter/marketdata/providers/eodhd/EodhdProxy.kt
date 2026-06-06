@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
@@ -26,6 +27,20 @@ class EodhdProxy(
     ): List<EodhdPrice> =
         eodhdGateway.getPrice(
             symbol,
+            date,
+            apiKey
+        )
+
+    @RateLimiter(name = "eodhd")
+    fun getBulkPrices(
+        exchange: String,
+        symbols: String,
+        date: String,
+        apiKey: String
+    ): List<EodhdBulkPrice> =
+        eodhdGateway.getBulkPrices(
+            exchange,
+            symbols,
             date,
             apiKey
         )

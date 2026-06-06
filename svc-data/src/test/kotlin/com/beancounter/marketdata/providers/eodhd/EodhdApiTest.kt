@@ -9,11 +9,15 @@ import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.providers.eodhd.EodhdPriceService.Companion.ID
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -39,6 +43,13 @@ internal class EodhdApiTest {
 
     @Autowired
     private lateinit var eodhdPriceService: EodhdPriceService
+
+    // Reset between tests so per-test stub/verify counters don't bleed into
+    // siblings — the bulk-routing tests register `/api/eod-bulk-last-day/US`
+    // stubs that would otherwise carry over and turn the per-symbol 404 test
+    // into a bulk-path test.
+    @AfterEach
+    fun resetWireMock() = WireMock.reset()
 
     @Test
     fun `returns priced market data for a US symbol`() {
@@ -118,6 +129,92 @@ internal class EodhdApiTest {
 
         assertThat(date).isNotNull
         assertThat(date.toString()).matches("\\d{4}-\\d{2}-\\d{2}")
+    }
+
+    @Test
+    fun `multi-symbol batch routes through the bulk last-day endpoint`() {
+        // Regression: pre-bulk implementation hit `/api/eod/{symbol}` once per asset,
+        // taking ~1s × N round-trips on the cold-cache PortfolioValuationSchedule
+        // fan-out. Bulk endpoint collapses N requests to 1; this asserts the routing
+        // change holds AND both symbols' prices come back mapped to the right assets.
+        val body = ClassPathResource("mock/eodhd/bulk-US-AAPL-MSFT.json").file.readText()
+        stubFor(
+            get(urlPathEqualTo("/api/eod-bulk-last-day/US"))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(body)
+                        .withStatus(200)
+                )
+        )
+
+        val result =
+            eodhdPriceService.getMarketData(
+                PriceRequest(
+                    "2024-11-29",
+                    listOf(PriceAsset(AAPL), PriceAsset(MSFT))
+                )
+            )
+
+        // Bulk endpoint called once with both symbols and the requested date as query params.
+        WireMock.verify(
+            1,
+            getRequestedFor(urlPathEqualTo("/api/eod-bulk-last-day/US"))
+                .withQueryParam("symbols", equalTo("AAPL.US,MSFT.US"))
+                .withQueryParam("date", equalTo("2024-11-29"))
+        )
+
+        // Per-symbol fallback path NOT exercised.
+        WireMock.verify(0, getRequestedFor(urlPathEqualTo("/api/eod/AAPL.US")))
+        WireMock.verify(0, getRequestedFor(urlPathEqualTo("/api/eod/MSFT.US")))
+
+        assertThat(result).hasSize(2)
+        val byCode = result.associateBy { it.asset.code }
+        assertThat(byCode["AAPL"]?.close).isEqualByComparingTo(BigDecimal("237.33"))
+        assertThat(byCode["MSFT"]?.close).isEqualByComparingTo(BigDecimal("423.46"))
+        result.forEach { md -> assertThat(md.source).isEqualTo(ID) }
+    }
+
+    @Test
+    fun `missing symbol in bulk response yields a zero-close row for parity with per-symbol path`() {
+        // Bulk response only carries AAPL — MSFT was requested but EODHD omitted it
+        // (delisted, bad symbol, weekend). The adapter must still emit a row for MSFT
+        // so downstream callers see every requested asset, matching per-symbol behaviour.
+        val body = """[
+            {
+              "code": "AAPL",
+              "exchange_short_name": "US",
+              "date": "2024-11-29",
+              "open": 234.81,
+              "high": 237.81,
+              "low": 233.97,
+              "close": 237.33,
+              "adjusted_close": 237.33,
+              "volume": 28481377
+            }
+        ]"""
+        stubFor(
+            get(urlPathEqualTo("/api/eod-bulk-last-day/US"))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(body)
+                        .withStatus(200)
+                )
+        )
+
+        val result =
+            eodhdPriceService.getMarketData(
+                PriceRequest(
+                    "2024-11-29",
+                    listOf(PriceAsset(AAPL), PriceAsset(MSFT))
+                )
+            )
+
+        assertThat(result).hasSize(2)
+        val byCode = result.associateBy { it.asset.code }
+        assertThat(byCode["AAPL"]?.close).isEqualByComparingTo(BigDecimal("237.33"))
+        assertThat(byCode["MSFT"]?.close).isEqualByComparingTo(BigDecimal.ZERO)
     }
 
     @Test

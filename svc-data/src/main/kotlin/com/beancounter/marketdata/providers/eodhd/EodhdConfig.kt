@@ -31,8 +31,14 @@ import java.time.LocalDate
 class EodhdConfig(
     val marketService: MarketService
 ) : DataProviderConfig {
-    @Value($$"${beancounter.market.providers.eodhd.batchSize:1}")
-    var assetsPerRequest = 1
+    // Bulk endpoint groups up to N symbols per HTTP round-trip (see
+    // `EodhdPriceService.fetchBulk`). Default sized for the scheduled
+    // PortfolioValuationSchedule fan-out — covers a typical kauri valuation
+    // cycle (~14 unique held US tickers) in a single bulk call instead of N
+    // serial `/api/eod/{symbol}` round-trips. Raise via env var if a single
+    // portfolio holds more positions than this.
+    @Value($$"${beancounter.market.providers.eodhd.batchSize:50}")
+    var assetsPerRequest = 50
 
     @Value($$"${beancounter.market.providers.eodhd.markets:}")
     var markets: String? = null
@@ -47,6 +53,15 @@ class EodhdConfig(
         marketService
             .getMarket(market.code)
             .getAlias(EodhdPriceService.ID)
+
+    /**
+     * EODHD exchange code for [market], resolved via `MarketService` so the alias map
+     * configured in `application.yml` is honoured. Falls back to the raw market code
+     * when no `eodhd` alias is configured. Public to support bulk-endpoint routing in
+     * [EodhdPriceService.fetchBulk] where the exchange goes in the URL path.
+     */
+    fun getExchange(market: Market): String =
+        translateMarketCode(market).takeUnless { it.isNullOrEmpty() } ?: market.code
 
     override fun getMarketDate(
         market: Market,

@@ -39,6 +39,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 
+private const val ADMIN_ASSET_PATH = "$ASSET_ROOT/admin/{assetId}"
+
 /**
  * Verifies the admin DELETE /assets/admin/{assetId} endpoint introduced for
  * the Asset Lookup "delete + reload" flow on bc-view. The endpoint refuses
@@ -103,7 +105,7 @@ internal class AdminAssetDeleteTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("$ASSET_ROOT/admin/{assetId}", assetId)
+                    .delete(ADMIN_ASSET_PATH, assetId)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adminHelper.token))
                     .with(csrf())
             ).andExpect(status().isOk)
@@ -143,7 +145,7 @@ internal class AdminAssetDeleteTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("$ASSET_ROOT/admin/{assetId}", assetId)
+                    .delete(ADMIN_ASSET_PATH, assetId)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(adminHelper.token))
                     .with(csrf())
             ).andExpect(status().isBadRequest)
@@ -162,7 +164,7 @@ internal class AdminAssetDeleteTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("$ASSET_ROOT/admin/{assetId}", "any-id")
+                    .delete(ADMIN_ASSET_PATH, "any-id")
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(noRoles))
                     .with(csrf())
             ).andExpect(status().isForbidden)

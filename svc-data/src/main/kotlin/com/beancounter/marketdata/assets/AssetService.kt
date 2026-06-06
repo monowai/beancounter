@@ -13,6 +13,7 @@ import com.beancounter.common.model.Status
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
@@ -39,6 +40,8 @@ class AssetService(
     private val assetFinder: AssetFinder,
     private val assetCategoryConfig: AssetCategoryConfig,
     private val accountingTypeService: AccountingTypeService,
+    private val trnRepository: TrnRepository,
+    private val assetCascadeDeleter: AssetCascadeDeleter,
     transactionManager: PlatformTransactionManager
 ) : Assets {
     // New transaction template for recovery lookups after constraint violations
@@ -249,6 +252,41 @@ class AssetService(
         // saveAndFlush — AssetEntityListener (@PostUpdate) needs an immediate
         // flush to rehydrate transient fields on the managed instance.
         return assetRepository.saveAndFlush(asset)
+    }
+
+    /**
+     * Admin-only delete of an arbitrary asset (public-market or user-owned).
+     *
+     * Refuses to delete when the asset is still referenced by any transaction
+     * (either as the trade asset or the cash settlement asset). The caller is
+     * expected to confirm the asset isn't held in any portfolio before
+     * issuing the request — this guard is the server-side enforcement of
+     * that invariant.
+     *
+     * Cascades deletion of remaining dependents (market data, classifications,
+     * exposures, holdings, broker settlement accounts, private asset config).
+     *
+     * @throws NotFoundException if asset not found
+     * @throws BusinessException if asset is referenced by transactions
+     */
+    fun deleteAsset(assetId: String) {
+        val asset =
+            assetRepository.findById(assetId).orElseThrow {
+                NotFoundException("Asset not found: $assetId")
+            }
+        if (trnRepository.existsByAssetId(assetId)) {
+            throw BusinessException(
+                "Cannot delete asset $assetId — held in one or more transactions"
+            )
+        }
+        if (trnRepository.existsByCashAssetId(assetId)) {
+            throw BusinessException(
+                "Cannot delete asset $assetId — referenced as cash settlement on transactions"
+            )
+        }
+        assetCascadeDeleter.deleteDependents(assetId)
+        assetRepository.delete(asset)
+        log.info("Admin deleted asset {} ({}.{})", assetId, asset.market.code, asset.code)
     }
 
     /**

@@ -268,6 +268,44 @@ class UserPreferencesServiceTest {
         assertThat(updated.defaultHoldingsView).isEqualTo(defaultView)
     }
 
+    @Test
+    fun `should persist demographic fields and surface them on subsequent reads`() {
+        val user = createAndAuthenticateUser("prefs-test-demographics@email.com")
+
+        // Default: all three demographic fields null
+        val initial = userPreferencesService.getOrCreate(user)
+        assertThat(initial.yearOfBirth).isNull()
+        assertThat(initial.monthOfBirth).isNull()
+        assertThat(initial.targetIndependenceAge).isNull()
+        assertThat(initial.lifeExpectancy).isNull()
+
+        // Onboarding writes all four — including targetIndependenceAge which
+        // didn't exist on the entity before. Without that field, the wizard's
+        // target age (the only place it's collected) had nowhere to land,
+        // and svc-retire's /settings GET fell back to its defaults.
+        val updated =
+            userPreferencesService.update(
+                user,
+                UserPreferencesRequest(
+                    yearOfBirth = 1981,
+                    monthOfBirth = 1,
+                    targetIndependenceAge = 60,
+                    lifeExpectancy = 90
+                )
+            )
+
+        assertThat(updated.yearOfBirth).isEqualTo(1981)
+        assertThat(updated.monthOfBirth).isEqualTo(1)
+        assertThat(updated.targetIndependenceAge).isEqualTo(60)
+        assertThat(updated.lifeExpectancy).isEqualTo(90)
+
+        // Re-reading goes through the persisted store, not the in-memory
+        // return value of update() — guards against the entity field
+        // being added but the column missing.
+        val reread = userPreferencesService.getOrCreate(user)
+        assertThat(reread.targetIndependenceAge).isEqualTo(60)
+    }
+
     private fun createAndAuthenticateUser(email: String): SystemUser {
         val user = SystemUser(email = email, auth0 = "auth0-$email")
         authUtilService.authenticate(user, AuthUtilService.AuthProvider.AUTH0)

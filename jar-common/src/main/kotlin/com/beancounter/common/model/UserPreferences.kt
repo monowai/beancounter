@@ -42,15 +42,16 @@ data class UserPreferences(
     var milestoneMode: MilestoneMode = MilestoneMode.ACTIVE,
     @Column(name = "auto_settle")
     var autoSettle: Boolean = true,
-    // Profile demographics — mirrored from svc-retire's UserIndependenceSettings
-    // so screens that live in the svc-data scope (Edit Asset, holdings views)
-    // can resolve the user's current age without a runtime dependency on
-    // svc-retire. svc-retire still owns the write of these fields; this is
-    // a denormalised read copy.
+    // Profile demographics. svc-data is the master record — onboarding writes
+    // these directly here (PATCH /api/me), and svc-retire reads them as the
+    // user's account-wide default when its own per-plan profile has no
+    // override yet. See bc-claude/USER_PROFILE.md.
     @Column(name = "year_of_birth")
     var yearOfBirth: Int? = null,
     @Column(name = "month_of_birth")
     var monthOfBirth: Int? = null,
+    @Column(name = "target_independence_age")
+    var targetIndependenceAge: Int? = null,
     @Column(name = "life_expectancy")
     var lifeExpectancy: Int? = null
 )

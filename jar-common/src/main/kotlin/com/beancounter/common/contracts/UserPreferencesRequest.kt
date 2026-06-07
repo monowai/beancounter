@@ -22,5 +22,6 @@ data class UserPreferencesRequest(
     val autoSettle: Boolean? = null,
     val yearOfBirth: Int? = null,
     val monthOfBirth: Int? = null,
+    val targetIndependenceAge: Int? = null,
     val lifeExpectancy: Int? = null
 )

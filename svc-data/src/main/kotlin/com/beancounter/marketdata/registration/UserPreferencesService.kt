@@ -53,6 +53,7 @@ class UserPreferencesService(
         request.autoSettle?.let { preferences.autoSettle = it }
         request.yearOfBirth?.let { preferences.yearOfBirth = it }
         request.monthOfBirth?.let { preferences.monthOfBirth = it }
+        request.targetIndependenceAge?.let { preferences.targetIndependenceAge = it }
         request.lifeExpectancy?.let { preferences.lifeExpectancy = it }
         return userPreferencesRepository.save(preferences)
     }

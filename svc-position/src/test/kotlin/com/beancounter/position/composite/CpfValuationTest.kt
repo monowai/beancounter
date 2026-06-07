@@ -10,7 +10,11 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class CpfValuationTest {
-    private val valuation = CpfValuation()
+    private val valuation =
+        CpfValuation(
+            com.beancounter.common.composite
+                .CompositeValuation()
+        )
     private val asAt = LocalDate.of(2026, 6, 7)
     private val cpfAsset =
         Asset(

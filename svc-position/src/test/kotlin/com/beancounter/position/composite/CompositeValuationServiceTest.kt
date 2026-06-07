@@ -40,7 +40,17 @@ class CompositeValuationServiceTest {
             PrivateAssetConfigDto(assetId = cpfAsset.id, policyType = null)
         )
 
-        val service = CompositeValuationService(configClient, assets, listOf(CpfValuation()))
+        val service =
+            CompositeValuationService(
+                configClient,
+                assets,
+                listOf(
+                    CpfValuation(
+                        com.beancounter.common.composite
+                            .CompositeValuation()
+                    )
+                )
+            )
 
         assertThat(service.valueFor(cpfAsset.id, asAt)).isNull()
     }
@@ -53,7 +63,17 @@ class CompositeValuationServiceTest {
             PrivateAssetConfigDto(assetId = cpfAsset.id, policyType = "ILP")
         )
 
-        val service = CompositeValuationService(configClient, assets, listOf(CpfValuation()))
+        val service =
+            CompositeValuationService(
+                configClient,
+                assets,
+                listOf(
+                    CpfValuation(
+                        com.beancounter.common.composite
+                            .CompositeValuation()
+                    )
+                )
+            )
 
         assertThat(service.valueFor(cpfAsset.id, asAt)).isNull()
     }
@@ -65,7 +85,17 @@ class CompositeValuationServiceTest {
         whenever(configClient.find(cpfAsset.id)).thenReturn(cpfConfig)
         whenever(assets.find(cpfAsset.id)).thenReturn(cpfAsset)
 
-        val service = CompositeValuationService(configClient, assets, listOf(CpfValuation()))
+        val service =
+            CompositeValuationService(
+                configClient,
+                assets,
+                listOf(
+                    CpfValuation(
+                        com.beancounter.common.composite
+                            .CompositeValuation()
+                    )
+                )
+            )
 
         val position = service.valueFor(cpfAsset.id, asAt)
 

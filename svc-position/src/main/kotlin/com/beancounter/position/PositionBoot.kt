@@ -12,6 +12,7 @@ import org.springframework.boot.runApplication
     scanBasePackages = [
         "com.beancounter.position",
         "com.beancounter.auth",
+        "com.beancounter.common.composite",
         "com.beancounter.common.utils",
         "com.beancounter.common.telemetry",
         "com.beancounter.common.exception"

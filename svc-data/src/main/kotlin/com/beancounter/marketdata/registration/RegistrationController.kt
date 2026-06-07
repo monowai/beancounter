@@ -56,8 +56,14 @@ class RegistrationController internal constructor(
         return RegistrationResponse(user, preferences)
     }
 
+    // Authenticated, but not yet role-bound: a freshly-signed-up Auth0 user
+    // arrives without SCOPE_USER (role assignment happens via the post-login
+    // Action, which may not fire on every signup path). Allowing any
+    // authenticated principal unblocks the self-registration chicken-and-egg.
+    // SystemUserService.register() still rejects M2M tokens and requires the
+    // email claim, so the only callers it admits are real human users.
     @PostMapping(value = ["/register"])
-    @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_USER + "')")
+    @PreAuthorize("isAuthenticated()")
     fun register(
         @RequestBody(required = false) registrationRequest: RegistrationRequest
     ): RegistrationResponse {

@@ -87,6 +87,74 @@ class RegistrationControllerTest {
     }
 
     @Test
+    fun `authenticated user without SCOPE_USER can self-register`() {
+        // Mirrors a real Auth0 signup before the post-login Action assigns the
+        // 'user' role: the token is valid and carries an email claim, but
+        // permissions[] is empty. /register must still admit them, otherwise
+        // the user is stuck in a 403 chicken-and-egg loop.
+        val freshSignup =
+            SystemUser(
+                email = "fresh-signup@testing.com",
+                auth0 = "auth0|fresh-signup"
+            )
+        // getAuth0Token emits the bare minimum a real Auth0 user token
+        // carries (auth0 sub + email claim) with no role authorities — the
+        // scope shape Mary's token had on kauri.
+        val auth0LikeToken = mockAuthConfig.tokenUtils.getAuth0Token(freshSignup)
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/register")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(auth0LikeToken))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(RegistrationRequest()))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+
+        // Belt-and-braces: a token literally stripped of every role/scope
+        // (the pathological pre-Action state) should also be admitted.
+        val stillFresh =
+            SystemUser(
+                email = "another-fresh@testing.com",
+                auth0 = "auth0|another-fresh"
+            )
+        // getNoRolesToken doesn't emit an email claim; the registration body
+        // will fail at the email-claim check below — that's the correct
+        // 4xx (BusinessException), NOT the 403 the old PreAuthorize threw.
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/register")
+                    .with(
+                        SecurityMockMvcRequestPostProcessors.jwt().jwt(
+                            mockAuthConfig.tokenUtils.getNoRolesToken(stillFresh)
+                        )
+                    ).with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(RegistrationRequest()))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+    }
+
+    @Test
+    fun `M2M token cannot self-register`() {
+        // Service tokens are admitted by isAuthenticated() at the
+        // @PreAuthorize layer, but SystemUserService.register() rejects them
+        // explicitly — otherwise a service caller could mint SystemUser rows
+        // keyed to the M2M client_id.
+        val m2m = mockAuthConfig.tokenUtils.getSystemToken(Constants.systemUser)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/register")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(m2m))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(objectMapper.writeValueAsString(RegistrationRequest()))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+    }
+
+    @Test
     fun `should return forbidden when accessing me endpoint as unregistered user`() {
         val user =
             SystemUser(

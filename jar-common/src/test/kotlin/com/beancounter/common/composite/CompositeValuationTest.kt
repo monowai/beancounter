@@ -61,6 +61,25 @@ class CompositeValuationTest {
             entry("MA", BigDecimal("58000")),
             entry("RA", BigDecimal("0"))
         )
+        assertThat(result.byCode.keys).containsExactly("OA", "SA", "MA", "RA")
+    }
+
+    @Test
+    fun `duplicate sub-account codes accumulate in byCode`() {
+        val result =
+            valuation.value(
+                policyType = "CPF",
+                subAccounts =
+                    listOf(
+                        SubAccountBalance(code = "OA", balance = BigDecimal("100"), liquid = true),
+                        SubAccountBalance(code = "OA", balance = BigDecimal("50"), liquid = true)
+                    )
+            )
+
+        assertThat(result).isNotNull
+        assertThat(result!!.total).isEqualByComparingTo(BigDecimal("150"))
+        assertThat(result.liquid).isEqualByComparingTo(BigDecimal("150"))
+        assertThat(result.byCode).containsOnly(entry("OA", BigDecimal("150")))
     }
 
     @Test

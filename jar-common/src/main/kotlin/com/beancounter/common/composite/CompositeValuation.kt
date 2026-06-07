@@ -38,7 +38,7 @@ class CompositeValuation {
             } else {
                 nonLiquid = nonLiquid.add(sub.balance)
             }
-            byCode[sub.code] = sub.balance
+            byCode.merge(sub.code, sub.balance, BigDecimal::add)
         }
 
         return CompositeBalance(

@@ -12,7 +12,14 @@ data class AllocationData(
     val housingAllocation: BigDecimal = BigDecimal.ZERO,
     val totalValue: BigDecimal = BigDecimal.ZERO,
     val currency: String = "USD",
-    val categoryBreakdown: Map<String, CategoryAllocation> = emptyMap()
+    val categoryBreakdown: Map<String, CategoryAllocation> = emptyMap(),
+    /**
+     * Asset ids represented in the underlying portfolio positions. Lets
+     * callers deduplicate against config-driven rollups (e.g. composite
+     * pensions linked into a portfolio via a BALANCE trn) so a single
+     * holding doesn't get counted twice in plan totals.
+     */
+    val heldAssetIds: Set<String> = emptySet()
 )
 
 /**

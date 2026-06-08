@@ -5,12 +5,16 @@ import com.beancounter.client.FxService
 import com.beancounter.common.contracts.AllocationData
 import com.beancounter.common.contracts.CategoryAllocation
 import com.beancounter.common.contracts.FxRequest
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.position.composite.AssetConfigClient
+import com.beancounter.position.composite.PrivateAssetConfigDto
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -23,7 +27,8 @@ import java.math.RoundingMode
 @Service
 class AllocationService(
     private val tokenService: TokenService,
-    private val fxService: FxService
+    private val fxService: FxService,
+    private val assetConfigClient: AssetConfigClient
 ) {
     /**
      * Calculate allocation breakdown from positions.
@@ -86,6 +91,8 @@ class AllocationService(
                 .map { it.asset.id }
                 .toSet()
 
+        val (compositeLiquid, compositeNonLiquid) = compositeSplit(positions, valueIn)
+
         return AllocationData(
             cashAllocation = cashAllocation,
             equityAllocation = equityAllocation,
@@ -93,8 +100,78 @@ class AllocationService(
             totalValue = totalValue.setScale(2, RoundingMode.HALF_UP),
             currency = currency,
             categoryBreakdown = categoryBreakdown,
-            heldAssetIds = heldAssetIds
+            heldAssetIds = heldAssetIds,
+            compositeLiquid = compositeLiquid.setScale(2, RoundingMode.HALF_UP),
+            compositeNonLiquid = compositeNonLiquid.setScale(2, RoundingMode.HALF_UP)
         )
+    }
+
+    /**
+     * Splits the value of any composite-policy position (currently CPF —
+     * any position whose [Position.subAccounts] map is non-empty) into a
+     * liquid and non-liquid portion, in the requested valuation bucket's
+     * currency. The split is driven by the sub-account [liquid] flag on
+     * [com.beancounter.position.composite.SubAccountDto] — the same flag
+     * jar-common's [com.beancounter.common.composite.CompositeValuation]
+     * uses, so svc-position and svc-retire stay in lock-step.
+     *
+     * The position's bucket [MoneyValues.marketValue] is the truth for
+     * what the user sees; we apply the liquid/total ratio (derived from
+     * the asset config sub-account balances) to that figure. That keeps
+     * the FX conversion path identical to the rest of the allocation
+     * math — there is no second currency hop.
+     */
+    private fun compositeSplit(
+        positions: Positions,
+        valueIn: Position.In
+    ): Pair<BigDecimal, BigDecimal> {
+        var liquid = BigDecimal.ZERO
+        var nonLiquid = BigDecimal.ZERO
+        for (position in positions.positions.values) {
+            if (position.subAccounts.isEmpty()) continue
+            val marketValue = position.moneyValues[valueIn]?.marketValue ?: BigDecimal.ZERO
+            if (marketValue.signum() <= 0) continue
+            val config =
+                try {
+                    assetConfigClient.find(position.asset.id)
+                } catch (_: NotFoundException) {
+                    // Position has sub-accounts but no config — degrade
+                    // gracefully (treat all as liquid via the default
+                    // bucket logic upstream).
+                    continue
+                } catch (ex: BusinessException) {
+                    log.warn(
+                        "Composite split skipped for {}: {}",
+                        position.asset.id,
+                        ex.message
+                    )
+                    continue
+                }
+            val (liquidShare, nonLiquidShare) = splitMarketValue(config, marketValue)
+            liquid = liquid.add(liquidShare)
+            nonLiquid = nonLiquid.add(nonLiquidShare)
+        }
+        return liquid to nonLiquid
+    }
+
+    private fun splitMarketValue(
+        config: PrivateAssetConfigDto,
+        marketValue: BigDecimal
+    ): Pair<BigDecimal, BigDecimal> {
+        val total =
+            config.subAccounts
+                .fold(BigDecimal.ZERO) { acc, sa -> acc.add(sa.balance) }
+        if (total.signum() <= 0) return BigDecimal.ZERO to BigDecimal.ZERO
+        val liquidBalance =
+            config.subAccounts
+                .filter { it.liquid }
+                .fold(BigDecimal.ZERO) { acc, sa -> acc.add(sa.balance) }
+        val liquidShare =
+            marketValue
+                .multiply(liquidBalance)
+                .divide(total, 4, RoundingMode.HALF_UP)
+        val nonLiquidShare = marketValue.subtract(liquidShare)
+        return liquidShare to nonLiquidShare
     }
 
     private fun sumCategoryPercentage(

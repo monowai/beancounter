@@ -19,7 +19,22 @@ data class AllocationData(
      * pensions linked into a portfolio via a BALANCE trn) so a single
      * holding doesn't get counted twice in plan totals.
      */
-    val heldAssetIds: Set<String> = emptySet()
+    val heldAssetIds: Set<String> = emptySet(),
+    /**
+     * Sum of composite-policy sub-account balances flagged liquid (CPF
+     * OA / SA / RA pre-55), in [currency]. Allows the projection engine
+     * to keep these balances in the spendable bucket while treating the
+     * locked portion as non-liquid — without re-running the per-asset
+     * sub-account rollup itself.
+     */
+    val compositeLiquid: BigDecimal = BigDecimal.ZERO,
+    /**
+     * Sum of composite-policy sub-account balances flagged non-liquid
+     * (CPF MA, future RA-post-55), in [currency]. The projection moves
+     * this amount from the spendable pot to the non-spendable bucket so
+     * the locked CPF balances are not drawn down alongside cash + ETFs.
+     */
+    val compositeNonLiquid: BigDecimal = BigDecimal.ZERO
 )
 
 /**

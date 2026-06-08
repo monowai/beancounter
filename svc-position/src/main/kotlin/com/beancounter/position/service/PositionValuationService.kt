@@ -167,7 +167,12 @@ class PositionValuationService(
             val refMoneyValues =
                 position.getMoneyValues(
                     Position.In.PORTFOLIO,
-                    position.asset.market.currency
+                    // PORTFOLIO bucket denominates value in the portfolio's
+                    // reporting currency (mirrors MarketValue.value()). Using
+                    // asset.market.currency leaked the PRIVATE market's
+                    // placeholder USD into composite POLICY positions whose
+                    // accountingType is SGD, double-counting the FX rate.
+                    positions.portfolio.currency
                 )
             val tradeMoneyValues =
                 position.getMoneyValues(

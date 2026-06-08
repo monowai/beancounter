@@ -101,14 +101,7 @@ class TrnInputMapper(
                 tradeAmount
             )
         val asset = getAsset(trnInput, existing)
-        val tradeCurrency =
-            if (trnInput.tradeCurrency.isEmpty()) {
-                asset.accountingType?.currency ?: asset.market.currency
-            } else {
-                currencyService.getCode(
-                    trnInput.tradeCurrency
-                )
-            }
+        val tradeCurrency = resolveTradeCurrency(asset, trnInput.tradeCurrency)
         val broker = getBroker(trnInput, existing)
         return Trn(
             id = existing?.id ?: keyGenUtils.id,
@@ -157,5 +150,33 @@ class TrnInputMapper(
     ): Asset {
         val asset = existing?.asset ?: assetFinder.find(trnInput.assetId!!)
         return asset
+    }
+
+    /**
+     * Composite policy assets (CPF today, ILP later) are denominated in a
+     * statutory currency carried on the asset's accountingType. The market
+     * is "PRIVATE" with a placeholder currency that must NOT leak into the
+     * trn — otherwise svc-position multiplies by the wrong FX rate when
+     * synthesising the PORTFOLIO / BASE buckets. Server-side override is
+     * the defense for any caller (CSV import, retry of an old payload, a
+     * client that forgot to set tradeCurrency correctly).
+     *
+     * For non-POLICY assets the historical behaviour stands: honour the
+     * caller's tradeCurrency when supplied, fall back to the asset's
+     * accounting/market currency otherwise.
+     */
+    private fun resolveTradeCurrency(
+        asset: Asset,
+        requestedCode: String
+    ): com.beancounter.common.model.Currency {
+        val accountingCurrency = asset.accountingType?.currency
+        if (asset.assetCategory.id == "POLICY" && accountingCurrency != null) {
+            return accountingCurrency
+        }
+        return if (requestedCode.isEmpty()) {
+            accountingCurrency ?: asset.market.currency
+        } else {
+            currencyService.getCode(requestedCode)
+        }
     }
 }

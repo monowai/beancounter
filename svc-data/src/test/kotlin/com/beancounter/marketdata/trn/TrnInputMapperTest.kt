@@ -4,7 +4,11 @@ import com.beancounter.client.FxService
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
+import com.beancounter.common.model.AccountingType
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
@@ -14,6 +18,7 @@ import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetFinder
@@ -385,5 +390,58 @@ internal class TrnInputMapperTest {
                 commentsProp,
                 trnInput.comments
             )
+    }
+
+    @Test
+    fun `POLICY balance overrides client-supplied tradeCurrency with accountingType currency`() {
+        // CPF (POLICY) is statutory SGD. A buggy client sending tradeCurrency=USD
+        // for a SGD-denominated CPF asset must NOT bake USD into the trn —
+        // svc-position would otherwise multiply by USD->SGD on the PORTFOLIO
+        // bucket, inflating CPF balance by ~28% in net worth and projections.
+        val cpfAsset =
+            Asset(
+                code = "userId.CPF",
+                id = "asset-cpf",
+                name = "CPF",
+                market = Market("PRIVATE"),
+                category = "POLICY",
+                assetCategory =
+                    AssetCategory(
+                        id = "POLICY",
+                        name = "Retirement Fund"
+                    ),
+                accountingType =
+                    AccountingType(
+                        id = "policy-sgd",
+                        category = "POLICY",
+                        currency = SGD
+                    )
+            )
+        Mockito.`when`(assetFinder.find(cpfAsset.id)).thenReturn(cpfAsset)
+        Mockito.`when`(currencyService.getCode(SGD.code)).thenReturn(SGD)
+
+        val trnInput =
+            TrnInput(
+                CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
+                assetId = cpfAsset.id,
+                trnType = TrnType.BALANCE,
+                tradeCurrency = USD.code, // wrong — client bug
+                quantity = BigDecimal("281000"),
+                price = ONE,
+                tradeAmount = BigDecimal("281000"),
+                tradeBaseRate = ONE,
+                tradeCashRate = ZERO,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first())
+            .hasFieldOrPropertyWithValue("tradeCurrency", SGD)
     }
 }

@@ -5,12 +5,16 @@ import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Totals
+import com.beancounter.position.composite.AssetConfigClient
+import com.beancounter.position.composite.PrivateAssetConfigDto
+import com.beancounter.position.composite.SubAccountDto
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -35,11 +39,14 @@ class AllocationServiceTest {
     @Mock
     private lateinit var fxService: FxService
 
+    @Mock
+    private lateinit var assetConfigClient: AssetConfigClient
+
     private lateinit var allocationService: AllocationService
 
     @BeforeEach
     fun setUp() {
-        allocationService = AllocationService(tokenService, fxService)
+        allocationService = AllocationService(tokenService, fxService, assetConfigClient)
     }
 
     @Test
@@ -139,5 +146,68 @@ class AllocationServiceTest {
                 .currency.code
         ).isEqualTo("USD")
         assertThat(result.totals[Position.In.PORTFOLIO]!!.marketValue).isEqualByComparingTo("1000")
+    }
+
+    @Test
+    fun `calculateAllocation splits composite position into liquid and non-liquid via subaccount flags`() {
+        val sgd = Currency("SGD")
+        val portfolio = TestHelpers.createTestPortfolio(currencyCode = "SGD", baseCurrency = "SGD")
+
+        val cpfAsset =
+            TestHelpers.createTestAsset(code = "userA.CPF", marketCode = "PRIVATE").apply {
+                assetCategory = AssetCategory(id = "POLICY", name = "Retirement Fund")
+            }
+        val cpf = Position(cpfAsset, portfolio)
+        cpf.subAccounts["OA"] = BigDecimal("145000")
+        cpf.subAccounts["SA"] = BigDecimal("78000")
+        cpf.subAccounts["MA"] = BigDecimal("58000")
+        cpf.moneyValues[Position.In.PORTFOLIO] =
+            MoneyValues(sgd).apply { marketValue = BigDecimal("281000") }
+
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(cpf))
+        positions.totals[Position.In.PORTFOLIO] =
+            Totals(currency = sgd, marketValue = BigDecimal("281000"))
+
+        whenever(assetConfigClient.find(cpfAsset.id)).thenReturn(
+            PrivateAssetConfigDto(
+                assetId = cpfAsset.id,
+                policyType = "CPF",
+                currency = "SGD",
+                subAccounts =
+                    listOf(
+                        SubAccountDto(code = "OA", balance = BigDecimal("145000"), liquid = true),
+                        SubAccountDto(code = "SA", balance = BigDecimal("78000"), liquid = true),
+                        SubAccountDto(code = "MA", balance = BigDecimal("58000"), liquid = false)
+                    )
+            )
+        )
+
+        val data = allocationService.calculateAllocation(positions)
+
+        // 145k OA + 78k SA = 223k liquid; 58k MA non-liquid.
+        assertThat(data.compositeLiquid).isEqualByComparingTo("223000")
+        assertThat(data.compositeNonLiquid).isEqualByComparingTo("58000")
+        // Total unchanged — split is a refinement, not a re-count.
+        assertThat(data.totalValue).isEqualByComparingTo("281000")
+    }
+
+    @Test
+    fun `calculateAllocation skips composite lookup when position has no subAccounts`() {
+        val sgd = Currency("SGD")
+        val portfolio = TestHelpers.createTestPortfolio(currencyCode = "SGD", baseCurrency = "SGD")
+        val asset = TestHelpers.createTestAsset(code = "VOO", marketCode = "US")
+        val position = Position(asset, portfolio)
+        position.moneyValues[Position.In.PORTFOLIO] =
+            MoneyValues(sgd).apply { marketValue = BigDecimal("10000") }
+
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+        positions.totals[Position.In.PORTFOLIO] =
+            Totals(currency = sgd, marketValue = BigDecimal("10000"))
+
+        val data = allocationService.calculateAllocation(positions)
+
+        assertThat(data.compositeLiquid).isEqualByComparingTo("0")
+        assertThat(data.compositeNonLiquid).isEqualByComparingTo("0")
+        verify(assetConfigClient, org.mockito.kotlin.never()).find(any())
     }
 }

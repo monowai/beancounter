@@ -338,15 +338,24 @@ internal class MarketValueTest {
         // composite valuation feeds the runtime balance. Per-pool FX drift
         // on the snapshot rate would otherwise show as Your Loss on the
         // holdings page (kauri bug: -955.40 on Mary's 281,000 SGD CPF).
+        // Reproduce the deserialized-Asset shape from a cross-service call:
+        // the @JsonIgnore `category` field stays at its default ("Equity"),
+        // but `assetCategory.id` survives JSON → that is the canonical
+        // category source MarketValue must consult.
         val policyAsset =
             Asset(
                 code = "CPF",
                 id = "CPF",
                 name = "CPF",
                 market = NASDAQ,
-                category = "POLICY",
                 status = com.beancounter.common.model.Status.Active
-            )
+            ).apply {
+                assetCategory =
+                    com.beancounter.common.model
+                        .AssetCategory("POLICY", "Retirement Fund")
+            }
+        assertThat(policyAsset.category).isEqualTo("Equity") // @JsonIgnore default survives
+        assertThat(policyAsset.assetCategory.id).isEqualTo("POLICY")
         val positions = Positions(portfolio)
         val position = positions.getOrCreate(policyAsset)
         position.quantityValues.purchased = BigDecimal("281000")

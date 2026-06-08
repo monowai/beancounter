@@ -111,6 +111,16 @@ class MarketValue(
             moneyValues.unrealisedGain = BigDecimal.ZERO // moneyValues.marketValue.subtract(moneyValues.costBasis)
             moneyValues.totalGain = BigDecimal.ZERO
             // moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
+        } else if (mktData.asset.category == "POLICY") {
+            // Composite / pension assets (CPF, ILP, life policies) are balance
+            // snapshots, not traded positions. Book = current market by
+            // construction so per-pool FX rate drift on the snapshot DEPOSIT
+            // can't surface as a phantom gain/loss.
+            moneyValues.costBasis = moneyValues.marketValue
+            moneyValues.costValue = moneyValues.marketValue
+            moneyValues.realisedGain = BigDecimal.ZERO
+            moneyValues.unrealisedGain = BigDecimal.ZERO
+            moneyValues.totalGain = BigDecimal.ZERO
         } else {
             gains.value(
                 total,

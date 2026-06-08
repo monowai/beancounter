@@ -333,6 +333,48 @@ internal class MarketValueTest {
     }
 
     @Test
+    fun `POLICY assets report zero gain even when snapshot cost drifts from market value`() {
+        // Mirror the CPF/pension flow: snapshot DEPOSIT seeds cost basis, then
+        // composite valuation feeds the runtime balance. Per-pool FX drift
+        // on the snapshot rate would otherwise show as Your Loss on the
+        // holdings page (kauri bug: -955.40 on Mary's 281,000 SGD CPF).
+        val policyAsset =
+            Asset(
+                code = "CPF",
+                id = "CPF",
+                name = "CPF",
+                market = NASDAQ,
+                category = "POLICY",
+                status = com.beancounter.common.model.Status.Active
+            )
+        val positions = Positions(portfolio)
+        val position = positions.getOrCreate(policyAsset)
+        position.quantityValues.purchased = BigDecimal("281000")
+
+        // Snapshot cost recorded at trn time (slightly off the runtime price)
+        listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { pool ->
+            val moneyValues = position.getMoneyValues(pool, policyAsset.market.currency)
+            moneyValues.costBasis = BigDecimal("360635.40")
+            moneyValues.costValue = BigDecimal("360635.40")
+            moneyValues.purchases = BigDecimal("360635.40")
+        }
+
+        val marketData = MarketData(policyAsset, close = BigDecimal("1.28"))
+        val fxRateMap = getRates(portfolio, policyAsset, BigDecimal.ONE)
+
+        MarketValue(Gains()).value(positions, marketData, fxRateMap)
+
+        listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { pool ->
+            val moneyValues = position.getMoneyValues(pool, policyAsset.market.currency)
+            assertThat(moneyValues.totalGain).isEqualByComparingTo(BigDecimal.ZERO)
+            assertThat(moneyValues.unrealisedGain).isEqualByComparingTo(BigDecimal.ZERO)
+            assertThat(moneyValues.realisedGain).isEqualByComparingTo(BigDecimal.ZERO)
+            assertThat(moneyValues.costValue).isEqualByComparingTo(moneyValues.marketValue)
+            assertThat(moneyValues.costBasis).isEqualByComparingTo(moneyValues.marketValue)
+        }
+    }
+
+    @Test
     fun `should preserve position values when price returns zero`() {
         // Scenario: Position was valued at $100/share, now bc-data returns no price (close=0)
         // The position should still be usable and not crash

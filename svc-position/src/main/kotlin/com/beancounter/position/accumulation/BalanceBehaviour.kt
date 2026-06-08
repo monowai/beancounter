@@ -31,6 +31,14 @@ class BalanceBehaviour(
         position: Position
     ): Position {
         position.quantityValues.purchased = trn.tradeAmount
+        // Composite policies (CPF / ILP / generic pension) carry a per-bucket
+        // map on the BALANCE trn. Snapshot semantics: overwrite (not add) so
+        // re-running with a fresh balance replaces the previous snapshot,
+        // mirroring `quantityValues.purchased` above.
+        if (!trn.subAccounts.isNullOrEmpty()) {
+            position.subAccounts.clear()
+            position.subAccounts.putAll(trn.subAccounts!!)
+        }
         val isCash = cashUtils.isCash(position.asset)
         applyMoneyValues(
             Position.In.BASE,

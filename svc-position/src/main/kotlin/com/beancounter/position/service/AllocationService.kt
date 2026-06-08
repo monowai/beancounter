@@ -81,13 +81,19 @@ class AllocationService(
         val equityAllocation = sumCategoryPercentage(categoryBreakdown, EQUITY_CATEGORIES)
         val housingAllocation = sumCategoryPercentage(categoryBreakdown, HOUSING_CATEGORIES)
 
+        val heldAssetIds =
+            positions.positions.values
+                .map { it.asset.id }
+                .toSet()
+
         return AllocationData(
             cashAllocation = cashAllocation,
             equityAllocation = equityAllocation,
             housingAllocation = housingAllocation,
             totalValue = totalValue.setScale(2, RoundingMode.HALF_UP),
             currency = currency,
-            categoryBreakdown = categoryBreakdown
+            categoryBreakdown = categoryBreakdown,
+            heldAssetIds = heldAssetIds
         )
     }
 

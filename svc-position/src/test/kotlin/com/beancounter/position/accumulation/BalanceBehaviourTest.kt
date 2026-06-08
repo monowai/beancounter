@@ -152,4 +152,52 @@ class BalanceBehaviourTest {
             balance
         )
     }
+
+    @Test
+    fun `BALANCE with subAccounts captures per-bucket snapshot on position`() {
+        // Composite-policy BALANCE (CPF, ILP, generic pension) carries a
+        // sub-account map alongside the total. The accumulator must surface
+        // it on Position.subAccounts so the holdings UI can render OA / SA /
+        // MA / RA breakdown alongside the rolled-up MV.
+        val portfolio =
+            Portfolio(
+                Constants.TEST,
+                currency = SGD,
+                base = SGD
+            )
+        val cpfAsset =
+            Asset(
+                code = RUBY_CPF,
+                id = RUBY_CPF,
+                name = "Ruby CPF",
+                market = Market("PRIVATE"),
+                priceSymbol = RUBY_CPF,
+                category = AssetCategory.POLICY
+            )
+        val subAccounts =
+            mapOf(
+                "OA" to BigDecimal("145000"),
+                "SA" to BigDecimal("78000"),
+                "MA" to BigDecimal("58000"),
+                "RA" to BigDecimal("0")
+            )
+        val trn =
+            Trn(
+                trnType = TrnType.BALANCE,
+                asset = cpfAsset,
+                quantity = BigDecimal("281000"),
+                tradeAmount = BigDecimal("281000"),
+                cashCurrency = SGD,
+                tradeCurrency = SGD,
+                tradeCashRate = BigDecimal.ONE,
+                tradeBaseRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal.ONE,
+                portfolio = portfolio,
+                subAccounts = subAccounts
+            )
+
+        val position = accumulator.accumulate(trn, Positions(portfolio))
+
+        assertThat(position.subAccounts).containsExactlyInAnyOrderEntriesOf(subAccounts)
+    }
 }

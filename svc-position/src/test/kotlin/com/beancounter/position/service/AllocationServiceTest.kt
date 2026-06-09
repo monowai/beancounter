@@ -2,6 +2,7 @@ package com.beancounter.position.service
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.common.contracts.AllocationData
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
@@ -209,5 +210,37 @@ class AllocationServiceTest {
         assertThat(data.compositeLiquid).isEqualByComparingTo("0")
         assertThat(data.compositeNonLiquid).isEqualByComparingTo("0")
         verify(assetConfigClient, org.mockito.kotlin.never()).find(any())
+    }
+
+    @Test
+    fun `convertCurrency FX-scales compositeLiquid and compositeNonLiquid`() {
+        // Allocation originally USD; user requests SGD. The composite-split
+        // fields must FX-scale along with totalValue / categoryBreakdown —
+        // otherwise downstream displays a SGD-labelled response with USD-
+        // magnitude composite numbers, surfacing a ~22% understatement of
+        // the CPF buckets on Mary's wealth tile.
+        val usdAllocation =
+            AllocationData(
+                totalValue = BigDecimal("288194.11"),
+                currency = "USD",
+                compositeLiquid = BigDecimal("173940.00"),
+                compositeNonLiquid = BigDecimal("45240.00")
+            )
+
+        val pair = IsoCurrencyPair(from = "USD", to = "SGD")
+        val rate = BigDecimal("1.2873")
+        whenever(tokenService.bearerToken).thenReturn("bearer")
+        whenever(fxService.getRates(any<FxRequest>(), eq("bearer"))).thenReturn(
+            FxResponse(
+                FxPairResults(rates = mapOf(pair to FxRate(from = Currency("USD"), to = Currency("SGD"), rate = rate)))
+            )
+        )
+
+        val result = allocationService.convertCurrency(usdAllocation, "SGD", fxService, "2024-01-15")
+
+        assertThat(result.currency).isEqualTo("SGD")
+        assertThat(result.totalValue).isEqualByComparingTo(BigDecimal("370992.28"))
+        assertThat(result.compositeLiquid).isEqualByComparingTo(BigDecimal("223912.96"))
+        assertThat(result.compositeNonLiquid).isEqualByComparingTo(BigDecimal("58237.45"))
     }
 }

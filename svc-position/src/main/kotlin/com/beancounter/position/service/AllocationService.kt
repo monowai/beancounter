@@ -233,7 +233,19 @@ class AllocationService(
         return allocation.copy(
             totalValue = convertedTotalValue,
             currency = targetCurrency,
-            categoryBreakdown = convertedBreakdown
+            categoryBreakdown = convertedBreakdown,
+            // FX-scale the composite-split fields too — otherwise a SGD-
+            // labelled response carries USD-magnitude composite values
+            // (USD 173,940 → 45,240 on Mary's CPF), undercounting the
+            // PORTFOLIO bucket by the SGD/USD ratio downstream.
+            compositeLiquid =
+                allocation.compositeLiquid
+                    .multiply(rate)
+                    .setScale(2, RoundingMode.HALF_UP),
+            compositeNonLiquid =
+                allocation.compositeNonLiquid
+                    .multiply(rate)
+                    .setScale(2, RoundingMode.HALF_UP)
         )
     }
 

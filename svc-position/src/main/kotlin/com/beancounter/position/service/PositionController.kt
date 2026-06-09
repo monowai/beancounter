@@ -394,15 +394,9 @@ class PositionController(
             valuationService.getAggregatedPositions(
                 selectedPortfolios,
                 asAt,
-                value
+                value,
+                targetCurrency
             )
-        if (value && !targetCurrency.isNullOrBlank()) {
-            allocationService.convertPositionsToCurrency(
-                response.data,
-                targetCurrency,
-                asAt
-            )
-        }
         return response
     }
 
@@ -507,12 +501,18 @@ class PositionController(
             valuationService.getAggregatedPositions(
                 selectedPortfolios,
                 asAt,
-                true
+                true,
+                targetCurrency
             )
 
         val allocation = allocationService.calculateAllocation(positions.data)
 
-        // If target currency is specified and different from allocation currency, convert
+        // If target currency is specified and differs from the allocation
+        // currency, convert. Normally the aggregator already produced the
+        // bucket in targetCurrency (eliminating the FX round-trip drift on
+        // PRIVATE positions), so this path is only hit when targetCurrency
+        // is supplied but couldn't be honoured by the aggregator (e.g.
+        // empty currency code or a portfolio with no positions).
         if (!targetCurrency.isNullOrBlank() &&
             !targetCurrency.equals(allocation.currency, ignoreCase = true)
         ) {

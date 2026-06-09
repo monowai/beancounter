@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -251,25 +252,30 @@ class PositionControllerTest {
     }
 
     @Test
-    fun `should convert aggregated positions to target currency when supplied`() {
+    fun `should pass target currency to aggregator (no FX round-trip)`() {
         // Given
         val valuationDate = "2024-01-15"
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
 
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, valuationDate, true))
-            .thenReturn(testPositionResponse)
+        whenever(
+            valuationService.getAggregatedPositions(
+                portfoliosResponse.data,
+                valuationDate,
+                true,
+                "SGD"
+            )
+        ).thenReturn(testPositionResponse)
 
         // When
         val result = positionController.aggregated(valuationDate, true, null, null, "SGD")
 
         // Then
         assertThat(result).isNotNull()
-        verify(allocationService).convertPositionsToCurrency(
-            testPositionResponse.data,
-            "SGD",
-            valuationDate
-        )
+        // Aggregator now adopts targetCurrency on the synthesised context
+        // portfolio — no post-aggregation conversion call needed.
+        verify(allocationService, org.mockito.kotlin.never())
+            .convertPositionsToCurrency(any(), any(), any())
     }
 
     @Test
@@ -279,8 +285,14 @@ class PositionControllerTest {
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
 
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, valuationDate, false))
-            .thenReturn(testPositionResponse)
+        whenever(
+            valuationService.getAggregatedPositions(
+                portfoliosResponse.data,
+                valuationDate,
+                false,
+                "SGD"
+            )
+        ).thenReturn(testPositionResponse)
 
         // When - value=false means no valuations, so no conversion applicable
         positionController.aggregated(valuationDate, false, null, null, "SGD")
@@ -305,7 +317,7 @@ class PositionControllerTest {
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio, portfolio2))
 
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull()))
             .thenReturn(testPositionResponse)
 
         // When - only request the test portfolio by its code
@@ -317,7 +329,8 @@ class PositionControllerTest {
         verify(valuationService).getAggregatedPositions(
             argThat { size == 1 && first().code == testPortfolio.code },
             eq(valuationDate),
-            eq(true)
+            eq(true),
+            anyOrNull()
         )
     }
 
@@ -330,7 +343,7 @@ class PositionControllerTest {
     @Test
     fun `aggregated resolves ids via per-id fetch ignoring codes when both supplied`() {
         whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull()))
             .thenReturn(testPositionResponse)
 
         positionController.aggregated(
@@ -343,7 +356,7 @@ class PositionControllerTest {
 
         verify(portfolioServiceClient).getPortfolioById("test-portfolio")
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull())
         assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
     }
 
@@ -355,7 +368,7 @@ class PositionControllerTest {
                 com.beancounter.common.exception
                     .BusinessException("Unable to find portfolio not-visible")
             )
-        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull()))
             .thenReturn(testPositionResponse)
 
         positionController.aggregated(
@@ -367,7 +380,7 @@ class PositionControllerTest {
         )
 
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull())
         assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
     }
 
@@ -383,7 +396,7 @@ class PositionControllerTest {
         val portfolio2 = TestHelpers.createTestPortfolio("portfolio-2")
         whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
         whenever(portfolioServiceClient.getPortfolioById("portfolio-2")).thenReturn(portfolio2)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
             com.beancounter.common.contracts
@@ -395,7 +408,7 @@ class PositionControllerTest {
         verify(portfolioServiceClient).getPortfolioById("test-portfolio")
         verify(portfolioServiceClient).getPortfolioById("portfolio-2")
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull())
         assertThat(captor.firstValue.map { it.id }.toSet()).isEqualTo(setOf("test-portfolio", "portfolio-2"))
     }
 
@@ -407,7 +420,7 @@ class PositionControllerTest {
                 com.beancounter.common.exception
                     .BusinessException("Unable to find portfolio not-visible")
             )
-        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
             com.beancounter.common.contracts
@@ -417,7 +430,7 @@ class PositionControllerTest {
         positionController.allocation(asAt = "2024-01-15", ids = "test-portfolio,not-visible", targetCurrency = null)
 
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull())
         assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
     }
 
@@ -425,7 +438,7 @@ class PositionControllerTest {
     fun `allocation falls back to caller portfolios when no ids supplied`() {
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any()))
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
             com.beancounter.common.contracts
@@ -436,7 +449,7 @@ class PositionControllerTest {
 
         verify(portfolioServiceClient).portfolios
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any())
+        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull())
         assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
     }
 }

@@ -34,12 +34,21 @@ interface Valuation {
      * @param portfolios collection of portfolios to aggregate
      * @param valuationDate date for position valuation
      * @param value whether to include market values
+     * @param targetCurrencyCode optional ISO currency code (e.g. "SGD") to use
+     *   as the PORTFOLIO reporting currency. When supplied, the synthesised
+     *   context portfolio adopts this currency so MarketValue prices each
+     *   bucket directly against the user's requested currency — avoiding the
+     *   FX round-trip drift that surfaces when `portfolios.first().currency`
+     *   differs from the caller's target. PRIVATE / POLICY positions are
+     *   most sensitive (constant `close=1`) because the round-trip rate
+     *   product isn't exactly 1.0.
      * @return aggregated positions from all portfolios
      */
     fun getAggregatedPositions(
         portfolios: Collection<Portfolio>,
         valuationDate: String = DateUtils.TODAY,
-        value: Boolean
+        value: Boolean,
+        targetCurrencyCode: String? = null
     ): PositionResponse
 
     /**

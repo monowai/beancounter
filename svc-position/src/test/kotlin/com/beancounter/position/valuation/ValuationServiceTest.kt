@@ -479,6 +479,49 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions adopts targetCurrency on synthesised context portfolio`() {
+        // Given - first portfolio is USD but the caller requested SGD totals.
+        // Without target-currency adoption, MarketValue would price each
+        // PORTFOLIO bucket in USD and the controller would have to FX-back
+        // to SGD — a round-trip whose imperfect rate-inverse shows up as
+        // ~0.4% drift on PRIVATE / POLICY (constant `close=1`) positions.
+        val usdPortfolio = TestHelpers.createTestPortfolio("usd-pf", currencyCode = "USD")
+        val sgdPortfolio = TestHelpers.createTestPortfolio("sgd-pf", currencyCode = "SGD")
+        val portfolios = listOf(usdPortfolio, sgdPortfolio)
+
+        val asset = TestHelpers.createTestAsset("AAPL", "US")
+        val trn =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = usdPortfolio,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("10"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 15)
+            )
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(listOf(trn)))
+
+        val contextCaptor = org.mockito.kotlin.argumentCaptor<Portfolio>()
+        whenever(positionService.build(contextCaptor.capture(), any()))
+            .thenReturn(PositionResponse(Positions(usdPortfolio)))
+
+        // When - request aggregation in SGD
+        valuationService.getAggregatedPositions(
+            portfolios,
+            DateUtils.TODAY,
+            value = false,
+            targetCurrencyCode = "SGD"
+        )
+
+        // Then - the context portfolio handed to positionService.build
+        // adopts SGD (not the first portfolio's USD), so downstream
+        // MarketValue prices each bucket directly in SGD.
+        assertThat(contextCaptor.firstValue.currency.code).isEqualTo("SGD")
+        assertThat(contextCaptor.firstValue.id).isEqualTo(usdPortfolio.id)
+    }
+
+    @Test
     fun `value should not send market value update for historical dates`() {
         // Given - a portfolio valued at a historical date
         val positions = Positions(portfolio)

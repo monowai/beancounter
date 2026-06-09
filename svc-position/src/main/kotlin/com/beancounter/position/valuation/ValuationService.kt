@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.PortfolioBreakdown
 import com.beancounter.common.model.Position
@@ -124,7 +125,8 @@ class ValuationService
         override fun getAggregatedPositions(
             portfolios: Collection<Portfolio>,
             valuationDate: String,
-            value: Boolean
+            value: Boolean,
+            targetCurrencyCode: String?
         ): PositionResponse {
             if (portfolios.isEmpty()) {
                 return PositionResponse()
@@ -162,10 +164,26 @@ class ValuationService
                 return PositionResponse()
             }
 
-            // Use the first portfolio as context for currency settings and owner
-            // No fake "AGGREGATED" portfolio is created - positions are built using
-            // the first portfolio's context but contain aggregated transaction data
-            val contextPortfolio = portfolios.first()
+            // Use the first portfolio as context for owner / ids. When the
+            // caller passes a [targetCurrencyCode] (the user-visible
+            // reporting currency), adopt that currency on the synthesised
+            // context portfolio so MarketValue prices each PORTFOLIO bucket
+            // directly against the user's target. Without this the bucket
+            // ends up in portfolios.first().currency and a separate
+            // convertPositionsToCurrency step has to FX-back to target — a
+            // round-trip whose inverse-rate imprecision shows up as drift
+            // on PRIVATE / POLICY (constant `close=1`) positions.
+            val baseContext = portfolios.first()
+            val contextPortfolio =
+                if (!targetCurrencyCode.isNullOrBlank() &&
+                    !baseContext.currency.code.equals(targetCurrencyCode, ignoreCase = true)
+                ) {
+                    baseContext.copy(
+                        currency = Currency(targetCurrencyCode.uppercase())
+                    )
+                } else {
+                    baseContext
+                }
 
             // Build positions from combined transactions using the normal accumulation flow
             val positionRequest =

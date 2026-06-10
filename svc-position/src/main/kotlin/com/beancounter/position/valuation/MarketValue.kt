@@ -111,11 +111,15 @@ class MarketValue(
             moneyValues.unrealisedGain = BigDecimal.ZERO // moneyValues.marketValue.subtract(moneyValues.costBasis)
             moneyValues.totalGain = BigDecimal.ZERO
             // moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
-        } else if (mktData.asset.assetCategory.id == "POLICY") {
-            // Composite / pension assets (CPF, ILP, life policies) are balance
-            // snapshots, not traded positions. Book = current market by
-            // construction so per-pool FX rate drift on the snapshot DEPOSIT
-            // can't surface as a phantom gain/loss.
+        } else if (mktData.asset.assetCategory.id == "POLICY" &&
+            moneyValues.costBasis.signum() == 0
+        ) {
+            // Legacy composite/pension positions reached via DEPOSIT trns
+            // carry no cost basis (CashCost cost-tracking is disabled), so a
+            // straight MV-vs-cost calc would print a phantom 100% gain. Pin
+            // cost = MV for that case only. BalanceBehaviour pins cost on the
+            // first BALANCE snapshot, so subsequent snapshots fall through to
+            // gains.value below and the real gain/loss surfaces.
             moneyValues.costBasis = moneyValues.marketValue
             moneyValues.costValue = moneyValues.marketValue
             moneyValues.realisedGain = BigDecimal.ZERO

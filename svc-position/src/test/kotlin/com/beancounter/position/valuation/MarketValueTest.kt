@@ -333,15 +333,12 @@ internal class MarketValueTest {
     }
 
     @Test
-    fun `POLICY assets report zero gain even when snapshot cost drifts from market value`() {
-        // Mirror the CPF/pension flow: snapshot DEPOSIT seeds cost basis, then
-        // composite valuation feeds the runtime balance. Per-pool FX drift
-        // on the snapshot rate would otherwise show as Your Loss on the
-        // holdings page (kauri bug: -955.40 on Mary's 281,000 SGD CPF).
-        // Reproduce the deserialized-Asset shape from a cross-service call:
-        // the @JsonIgnore `category` field stays at its default ("Equity"),
-        // but `assetCategory.id` survives JSON → that is the canonical
-        // category source MarketValue must consult.
+    fun `POLICY assets with no prior cost basis report zero gain`() {
+        // Legacy DEPOSIT-only path: CashCost cost-tracking is disabled so the
+        // accumulator leaves costBasis at zero. Without this override the
+        // valuator would print a phantom 100% gain. BalanceBehaviour-driven
+        // positions now pin cost on the first snapshot — see the separate
+        // `gain emerges` test for that path.
         val policyAsset =
             Asset(
                 code = "CPF",
@@ -359,14 +356,7 @@ internal class MarketValueTest {
         val positions = Positions(portfolio)
         val position = positions.getOrCreate(policyAsset)
         position.quantityValues.purchased = BigDecimal("281000")
-
-        // Snapshot cost recorded at trn time (slightly off the runtime price)
-        listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { pool ->
-            val moneyValues = position.getMoneyValues(pool, policyAsset.market.currency)
-            moneyValues.costBasis = BigDecimal("360635.40")
-            moneyValues.costValue = BigDecimal("360635.40")
-            moneyValues.purchases = BigDecimal("360635.40")
-        }
+        // costBasis intentionally left at zero — simulates legacy DEPOSIT flow.
 
         val marketData = MarketData(policyAsset, close = BigDecimal("1.28"))
         val fxRateMap = getRates(portfolio, policyAsset, BigDecimal.ONE)
@@ -380,6 +370,46 @@ internal class MarketValueTest {
             assertThat(moneyValues.realisedGain).isEqualByComparingTo(BigDecimal.ZERO)
             assertThat(moneyValues.costValue).isEqualByComparingTo(moneyValues.marketValue)
             assertThat(moneyValues.costBasis).isEqualByComparingTo(moneyValues.marketValue)
+        }
+    }
+
+    @Test
+    fun `POLICY assets surface gain when market value exceeds pinned cost basis`() {
+        // BalanceBehaviour-driven path: prior BALANCE trn pinned cost at the
+        // first snapshot. A later snapshot at a higher quantity should report
+        // unrealisedGain = MV - costBasis instead of being silently zeroed.
+        val policyAsset =
+            Asset(
+                code = "CPF",
+                id = "CPF",
+                name = "CPF",
+                market = NASDAQ,
+                status = com.beancounter.common.model.Status.Active
+            ).apply {
+                assetCategory =
+                    com.beancounter.common.model
+                        .AssetCategory("POLICY", "Retirement Fund")
+            }
+        val positions = Positions(portfolio)
+        val position = positions.getOrCreate(policyAsset)
+        val pinnedCost = BigDecimal("276000")
+        position.quantityValues.purchased = BigDecimal("291000")
+        listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { pool ->
+            val moneyValues = position.getMoneyValues(pool, policyAsset.market.currency)
+            moneyValues.costBasis = pinnedCost
+            moneyValues.costValue = pinnedCost
+        }
+
+        val marketData = MarketData(policyAsset, close = BigDecimal.ONE)
+        val fxRateMap = getRates(portfolio, policyAsset, BigDecimal.ONE)
+
+        MarketValue(Gains()).value(positions, marketData, fxRateMap)
+
+        listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { pool ->
+            val moneyValues = position.getMoneyValues(pool, policyAsset.market.currency)
+            assertThat(moneyValues.marketValue).isEqualByComparingTo(BigDecimal("291000"))
+            assertThat(moneyValues.costBasis).isEqualByComparingTo(pinnedCost)
+            assertThat(moneyValues.unrealisedGain).isEqualByComparingTo(BigDecimal("15000"))
         }
     }
 

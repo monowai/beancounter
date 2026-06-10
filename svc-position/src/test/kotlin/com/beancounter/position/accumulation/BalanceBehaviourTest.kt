@@ -154,6 +154,57 @@ class BalanceBehaviourTest {
     }
 
     @Test
+    fun `second BALANCE leaves cost pinned at first snapshot so gain emerges`() {
+        // First BALANCE establishes the cost basis (initial snapshot acts as
+        // the "principal"). A later BALANCE only moves the market value
+        // (quantity * price) so unrealised gain = MV - first-snapshot cost.
+        // Without this, every snapshot rewrites cost = MV and gain stays 0.
+        val portfolio =
+            Portfolio(
+                Constants.TEST,
+                currency = SGD,
+                base = SGD
+            )
+        val cpfAsset =
+            Asset(
+                code = RUBY_CPF,
+                id = RUBY_CPF,
+                name = "Ruby CPF",
+                market = Market("PRIVATE"),
+                priceSymbol = RUBY_CPF,
+                category = AssetCategory.POLICY
+            )
+        val firstBalance = BigDecimal("250000.00")
+        val secondBalance = BigDecimal("260000.00")
+        val positions = Positions(portfolio)
+
+        fun balanceTrn(qty: BigDecimal) =
+            Trn(
+                trnType = TrnType.BALANCE,
+                asset = cpfAsset,
+                quantity = qty,
+                tradeAmount = qty,
+                cashCurrency = SGD,
+                tradeCurrency = SGD,
+                tradeCashRate = BigDecimal.ONE,
+                tradeBaseRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal.ONE,
+                portfolio = portfolio
+            )
+
+        accumulator.accumulate(balanceTrn(firstBalance), positions)
+        val position = accumulator.accumulate(balanceTrn(secondBalance), positions)
+
+        assertThat(position.quantityValues.purchased).isEqualByComparingTo(secondBalance)
+        assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, firstBalance)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, firstBalance)
+        assertThat(position.getMoneyValues(Position.In.BASE))
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, firstBalance)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, firstBalance)
+    }
+
+    @Test
     fun `BALANCE with subAccounts captures per-bucket snapshot on position`() {
         // Composite-policy BALANCE (CPF, ILP, generic pension) carries a
         // sub-account map alongside the total. The accumulator must surface

@@ -78,6 +78,10 @@ class BalanceBehaviour(
                 trn.portfolio,
                 position
             )
+        // Capture the prior cost basis before CashCost.value resets it; a
+        // non-zero prior means a previous BALANCE already pinned cost and
+        // subsequent snapshots must leave it alone so gain can emerge.
+        val priorCostBasis = moneyValues.costBasis
         cashCost.value(
             moneyValues,
             position,
@@ -88,22 +92,29 @@ class BalanceBehaviour(
             setSnapshotCost(
                 moneyValues,
                 trn.tradeAmount,
-                rate
+                rate,
+                priorCostBasis
             )
         }
     }
 
     /**
-     * Non-cash BALANCE = snapshot of accumulated contributions. Cost basis
-     * tracks the snapshot amount so MV - cost = 0 by construction; this
-     * stops pension/CPF positions reporting a phantom 100% gain (the prior
-     * code reused CashCost which keeps cost at zero for cash semantics).
+     * Non-cash BALANCE: pin cost basis at the first snapshot ("principal")
+     * and leave it alone on subsequent snapshots so MV - cost surfaces real
+     * unrealised gain. First snapshot still sets cost = MV (gain = 0) so a
+     * freshly linked CPF/policy position doesn't report a phantom 100% gain.
      */
     private fun setSnapshotCost(
         moneyValues: MoneyValues,
         tradeAmount: BigDecimal,
-        rate: BigDecimal
+        rate: BigDecimal,
+        priorCostBasis: BigDecimal
     ) {
+        if (priorCostBasis.signum() != 0) {
+            moneyValues.costBasis = priorCostBasis
+            moneyValues.costValue = priorCostBasis
+            return
+        }
         val amount = MathUtils.multiply(tradeAmount, rate) ?: return
         moneyValues.costBasis = amount.abs()
         moneyValues.costValue = amount.abs()

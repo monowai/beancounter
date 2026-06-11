@@ -18,8 +18,11 @@ import java.time.LocalDateTime
 /**
  * Scheduled task to value all portfolios with current market prices.
  *
- * Runs on schedule (default: every 10 min, 5-7 AM Tue-Sat) and values
- * all portfolios to ensure they have up-to-date market valuations.
+ * Runs on schedule (default: 18:30 SGT Tue-Sat — after bc-data's
+ * 07:00-18:00 SGT price-refresh window) and values all portfolios so
+ * they have up-to-date market valuations. Firing earlier (e.g. pre
+ * Asia open) leaves gainOnDay=0 for Asia/Pacific positions because
+ * previousClose isn't in market_data yet.
  *
  * For each portfolio valued:
  * 1. Fetches latest prices for all assets
@@ -36,7 +39,7 @@ class PortfolioValuationSchedule(
     private val portfolioServiceClient: PortfolioServiceClient,
     private val valuationService: Valuation,
     private val dateUtils: DateUtils,
-    @Value("\${valuation.schedule:0 0/10 5-7 * * Tue-Sat}") private val schedule: String
+    @Value("\${valuation.schedule:0 30 18 * * Tue-Sat}") private val schedule: String
 ) {
     private var loginService: LoginService? = null
     private val log = LoggerFactory.getLogger(PortfolioValuationSchedule::class.java)
@@ -56,7 +59,7 @@ class PortfolioValuationSchedule(
 
     @SentryTransaction(operation = "scheduled", name = "PortfolioValuationSchedule.valuePortfolios")
     @Scheduled(
-        cron = "\${valuation.schedule:0 0/10 5-7 * * Tue-Sat}",
+        cron = "\${valuation.schedule:0 30 18 * * Tue-Sat}",
         zone = "#{@scheduleZone}"
     )
     fun valuePortfolios() {

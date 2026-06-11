@@ -31,7 +31,7 @@ class PositionScheduleConfig(
 
     @Bean
     fun valuationSchedule(
-        @Value("\${valuation.schedule:0 0/10 5-7 * * Tue-Sat}") schedule: String
+        @Value("\${valuation.schedule:0 30 18 * * Tue-Sat}") schedule: String
     ): String {
         log.info(
             "VALUATION_SCHEDULE: {}, BEANCOUNTER_ZONE: {}",

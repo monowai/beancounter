@@ -8,11 +8,14 @@ server:
     min-response-size: 1024
 
 # Portfolio valuation scheduling (disabled by default for local dev)
-# In production (kauri), runs every 10 mins from 5-7 AM SGT after US market close
+# Single daily run at 18:30 SGT, after bc-data's price-refresh window
+# (07:00–18:00 SGT). Running earlier (e.g. pre-Asia-open) makes
+# gainOnDay fall back to 0 for Asia/Pacific positions because
+# previousClose isn't yet in market_data.
 schedule:
   enabled: false
 valuation:
-  schedule: "0 0/10 5-7 * * Tue-Sat"
+  schedule: "0 30 18 * * Tue-Sat"
 
 springdoc:
   use-management-port: true

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -410,6 +411,50 @@ class CashAutoSettleServiceTest {
         org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
             trnService.unsettle(buy.id)
         }
+    }
+
+    /**
+     * Regression for DATA-4Z: stream-consumer threads (trnEventConsumer,
+     * csvImportConsumer) have no JWT in scope. When auto-settle resolved
+     * the funding portfolio via [PortfolioService.find], `canView` invoked
+     * `systemUserService.getOrThrow()` which threw inside the outer
+     * `TrnService.save` `@Transactional`. The exception was caught by a
+     * `runCatching` block, but the transaction stayed marked rollback-only,
+     * so the outer commit blew up with `UnexpectedRollbackException` and
+     * the message rebounded forever via the AMQP retry loop.
+     */
+    @Test
+    fun `auto-settle resolves master without JWT (stream consumer path)`() {
+        // Save BUY in invest portfolio after CLEARING the security context —
+        // simulates the stream-consumer thread that has no JWT.
+        SecurityContextHolder.clearContext()
+        val buy =
+            trnService
+                .save(
+                    invest,
+                    TrnRequest(
+                        invest.id,
+                        listOf(
+                            TrnInput(
+                                assetId = aaplAsset.id,
+                                cashAssetId = usdCashAsset.id,
+                                trnType = TrnType.BUY,
+                                quantity = BigDecimal("1"),
+                                price = BigDecimal("750"),
+                                tradeAmount = BigDecimal("750"),
+                                tradeCurrency = "USD",
+                                cashCurrency = "USD",
+                                cashAmount = BigDecimal("-750"),
+                                tradeCashRate = BigDecimal.ONE,
+                                tradeDate = LocalDate.now(),
+                                status = TrnStatus.SETTLED
+                            )
+                        )
+                    )
+                ).single()
+
+        val siblings = findAutoSiblings(buy)
+        assertThat(siblings).hasSize(2)
     }
 
     @Test

@@ -59,13 +59,18 @@ class CashAutoSettleService(
                 ?: return AutoSettleResult()
         if (masterId == trade.portfolio.id) return AutoSettleResult()
 
+        // findOrNull (not find) — stream-consumer threads have no JWT, and
+        // `find` calls `canView` which throws via `systemUserService.getOrThrow()`.
+        // That exception used to be swallowed by `runCatching`, but the outer
+        // `TrnService.save` `@Transactional` had already been marked
+        // rollback-only, so the commit blew up with UnexpectedRollbackException
+        // (DATA-4Z). The auto-settle path is system-internal — owner-scope
+        // is enforced upstream when the trade itself is saved.
         val master =
-            runCatching { portfolioService.find(masterId) }
-                .getOrElse {
-                    return AutoSettleResult(
-                        warnings = listOf("Cash portfolio $masterId not found; auto-settle skipped")
-                    )
-                }
+            portfolioService.findOrNull(masterId)
+                ?: return AutoSettleResult(
+                    warnings = listOf("Cash portfolio $masterId not found; auto-settle skipped")
+                )
 
         val isDebit = trade.trnType in cashDebitTypes
         val ccy = trade.cashCurrency?.code ?: cashAsset.market.currency.code

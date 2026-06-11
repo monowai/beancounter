@@ -307,6 +307,42 @@ internal class EodhdApiTest {
         assertThat(hit.type).isEqualTo("ETF")
     }
 
+    @Test
+    fun `non-array bulk error body falls back to per-symbol instead of aborting the batch`() {
+        // Regression POSITION-2F: a symbol on the wrong exchange (e.g. a LON-listed
+        // ETF tagged US) makes EODHD return an error OBJECT, not the expected array.
+        // RestClient then throws "Error while extracting response for type
+        // [EodhdBulkPrice[]]" — NOT an HttpClientErrorException, so the old catch
+        // missed it and the entire valuation 500'd, zeroing every portfolio in the
+        // cycle. Must fall back to per-symbol so good symbols still resolve.
+        stubFor(
+            get(urlPathEqualTo(BULK_LAST_DAY_US))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody("""{"code":"NOT_FOUND","message":"Symbols not found"}""")
+                        .withStatus(200)
+                )
+        )
+        stubEod("AAPL.US", "mock/eodhd/AAPL-US.json")
+        stubEod("MSFT.US", "mock/eodhd/no-data.json")
+
+        val result =
+            eodhdPriceService.getMarketData(
+                PriceRequest(
+                    "2024-11-29",
+                    listOf(PriceAsset(AAPL), PriceAsset(MSFT))
+                )
+            )
+
+        // Bulk parse failed → per-symbol fallback exercised, batch not aborted.
+        WireMock.verify(getRequestedFor(urlPathEqualTo("/api/eod/AAPL.US")))
+        assertThat(result).hasSize(2)
+        val byCode = result.associateBy { it.asset.code }
+        assertThat(byCode["AAPL"]?.close).isEqualByComparingTo(BigDecimal("237.33"))
+        assertThat(byCode["MSFT"]?.close).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
     private fun stubEod(
         symbol: String,
         fixturePath: String

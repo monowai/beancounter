@@ -7,15 +7,21 @@ server:
     mime-types: application/json,application/xml,text/html,text/plain,text/css,application/javascript
     min-response-size: 1024
 
-# Portfolio valuation scheduling (disabled by default for local dev)
-# Single daily run at 18:30 SGT, after bc-data's price-refresh window
-# (07:00–18:00 SGT). Running earlier (e.g. pre-Asia-open) makes
-# gainOnDay fall back to 0 for Asia/Pacific positions because
-# previousClose isn't yet in market_data.
+# Portfolio valuation scheduling (disabled by default for local dev).
+# Two triggers, both opt-in:
+#   - revaluation.trigger.enabled: fires ~debounce after the LAST
+#     CacheInvalidationEvent (PRICE / FX) in a burst, i.e. shortly
+#     after a bc-data price refresh completes.
+#   - schedule.enabled + valuation.schedule: single daily cron safety
+#     net (18:30 SGT, after bc-data's 07:00-18:00 SGT refresh window).
 schedule:
   enabled: false
 valuation:
   schedule: "0 30 18 * * Tue-Sat"
+revaluation:
+  trigger:
+    enabled: false
+    debounce: "PT10M"
 
 springdoc:
   use-management-port: true

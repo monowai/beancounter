@@ -99,6 +99,10 @@ class TrnService(
         // types (DEPOSIT/WITHDRAWAL etc.) — no recursion risk.
         val warnings = mutableListOf<String>()
         for (trn in results.toList()) {
+            // Cash auto-settle fires on SETTLEMENT, not creation. A PROPOSED trade
+            // carries no compensating cash transfer until it settles (see
+            // settleTransactions); a trade saved already-SETTLED still emits here.
+            if (trn.status != TrnStatus.SETTLED) continue
             val res = cashAutoSettleService.emitCompensatingTransfer(trn)
             warnings.addAll(res.warnings)
         }
@@ -288,6 +292,12 @@ class TrnService(
                     }
                     trn.status = TrnStatus.SETTLED
                     val saved = trnRepository.save(trn)
+                    // Emit the compensating cash transfer now the trade is settled.
+                    // Deferred from create — a PROPOSED trade has no cash leg yet.
+                    cashAutoSettleService
+                        .emitCompensatingTransfer(saved)
+                        .warnings
+                        .forEach { log.warn("Auto-settle on settle of {}: {}", trnId, it) }
                     settled.add(saved)
                     log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
                 } else {
@@ -408,11 +418,19 @@ class TrnService(
         require(parent.status == TrnStatus.SETTLED) {
             "Cannot unsettle trn $trnId: status is ${parent.status}, expected SETTLED"
         }
-        val siblings = cashAutoSettleService.findSiblings(parent).map { it.id }
+        // The compensating cash transfer only exists while the trade is settled.
+        // Unsettling removes it (server-side cascade) — the W+D legs are
+        // re-emitted if the trade is settled again. `siblings` reports the
+        // deleted leg ids for the UI to refresh, no longer to prompt-then-delete.
+        val siblings = cashAutoSettleService.findSiblings(parent)
+        if (siblings.isNotEmpty()) {
+            trnRepository.deleteAll(siblings)
+            log.info("Unsettle of {} removed {} auto-settled cash leg(s)", trnId, siblings.size)
+        }
         parent.status = TrnStatus.PROPOSED
         val saved = trnRepository.save(parent)
         cacheInvalidationProducer.sendTransactionEvent(parent.portfolio.id, parent.tradeDate)
-        return TrnStatusUpdateResponse(updated = saved, siblings = siblings)
+        return TrnStatusUpdateResponse(updated = saved, siblings = siblings.map { it.id })
     }
 
     fun patch(

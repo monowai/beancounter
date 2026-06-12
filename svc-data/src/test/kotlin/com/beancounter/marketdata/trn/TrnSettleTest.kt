@@ -40,6 +40,7 @@ class TrnSettleTest {
     private lateinit var systemUserService: SystemUserService
     private lateinit var trnService: TrnService
     private lateinit var dateUtils: DateUtils
+    private lateinit var cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
 
     private val today: LocalDate = LocalDate.of(2026, 6, 6)
 
@@ -67,6 +68,12 @@ class TrnSettleTest {
         whenever(portfolioService.find("pf-1")).thenReturn(portfolio)
         whenever(trnMigrator.upgrade(any())).thenAnswer { it.arguments[0] as Trn }
         whenever(systemUserService.getOrThrow()).thenReturn(owner)
+        cashAutoSettleService = mock()
+        whenever(cashAutoSettleService.emitCompensatingTransfer(any()))
+            .thenReturn(
+                com.beancounter.marketdata.cash
+                    .AutoSettleResult()
+            )
         trnService =
             TrnService(
                 trnRepository = trnRepository,
@@ -77,7 +84,7 @@ class TrnSettleTest {
                 systemUserService = systemUserService,
                 cacheInvalidationProducer = cacheInvalidationProducer,
                 portfolioShareRepository = mock<PortfolioShareRepository>(),
-                cashAutoSettleService = mock<CashAutoSettleService>(),
+                cashAutoSettleService = cashAutoSettleService,
                 fxTransactions = fxTransactions,
                 dateUtils = dateUtils
             )

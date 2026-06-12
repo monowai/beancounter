@@ -34,6 +34,7 @@ class AutoSettleServiceTest {
     private lateinit var dateUtils: DateUtils
     private lateinit var userPreferencesService: UserPreferencesService
     private lateinit var fxTransactions: FxTransactions
+    private lateinit var cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
     private val today = LocalDate.now()
 
     private val testOwner = SystemUser("test-user", "test@example.com")
@@ -57,6 +58,12 @@ class AutoSettleServiceTest {
         dateUtils = mock(DateUtils::class.java)
         userPreferencesService = mock(UserPreferencesService::class.java)
         fxTransactions = mock(FxTransactions::class.java)
+        cashAutoSettleService = mock(com.beancounter.marketdata.cash.CashAutoSettleService::class.java)
+        `when`(cashAutoSettleService.emitCompensatingTransfer(kAny()))
+            .thenReturn(
+                com.beancounter.marketdata.cash
+                    .AutoSettleResult()
+            )
         `when`(dateUtils.date).thenReturn(today)
         // Default: every owner opted in.
         `when`(userPreferencesService.getOrCreate(kAny<SystemUser>()))
@@ -64,7 +71,7 @@ class AutoSettleServiceTest {
                 UserPreferences(owner = invocation.getArgument(0))
             }
         autoSettleService =
-            AutoSettleService(trnRepository, dateUtils, userPreferencesService, fxTransactions)
+            AutoSettleService(trnRepository, dateUtils, userPreferencesService, fxTransactions, cashAutoSettleService)
     }
 
     @Test

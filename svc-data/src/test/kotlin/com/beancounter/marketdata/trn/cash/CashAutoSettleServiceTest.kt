@@ -393,14 +393,38 @@ class CashAutoSettleServiceTest {
     }
 
     @Test
-    fun `unsettle returns sibling ids when BUY had an auto-emitted pair`() {
+    fun `unsettle deletes the auto-emitted cash pair and reports the removed ids`() {
         mockAuthConfig.login(testUser, systemUserService)
         val buy = buildBuy(invest, BigDecimal("-2000"))
+        assertThat(findAutoSiblings(buy)).hasSize(2)
+
         val response = trnService.unsettle(buy.id)
 
         assertThat(response.updated.id).isEqualTo(buy.id)
         assertThat(response.updated.status).isEqualTo(TrnStatus.PROPOSED)
+        // The two cash legs are removed server-side; the ids are reported back.
         assertThat(response.siblings).hasSize(2)
+        assertThat(findAutoSiblings(buy)).isEmpty()
+    }
+
+    @Test
+    fun `a PROPOSED trade emits no cash transfer until it is settled`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val buy = buildBuy(invest, BigDecimal("-1200"), status = TrnStatus.PROPOSED)
+
+        assertThat(buy.status).isEqualTo(TrnStatus.PROPOSED)
+        assertThat(findAutoSiblings(buy)).isEmpty()
+    }
+
+    @Test
+    fun `settling a PROPOSED trade emits the compensating cash transfer`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val buy = buildBuy(invest, BigDecimal("-1200"), status = TrnStatus.PROPOSED)
+        assertThat(findAutoSiblings(buy)).isEmpty()
+
+        trnService.settleTransactions(invest.id, listOf(buy.id))
+
+        assertThat(findAutoSiblings(buy)).hasSize(2)
     }
 
     @Test
@@ -476,7 +500,8 @@ class CashAutoSettleServiceTest {
 
     private fun buildBuy(
         portfolio: Portfolio,
-        cashAmount: BigDecimal
+        cashAmount: BigDecimal,
+        status: TrnStatus = TrnStatus.SETTLED
     ): Trn =
         trnService
             .save(
@@ -496,7 +521,7 @@ class CashAutoSettleServiceTest {
                             cashAmount = cashAmount,
                             tradeCashRate = BigDecimal.ONE,
                             tradeDate = LocalDate.now(),
-                            status = TrnStatus.SETTLED
+                            status = status
                         )
                     )
                 )

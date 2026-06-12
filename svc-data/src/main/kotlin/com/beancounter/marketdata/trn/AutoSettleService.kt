@@ -26,7 +26,8 @@ class AutoSettleService(
     private val trnRepository: TrnRepository,
     private val dateUtils: DateUtils,
     private val userPreferencesService: UserPreferencesService,
-    private val fxTransactions: FxTransactions
+    private val fxTransactions: FxTransactions,
+    private val cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
 ) {
     private val log = LoggerFactory.getLogger(AutoSettleService::class.java)
 
@@ -91,6 +92,14 @@ class AutoSettleService(
             }
             trn.status = TrnStatus.SETTLED
             trnRepository.save(trn)
+            // Emit the compensating cash transfer now the event has settled —
+            // mirrors the manual TrnService.settleTransactions path so cash-
+            // impacting events (DIVI/INCOME) get their cash leg on settle, not
+            // create.
+            cashAutoSettleService
+                .emitCompensatingTransfer(trn)
+                .warnings
+                .forEach { log.warn("Auto-settle cash on scheduled settle of {}: {}", trn.id, it) }
             settledCount++
             log.info(
                 "Auto-settled transaction: {}, asset: {}, portfolio: {}, tradeDate: {}",

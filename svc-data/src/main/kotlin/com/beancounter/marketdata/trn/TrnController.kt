@@ -674,6 +674,35 @@ class TrnController(
         ) @RequestBody request: SettleTransactionsRequest
     ): TrnResponse = TrnResponse(trnService.settleTransactions(portfolioId, request.trnIds))
 
+    @PostMapping(
+        value = ["/portfolio/{portfolioId}/unsettle"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Unsettle settled transactions",
+        description = """
+            Reverts SETTLED transactions to PROPOSED, cascade-deleting each one's
+            auto-emitted cash legs (same per-trn core as single Unsettle). Non-SETTLED
+            or missing ids are skipped, never aborting the batch.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Transactions unsettled"),
+            ApiResponse(responseCode = "404", description = "Portfolio not found")
+        ]
+    )
+    fun unsettleTransactions(
+        @Parameter(
+            description = "Portfolio identifier",
+            example = "portfolio-123"
+        ) @PathVariable("portfolioId") portfolioId: String,
+        @Parameter(
+            description = "Request body containing transaction IDs to unsettle"
+        ) @RequestBody request: SettleTransactionsRequest
+    ): TrnResponse = TrnResponse(trnService.unsettleTransactions(portfolioId, request.trnIds))
+
     @GetMapping(
         value = ["/{portfolioId}/cash-ladder/{cashAssetId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]

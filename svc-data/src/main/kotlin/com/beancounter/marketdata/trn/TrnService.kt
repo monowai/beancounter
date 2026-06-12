@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnDeleteResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -44,7 +43,7 @@ class TrnService(
     private val cacheInvalidationProducer: CacheInvalidationProducer,
     private val portfolioShareRepository: PortfolioShareRepository,
     private val cashAutoSettleService: CashAutoSettleService,
-    private val fxTransactions: FxTransactions,
+    private val trnSettlementService: TrnSettlementService,
     private val dateUtils: DateUtils
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
@@ -99,6 +98,10 @@ class TrnService(
         // types (DEPOSIT/WITHDRAWAL etc.) — no recursion risk.
         val warnings = mutableListOf<String>()
         for (trn in results.toList()) {
+            // Cash auto-settle fires on SETTLEMENT, not creation. A PROPOSED trade
+            // carries no compensating cash transfer until it settles (see
+            // settleTransactions); a trade saved already-SETTLED still emits here.
+            if (trn.status != TrnStatus.SETTLED) continue
             val res = cashAutoSettleService.emitCompensatingTransfer(trn)
             warnings.addAll(res.warnings)
         }
@@ -273,21 +276,9 @@ class TrnService(
                         )
                         continue
                     }
-                    // Resolve FX rates now that user has confirmed settlement.
-                    // Ingest of forward-dated event trns (DIVI payDate) defers FX.
-                    try {
-                        fxTransactions.setRates(portfolio, trn)
-                    } catch (ex: RuntimeException) {
-                        log.warn(
-                            "FX resolution failed for {} on {} — leaving PROPOSED: {}",
-                            trnId,
-                            trn.tradeDate,
-                            ex.message
-                        )
-                        continue
-                    }
-                    trn.status = TrnStatus.SETTLED
-                    val saved = trnRepository.save(trn)
+                    // Shared settle core: FX + status flip + cash emit. Returns
+                    // null when FX can't resolve yet (leaves it PROPOSED for retry).
+                    val saved = trnSettlementService.settle(portfolio, trn) ?: continue
                     settled.add(saved)
                     log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
                 } else {
@@ -390,12 +381,12 @@ class TrnService(
     }
 
     /**
-     * Toggle a trn from SETTLED to PROPOSED. Surfaces auto-settled siblings
-     * for the caller to optionally delete via follow-up requests.
+     * Toggle a trn from SETTLED to PROPOSED, cascade-deleting its auto-emitted
+     * cash legs (see [TrnSettlementService.unsettle]). `siblings` reports the
+     * removed leg ids for the UI to refresh.
      *
-     * Idempotency: callers must check status first. Calling unsettle on a trn
-     * that isn't SETTLED throws — there's no useful "transition to PROPOSED
-     * from PROPOSED" semantic.
+     * Idempotency: calling unsettle on a trn that isn't SETTLED throws — there's
+     * no useful "transition to PROPOSED from PROPOSED" semantic.
      */
     fun unsettle(trnId: String): TrnStatusUpdateResponse {
         val parent =
@@ -408,11 +399,44 @@ class TrnService(
         require(parent.status == TrnStatus.SETTLED) {
             "Cannot unsettle trn $trnId: status is ${parent.status}, expected SETTLED"
         }
-        val siblings = cashAutoSettleService.findSiblings(parent).map { it.id }
-        parent.status = TrnStatus.PROPOSED
-        val saved = trnRepository.save(parent)
+        val siblings = trnSettlementService.unsettle(parent)
         cacheInvalidationProducer.sendTransactionEvent(parent.portfolio.id, parent.tradeDate)
-        return TrnStatusUpdateResponse(updated = saved, siblings = siblings)
+        return TrnStatusUpdateResponse(updated = parent, siblings = siblings)
+    }
+
+    /**
+     * Bulk unsettle for a portfolio — the multi-select counterpart to
+     * [settleTransactions]. Each SETTLED trn flows through the same
+     * [TrnSettlementService.unsettle] core (cash-leg cascade) as the single path,
+     * so behaviour is identical regardless of UI. Non-SETTLED / missing ids are
+     * skipped with a log, never aborting the batch.
+     */
+    fun unsettleTransactions(
+        portfolioId: String,
+        trnIds: List<String>
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        val unsettled = mutableListOf<Trn>()
+        for (trnId in trnIds) {
+            val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId).orElse(null)
+            when {
+                trn == null -> {
+                    log.warn("Transaction {} not found in portfolio {}", trnId, portfolio.code)
+                }
+                trn.status != TrnStatus.SETTLED -> {
+                    log.warn("Cannot unsettle {} - status is {} not SETTLED", trnId, trn.status)
+                }
+                else -> {
+                    trnSettlementService.unsettle(trn)
+                    unsettled.add(trn)
+                }
+            }
+        }
+        log.info("Unsettled {} transactions for portfolio {}", unsettled.size, portfolio.code)
+        unsettled.minOfOrNull { it.tradeDate }?.let {
+            cacheInvalidationProducer.sendTransactionEvent(portfolio.id, it)
+        }
+        return postProcess(unsettled)
     }
 
     fun patch(

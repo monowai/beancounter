@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
@@ -34,12 +33,13 @@ import java.util.Optional
 class TrnSettleTest {
     private lateinit var trnRepository: TrnRepository
     private lateinit var portfolioService: PortfolioService
-    private lateinit var fxTransactions: FxTransactions
     private lateinit var trnMigrator: TrnMigrator
     private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
     private lateinit var systemUserService: SystemUserService
     private lateinit var trnService: TrnService
     private lateinit var dateUtils: DateUtils
+    private lateinit var cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
+    private lateinit var trnSettlementService: TrnSettlementService
 
     private val today: LocalDate = LocalDate.of(2026, 6, 6)
 
@@ -58,7 +58,6 @@ class TrnSettleTest {
     fun setUp() {
         trnRepository = mock()
         portfolioService = mock()
-        fxTransactions = mock()
         trnMigrator = mock()
         cacheInvalidationProducer = mock()
         systemUserService = mock()
@@ -67,6 +66,18 @@ class TrnSettleTest {
         whenever(portfolioService.find("pf-1")).thenReturn(portfolio)
         whenever(trnMigrator.upgrade(any())).thenAnswer { it.arguments[0] as Trn }
         whenever(systemUserService.getOrThrow()).thenReturn(owner)
+        cashAutoSettleService = mock()
+        whenever(cashAutoSettleService.emitCompensatingTransfer(any()))
+            .thenReturn(
+                com.beancounter.marketdata.cash
+                    .AutoSettleResult()
+            )
+        trnSettlementService = mock()
+        whenever(trnSettlementService.settle(any(), any())).thenAnswer {
+            val t = it.getArgument<Trn>(1)
+            t.status = TrnStatus.SETTLED
+            t
+        }
         trnService =
             TrnService(
                 trnRepository = trnRepository,
@@ -77,8 +88,8 @@ class TrnSettleTest {
                 systemUserService = systemUserService,
                 cacheInvalidationProducer = cacheInvalidationProducer,
                 portfolioShareRepository = mock<PortfolioShareRepository>(),
-                cashAutoSettleService = mock<CashAutoSettleService>(),
-                fxTransactions = fxTransactions,
+                cashAutoSettleService = cashAutoSettleService,
+                trnSettlementService = trnSettlementService,
                 dateUtils = dateUtils
             )
     }
@@ -94,7 +105,7 @@ class TrnSettleTest {
         assertThat(result).isEmpty()
         assertThat(forwardTrn.status).isEqualTo(TrnStatus.PROPOSED)
         verify(trnRepository, never()).save(forwardTrn)
-        verify(fxTransactions, never()).setRates(any(), any<Trn>())
+        verify(trnSettlementService, never()).settle(any(), any())
     }
 
     @Test
@@ -102,14 +113,12 @@ class TrnSettleTest {
         val dueTrn = proposed("trn-today", today)
         whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-today"))
             .thenReturn(Optional.of(dueTrn))
-        whenever(trnRepository.save(dueTrn)).thenReturn(dueTrn)
 
         val result = trnService.settleTransactions("pf-1", listOf("trn-today"))
 
         assertThat(result).hasSize(1)
         assertThat(dueTrn.status).isEqualTo(TrnStatus.SETTLED)
-        verify(fxTransactions).setRates(portfolio, dueTrn)
-        verify(trnRepository).save(dueTrn)
+        verify(trnSettlementService).settle(portfolio, dueTrn)
     }
 
     private fun proposed(

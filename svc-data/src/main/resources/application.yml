@@ -501,6 +501,7 @@ beancounter:
         currencyId: "USD"
         timezoneId: "Europe/London"
         aliases:
+          FIGI: "LN"
           eodhd: "LSE"
 
       - code: "AMS"

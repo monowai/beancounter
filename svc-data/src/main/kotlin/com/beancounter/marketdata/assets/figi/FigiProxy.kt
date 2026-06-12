@@ -36,6 +36,14 @@ class FigiProxy internal constructor(
         defaultName: String? = null,
         id: String = bcAssetCode
     ): Asset? {
+        // FIGI resolution needs the market's FIGI exchange alias. A market without
+        // one (e.g. a USD-on-LSE listing) can't be FIGI-resolved — return null so
+        // the enricher chain falls back to the default enricher instead of NPEing
+        // on the alias lookup in resolve() (DATA-5K).
+        if (market.aliases[FIGI] == null) {
+            log.debug("No FIGI alias for market {} — skipping FIGI enrichment", market.code)
+            return null
+        }
         val (figiCode, figiMarket, figiSearch) =
             resolve(
                 bcAssetCode,

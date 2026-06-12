@@ -428,6 +428,22 @@ class CashAutoSettleServiceTest {
     }
 
     @Test
+    fun `bulk unsettle reverts each trade and deletes all their cash legs`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val b1 = buildBuy(invest, BigDecimal("-1000"))
+        val b2 = buildBuy(invest, BigDecimal("-1500"))
+        assertThat(findAutoSiblings(b1)).hasSize(2)
+        assertThat(findAutoSiblings(b2)).hasSize(2)
+
+        val result = trnService.unsettleTransactions(invest.id, listOf(b1.id, b2.id))
+
+        assertThat(result).hasSize(2)
+        assertThat(result.map { it.status }).containsOnly(TrnStatus.PROPOSED)
+        assertThat(findAutoSiblings(b1)).isEmpty()
+        assertThat(findAutoSiblings(b2)).isEmpty()
+    }
+
+    @Test
     fun `unsettle on already PROPOSED trn throws IllegalArgumentException`() {
         mockAuthConfig.login(testUser, systemUserService)
         val buy = buildBuy(invest, BigDecimal("-1000"))

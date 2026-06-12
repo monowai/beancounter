@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -26,8 +25,7 @@ class AutoSettleService(
     private val trnRepository: TrnRepository,
     private val dateUtils: DateUtils,
     private val userPreferencesService: UserPreferencesService,
-    private val fxTransactions: FxTransactions,
-    private val cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
+    private val trnSettlementService: TrnSettlementService
 ) {
     private val log = LoggerFactory.getLogger(AutoSettleService::class.java)
 
@@ -77,29 +75,11 @@ class AutoSettleService(
                 )
                 continue
             }
-            // Resolve FX rates now that tradeDate has arrived. Ingest of PROPOSED
-            // event trns defers FX (forward payDate; providers reject future dates).
-            try {
-                fxTransactions.setRates(trn.portfolio, trn)
-            } catch (ex: RuntimeException) {
-                log.warn(
-                    "FX resolution failed for {} on {} — leaving PROPOSED for retry: {}",
-                    trn.id,
-                    trn.tradeDate,
-                    ex.message
-                )
-                continue
-            }
-            trn.status = TrnStatus.SETTLED
-            trnRepository.save(trn)
-            // Emit the compensating cash transfer now the event has settled —
-            // mirrors the manual TrnService.settleTransactions path so cash-
-            // impacting events (DIVI/INCOME) get their cash leg on settle, not
-            // create.
-            cashAutoSettleService
-                .emitCompensatingTransfer(trn)
-                .warnings
-                .forEach { log.warn("Auto-settle cash on scheduled settle of {}: {}", trn.id, it) }
+            // Shared settle core — FX + status flip + cash emit. Same path as the
+            // manual TrnService.settleTransactions, so a scheduled DIVI/SPLIT settle
+            // produces its cash leg identically. Null = FX not yet resolvable; leave
+            // PROPOSED for the next run.
+            trnSettlementService.settle(trn.portfolio, trn) ?: continue
             settledCount++
             log.info(
                 "Auto-settled transaction: {}, asset: {}, portfolio: {}, tradeDate: {}",

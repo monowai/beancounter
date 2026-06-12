@@ -15,7 +15,7 @@ import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.RestClientException
 import java.time.LocalDate
 
 /**
@@ -80,8 +80,11 @@ class EodhdPriceService(
         val rows =
             try {
                 eodhdProxy.getPrice(symbol, priceDate, eodhdConfig.apiKey)
-            } catch (e: HttpClientErrorException) {
-                log.warn("EODHD {} for {} on {} — skipping", e.statusCode, symbol, priceDate)
+            } catch (e: RestClientException) {
+                // Broad RestClientException, not just 4xx: also covers body-extraction
+                // failures when EODHD returns a non-array error payload for a bad or
+                // mis-tagged symbol. One bad ticker must never abort the valuation cycle.
+                log.warn("EODHD error for {} on {} — skipping: {}", symbol, priceDate, e.message)
                 return emptyList()
             }
         return eodhdAdapter.toMarketData(asset, LocalDate.parse(priceDate), rows)
@@ -108,13 +111,18 @@ class EodhdPriceService(
         val bulkRows: List<EodhdBulkPrice> =
             try {
                 eodhdProxy.getBulkPrices(exchange, csv, priceDate, eodhdConfig.apiKey)
-            } catch (e: HttpClientErrorException) {
+            } catch (e: RestClientException) {
+                // Broad RestClientException, not just HttpClientErrorException: a non-array
+                // EODHD error body throws "Error while extracting response for type
+                // [EodhdBulkPrice[]]" (a body-extraction failure, not a 4xx). Falling back
+                // to per-symbol keeps the good symbols instead of 500ing the whole
+                // valuation and zeroing every portfolio in the cycle (POSITION-2F).
                 log.warn(
-                    "EODHD bulk {} for batch {} ({} symbols) on {} — falling back to per-symbol",
-                    e.statusCode,
+                    "EODHD bulk error for batch {} ({} symbols) on {} — falling back to per-symbol: {}",
                     batchId,
                     symbols.size,
-                    priceDate
+                    priceDate,
+                    e.message
                 )
                 return symbols.flatMap { fetchSingle(providerArguments, it, priceDate) }
             }

@@ -17,6 +17,7 @@ import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Lazy
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -42,6 +43,10 @@ class AssetService(
     private val accountingTypeService: AccountingTypeService,
     private val trnRepository: TrnRepository,
     private val assetCascadeDeleter: AssetCascadeDeleter,
+    // @Lazy breaks the construction cycle: AssetService → AssetMarketVerifier →
+    // AssetSearchService → MdFactory → Alpha* → AssetService. The verifier is only
+    // touched on the create path, so a lazy proxy is resolved well after startup.
+    @Lazy private val assetMarketVerifier: AssetMarketVerifier,
     transactionManager: PlatformTransactionManager
 ) : Assets {
     // New transaction template for recovery lookups after constraint violations
@@ -191,6 +196,10 @@ class AssetService(
                         market = market,
                         assetInput = assetInput
                     )
+            // Reject a phantom on the wrong exchange (e.g. a USD-on-LSE ETF entered
+            // as US) before it is persisted unpriceable. Fail-open — only rejects
+            // when the ticker is positively listed on other markets, not this one.
+            assetMarketVerifier.verify(assetInput.code, market, asset.name)
             try {
                 // saveAndFlush — see findOrCreate above for rationale.
                 assetRepository.saveAndFlush(asset)

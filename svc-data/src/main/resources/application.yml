@@ -492,6 +492,17 @@ beancounter:
           FIGI: "LN"
           eodhd: "LSE"
 
+      - code: "LSE"
+        name: "London Stock Exchange (USD)"
+        # USD-denominated lines on the LSE — e.g. Vanguard VUAA (S&P 500 UCITS USD
+        # Acc). Same physical exchange + EODHD suffix as LON, but these settle in
+        # USD and are quoted whole (not pence), so currency must be USD with no
+        # pence multiplier — otherwise the price is FX-converted as GBP and wrong.
+        currencyId: "USD"
+        timezoneId: "Europe/London"
+        aliases:
+          eodhd: "LSE"
+
       - code: "AMS"
         name: "Euronext Amsterdam"
         currencyId: "EUR"

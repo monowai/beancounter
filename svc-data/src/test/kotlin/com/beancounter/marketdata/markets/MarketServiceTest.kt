@@ -73,6 +73,23 @@ class MarketServiceTest {
     }
 
     @Test
+    fun `should resolve LSE (USD) market distinct from LON (GBP)`() {
+        // VUAA-on-LSE settles in USD. LON is GBP/pence; pricing a USD line as LON
+        // FX-converts it as GBP (~1.27x wrong). LSE shares the EODHD exchange suffix
+        // but carries USD so the USD-settled LSE listings price correctly.
+        val lse = marketService.getMarket("LSE")
+        assertThat(lse)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("currency.code", USD.code)
+            .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone("Europe/London"))
+        assertThat(lse.getAlias("eodhd")).isEqualTo("LSE")
+
+        val lon = marketService.getMarket("LON")
+        assertThat(lon.currency.code).isEqualTo(GBP.code)
+        assertThat(lon.getAlias("eodhd")).isEqualTo("LSE")
+    }
+
+    @Test
     fun `should find market for alias`() {
         val nyse = marketService.getMarket(Constants.NYSE.code)
         val nzx = marketService.getMarket(Constants.NZX.code)

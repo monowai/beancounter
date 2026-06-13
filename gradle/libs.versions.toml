@@ -4,7 +4,7 @@
 [versions]
 kotlin = "2.3.20"
 kotlinter = "5.4.2"
-spring-boot = "3.5.14"
+spring-boot = "3.5.15"
 spring-cloud = "2025.0.2"
 spring-cloud-contract = "4.3.1"
 spring-data-bom = "2025.0.8"
@@ -16,7 +16,7 @@ sentry = "8.40.0"
 postgres = "42.7.10"
 guava = "33.5.0-jre"
 servlet-api = "6.1.0"
-spring-ai = "1.1.5"
+spring-ai = "1.1.8"
 flyway = "11.20.0"
 # Pinned because jar-common exposes the bridge as an api dep but
 # downstream modules (e.g. jar-shell) don't import the spring-boot

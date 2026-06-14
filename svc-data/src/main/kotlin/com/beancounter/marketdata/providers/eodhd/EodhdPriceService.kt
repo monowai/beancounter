@@ -211,12 +211,12 @@ class EodhdPriceService(
      *
      * EODHD reports its own exchange (e.g. `LSE`), but the UI posts the result's `market` to
      * `/api/assets`, which only accepts BC market codes — posting the raw exchange trips "Unable to
-     * resolve market code" → 404 (asset creation disables alias resolution). [MarketService.getMarket]
-     * resolves the exchange via the alias map (`LSE` → `LON`); rows whose exchange maps to no BC
-     * market are dropped rather than surfaced with an un-postable code — mirroring the FIGI path.
+     * resolve market code" → 404 (asset creation disables alias resolution). [resolveMarket]
+     * resolves the exchange via the alias map (`LSE` → `LON`/`LSE`); rows whose exchange maps to no
+     * BC market are dropped rather than surfaced with an un-postable code — mirroring the FIGI path.
      */
     private fun toSearchResult(row: EodhdSearchResult): AssetSearchResult? {
-        val market = runCatching { eodhdConfig.marketService.getMarket(row.exchange) }.getOrNull()
+        val market = resolveMarket(row.exchange, row.currency)
         if (market == null) {
             log.debug("Dropping EODHD result {} — exchange {} maps to no BC market", row.code, row.exchange)
             return null
@@ -231,7 +231,69 @@ class EodhdPriceService(
         )
     }
 
+    /**
+     * Resolve an EODHD [exchange] to the owning BC [Market], disambiguating on the instrument
+     * [currency] when several BC markets share one EODHD exchange.
+     *
+     * EODHD reports a single exchange code (`LSE`) for all of London, but BC splits London into
+     * `LON` (currencyId GBP, pence-quoted UK equities) and `LSE` (currencyId USD, USD-denominated
+     * London ETFs) — both carrying `aliases.eodhd = "LSE"`. Picking the first/direct-code match
+     * mis-keys GBP equities to LSE/USD, breaking price caching (currency mismatch → re-fetch every
+     * call). So for an ambiguous exchange we route on the normalized EODHD currency.
+     *
+     * The US `eodhd` alias is shared by the inactive aggregator markets (NASDAQ/NYSE/AMEX) and the
+     * active `US` market — all USD, so currency can't disambiguate them. We prefer active candidates
+     * and, when the resolved code is an aggregator, collapse to canonical `US` via [MarketService].
+     *
+     * @return the resolved market, or null when no BC market addresses the exchange.
+     */
+    private fun resolveMarket(
+        exchange: String,
+        currency: String?
+    ): Market? {
+        val candidates =
+            eodhdConfig.marketService
+                .getMarketMap()
+                .values
+                .filter { market ->
+                    market.code.equals(exchange, ignoreCase = true) ||
+                        market.getAlias(EODHD_ALIAS)?.equals(exchange, ignoreCase = true) == true
+                }
+        val resolved =
+            when (candidates.size) {
+                0 -> {
+                    return null
+                }
+                1 -> {
+                    candidates.first()
+                }
+                else -> {
+                    // Active markets are the real persistence targets; inactive aggregators
+                    // (NASDAQ/NYSE/AMEX) collapse to US below.
+                    val preferred = candidates.filter { it.active }.ifEmpty { candidates }
+                    val normalized = normalizeCurrency(currency)
+                    preferred.firstOrNull { it.currencyId.equals(normalized, ignoreCase = true) }
+                        ?: preferred.firstOrNull()
+                        ?: runCatching { eodhdConfig.marketService.getMarket(exchange) }.getOrNull()
+                        ?: return null
+                }
+            }
+        return runCatching { eodhdConfig.marketService.canonical(resolved.code) }.getOrDefault(resolved)
+    }
+
+    /**
+     * Map an EODHD currency to the BC market's `currencyId`. EODHD quotes London pence as `GBX`
+     * (BC's LON market is currencyId GBP with the 0.01 multiplier), so GBX/GBp/GBX. all collapse to
+     * GBP; every other currency is uppercased as-is. A null currency yields an empty string so the
+     * ambiguous-exchange resolver falls through to its safe default.
+     */
+    private fun normalizeCurrency(currency: String?): String {
+        val raw = currency?.trim()?.uppercase()?.removeSuffix(".") ?: return ""
+        return if (raw == "GBX" || raw == "GBP") "GBP" else raw
+    }
+
     companion object {
         const val ID = "EODHD"
+        private const val EODHD_ALIAS = "eodhd"
     }
 }

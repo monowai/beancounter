@@ -16,6 +16,11 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 
 class FigiProxyAliasTest {
+    companion object {
+        private const val API_KEY = "demoxx"
+        private const val MOTU_NAME = "VANECK MSTAR WIDE MOAT ETF"
+    }
+
     @Test
     fun `find skips FIGI and returns null when the market has no FIGI alias`() {
         // DATA-5K: enriching an asset on a market without a FIGI exchange alias
@@ -45,7 +50,7 @@ class FigiProxyAliasTest {
         // The retry chain must keep advancing on a warning no-match so it reaches the
         // Mutual Fund attempt rather than stopping after Common Stock.
         val config = Mockito.mock(FigiConfig::class.java)
-        whenever(config.apiKey).thenReturn("demoxx")
+        whenever(config.apiKey).thenReturn(API_KEY)
         val gateway = Mockito.mock(FigiGateway::class.java)
         val adapter = Mockito.mock(FigiAdapter::class.java)
         val proxy = FigiProxy(config, gateway, adapter)
@@ -59,17 +64,17 @@ class FigiProxyAliasTest {
         val mutualFundMatch =
             listOf(
                 FigiResponse(
-                    data = listOf(FigiAsset("VANECK MSTAR WIDE MOAT ETF", "MOTU", "Mutual Fund")),
+                    data = listOf(FigiAsset(MOTU_NAME, "MOTU", "Mutual Fund")),
                     error = null
                 )
             )
-        whenever(gateway.search(any(), eq("demoxx")))
+        whenever(gateway.search(any(), eq(API_KEY)))
             .thenReturn(warningNoMatch) // Common Stock
             .thenReturn(warningNoMatch) // Depositary Receipt
             .thenReturn(mutualFundMatch) // Mutual Fund -> match
 
         val enriched =
-            Asset(code = "MOTU", id = "MOTU", name = "VANECK MSTAR WIDE MOAT ETF", market = lse)
+            Asset(code = "MOTU", id = "MOTU", name = MOTU_NAME, market = lse)
         whenever(
             adapter.transform(any<Market>(), any<String>(), any<FigiAsset>(), any<String>())
         ).thenReturn(enriched)
@@ -78,9 +83,9 @@ class FigiProxyAliasTest {
 
         assertThat(result)
             .isNotNull
-            .hasFieldOrPropertyWithValue("name", "VANECK MSTAR WIDE MOAT ETF")
+            .hasFieldOrPropertyWithValue("name", MOTU_NAME)
         // Stops at Mutual Fund — REIT is never attempted.
-        Mockito.verify(gateway, Mockito.times(3)).search(any(), eq("demoxx"))
+        Mockito.verify(gateway, Mockito.times(3)).search(any(), eq(API_KEY))
     }
 
     @Test
@@ -89,7 +94,7 @@ class FigiProxyAliasTest {
         // enricher chain falls back to DefaultEnricher. The asset must NOT be created
         // here with a null name.
         val config = Mockito.mock(FigiConfig::class.java)
-        whenever(config.apiKey).thenReturn("demoxx")
+        whenever(config.apiKey).thenReturn(API_KEY)
         val gateway = Mockito.mock(FigiGateway::class.java)
         val adapter = Mockito.mock(FigiAdapter::class.java)
         val proxy = FigiProxy(config, gateway, adapter)
@@ -97,7 +102,7 @@ class FigiProxyAliasTest {
 
         val warningNoMatch =
             listOf(FigiResponse(data = null, error = null).also { it.warning = "No identifier found." })
-        whenever(gateway.search(any(), eq("demoxx"))).thenReturn(warningNoMatch)
+        whenever(gateway.search(any(), eq(API_KEY))).thenReturn(warningNoMatch)
 
         val result = proxy.find(lse, "NOPE")
 

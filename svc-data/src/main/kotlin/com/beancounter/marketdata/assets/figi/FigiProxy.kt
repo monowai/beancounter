@@ -33,7 +33,6 @@ class FigiProxy internal constructor(
     fun find(
         market: Market,
         bcAssetCode: String,
-        defaultName: String? = null,
         id: String = bcAssetCode
     ): Asset? {
         // FIGI resolution needs the market's FIGI exchange alias. A market without
@@ -51,27 +50,15 @@ class FigiProxy internal constructor(
             )
         val response = resolve(figiSearch)
         if (response?.error != null) {
+            // Hard error (rate-limit / auth). Return null so the enricher chain falls
+            // back to the default enricher rather than persisting a null-named asset.
             log.debug(
                 "Error {}/{} {}",
                 figiMarket,
                 figiCode,
                 response.error
             )
-            return if (response.error.equals(
-                    "No identifier found.",
-                    ignoreCase = true
-                )
-            ) {
-                // Unknown, so don't continue to hit the service - add a name value
-                figiAdapter.transform(
-                    market,
-                    bcAssetCode,
-                    defaultName = defaultName,
-                    id
-                )
-            } else {
-                null
-            }
+            return null
         }
         if (response?.data != null) {
             for (datum in response.data!!) {
@@ -121,18 +108,28 @@ class FigiProxy internal constructor(
     }
 
     private fun resolve(figiSearch: FigiSearch): FigiResponse? {
+        // Try each securityType in turn. Advance only on a no-match (no data AND no hard
+        // error — OpenFIGI v3 signals this with a `warning`). Stop immediately on a match
+        // (data != null) or a hard error (error != null, e.g. rate-limit/auth) so the
+        // caller can fall back to the default enricher.
         var response = findEquity(figiSearch)
-        if (response?.error != null) {
+        if (response.isNoMatch()) {
             response = findAdr(figiSearch)
-            if (response?.error != null) {
+            if (response.isNoMatch()) {
                 response = findMutualFund(figiSearch)
-                if (response?.error != null) {
+                if (response.isNoMatch()) {
                     response = findReit(figiSearch)
                 }
             }
         }
         return response
     }
+
+    /**
+     * A no-match (keep trying the next securityType): no data and no hard error.
+     * Covers the v3 `warning` no-match and a null/empty response.
+     */
+    private fun FigiResponse?.isNoMatch(): Boolean = this == null || (data == null && error == null)
 
     private fun getSearchArgs(figiSearch: FigiSearch): Collection<FigiSearch> {
         val figiSearches: MutableCollection<FigiSearch> = ArrayList()

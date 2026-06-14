@@ -354,9 +354,8 @@ class FigiAssetApiTest {
                             HttpHeaders.CONTENT_TYPE,
                             MediaType.APPLICATION_JSON_VALUE
                         ).withBody(
-                            "[{\"error\": \"No identifier found.\"\n" +
-                                "    }\n" +
-                                "]"
+                            // OpenFIGI v3 signals a no-match with `warning`, not `error`.
+                            "[{\"warning\": \"No identifier found.\"}]"
                         )
                 )
         )

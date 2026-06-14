@@ -79,17 +79,24 @@ class EodhdConfig(
      *
      * EODHD always wants `${code}.${exchange}` — even US tickers use the `.US` suffix.
      * The `eodhd:` alias on each market in `application.yml` supplies the suffix (US, LSE, AU, TO, …).
-     * If an asset already carries a [Asset.priceSymbol], honour that as an explicit override.
+     *
+     * [Asset.priceSymbol] is honoured as an explicit override only when it already carries an
+     * exchange suffix (contains a `.`, e.g. `BARC.OVERRIDE`). A bare priceSymbol (e.g. `IUQA`,
+     * which is what asset creation / FIGI enrichment stamps) is treated as the code and still gets
+     * the market's eodhd suffix appended — otherwise EODHD's `/api/eod/IUQA` returns
+     * "Ticker Not Found" and the asset has no price and no price history.
      */
     override fun getPriceCode(asset: Asset): String {
-        if (!asset.priceSymbol.isNullOrEmpty()) {
-            return asset.priceSymbol!!
+        val override = asset.priceSymbol
+        if (!override.isNullOrEmpty() && override.contains(".")) {
+            return override
         }
+        val base = if (!override.isNullOrEmpty()) override else asset.code
         val marketCode = translateMarketCode(asset.market)
         return if (!marketCode.isNullOrEmpty()) {
-            asset.code + "." + marketCode
+            "$base.$marketCode"
         } else {
-            asset.code
+            base
         }
     }
 

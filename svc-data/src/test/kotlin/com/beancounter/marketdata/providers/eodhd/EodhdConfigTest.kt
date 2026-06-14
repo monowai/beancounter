@@ -68,6 +68,24 @@ internal class EodhdConfigTest {
     }
 
     @Test
+    fun `getPriceCode appends the eodhd suffix to a bare priceSymbol`() {
+        // Asset creation / FIGI enrichment stamps priceSymbol with the bare code (no exchange).
+        // Without the suffix EODHD's /api/eod/IUQA returns "Ticker Not Found" — no price/history.
+        val lse = Market(code = "LSE", aliases = mapOf("eodhd" to "LSE"))
+        val ms = mock<MarketService>()
+        whenever(ms.getMarket("LSE")).thenReturn(lse)
+        val cfg = EodhdConfig(ms)
+        val asset =
+            Asset(
+                code = "IUQA",
+                market = lse,
+                priceSymbol = "IUQA"
+            )
+
+        assertThat(cfg.getPriceCode(asset)).isEqualTo("IUQA.LSE")
+    }
+
+    @Test
     fun `default config is opt-in — empty markets allowlist keeps the provider unrouted`() {
         val cfg = EodhdConfig(mock())
         ReflectionTestUtils.setField(cfg, "apiKey", "demo")

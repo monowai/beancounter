@@ -23,5 +23,7 @@ data class UserPreferencesRequest(
     val yearOfBirth: Int? = null,
     val monthOfBirth: Int? = null,
     val targetIndependenceAge: Int? = null,
-    val lifeExpectancy: Int? = null
+    val lifeExpectancy: Int? = null,
+    val defaultPayslipPortfolioId: String? = null,
+    val defaultPayslipCashAssetId: String? = null
 )

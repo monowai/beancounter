@@ -306,6 +306,37 @@ class UserPreferencesServiceTest {
         assertThat(reread.targetIndependenceAge).isEqualTo(60)
     }
 
+    @Test
+    fun `should persist payslip default portfolio and cash asset and surface them on subsequent reads`() {
+        val user = createAndAuthenticateUser("prefs-test-payslip@email.com")
+
+        // Default: both payslip preference fields null
+        val initial = userPreferencesService.getOrCreate(user)
+        assertThat(initial.defaultPayslipPortfolioId).isNull()
+        assertThat(initial.defaultPayslipCashAssetId).isNull()
+
+        val updated =
+            userPreferencesService.update(
+                user,
+                UserPreferencesRequest(
+                    defaultPayslipPortfolioId = "portfolio-123",
+                    defaultPayslipCashAssetId = "asset-456"
+                )
+            )
+
+        assertThat(updated.defaultPayslipPortfolioId).isEqualTo("portfolio-123")
+        assertThat(updated.defaultPayslipCashAssetId).isEqualTo("asset-456")
+        // Other preferences unchanged
+        assertThat(updated.defaultHoldingsView).isEqualTo(defaultView)
+
+        // Re-reading goes through the persisted store, not the in-memory
+        // return value of update() — guards against the entity field
+        // being added but the column missing.
+        val reread = userPreferencesService.getOrCreate(user)
+        assertThat(reread.defaultPayslipPortfolioId).isEqualTo("portfolio-123")
+        assertThat(reread.defaultPayslipCashAssetId).isEqualTo("asset-456")
+    }
+
     private fun createAndAuthenticateUser(email: String): SystemUser {
         val user = SystemUser(email = email, auth0 = "auth0-$email")
         authUtilService.authenticate(user, AuthUtilService.AuthProvider.AUTH0)

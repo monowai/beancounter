@@ -55,6 +55,8 @@ class UserPreferencesService(
         request.monthOfBirth?.let { preferences.monthOfBirth = it }
         request.targetIndependenceAge?.let { preferences.targetIndependenceAge = it }
         request.lifeExpectancy?.let { preferences.lifeExpectancy = it }
+        request.defaultPayslipPortfolioId?.let { preferences.defaultPayslipPortfolioId = it }
+        request.defaultPayslipCashAssetId?.let { preferences.defaultPayslipCashAssetId = it }
         return userPreferencesRepository.save(preferences)
     }
 }

@@ -53,5 +53,11 @@ data class UserPreferences(
     @Column(name = "target_independence_age")
     var targetIndependenceAge: Int? = null,
     @Column(name = "life_expectancy")
-    var lifeExpectancy: Int? = null
+    var lifeExpectancy: Int? = null,
+    // Defaults remembered by the bc-view "Enter Payslip" feature so the
+    // user's preferred target portfolio and cash asset are pre-selected.
+    @Column(name = "default_payslip_portfolio_id")
+    var defaultPayslipPortfolioId: String? = null,
+    @Column(name = "default_payslip_cash_asset_id")
+    var defaultPayslipCashAssetId: String? = null
 )

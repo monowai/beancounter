@@ -57,7 +57,7 @@ class IrrCalculator(
     fun calculate(periodicCashFlows: PeriodicCashFlows): Double {
         // Early returns for edge cases
         if (periodicCashFlows.cashFlows.isEmpty()) {
-            log.warn("No cash flows to calculate IRR")
+            log.debug("No cash flows to calculate IRR")
             return 0.0
         }
 
@@ -73,13 +73,14 @@ class IrrCalculator(
         val allZero = periodicCashFlows.cashFlows.all { it.amount == 0.0 }
 
         if (allZero) {
-            log.warn("IRR calculation requires non-zero cash flows")
+            log.debug("IRR calculation requires non-zero cash flows")
             return 0.0
         }
 
-        // For strictly all positive or all negative (no zeros), early return
+        // For strictly all positive or all negative (no zeros), early return.
+        // No sign change → no NPV root → IRR undefined (not an error).
         if (allSameSign && !periodicCashFlows.cashFlows.any { it.amount == 0.0 }) {
-            log.warn("IRR calculation requires both positive and negative cash flows")
+            log.debug("IRR calculation requires both positive and negative cash flows")
             return 0.0
         }
 

@@ -121,6 +121,29 @@ class PositionValuationServiceTest {
     }
 
     @Test
+    fun `irrIsDefined requires at least two flows with a sign change`() {
+        fun flows(vararg amounts: Double): com.beancounter.common.model.PeriodicCashFlows =
+            com.beancounter.common.model.PeriodicCashFlows().apply {
+                amounts.forEachIndexed { i, amount ->
+                    cashFlows.add(
+                        com.beancounter.common.model
+                            .CashFlow(amount, LocalDate.now().minusDays((amounts.size - i).toLong()))
+                    )
+                }
+            }
+
+        // Undefined: empty, single, all-positive (e.g. cash deposits), all-negative, all-zero
+        assertThat(PositionValuationService.irrIsDefined(flows())).isFalse()
+        assertThat(PositionValuationService.irrIsDefined(flows(-1000.0))).isFalse()
+        assertThat(PositionValuationService.irrIsDefined(flows(100.0, 200.0))).isFalse()
+        assertThat(PositionValuationService.irrIsDefined(flows(-100.0, -200.0))).isFalse()
+        assertThat(PositionValuationService.irrIsDefined(flows(0.0, 0.0))).isFalse()
+
+        // Defined: an outflow and an inflow
+        assertThat(PositionValuationService.irrIsDefined(flows(-1000.0, 1100.0))).isTrue()
+    }
+
+    @Test
     fun `should return positions unchanged when assets are empty`() {
         // Given
         val positions = TestHelpers.createTestPositions(portfolio, emptyList())

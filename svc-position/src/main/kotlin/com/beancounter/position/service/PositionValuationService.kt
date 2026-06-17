@@ -352,7 +352,12 @@ class PositionValuationService(
     ): BigDecimal {
         val result = config.irrCalculator.calculate(periodicCashFlows)
 
-        if (result == 0.0 && periodicCashFlows.cashFlows.isNotEmpty()) {
+        // Only flag a zero IRR when one was actually solvable. A series with
+        // no sign change (e.g. a cash / funding portfolio that only ever
+        // received settlement deposits) has a mathematically undefined IRR —
+        // `0` there means "undefined", not "0% return". Warning on it produced
+        // false-positive noise (e.g. "Failed to calculate IRR for SGD").
+        if (result == 0.0 && irrIsDefined(periodicCashFlows)) {
             val cashFlowSummary =
                 periodicCashFlows.cashFlows
                     .sortedBy { it.date }
@@ -369,5 +374,22 @@ class PositionValuationService(
         }
 
         return BigDecimal(result)
+    }
+
+    companion object {
+        /**
+         * An IRR exists only when the cash-flow series can cross zero NPV:
+         * at least two flows, not all zero, and at least one sign change
+         * (an outflow you invest and an inflow you get back). All other
+         * series — empty, single, all-positive, all-negative — have no
+         * real root and their IRR is mathematically undefined.
+         */
+        fun irrIsDefined(periodicCashFlows: PeriodicCashFlows): Boolean {
+            val flows = periodicCashFlows.cashFlows
+            if (flows.size < 2) return false
+            val hasInflow = flows.any { it.amount > 0.0 }
+            val hasOutflow = flows.any { it.amount < 0.0 }
+            return hasInflow && hasOutflow
+        }
     }
 }

@@ -244,6 +244,25 @@ tidy up. These are the BC ways of working, learned from multi-session
 collisions. Run them only when wrapping up a change or when asked; a bare
 `/code-review` still just reviews.
 
+**Guiding principle — trunk-based.** The goal is to get work onto `main` as
+fast as possible: small, short-lived branches, always cut from an up-to-date
+`main`, merged and deleted quickly, then repeat. A branch that lingers drifts
+from `main` and collides with parallel work. Optimise the loop —
+**pull `main` → branch → build → review → PR → merge → delete → pull `main`** —
+not the size of any single change.
+
+### Start every feature from a fresh `main`
+
+- Before starting new work, **sync `main` and cut the branch from it**:
+  `git fetch origin` then branch off `origin/main`
+  (`git checkout -b <name> origin/main`), or in a worktree
+  `git worktree add <path> -b <name> origin/main`. Never branch off another
+  feature branch or a stale local `main` — you inherit its un-merged drift.
+- One concern per branch; keep it small enough to merge within the session.
+- After a merge, **return to `main` and pull before the next feature**
+  (`git checkout main && git pull`) so the next branch starts current. This is
+  the "rinse and repeat" — every cycle begins from a fresh `main`.
+
 ### Isolate work in a worktree / fresh branch
 
 - **Multi-session hazard**: edits land on whatever branch happens to be checked
@@ -295,6 +314,8 @@ collisions. Run them only when wrapping up a change or when asked; a bare
     it for a bulk tidy.
 - **Never** remove a worktree (or `--force` past) uncommitted work you didn't
   create — surface it to the user instead.
+- Then `git checkout main && git pull` and cut the next branch — back to the top
+  of the loop.
 
 ## Regression suite
 

@@ -272,16 +272,38 @@ collisions. Run them only when wrapping up a change or when asked; a bare
 - **App repos** (`beancounter`, `bc-view`, `svc-retire`, `svc-rebalance`): NEVER
   push to `main` — feature branch + PR only. Exceptions that commit straight to
   main: `bc-deploy` (rollout is the review gate) and `bc-claude` (docs-only).
-- **Pre-push**: run this local review on the staged diff and fix 🔴/🟠 first —
-  CodeRabbit auto-runs on every push and burns the user's 5/h quota.
+- **Pre-push**: run this local review on the staged diff and fix 🔴/🟠 first,
+  then run CodeRabbit local-first (see below) before opening the PR.
 - **Verify the branch before pushing** — after a merge you can land back on
   `main`.
 - **PR + commit hygiene**: Conventional-Commits subject only (no body essays),
   no `Co-Authored-By` trailer, no PII (names / emails) in commit, PR body, or
   code.
-- **`@coderabbitai ignore`** (on its own line in the PR body) ONLY when a local
-  review actually ran. Manual eyeballing ≠ a local review — if none ran, omit it
-  so CodeRabbit does the second pass.
+
+### CodeRabbit: run local-first, then suppress or draft
+
+CodeRabbit's GitHub app auto-runs on every push and burns the user's hourly
+quota (5/h). Prefer running it **locally before opening the PR** so the remote
+run is redundant. Decision flow:
+
+1. **Run it locally first** — `coderabbit review --plain` (or the
+   `coderabbit:code-review` skill). Address its findings on the branch the same
+   way you would the remote ones. This is separate from this skill's own review:
+   CodeRabbit is the second opinion — verify its suggestions against the rules
+   here and reject the known false positives (`@lib/api/*`, `@types/beancounter`,
+   double-`utils`).
+2. **If the local run SUCCEEDED** → the remote run would only duplicate it. Put
+   `@coderabbitai ignore` on its own line in the PR body to suppress it, and open
+   a normal, ready-for-review PR.
+3. **If the local run FAILED on a usage issue** (quota / rate-limit / auth) →
+   there is no local pass, so let the remote app do the review: **omit**
+   `@coderabbitai ignore`, and open the PR as a **draft**
+   (`gh pr create --draft`). The draft state signals the branch is still
+   awaiting CodeRabbit; mark it ready once the remote review lands and is
+   addressed.
+
+**Never** add `@coderabbitai ignore` without a *successful local CodeRabbit
+run* — manual eyeballing, or this skill's review alone, do not count.
 
 ### Clean up stale branches and worktrees
 

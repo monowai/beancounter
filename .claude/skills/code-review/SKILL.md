@@ -236,6 +236,66 @@ Comments in severity order (🔴 first). End with a single-line verdict:
 
 Nothing else.
 
+## Wrapping up: worktrees, PRs, and cleanup
+
+A review is usually the **end of a work session**, not a standalone act. Once a
+diff reviews clean the same session normally has to land it — open the PR and
+tidy up. These are the BC ways of working, learned from multi-session
+collisions. Run them only when wrapping up a change or when asked; a bare
+`/code-review` still just reviews.
+
+### Isolate work in a worktree / fresh branch
+
+- **Multi-session hazard**: edits land on whatever branch happens to be checked
+  out in the shared working tree, contaminating an unrelated in-progress
+  branch. (Real incidents: wealth-view edits committed onto
+  `fix/aggregate-holdings-reporting-currency`; IRR edits onto
+  `chore/spring-ai-1.1.8` — both unrelated to the work.)
+- **Rule**: any non-trivial change gets its own branch off `origin/main`. Agents
+  that write files MUST use `isolation: "worktree"` (parallel **or** single) —
+  the shared tree collides with in-progress work on other branches.
+- **Worktree convention**: a sibling directory of the repo — `<repo>-wt-<topic>`
+  (e.g. `beancounter-wt-cpf-ccy`, `svc-retire-wt-cpf`); bc-view also uses the
+  shorter `<repo>-<topic>` (`bc-view-pension`). One branch per worktree. List
+  with `git worktree list`.
+- **If changes already landed on an unrelated branch**: don't commit them there.
+  Branch off `origin/main`, then move only your files — first confirm they don't
+  overlap the branch's own committed work with
+  `git diff origin/main...HEAD --name-only`. Stage your files explicitly; leave
+  foreign uncommitted files (work you didn't create) untouched, and restore the
+  original branch when done.
+
+### Open the PR (don't wait to be asked)
+
+- After a clean review (`READY`), open the PR **in the same session** — don't
+  leave the branch dangling for the user to chase.
+- **App repos** (`beancounter`, `bc-view`, `svc-retire`, `svc-rebalance`): NEVER
+  push to `main` — feature branch + PR only. Exceptions that commit straight to
+  main: `bc-deploy` (rollout is the review gate) and `bc-claude` (docs-only).
+- **Pre-push**: run this local review on the staged diff and fix 🔴/🟠 first —
+  CodeRabbit auto-runs on every push and burns the user's 5/h quota.
+- **Verify the branch before pushing** — after a merge you can land back on
+  `main`.
+- **PR + commit hygiene**: Conventional-Commits subject only (no body essays),
+  no `Co-Authored-By` trailer, no PII (names / emails) in commit, PR body, or
+  code.
+- **`@coderabbitai ignore`** (on its own line in the PR body) ONLY when a local
+  review actually ran. Manual eyeballing ≠ a local review — if none ran, omit it
+  so CodeRabbit does the second pass.
+
+### Clean up stale branches and worktrees
+
+- Worktrees accumulate fast — each pins a branch and a full working copy. They
+  go stale the moment their PR merges.
+- **After a PR merges**: delete the branch and remove its worktree.
+  - `git worktree remove <path>` (`--force` if it holds throwaway changes), then
+    `git worktree prune`.
+  - The `commit-commands:clean_gone` skill sweeps branches the remote has
+    deleted (`[gone]`) **plus** their associated worktrees in one pass — prefer
+    it for a bulk tidy.
+- **Never** remove a worktree (or `--force` past) uncommitted work you didn't
+  create — surface it to the user instead.
+
 ## Regression suite
 
 A 10-case golden dataset lives in its own private repo at

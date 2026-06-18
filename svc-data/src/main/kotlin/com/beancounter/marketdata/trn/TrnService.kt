@@ -44,7 +44,8 @@ class TrnService(
     private val portfolioShareRepository: PortfolioShareRepository,
     private val cashAutoSettleService: CashAutoSettleService,
     private val trnSettlementService: TrnSettlementService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
+    private val balanceContributionStamper: BalanceContributionStamper
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
 
@@ -475,6 +476,9 @@ class TrnService(
                 trnRepository.save(upgraded)
             }
         }
+        // Read-time only: stamp contribution on BALANCE snapshots so
+        // svc-position can separate interest from fresh principal.
+        balanceContributionStamper.stamp(trns)
         log.trace("Completed postProcess trns: ${trns.size}")
         return trns
     }

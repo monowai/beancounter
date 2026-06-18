@@ -79,8 +79,9 @@ class BalanceBehaviour(
                 position
             )
         // Capture the prior cost basis before CashCost.value resets it; a
-        // non-zero prior means a previous BALANCE already pinned cost and
-        // subsequent snapshots must leave it alone so gain can emerge.
+        // non-zero prior means a previous BALANCE already set the principal,
+        // so this snapshot grows cost by its contribution rather than
+        // re-pinning the whole balance as gain.
         val priorCostBasis = moneyValues.costBasis
         cashCost.value(
             moneyValues,
@@ -92,6 +93,7 @@ class BalanceBehaviour(
             setSnapshotCost(
                 moneyValues,
                 trn.tradeAmount,
+                trn.contribution,
                 rate,
                 priorCostBasis
             )
@@ -99,25 +101,41 @@ class BalanceBehaviour(
     }
 
     /**
-     * Non-cash BALANCE: pin cost basis at the first snapshot ("principal")
-     * and leave it alone on subsequent snapshots so MV - cost surfaces real
-     * unrealised gain. First snapshot still sets cost = MV (gain = 0) so a
-     * freshly linked CPF/policy position doesn't report a phantom 100% gain.
+     * Non-cash BALANCE cost basis.
+     *
+     * A BALANCE is a snapshot of a contribution-driven account (CPF, pension):
+     * its increase between snapshots is mostly FRESH PRINCIPAL (contributions),
+     * not market gain. Pinning cost at the first snapshot and treating every
+     * later rise as gain therefore reports absurd growth (e.g. +3340%).
+     *
+     * Instead:
+     * - First snapshot: cost = market value, so the starting balance is the
+     *   principal and gain = 0 (no phantom 100% gain on a freshly linked
+     *   position).
+     * - Later snapshots: grow cost by the [contribution] recognised since the
+     *   prior snapshot (supplied by svc-data from the asset's contribution
+     *   config), so only interest surfaces as unrealised gain. Capped at the
+     *   current market value so an over-stated contribution estimate can't
+     *   show a phantom loss. When no contribution is supplied, cost tracks the
+     *   balance (gain = 0) — never a phantom gain.
      */
     private fun setSnapshotCost(
         moneyValues: MoneyValues,
         tradeAmount: BigDecimal,
+        contribution: BigDecimal?,
         rate: BigDecimal,
         priorCostBasis: BigDecimal
     ) {
-        if (priorCostBasis.signum() != 0) {
-            moneyValues.costBasis = priorCostBasis
-            moneyValues.costValue = priorCostBasis
-            return
-        }
-        val amount = MathUtils.multiply(tradeAmount, rate) ?: return
-        moneyValues.costBasis = amount.abs()
-        moneyValues.costValue = amount.abs()
+        val marketValue = (MathUtils.multiply(tradeAmount, rate) ?: return).abs()
+        val cost =
+            if (priorCostBasis.signum() == 0 || contribution == null) {
+                marketValue
+            } else {
+                val contributed = (MathUtils.multiply(contribution, rate) ?: BigDecimal.ZERO).abs()
+                (priorCostBasis + contributed).min(marketValue)
+            }
+        moneyValues.costBasis = cost
+        moneyValues.costValue = cost
         moneyValues.averageCost = BigDecimal.ONE
     }
 }

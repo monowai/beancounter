@@ -90,7 +90,8 @@ class TrnSettleTest {
                 portfolioShareRepository = mock<PortfolioShareRepository>(),
                 cashAutoSettleService = cashAutoSettleService,
                 trnSettlementService = trnSettlementService,
-                dateUtils = dateUtils
+                dateUtils = dateUtils,
+                balanceContributionStamper = mock()
             )
     }
 

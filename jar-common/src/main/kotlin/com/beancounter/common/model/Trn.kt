@@ -15,6 +15,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.JdbcTypeCode
@@ -110,6 +111,13 @@ data class Trn(
     var modelId: String? = null,
     @JdbcTypeCode(SqlTypes.JSON)
     var subAccounts: Map<String, BigDecimal>? = null,
+    // Read-time only (never persisted). For POLICY/contribution BALANCE
+    // snapshots (CPF, pension), the contribution recognised SINCE the prior
+    // snapshot. svc-data derives it from PrivateAssetConfig at query time;
+    // svc-position adds it to cost basis so gain reflects interest rather
+    // than fresh principal. Null for everything else.
+    @Transient
+    var contribution: BigDecimal? = null,
     @ManyToOne
     var createdBy: SystemUser? = null,
     // Server-generated creation timestamp. Used as the chronological

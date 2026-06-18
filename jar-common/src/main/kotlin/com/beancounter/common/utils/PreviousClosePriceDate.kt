@@ -23,49 +23,63 @@ class PreviousClosePriceDate(
     }
 
     fun getPriceDate(
-        utcRequestDateTime: ZonedDateTime,
+        requestDateTime: ZonedDateTime,
         market: Market,
-        isCurrent: Boolean = dateUtils.isToday(utcRequestDateTime.toLocalDate().toString())
+        isCurrent: Boolean = dateUtils.isToday(requestDateTime.toLocalDate().toString())
     ): LocalDate =
         if (isCurrent) {
+            // Re-express "now" on the market's own wall clock so priceTime is
+            // honoured in the exchange timezone (DST included), independent of
+            // the request's or the server's zone. Both the availability check
+            // and the trading-day walk-back then operate in market-local time.
+            val marketLocal = requestDateTime.withZoneSameInstant(market.timezone.toZoneId())
             val pricesAvailable =
                 getPricesAvailable(
-                    utcRequestDateTime,
+                    requestDateTime,
                     market
                 )
             val daysToSubtract =
                 getDaysToSubtract(
                     market,
-                    utcRequestDateTime.toLocalDateTime(),
+                    marketLocal.toLocalDateTime(),
                     pricesAvailable.toLocalDateTime()
                 )
 
             log.trace(
-                "utc: $utcRequestDateTime, subtract: $daysToSubtract, marketLocal: $utcRequestDateTime, " +
-                    "marketCloses: $pricesAvailable, timezone: ${dateUtils.zoneId}"
+                "request: $requestDateTime, subtract: $daysToSubtract, marketLocal: $marketLocal, " +
+                    "marketCloses: $pricesAvailable, timezone: ${market.timezoneId}"
             )
             getPriceDate(
-                utcRequestDateTime,
-                daysToSubtract
+                marketLocal,
+                daysToSubtract,
+                market
             )
         } else {
             // Just account for work days
             log.trace("Returning last working day relative to requested date")
             getPriceDate(
-                utcRequestDateTime,
-                0
+                requestDateTime,
+                0,
+                market
             )
         }
 
+    /**
+     * When today's close price becomes available, expressed on the market's
+     * local clock: the requested instant projected into the market timezone,
+     * at the market's configured [Market.priceTime].
+     */
     fun getPricesAvailable(
-        marketLocal: ZonedDateTime,
+        requestDateTime: ZonedDateTime,
         market: Market
-    ): OffsetDateTime =
-        OffsetDateTime.of(
+    ): OffsetDateTime {
+        val marketLocal = requestDateTime.withZoneSameInstant(market.timezone.toZoneId())
+        return OffsetDateTime.of(
             marketLocal.toLocalDate(),
             market.priceTime,
             marketLocal.offset
         )
+    }
 
     private fun getDaysToSubtract(
         market: Market,
@@ -87,16 +101,20 @@ class PreviousClosePriceDate(
      */
     fun getPriceDate(
         seedDate: ZonedDateTime,
-        daysToSubtract: Int
+        daysToSubtract: Int,
+        market: Market? = null
     ): LocalDate {
         var notionalDateTime = seedDate.minusDays(daysToSubtract.toLong())
-        while (!isTradingDay(notionalDateTime)) {
+        while (!isTradingDay(notionalDateTime, market)) {
             notionalDateTime = notionalDateTime.minusDays(1)
         }
         return notionalDateTime.toLocalDate()
     }
 
-    fun isTradingDay(dateTime: ZonedDateTime): Boolean {
+    fun isTradingDay(
+        dateTime: ZonedDateTime,
+        market: Market? = null
+    ): Boolean {
         val dayOfWeek = dateTime.dayOfWeek
 
         // Check for weekends
@@ -104,8 +122,9 @@ class PreviousClosePriceDate(
             return false
         }
 
-        // Check for market holidays
-        if (marketHolidays.isHoliday(dateTime.toLocalDate())) {
+        // Holidays resolve against the market's own exchange calendar
+        // (London → UK, otherwise US). A null market keeps the US default.
+        if (marketHolidays.isHoliday(dateTime.toLocalDate(), market?.timezone?.toZoneId())) {
             return false
         }
 

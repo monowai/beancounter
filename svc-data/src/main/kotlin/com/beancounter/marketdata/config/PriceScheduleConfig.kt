@@ -4,6 +4,7 @@ import com.beancounter.common.utils.DateUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -13,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
  */
 @Configuration
 @EnableScheduling
+@EnableConfigurationProperties(PriceScheduleProperties::class)
 @ConditionalOnProperty(
     value = ["schedule.enabled"],
     havingValue = "true",
@@ -25,20 +27,12 @@ class PriceScheduleConfig(
         private val log = LoggerFactory.getLogger(PriceScheduleConfig::class.java)
     }
 
+    // Shared default zone for the annotation-based @Scheduled jobs
+    // (FX, classification, auto-settle, news retention). The market-close
+    // price refresh no longer uses this — it registers per-market named-zone
+    // cron triggers via PriceScheduleProperties / PriceSchedule.
     @Bean
     fun scheduleZone(): String = dateUtils.zoneId.id
-
-    @Bean
-    fun assetsSchedule(
-        @Value("\${assets.schedule:0 0/15 7-18 * * Tue-Sat}") schedule: String
-    ): String {
-        log.info(
-            "ASSETS_SCHEDULE: {}, BEANCOUNTER_ZONE: {}",
-            schedule,
-            dateUtils.zoneId.id
-        )
-        return schedule
-    }
 
     /**
      * Cron expression for the FX rate pre-fetch job. Default: 17:00 every

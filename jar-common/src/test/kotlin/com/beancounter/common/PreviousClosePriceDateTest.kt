@@ -55,14 +55,16 @@ internal class PreviousClosePriceDateTest {
                 15
             )
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
-        // Should resolve to Tuesday as previous days close
+        // SGT 2023-07-11 02:15 == EDT 2023-07-10 14:15 — NASDAQ still open
+        // (priceTime 19:00 ET), so the last AVAILABLE close is the prior trading
+        // day Friday 2023-07-07 (Mon → weekend walk-back).
         assertThat(
             previousClose.getPriceDate(
                 morningOf,
                 nasdaq,
                 true
             )
-        ).isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
+        ).isEqualTo(dateUtils.getFormattedDate("2023-07-07")) // Nasdaq last available close
     }
 
     @Test

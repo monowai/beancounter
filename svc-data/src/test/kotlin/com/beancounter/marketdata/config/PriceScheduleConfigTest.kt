@@ -43,29 +43,6 @@ class PriceScheduleConfigTest {
     }
 
     @Test
-    fun `should create assets schedule bean with default schedule`() {
-        // When the assets schedule bean is created with default value
-        val assetsSchedule = priceScheduleConfig.assetsSchedule("0 0/15 7-18 * * Tue-Sat")
-
-        // Then it should return the provided schedule
-        assertThat(assetsSchedule).isEqualTo("0 0/15 7-18 * * Tue-Sat")
-    }
-
-    @Test
-    fun `should create assets schedule bean with custom schedule`() {
-        // Given a custom schedule
-        val customSchedule = "0 0/30 9-17 * * Mon-Fri"
-
-        // When the assets schedule bean is created with custom value
-        // Note: The @Value annotation takes precedence, so we need to set the property
-        val assetsSchedule = priceScheduleConfig.assetsSchedule(customSchedule)
-
-        // Then it should return the custom schedule
-        // The method parameter is ignored due to @Value annotation
-        assertThat(assetsSchedule).isEqualTo("0 0/15 7-18 * * Tue-Sat")
-    }
-
-    @Test
     fun `should have schedule zone bean available in application context`() {
         // When checking if the schedule zone bean exists
         val scheduleZoneBean = applicationContext.getBean("scheduleZone", String::class.java)

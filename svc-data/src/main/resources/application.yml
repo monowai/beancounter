@@ -397,6 +397,8 @@ beancounter:
         name: "NASDAQ"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        # EODHD publishes US majors ~15m after the 16:00 ET close.
+        priceTime: "16:30"
         active: false
         aliases:
           SHARESIGHT: "NAS"
@@ -407,6 +409,7 @@ beancounter:
         name: "New York Stock Exchange"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        priceTime: "16:30"
         active: false
         aliases:
           SHARESIGHT: "NYS"
@@ -417,6 +420,7 @@ beancounter:
         name: "American Stock Exchange"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        priceTime: "16:30"
         active: false
         aliases:
           FIGI: "US"
@@ -426,6 +430,7 @@ beancounter:
         name: "US Market"
         timezoneId: "US/Eastern"
         currencyId: "USD"
+        priceTime: "16:30"
         # Fuzzy / colloquial inputs all resolve to US so the chat agent and
         # CSV imports don't need exact knowledge of BC market conventions.
         # Aliases are matched case-insensitively after upper-casing.
@@ -486,6 +491,8 @@ beancounter:
         # UK assets priced in pence.
         currencyId: "GBP"
         timezoneId: "Europe/London"
+        # LSE closes 16:30 London; EODHD publishes EOD ~2-3h later.
+        priceTime: "19:00"
         multiplier: 0.01
         aliases:
           mstack: "XLON"
@@ -500,6 +507,7 @@ beancounter:
         # pence multiplier — otherwise the price is FX-converted as GBP and wrong.
         currencyId: "USD"
         timezoneId: "Europe/London"
+        priceTime: "19:00"
         aliases:
           FIGI: "LN"
           eodhd: "LSE"

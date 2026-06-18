@@ -4,10 +4,16 @@ import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
+import java.time.ZoneId
 
 /**
- * Determines if a date is a US market holiday.
- * US stock markets (NYSE, NASDAQ) are closed on these holidays.
+ * Determines whether a date is a market holiday.
+ *
+ * Routing is by exchange timezone:
+ *  - `Europe/London` resolves to the LSE (England & Wales) bank-holiday
+ *    calendar.
+ *  - every other zone resolves to the US (NYSE/NASDAQ) calendar, which is
+ *    also the back-compatible default for the zone-less [isHoliday] overload.
  */
 @Service
 class MarketHolidays {
@@ -15,15 +21,99 @@ class MarketHolidays {
         private const val JUNETEENTH_DAY = 19
         private const val JUNETEENTH_FIRST_YEAR = 2021
         private const val CHRISTMAS_DAY = 25
+        private const val BOXING_DAY = 26
+        private val LONDON: ZoneId = ZoneId.of("Europe/London")
     }
 
     /**
-     * Check if the given date is a US market holiday.
+     * Check if the given date is a US market holiday (back-compatible default).
      */
-    fun isHoliday(date: LocalDate): Boolean =
+    fun isHoliday(date: LocalDate): Boolean = isUsHoliday(date)
+
+    /**
+     * Check if the given date is a holiday for the market in [zone].
+     * London markets use the UK calendar; all others fall back to the US one.
+     */
+    fun isHoliday(
+        date: LocalDate,
+        zone: ZoneId?
+    ): Boolean =
+        if (zone == LONDON) {
+            isUkHoliday(date)
+        } else {
+            isUsHoliday(date)
+        }
+
+    private fun isUsHoliday(date: LocalDate): Boolean =
         isFixedHoliday(date) ||
             isObservedHoliday(date) ||
             isFloatingHoliday(date)
+
+    /**
+     * LSE bank holidays for [date]'s year, including weekend-substitute days.
+     */
+    fun isUkHoliday(date: LocalDate): Boolean = ukHolidays(date.year).contains(date)
+
+    private fun ukHolidays(year: Int): Set<LocalDate> {
+        val easterSunday = calculateEasterSunday(year)
+        val holidays = sortedSetOf<LocalDate>()
+
+        // Fixed weekday holidays (Easter-relative + bank holiday Mondays) —
+        // these always fall on a weekday so need no substitution.
+        holidays.add(easterSunday.minusDays(2)) // Good Friday
+        holidays.add(easterSunday.plusDays(1)) // Easter Monday
+        holidays.add(firstMondayOf(year, Month.MAY)) // Early May bank holiday
+        holidays.add(lastMondayOf(year, Month.MAY)) // Spring bank holiday
+        holidays.add(lastMondayOf(year, Month.AUGUST)) // Summer bank holiday
+
+        // Fixed-date holidays that shift to a substitute weekday on weekends.
+        addObserved(holidays, LocalDate.of(year, Month.JANUARY, 1)) // New Year
+        addObserved(holidays, LocalDate.of(year, Month.DECEMBER, CHRISTMAS_DAY))
+        addObserved(holidays, LocalDate.of(year, Month.DECEMBER, BOXING_DAY))
+
+        return holidays
+    }
+
+    /**
+     * Adds [holiday] to [set], substituting weekend dates (and resolving
+     * collisions, e.g. Christmas & Boxing Day both falling on a weekend) to
+     * the next free weekday.
+     */
+    private fun addObserved(
+        set: MutableSet<LocalDate>,
+        holiday: LocalDate
+    ) {
+        var observed = holiday
+        while (set.contains(observed) ||
+            observed.dayOfWeek == DayOfWeek.SATURDAY ||
+            observed.dayOfWeek == DayOfWeek.SUNDAY
+        ) {
+            observed = observed.plusDays(1)
+        }
+        set.add(observed)
+    }
+
+    private fun firstMondayOf(
+        year: Int,
+        month: Month
+    ): LocalDate {
+        var date = LocalDate.of(year, month, 1)
+        while (date.dayOfWeek != DayOfWeek.MONDAY) {
+            date = date.plusDays(1)
+        }
+        return date
+    }
+
+    private fun lastMondayOf(
+        year: Int,
+        month: Month
+    ): LocalDate {
+        var date = LocalDate.of(year, month, 1).plusMonths(1).minusDays(1)
+        while (date.dayOfWeek != DayOfWeek.MONDAY) {
+            date = date.minusDays(1)
+        }
+        return date
+    }
 
     /**
      * Fixed date holidays (always on the same date).

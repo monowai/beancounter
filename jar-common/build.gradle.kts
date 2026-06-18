@@ -10,6 +10,10 @@ version = "0.1.3-SNAPSHOT"
 extra["guavaVersion"] = "33.3.1-jre"
 
 dependencies {
+    // Boot-agnostic tier (contracts/model/input/exception types/utils/…).
+    // `api` so all downstream consumers keep seeing these symbols transitively
+    // — the extraction is import-transparent (packages unchanged).
+    api(project(":jar-contracts"))
     api(libs.jackson.kotlin)
     api(libs.sentry.opentelemetry)
     api(libs.sentry.spring.boot)

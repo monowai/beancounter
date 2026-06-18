@@ -12,6 +12,7 @@ pluginManagement {
 rootProject.name = "beancounter"
 
 // Define projects in dependency order (this helps with build order)
+include("jar-contracts")
 include("jar-common")
 include("jar-auth")
 include("jar-client")

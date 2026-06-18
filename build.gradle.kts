@@ -291,6 +291,7 @@ tasks.register("buildAll") {
 
 // Build core libraries first (no service dependencies)
 tasks.register("buildCoreLibraries") {
+    dependsOn(":jar-contracts:build")
     dependsOn(":jar-common:build")
     dependsOn(":jar-auth:build")
     dependsOn(":jar-client:build")
@@ -315,20 +316,25 @@ tasks.register("publishStubs") {
     description = "Publish contract stubs to local Maven repository"
 }
 
-// Publish jar libraries to Maven repository
+// Publish jar libraries to Maven repository.
+// jar-contracts MUST be published: jar-common exposes it as an `api`
+// dependency, so jar-common's POM references it — external consumers
+// (svc-retire, svc-rebalance) fail to resolve jar-common without it.
 tasks.register("publishJars") {
+    dependsOn(":jar-contracts:publish")
     dependsOn(":jar-common:publish")
     dependsOn(":jar-auth:publish")
     dependsOn(":jar-client:publish")
-    description = "Publish jar-common, jar-auth, and jar-client to Maven repository"
+    description = "Publish jar-contracts, jar-common, jar-auth, and jar-client to Maven repository"
 }
 
 // Publish jar libraries to local Maven repository
 tasks.register("publishJarsLocal") {
+    dependsOn(":jar-contracts:publishToMavenLocal")
     dependsOn(":jar-common:publishToMavenLocal")
     dependsOn(":jar-auth:publishToMavenLocal")
     dependsOn(":jar-client:publishToMavenLocal")
-    description = "Publish jar-common, jar-auth, and jar-client to local Maven repository"
+    description = "Publish jar-contracts, jar-common, jar-auth, and jar-client to local Maven repository"
 }
 
 tasks.register("testAll") {

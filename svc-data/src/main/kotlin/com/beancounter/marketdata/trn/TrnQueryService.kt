@@ -89,6 +89,26 @@ class TrnQueryService(
         )
 
     /**
+     * Trades for an asset across multiple portfolios — used by the aggregated
+     * holdings drill-down, where one asset is held in several portfolios.
+     *
+     * [PortfolioService.find] is called per id, so an unknown or unauthorized
+     * portfolio rejects the whole request (fail-closed) rather than silently
+     * returning a partial result. Each Trn carries its portfolio, so callers can
+     * group the union by portfolio.
+     */
+    fun findAssetTrades(
+        portfolioIds: List<String>,
+        assetId: String
+    ): Collection<Trn> =
+        portfolioIds.flatMap { portfolioId ->
+            findAssetTrades(
+                portfolioService.find(portfolioId),
+                assetId
+            )
+        }
+
+    /**
      * Corporate actions
      *
      * @param portfolioId fully qualified portfolio the caller is authorized to view

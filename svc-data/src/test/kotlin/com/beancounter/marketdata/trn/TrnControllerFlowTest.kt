@@ -313,6 +313,92 @@ class TrnControllerFlowTest(
         ).isNotNull.isEqualTo("3")
     }
 
+    // MSFT BUY with a unique callerRef so it never collides with trades posted
+    // by other tests sharing this class's database.
+    private fun msftBuy(callerId: String): TrnInput =
+        TrnInput(
+            CallerRef(callerId = callerId),
+            assetId = msft.id,
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeDate = dateUtils.getFormattedDate(TRADE_DATE),
+            price = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE,
+            status = TrnStatus.SETTLED
+        )
+
+    @Test
+    fun `should return asset trades across multiple portfolios`() {
+        val portfolioA =
+            bcMvcHelper.portfolio(
+                PortfolioInput("MultiA", "Name A", currency = NZD.code)
+            )
+        val portfolioB =
+            bcMvcHelper.portfolio(
+                PortfolioInput("MultiB", "Name B", currency = NZD.code)
+            )
+        // Two MSFT trades in each portfolio
+        bcMvcHelper.postTrn(TrnRequest(portfolioA.id, listOf(msftBuy("ma1"), msftBuy("ma2"))))
+        bcMvcHelper.postTrn(TrnRequest(portfolioB.id, listOf(msftBuy("mb1"), msftBuy("mb2"))))
+
+        val response =
+            findTradesMulti(
+                msft,
+                listOf(portfolioA.id, portfolioB.id),
+                token
+            )
+
+        // Union of both portfolios' MSFT trades
+        assertThat(response.data.trns).hasSize(4)
+        assertThat(response.data.trns.map { it.portfolioId })
+            .containsOnly(portfolioA.id, portfolioB.id)
+    }
+
+    @Test
+    fun `should fail closed when one portfolio is not viewable`() {
+        val portfolioA =
+            bcMvcHelper.portfolio(
+                PortfolioInput("OwnedA", "Owned", currency = NZD.code)
+            )
+        bcMvcHelper.postTrn(TrnRequest(portfolioA.id, listOf(msftBuy("fc1"))))
+
+        // A bogus/unauthorized portfolio id must reject the whole request, never
+        // silently return only the owned portfolio's trades.
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("$TRNS_ROOT/asset/{assetId}/trades", msft.id)
+                    .param("portfolios", "${portfolioA.id},does-not-exist")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
+    }
+
+    private fun findTradesMulti(
+        asset: Asset,
+        portfolioIds: List<String>,
+        token: Jwt
+    ): TrnResponse {
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("$TRNS_ROOT/asset/{assetId}/trades", asset.id)
+                        .param("portfolios", portfolioIds.joinToString(","))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        return objectMapper.readValue(
+            result.response.contentAsString,
+            TrnResponse::class.java
+        )
+    }
+
     private fun deleteTransaction(
         id: String,
         token: Jwt

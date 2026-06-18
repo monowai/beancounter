@@ -458,6 +458,51 @@ class TrnController(
             )
         )
 
+    @GetMapping(
+        value = ["/asset/{assetId}/trades"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get trade transactions for an asset across multiple portfolios",
+        description = """
+            Retrieves trade transactions for a single asset across several portfolios,
+            used by the aggregated holdings drill-down where an asset is held in more
+            than one portfolio. Each transaction carries its portfolio so the caller
+            can group the union by portfolio.
+
+            The request fails closed: if any supplied portfolio is unknown or not
+            viewable by the caller, the whole request is rejected rather than
+            returning a partial result.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Trade transactions retrieved successfully"
+            ), ApiResponse(
+                responseCode = "404",
+                description = "A portfolio or asset was not found"
+            )
+        ]
+    )
+    fun findAssetTradesAcrossPortfolios(
+        @Parameter(
+            description = "Asset identifier",
+            example = "AAPL"
+        ) @PathVariable("assetId") assetId: String,
+        @Parameter(
+            description = "Comma-separated portfolio identifiers",
+            example = "portfolio-123,portfolio-456"
+        ) @RequestParam("portfolios") portfolios: String
+    ): TrnResponse =
+        TrnResponse(
+            trnQueryService.findAssetTrades(
+                portfolios.split(",").map { it.trim() }.filter { it.isNotBlank() },
+                assetId
+            )
+        )
+
     @PostMapping(
         value = ["/query"]
     )

@@ -153,55 +153,105 @@ class BalanceBehaviourTest {
         )
     }
 
+    private fun cpfPolicyAsset() =
+        Asset(
+            code = RUBY_CPF,
+            id = RUBY_CPF,
+            name = "Ruby CPF",
+            market = Market("PRIVATE"),
+            priceSymbol = RUBY_CPF,
+            category = AssetCategory.POLICY
+        )
+
+    private fun balanceTrn(
+        portfolio: Portfolio,
+        asset: Asset,
+        qty: BigDecimal,
+        contribution: BigDecimal? = null
+    ) = Trn(
+        trnType = TrnType.BALANCE,
+        asset = asset,
+        quantity = qty,
+        tradeAmount = qty,
+        contribution = contribution,
+        cashCurrency = SGD,
+        tradeCurrency = SGD,
+        tradeCashRate = BigDecimal.ONE,
+        tradeBaseRate = BigDecimal.ONE,
+        tradePortfolioRate = BigDecimal.ONE,
+        portfolio = portfolio
+    )
+
     @Test
-    fun `second BALANCE leaves cost pinned at first snapshot so gain emerges`() {
-        // First BALANCE establishes the cost basis (initial snapshot acts as
-        // the "principal"). A later BALANCE only moves the market value
-        // (quantity * price) so unrealised gain = MV - first-snapshot cost.
-        // Without this, every snapshot rewrites cost = MV and gain stays 0.
-        val portfolio =
-            Portfolio(
-                Constants.TEST,
-                currency = SGD,
-                base = SGD
-            )
-        val cpfAsset =
-            Asset(
-                code = RUBY_CPF,
-                id = RUBY_CPF,
-                name = "Ruby CPF",
-                market = Market("PRIVATE"),
-                priceSymbol = RUBY_CPF,
-                category = AssetCategory.POLICY
-            )
-        val firstBalance = BigDecimal("250000.00")
+    fun `second BALANCE without a contribution tracks the balance so gain stays zero`() {
+        // A bare BALANCE snapshot carries no contribution info. The increase
+        // could be all contribution or all interest — unknowable — so cost
+        // tracks the balance and no phantom gain is reported. (Regression:
+        // pinning cost at the first snapshot turned every later contribution
+        // into "gain", producing absurd growth like +3340%.)
+        val portfolio = Portfolio(Constants.TEST, currency = SGD, base = SGD)
+        val cpfAsset = cpfPolicyAsset()
         val secondBalance = BigDecimal("260000.00")
         val positions = Positions(portfolio)
 
-        fun balanceTrn(qty: BigDecimal) =
-            Trn(
-                trnType = TrnType.BALANCE,
-                asset = cpfAsset,
-                quantity = qty,
-                tradeAmount = qty,
-                cashCurrency = SGD,
-                tradeCurrency = SGD,
-                tradeCashRate = BigDecimal.ONE,
-                tradeBaseRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal.ONE,
-                portfolio = portfolio
-            )
-
-        accumulator.accumulate(balanceTrn(firstBalance), positions)
-        val position = accumulator.accumulate(balanceTrn(secondBalance), positions)
+        accumulator.accumulate(balanceTrn(portfolio, cpfAsset, BigDecimal("250000.00")), positions)
+        val position = accumulator.accumulate(balanceTrn(portfolio, cpfAsset, secondBalance), positions)
 
         assertThat(position.quantityValues.purchased).isEqualByComparingTo(secondBalance)
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, firstBalance)
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, firstBalance)
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, secondBalance)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, secondBalance)
         assertThat(position.getMoneyValues(Position.In.BASE))
-            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, firstBalance)
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, firstBalance)
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, secondBalance)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, secondBalance)
+    }
+
+    @Test
+    fun `second BALANCE grows cost by the contribution so only interest is gain`() {
+        // First snapshot pins the starting principal (250,000). The second
+        // snapshot is 260,000 with a recognised contribution of 8,000, so
+        // cost = 250,000 + 8,000 = 258,000 and unrealised gain = 260,000 -
+        // 258,000 = 2,000 (the interest), NOT the full 10,000 delta.
+        val portfolio = Portfolio(Constants.TEST, currency = SGD, base = SGD)
+        val cpfAsset = cpfPolicyAsset()
+        val positions = Positions(portfolio)
+        val expectedCost = BigDecimal("258000.00")
+
+        accumulator.accumulate(balanceTrn(portfolio, cpfAsset, BigDecimal("250000.00")), positions)
+        val position =
+            accumulator.accumulate(
+                balanceTrn(portfolio, cpfAsset, BigDecimal("260000.00"), contribution = BigDecimal("8000.00")),
+                positions
+            )
+
+        assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, expectedCost)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, expectedCost)
+        assertThat(position.getMoneyValues(Position.In.BASE))
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, expectedCost)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, expectedCost)
+    }
+
+    @Test
+    fun `an over-stated contribution is capped at market value so no phantom loss appears`() {
+        // If the contribution estimate exceeds the actual balance increase,
+        // cost is clamped to market value (gain 0) rather than showing a loss.
+        val portfolio = Portfolio(Constants.TEST, currency = SGD, base = SGD)
+        val cpfAsset = cpfPolicyAsset()
+        val secondBalance = BigDecimal("255000.00")
+        val positions = Positions(portfolio)
+
+        accumulator.accumulate(balanceTrn(portfolio, cpfAsset, BigDecimal("250000.00")), positions)
+        val position =
+            accumulator.accumulate(
+                // 9,000 contribution > 5,000 actual increase → cap at MV.
+                balanceTrn(portfolio, cpfAsset, secondBalance, contribution = BigDecimal("9000.00")),
+                positions
+            )
+
+        assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, secondBalance)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, secondBalance)
     }
 
     @Test

@@ -11,17 +11,21 @@
 #   SPRING_PROFILES_ACTIVE=deepseek,kauri DEEPSEEK_API_KEY=sk-... \
 #     ./gradlew :svc-agent:bootRun
 #
-# Models:
-#   deepseek-chat     — general chat / tool calling (DeepSeek aliases this to
-#                       v4-flash server-side; tool loop is stable).
-#   deepseek-reasoner — chain-of-thought; triggers thinking mode. **Avoid for
-#                       tool-calling workloads with Spring AI 1.1.5**: the
-#                       framework does not strip `reasoning_content` from
-#                       echoed assistant messages on the next turn, and
-#                       DeepSeek 400s with "The `reasoning_content` in the
-#                       thinking mode must be passed back to the API."
-#                       Re-enable the deep tier here once Spring AI ships a
-#                       DeepSeek tool-loop fix or we add a custom interceptor.
+# Models (DeepSeek API, current as of 2026-06):
+#   deepseek-v4-flash — GA general model. Tool calling, 1M context, cheap
+#                       ($0.14/$0.28 per 1M in/out). Defaults to *thinking*
+#                       mode; Spring AI 2.0 has no thinking-disable toggle.
+#   deepseek-v4-pro   — higher-quality tier (~3x cost). Use for the deep tier.
+#   deepseek-chat / deepseek-reasoner — LEGACY aliases for v4-flash
+#                       non-thinking / thinking. **Discontinued 2026-07-24** —
+#                       do not configure.
+#
+# Spring AI 2.0 fixes the thinking-mode tool-loop bug (issue #5027): it now
+# echoes `reasoning_content` back into outgoing assistant messages
+# (DeepSeekChatModel.createRequest), so v4-flash/v4-pro thinking mode is safe
+# for multi-turn tool calling. (Pre-2.0 it dropped reasoning_content and
+# DeepSeek 400'd with "The reasoning_content in the thinking mode must be
+# passed back to the API.")
 spring:
   ai:
     # Provide dummy Ollama / OpenAI / Anthropic config to keep their
@@ -38,7 +42,7 @@ spring:
       base-url: "${DEEPSEEK_BASE_URL:https://api.deepseek.com}"
       chat:
         options:
-          model: "${DEEPSEEK_MODEL:deepseek-chat}"
+          model: "${DEEPSEEK_MODEL:deepseek-v4-flash}"
           temperature: 0.2
           max-tokens: 4096
 
@@ -49,9 +53,8 @@ spring:
 # DEEPSEEK_MODEL_FAST / _SMART / _DEEP if needed.
 agent:
   models:
-    fast: "${DEEPSEEK_MODEL_FAST:deepseek-chat}"
-    smart: "${DEEPSEEK_MODEL_SMART:deepseek-chat}"
-    # Deep tier on DeepSeek currently = same model with larger token budget
-    # (see model-list comment above). Override to `deepseek-reasoner` only if
-    # the Spring AI tool-loop strips reasoning_content correctly.
-    deep: "${DEEPSEEK_MODEL_DEEP:deepseek-chat}"
+    fast: "${DEEPSEEK_MODEL_FAST:deepseek-v4-flash}"
+    smart: "${DEEPSEEK_MODEL_SMART:deepseek-v4-flash}"
+    # Deep tier = v4-pro (higher quality, ~3x cost). Safe for tool calling
+    # now that Spring AI 2.0 echoes reasoning_content across tool roundtrips.
+    deep: "${DEEPSEEK_MODEL_DEEP:deepseek-v4-pro}"

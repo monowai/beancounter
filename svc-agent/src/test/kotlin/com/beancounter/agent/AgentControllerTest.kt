@@ -406,10 +406,10 @@ class AgentControllerTest {
                 permissiveAuthorizer
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
-        val opts = ctrl.buildOptions("deepseek-chat", deepThink = false)?.build()
+        val opts = ctrl.buildOptions("deepseek-v4-flash", deepThink = false)?.build()
         assertThat(opts).isInstanceOf(org.springframework.ai.deepseek.DeepSeekChatOptions::class.java)
         val dsOpts = opts as org.springframework.ai.deepseek.DeepSeekChatOptions
-        assertThat(dsOpts.model).isEqualTo("deepseek-chat")
+        assertThat(dsOpts.model).isEqualTo("deepseek-v4-flash")
         assertThat(dsOpts.maxTokens).isEqualTo(4096)
     }
 
@@ -432,10 +432,10 @@ class AgentControllerTest {
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
             (
-                ctrl.buildOptions("deepseek-reasoner", deepThink = true)
+                ctrl.buildOptions("deepseek-v4-pro", deepThink = true)
                     as org.springframework.ai.deepseek.DeepSeekChatOptions.Builder
             ).build()
-        assertThat(opts.model).isEqualTo("deepseek-reasoner")
+        assertThat(opts.model).isEqualTo("deepseek-v4-pro")
         assertThat(opts.maxTokens).isEqualTo(16384)
     }
 

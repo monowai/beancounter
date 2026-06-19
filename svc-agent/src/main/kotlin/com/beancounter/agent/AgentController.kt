@@ -83,7 +83,7 @@ class AgentController(
      * (Ollama / OpenAI), in which case the ChatClient's configured default
      * model answers and tier escalation is silently ignored.
      *
-     * `deepThink` raises `maxTokens` so the deep tier (deepseek-reasoner /
+     * `deepThink` raises `maxTokens` so the deep tier (deepseek-v4-pro /
      * claude-opus-*) has headroom for chain-of-thought + final answer; on the
      * Anthropic surface it also explicitly enables thinking with a 4k budget
      * (Claude 4 has thinking on by default; setting it explicitly documents
@@ -488,7 +488,7 @@ data class AgentQuery(
     val query: String,
     val context: Map<String, Any>? = null,
     /**
-     * Caller-driven escalation to the deep tier (typically `deepseek-reasoner`
+     * Caller-driven escalation to the deep tier (typically `deepseek-v4-pro`
      * or `claude-opus-*`). Off by default; flips model selection regardless of
      * page-context routing in [ChatModelSelector].
      */

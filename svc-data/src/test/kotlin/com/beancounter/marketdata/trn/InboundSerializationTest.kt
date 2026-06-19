@@ -3,11 +3,11 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import tools.jackson.core.type.TypeReference
-import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
+import tools.jackson.core.type.TypeReference
+import tools.jackson.module.kotlin.readValue
 
 /**
  * Serialization test to support import requests.

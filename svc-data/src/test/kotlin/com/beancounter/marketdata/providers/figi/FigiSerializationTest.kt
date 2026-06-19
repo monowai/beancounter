@@ -2,10 +2,10 @@ package com.beancounter.marketdata.providers.figi
 
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.assets.figi.FigiResponse
-import tools.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
+import tools.jackson.core.type.TypeReference
 
 /**
  * Mocked Figi responses serialize

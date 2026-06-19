@@ -10,9 +10,9 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 import java.time.LocalDate
 
 class BulkContractTest {

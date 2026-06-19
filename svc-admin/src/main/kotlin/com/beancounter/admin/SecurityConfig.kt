@@ -126,8 +126,9 @@ class SecurityConfig(
                     .permitAll()
                     .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("$contextPath/oauth2/**"))
                     .permitAll()
-                    .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("$contextPath/actuator/health/**"))
-                    .permitAll()
+                    .requestMatchers(
+                        PathPatternRequestMatcher.withDefaults().matcher("$contextPath/actuator/health/**")
+                    ).permitAll()
                     .anyRequest()
                     .hasAuthority("SCOPE_beancounter:admin")
             }.oauth2Login { oauth2 ->

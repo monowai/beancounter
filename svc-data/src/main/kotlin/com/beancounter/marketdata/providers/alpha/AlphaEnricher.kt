@@ -10,10 +10,10 @@ import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.currency.CurrencyService
-import tools.jackson.core.JacksonException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
+import tools.jackson.core.JacksonException
 import java.util.Locale
 
 /**

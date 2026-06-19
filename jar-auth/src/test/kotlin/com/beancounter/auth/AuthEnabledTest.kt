@@ -2,12 +2,12 @@ package com.beancounter.auth
 
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.auth.client.LoginService
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension
-import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -46,8 +46,11 @@ class AuthEnabledTest {
         val wireMock: WireMockExtension =
             WireMockExtension
                 .newInstance()
-                .options(com.github.tomakehurst.wiremock.core.WireMockConfiguration.options().dynamicPort())
-                .configureStaticDsl(true)
+                .options(
+                    com.github.tomakehurst.wiremock.core.WireMockConfiguration
+                        .options()
+                        .dynamicPort()
+                ).configureStaticDsl(true)
                 .build()
 
         @JvmStatic

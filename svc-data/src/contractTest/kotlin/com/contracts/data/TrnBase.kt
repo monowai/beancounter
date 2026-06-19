@@ -20,7 +20,6 @@ import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnQueryService
 import com.beancounter.marketdata.trn.TrnService
-import tools.jackson.module.kotlin.readValue
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -31,6 +30,7 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import tools.jackson.module.kotlin.readValue
 import java.util.Optional
 
 const val AS_AT_DATE = "2021-10-18"

@@ -47,8 +47,11 @@ class OAuthConfigTest {
         val wireMock: WireMockExtension =
             WireMockExtension
                 .newInstance()
-                .options(com.github.tomakehurst.wiremock.core.WireMockConfiguration.options().dynamicPort())
-                .configureStaticDsl(true)
+                .options(
+                    com.github.tomakehurst.wiremock.core.WireMockConfiguration
+                        .options()
+                        .dynamicPort()
+                ).configureStaticDsl(true)
                 .build()
 
         @JvmStatic

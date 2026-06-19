@@ -22,7 +22,6 @@ import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.utils.ASSET_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
-import tools.jackson.core.type.TypeReference
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -47,6 +46,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import tools.jackson.core.type.TypeReference
 import java.io.File
 
 private const val BRK_B = "BRK.B"

@@ -4,12 +4,12 @@ import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.dataformat.yaml.YAMLMapper
-import tools.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 internal class TestMarkets {
     private var yamlMapper: ObjectMapper =

@@ -13,8 +13,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ContextConfiguration
@@ -65,7 +65,8 @@ class AuthTest {
     class TestCacheConfig {
         @org.springframework.context.annotation.Bean
         fun cacheManager(): org.springframework.cache.CacheManager =
-            org.springframework.cache.concurrent.ConcurrentMapCacheManager()
+            org.springframework.cache.concurrent
+                .ConcurrentMapCacheManager()
     }
 
     @MockitoBean

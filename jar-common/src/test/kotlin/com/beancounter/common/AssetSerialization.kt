@@ -13,9 +13,9 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import tools.jackson.core.JacksonException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import tools.jackson.core.JacksonException
 
 /**
  * Payload serialization tests involving asset contracts

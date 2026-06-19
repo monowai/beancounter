@@ -5,11 +5,11 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig.Companion.DATE_TIME_FORMAT
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
-import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.core.io.ClassPathResource
+import tools.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime

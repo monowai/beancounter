@@ -8,9 +8,9 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.FxRateCalculator
-import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 import java.math.BigDecimal
 
 private const val FROM_CODE = "from.code"

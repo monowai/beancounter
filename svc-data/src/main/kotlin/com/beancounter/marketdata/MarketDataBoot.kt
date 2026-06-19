@@ -3,8 +3,8 @@ package com.beancounter.marketdata
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.client.sharesight.ShareSightConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity

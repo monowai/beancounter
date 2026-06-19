@@ -10,10 +10,10 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.fx.FxFullStackTest.Companion.FX_MOCK
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
-import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
+import tools.jackson.module.kotlin.readValue
 import java.math.BigDecimal
 
 /**

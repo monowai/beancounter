@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.client.web.DefaultOAuth2Authorization
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 
 /**
  * SBA server security.
@@ -120,14 +120,15 @@ class SecurityConfig(
         http
             .authorizeHttpRequests { authz ->
                 authz
-                    .requestMatchers(AntPathRequestMatcher("$contextPath/assets/**"))
+                    .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("$contextPath/assets/**"))
                     .permitAll()
-                    .requestMatchers(AntPathRequestMatcher("$contextPath/login/**"))
+                    .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("$contextPath/login/**"))
                     .permitAll()
-                    .requestMatchers(AntPathRequestMatcher("$contextPath/oauth2/**"))
+                    .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("$contextPath/oauth2/**"))
                     .permitAll()
-                    .requestMatchers(AntPathRequestMatcher("$contextPath/actuator/health/**"))
-                    .permitAll()
+                    .requestMatchers(
+                        PathPatternRequestMatcher.withDefaults().matcher("$contextPath/actuator/health/**")
+                    ).permitAll()
                     .anyRequest()
                     .hasAuthority("SCOPE_beancounter:admin")
             }.oauth2Login { oauth2 ->

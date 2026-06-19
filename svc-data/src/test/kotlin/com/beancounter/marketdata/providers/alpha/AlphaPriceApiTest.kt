@@ -45,17 +45,18 @@ import com.beancounter.marketdata.providers.marketstack.MarketStackService
 import com.beancounter.marketdata.trn.CashTrnServices
 import com.beancounter.marketdata.utils.DateUtilsMocker
 import com.beancounter.marketdata.utils.RegistrationUtils
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
@@ -77,10 +78,26 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
-@AutoConfigureWireMock(port = 0)
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 internal class AlphaPriceApiTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+
+        @JvmStatic
+        @org.springframework.test.context.DynamicPropertySource
+        fun wireMockProps(registry: org.springframework.test.context.DynamicPropertyRegistry) {
+            registry.add("wiremock.server.port") { wireMock.port }
+        }
+    }
+
     @MockitoBean
     private lateinit var dateUtils: DateUtils
 
@@ -185,11 +202,11 @@ internal class AlphaPriceApiTest {
                     )
             )
 
-        assertNotNull {
+        assertThat(
             mdFactory
                 .getMarketDataProvider(AlphaPriceService.ID)
                 .getMarketData(of(asset))
-        }
+        ).isNotNull
     }
 
     private val changeProp = "change"

@@ -4,7 +4,7 @@ server:
 stream:
   enabled: false
 cache:
-  enabled: false
+  enabled: true
 
 # Disable rate limiting for tests - using WireMock stubs, not real APIs
 resilience4j:

@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers.alpha
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -10,6 +9,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import tools.jackson.databind.ObjectMapper
 
 /**
  * Verify non-US short-circuit and ranking/trimming behaviour in

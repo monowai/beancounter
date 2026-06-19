@@ -16,8 +16,9 @@ dependencies {
     api(platform(libs.spring.boot.dependencies))
 
     api(libs.jackson.kotlin)
-    implementation("com.fasterxml.jackson.core:jackson-databind")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    // Jackson 3: JSR-310 (java.time) support is built into jackson-databind;
+    // the standalone jackson-datatype-jsr310 module no longer exists.
+    implementation("tools.jackson.core:jackson-databind")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Models carry JPA annotations (entity/DTO split deferred to Phase 2).

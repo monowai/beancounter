@@ -6,11 +6,11 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson.Companion.writer
-import com.fasterxml.jackson.core.JsonProcessingException
 import org.slf4j.LoggerFactory
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
+import tools.jackson.core.JacksonException
 
 /**
  * Portfolio Access commands
@@ -22,7 +22,7 @@ class PortfolioCommands(
     private val log = LoggerFactory.getLogger(PortfolioCommands::class.java)
 
     @ShellMethod("Find portfolio by code")
-    @Throws(JsonProcessingException::class)
+    @Throws(JacksonException::class)
     fun portfolioCode(
         @ShellOption(help = "Code - case insensitive") portfolioCode: String
     ): String {
@@ -31,7 +31,7 @@ class PortfolioCommands(
     }
 
     @ShellMethod("My Portfolios")
-    @Throws(JsonProcessingException::class)
+    @Throws(JacksonException::class)
     fun portfolios(): String {
         val (data) = portfolioService.portfolios
         return if (data.isEmpty()) {
@@ -42,7 +42,7 @@ class PortfolioCommands(
     }
 
     @ShellMethod("Find by id")
-    @Throws(JsonProcessingException::class)
+    @Throws(JacksonException::class)
     fun portfolio(
         @ShellOption(help = "Primary key - case sensitive") portfolioId: String
     ): String {
@@ -54,7 +54,7 @@ class PortfolioCommands(
         key = ["add"],
         value = "Add portfolio"
     )
-    @Throws(JsonProcessingException::class)
+    @Throws(JacksonException::class)
     fun add(
         @ShellOption(help = "Unique Code") code: String,
         @ShellOption(help = "Name") name: String,

@@ -18,9 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -129,10 +129,6 @@ class PortfolioExceptionTests {
     }
 
     @Test
-    @WithMockUser(
-        username = "unregisteredUser",
-        authorities = [AuthConstants.SCOPE_BC]
-    )
     fun `should reject unregistered user from creating portfolios`() {
         val portfolioInput =
             PortfolioInput(
@@ -141,13 +137,20 @@ class PortfolioExceptionTests {
                 Constants.USD.code,
                 Constants.NZD.code
             )
-        // Authenticated, but unregistered user can't create portfolios
+        // Authenticated (a real JWT, as the service's TokenService requires), but
+        // the user is unregistered so portfolio creation must be Forbidden (403).
+        val unregisteredToken = mockAuthConfig.getUserToken(SystemUser())
         mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .post(PORTFOLIO_ROOT)
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .content(
+                    .with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
+                            .jwt(unregisteredToken)
+                            .authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_BC))
+                    ).content(
                         objectMapper
                             .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput)))
                     ).contentType(MediaType.APPLICATION_JSON)

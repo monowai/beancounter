@@ -24,7 +24,11 @@ class Position(
     val periodicCashFlows = PeriodicCashFlows()
     var quantityValues: QuantityValues = QuantityValues()
     var dateValues = DateValues()
-    val moneyValues: MutableMap<In, MoneyValues> = EnumMap(In::class.java)
+
+    // var (not val): Jackson 3 merges into a pre-initialized read-only
+    // collection and leaves nested objects unpopulated; a settable property
+    // makes it replace the map with the fully-deserialized one.
+    var moneyValues: MutableMap<In, MoneyValues> = EnumMap(In::class.java)
 
     /**
      * Tracks quantity held at each broker.

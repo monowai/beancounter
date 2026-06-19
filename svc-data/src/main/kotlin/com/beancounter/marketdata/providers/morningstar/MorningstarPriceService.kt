@@ -105,8 +105,8 @@ class MorningstarPriceService(
 
             // Get the most recent price (last element)
             val latestPrice = historyDetail[historyDetail.size() - 1]
-            val priceDate = LocalDate.parse(latestPrice.path("EndDate").asText(), DATE_FORMATTER)
-            val closePrice = BigDecimal(latestPrice.path("Value").asText())
+            val priceDate = LocalDate.parse(latestPrice.path("EndDate").asString(), DATE_FORMATTER)
+            val closePrice = BigDecimal(latestPrice.path("Value").asString())
 
             log.debug("Parsed price for {}: {} on {}", asset.code, closePrice, priceDate)
 
@@ -170,8 +170,8 @@ class MorningstarPriceService(
 
             historyDetail.mapNotNull { priceNode ->
                 try {
-                    val priceDate = LocalDate.parse(priceNode.path("EndDate").asText(), DATE_FORMATTER)
-                    val closePrice = BigDecimal(priceNode.path("Value").asText())
+                    val priceDate = LocalDate.parse(priceNode.path("EndDate").asString(), DATE_FORMATTER)
+                    val closePrice = BigDecimal(priceNode.path("Value").asString())
 
                     MarketData(
                         asset = asset,

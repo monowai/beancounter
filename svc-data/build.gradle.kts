@@ -10,15 +10,6 @@ plugins {
 
 version = "0.1.1"
 
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.springframework.data" && requested.name != "spring-data-bom") {
-            useVersion("3.5.3")
-            because("Force Spring Data 2025.0.3 to fix deleteBy regression in 3.5.4")
-        }
-    }
-}
-
 publishing {
     publications {
         create<MavenPublication>("data-stubs") {
@@ -31,7 +22,6 @@ publishing {
 }
 
 dependencies {
-    implementation(platform(libs.spring.data.bom))
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
     implementation(platform(libs.spring.ai.bom))
@@ -45,14 +35,20 @@ dependencies {
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)
     implementation(libs.sentry.jdbc)
-    implementation(libs.spring.boot.starter.aop)
+    // Boot 4.1.0 no longer publishes spring-boot-starter-aop; AopAutoConfiguration
+    // ships in spring-boot-autoconfigure and only aspectjweaver is needed for the
+    // resilience4j @CircuitBreaker/@Retry aspects. Version managed by the Boot BOM.
+    implementation("org.aspectj:aspectjweaver")
+    // Boot 4 no longer manages/transitively supplies spring-retry (was pulled via
+    // the removed spring-boot-starter-aop in Boot 3). CloudConfig uses @EnableRetry.
+    implementation("org.springframework.retry:spring-retry:2.0.13")
     implementation(libs.spring.boot.starter.security)
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
     // Spring Boot Admin client. Inactive unless `spring.boot.admin.client.enabled=true`
     // (default false in application.yml). Enabled in kauri via env var; see bc-deploy.
-    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
+    implementation("de.codecentric:spring-boot-admin-starter-client:4.0.4")
     implementation(libs.spring.boot.starter.integration)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
@@ -74,7 +70,9 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
-    testImplementation("com.fasterxml.jackson.core:jackson-databind")
+    testImplementation("tools.jackson.core:jackson-databind")
+    // Boot 4 split @AutoConfigureMockMvc into the spring-boot-webmvc-test module.
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation(libs.spring.cloud.stream.test.binder)
@@ -83,6 +81,19 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
+}
+
+// RestAssured 5.5.7's legacy Groovy HTTPBuilder (used by EXPLICIT-mode contract
+// tests for the real HTTP send) is incompatible with Groovy 5, which the Boot 4 /
+// spring-cloud Oakwood BOM pulls in -> NPE in ClosureMetaClass.invokeOnDelegationObject.
+// Pin Groovy 4 on the contract-test classpath only; contract *generation* runs on
+// the plugin classpath and is unaffected.
+configurations.matching { it.name.startsWith("contractTest") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.apache.groovy") {
+            useVersion("4.0.28")
+        }
+    }
 }
 
 contracts {

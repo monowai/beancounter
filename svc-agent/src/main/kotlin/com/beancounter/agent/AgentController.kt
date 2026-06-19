@@ -4,12 +4,11 @@ import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
+import org.springframework.ai.anthropic.AnthropicCacheOptions
 import org.springframework.ai.anthropic.AnthropicChatOptions
-import org.springframework.ai.anthropic.api.AnthropicCacheOptions
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.metadata.Usage
 import org.springframework.ai.chat.model.ChatResponse
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.HtmlUtils
 import reactor.core.publisher.Flux
+import tools.jackson.databind.ObjectMapper
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -83,7 +83,7 @@ class AgentController(
      * (Ollama / OpenAI), in which case the ChatClient's configured default
      * model answers and tier escalation is silently ignored.
      *
-     * `deepThink` raises `maxTokens` so the deep tier (deepseek-reasoner /
+     * `deepThink` raises `maxTokens` so the deep tier (deepseek-v4-pro /
      * claude-opus-*) has headroom for chain-of-thought + final answer; on the
      * Anthropic surface it also explicitly enables thinking with a 4k budget
      * (Claude 4 has thinking on by default; setting it explicitly documents
@@ -92,7 +92,7 @@ class AgentController(
     internal fun buildOptions(
         modelId: String,
         deepThink: Boolean
-    ): org.springframework.ai.chat.prompt.ChatOptions? =
+    ): org.springframework.ai.chat.prompt.ChatOptions.Builder<*>? =
         when {
             anthropicActive -> {
                 val b = AnthropicChatOptions.builder().model(modelId)
@@ -100,19 +100,18 @@ class AgentController(
                 if (deepThink) {
                     b
                         .maxTokens(16384)
-                        .thinking(
-                            org.springframework.ai.anthropic.api.AnthropicApi.ThinkingType.ENABLED,
-                            4096
-                        )
+                        // Spring AI 2.0: the two-arg thinking(type, budget) is
+                        // gone; thinkingEnabled(budgetTokens) is the explicit
+                        // enable + budget call (4k budget preserved).
+                        .thinkingEnabled(4096L)
                 }
-                b.build()
+                b
             }
             deepseekActive -> {
                 org.springframework.ai.deepseek.DeepSeekChatOptions
                     .builder()
                     .model(modelId)
                     .maxTokens(if (deepThink) 16384 else 4096)
-                    .build()
             }
             else -> {
                 null
@@ -313,7 +312,7 @@ class AgentController(
         val tokenEvents =
             streamSpec
                 .chatResponse()
-                .doOnNext { resp -> resp.metadata.usage?.let { capturedUsage.set(it) } }
+                .doOnNext { resp -> capturedUsage.set(resp.metadata.usage) }
                 // Spring AI emits trailing ChatResponse chunks with no Generation
                 // (metadata-only — token usage, finishReason). Skip those instead
                 // of NPE'ing on resp.result.
@@ -489,7 +488,7 @@ data class AgentQuery(
     val query: String,
     val context: Map<String, Any>? = null,
     /**
-     * Caller-driven escalation to the deep tier (typically `deepseek-reasoner`
+     * Caller-driven escalation to the deep tier (typically `deepseek-v4-pro`
      * or `claude-opus-*`). Off by default; flips model selection regardless of
      * page-context routing in [ChatModelSelector].
      */

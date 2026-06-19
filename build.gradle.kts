@@ -75,6 +75,10 @@ subprojects {
     // Test configuration with optimizations
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
+        // Gradle 9 flipped this default to true. Some modules (e.g. jar-contracts)
+        // have no test sources of their own, so don't fail their :test task on
+        // zero discovered tests.
+        failOnNoDiscoveredTests = false
         finalizedBy(tasks.named("jacocoTestReport"))
 
         // Gradle 8.14+ compatibility: Include main source set output in test classpath
@@ -202,6 +206,13 @@ subprojects {
     // Common dependencies for all modules
     dependencies {
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+        // Spring Framework 7 removed spring-jcl (the commons-logging provider),
+        // and the configurations-wide exclude of commons-logging:commons-logging
+        // (a Boot-3 workaround) leaves nothing supplying
+        // org.apache.commons.logging.LogFactory. Without this, services fail at
+        // STARTUP (NoClassDefFoundError), not just in tests. runtimeOnly covers
+        // both main and test runtime; routed to the existing logback. BOM-managed.
+        runtimeOnly("org.slf4j:jcl-over-slf4j")
 
         // Common test dependencies
         testImplementation(

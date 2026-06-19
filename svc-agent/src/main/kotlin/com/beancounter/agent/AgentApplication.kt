@@ -13,9 +13,13 @@ import org.springframework.boot.runApplication
  */
 @SpringBootApplication(
     scanBasePackages = ["com.beancounter"],
-    exclude = [
-        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration::class,
-        org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration::class
+    // Boot 4 relocated these auto-configs to dedicated modules
+    // (spring-boot-jdbc / spring-boot-hibernate) that are NOT on svc-agent's
+    // classpath. Exclude by name so the defensive guard survives even though
+    // the classes can't be referenced as ::class literals here.
+    excludeName = [
+        "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration",
+        "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration"
     ]
 )
 class AgentApplication

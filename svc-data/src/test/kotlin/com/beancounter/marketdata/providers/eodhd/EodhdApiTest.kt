@@ -16,12 +16,14 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -35,7 +37,6 @@ import java.math.BigDecimal
  */
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("h2db", "eodhd")
-@AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 internal class EodhdApiTest {
     @MockitoBean
@@ -359,7 +360,22 @@ internal class EodhdApiTest {
         )
     }
 
-    private companion object {
+    companion object {
         const val BULK_LAST_DAY_US = "/api/eod-bulk-last-day/US"
+
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+
+        @JvmStatic
+        @org.springframework.test.context.DynamicPropertySource
+        fun wireMockProps(registry: org.springframework.test.context.DynamicPropertyRegistry) {
+            registry.add("wiremock.server.port") { wireMock.port }
+        }
     }
 }

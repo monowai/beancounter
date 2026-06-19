@@ -2,10 +2,6 @@ package com.beancounter.common.model
 
 import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
@@ -36,8 +32,6 @@ data class FxRate(
         shape = JsonFormat.Shape.STRING,
         pattern = DateUtils.FORMAT
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
     val date: LocalDate = LocalDate.now(),
     val provider: String = "FRANKFURTER",
     @Id val id: String = "${from.code}-${to.code}-$date-$provider"

@@ -1,6 +1,6 @@
 package com.beancounter.common.telemetry
 
-import io.sentry.spring.jakarta.SentryTaskDecorator
+import io.sentry.spring7.SentryTaskDecorator
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

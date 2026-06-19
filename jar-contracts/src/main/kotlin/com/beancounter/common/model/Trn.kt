@@ -3,10 +3,6 @@ package com.beancounter.common.model
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
@@ -42,8 +38,6 @@ data class Trn(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
     var tradeDate: LocalDate = DateUtils().date,
     @ManyToOne
     var asset: Asset,
@@ -94,8 +88,6 @@ data class Trn(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null,
     // In trade Currency
     var fees: BigDecimal = BigDecimal.ZERO,

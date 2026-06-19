@@ -6,12 +6,14 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
@@ -23,9 +25,25 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
-@AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class AlphaEnricherTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+
+        @JvmStatic
+        @org.springframework.test.context.DynamicPropertySource
+        fun wireMockProps(registry: org.springframework.test.context.DynamicPropertyRegistry) {
+            registry.add("wiremock.server.port") { wireMock.port }
+        }
+    }
+
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 

@@ -9,15 +9,6 @@ plugins {
 
 version = "0.1.1"
 
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.springframework.data" && requested.name != "spring-data-bom") {
-            useVersion("3.5.3")
-            because("Force Spring Data 2025.0.3 to fix deleteBy regression in 3.5.4")
-        }
-    }
-}
-
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
@@ -32,7 +23,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
-    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
+    implementation("de.codecentric:spring-boot-admin-starter-client:4.0.4")
     implementation(libs.spring.boot.starter.integration)
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)
@@ -56,6 +47,8 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-text")
     }
     testImplementation("com.h2database:h2")
+    // Boot 4 split @AutoConfigureMockMvc into the spring-boot-webmvc-test module.
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
     testImplementation(libs.jackson.kotlin)
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")
     testImplementation("org.springframework.security:spring-security-test")

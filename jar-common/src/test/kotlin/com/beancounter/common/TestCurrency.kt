@@ -43,7 +43,7 @@ internal class TestCurrency {
             )
         TestHelpers.assertCollectionSerializationRoundTrip(
             collection = currencies,
-            typeReference = object : com.fasterxml.jackson.core.type.TypeReference<Collection<Currency>>() {}
+            typeReference = object : tools.jackson.core.type.TypeReference<Collection<Currency>>() {}
         )
     }
 

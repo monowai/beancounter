@@ -29,8 +29,8 @@ import java.util.TreeMap
 class Positions(
     val portfolio: Portfolio = PortfolioUtils.getPortfolio(),
     var asAt: String = DEFAULT_AS_AT,
-    val positions: MutableMap<String, Position> = TreeMap(),
-    val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java)
+    var positions: MutableMap<String, Position> = TreeMap(),
+    var totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java)
 ) {
     companion object {
         const val DEFAULT_AS_AT = "today"

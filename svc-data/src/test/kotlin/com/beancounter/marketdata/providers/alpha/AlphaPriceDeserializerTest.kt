@@ -4,11 +4,13 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.US
-import com.fasterxml.jackson.databind.DeserializationContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -20,6 +22,18 @@ class AlphaPriceDeserializerTest {
     private val deserializer = AlphaPriceDeserializer()
     private val asset = getTestAsset(US, "DPZ")
     private val objectMapper = BcJson.objectMapper
+
+    /**
+     * Drives the deserializer with a mocked [DeserializationContext]. Jackson 3's
+     * `ctx.readTree(parser)` is the entry point the deserializer uses, so the mock
+     * must delegate that call to the real mapper.
+     */
+    private fun deserialize(apiResponse: String): com.beancounter.common.contracts.PriceResponse {
+        val parser: JsonParser = objectMapper.createParser(apiResponse)
+        val context = mock(DeserializationContext::class.java)
+        whenever(context.readTree(parser)).thenReturn(objectMapper.readTree(apiResponse))
+        return deserializer.deserialize(parser, context)
+    }
 
     @Test
     fun `should correctly deserialize change and changePercent from API response`() {
@@ -43,10 +57,7 @@ class AlphaPriceDeserializerTest {
             """.trimIndent()
 
         // When: Deserializing the response
-        objectMapper.readTree(apiResponse)
-        val parser = objectMapper.createParser(apiResponse)
-        val context = mock(DeserializationContext::class.java)
-        val priceResponse = deserializer.deserialize(parser, context)
+        val priceResponse = deserialize(apiResponse)
 
         // Then: The MarketData should have correct change and changePercent values
         assertEquals(1, priceResponse.data.size)
@@ -87,9 +98,7 @@ class AlphaPriceDeserializerTest {
             """.trimIndent()
 
         // When: Deserializing the response
-        val parser = objectMapper.createParser(apiResponse)
-        val context = mock(DeserializationContext::class.java)
-        val priceResponse = deserializer.deserialize(parser, context)
+        val priceResponse = deserialize(apiResponse)
 
         // Then: The MarketData should have zero change and changePercent
         assertEquals(1, priceResponse.data.size)
@@ -128,9 +137,7 @@ class AlphaPriceDeserializerTest {
             """.trimIndent()
 
         // When: Deserializing the response
-        val parser = objectMapper.createParser(apiResponse)
-        val context = mock(DeserializationContext::class.java)
-        val priceResponse = deserializer.deserialize(parser, context)
+        val priceResponse = deserialize(apiResponse)
 
         // Then: The MarketData should have negative change and changePercent
         assertEquals(1, priceResponse.data.size)
@@ -186,9 +193,7 @@ class AlphaPriceDeserializerTest {
             """.trimIndent()
 
         // When: Deserializing the response
-        val parser = objectMapper.createParser(apiResponse)
-        val context = mock(DeserializationContext::class.java)
-        val priceResponse = deserializer.deserialize(parser, context)
+        val priceResponse = deserialize(apiResponse)
 
         // Then: Should parse both dates
         assertEquals(2, priceResponse.data.size)
@@ -236,9 +241,7 @@ class AlphaPriceDeserializerTest {
             """.trimIndent()
 
         // When: Deserializing the response
-        val parser = objectMapper.createParser(apiResponse)
-        val context = mock(DeserializationContext::class.java)
-        val priceResponse = deserializer.deserialize(parser, context)
+        val priceResponse = deserialize(apiResponse)
 
         // Then: Should parse the dividend correctly
         assertEquals(1, priceResponse.data.size)
@@ -269,9 +272,7 @@ class AlphaPriceDeserializerTest {
             }
             """.trimIndent()
 
-        val parser = objectMapper.createParser(apiResponse)
-        val context = mock(DeserializationContext::class.java)
-        val priceResponse = deserializer.deserialize(parser, context)
+        val priceResponse = deserialize(apiResponse)
 
         assertThat(priceResponse.data).hasSize(1)
         val marketData = priceResponse.data.first()

@@ -38,7 +38,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
-    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
+    implementation("de.codecentric:spring-boot-admin-starter-client:4.0.4")
     implementation(libs.spring.boot.starter.integration)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation(libs.jackson.kotlin)
@@ -60,7 +60,11 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
-    testImplementation("com.fasterxml.jackson.core:jackson-databind")
+    // Boot 4 split @AutoConfigureMockMvc into the spring-boot-webmvc-test module.
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
+    // Boot 4 moved @DataJpaTest into the spring-boot-data-jpa-test module.
+    testImplementation("org.springframework.boot:spring-boot-data-jpa-test")
+    testImplementation("tools.jackson.core:jackson-databind")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")
@@ -70,6 +74,19 @@ dependencies {
     
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         isTransitive = false
+    }
+}
+
+// RestAssured 5.5.7's legacy Groovy HTTPBuilder (used by EXPLICIT-mode contract
+// tests for the real HTTP send) is incompatible with Groovy 5, which the Boot 4 /
+// spring-cloud Oakwood BOM pulls in -> NPE in ClosureMetaClass.invokeOnDelegationObject.
+// Pin Groovy 4 on the contract-test classpath only; contract *generation* runs on
+// the plugin classpath and is unaffected.
+configurations.matching { it.name.startsWith("contractTest") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.apache.groovy") {
+            useVersion("4.0.28")
+        }
     }
 }
 

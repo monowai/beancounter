@@ -2,9 +2,9 @@ package com.beancounter.auth
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.readValue
 
 /**
  * Test suite for authentication POJOs to ensure proper serialization via Jackson and Spring's form encoding.

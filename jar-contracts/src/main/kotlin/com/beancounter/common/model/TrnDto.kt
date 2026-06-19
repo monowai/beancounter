@@ -2,10 +2,6 @@ package com.beancounter.common.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -23,8 +19,6 @@ data class TrnDto(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
     val tradeDate: LocalDate,
     val assetId: String,
     val quantity: BigDecimal = BigDecimal.ZERO,
@@ -43,8 +37,6 @@ data class TrnDto(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
     val settleDate: LocalDate? = null,
     val fees: BigDecimal = BigDecimal.ZERO,
     val tax: BigDecimal = BigDecimal.ZERO,

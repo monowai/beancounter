@@ -51,15 +51,16 @@ class TokenService(
         get() {
             val token = jwt
             return token.token.subject
+                ?: throw UnauthorizedException("Not authorised: missing subject claim")
         }
 
     fun getEmail(): String {
         // Try custom claim first, then fall back to standard email claim
-        val customEmail = jwt.token?.getClaim<String>(authConfig.claimEmail)
+        val customEmail = jwt.token.getClaim<String>(authConfig.claimEmail)
         if (!customEmail.isNullOrBlank()) {
             return customEmail
         }
-        val standardEmail = jwt.token?.getClaim<String>("email")
+        val standardEmail = jwt.token.getClaim<String>("email")
         if (!standardEmail.isNullOrBlank()) {
             return standardEmail
         }
@@ -68,17 +69,17 @@ class TokenService(
 
     fun hasEmail(): Boolean {
         // Check custom claim first
-        val customEmail = jwt.token?.claims?.get(authConfig.claimEmail) as? String
+        val customEmail = jwt.token.claims.get(authConfig.claimEmail) as? String
         if (!customEmail.isNullOrBlank()) {
             return true
         }
         // Fall back to standard email claim
-        val standardEmail = jwt.token?.claims?.get("email") as? String
+        val standardEmail = jwt.token.claims.get("email") as? String
         return !standardEmail.isNullOrBlank()
     }
 
     fun getSystemUserId(): String? {
-        val value = jwt.token?.getClaim<String>(authConfig.claimSystemUserId)
+        val value = jwt.token.getClaim<String>(authConfig.claimSystemUserId)
         return if (value.isNullOrBlank()) null else value
     }
 

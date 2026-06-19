@@ -3,23 +3,22 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.utils.BcJson
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonNode
-import java.io.IOException
+import tools.jackson.core.JacksonException
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.ValueDeserializer
 
 /**
  * Deserialize AlphaVantage JSON response to a BC standard response object.
  */
-class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
-    @Throws(IOException::class)
+class AlphaSearchDeserializer : ValueDeserializer<AssetSearchResponse>() {
+    @Throws(JacksonException::class)
     override fun deserialize(
         p: JsonParser,
         context: DeserializationContext
     ): AssetSearchResponse {
         val results: MutableCollection<AssetSearchResult> = ArrayList()
-        val source = p.codec.readTree<JsonNode>(p)
+        val source = context.readTree(p)
         val metaData = source[BEST_MATCHES]
         if (metaData != null) {
             val collectionType =

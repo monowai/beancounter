@@ -1,6 +1,5 @@
 {
   "detail": "Portfolio not found: NOT-FOUND",
-  "type": "about:blank",
   "title": "Not Found",
   "status": 404,
   "instance": "/api/portfolios/NOT-FOUND"

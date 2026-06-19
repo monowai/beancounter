@@ -3,8 +3,8 @@ package com.beancounter.position
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.position.config.TestClassificationConfig
 import org.junit.jupiter.api.Tag
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.context.annotation.Import
@@ -18,16 +18,15 @@ import org.springframework.test.context.ActiveProfiles
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:0.1.1:stubs:10993"]
 )
-@ActiveProfiles
+// Profiles are hard-wired here: a custom `profiles` attribute aliased with
+// @AliasFor does not survive Kotlin annotation compilation reliably (see
+// SpringMvcDbTest), and no caller overrode it. These profiles point the
+// marketdata RestClient at the stub-runner port (10993).
+@ActiveProfiles("svc-position-shared", "contract-base")
 @Tag("stubbed")
 @SpringBootTest
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
 @Import(TestClassificationConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-annotation class StubbedTest(
-    /**
-     * Defines the active profiles to be used for the annotated test class.
-     */
-    val profiles: Array<String> = ["svc-position-shared", "contract-base"]
-)
+annotation class StubbedTest

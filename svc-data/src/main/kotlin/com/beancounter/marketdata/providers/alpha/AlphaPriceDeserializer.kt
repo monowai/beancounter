@@ -9,10 +9,10 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.get
 import com.beancounter.common.utils.PercentUtils
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ValueDeserializer
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Objects
@@ -45,7 +45,7 @@ const val F_DATE = "07. latest trading day"
  * @author mikeh
  * @since 2019-03-03
  */
-class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
+class AlphaPriceDeserializer : ValueDeserializer<PriceResponse>() {
     private val dateUtils = DateUtils()
     private val percentUtils = PercentUtils()
 
@@ -53,7 +53,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         p: JsonParser,
         ctx: DeserializationContext
     ): PriceResponse {
-        val source = p.codec.readTree<JsonNode>(p)
+        val source = ctx.readTree(p)
 
         return when {
             source.has(TIME_SERIES_DAILY) -> {
@@ -184,7 +184,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             val symbols =
                 nodeValue[assetField] ?: return null
 
-            val values = symbols.asText().split(":").toTypedArray()
+            val values = symbols.asString().split(":").toTypedArray()
             var market = Market("US")
             if (values.size > 1) {
                 // We have a market
@@ -192,8 +192,11 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             }
             return Asset(code = values[0], market = market)
         }
-        throw BusinessException("Unable to resolve asset ${nodeValue.asText()}")
+        throw BusinessException("Unable to resolve asset $nodeValue")
     }
 
-    private fun isNull(nodeValue: JsonNode) = nodeValue.isNull || nodeValue.asText() == "null"
+    // Jackson 3 throws when asText()/asString() is called on a container node, so only
+    // coerce value nodes to text. A missing or explicit-null node is treated as null.
+    private fun isNull(nodeValue: JsonNode) =
+        nodeValue.isNull || (nodeValue.isValueNode && nodeValue.asString() == "null")
 }

@@ -5,7 +5,6 @@ import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
 import com.beancounter.agent.tools.ToolSelector
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -20,6 +19,7 @@ import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.model.Generation
 import org.springframework.mock.env.MockEnvironment
 import reactor.core.publisher.Flux
+import tools.jackson.databind.ObjectMapper
 
 private const val EVENT_TOKEN = "token"
 private const val EVENT_DONE = "done"
@@ -234,7 +234,7 @@ class AgentControllerTest {
         // formatting / field-order changes can't quietly break the contract.
         assertThat(events[2].event()).isEqualTo(EVENT_DONE)
         val done = ObjectMapper().readTree(events[2].data())
-        assertThat(done["model"].asText()).isEqualTo("test-model-id")
+        assertThat(done["model"].asString()).isEqualTo("test-model-id")
         assertThat(done["chars"].asLong()).isEqualTo(11L)
         assertThat(done["elapsed_ms"].asLong()).isGreaterThanOrEqualTo(0L)
     }
@@ -405,10 +405,11 @@ class AgentControllerTest {
                 LlmMetrics(),
                 permissiveAuthorizer
             )
-        val opts = ctrl.buildOptions("deepseek-chat", deepThink = false)
+        // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
+        val opts = ctrl.buildOptions("deepseek-v4-flash", deepThink = false)?.build()
         assertThat(opts).isInstanceOf(org.springframework.ai.deepseek.DeepSeekChatOptions::class.java)
         val dsOpts = opts as org.springframework.ai.deepseek.DeepSeekChatOptions
-        assertThat(dsOpts.model).isEqualTo("deepseek-chat")
+        assertThat(dsOpts.model).isEqualTo("deepseek-v4-flash")
         assertThat(dsOpts.maxTokens).isEqualTo(4096)
     }
 
@@ -428,10 +429,13 @@ class AgentControllerTest {
                 LlmMetrics(),
                 permissiveAuthorizer
             )
+        // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
-            ctrl.buildOptions("deepseek-reasoner", deepThink = true)
-                as org.springframework.ai.deepseek.DeepSeekChatOptions
-        assertThat(opts.model).isEqualTo("deepseek-reasoner")
+            (
+                ctrl.buildOptions("deepseek-v4-pro", deepThink = true)
+                    as org.springframework.ai.deepseek.DeepSeekChatOptions.Builder
+            ).build()
+        assertThat(opts.model).isEqualTo("deepseek-v4-pro")
         assertThat(opts.maxTokens).isEqualTo(16384)
     }
 
@@ -440,23 +444,29 @@ class AgentControllerTest {
         // Empty active profiles → anthropicActive = true (real Anthropic surface).
         val ctrl = controller()
         val opts =
-            ctrl.buildOptions("claude-opus-4-7", deepThink = true)
-                as org.springframework.ai.anthropic.AnthropicChatOptions
+            (
+                ctrl.buildOptions("claude-opus-4-7", deepThink = true)
+                    as org.springframework.ai.anthropic.AnthropicChatOptions.Builder
+            ).build()
         assertThat(opts.model).isEqualTo("claude-opus-4-7")
         assertThat(opts.maxTokens).isEqualTo(16384)
         assertThat(opts.thinking).isNotNull
-        assertThat(opts.thinking.budgetTokens).isEqualTo(4096)
+        // Spring AI 2.0 thinking is the anthropic-java ThinkingConfigParam.
+        assertThat(opts.thinking!!.isEnabled()).isTrue()
+        assertThat(opts.thinking!!.asEnabled().budgetTokens()).isEqualTo(4096L)
     }
 
     @Test
     fun `buildOptions on anthropic default without deepThink omits thinking`() {
         val ctrl = controller()
         val opts =
-            ctrl.buildOptions("claude-haiku-4-5-20251001", deepThink = false)
-                as org.springframework.ai.anthropic.AnthropicChatOptions
+            (
+                ctrl.buildOptions("claude-haiku-4-5-20251001", deepThink = false)
+                    as org.springframework.ai.anthropic.AnthropicChatOptions.Builder
+            ).build()
         assertThat(opts.model).isEqualTo("claude-haiku-4-5-20251001")
-        // thinking object may be null OR (defensively) present with no budget; assert intent:
-        assertThat(opts.thinking?.budgetTokens).isNull()
+        // No deepThink → thinking is never enabled (null on the built options).
+        assertThat(opts.thinking).isNull()
     }
 
     @Test

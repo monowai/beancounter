@@ -7,15 +7,15 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.providers.DataProviderConfig
-import com.fasterxml.jackson.core.Version
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import tools.jackson.core.Version
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 import java.time.LocalDate
 
 /**
@@ -36,14 +36,9 @@ class AlphaConfig(
     var markets: String? = null
 
     companion object {
-        private val alphaMapper: ObjectMapper =
-            ObjectMapper()
-                .registerKotlinModule()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    }
-
-    init {
-        val module =
+        // Jackson 3 mappers are immutable; build once with all modules. The custom
+        // SimpleModule carries the Alpha deserializers alongside the Kotlin module.
+        private val alphaModule: SimpleModule =
             SimpleModule(
                 "AlphaMarketDataDeserializer",
                 Version(
@@ -54,16 +49,22 @@ class AlphaConfig(
                     null,
                     null
                 )
-            )
-        module.addDeserializer(
-            PriceResponse::class.java,
-            AlphaPriceDeserializer()
-        )
-        module.addDeserializer(
-            AssetSearchResponse::class.java,
-            AlphaSearchDeserializer()
-        )
-        alphaMapper.registerModule(module)
+            ).apply {
+                addDeserializer(
+                    PriceResponse::class.java,
+                    AlphaPriceDeserializer()
+                )
+                addDeserializer(
+                    AssetSearchResponse::class.java,
+                    AlphaSearchDeserializer()
+                )
+            }
+
+        private val alphaMapper: ObjectMapper =
+            jacksonMapperBuilder()
+                .addModule(alphaModule)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .build()
     }
 
     override fun getBatchSize() = 1

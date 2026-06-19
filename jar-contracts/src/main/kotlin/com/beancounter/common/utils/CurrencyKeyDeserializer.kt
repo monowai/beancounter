@@ -1,8 +1,8 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.model.IsoCurrencyPair
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.KeyDeserializer
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.KeyDeserializer
 
 /**
  * Convert the String into an Object representation. Jackson

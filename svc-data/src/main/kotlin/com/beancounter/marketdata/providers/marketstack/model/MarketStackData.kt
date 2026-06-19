@@ -3,10 +3,6 @@ package com.beancounter.marketdata.providers.marketstack.model
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig.Companion.DATE_TIME_FORMAT
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -37,8 +33,6 @@ data class MarketStackData(
     @param:JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = DATE_TIME_FORMAT
-    ) @param:JsonSerialize(using = LocalDateTimeSerializer::class) @param:JsonDeserialize(
-        using = LocalDateTimeDeserializer::class
     )
     val date: LocalDateTime
 )

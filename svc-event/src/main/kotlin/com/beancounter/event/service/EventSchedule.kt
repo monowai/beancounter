@@ -2,7 +2,7 @@ package com.beancounter.event.service
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.utils.DateUtils
-import io.sentry.spring.jakarta.tracing.SentryTransaction
+import io.sentry.spring7.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled

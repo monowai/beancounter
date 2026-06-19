@@ -26,6 +26,8 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
+    // Boot 4 moved TestRestTemplate into the spring-boot-resttestclient module.
+    testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation(libs.mockito.kotlin)
 }
 

@@ -1,7 +1,7 @@
 package com.beancounter.position.schedule
 
 import com.beancounter.common.utils.DateUtils
-import io.sentry.spring.jakarta.tracing.SentryTransaction
+import io.sentry.spring7.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

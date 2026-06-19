@@ -60,7 +60,11 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
-    testImplementation("com.fasterxml.jackson.core:jackson-databind")
+    // Boot 4 split @AutoConfigureMockMvc into the spring-boot-webmvc-test module.
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
+    // Boot 4 moved @DataJpaTest into the spring-boot-data-jpa-test module.
+    testImplementation("org.springframework.boot:spring-boot-data-jpa-test")
+    testImplementation("tools.jackson.core:jackson-databind")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")

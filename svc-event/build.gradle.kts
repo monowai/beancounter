@@ -56,6 +56,8 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-text")
     }
     testImplementation("com.h2database:h2")
+    // Boot 4 split @AutoConfigureMockMvc into the spring-boot-webmvc-test module.
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
     testImplementation(libs.jackson.kotlin)
     testImplementation("org.springframework.cloud:spring-cloud-contract-stub-runner")
     testImplementation("org.springframework.security:spring-security-test")

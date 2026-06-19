@@ -75,6 +75,10 @@ subprojects {
     // Test configuration with optimizations
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
+        // Gradle 9 flipped this default to true. Some modules (e.g. jar-contracts)
+        // have no test sources of their own, so don't fail their :test task on
+        // zero discovered tests.
+        failOnNoDiscoveredTests = false
         finalizedBy(tasks.named("jacocoTestReport"))
 
         // Gradle 8.14+ compatibility: Include main source set output in test classpath

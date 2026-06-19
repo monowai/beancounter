@@ -2,7 +2,6 @@ package com.beancounter.admin
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.resttestclient.TestRestTemplate
@@ -34,8 +33,9 @@ import org.springframework.http.HttpStatus
     ]
 )
 class ProbeChainTest {
-    @Autowired
-    private lateinit var restTemplate: TestRestTemplate
+    // Hits absolute management-port URLs, so a standalone instance suffices
+    // (Boot 4 no longer auto-registers a TestRestTemplate bean here).
+    private val restTemplate = TestRestTemplate()
 
     // Actuator endpoints live on a separate management port in production
     // (application.yml sets management.server.port=9531). Spring Boot binds

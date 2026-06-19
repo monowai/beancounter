@@ -405,7 +405,8 @@ class AgentControllerTest {
                 LlmMetrics(),
                 permissiveAuthorizer
             )
-        val opts = ctrl.buildOptions("deepseek-chat", deepThink = false)
+        // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
+        val opts = ctrl.buildOptions("deepseek-chat", deepThink = false)?.build()
         assertThat(opts).isInstanceOf(org.springframework.ai.deepseek.DeepSeekChatOptions::class.java)
         val dsOpts = opts as org.springframework.ai.deepseek.DeepSeekChatOptions
         assertThat(dsOpts.model).isEqualTo("deepseek-chat")

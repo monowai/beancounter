@@ -373,6 +373,12 @@ class FigiAssetApiTest {
                 .build()
 
         @JvmStatic
+        @org.springframework.test.context.DynamicPropertySource
+        fun wireMockProps(registry: org.springframework.test.context.DynamicPropertyRegistry) {
+            registry.add("wiremock.server.port") { wireMock.port }
+        }
+
+        @JvmStatic
         fun mock(
             jsonFile: File,
             code: String,

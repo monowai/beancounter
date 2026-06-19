@@ -46,6 +46,12 @@ class AlphaIndexApiTest {
                 .options(WireMockConfiguration.options().dynamicPort())
                 .configureStaticDsl(true)
                 .build()
+
+        @JvmStatic
+        @org.springframework.test.context.DynamicPropertySource
+        fun wireMockProps(registry: org.springframework.test.context.DynamicPropertyRegistry) {
+            registry.add("wiremock.server.port") { wireMock.port }
+        }
     }
 
     @MockitoBean

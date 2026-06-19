@@ -307,6 +307,12 @@ internal class MarketStackApiTest {
                 .build()
 
         @JvmStatic
+        @org.springframework.test.context.DynamicPropertySource
+        fun wireMockProps(registry: org.springframework.test.context.DynamicPropertyRegistry) {
+            registry.add("wiremock.server.port") { wireMock.port }
+        }
+
+        @JvmStatic
         operator fun get(prices: List<MarketStackData>): MarketStackResponse = MarketStackResponse(data = prices)
 
         /**

@@ -87,9 +87,10 @@ internal class EventControllerTest {
                     objectMapper.readValue<ProblemDetail>(responseBody)
                 }
 
-        // Assert that the response message object has no null fields or properties
+        // Assert that the response message object has no null fields or properties.
+        // `type` defaults to about:blank and is left null by ProblemDetail.forStatusAndDetail.
         assertThat(message)
-            .hasNoNullFieldsOrPropertiesExcept("properties")
+            .hasNoNullFieldsOrPropertiesExcept("properties", "type")
     }
 
     @Test

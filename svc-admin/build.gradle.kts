@@ -10,7 +10,7 @@ dependencies {
 
     // Spring Boot Admin server — UI + REST endpoints for monitoring registered actuator clients.
     // 3.5.x track aligns with Spring Boot ${libs.versions.spring.boot.get()}.
-    implementation("de.codecentric:spring-boot-admin-starter-server:3.5.4")
+    implementation("de.codecentric:spring-boot-admin-starter-server:4.0.4")
 
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)
@@ -26,8 +26,10 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
-    // Boot 4 moved TestRestTemplate into the spring-boot-resttestclient module.
+    // Boot 4 moved TestRestTemplate into the spring-boot-resttestclient module,
+    // which needs RestTemplateBuilder from spring-boot-restclient at runtime.
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
+    testImplementation("org.springframework.boot:spring-boot-restclient")
     testImplementation(libs.mockito.kotlin)
 }
 

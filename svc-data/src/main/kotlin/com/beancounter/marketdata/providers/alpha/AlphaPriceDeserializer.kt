@@ -192,8 +192,11 @@ class AlphaPriceDeserializer : ValueDeserializer<PriceResponse>() {
             }
             return Asset(code = values[0], market = market)
         }
-        throw BusinessException("Unable to resolve asset ${nodeValue.asText()}")
+        throw BusinessException("Unable to resolve asset $nodeValue")
     }
 
-    private fun isNull(nodeValue: JsonNode) = nodeValue.isNull || nodeValue.asText() == "null"
+    // Jackson 3 throws when asText()/asString() is called on a container node, so only
+    // coerce value nodes to text. A missing or explicit-null node is treated as null.
+    private fun isNull(nodeValue: JsonNode) =
+        nodeValue.isNull || (nodeValue.isValueNode && nodeValue.asString() == "null")
 }

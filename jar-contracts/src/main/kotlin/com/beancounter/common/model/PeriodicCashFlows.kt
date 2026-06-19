@@ -7,7 +7,7 @@ import java.time.LocalDate
  * Manage cash flows from transactions and positions.
  */
 class PeriodicCashFlows {
-    val cashFlows: MutableList<CashFlow> = mutableListOf()
+    var cashFlows: MutableList<CashFlow> = mutableListOf()
     private var firstTransactionDate: LocalDate? = null
 
     fun add(trn: Trn) {

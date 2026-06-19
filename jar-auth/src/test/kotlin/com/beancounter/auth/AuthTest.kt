@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.auth.server.WebAuthFilterConfig
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,7 +14,9 @@ import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -21,8 +24,10 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.context.WebApplicationContext
 
 /**
  * Test suite for OAuth authentication controller to ensure proper authorization behavior.
@@ -46,15 +51,41 @@ import org.springframework.web.bind.annotation.RestController
     classes = [
         AuthTest.SimpleController::class,
         WebAuthFilterConfig::class,
-        DefaultJWTProcessor::class
+        DefaultJWTProcessor::class,
+        AuthTest.TestCacheConfig::class
     ]
 )
 class AuthTest {
+    /**
+     * WebAuthFilterConfig is annotated @EnableCaching but does not declare a
+     * CacheManager (production supplies one). The sliced test context has none,
+     * so provide a simple in-memory manager here.
+     */
+    @org.springframework.boot.test.context.TestConfiguration
+    class TestCacheConfig {
+        @org.springframework.context.annotation.Bean
+        fun cacheManager(): org.springframework.cache.CacheManager =
+            org.springframework.cache.concurrent.ConcurrentMapCacheManager()
+    }
+
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
+    private lateinit var context: WebApplicationContext
+
     private lateinit var mockMvc: MockMvc
+
+    @BeforeEach
+    fun setup() {
+        // Build MockMvc with the Spring Security filter chain so the jwt() request
+        // post-processor's authentication is honoured by the resource-server chain.
+        mockMvc =
+            MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply<org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder>(springSecurity())
+                .build()
+    }
 
     /**
      * Constants for the tests.
@@ -87,42 +118,42 @@ class AuthTest {
     }
 
     @Test
-    @WithMockUser(
-        username = "testUser",
-        authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER]
-    )
     fun `should allow access when user has proper authority`() {
         mockMvc
-            .perform(MockMvcRequestBuilders.get(HELLO))
-            .andDo(MockMvcResultHandlers.print())
+            .perform(
+                MockMvcRequestBuilders
+                    .get(HELLO)
+                    .with(
+                        jwt().authorities(
+                            SimpleGrantedAuthority(AuthConstants.SCOPE_BC),
+                            SimpleGrantedAuthority(AuthConstants.SCOPE_USER)
+                        )
+                    )
+            ).andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
     }
 
     @Test
-    @WithMockUser(
-        username = "testUser",
-        authorities = [AuthConstants.SCOPE_USER]
-    )
     fun `should deny access when user lacks required authority`() {
         mockMvc
-            .perform(MockMvcRequestBuilders.get(WHAT))
-            .andDo(MockMvcResultHandlers.print())
+            .perform(
+                MockMvcRequestBuilders
+                    .get(WHAT)
+                    .with(jwt().authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_USER)))
+            ).andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
     }
 
     @Test
     @Throws(Exception::class)
-    @WithMockUser(
-        username = "testUser",
-        authorities = ["no-valid-auth"]
-    )
     fun has_tokenButNoRoleToSayAnything() {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .get(HELLO)
+                    .with(jwt().authorities(SimpleGrantedAuthority("no-valid-auth")))
                     .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
@@ -132,6 +163,7 @@ class AuthTest {
                 .perform(
                     MockMvcRequestBuilders
                         .get(WHAT)
+                        .with(jwt().authorities(SimpleGrantedAuthority("no-valid-auth")))
                         .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(MockMvcResultMatchers.status().isForbidden)
                 .andReturn()

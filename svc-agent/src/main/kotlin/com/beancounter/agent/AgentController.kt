@@ -312,7 +312,7 @@ class AgentController(
         val tokenEvents =
             streamSpec
                 .chatResponse()
-                .doOnNext { resp -> resp.metadata.usage?.let { capturedUsage.set(it) } }
+                .doOnNext { resp -> capturedUsage.set(resp.metadata.usage) }
                 // Spring AI emits trailing ChatResponse chunks with no Generation
                 // (metadata-only — token usage, finishReason). Skip those instead
                 // of NPE'ing on resp.result.

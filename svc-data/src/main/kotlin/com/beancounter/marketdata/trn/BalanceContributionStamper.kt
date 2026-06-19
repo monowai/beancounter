@@ -30,17 +30,17 @@ class BalanceContributionStamper(
     private val privateAssetConfigRepository: PrivateAssetConfigRepository
 ) {
     fun stamp(trns: Collection<Trn>) {
-        val balances = trns.filter { it.trnType == TrnType.BALANCE && it.asset != null }
+        val balances = trns.filter { it.trnType == TrnType.BALANCE }
         if (balances.isEmpty()) return
 
         val configByAsset =
             privateAssetConfigRepository
-                .findByAssetIdIn(balances.mapNotNull { it.asset?.id }.distinct())
+                .findByAssetIdIn(balances.map { it.asset.id }.distinct())
                 .associateBy { it.assetId }
 
         // Each (portfolio, asset) is an independent snapshot series.
         balances
-            .groupBy { it.portfolio.id to it.asset!!.id }
+            .groupBy { it.portfolio.id to it.asset.id }
             .forEach { (key, series) ->
                 val monthly = monthlyEquivalent(configByAsset[key.second]) ?: return@forEach
                 val ordered = series.sortedWith(compareBy({ it.tradeDate }, { it.createdAt }))

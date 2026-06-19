@@ -18,7 +18,6 @@ import com.beancounter.common.utils.NumberUtils
 import com.google.common.base.CharMatcher
 import com.google.common.base.Splitter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.text.ParseException
@@ -47,7 +46,6 @@ class ShareSightDividendAdapter(
         this.filter = filter
     }
 
-    @NonNull
     override fun from(trustedTrnImportRequest: TrustedTrnImportRequest?): TrnInput {
         assert(trustedTrnImportRequest != null)
         val row = trustedTrnImportRequest!!.row

@@ -4,7 +4,6 @@ import io.micrometer.context.ContextRegistry
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import reactor.core.publisher.Hooks
 
@@ -38,7 +37,7 @@ class SecurityContextPropagationConfig {
             .registerThreadLocalAccessor(
                 SECURITY_CONTEXT_KEY,
                 { SecurityContextHolder.getContext() },
-                { ctx -> SecurityContextHolder.setContext(ctx as SecurityContext) },
+                { ctx -> SecurityContextHolder.setContext(ctx) },
                 { SecurityContextHolder.clearContext() }
             )
         Hooks.enableAutomaticContextPropagation()

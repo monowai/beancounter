@@ -184,7 +184,7 @@ class AlphaPriceDeserializer : ValueDeserializer<PriceResponse>() {
             val symbols =
                 nodeValue[assetField] ?: return null
 
-            val values = symbols.asText().split(":").toTypedArray()
+            val values = symbols.asString().split(":").toTypedArray()
             var market = Market("US")
             if (values.size > 1) {
                 // We have a market

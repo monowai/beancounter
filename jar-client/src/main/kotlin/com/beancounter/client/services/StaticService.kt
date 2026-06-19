@@ -11,7 +11,6 @@ import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
-import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
@@ -26,7 +25,6 @@ class StaticService(
     private val restClient: RestClient,
     private val tokenService: TokenService
 ) : MarketService {
-    @NonNull
     @Retry(name = "data")
     override fun getMarkets(): MarketResponse =
         restClient
@@ -65,9 +63,7 @@ class StaticService(
     }
 
     @Cacheable("market")
-    override fun getMarket(
-        @NonNull marketCode: String
-    ): Market {
+    override fun getMarket(marketCode: String): Market {
         val response =
             restClient
                 .get()

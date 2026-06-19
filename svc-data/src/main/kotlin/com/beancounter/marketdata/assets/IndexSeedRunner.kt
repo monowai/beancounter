@@ -54,8 +54,11 @@ class IndexSeedRunner(
                 AssetKeyUtils.toKey(input) to input
             }
         val response = assetService.handle(AssetRequest(inputs))
+
         // Defensive: contract / partial-context tests mock AssetService and
-        // the mock returns null. Don't fail startup over a missing seed.
+        // the mock returns null despite the non-null return type. Don't fail
+        // startup over a missing seed (hence the deliberate null-safe access).
+        @Suppress("UNNECESSARY_SAFE_CALL", "SENSELESS_COMPARISON")
         val count = response?.data?.size ?: 0
         log.info("Seeded {} index assets", count)
     }

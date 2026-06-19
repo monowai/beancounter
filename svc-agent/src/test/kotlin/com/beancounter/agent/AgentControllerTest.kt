@@ -234,7 +234,7 @@ class AgentControllerTest {
         // formatting / field-order changes can't quietly break the contract.
         assertThat(events[2].event()).isEqualTo(EVENT_DONE)
         val done = ObjectMapper().readTree(events[2].data())
-        assertThat(done["model"].asText()).isEqualTo("test-model-id")
+        assertThat(done["model"].asString()).isEqualTo("test-model-id")
         assertThat(done["chars"].asLong()).isEqualTo(11L)
         assertThat(done["elapsed_ms"].asLong()).isGreaterThanOrEqualTo(0L)
     }

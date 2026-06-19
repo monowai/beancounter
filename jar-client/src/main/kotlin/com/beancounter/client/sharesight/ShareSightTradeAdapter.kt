@@ -20,7 +20,6 @@ import com.beancounter.common.utils.NumberUtils
 import com.beancounter.common.utils.TradeCalculator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.text.ParseException
@@ -53,7 +52,6 @@ class ShareSightTradeAdapter(
         this.filter = filter
     }
 
-    @NonNull
     override fun from(trustedTrnImportRequest: TrustedTrnImportRequest?): TrnInput {
         assert(trustedTrnImportRequest != null)
         val row = trustedTrnImportRequest!!.row

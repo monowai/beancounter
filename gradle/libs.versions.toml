@@ -16,7 +16,7 @@ sentry = "8.40.0"
 postgres = "42.7.10"
 guava = "33.5.0-jre"
 servlet-api = "6.1.0"
-spring-ai = "1.1.8"
+spring-ai = "2.0.0"
 flyway = "11.20.0"
 # Pinned because jar-common exposes the bridge as an api dep but
 # downstream modules (e.g. jar-shell) don't import the spring-boot

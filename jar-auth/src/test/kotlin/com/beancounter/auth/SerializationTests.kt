@@ -2,7 +2,7 @@ package com.beancounter.auth
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

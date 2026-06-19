@@ -4,12 +4,12 @@
 [versions]
 kotlin = "2.3.20"
 kotlinter = "5.4.2"
-spring-boot = "3.5.15"
-spring-cloud = "2025.0.2"
+spring-boot = "4.1.0"
+spring-cloud = "2025.1.2"
 spring-cloud-contract = "4.3.1"
 spring-data-bom = "2025.0.8"
 spring-security = "6.5.10"
-spring-doc = "2.8.15"
+spring-doc = "3.0.1"
 jackson = "2.21.1"
 mockitoKotlin = '5.4.0'
 sentry = "8.40.0"
@@ -21,7 +21,7 @@ flyway = "11.20.0"
 # Pinned because jar-common exposes the bridge as an api dep but
 # downstream modules (e.g. jar-shell) don't import the spring-boot
 # platform, so version resolution falls back to the catalog.
-micrometer-tracing = "1.5.6"
+micrometer-tracing = "1.7.0"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -35,7 +35,7 @@ servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "s
 otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.26.1" }
 resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.3.0" }
 resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.3.0" }
-resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version = "2.3.0" }
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot4", version = "2.4.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
 spring-cloud-stream = { module = "org.springframework.cloud:spring-cloud-stream" }
 spring-cloud-stream-binder-rabbit = { module = "org.springframework.cloud:spring-cloud-stream-binder-rabbit" }
@@ -52,14 +52,14 @@ spring-boot-starter-integration = { module = "org.springframework.boot:spring-bo
 spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "spring-boot" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
-spring-security-oauth2 = { module = "org.springframework.security:spring-security-oauth2-resource-server", version.ref = "spring-security" }
-spring-security-jose = { module = "org.springframework.security:spring-security-oauth2-jose", version.ref = "spring-security" }
+spring-security-oauth2 = { module = "org.springframework.security:spring-security-oauth2-resource-server" }
+spring-security-jose = { module = "org.springframework.security:spring-security-oauth2-jose" }
 sentry-opentelemetry = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentry" }
-sentry-spring-boot = { module = "io.sentry:sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
+sentry-spring-boot = { module = "io.sentry:sentry-spring-boot-4", version.ref = "sentry" }
 micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel", version.ref = "micrometer-tracing" }
 sentry-jdbc = { module = "io.sentry:sentry-jdbc", version.ref = "sentry" }
 sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
-jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 assertj = { module = "org.assertj:assertj-core", version = "3.27.7" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "mockitoKotlin" }

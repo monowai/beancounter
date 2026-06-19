@@ -6,8 +6,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.context.ApplicationContext
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
@@ -38,8 +39,18 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
     classes = [MockAuthConfig::class, AuthConfig::class, ClientPasswordConfig::class]
 )
 @ActiveProfiles("auth")
-@AutoConfigureWireMock(port = 0)
 class AuthEnabledTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(com.github.tomakehurst.wiremock.core.WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+    }
+
     @Autowired
     lateinit var springContext: ApplicationContext
 

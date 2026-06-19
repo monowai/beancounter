@@ -3,10 +3,6 @@ package com.beancounter.common.event
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -32,8 +28,6 @@ data class CorporateEvent(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @param:JsonSerialize(using = LocalDateSerializer::class)
-    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     var recordDate: LocalDate = DateUtils().date,
     @Column(
         precision = 15,
@@ -49,7 +43,5 @@ data class CorporateEvent(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd"
     )
-    @param:JsonSerialize(using = LocalDateSerializer::class)
-    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     val payDate: LocalDate = recordDate
 )

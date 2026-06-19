@@ -8,7 +8,7 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.FxRateCalculator
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal

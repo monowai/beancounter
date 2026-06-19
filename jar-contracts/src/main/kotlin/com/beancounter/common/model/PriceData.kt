@@ -5,10 +5,6 @@ import com.beancounter.common.utils.MathUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.NumberUtils
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -20,8 +16,6 @@ data class PriceData(
         shape = JsonFormat.Shape.STRING,
         pattern = DateUtils.FORMAT
     )
-    @param:JsonSerialize(using = LocalDateSerializer::class)
-    @param:JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate = LocalDate.now(),
     var open: BigDecimal = BigDecimal.ZERO,
     var close: BigDecimal = BigDecimal.ZERO,

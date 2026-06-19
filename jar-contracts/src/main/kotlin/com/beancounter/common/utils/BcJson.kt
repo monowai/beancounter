@@ -1,10 +1,9 @@
 package com.beancounter.common.utils
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ObjectWriter
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectWriter
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 
 /**
  * Kotlin aware Jackson Object mapper.
@@ -13,10 +12,9 @@ class BcJson {
     companion object {
         @JvmStatic
         val objectMapper: ObjectMapper =
-            ObjectMapper()
-                .registerKotlinModule()
-                .registerModule(JavaTimeModule())
+            jacksonMapperBuilder()
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .build()
 
         @JvmStatic
         val writer: ObjectWriter = objectMapper.writerWithDefaultPrettyPrinter()

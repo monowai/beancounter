@@ -13,8 +13,7 @@ dependencies {
     implementation(libs.spring.boot.autoconfigure)
     implementation(libs.spring.boot.starter.logging)
     implementation(libs.servlet.api)
-    implementation("com.fasterxml.jackson.core:jackson-databind")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("tools.jackson.core:jackson-databind")
     implementation("org.springframework:spring-webmvc")
     implementation("org.springframework.security:spring-security-config")
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
@@ -38,7 +37,9 @@ dependencies {
     testImplementation(libs.spring.boot.autoconfigure)
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.security:spring-security-oauth2-client")
-    
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-http-converter")
+
     testFixturesImplementation(platform(libs.spring.boot.dependencies))
     testFixturesImplementation(platform(libs.spring.cloud.dependencies))
     testFixturesImplementation(project(":jar-common"))

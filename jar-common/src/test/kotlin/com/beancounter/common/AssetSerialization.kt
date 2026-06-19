@@ -13,7 +13,7 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.fasterxml.jackson.core.JsonProcessingException
+import tools.jackson.core.JacksonException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -67,7 +67,7 @@ class AssetSerialization {
     }
 
     @Test
-    @Throws(JsonProcessingException::class)
+    @Throws(JacksonException::class)
     fun searchResponse() {
         val searchResult =
             AssetSearchResult(

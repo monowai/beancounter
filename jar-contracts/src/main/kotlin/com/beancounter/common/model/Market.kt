@@ -2,10 +2,6 @@ package com.beancounter.common.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer
 import java.math.BigDecimal
 import java.time.LocalTime
 import java.util.TimeZone
@@ -27,8 +23,6 @@ data class Market(
     val timezone: TimeZone = TimeZone.getTimeZone(timezoneId),
     @Transient
     var currency: Currency = Currency(currencyId),
-    @JsonSerialize(using = LocalTimeSerializer::class)
-    @JsonDeserialize(using = LocalTimeDeserializer::class)
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "HH:mm"

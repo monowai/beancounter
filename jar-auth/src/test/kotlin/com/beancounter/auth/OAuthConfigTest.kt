@@ -3,14 +3,15 @@ package com.beancounter.auth
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration
+import org.springframework.boot.http.converter.autoconfigure.HttpMessageConvertersAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -39,8 +40,18 @@ import org.springframework.web.client.RestTemplate
     OAuthConfig::class
 )
 @ActiveProfiles("auth")
-@AutoConfigureWireMock(port = 0)
 class OAuthConfigTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(com.github.tomakehurst.wiremock.core.WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+    }
+
     @Autowired
     private lateinit var authConfig: AuthConfig
 

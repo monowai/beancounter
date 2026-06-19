@@ -50,7 +50,7 @@ class TokenService(
     val subject: String
         get() {
             val token = jwt
-            return token.token.subject
+            return token.token.subject ?: error("No subject claim found in token")
         }
 
     fun getEmail(): String {

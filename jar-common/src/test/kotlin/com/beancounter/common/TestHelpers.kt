@@ -6,7 +6,7 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.common.utils.BcJson
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions.assertThat
 
 /**

@@ -6,7 +6,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.fasterxml.jackson.core.JsonProcessingException
+import tools.jackson.core.JacksonException
 
 /**
  * Encapsulates routines to assist with asset keys and objects.
@@ -51,7 +51,7 @@ class AssetUtils {
          * @throws JsonProcessingException error
          */
         @JvmStatic
-        @Throws(JsonProcessingException::class)
+        @Throws(JacksonException::class)
         fun getJsonAsset(
             market: String,
             code: String

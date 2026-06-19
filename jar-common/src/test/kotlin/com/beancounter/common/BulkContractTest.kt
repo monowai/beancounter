@@ -10,7 +10,7 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

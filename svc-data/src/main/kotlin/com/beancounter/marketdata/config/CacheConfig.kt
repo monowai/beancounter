@@ -96,7 +96,7 @@ class CaffeineCache(
             .SimpleValueWrapper(value)
     }
 
-    override fun <T> get(
+    override fun <T : Any> get(
         key: Any,
         type: Class<T>?
     ): T? {
@@ -105,7 +105,7 @@ class CaffeineCache(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> get(
+    override fun <T : Any> get(
         key: Any,
         valueLoader: java.util.concurrent.Callable<T>
     ): T? {

@@ -5,7 +5,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig.Companion.DATE_TIME_FORMAT
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito

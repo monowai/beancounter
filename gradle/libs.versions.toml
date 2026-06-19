@@ -45,7 +45,10 @@ spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter",
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "spring-boot" }
 spring-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging", version.ref = "spring-boot" }
-spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aop", version.ref = "spring-boot" }
+# Boot 4.1 no longer publishes spring-boot-starter-aop; AopAutoConfiguration
+# ships in spring-boot-autoconfigure and only needs aspectjweaver on the
+# classpath. Alias repointed (BOM-managed version) so consumers are unchanged.
+spring-boot-starter-aop = { module = "org.aspectj:aspectjweaver" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "spring-boot" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "spring-boot" }
 spring-boot-starter-integration = { module = "org.springframework.boot:spring-boot-starter-integration", version.ref = "spring-boot" }

@@ -29,7 +29,7 @@ class IndexSeedRunner(
     @Value("\${beancounter.indices.seed-on-startup:true}")
     private var seedOnStartup: Boolean = true
 
-    override fun run(args: ApplicationArguments?) {
+    override fun run(args: ApplicationArguments) {
         if (!seedOnStartup) {
             log.debug("Index pre-seed disabled by configuration")
             return

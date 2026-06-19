@@ -8,14 +8,16 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -32,7 +34,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
 @TestPropertySource(
     properties = [
         "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:\${wiremock.server.port}/"
@@ -43,6 +44,17 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 @ActiveProfiles("h2db")
 @AutoConfigureMockAuth
 class AuthControllerTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+    }
+
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 

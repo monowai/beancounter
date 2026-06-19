@@ -3,8 +3,8 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.core.type.TypeReference
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource

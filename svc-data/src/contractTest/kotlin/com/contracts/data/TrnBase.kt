@@ -20,7 +20,7 @@ import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnQueryService
 import com.beancounter.marketdata.trn.TrnService
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito

@@ -15,8 +15,8 @@ import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.trn.TrnIoDefinition.Columns
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate

@@ -22,16 +22,18 @@ import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.utils.ASSET_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -55,7 +57,6 @@ private const val BRK_B = "BRK.B"
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("h2db", "figi")
 @Tag("wiremock")
-@AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class FigiAssetApiTest {
     @MockitoBean
@@ -362,6 +363,15 @@ class FigiAssetApiTest {
     }
 
     companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+
         @JvmStatic
         fun mock(
             jsonFile: File,

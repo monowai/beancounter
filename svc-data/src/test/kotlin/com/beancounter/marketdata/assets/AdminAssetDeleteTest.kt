@@ -23,7 +23,7 @@ import com.beancounter.marketdata.utils.ASSET_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.beancounter.marketdata.utils.TRADE_DATE
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

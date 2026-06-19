@@ -3,7 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 
 /**

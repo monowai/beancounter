@@ -11,7 +11,7 @@ import com.beancounter.shell.commands.DataCommands
 import com.beancounter.shell.commands.EnvCommands
 import com.beancounter.shell.commands.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach

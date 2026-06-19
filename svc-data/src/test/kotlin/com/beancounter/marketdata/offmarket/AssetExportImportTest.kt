@@ -13,7 +13,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetIoDefinition
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.utils.ASSET_ROOT
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

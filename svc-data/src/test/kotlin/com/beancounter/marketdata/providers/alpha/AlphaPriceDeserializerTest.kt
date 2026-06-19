@@ -4,7 +4,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.US
-import com.fasterxml.jackson.databind.DeserializationContext
+import tools.jackson.databind.DeserializationContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

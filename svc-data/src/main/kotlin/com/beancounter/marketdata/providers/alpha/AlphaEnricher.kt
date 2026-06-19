@@ -10,7 +10,7 @@ import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.currency.CurrencyService
-import com.fasterxml.jackson.core.JsonProcessingException
+import tools.jackson.core.JacksonException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -55,7 +55,7 @@ class AlphaEnricher(
                     market,
                     result
                 )
-            } catch (e: JsonProcessingException) {
+            } catch (e: JacksonException) {
                 throw SystemException("Failed to process Alpha asset search result", e)
             }
         return if (assetResult == null) {
@@ -84,7 +84,7 @@ class AlphaEnricher(
         }
     }
 
-    @Throws(JsonProcessingException::class)
+    @Throws(JacksonException::class)
     private fun getAssetSearchResult(
         market: Market,
         result: String?

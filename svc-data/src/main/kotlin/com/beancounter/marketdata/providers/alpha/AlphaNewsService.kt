@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.marketdata.providers.NewsProvider
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable

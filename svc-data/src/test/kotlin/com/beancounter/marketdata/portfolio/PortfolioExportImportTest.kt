@@ -7,7 +7,7 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

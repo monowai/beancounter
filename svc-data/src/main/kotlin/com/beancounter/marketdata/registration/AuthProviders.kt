@@ -14,9 +14,11 @@ class AuthProviders(
     private val tokenService: TokenService,
     private val systemUserRepository: SystemUserRepository
 ) {
-    fun getAuth0Id(jwt: Jwt): String = if (tokenService.isAuth0()) jwt.subject else ""
+    fun getAuth0Id(jwt: Jwt): String =
+        if (tokenService.isAuth0()) jwt.subject ?: error("JWT has no subject") else ""
 
-    fun getGoogleId(jwt: Jwt): String = if (tokenService.isGoogle()) jwt.subject else ""
+    fun getGoogleId(jwt: Jwt): String =
+        if (tokenService.isGoogle()) jwt.subject ?: error("JWT has no subject") else ""
 
     fun capture(
         result: SystemUser,
@@ -30,7 +32,7 @@ class AuthProviders(
                     result.email,
                     result.active,
                     result.auth0,
-                    jwt.subject,
+                    jwt.subject ?: error("JWT has no subject"),
                     result.since
                 )
             )
@@ -40,7 +42,7 @@ class AuthProviders(
                     result.id,
                     result.email,
                     result.active,
-                    jwt.subject,
+                    jwt.subject ?: error("JWT has no subject"),
                     result.googleId,
                     result.since
                 )

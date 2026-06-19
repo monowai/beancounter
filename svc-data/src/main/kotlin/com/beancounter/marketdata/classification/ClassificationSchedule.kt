@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.classification
 
 import com.beancounter.common.utils.DateUtils
-import io.sentry.spring.jakarta.tracing.SentryTransaction
+import io.sentry.spring7.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled

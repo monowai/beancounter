@@ -53,9 +53,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
@@ -77,10 +79,20 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
-@AutoConfigureWireMock(port = 0)
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 internal class AlphaPriceApiTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+    }
+
     @MockitoBean
     private lateinit var dateUtils: DateUtils
 

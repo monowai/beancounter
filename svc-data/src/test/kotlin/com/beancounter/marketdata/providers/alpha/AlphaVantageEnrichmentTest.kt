@@ -14,7 +14,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.URL_ASSETS_MARKET_CODE
 import com.beancounter.marketdata.utils.RegistrationUtils
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -22,9 +22,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
@@ -43,10 +45,20 @@ import java.math.BigDecimal
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("h2db", "alpha")
 @Tag("wiremock")
-@AutoConfigureWireMock(port = 0)
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 class AlphaVantageEnrichmentTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val wireMock: WireMockExtension =
+            WireMockExtension
+                .newInstance()
+                .options(WireMockConfiguration.options().dynamicPort())
+                .configureStaticDsl(true)
+                .build()
+    }
+
     @MockitoBean
     private lateinit var dateUtils: DateUtils
 

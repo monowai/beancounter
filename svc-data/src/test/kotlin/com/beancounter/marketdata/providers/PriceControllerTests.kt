@@ -21,7 +21,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag

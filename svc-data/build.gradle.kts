@@ -45,7 +45,13 @@ dependencies {
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)
     implementation(libs.sentry.jdbc)
-    implementation(libs.spring.boot.starter.aop)
+    // Boot 4.1.0 no longer publishes spring-boot-starter-aop; AopAutoConfiguration
+    // ships in spring-boot-autoconfigure and only aspectjweaver is needed for the
+    // resilience4j @CircuitBreaker/@Retry aspects. Version managed by the Boot BOM.
+    implementation("org.aspectj:aspectjweaver")
+    // Boot 4 no longer manages/transitively supplies spring-retry (was pulled via
+    // the removed spring-boot-starter-aop in Boot 3). CloudConfig uses @EnableRetry.
+    implementation("org.springframework.retry:spring-retry:2.0.13")
     implementation(libs.spring.boot.starter.security)
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
@@ -74,7 +80,9 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
-    testImplementation("com.fasterxml.jackson.core:jackson-databind")
+    testImplementation("tools.jackson.core:jackson-databind")
+    // Boot 4 split @AutoConfigureMockMvc into the spring-boot-webmvc-test module.
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation(libs.spring.cloud.stream.test.binder)

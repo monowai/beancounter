@@ -10,7 +10,7 @@ import com.beancounter.event.Constants.Companion.ALPHA
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.EventService
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import org.assertj.core.api.Assertions.assertThat

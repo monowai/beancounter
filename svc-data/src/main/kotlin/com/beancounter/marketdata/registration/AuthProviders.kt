@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -14,9 +15,9 @@ class AuthProviders(
     private val tokenService: TokenService,
     private val systemUserRepository: SystemUserRepository
 ) {
-    fun getAuth0Id(jwt: Jwt): String = if (tokenService.isAuth0()) jwt.subject ?: error("JWT has no subject") else ""
+    fun getAuth0Id(jwt: Jwt): String = if (tokenService.isAuth0()) subjectOf(jwt) else ""
 
-    fun getGoogleId(jwt: Jwt): String = if (tokenService.isGoogle()) jwt.subject ?: error("JWT has no subject") else ""
+    fun getGoogleId(jwt: Jwt): String = if (tokenService.isGoogle()) subjectOf(jwt) else ""
 
     fun capture(
         result: SystemUser,
@@ -30,7 +31,7 @@ class AuthProviders(
                     result.email,
                     result.active,
                     result.auth0,
-                    jwt.subject ?: error("JWT has no subject"),
+                    subjectOf(jwt),
                     result.since
                 )
             )
@@ -40,7 +41,7 @@ class AuthProviders(
                     result.id,
                     result.email,
                     result.active,
-                    jwt.subject ?: error("JWT has no subject"),
+                    subjectOf(jwt),
                     result.googleId,
                     result.since
                 )
@@ -48,4 +49,12 @@ class AuthProviders(
         }
         return result
     }
+
+    /**
+     * A missing or blank `sub` claim is an authentication failure (401), not a
+     * server error (500) — surface it via the unauthorized path.
+     */
+    private fun subjectOf(jwt: Jwt): String =
+        jwt.subject?.takeIf { it.isNotBlank() }
+            ?: throw UnauthorizedException("Not authorised: missing subject claim")
 }

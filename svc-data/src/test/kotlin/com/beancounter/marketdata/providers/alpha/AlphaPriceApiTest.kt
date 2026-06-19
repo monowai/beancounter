@@ -48,7 +48,6 @@ import com.beancounter.marketdata.utils.RegistrationUtils
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -203,11 +202,11 @@ internal class AlphaPriceApiTest {
                     )
             )
 
-        assertNotNull {
+        assertThat(
             mdFactory
                 .getMarketDataProvider(AlphaPriceService.ID)
                 .getMarketData(of(asset))
-        }
+        ).isNotNull
     }
 
     private val changeProp = "change"

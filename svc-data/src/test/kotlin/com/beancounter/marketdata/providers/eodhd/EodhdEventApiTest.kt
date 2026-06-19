@@ -7,7 +7,6 @@ import com.beancounter.common.model.Market
 import com.beancounter.marketdata.MarketDataBoot
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
-import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -108,7 +107,7 @@ internal class EodhdEventApiTest {
         fixturePath: String
     ) {
         val body = ClassPathResource(fixturePath).file.readText()
-        stubFor(
+        wireMock.stubFor(
             get(urlPathEqualTo(path))
                 .willReturn(
                     aResponse()

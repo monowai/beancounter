@@ -6,7 +6,6 @@ import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.post
-import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -86,7 +85,7 @@ class AuthControllerTest {
             )
 
         // Stub Auth0 token endpoint
-        stubFor(
+        wireMock.stubFor(
             post(urlEqualTo("/oauth/token"))
                 .willReturn(
                     aResponse()

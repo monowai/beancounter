@@ -1,6 +1,9 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.eodhd.model.EodhdArticleSentiment
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
@@ -55,7 +58,8 @@ internal class EodhdNewsServiceTest {
             ReflectionTestUtils.setField(it, "apiKey", "demo")
             ReflectionTestUtils.setField(it, "markets", "")
         }
-    private val service = EodhdNewsService(proxy, config, props, articleRepo, fetchRepo)
+    private val assetFinder = mock<AssetFinder>()
+    private val service = EodhdNewsService(proxy, config, props, articleRepo, fetchRepo, assetFinder)
 
     @Test
     fun `cache-miss triggers a refresh against EODHD for US tickers`() {
@@ -142,6 +146,23 @@ internal class EodhdNewsServiceTest {
 
         verify(proxy, never()).getNews(any(), any(), anyOrNull(), any())
         verify(fetchRepo, never()).save(any<NewsFetch>())
+    }
+
+    @Test
+    fun `resolves ticker to the asset priceSymbol for EODHD class shares`() {
+        // BC stores Berkshire-B as code "BRK.B" with priceSymbol "BRK-B" (EODHD uses a hyphen for
+        // US class shares). News must query EODHD as "BRK-B.US", not the naive "BRK.B.US" — the
+        // latter has no EODHD coverage, so the agent wrongly falls back to general knowledge.
+        whenever(assetFinder.findLocally(AssetInput("US", "BRK.B")))
+            .thenReturn(Asset(code = "BRK.B", market = Market(code = "US"), priceSymbol = "BRK-B"))
+        whenever(fetchRepo.findById("BRK-B.US")).thenReturn(Optional.empty())
+        whenever(proxy.getNews(eq("BRK-B.US"), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.5)))
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getNewsSentiment("BRK.B")
+
+        verify(proxy).getNews(eq("BRK-B.US"), any(), anyOrNull(), any())
     }
 
     @Test

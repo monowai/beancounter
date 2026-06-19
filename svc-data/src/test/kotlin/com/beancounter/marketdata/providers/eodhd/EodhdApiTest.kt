@@ -14,7 +14,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -139,7 +138,7 @@ internal class EodhdApiTest {
         // fan-out. Bulk endpoint collapses N requests to 1; this asserts the routing
         // change holds AND both symbols' prices come back mapped to the right assets.
         val body = ClassPathResource("mock/eodhd/bulk-US-AAPL-MSFT.json").file.readText()
-        stubFor(
+        wireMock.stubFor(
             get(urlPathEqualTo(BULK_LAST_DAY_US))
                 .willReturn(
                     aResponse()
@@ -194,7 +193,7 @@ internal class EodhdApiTest {
               "volume": 28481377
             }
         ]"""
-        stubFor(
+        wireMock.stubFor(
             get(urlPathEqualTo(BULK_LAST_DAY_US))
                 .willReturn(
                     aResponse()
@@ -223,7 +222,7 @@ internal class EodhdApiTest {
         // Regression: a single Ticker-Not-Found used to propagate
         // HttpClientErrorException out of EodhdPriceService.getMarketData
         // and abort every other symbol in the same valuation cycle.
-        stubFor(
+        wireMock.stubFor(
             get(urlPathEqualTo("/api/eod/MSFT.US"))
                 .willReturn(aResponse().withStatus(404).withBody("Ticker Not Found."))
         )
@@ -288,7 +287,7 @@ internal class EodhdApiTest {
         // through the real RestClient + WireMock, so all three layers see actual HTTP traffic
         // instead of unit-level mocks.
         val body = ClassPathResource("mock/eodhd/search-HYSA.json").file.readText()
-        stubFor(
+        wireMock.stubFor(
             get(urlPathEqualTo("/api/search/HYSA"))
                 .willReturn(
                     aResponse()
@@ -316,7 +315,7 @@ internal class EodhdApiTest {
         // [EodhdBulkPrice[]]" — NOT an HttpClientErrorException, so the old catch
         // missed it and the entire valuation 500'd, zeroing every portfolio in the
         // cycle. Must fall back to per-symbol so good symbols still resolve.
-        stubFor(
+        wireMock.stubFor(
             get(urlPathEqualTo(BULK_LAST_DAY_US))
                 .willReturn(
                     aResponse()
@@ -349,7 +348,7 @@ internal class EodhdApiTest {
         fixturePath: String
     ) {
         val body = ClassPathResource(fixturePath).file.readText()
-        stubFor(
+        wireMock.stubFor(
             get(urlPathEqualTo("/api/eod/$symbol"))
                 .willReturn(
                     aResponse()

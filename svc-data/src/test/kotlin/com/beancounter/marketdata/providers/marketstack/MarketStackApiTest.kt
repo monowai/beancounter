@@ -17,7 +17,6 @@ import com.beancounter.marketdata.providers.marketstack.MarketStackService.Compa
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackData
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
@@ -260,7 +259,7 @@ internal class MarketStackApiTest {
         val gne = getTestAsset(NZX, "GNE")
         val jsonFile = ClassPathResource("$CONTRACTS/GNE-NZX-history.json").file
 
-        stubFor(
+        wireMock.stubFor(
             WireMock
                 .get(
                     WireMock.urlPathEqualTo("/v2/eod")
@@ -360,7 +359,7 @@ internal class MarketStackApiTest {
             if (overrideAsAt) {
                 response["date"] = asAt
             }
-            stubFor(
+            wireMock.stubFor(
                 WireMock
                     .get(
                         WireMock.urlEqualTo(

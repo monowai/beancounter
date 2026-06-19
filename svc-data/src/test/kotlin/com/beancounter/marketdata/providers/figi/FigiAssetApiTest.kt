@@ -23,7 +23,6 @@ import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.utils.ASSET_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
@@ -133,7 +132,7 @@ class FigiAssetApiTest {
         // Stub the /v3/search endpoint with mixed security types
         val filterResponse =
             ClassPathResource("mock/figi/filter-mixed-response.json").file.readText()
-        stubFor(
+        wireMock.stubFor(
             WireMock
                 .post(WireMock.urlEqualTo("/v3/search"))
                 .withHeader(
@@ -166,7 +165,7 @@ class FigiAssetApiTest {
         // Stub the /v3/search endpoint with results from multiple exchanges
         val filterResponse =
             ClassPathResource("mock/figi/filter-global-response.json").file.readText()
-        stubFor(
+        wireMock.stubFor(
             WireMock
                 .post(WireMock.urlEqualTo("/v3/search"))
                 .withHeader(
@@ -343,7 +342,7 @@ class FigiAssetApiTest {
             "BRK/B",
             "Common Stock"
         )
-        stubFor(
+        wireMock.stubFor(
             WireMock
                 .any(WireMock.anyUrl())
                 .atPriority(10)
@@ -397,7 +396,7 @@ class FigiAssetApiTest {
                     jsonFile,
                     object : TypeReference<Collection<FigiResponse>>() {}
                 )
-            stubFor(
+            wireMock.stubFor(
                 WireMock
                     .post(WireMock.urlEqualTo("/v3/mapping"))
                     .withRequestBody(

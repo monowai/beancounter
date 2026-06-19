@@ -23,9 +23,9 @@ class SystemUserCache(
         val result =
             when {
                 email != null -> systemUserRepository.findByEmail(email)
-                tokenService.isAuth0() -> systemUserRepository.findByAuth0(subject!!)
-                tokenService.isGoogle() -> systemUserRepository.findByGoogleId(subject!!)
-                else -> Optional.ofNullable(null)
+                tokenService.isAuth0() -> systemUserRepository.findByAuth0(subject)
+                tokenService.isGoogle() -> systemUserRepository.findByGoogleId(subject)
+                else -> Optional.empty()
             }
         return result.orElse(null)
     }

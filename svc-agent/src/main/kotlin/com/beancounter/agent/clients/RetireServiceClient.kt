@@ -2,10 +2,10 @@ package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.utils.BcJson
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
+import tools.jackson.module.kotlin.readValue
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
@@ -325,7 +325,7 @@ class RetireServiceClient(
 
     companion object {
         private val log = LoggerFactory.getLogger(RetireServiceClient::class.java)
-        private val objectMapper = jacksonObjectMapper()
+        private val objectMapper = BcJson.objectMapper
         private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
         private val MAP_ANY_TYPE = object : ParameterizedTypeReference<Map<String, Any?>>() {}
     }

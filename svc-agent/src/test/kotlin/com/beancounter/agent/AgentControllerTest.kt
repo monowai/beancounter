@@ -5,7 +5,7 @@ import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
 import com.beancounter.agent.tools.ToolSelector
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -428,9 +428,12 @@ class AgentControllerTest {
                 LlmMetrics(),
                 permissiveAuthorizer
             )
+        // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
-            ctrl.buildOptions("deepseek-reasoner", deepThink = true)
-                as org.springframework.ai.deepseek.DeepSeekChatOptions
+            (
+                ctrl.buildOptions("deepseek-reasoner", deepThink = true)
+                    as org.springframework.ai.deepseek.DeepSeekChatOptions.Builder
+            ).build()
         assertThat(opts.model).isEqualTo("deepseek-reasoner")
         assertThat(opts.maxTokens).isEqualTo(16384)
     }
@@ -440,23 +443,29 @@ class AgentControllerTest {
         // Empty active profiles → anthropicActive = true (real Anthropic surface).
         val ctrl = controller()
         val opts =
-            ctrl.buildOptions("claude-opus-4-7", deepThink = true)
-                as org.springframework.ai.anthropic.AnthropicChatOptions
+            (
+                ctrl.buildOptions("claude-opus-4-7", deepThink = true)
+                    as org.springframework.ai.anthropic.AnthropicChatOptions.Builder
+            ).build()
         assertThat(opts.model).isEqualTo("claude-opus-4-7")
         assertThat(opts.maxTokens).isEqualTo(16384)
         assertThat(opts.thinking).isNotNull
-        assertThat(opts.thinking.budgetTokens).isEqualTo(4096)
+        // Spring AI 2.0 thinking is the anthropic-java ThinkingConfigParam.
+        assertThat(opts.thinking!!.isEnabled()).isTrue()
+        assertThat(opts.thinking!!.asEnabled().budgetTokens()).isEqualTo(4096L)
     }
 
     @Test
     fun `buildOptions on anthropic default without deepThink omits thinking`() {
         val ctrl = controller()
         val opts =
-            ctrl.buildOptions("claude-haiku-4-5-20251001", deepThink = false)
-                as org.springframework.ai.anthropic.AnthropicChatOptions
+            (
+                ctrl.buildOptions("claude-haiku-4-5-20251001", deepThink = false)
+                    as org.springframework.ai.anthropic.AnthropicChatOptions.Builder
+            ).build()
         assertThat(opts.model).isEqualTo("claude-haiku-4-5-20251001")
-        // thinking object may be null OR (defensively) present with no budget; assert intent:
-        assertThat(opts.thinking?.budgetTokens).isNull()
+        // No deepThink → thinking is never enabled (null on the built options).
+        assertThat(opts.thinking).isNull()
     }
 
     @Test

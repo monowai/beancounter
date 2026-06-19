@@ -3,9 +3,9 @@ package com.beancounter.agent
 import org.slf4j.LoggerFactory
 import org.springframework.ai.anthropic.AnthropicChatModel
 import org.springframework.ai.anthropic.AnthropicChatOptions
-import org.springframework.ai.anthropic.api.AnthropicCacheOptions
-import org.springframework.ai.anthropic.api.AnthropicCacheStrategy
-import org.springframework.ai.anthropic.api.AnthropicCacheTtl
+import org.springframework.ai.anthropic.AnthropicCacheOptions
+import org.springframework.ai.anthropic.AnthropicCacheStrategy
+import org.springframework.ai.anthropic.AnthropicCacheTtl
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.MessageType
 import org.springframework.ai.chat.model.ChatModel
@@ -111,11 +111,12 @@ class ChatClientConfiguration {
             chatModel.javaClass.simpleName
         )
 
+        // Spring AI 2.0: ChatClient.Builder.defaultOptions() now takes a
+        // ChatOptions.Builder (not a built ChatOptions). Pass the builder.
         val anthropicOptions =
             AnthropicChatOptions
                 .builder()
                 .cacheOptions(anthropicCacheOptions)
-                .build()
 
         // No defaultSystem() — every call overrides via SystemPromptSelector
         // for domain-focused token usage. Fallback is DomainSystemPrompts.GENERAL.

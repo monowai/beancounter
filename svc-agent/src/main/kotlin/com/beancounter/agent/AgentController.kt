@@ -4,12 +4,12 @@ import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
+import org.springframework.ai.anthropic.AnthropicCacheOptions
 import org.springframework.ai.anthropic.AnthropicChatOptions
-import org.springframework.ai.anthropic.api.AnthropicCacheOptions
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.metadata.Usage
 import org.springframework.ai.chat.model.ChatResponse
@@ -92,7 +92,7 @@ class AgentController(
     internal fun buildOptions(
         modelId: String,
         deepThink: Boolean
-    ): org.springframework.ai.chat.prompt.ChatOptions? =
+    ): org.springframework.ai.chat.prompt.ChatOptions.Builder<*>? =
         when {
             anthropicActive -> {
                 val b = AnthropicChatOptions.builder().model(modelId)
@@ -100,19 +100,18 @@ class AgentController(
                 if (deepThink) {
                     b
                         .maxTokens(16384)
-                        .thinking(
-                            org.springframework.ai.anthropic.api.AnthropicApi.ThinkingType.ENABLED,
-                            4096
-                        )
+                        // Spring AI 2.0: the two-arg thinking(type, budget) is
+                        // gone; thinkingEnabled(budgetTokens) is the explicit
+                        // enable + budget call (4k budget preserved).
+                        .thinkingEnabled(4096L)
                 }
-                b.build()
+                b
             }
             deepseekActive -> {
                 org.springframework.ai.deepseek.DeepSeekChatOptions
                     .builder()
                     .model(modelId)
                     .maxTokens(if (deepThink) 16384 else 4096)
-                    .build()
             }
             else -> {
                 null

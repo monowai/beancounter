@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.telemetry.runBlockingTraced
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.providers.NewsProvider
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.news.NewsArticle
@@ -42,7 +44,8 @@ class EodhdNewsService(
     private val eodhdConfig: EodhdConfig,
     private val newsProperties: EodhdNewsProperties,
     private val newsArticleRepo: NewsArticleRepo,
-    private val newsFetchRepo: NewsFetchRepo
+    private val newsFetchRepo: NewsFetchRepo,
+    private val assetFinder: AssetFinder
 ) : NewsProvider {
     private val log = LoggerFactory.getLogger(EodhdNewsService::class.java)
 
@@ -286,12 +289,34 @@ class EodhdNewsService(
                     market
                 }
             }
+        val bcMarket = if (market.isNullOrBlank()) "US" else market
         return tickers
             .split(",")
             .map { it.trim().uppercase() }
             .filter { it.matches(TICKER_PATTERN) }
-            .map { "$it.$exchange" }
+            .map { "${priceSymbolFor(it, bcMarket)}.$exchange" }
     }
+
+    /**
+     * Map a BC asset code to the symbol EODHD actually indexes news under. BC stores the canonical
+     * EODHD ticker in `Asset.priceSymbol` (e.g. code `BRK.B` → priceSymbol `BRK-B`, since EODHD uses
+     * a hyphen for US class shares). Without this, a naive `code.exchange` build (`BRK.B.US`) has no
+     * EODHD coverage and the agent wrongly falls back to general knowledge. Unknown tickers (not held
+     * locally) and lookup failures fall back to the raw code so ad-hoc queries still work.
+     */
+    private fun priceSymbolFor(
+        code: String,
+        bcMarket: String
+    ): String =
+        try {
+            assetFinder.findLocally(AssetInput(bcMarket, code))?.priceSymbol?.takeIf { it.isNotBlank() } ?: code
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug("No local asset for {}/{}: {}", bcMarket, code, e.message)
+            code
+        }
 
     private fun matchesTopic(
         article: NewsArticle,

@@ -206,12 +206,13 @@ subprojects {
     // Common dependencies for all modules
     dependencies {
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-        // Spring Framework 7 removed spring-jcl (the commons-logging provider).
-        // spring-boot-starter-test no longer drags a commons-logging binding
-        // onto the test classpath, so org.apache.commons.logging.LogFactory is
-        // missing at test runtime. jcl-over-slf4j supplies it (routed to the
-        // existing logback). BOM-managed version.
-        testRuntimeOnly("org.slf4j:jcl-over-slf4j")
+        // Spring Framework 7 removed spring-jcl (the commons-logging provider),
+        // and the configurations-wide exclude of commons-logging:commons-logging
+        // (a Boot-3 workaround) leaves nothing supplying
+        // org.apache.commons.logging.LogFactory. Without this, services fail at
+        // STARTUP (NoClassDefFoundError), not just in tests. runtimeOnly covers
+        // both main and test runtime; routed to the existing logback. BOM-managed.
+        runtimeOnly("org.slf4j:jcl-over-slf4j")
 
         // Common test dependencies
         testImplementation(

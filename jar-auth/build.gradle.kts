@@ -10,6 +10,11 @@ dependencies {
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
     implementation(project(":jar-common"))
+    // WebAuthFilterConfig is @EnableCaching (JWKS / M2M login caching). Boot 4
+    // split cache autoconfiguration into its own module, so without the starter
+    // no implicit ConcurrentMapCacheManager is created and @Cacheable services
+    // fail at startup. `api` so every consuming service inherits it.
+    api("org.springframework.boot:spring-boot-starter-cache")
     implementation(libs.spring.boot.autoconfigure)
     implementation(libs.spring.boot.starter.logging)
     implementation(libs.servlet.api)

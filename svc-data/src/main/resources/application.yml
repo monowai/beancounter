@@ -204,7 +204,7 @@ spring:
         # the conversion). QuotedSnakeCaseNamingStrategy converts to snake_case
         # AND quotes, keeping reserved words like system_user valid. Set as a raw
         # Hibernate property since Boot 4 no longer wires spring.jpa.hibernate.naming.*.
-        physical_naming_strategy: com.beancounter.marketdata.config.QuotedSnakeCaseNamingStrategy
+        physical_naming_strategy: com.beancounter.common.config.QuotedSnakeCaseNamingStrategy
 
   ai:
     mcp:

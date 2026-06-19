@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.config
+package com.beancounter.common.config
 
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
 import org.hibernate.boot.model.naming.Identifier
@@ -18,6 +18,10 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment
  * reserved words stay valid — notably `system_user`, which H2's MySQL test mode
  * treats as the reserved `SYSTEM_USER` function when unquoted. The result matches
  * the Flyway-managed snake_case schema in every dialect.
+ *
+ * Shared across every BC JPA service (svc-data / svc-position / svc-event); wire
+ * it via `spring.jpa.properties.hibernate.physical_naming_strategy` since Boot 4
+ * no longer applies the `spring.jpa.hibernate.naming.*` abstraction.
  */
 class QuotedSnakeCaseNamingStrategy : CamelCaseToUnderscoresNamingStrategy() {
     override fun toPhysicalCatalogName(

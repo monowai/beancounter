@@ -116,6 +116,11 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        # Boot 4 / Hibernate 7 dropped the snake_case naming default. Keep entity
+        # tables/columns snake_case (and quoted, so reserved words stay valid).
+        physical_naming_strategy: com.beancounter.common.config.QuotedSnakeCaseNamingStrategy
   flyway:
     enabled: false
     baseline-on-migrate: true

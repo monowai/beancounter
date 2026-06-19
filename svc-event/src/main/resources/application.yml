@@ -126,8 +126,11 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        globally_quoted_identifiers: true
-        globally_quoted_identifiers_skip_column_definitions: true
+        # Boot 4 / Hibernate 7 dropped the snake_case naming default and broke the
+        # globally_quoted_identifiers + CamelCaseToUnderscores combo. This strategy
+        # converts to snake_case AND quotes (keeping reserved words like system_user
+        # valid) — replaces globally_quoted_identifiers.
+        physical_naming_strategy: com.beancounter.common.config.QuotedSnakeCaseNamingStrategy
         hibernate.dialect: "org.hibernate.dialect.PostgreSQLDialect"
   security:
     oauth2:

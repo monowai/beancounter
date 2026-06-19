@@ -10,15 +10,6 @@ plugins {
 
 version = "0.1.1"
 
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.springframework.data" && requested.name != "spring-data-bom") {
-            useVersion("3.5.3")
-            because("Force Spring Data 2025.0.3 to fix deleteBy regression in 3.5.4")
-        }
-    }
-}
-
 publishing {
     publications {
         create<MavenPublication>("data-stubs") {
@@ -31,7 +22,6 @@ publishing {
 }
 
 dependencies {
-    implementation(platform(libs.spring.data.bom))
     implementation(platform(libs.spring.boot.dependencies))
     implementation(platform(libs.spring.cloud.dependencies))
     implementation(platform(libs.spring.ai.bom))
@@ -58,7 +48,7 @@ dependencies {
     implementation(libs.spring.boot.starter.actuator)
     // Spring Boot Admin client. Inactive unless `spring.boot.admin.client.enabled=true`
     // (default false in application.yml). Enabled in kauri via env var; see bc-deploy.
-    implementation("de.codecentric:spring-boot-admin-starter-client:3.5.4")
+    implementation("de.codecentric:spring-boot-admin-starter-client:4.0.4")
     implementation(libs.spring.boot.starter.integration)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

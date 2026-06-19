@@ -77,6 +77,19 @@ dependencies {
     }
 }
 
+// RestAssured 5.5.7's legacy Groovy HTTPBuilder (used by EXPLICIT-mode contract
+// tests for the real HTTP send) is incompatible with Groovy 5, which the Boot 4 /
+// spring-cloud Oakwood BOM pulls in -> NPE in ClosureMetaClass.invokeOnDelegationObject.
+// Pin Groovy 4 on the contract-test classpath only; contract *generation* runs on
+// the plugin classpath and is unaffected.
+configurations.matching { it.name.startsWith("contractTest") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.apache.groovy") {
+            useVersion("4.0.28")
+        }
+    }
+}
+
 contracts {
     testFramework.set(org.springframework.cloud.contract.verifier.config.TestFramework.JUNIT5)
     testMode.set(org.springframework.cloud.contract.verifier.config.TestMode.EXPLICIT)

@@ -7,7 +7,6 @@ kotlinter = "5.5.0"
 spring-boot = "4.1.0"
 spring-cloud = "2025.1.2"
 spring-cloud-contract = "5.0.3"
-spring-data-bom = "2025.0.8"
 spring-security = "6.5.10"
 spring-doc = "3.0.3"
 jackson = "2.21.1"
@@ -27,7 +26,6 @@ micrometer-tracing = "1.7.0"
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
-spring-data-bom = { module = "org.springframework.data:spring-data-bom", version.ref = "spring-data-bom" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring-doc" }
 spring-doc-mvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-api", version.ref = "spring-doc" }
 spring-stub-runner = { module = "org.springframework.cloud:spring-cloud-contract-stub-runner", version.ref = "spring-cloud-contract" }
@@ -90,6 +88,6 @@ kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 sentry = { id = "io.sentry.jvm.gradle", version = "6.12.0" }
 spring-contract = { id = "org.springframework.cloud.contract", version.ref = "spring-cloud-contract" }
-git-properties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.7" }
+git-properties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }
 download = { id = "de.undercouch.download", version = "5.7.0" }
 

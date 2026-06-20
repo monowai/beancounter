@@ -85,6 +85,7 @@ class AgentControllerTest {
     ): AgentController =
         AgentController(
             chatClient,
+            null, // fastChatClient (non-thinking) — routing not exercised by these unit tests
             // anthropicCacheOptions is optional; null is fine — the controller
             // gracefully omits .cacheOptions when the bean isn't present.
             null,
@@ -395,6 +396,7 @@ class AgentControllerTest {
         val ctrl =
             AgentController(
                 null,
+                null, // fastChatClient
                 null,
                 stubChecker(),
                 toolSelector,
@@ -419,6 +421,7 @@ class AgentControllerTest {
         val ctrl =
             AgentController(
                 null,
+                null, // fastChatClient
                 null,
                 stubChecker(),
                 toolSelector,
@@ -475,6 +478,7 @@ class AgentControllerTest {
         val ctrl =
             AgentController(
                 null,
+                null, // fastChatClient
                 null,
                 stubChecker(),
                 toolSelector,

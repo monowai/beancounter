@@ -13,6 +13,7 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.metadata.Usage
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -45,6 +46,9 @@ import java.util.concurrent.atomic.AtomicReference
 @Tag(name = "Agent", description = "Natural-language Beancounter assistant")
 class AgentController(
     @Autowired(required = false) private val chatClient: ChatClient?,
+    @Autowired(required = false)
+    @Qualifier("fastChatClient")
+    private val fastChatClient: ChatClient? = null,
     @Autowired(required = false) private val anthropicCacheOptions: AnthropicCacheOptions?,
     private val healthChecker: ServiceHealthChecker,
     private val toolSelector: ToolSelector,
@@ -159,7 +163,7 @@ class AgentController(
             val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
             val startMs = System.currentTimeMillis()
             val promptSpec =
-                chatClient
+                clientFor(request)
                     .prompt()
                     .system(systemPrompt)
                     .user(userMessage)
@@ -341,13 +345,23 @@ class AgentController(
         return tokenEvents.concatWith(doneEvent)
     }
 
+    /**
+     * Pick the LLM client for this request. Pre-canned prompts (the default,
+     * `think=false`) use the non-thinking [fastChatClient] for lowest latency;
+     * the interactive Chat FAB sets `think=true` to keep DeepSeek thinking mode.
+     * Falls back to the thinking client if no fast client is configured.
+     * Callers guard `chatClient != null` first, so the result is non-null.
+     */
+    private fun clientFor(request: AgentQuery): ChatClient =
+        (if (request.think) chatClient else fastChatClient ?: chatClient)!!
+
     private fun buildStreamSpec(
         request: AgentQuery,
         tools: Array<Any>,
         modelId: String
     ): ChatClient.StreamResponseSpec {
         val promptSpec =
-            chatClient!!
+            clientFor(request)
                 .prompt()
                 .system(systemPromptSelector.selectFor(request.context))
                 .user(buildUserMessage(request))
@@ -487,6 +501,13 @@ class AgentController(
 data class AgentQuery(
     val query: String,
     val context: Map<String, Any>? = null,
+    /**
+     * Enable DeepSeek thinking mode for this request. Defaults to `false` so
+     * pre-canned prompts get the fastest (non-thinking) response; the interactive
+     * Chat FAB sets `true`. Orthogonal to [deepThink] (which escalates the model
+     * tier). Routes to the non-thinking `fastChatClient` when `false`.
+     */
+    val think: Boolean = false,
     /**
      * Caller-driven escalation to the deep tier (typically `deepseek-v4-pro`
      * or `claude-opus-*`). Off by default; flips model selection regardless of

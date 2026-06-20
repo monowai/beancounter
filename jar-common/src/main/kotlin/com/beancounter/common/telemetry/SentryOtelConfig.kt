@@ -1,7 +1,9 @@
 package com.beancounter.common.telemetry
 
 import io.micrometer.observation.ObservationPredicate
+import io.micrometer.observation.ObservationRegistry
 import io.micrometer.tracing.Tracer
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext
 import io.micrometer.tracing.otel.bridge.OtelTracer
 import io.opentelemetry.api.GlobalOpenTelemetry
@@ -9,6 +11,8 @@ import io.opentelemetry.api.OpenTelemetry
 import io.sentry.spring7.SentryTaskDecorator
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.ObjectProvider
+import org.springframework.beans.factory.SmartInitializingSingleton
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -88,6 +92,35 @@ class SentryOtelConfig {
             OtelCurrentTraceContext(),
             OtelTracer.EventPublisher { }
         )
+
+    /**
+     * Register the span-producing tracing observation handler on the registry.
+     *
+     * Supplying a [Tracer] bean ([micrometerTracer]) flips Spring AI's
+     * `TracerPresentObservationConfiguration` to matched, but under the javaagent
+     * Boot's own tracing auto-config stays dormant, so **no tracing
+     * `ObservationHandlerGroup` is contributed** — verified live: the registry
+     * carried only meter handlers, so `gen_ai.client.operation` was still only a
+     * metric. Add [DefaultTracingObservationHandler] directly to the registry
+     * (bypasses the missing group) so each observation becomes a span on the
+     * agent's OpenTelemetry, parented under the agent's current transaction.
+     * `http.*` observations are already filtered out
+     * by [suppressHttpObservationsHandledByAgent], so only `gen_ai.*` and other
+     * non-HTTP observations are traced — no duplication of the agent's HTTP spans.
+     */
+    @Bean
+    fun tracingObservationHandlerInitializer(
+        observationRegistry: ObjectProvider<ObservationRegistry>,
+        tracer: Tracer
+    ): SmartInitializingSingleton =
+        SmartInitializingSingleton {
+            // Add the handler after all singletons exist — injecting the registry
+            // directly would deadlock (Boot wires handler beans into the registry
+            // while it is still being created). ObjectProvider defers the lookup.
+            observationRegistry.ifAvailable
+                ?.observationConfig()
+                ?.observationHandler(DefaultTracingObservationHandler(tracer))
+        }
 
     /**
      * Suppress Spring's Micrometer HTTP observations so they don't duplicate the

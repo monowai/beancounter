@@ -40,6 +40,12 @@ class SentryOtelConfigTest {
     }
 
     @Test
+    fun `should provide a Micrometer Tracer so gen_ai observations become spans`() {
+        val tracer = sentryOtelConfig.micrometerTracer(sentryOtelConfig.openTelemetry())
+        assertThat(tracer).isInstanceOf(io.micrometer.tracing.Tracer::class.java)
+    }
+
+    @Test
     fun `should suppress HTTP observations the agent already instruments`() {
         val predicate: ObservationPredicate = sentryOtelConfig.suppressHttpObservationsHandledByAgent()
         assertThat(predicate.test("http.server.requests", Observation.Context())).isFalse()

@@ -2,22 +2,22 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-kotlin = "2.3.20"
-kotlinter = "5.4.2"
+kotlin = "2.4.0"
+kotlinter = "5.5.0"
 spring-boot = "4.1.0"
 spring-cloud = "2025.1.2"
-spring-cloud-contract = "4.3.1"
-spring-data-bom = "2025.0.8"
+spring-cloud-contract = "5.0.3"
 spring-security = "6.5.10"
-spring-doc = "3.0.1"
+spring-doc = "3.0.3"
 jackson = "2.21.1"
-mockitoKotlin = '5.4.0'
-sentry = "8.40.0"
-postgres = "42.7.10"
-guava = "33.5.0-jre"
+mockitoKotlin = '6.3.0'
+kotest = '6.2.1'
+sentry = "8.44.1"
+postgres = "42.7.11"
+guava = "33.6.0-jre"
 servlet-api = "6.1.0"
 spring-ai = "2.0.0"
-flyway = "11.20.0"
+flyway = "12.9.0"
 # Pinned because jar-common exposes the bridge as an api dep but
 # downstream modules (e.g. jar-shell) don't import the spring-boot
 # platform, so version resolution falls back to the catalog.
@@ -26,17 +26,16 @@ micrometer-tracing = "1.7.0"
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
-spring-data-bom = { module = "org.springframework.data:spring-data-bom", version.ref = "spring-data-bom" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring-doc" }
 spring-doc-mvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-api", version.ref = "spring-doc" }
 spring-stub-runner = { module = "org.springframework.cloud:spring-cloud-contract-stub-runner", version.ref = "spring-cloud-contract" }
-apache-groovy = { module = "org.apache.groovy:groovy", version = "5.0.4" } # stub runner importing older version
+apache-groovy = { module = "org.apache.groovy:groovy", version = "5.0.6" } # stub runner importing older version
 servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "servlet-api" }
-otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.26.1" }
-resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.3.0" }
-resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.3.0" }
+otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.29.0" }
+resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.4.0" }
+resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.4.0" }
 resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot4", version = "2.4.0" }
-commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
+commons-io = { module = "commons-io:commons-io", version = "2.22.0" }
 spring-cloud-stream = { module = "org.springframework.cloud:spring-cloud-stream" }
 spring-cloud-stream-binder-rabbit = { module = "org.springframework.cloud:spring-cloud-stream-binder-rabbit" }
 spring-cloud-stream-test-binder = { module = "org.springframework.cloud:spring-cloud-stream-test-binder" }
@@ -65,9 +64,9 @@ sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 assertj = { module = "org.assertj:assertj-core", version = "3.27.7" }
-kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "mockitoKotlin" }
-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "mockitoKotlin" }
-kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "mockitoKotlin" }
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai" }
@@ -87,8 +86,8 @@ java-test-fixtures = { id = "java-test-fixtures" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
-sentry = { id = "io.sentry.jvm.gradle", version = "6.5.0" }
+sentry = { id = "io.sentry.jvm.gradle", version = "6.12.0" }
 spring-contract = { id = "org.springframework.cloud.contract", version.ref = "spring-cloud-contract" }
-git-properties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.7" }
-download = { id = "de.undercouch.download", version = "5.6.0" }
+git-properties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }
+download = { id = "de.undercouch.download", version = "5.7.0" }
 

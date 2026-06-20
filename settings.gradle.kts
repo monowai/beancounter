@@ -5,7 +5,7 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
-        id("io.gitlab.arturbosch.detekt") version "1.23.5"
+        id("io.gitlab.arturbosch.detekt") version "1.23.8"
     }
 }
 

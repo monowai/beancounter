@@ -23,7 +23,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.spring.boot.starter.actuator)
-    implementation("de.codecentric:spring-boot-admin-starter-client:4.0.4")
+    implementation("de.codecentric:spring-boot-admin-starter-client:4.1.1")
     implementation(libs.spring.boot.starter.integration)
     implementation(libs.spring.doc)
     implementation(libs.spring.doc.mvc)

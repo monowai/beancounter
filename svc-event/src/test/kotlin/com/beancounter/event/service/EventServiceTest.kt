@@ -92,7 +92,7 @@ class EventServiceTest {
 
         whenever(keyGenUtils.id).thenReturn(eventId)
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
-        whenever(eventRepository.save(any())).thenReturn(savedEvent)
+        whenever(eventRepository.save(any<CorporateEvent>())).thenReturn(savedEvent)
         whenever(positionService.findWhereHeld(any(), any())).thenReturn(portfoliosResponse)
         whenever(positionService.process(any(), any(), anyOrNull())).thenReturn(testTrustedTrnEvent)
 
@@ -129,7 +129,7 @@ class EventServiceTest {
 
         whenever(keyGenUtils.id).thenReturn(newEventId)
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
-        whenever(eventRepository.save(any())).thenReturn(newEvent)
+        whenever(eventRepository.save(any<CorporateEvent>())).thenReturn(newEvent)
 
         // When
         val result = eventService.save(testCorporateEvent)
@@ -265,7 +265,7 @@ class EventServiceTest {
 
         whenever(keyGenUtils.id).thenReturn(eventId)
         whenever(eventRepository.findByAssetIdAndRecordDate(any(), any())).thenReturn(Optional.empty())
-        whenever(eventRepository.save(any())).thenReturn(savedEvent)
+        whenever(eventRepository.save(any<CorporateEvent>())).thenReturn(savedEvent)
         whenever(positionService.findWhereHeld(any(), any())).thenReturn(portfoliosResponse)
         whenever(positionService.process(any(), any(), anyOrNull())).thenReturn(ignoredTrnEvent)
 

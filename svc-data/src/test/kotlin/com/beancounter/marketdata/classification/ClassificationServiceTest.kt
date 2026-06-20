@@ -87,7 +87,7 @@ class ClassificationServiceTest {
     @Test
     fun `getOrCreateStandard creates new standard when not found`() {
         whenever(standardRepository.findByKey("NEW")).thenReturn(Optional.empty())
-        whenever(standardRepository.save(any())).thenAnswer { it.arguments[0] }
+        whenever(standardRepository.save(any<ClassificationStandard>())).thenAnswer { it.arguments[0] }
 
         val result = service.getOrCreateStandard("NEW", "New Standard", "2.0", "PROVIDER")
 
@@ -116,7 +116,7 @@ class ClassificationServiceTest {
                 "MULTI_SECTOR"
             )
         ).thenReturn(Optional.empty())
-        whenever(itemRepository.save(any())).thenAnswer { it.arguments[0] }
+        whenever(itemRepository.save(any<ClassificationItem>())).thenAnswer { it.arguments[0] }
 
         val result =
             service.getOrCreateItem(
@@ -146,7 +146,7 @@ class ClassificationServiceTest {
                 "INFORMATION_TECHNOLOGY"
             )
         ).thenReturn(Optional.empty())
-        whenever(itemRepository.save(any())).thenAnswer { it.arguments[0] }
+        whenever(itemRepository.save(any<ClassificationItem>())).thenAnswer { it.arguments[0] }
 
         val result =
             service.getOrCreateItem(
@@ -217,7 +217,7 @@ class ClassificationServiceTest {
                 CODE_TECH_SECTOR
             )
         ).thenReturn(Optional.of(existingItem))
-        whenever(itemRepository.save(any())).thenAnswer { it.arguments[0] }
+        whenever(itemRepository.save(any<ClassificationItem>())).thenAnswer { it.arguments[0] }
 
         val result =
             service.getOrCreateItem(
@@ -263,7 +263,7 @@ class ClassificationServiceTest {
                 "CONSUMER_ELECTRONICS"
             )
         ).thenReturn(Optional.empty())
-        whenever(itemRepository.save(any())).thenAnswer { it.arguments[0] }
+        whenever(itemRepository.save(any<ClassificationItem>())).thenAnswer { it.arguments[0] }
 
         val result =
             service.getOrCreateItem(

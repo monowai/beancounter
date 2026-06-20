@@ -10,7 +10,7 @@ dependencies {
 
     // Spring Boot Admin server — UI + REST endpoints for monitoring registered actuator clients.
     // 3.5.x track aligns with Spring Boot ${libs.versions.spring.boot.get()}.
-    implementation("de.codecentric:spring-boot-admin-starter-server:4.0.4")
+    implementation("de.codecentric:spring-boot-admin-starter-server:4.1.1")
 
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)

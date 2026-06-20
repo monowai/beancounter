@@ -1,7 +1,10 @@
 package com.beancounter.agent
 
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationRegistry
 import io.micrometer.tracing.Tracer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,8 +35,25 @@ class SentryTracingWiringTest {
     @Autowired
     private lateinit var context: ApplicationContext
 
+    @Autowired
+    private lateinit var observationRegistry: ObservationRegistry
+
     @Test
     fun `context exposes a Micrometer Tracer so gen_ai observations are traced`() {
         assertThat(context.getBeanNamesForType(Tracer::class.java)).isNotEmpty()
+    }
+
+    @Test
+    fun `registers the tracing observation handler on the registry`() {
+        assertThat(context.containsBean("tracingObservationHandlerInitializer")).isTrue()
+    }
+
+    @Test
+    fun `a gen_ai observation flows through the tracing handler without error`() {
+        assertThatCode {
+            Observation
+                .createNotStarted("gen_ai.client.operation", observationRegistry)
+                .observe { /* handler opens + closes a span scope */ }
+        }.doesNotThrowAnyException()
     }
 }

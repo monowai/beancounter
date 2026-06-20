@@ -1,7 +1,6 @@
 package com.beancounter.agent
 
 import io.micrometer.common.KeyValue
-import io.micrometer.observation.Observation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.ai.chat.messages.AssistantMessage
@@ -13,10 +12,9 @@ import org.springframework.ai.chat.observation.ChatModelObservationContext
 import org.springframework.ai.chat.prompt.Prompt
 
 class AgentObservationConfigTest {
-    private val filter = AgentObservationConfig().genAiTokenUsageObservationFilter()
+    private val convention = AgentObservationConfig().tokenUsageChatModelObservationConvention()
 
-    @Test
-    fun `copies token usage from the chat response onto the span`() {
+    private fun contextWithUsage(usage: DefaultUsage): ChatModelObservationContext {
         val context =
             ChatModelObservationContext
                 .builder()
@@ -26,13 +24,17 @@ class AgentObservationConfigTest {
         context.setResponse(
             ChatResponse(
                 listOf(Generation(AssistantMessage("pong"))),
-                ChatResponseMetadata.builder().usage(DefaultUsage(12, 7, 19)).build()
+                ChatResponseMetadata.builder().usage(usage).build()
             )
         )
+        return context
+    }
 
-        filter.map(context)
+    @Test
+    fun `emits gen_ai usage key-values from the chat response`() {
+        val keyValues = convention.getHighCardinalityKeyValues(contextWithUsage(DefaultUsage(12, 7, 19)))
 
-        assertThat(context.highCardinalityKeyValues).contains(
+        assertThat(keyValues).contains(
             KeyValue.of("gen_ai.usage.input_tokens", "12"),
             KeyValue.of("gen_ai.usage.output_tokens", "7"),
             KeyValue.of("gen_ai.usage.total_tokens", "19")
@@ -40,8 +42,12 @@ class AgentObservationConfigTest {
     }
 
     @Test
-    fun `leaves a non-chat observation untouched`() {
-        val context = Observation.Context()
-        assertThat(filter.map(context)).isSameAs(context)
+    fun `keeps the default high-cardinality key-values`() {
+        // The override must augment, not replace, the Spring AI defaults (e.g.
+        // gen_ai.response.finish_reasons), so existing span attributes survive.
+        val keyValues = convention.getHighCardinalityKeyValues(contextWithUsage(DefaultUsage(1, 1, 2)))
+
+        assertThat(keyValues.map { it.key }).contains("gen_ai.usage.total_tokens")
+        assertThat(keyValues.stream().count()).isGreaterThan(1)
     }
 }

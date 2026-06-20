@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.config
 
-import com.beancounter.common.client.SentryTracingInterceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -43,7 +42,6 @@ class ExternalApiRestClientConfig {
             .builder()
             .baseUrl(baseUrl)
             .requestFactory(createRequestFactory(connectTimeoutMs, readTimeoutMs))
-            .requestInterceptor(SentryTracingInterceptor())
             .build()
 
     @Bean

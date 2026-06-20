@@ -1,5 +1,8 @@
 package com.beancounter.common.telemetry
 
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationPredicate
+import io.opentelemetry.api.OpenTelemetry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,5 +32,24 @@ class SentryOtelConfigTest {
     @Test
     fun `should provide SentryTaskDecorator bean`() {
         assertThat(sentryOtelConfig.sentryTaskDecorator()).isNotNull
+    }
+
+    @Test
+    fun `should expose OpenTelemetry bean so Micrometer bridges to the agent pipeline`() {
+        assertThat(sentryOtelConfig.openTelemetry()).isInstanceOf(OpenTelemetry::class.java)
+    }
+
+    @Test
+    fun `should suppress HTTP observations the agent already instruments`() {
+        val predicate: ObservationPredicate = sentryOtelConfig.suppressHttpObservationsHandledByAgent()
+        assertThat(predicate.test("http.server.requests", Observation.Context())).isFalse()
+        assertThat(predicate.test("http.client.requests", Observation.Context())).isFalse()
+    }
+
+    @Test
+    fun `should keep gen_ai and other observations flowing to Sentry`() {
+        val predicate: ObservationPredicate = sentryOtelConfig.suppressHttpObservationsHandledByAgent()
+        assertThat(predicate.test("gen_ai.client.operation", Observation.Context())).isTrue()
+        assertThat(predicate.test("spring.ai.chat.client", Observation.Context())).isTrue()
     }
 }

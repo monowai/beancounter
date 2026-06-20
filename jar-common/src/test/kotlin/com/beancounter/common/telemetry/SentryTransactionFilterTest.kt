@@ -1,6 +1,7 @@
 package com.beancounter.common.telemetry
 
 import io.sentry.protocol.Contexts
+import io.sentry.protocol.SentrySpan
 import io.sentry.protocol.SentryTransaction
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -89,6 +90,28 @@ class SentryTransactionFilterTest {
 
         assertThat(result).isNotNull
         assertThat(result).isSameAs(transaction)
+    }
+
+    @Test
+    fun `should strip Transaction commit child spans but keep the rest`() {
+        val spans =
+            mutableListOf(
+                mockSpan("Transaction.commit"),
+                mockSpan("db"),
+                mockSpan("http.client")
+            )
+        val transaction = createMockTransaction("/api/things")
+        `when`(transaction.spans).thenReturn(spans)
+
+        filter.stripNoisySpans(transaction)
+
+        assertThat(spans.map { it.op }).containsExactly("db", "http.client")
+    }
+
+    private fun mockSpan(op: String): SentrySpan {
+        val span = mock(SentrySpan::class.java)
+        `when`(span.op).thenReturn(op)
+        return span
     }
 
     private fun createMockTransaction(path: String): SentryTransaction {

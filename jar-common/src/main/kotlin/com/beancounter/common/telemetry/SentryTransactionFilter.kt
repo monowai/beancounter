@@ -50,7 +50,28 @@ class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
     override fun execute(
         transaction: SentryTransaction,
         hint: Hint
-    ): SentryTransaction? = filterTransaction(transaction)
+    ): SentryTransaction? {
+        val kept = filterTransaction(transaction) ?: return null
+        stripNoisySpans(kept)
+        return kept
+    }
+
+    /**
+     * Drop high-volume, low-value child spans from a kept transaction.
+     *
+     * `Transaction.commit` is emitted by sentry-jdbc on every DB commit (thousands
+     * per day on svc-data) and carries no diagnostic value beyond the query spans
+     * already present. It is a Sentry-SDK span, not a Micrometer observation, so it
+     * cannot be dropped by the observation predicate — strip it here instead.
+     */
+    @Suppress("TooGenericExceptionCaught") // span list may be immutable depending on SDK internals
+    fun stripNoisySpans(transaction: SentryTransaction) {
+        try {
+            transaction.spans.removeIf { it.op in NOISY_SPAN_OPS }
+        } catch (_: Exception) {
+            // Unmodifiable span list — leave as-is rather than fail the send.
+        }
+    }
 
     /**
      * Filters transaction based on HTTP target path or transaction name.
@@ -79,6 +100,10 @@ class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
     }
 
     private fun shouldFilter(httpTarget: String): Boolean = filterPatterns.any { it.containsMatchIn(httpTarget) }
+
+    private companion object {
+        val NOISY_SPAN_OPS = setOf("Transaction.commit")
+    }
 
     @Suppress("TooGenericExceptionCaught") // Defensive extraction - return null on any error
     private fun extractHttpTarget(transaction: SentryTransaction): String? {

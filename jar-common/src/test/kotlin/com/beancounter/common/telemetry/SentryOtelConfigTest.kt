@@ -53,6 +53,14 @@ class SentryOtelConfigTest {
     }
 
     @Test
+    fun `should suppress Spring Security per-request observation noise`() {
+        val predicate: ObservationPredicate = sentryOtelConfig.suppressHttpObservationsHandledByAgent()
+        assertThat(predicate.test("spring.security.filterchains", Observation.Context())).isFalse()
+        assertThat(predicate.test("spring.security.authentications", Observation.Context())).isFalse()
+        assertThat(predicate.test("spring.security.authorizations", Observation.Context())).isFalse()
+    }
+
+    @Test
     fun `should keep gen_ai and other observations flowing to Sentry`() {
         val predicate: ObservationPredicate = sentryOtelConfig.suppressHttpObservationsHandledByAgent()
         assertThat(predicate.test("gen_ai.client.operation", Observation.Context())).isTrue()

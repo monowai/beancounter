@@ -123,19 +123,28 @@ class SentryOtelConfig {
         }
 
     /**
-     * Suppress Spring's Micrometer HTTP observations so they don't duplicate the
-     * agent's spans once Micrometer tracing is bridged to the agent pipeline.
+     * Suppress low-value Micrometer observations so the bridged tracing handler
+     * only emits spans that add information beyond what the agent already covers.
      *
-     * The agent already instruments HTTP server + client (spans + trace-context
-     * propagation). If the matching Micrometer observations also produced spans we
-     * would get a duplicate `http.server` transaction and duplicate `http.client`
-     * spans — the same double-instrumentation seen in bc-view. `gen_ai.*` and all
-     * non-HTTP observations are unaffected and keep flowing to Sentry.
+     * - `http.server.requests` / `http.client.requests`: the Sentry OTel javaagent
+     *   already instruments HTTP server + client (spans + trace-context
+     *   propagation). Tracing the matching Micrometer observations would dup the
+     *   `http.server` transaction and `http.client` spans (the bc-view double-
+     *   instrumentation).
+     * - `spring.security.*`: the per-request filter-chain / authentication /
+     *   authorization observations add ~5 spans to every request (`secured
+     *   request`, `authenticate bearertoken`, `authorize request`, `security
+     *   filterchain before` / `after`) with no diagnostic value — pure ingest
+     *   noise once Micrometer tracing is on.
+     *
+     * `gen_ai.*` and other observations are unaffected and keep flowing to Sentry.
      */
     @Bean
     fun suppressHttpObservationsHandledByAgent(): ObservationPredicate =
         ObservationPredicate { name, _ ->
-            name != "http.server.requests" && name != "http.client.requests"
+            name != "http.server.requests" &&
+                name != "http.client.requests" &&
+                !name.startsWith("spring.security.")
         }
 
     @PreDestroy

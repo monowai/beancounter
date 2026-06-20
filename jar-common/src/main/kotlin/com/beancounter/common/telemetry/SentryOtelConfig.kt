@@ -1,6 +1,9 @@
 package com.beancounter.common.telemetry
 
 import io.micrometer.observation.ObservationPredicate
+import io.micrometer.tracing.Tracer
+import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext
+import io.micrometer.tracing.otel.bridge.OtelTracer
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.OpenTelemetry
 import io.sentry.spring7.SentryTaskDecorator
@@ -59,6 +62,32 @@ class SentryOtelConfig {
     @Bean
     @ConditionalOnMissingBean(OpenTelemetry::class)
     fun openTelemetry(): OpenTelemetry = GlobalOpenTelemetry.get()
+
+    /**
+     * Provide the Micrometer [Tracer] that bridges observations to the agent's
+     * OpenTelemetry SDK.
+     *
+     * Under the Sentry OTel javaagent, Spring Boot never builds a Micrometer
+     * `Tracer` bean (its own OTel-tracing auto-config does not fire in agent
+     * mode). Without it, `ChatObservationAutoConfiguration`'s
+     * `TracerPresentObservationConfiguration` backs off — verified live via
+     * `/actuator/conditions`: *"@ConditionalOnBean io.micrometer.tracing.Tracer
+     * did not find any beans"* — so Spring AI's `gen_ai.client.operation`
+     * observation only reaches the **meter** handler (a metric) and never
+     * becomes a span. Supplying an [OtelTracer] over the agent's OpenTelemetry
+     * registers the tracing observation handler, so `gen_ai.*` spans (with token
+     * usage + model) flow to Sentry. HTTP observations are still suppressed by
+     * [suppressHttpObservationsHandledByAgent] so the agent stays the sole HTTP
+     * span source.
+     */
+    @Bean
+    @ConditionalOnMissingBean(Tracer::class)
+    fun micrometerTracer(openTelemetry: OpenTelemetry): Tracer =
+        OtelTracer(
+            openTelemetry.getTracer("bc-micrometer-tracing"),
+            OtelCurrentTraceContext(),
+            OtelTracer.EventPublisher { }
+        )
 
     /**
      * Suppress Spring's Micrometer HTTP observations so they don't duplicate the

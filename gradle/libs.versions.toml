@@ -18,7 +18,7 @@ postgres = "42.7.11"
 guava = "33.6.0-jre"
 servlet-api = "6.1.0"
 spring-ai = "2.0.0"
-flyway = "11.20.3"
+flyway = "12.9.0"
 # Pinned because jar-common exposes the bridge as an api dep but
 # downstream modules (e.g. jar-shell) don't import the spring-boot
 # platform, so version resolution falls back to the catalog.

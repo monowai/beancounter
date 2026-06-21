@@ -301,4 +301,76 @@ class BalanceBehaviourTest {
 
         assertThat(position.subAccounts).containsExactlyInAnyOrderEntriesOf(subAccounts)
     }
+
+    @Test
+    fun `composite ADD accrues sub-account balances onto the BALANCE snapshot`() {
+        // A CPF payslip contribution posts as an ADD carrying its own per-bucket
+        // split. ADD maps to BuyBehaviour, which must accrue that split onto the
+        // existing sub-account balances — not only the rolled-up total —
+        // otherwise the Medisave healthcare reserve under-reports.
+        val portfolio =
+            Portfolio(
+                Constants.TEST,
+                currency = SGD,
+                base = SGD
+            )
+        val cpfAsset =
+            Asset(
+                code = RUBY_CPF,
+                id = RUBY_CPF,
+                name = "Ruby CPF",
+                market = Market("PRIVATE"),
+                priceSymbol = RUBY_CPF,
+                category = AssetCategory.POLICY
+            )
+        val positions = Positions(portfolio)
+        accumulator.accumulate(
+            Trn(
+                trnType = TrnType.BALANCE,
+                asset = cpfAsset,
+                quantity = BigDecimal("68000"),
+                tradeAmount = BigDecimal("68000"),
+                cashCurrency = SGD,
+                tradeCurrency = SGD,
+                tradeCashRate = BigDecimal.ONE,
+                tradeBaseRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal.ONE,
+                portfolio = portfolio,
+                subAccounts =
+                    mapOf(
+                        "OA" to BigDecimal("30000"),
+                        "SA" to BigDecimal("20000"),
+                        "MA" to BigDecimal("18000")
+                    )
+            ),
+            positions
+        )
+        val position =
+            accumulator.accumulate(
+                Trn(
+                    trnType = TrnType.ADD,
+                    asset = cpfAsset,
+                    quantity = BigDecimal("2312.50"),
+                    tradeAmount = BigDecimal("2312.50"),
+                    cashCurrency = SGD,
+                    tradeCurrency = SGD,
+                    tradeCashRate = BigDecimal.ONE,
+                    tradeBaseRate = BigDecimal.ONE,
+                    tradePortfolioRate = BigDecimal.ONE,
+                    portfolio = portfolio,
+                    subAccounts =
+                        mapOf(
+                            "OA" to BigDecimal("1312.81"),
+                            "SA" to BigDecimal("437.29"),
+                            "MA" to BigDecimal("562.40")
+                        )
+                ),
+                positions
+            )
+
+        assertThat(position.subAccounts)
+            .containsEntry("OA", BigDecimal("31312.81"))
+            .containsEntry("SA", BigDecimal("20437.29"))
+            .containsEntry("MA", BigDecimal("18562.40"))
+    }
 }

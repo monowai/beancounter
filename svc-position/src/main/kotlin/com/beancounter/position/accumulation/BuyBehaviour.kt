@@ -41,6 +41,18 @@ class BuyBehaviour(
             updatePurchases(moneyValues, trn.tradeAmount, rate, position)
         }
 
+        // ADD maps to BuyBehaviour (see TrnBehaviourFactory). A composite ADD —
+        // e.g. a CPF payslip contribution — carries a sub-account split that
+        // must accrue onto the position breakdown, otherwise the rolled-up
+        // total grows but the per-bucket balances (and the Medisave healthcare
+        // reserve) drift. Mirrors DepositBehaviour. No-op for a plain BUY.
+        if (!trn.subAccounts.isNullOrEmpty()) {
+            trn.subAccounts!!.forEach { (code, amount) ->
+                position.subAccounts[code] =
+                    (position.subAccounts[code] ?: BigDecimal.ZERO).add(amount)
+            }
+        }
+
         return position
     }
 

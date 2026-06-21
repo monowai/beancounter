@@ -6,6 +6,8 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
@@ -13,9 +15,11 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
+import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
@@ -39,6 +43,12 @@ class OffboardingServiceTest {
 
     @Autowired
     private lateinit var taxRateService: TaxRateService
+
+    @Autowired
+    private lateinit var trnRepository: TrnRepository
+
+    @Autowired
+    private lateinit var jdbcTemplate: JdbcTemplate
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -220,6 +230,94 @@ class OffboardingServiceTest {
         assertThat(result.success).isTrue()
         assertThat(result.type).isEqualTo("account")
         assertThat(result.message).isEqualTo("Account and all data deleted")
+    }
+
+    // Regression guard for Sentry DATA-5P / DATA-5Q. Offboarding deletes a
+    // portfolio's transactions and then the portfolio itself; production
+    // Postgres carries a legacy `ON DELETE CASCADE` on `trn.portfolio_id`
+    // (not declared on the entity and never rewritten by `ddl-auto: update`),
+    // so the portfolio delete cascade-removed the trn rows out from under the
+    // explicit per-row delete -> StaleStateException. The fix makes the trn
+    // deletes idempotent bulk operations. These tests install the same cascade
+    // FK on the H2 schema and assert offboarding completes for a user whose
+    // transaction references both a user-owned asset and their portfolio.
+    private fun installPortfolioCascade() {
+        val existing =
+            jdbcTemplate.queryForList(
+                "SELECT constraint_name FROM information_schema.key_column_usage " +
+                    "WHERE table_name = 'trn' AND column_name = 'portfolio_id'",
+                String::class.java
+            )
+        if (existing.contains("fk_trn_pf_cascade")) return
+        existing.forEach { jdbcTemplate.execute("ALTER TABLE \"trn\" DROP CONSTRAINT \"$it\"") }
+        jdbcTemplate.execute(
+            "ALTER TABLE \"trn\" ADD CONSTRAINT \"fk_trn_pf_cascade\" " +
+                "FOREIGN KEY (\"portfolio_id\") REFERENCES \"portfolio\"(\"id\") ON DELETE CASCADE"
+        )
+    }
+
+    private fun seedWealthWithOverlappingTrn(user: SystemUser) {
+        installPortfolioCascade()
+        val portfolios =
+            portfolioService.save(
+                listOf(
+                    PortfolioInput(
+                        code = "OFFBOARD-OVERLAP",
+                        name = "Overlap Portfolio",
+                        currency = NZD.code
+                    )
+                )
+            )
+        val asset =
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            "test" to
+                                AssetInput.toRealEstate(
+                                    currency = NZD,
+                                    code = "OFFBOARD-OVERLAP-HOUSE",
+                                    name = "Overlap House",
+                                    owner = user.id
+                                )
+                        )
+                    )
+                ).data["test"]!!
+
+        trnRepository.save(
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = BigDecimal("1"),
+                portfolio = portfolios.first()
+            )
+        )
+    }
+
+    @Test
+    fun `should delete wealth when a transaction links a user-owned asset and portfolio`() {
+        val user = SystemUser(id = "offboard-overlap-wealth", email = "offboard-overlap-wealth@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        seedWealthWithOverlappingTrn(user)
+
+        val result = offboardingService.deleteUserWealth()
+
+        assertThat(result.success).isTrue()
+        val summary = offboardingService.getSummary()
+        assertThat(summary.portfolioCount).isEqualTo(0)
+        assertThat(summary.assetCount).isEqualTo(0)
+    }
+
+    @Test
+    fun `should delete account when a transaction links a user-owned asset and portfolio`() {
+        val user = SystemUser(id = "offboard-overlap-account", email = "offboard-overlap-account@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        seedWealthWithOverlappingTrn(user)
+
+        val result = offboardingService.deleteUserAccount()
+
+        assertThat(result.success).isTrue()
+        assertThat(result.type).isEqualTo("account")
     }
 
     @Test

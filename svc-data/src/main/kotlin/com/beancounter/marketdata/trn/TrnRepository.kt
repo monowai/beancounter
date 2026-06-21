@@ -45,9 +45,30 @@ interface TrnRepository :
         status: TrnStatus
     ): Collection<Trn>
 
-    fun deleteByPortfolioId(portfolioId: String): Long
+    /**
+     * Bulk delete of a portfolio's transactions. Issued as a single SQL
+     * DELETE (not a select-then-remove) so it is idempotent: if the rows are
+     * already gone — e.g. removed by the legacy `ON DELETE CASCADE` on
+     * `trn.portfolio_id` when the portfolio itself is deleted — it simply
+     * affects 0 rows instead of raising StaleStateException. See offboarding
+     * (Sentry DATA-5P / DATA-5Q).
+     */
+    @Modifying
+    @Query("DELETE FROM Trn t WHERE t.portfolio.id = :portfolioId")
+    fun deleteByPortfolioId(
+        @Param("portfolioId") portfolioId: String
+    ): Long
 
-    fun deleteByAssetId(assetId: String): Long
+    /**
+     * Bulk delete of every transaction whose trade asset is [assetId].
+     * Idempotent for the same reason as [deleteByPortfolioId]; cash-asset
+     * references (a different column) are untouched — see [existsByCashAssetId].
+     */
+    @Modifying
+    @Query("DELETE FROM Trn t WHERE t.asset.id = :assetId")
+    fun deleteByAssetId(
+        @Param("assetId") assetId: String
+    ): Long
 
     /**
      * True if any transaction holds the asset as its trade asset.

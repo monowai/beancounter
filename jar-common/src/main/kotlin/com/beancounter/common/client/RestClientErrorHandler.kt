@@ -50,7 +50,7 @@ class RestClientErrorHandler : ResponseErrorHandler {
         // otherwise generate a Sentry event per fallback. 5xx is a real
         // server-side problem and stays at ERROR.
         if (response.statusCode.is4xxClientError) {
-            log.warn("HTTP error [$statusCode] $reason")
+            log.trace("HTTP error [$statusCode] $reason")
         } else {
             log.error("HTTP error [$statusCode] $reason")
         }

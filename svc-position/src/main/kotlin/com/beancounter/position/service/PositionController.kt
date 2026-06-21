@@ -69,7 +69,7 @@ class PositionController(
         description = """
             Retrieves portfolio positions using the portfolio's internal ID.
             Calculates current positions and valuations as of the specified date.
-            
+
             Use this to:
             * Get detailed position information for a portfolio
             * Calculate portfolio valuations at specific dates
@@ -151,7 +151,7 @@ class PositionController(
         description = """
             Retrieves portfolio positions using the portfolio's code.
             Calculates current positions and valuations as of the specified date.
-            
+
             Use this to:
             * Get position information using portfolio codes
             * Calculate valuations for specific dates
@@ -193,7 +193,6 @@ class PositionController(
             defaultValue = "true"
         ) value: Boolean
     ): PositionResponse {
-        log.debug("asAt: $asAt")
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
         return valuationService.getPositions(
             portfolio,

@@ -160,4 +160,17 @@ class OAuthConfigTest {
         val decoder = OAuthConfig().jwtDecoder(authConfig)
         assertThat(decoder).isNotNull
     }
+
+    @Test
+    fun `should build decoder when JWKS unreachable at startup`() {
+        // Auth0 down during boot must not crash the context: the decoder still
+        // builds (falling back to RSA/EC), keys are fetched lazily on first token.
+        WireMock.stubFor(
+            WireMock
+                .get("/.well-known/jwks.json")
+                .willReturn(WireMock.aResponse().withStatus(503))
+        )
+        val decoder = OAuthConfig().jwtDecoder(authConfig)
+        assertThat(decoder).isNotNull
+    }
 }

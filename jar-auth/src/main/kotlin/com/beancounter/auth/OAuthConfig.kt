@@ -108,7 +108,13 @@ class OAuthConfig {
                 }
             }
         } catch (ex: KeySourceException) {
-            throw IllegalStateException("Failed to retrieve JWK keys", ex)
+            // Auth0 unreachable during startup must NOT crash the context: enumerating
+            // algorithms is an optimisation, not a hard requirement. Fall back to the
+            // standard RSA/EC families; the keys themselves are still fetched lazily
+            // (retrying + caching jwkSource) when the first token is validated.
+            log.warn("JWKS unavailable at startup, defaulting to RSA/EC algorithms: {}", ex.message)
+            algorithms.addAll(JWSAlgorithm.Family.RSA)
+            algorithms.addAll(JWSAlgorithm.Family.EC)
         }
         check(algorithms.isNotEmpty()) { "Failed to find any algorithms from the JWK set" }
         return algorithms

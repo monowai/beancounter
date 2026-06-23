@@ -237,6 +237,7 @@ class PositionValuationService(
         moneyValuesGroup: MoneyValuesGroup
     ) {
         val roi = calculationSupport.calculateRoi(moneyValuesGroup.tradeMoneyValues)
+        anchorOpeningCostBasis(positionContext.position, moneyValuesGroup.tradeMoneyValues)
         positionContext.position.periodicCashFlows.add(positionContext.position, positionContext.asAtDate)
         positionContext.positions.periodicCashFlows.addAll(positionContext.position.periodicCashFlows.cashFlows)
 
@@ -245,6 +246,42 @@ class PositionValuationService(
         calculationSupport.updateTotals(totalsGroup.tradeTotals, moneyValuesGroup.tradeMoneyValues, roi, irr)
         calculationSupport.updateTotals(totalsGroup.baseTotals, moneyValuesGroup.baseMoneyValues, roi, irr)
         calculationSupport.updateTotals(totalsGroup.refTotals, moneyValuesGroup.portfolioMoneyValues, roi, irr)
+    }
+
+    /**
+     * Anchor the IRR investment to the position's cost basis.
+     *
+     * A `BALANCE` snapshot (CPF, pensions) records its opening principal as a
+     * cost-basis entry, NOT a cash transaction — so it is absent from the IRR
+     * cash flows, while the terminal market value (added next) DOES include it.
+     * That asymmetry makes the opening principal look like pure return (e.g. a
+     * property-less CPF balance reporting a 3805% IRR). Cost basis is tracked
+     * correctly (snapshot-aware) by BalanceBehaviour, so when the recorded
+     * investment (sum of negative cash flows) falls short of it, prepend the
+     * shortfall as an opening investment cash flow at the holding's open date.
+     * For ordinary traded positions the cash flows already equal cost basis, so
+     * the shortfall is ~0 and this is a no-op.
+     */
+    private fun anchorOpeningCostBasis(
+        position: com.beancounter.common.model.Position,
+        tradeMoneyValues: com.beancounter.common.model.MoneyValues
+    ) {
+        val costBasis = tradeMoneyValues.costValue.toDouble()
+        if (costBasis <= 0.0) return
+        val recordedInvestment =
+            position.periodicCashFlows.cashFlows
+                .filter { it.amount < 0.0 }
+                .sumOf { -it.amount }
+        val shortfall = costBasis - recordedInvestment
+        if (shortfall > 0.01) {
+            position.periodicCashFlows.cashFlows.add(
+                0,
+                com.beancounter.common.model.CashFlow(
+                    -shortfall,
+                    position.dateValues.opened ?: position.dateValues.firstTransaction ?: return
+                )
+            )
+        }
     }
 
     /**

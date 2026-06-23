@@ -193,6 +193,56 @@ class PositionValuationServiceTest {
     }
 
     @Test
+    fun `BALANCE-established position anchors IRR opening investment to cost basis`() {
+        // Mary's CPF (Retirement Fund, non-cash): opening BALANCE 88,000 sets
+        // cost basis but is NOT a cash flow, while the terminal market value
+        // includes it -> the principal looked like pure return (3805% IRR).
+        // The valuation must prepend the cost-basis shortfall as an opening
+        // investment cash flow. Cost basis 90,312.5, recorded ADD -2,312.5 ->
+        // expected anchor -88,000.
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("CPF_LIKE", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+        position.dateValues.opened = LocalDate.now().minusDays(400)
+        position.quantityValues.purchased = BigDecimal.TEN
+        // Only the small contribution was recorded as a cash flow; the 88,000
+        // opening balance is missing (BALANCE is excluded from cash flows).
+        position.periodicCashFlows.cashFlows.add(
+            com.beancounter.common.model
+                .CashFlow(-2312.5, LocalDate.now().minusDays(400))
+        )
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val mockMoneyValues = MoneyValues(portfolio.currency)
+        mockMoneyValues.costValue = BigDecimal("90312.5")
+        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+            .thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal("0.38"))
+        whenever(irrCalculator.calculate(any())).thenReturn(0.0)
+
+        valuationService.value(positions, assetInputs)
+
+        val captor = org.mockito.kotlin.argumentCaptor<com.beancounter.common.model.PeriodicCashFlows>()
+        verify(irrCalculator, org.mockito.kotlin.atLeastOnce()).calculate(captor.capture())
+        val anchored =
+            captor.allValues.any { pcf ->
+                pcf.cashFlows.any { kotlin.math.abs(it.amount - (-88000.0)) < 0.01 }
+            }
+        assertThat(anchored)
+            .`as`("opening cost-basis shortfall (-88000) prepended as investment cash flow")
+            .isTrue()
+    }
+
+    @Test
     fun `should use IRR calculator for positions held longer than minHoldingDays`() {
         // Given - position opened 400 days ago (more than 365 day threshold)
         whenever(tokenService.bearerToken).thenReturn("Token Value")

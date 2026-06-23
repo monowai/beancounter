@@ -37,6 +37,54 @@ class IrrCalculatorTests {
     private val dateUtils = DateUtils()
 
     @Test
+    fun `opening cost basis must be present or terminal value reads as pure return`() {
+        // Mary's SGD portfolio CPF (Retirement Fund) position, on kauri:
+        //   BALANCE 88,000 (06-22)  -> excluded from cashflows (shouldAddToCashFlows drops BALANCE)
+        //   ADD     2,312.5 (06-22) -> cashflow -2312.5 (cash=0 => -tradeAmount)
+        //   terminal market value   -> +90,312.5 (06-24), which INCLUDES the 88,000 balance
+        // The 88,000 opening balance shows up as pure return with no matching
+        // investment -> simpleRoi = (90312.5 - 2312.5)/2312.5 = 38.054054 (3805%).
+        val polluted = PeriodicCashFlows()
+        polluted.addAll(
+            listOf(
+                com.beancounter.common.model
+                    .CashFlow(-2312.5, java.time.LocalDate.of(2026, 6, 22)),
+                com.beancounter.common.model
+                    .CashFlow(90312.5, java.time.LocalDate.of(2026, 6, 24))
+            )
+        )
+        assertThat(irrService.calculate(polluted))
+            .`as`("reproduces the live 3805% bug")
+            .isEqualTo(
+                38.054054,
+                org.assertj.core.api.Assertions
+                    .within(0.0001)
+            )
+
+        // If the opening BALANCE is counted as the cost basis (-88,000), the
+        // position's IRR collapses to ~0 — the expected money-weighted return
+        // for a balance-funded holding with no real gain.
+        val corrected = PeriodicCashFlows()
+        corrected.addAll(
+            listOf(
+                com.beancounter.common.model
+                    .CashFlow(-88000.0, java.time.LocalDate.of(2026, 6, 22)),
+                com.beancounter.common.model
+                    .CashFlow(-2312.5, java.time.LocalDate.of(2026, 6, 22)),
+                com.beancounter.common.model
+                    .CashFlow(90312.5, java.time.LocalDate.of(2026, 6, 24))
+            )
+        )
+        assertThat(irrService.calculate(corrected))
+            .`as`("opening balance as cost basis -> IRR ~ 0")
+            .isEqualTo(
+                0.0,
+                org.assertj.core.api.Assertions
+                    .within(0.0005)
+            )
+    }
+
+    @Test
     fun `should handle empty cash flows without failing`() {
         // Given empty cash flows
         val cashFlows = listOf<Pair<String, Double>>()

@@ -8,6 +8,7 @@ import com.beancounter.marketdata.providers.MarketDataRepo
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import java.math.BigDecimal
 
 /**
@@ -40,9 +41,17 @@ class EodhdEventService(
             return PriceResponse(marketDataRepo.findEventsByAssetId(asset.id))
         }
         val symbol = eodhdConfig.getPriceCode(asset)
-        val divs = eodhdProxy.getDividends(symbol, eodhdConfig.apiKey).map { toDividendRow(asset, it) }
-        val splits = eodhdProxy.getSplits(symbol, eodhdConfig.apiKey).map { toSplitRow(asset, it) }
-        return PriceResponse(divs + splits)
+        return try {
+            val divs = eodhdProxy.getDividends(symbol, eodhdConfig.apiKey).map { toDividendRow(asset, it) }
+            val splits = eodhdProxy.getSplits(symbol, eodhdConfig.apiKey).map { toSplitRow(asset, it) }
+            PriceResponse(divs + splits)
+        } catch (e: RestClientException) {
+            // A provider I/O blip must not 500 the events endpoint — bc-event consumes it on
+            // a RabbitMQ listener, and a 500 exhausts the retry policy and drops the message
+            // (EVENT-1F). Degrade to repository-cached events like the unsupported-market path.
+            log.warn("EODHD events fetch failed for {} — falling back to stored events: {}", asset.code, e.message)
+            PriceResponse(marketDataRepo.findEventsByAssetId(asset.id))
+        }
     }
 
     private fun isMarketSupported(marketCode: String): Boolean {

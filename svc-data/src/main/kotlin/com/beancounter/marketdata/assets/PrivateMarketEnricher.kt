@@ -24,7 +24,15 @@ class PrivateMarketEnricher(
         market: Market,
         assetInput: AssetInput
     ): Asset {
-        val systemUser = systemUserService.getOrThrow()
+        // Trusted callers (e.g. the RabbitMQ CSV-import consumer) supply the owner on the
+        // AssetInput and run on a thread with no JWT in scope. Prefer that owner so the
+        // resolution doesn't hit getOrThrow → "Not authorised" (DATA-4Z). The interactive
+        // HTTP path leaves owner blank and falls back to the authenticated caller.
+        val systemUser =
+            assetInput.owner
+                .takeIf { it.isNotBlank() }
+                ?.let { systemUserService.findById(it) }
+                ?: systemUserService.getOrThrow()
         val currencyCode =
             assetInput.currency
                 ?: throw BusinessException("Currency required for private asset ${assetInput.code}")

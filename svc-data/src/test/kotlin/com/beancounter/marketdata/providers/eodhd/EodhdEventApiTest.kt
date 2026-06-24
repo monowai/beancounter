@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -99,6 +100,29 @@ internal class EodhdEventApiTest {
 
         val response = eodhdEventService.getEvents(empty)
 
+        assertThat(response.data).isEmpty()
+    }
+
+    @Test
+    fun `getEvents degrades to stored events when EODHD drops the connection`() {
+        // bc-event consumes this on a RabbitMQ listener; a provider I/O error must not 500
+        // (which exhausts the retry policy and drops the message — EVENT-1F). Degrade to the
+        // repository instead. Distinct asset id keeps the @Cacheable result isolated.
+        val flaky =
+            Asset(
+                id = "asset-flaky",
+                code = "FLAKY",
+                market = Market("LON"),
+                category = AssetCategory.INDEX
+            )
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/div/FLAKY.LSE"))
+                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+        )
+
+        val response = eodhdEventService.getEvents(flaky)
+
+        // No stored events for this asset → empty, but crucially no exception propagated.
         assertThat(response.data).isEmpty()
     }
 

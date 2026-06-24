@@ -17,6 +17,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.broker.BrokerSettlementAccount
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
+import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
@@ -63,6 +64,9 @@ class OffboardingServiceTest {
 
     @Autowired
     private lateinit var assetRepository: AssetRepository
+
+    @Autowired
+    private lateinit var portfolioRepository: PortfolioRepository
 
     @Autowired
     private lateinit var systemUserRepository: SystemUserRepository
@@ -482,8 +486,8 @@ class OffboardingServiceTest {
         assertThat(after).isPresent
         assertThat(after.get().active).isFalse()
         assertThat(after.get().cashPortfolioId).isNull()
-        // User survives (inactive), so getSummary still resolves them — and their
-        // data is gone.
-        assertThat(offboardingService.getSummary().portfolioCount).isEqualTo(0)
+        // Data is gone. (getSummary can't be used — a deactivated user no longer
+        // resolves via getActiveUser, by design.)
+        assertThat(portfolioRepository.findByOwner(after.get())).isEmpty()
     }
 }

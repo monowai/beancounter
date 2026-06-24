@@ -226,6 +226,11 @@ class SystemUserServiceTest {
         systemUserCache.evictAll()
         assertThat(systemUserRepository.findById(first.id).get().active).isFalse()
 
+        // Deactivated user is invisible to the default resolver (forces logout),
+        // but still findable for the /register reactivation path.
+        assertThat(systemUserService.getActiveUser()).isNull()
+        assertThat(systemUserService.getActiveUser(includeInactive = true)).isNotNull
+
         // Signing up again reactivates the SAME account, not a new row.
         val second = systemUserService.register().data
         assertThat(second.id).isEqualTo(first.id)

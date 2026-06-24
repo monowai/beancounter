@@ -46,6 +46,12 @@ class SystemUserServiceTest {
     @Autowired
     lateinit var authUtilService: AuthUtilService
 
+    @Autowired
+    lateinit var systemUserRepository: SystemUserRepository
+
+    @Autowired
+    lateinit var systemUserCache: SystemUserCache
+
     @Test
     fun `should fail to register user with no email`() {
         val auth0User =
@@ -195,6 +201,41 @@ class SystemUserServiceTest {
                 AUTH0,
                 AUTH0ID
             )
+    }
+
+    @Test
+    fun `should reactivate a deactivated user on re-registration`() {
+        val auth0User =
+            SystemUser(
+                email = "reactivate@auth0",
+                auth0 = AUTH0ID
+            )
+        authUtilService.authenticate(
+            auth0User,
+            AuthUtilService.AuthProvider.AUTH0
+        )
+        val first = systemUserService.register().data
+        assertThat(first.active).isTrue()
+
+        // Simulate the offboarding soft-delete: mark inactive in the DB and drop
+        // the cache (deleteUserAccount's deactivate path is covered by
+        // OffboardingServiceTest).
+        systemUserRepository.save(
+            systemUserRepository.findById(first.id).get().apply { active = false }
+        )
+        systemUserCache.evictAll()
+        assertThat(systemUserRepository.findById(first.id).get().active).isFalse()
+
+        // Deactivated user is invisible to the default resolver (forces logout),
+        // but still findable for the /register reactivation path.
+        assertThat(systemUserService.getActiveUser()).isNull()
+        assertThat(systemUserService.getActiveUser(includeInactive = true)).isNotNull
+
+        // Signing up again reactivates the SAME account, not a new row.
+        val second = systemUserService.register().data
+        assertThat(second.id).isEqualTo(first.id)
+        assertThat(second.active).isTrue()
+        assertThat(systemUserRepository.findById(first.id).get().active).isTrue()
     }
 
     @Test

@@ -180,7 +180,13 @@ class OffboardingService(
             systemUserService.getActiveUser()
                 ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
 
-        // Delete in order of FK dependencies
+        // Soft-delete: deactivate the user and clear its cash-portfolio link up
+        // front. The user row SURVIVES offboarding (re-registration reactivates
+        // it), so cash_portfolio_id — a NO-ACTION FK to portfolio — must be nulled
+        // before the portfolios below are deleted or the surviving row dangles.
+        systemUserRepository.deactivate(user.id)
+
+        // Delete data in order of FK dependencies
         // 1. Delete portfolios and their transactions
         val portfolios = portfolioRepository.findByOwner(user).toList()
         portfolios.forEach { portfolio ->
@@ -215,14 +221,12 @@ class OffboardingService(
             userPreferencesRepository.delete(it)
         }
 
-        // 6. Delete the user record
-        systemUserRepository.delete(user)
-
-        // 7. Evict from cache
+        // 6. User row already deactivated above (not deleted) — evict the cache
+        //    so the inactive state is re-read on the next request.
         systemUserCache.evictAll()
 
         log.info(
-            "Deleted account for user {}: {} portfolios, {} assets, {} brokers",
+            "Deactivated account for user {}: deleted {} portfolios, {} assets, {} brokers",
             user.id,
             portfolios.size,
             assets.size,
@@ -233,7 +237,7 @@ class OffboardingService(
             success = true,
             deletedCount = 1,
             type = "account",
-            message = "Account and all data deleted"
+            message = "Account deactivated and all data deleted"
         )
     }
 }

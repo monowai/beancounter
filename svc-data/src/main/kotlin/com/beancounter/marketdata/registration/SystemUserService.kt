@@ -77,17 +77,31 @@ class SystemUserService(
                     systemUserRepository.findByEmail(email).orElseThrow {
                         IllegalStateException("Failed to get or create user for $email")
                     }
-                RegistrationResponse(authProviders.capture(existing, jwt))
+                RegistrationResponse(authProviders.capture(reactivate(existing), jwt))
             }
         } else {
+            // Existing user. If they previously offboarded (soft-deleted), signing
+            // up again reactivates the same account rather than orphaning them.
             RegistrationResponse(
                 authProviders.capture(
-                    result,
+                    reactivate(result),
                     jwt
                 )
             )
         }
     }
+
+    /**
+     * Re-enable a previously offboarded (deactivated) user on re-registration.
+     * No-op for an already-active user.
+     */
+    private fun reactivate(user: SystemUser): SystemUser =
+        if (user.active) {
+            user
+        } else {
+            log.info("Reactivating offboarded user {}", user.id)
+            save(user.apply { active = true })
+        }
 
     companion object {
         const val USER_NOT_AUTHENTICATED = "User not authenticated"
@@ -131,7 +145,17 @@ class SystemUserService(
      */
     fun findById(id: String): SystemUser? = systemUserRepository.findById(id).orElse(null)
 
-    fun getActiveUser(): SystemUser? = find(tokenService.subject)
+    /**
+     * Resolve the caller's SystemUser. By default an offboarded (deactivated)
+     * user resolves to null so their session is effectively dead — protected
+     * endpoints get [ForbiddenException] via [getOrThrow] and the UI forces a
+     * logout. Pass [includeInactive] = true only where a deactivated user must
+     * still be found, e.g. the /register reactivation path.
+     */
+    fun getActiveUser(includeInactive: Boolean = false): SystemUser? {
+        val user = find(tokenService.subject) ?: return null
+        return if (includeInactive || user.active) user else null
+    }
 
     fun getOrThrow(): SystemUser {
         if (isServiceAccount()) {

@@ -17,6 +17,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.broker.BrokerSettlementAccount
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
+import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
@@ -63,6 +64,12 @@ class OffboardingServiceTest {
 
     @Autowired
     private lateinit var assetRepository: AssetRepository
+
+    @Autowired
+    private lateinit var portfolioRepository: PortfolioRepository
+
+    @Autowired
+    private lateinit var systemUserRepository: SystemUserRepository
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -243,7 +250,7 @@ class OffboardingServiceTest {
 
         assertThat(result.success).isTrue()
         assertThat(result.type).isEqualTo("account")
-        assertThat(result.message).isEqualTo("Account and all data deleted")
+        assertThat(result.message).isEqualTo("Account deactivated and all data deleted")
     }
 
     // Regression guard for Sentry DATA-5P / DATA-5Q. Offboarding deletes a
@@ -371,7 +378,7 @@ class OffboardingServiceTest {
         val result = offboardingService.deleteUserAccount()
 
         assertThat(result.success).isTrue()
-        assertThat(result.message).isEqualTo("Account and all data deleted")
+        assertThat(result.message).isEqualTo("Account deactivated and all data deleted")
         assertThat(brokerRepository.findByOwner(user)).isEmpty()
     }
 
@@ -407,7 +414,7 @@ class OffboardingServiceTest {
         val accountResult = offboardingService.deleteUserAccount()
 
         assertThat(accountResult.success).isTrue()
-        assertThat(accountResult.message).isEqualTo("Account and all data deleted")
+        assertThat(accountResult.message).isEqualTo("Account deactivated and all data deleted")
     }
 
     // Regression guard (kauri 409): broker_settlement_account FKs to BOTH broker and the cash
@@ -441,11 +448,46 @@ class OffboardingServiceTest {
 
         val result = offboardingService.deleteUserAccount()
 
-        // Assert via repositories, not getSummary — the SystemUser is gone after the
-        // account delete, so getSummary can no longer resolve the caller.
         assertThat(result.success).isTrue()
-        assertThat(result.message).isEqualTo("Account and all data deleted")
+        assertThat(result.message).isEqualTo("Account deactivated and all data deleted")
         assertThat(brokerRepository.findByOwner(user)).isEmpty()
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+    }
+
+    // Soft-delete: offboarding deletes the user's DATA but keeps the SystemUser row
+    // marked inactive (re-registration reactivates it). cash_portfolio_id must be
+    // cleared so the surviving row does not dangle a deleted portfolio.
+    @Test
+    fun `should deactivate the user and keep the record on account deletion`() {
+        val user = SystemUser(id = "offboard-soft-user", email = "offboard-soft@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        val saved =
+            portfolioService
+                .save(
+                    listOf(
+                        PortfolioInput(
+                            code = "OFFBOARD-SOFT",
+                            name = "Soft Delete Portfolio",
+                            currency = USD.code
+                        )
+                    )
+                ).first()
+        // Point the user's account-wide cash portfolio at the portfolio about to be
+        // deleted (the prod FK we must null before deletion).
+        val persisted = systemUserRepository.findById(user.id).orElseThrow()
+        persisted.cashPortfolioId = saved.id
+        systemUserRepository.save(persisted)
+
+        val result = offboardingService.deleteUserAccount()
+
+        assertThat(result.success).isTrue()
+        val after = systemUserRepository.findById(user.id)
+        assertThat(after).isPresent
+        assertThat(after.get().active).isFalse()
+        assertThat(after.get().cashPortfolioId).isNull()
+        // Data is gone. (getSummary can't be used — a deactivated user no longer
+        // resolves via getActiveUser, by design.)
+        assertThat(portfolioRepository.findByOwner(after.get())).isEmpty()
     }
 }

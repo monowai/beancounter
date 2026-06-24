@@ -35,6 +35,23 @@ private const val OPAQUE_ERROR = "agent-error"
 private fun textResponse(chunk: String): ChatResponse = ChatResponse(listOf(Generation(AssistantMessage(chunk))))
 
 /**
+ * Reproduce the production transient-DNS failure shape: a Spring
+ * [org.springframework.web.reactive.function.client.WebClientRequestException]
+ * whose cause chain ends in [java.nio.channels.UnresolvedAddressException] —
+ * exactly what bc-agent logged when api.deepseek.com briefly failed to resolve.
+ */
+private fun transientConnectError(): Throwable {
+    val dns = java.nio.channels.UnresolvedAddressException()
+    val connect = java.net.ConnectException("Connection failed").apply { initCause(dns) }
+    return org.springframework.web.reactive.function.client.WebClientRequestException(
+        connect,
+        org.springframework.http.HttpMethod.POST,
+        java.net.URI.create("https://api.deepseek.com/chat/completions"),
+        org.springframework.http.HttpHeaders()
+    )
+}
+
+/**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
  * Spring AI tool calling, which is exercised end-to-end against a real LLM —
  * not in a unit test. Here we only check the controller's contract: health
@@ -388,6 +405,113 @@ class AgentControllerTest {
         assertThat(last.event()).isEqualTo(EVENT_ERROR)
         assertThat(last.data()).isEqualTo(OPAQUE_ERROR)
         assertThat(last.data()).doesNotContain("boom")
+    }
+
+    @Test
+    fun `stream retries a transient connect failure then emits the recovered tokens`() {
+        // The DeepSeek WebClient occasionally fails to resolve api.deepseek.com
+        // (UnresolvedAddressException) for a sub-second DNS blip. Such a failure
+        // happens at connection time — before any token is emitted — so the
+        // stream must retry rather than surface a user-facing error.
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        val attempts =
+            java.util.concurrent.atomic
+                .AtomicInteger(0)
+        whenever(streamResponse.chatResponse())
+            .thenReturn(
+                Flux.defer {
+                    if (attempts.getAndIncrement() == 0) {
+                        Flux.error(transientConnectError())
+                    } else {
+                        Flux.just(textResponse("recovered"))
+                    }
+                }
+            )
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(attempts.get()).isEqualTo(2)
+        assertThat(events.map { it.event() }).containsExactly(EVENT_TOKEN, EVENT_DONE)
+        assertThat(events[0].data()).isEqualTo("recovered")
+    }
+
+    @Test
+    fun `stream does not retry a non-transient error`() {
+        // A provider-side 4xx is deterministic — retrying only delays the
+        // inevitable error envelope and wastes provider quota.
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        val attempts =
+            java.util.concurrent.atomic
+                .AtomicInteger(0)
+        whenever(streamResponse.chatResponse())
+            .thenReturn(
+                Flux.defer {
+                    attempts.getAndIncrement()
+                    Flux.error<ChatResponse>(RuntimeException("HTTP 400 invalid_request"))
+                }
+            )
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(attempts.get()).isEqualTo(1)
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_ERROR)
+    }
+
+    @Test
+    fun `stream does not retry a transient failure once tokens have been emitted`() {
+        // Retrying after content has already streamed to the client would
+        // duplicate the emitted tokens. Once the first token is out, a later
+        // connectivity drop must surface as an error, not a silent re-run.
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        val attempts =
+            java.util.concurrent.atomic
+                .AtomicInteger(0)
+        whenever(streamResponse.chatResponse())
+            .thenReturn(
+                Flux.defer {
+                    attempts.getAndIncrement()
+                    Flux
+                        .just(textResponse("partial"))
+                        .concatWith(Flux.error(transientConnectError()))
+                }
+            )
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(attempts.get()).isEqualTo(1)
+        assertThat(events.map { it.event() }).containsExactly(EVENT_TOKEN, EVENT_ERROR)
+        assertThat(events[0].data()).isEqualTo("partial")
     }
 
     @Test

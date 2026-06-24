@@ -5,6 +5,7 @@ import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
+import com.beancounter.common.model.Broker
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
@@ -12,6 +13,7 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
@@ -49,6 +51,9 @@ class OffboardingServiceTest {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @Autowired
+    private lateinit var brokerRepository: BrokerRepository
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -342,5 +347,57 @@ class OffboardingServiceTest {
         assertThat(result.success).isTrue()
         assertThat(result.deletedCount).isEqualTo(0)
         assertThat(result.message).isEqualTo("No portfolios to delete")
+    }
+
+    @Test
+    fun `should delete brokers on account deletion`() {
+        val user = SystemUser(id = "offboard-broker-user", email = "offboard-broker@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        brokerRepository.save(Broker(name = "Test Broker", owner = user))
+
+        val summaryBefore = offboardingService.getSummary()
+        assertThat(summaryBefore.brokerCount).isEqualTo(1)
+
+        val result = offboardingService.deleteUserAccount()
+
+        assertThat(result.success).isTrue()
+        assertThat(result.message).isEqualTo("Account and all data deleted")
+        assertThat(brokerRepository.findByOwner(user)).isEmpty()
+    }
+
+    // Regression guard: bc-view offboarding wizard fires /offboard/wealth and /offboard/account
+    // in parallel. The second call used to hit a StaleObjectStateException because entity-based
+    // portfolio and broker deletes fail on already-removed rows. The bulk idempotent deletes
+    // (deleteByOwnerId) must return success on a second pass with 0 matching rows.
+    @Test
+    fun `should delete account idempotently when wealth already deleted`() {
+        val user = SystemUser(id = "offboard-idempotent-user", email = "offboard-idempotent@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        portfolioService.save(
+            listOf(
+                PortfolioInput(
+                    code = "OFFBOARD-IDEM",
+                    name = "Idempotent Portfolio",
+                    currency = USD.code
+                )
+            )
+        )
+        brokerRepository.save(Broker(name = "Idempotent Broker", owner = user))
+
+        // Simulate the wizard's first call (/offboard/wealth)
+        val wealthResult = offboardingService.deleteUserWealth()
+        assertThat(wealthResult.success).isTrue()
+
+        // Re-login: deleteUserWealth evicted cache but left the SystemUser row; the account
+        // delete call re-resolves the user from the DB via the mock security context.
+        mockAuthConfig.login(user, systemUserService)
+
+        // Simulate the wizard's second call (/offboard/account) — portfolios already gone
+        val accountResult = offboardingService.deleteUserAccount()
+
+        assertThat(accountResult.success).isTrue()
+        assertThat(accountResult.message).isEqualTo("Account and all data deleted")
     }
 }

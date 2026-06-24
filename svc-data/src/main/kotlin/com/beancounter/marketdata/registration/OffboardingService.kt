@@ -3,6 +3,7 @@ package com.beancounter.marketdata.registration
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.broker.BrokerRepository
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.tax.TaxRateRepository
@@ -33,6 +34,7 @@ class OffboardingService(
     private val assetRepository: AssetRepository,
     private val trnRepository: TrnRepository,
     private val brokerRepository: BrokerRepository,
+    private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository,
     private val marketDataRepo: MarketDataRepo,
     private val taxRateRepository: TaxRateRepository,
     private val userPreferencesRepository: UserPreferencesRepository
@@ -113,17 +115,15 @@ class OffboardingService(
             )
         }
 
-        var deletedCount = 0
         portfolios.forEach { portfolio ->
             trnRepository.deleteByPortfolioId(portfolio.id)
-            portfolioRepository.delete(portfolio)
-            deletedCount++
         }
+        portfolioRepository.deleteByOwnerId(user.id)
 
-        log.info("Deleted {} portfolios for user {}", deletedCount, user.id)
+        log.info("Deleted {} portfolios for user {}", portfolios.size, user.id)
         return OffboardingResult(
             success = true,
-            deletedCount = deletedCount,
+            deletedCount = portfolios.size,
             type = "portfolios"
         )
     }
@@ -143,9 +143,9 @@ class OffboardingService(
         val portfolios = portfolioRepository.findByOwner(user).toList()
         portfolios.forEach { portfolio ->
             trnRepository.deleteByPortfolioId(portfolio.id)
-            portfolioRepository.delete(portfolio)
-            totalDeleted++
         }
+        portfolioRepository.deleteByOwnerId(user.id)
+        totalDeleted += portfolios.size
 
         // 2. Delete assets and their data
         val assets = assetRepository.findBySystemUserId(user.id)
@@ -185,8 +185,8 @@ class OffboardingService(
         val portfolios = portfolioRepository.findByOwner(user).toList()
         portfolios.forEach { portfolio ->
             trnRepository.deleteByPortfolioId(portfolio.id)
-            portfolioRepository.delete(portfolio)
         }
+        portfolioRepository.deleteByOwnerId(user.id)
 
         // 2. Delete assets and their data
         val assets = assetRepository.findBySystemUserId(user.id)
@@ -196,11 +196,11 @@ class OffboardingService(
             assetRepository.delete(asset)
         }
 
-        // 3. Delete brokers — safe to do AFTER trns are gone (trn.broker_id FK).
-        //    findByOwner returns this owner's brokers only; deleteAll respects
-        //    the per-owner unique-name + settlement-account cascades.
-        val brokers = brokerRepository.findByOwner(user)
-        brokerRepository.deleteAll(brokers)
+        // 3. Delete brokers — safe AFTER trns are gone (trn.broker_id FK).
+        //    Settlement accounts must be cleared first (broker_settlement_account.broker_id FK)
+        //    before the bulk broker delete. Both deletes are idempotent bulk operations.
+        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
+        val brokerCount = brokerRepository.deleteByOwnerId(user.id)
 
         // 4. Delete tax rates
         taxRateRepository.deleteAllByOwnerId(user.id)
@@ -221,7 +221,7 @@ class OffboardingService(
             user.id,
             portfolios.size,
             assets.size,
-            brokers.size
+            brokerCount
         )
 
         return OffboardingResult(

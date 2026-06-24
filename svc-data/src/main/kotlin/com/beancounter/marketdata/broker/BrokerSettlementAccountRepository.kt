@@ -25,4 +25,15 @@ interface BrokerSettlementAccountRepository : JpaRepository<BrokerSettlementAcco
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM BrokerSettlementAccount b WHERE b.account.id = :accountId")
     fun deleteByAccountId(accountId: String)
+
+    /**
+     * Bulk idempotent delete of all settlement accounts for brokers owned by [ownerId].
+     * Must be called before [BrokerRepository.deleteByOwnerId] to satisfy the
+     * broker_settlement_account.broker_id FK constraint.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM BrokerSettlementAccount b WHERE b.broker.owner.id = :ownerId")
+    fun deleteByBrokerOwnerId(
+        @Param("ownerId") ownerId: String
+    )
 }

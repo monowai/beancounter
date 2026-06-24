@@ -126,6 +126,30 @@ internal class EodhdEventApiTest {
         assertThat(response.data).isEmpty()
     }
 
+    @Test
+    fun `does not cache the fallback so events return once the provider recovers`() {
+        val recovering =
+            Asset(
+                id = "asset-recover",
+                code = "RECOV",
+                market = Market("LON"),
+                category = AssetCategory.INDEX
+            )
+        // First call: provider drops the connection → empty fallback. Must NOT be cached.
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/div/RECOV.LSE"))
+                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+        )
+        assertThat(eodhdEventService.getEvents(recovering).data).isEmpty()
+
+        // Provider recovers — a cached empty fallback would still answer empty here.
+        wireMock.resetAll()
+        stubArrayEndpoint("/api/div/RECOV.LSE", "mock/eodhd/AAPL-US-div.json")
+        stubArrayEndpoint("/api/splits/RECOV.LSE", "mock/eodhd/AAPL-US-splits.json")
+
+        assertThat(eodhdEventService.getEvents(recovering).data).hasSize(3)
+    }
+
     private fun stubArrayEndpoint(
         path: String,
         fixturePath: String

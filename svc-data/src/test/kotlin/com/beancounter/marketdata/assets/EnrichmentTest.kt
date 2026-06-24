@@ -122,8 +122,9 @@ class EnrichmentTest {
         val systemUserService = Mockito.mock(SystemUserService::class.java)
         val enricher: AssetEnricher = PrivateMarketEnricher(systemUserService, accountingTypeService, currencyService)
 
-        // And mocked dependencies
-        Mockito.`when`(systemUserService.getOrThrow()).thenReturn(SystemUser(testSystemUserId))
+        // And mocked dependencies. The AssetInput supplies owner "test-user", so the enricher
+        // resolves it via findById (not getOrThrow) — matching the trusted/no-JWT path.
+        Mockito.`when`(systemUserService.findById("test-user")).thenReturn(SystemUser(testSystemUserId))
         Mockito.`when`(keyGenUtils.id).thenReturn(testKeyGenId)
         Mockito.`when`(currencyService.getCode("USD")).thenReturn(USD)
         Mockito

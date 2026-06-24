@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.AccountingType
 import com.beancounter.common.model.Currency
@@ -8,6 +9,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
@@ -59,5 +61,27 @@ class PrivateMarketEnricherTest {
 
         assertThat(asset.systemUser).isEqualTo(owner)
         assertThat(asset.code).isEqualTo("owner-1.DBS")
+    }
+
+    @Test
+    fun `fails fast when a supplied owner cannot be resolved`() {
+        val enricher = PrivateMarketEnricher(systemUserService, accountingTypeService, currencyService)
+        // A supplied-but-unknown owner must not silently fall back to the JWT user, which
+        // would persist the asset under the wrong account.
+        whenever(systemUserService.findById("ghost")).thenReturn(null)
+
+        assertThatThrownBy {
+            enricher.enrich(
+                "asset-1",
+                Market(PrivateMarketEnricher.ID),
+                AssetInput(
+                    market = PrivateMarketEnricher.ID,
+                    code = "DBS",
+                    currency = "SGD",
+                    category = "ACCOUNT",
+                    owner = "ghost"
+                )
+            )
+        }.isInstanceOf(BusinessException::class.java)
     }
 }

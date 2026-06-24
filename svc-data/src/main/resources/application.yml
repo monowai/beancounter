@@ -586,7 +586,11 @@ beancounter:
       # Operators enable per-env via BEANCOUNTER_MARKET_PROVIDERS_EODHD_MARKETS.
       # Plan reference: https://eodhd.com/pricing
       eodhd:
-        url: https://eodhd.com
+        # Trailing-dot FQDN: bypasses the k8s `ndots:5` search-domain expansion (which
+        # otherwise issues 4 cluster-local lookups before the real one), cutting DNS load
+        # during the price-refresh burst. TLS still validates (cert CN matched after the
+        # resolver strips the trailing dot).
+        url: https://eodhd.com.
         # batchSize > 1 routes through `/api/eod-bulk-last-day/{exchange}` so the
         # nightly PortfolioValuationSchedule collapses N per-symbol round-trips
         # into a single HTTP call (per-symbol quota is unchanged at 1 call each).

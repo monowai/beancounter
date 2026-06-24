@@ -25,8 +25,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.HtmlUtils
 import reactor.core.publisher.Flux
+import reactor.util.retry.Retry
 import tools.jackson.databind.ObjectMapper
+import java.net.ConnectException
+import java.nio.channels.UnresolvedAddressException
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -63,6 +67,14 @@ class AgentController(
     private val clock: Clock = Clock.systemUTC()
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
+
+    private companion object {
+        // Two retries with exponential backoff (+jitter) cover the common
+        // sub-second connectivity blip without holding the request open long
+        // enough to outlast a real outage — that surfaces as the error envelope.
+        const val STREAM_RETRY_ATTEMPTS = 2L
+        val STREAM_RETRY_MIN_BACKOFF: Duration = Duration.ofMillis(250)
+    }
 
     /**
      * Anthropic-only feature: the per-call model override uses
@@ -342,7 +354,37 @@ class AgentController(
                     requestSpan = requestSpan
                 )
             }
-        return tokenEvents.concatWith(doneEvent)
+        // Transient connectivity blips (e.g. a sub-second DNS failure resolving
+        // api.deepseek.com) surface as WebClientRequestException at connect time
+        // — before any token is emitted. Retry those rather than failing the
+        // user's request. The `totalChars == 0` guard makes retries safe: once
+        // content has streamed to the client, re-running would duplicate it, so
+        // a later drop is allowed to propagate to the error envelope.
+        val retriedTokens =
+            tokenEvents.retryWhen(
+                Retry
+                    .backoff(STREAM_RETRY_ATTEMPTS, STREAM_RETRY_MIN_BACKOFF)
+                    .filter { e -> totalChars.get() == 0L && isTransientConnectivity(e) }
+                    // Surface the original cause, not Reactor's RetryExhausted
+                    // wrapper, so classifyError still maps it accurately.
+                    .onRetryExhaustedThrow { _, signal -> signal.failure() }
+            )
+        return retriedTokens.concatWith(doneEvent)
+    }
+
+    /**
+     * True when the failure is a transient network/connectivity error worth
+     * retrying — a connection or DNS-resolution failure anywhere in the cause
+     * chain. Deterministic provider errors (4xx, rate limits) are excluded so
+     * we don't retry the inevitable.
+     */
+    internal fun isTransientConnectivity(error: Throwable): Boolean {
+        var cause: Throwable? = error
+        while (cause != null) {
+            if (cause is ConnectException || cause is UnresolvedAddressException) return true
+            cause = cause.cause
+        }
+        return false
     }
 
     /**

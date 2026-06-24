@@ -173,11 +173,22 @@ class TrnBrokerService(
             )
         }
 
+    // Same-day tie-breaker for split-adjusted accumulation: buys/adds, then split, then sells.
+    private fun sameDayOrder(type: TrnType): Int =
+        when (type) {
+            TrnType.BUY, TrnType.ADD -> 0
+            TrnType.SPLIT -> 1
+            else -> 2
+        }
+
     private fun aggregateByAsset(transactions: Collection<Trn>): Map<String, AssetAggregation> {
         val assetMap = mutableMapOf<String, AssetAggregation>()
         // Chronological order matters: a SPLIT multiplies whatever quantity is held at
         // that point, so earlier buys scale up and later sells draw down the scaled total.
-        for (trn in transactions.sortedBy { it.tradeDate }) {
+        // Same-day events have no intra-day timestamp, so apply a deterministic order:
+        // buys/adds first, then the split, then sells/reduces — matching a broker ex-date
+        // where same-day trades settle against post-split share counts.
+        for (trn in transactions.sortedWith(compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) }))) {
             val asset = trn.asset
             val agg =
                 assetMap.getOrPut(asset.id) {

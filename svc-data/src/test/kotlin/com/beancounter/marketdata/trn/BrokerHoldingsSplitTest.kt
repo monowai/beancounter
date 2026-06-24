@@ -140,6 +140,62 @@ class BrokerHoldingsSplitTest {
     }
 
     @Test
+    fun `broker holdings apply same-day split before same-day sell`() {
+        val user = SystemUser(id = "broker-split-sameday", email = "broker-split-sameday@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        val broker = brokerRepository.save(Broker(name = "DBS", owner = user))
+        val portfolio =
+            portfolioService
+                .save(listOf(PortfolioInput(code = "BSPLIT-SD", name = "BSPLIT-SD", currency = USD.code)))
+                .first()
+        val asset =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, "BSPLSD"), "BSPLSD"))
+                .data["BSPLSD"]!!
+
+        val sameDay = LocalDate.of(2026, 4, 21)
+        // BUY, 4:1 SPLIT, and SELL all on the same date — split must apply before the sell.
+        trnRepository.save(
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = BigDecimal("12"),
+                portfolio = portfolio,
+                broker = broker,
+                tradeDate = sameDay
+            )
+        )
+        trnRepository.save(
+            Trn(
+                trnType = TrnType.SPLIT,
+                asset = asset,
+                quantity = BigDecimal("4"),
+                portfolio = portfolio,
+                broker = null,
+                tradeDate = sameDay
+            )
+        )
+        trnRepository.save(
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                quantity = BigDecimal("40"),
+                portfolio = portfolio,
+                broker = broker,
+                tradeDate = sameDay
+            )
+        )
+
+        val holdings = trnBrokerService.getBrokerHoldings(broker.id)
+
+        // 12 -> *4 = 48, sell 40 -> 8. A pre-split sell would yield (12-40)*4 = -112.
+        val position = holdings.holdings.firstOrNull { it.assetCode == "BSPLSD" }
+        assertThat(position).isNotNull
+        assertThat(position!!.quantity).isEqualByComparingTo("8")
+    }
+
+    @Test
     fun `findForBroker includes broker-null split for downstream accumulation`() {
         val user = SystemUser(id = "broker-split-pos-user", email = "broker-split-pos@test.com")
         mockAuthConfig.login(user, systemUserService)

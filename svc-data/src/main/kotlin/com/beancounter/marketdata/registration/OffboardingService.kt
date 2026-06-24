@@ -188,7 +188,14 @@ class OffboardingService(
         }
         portfolioRepository.deleteByOwnerId(user.id)
 
-        // 2. Delete assets and their data
+        // 2. Clear settlement accounts BEFORE assets and brokers.
+        //    broker_settlement_account has NO-ACTION FKs to BOTH the cash asset
+        //    (fk_settlement_account) and the broker (fk_settlement_broker), so the
+        //    asset and broker bulk deletes below trip those constraints unless the
+        //    settlement rows are gone first.
+        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
+
+        // 3. Delete assets and their data
         val assets = assetRepository.findBySystemUserId(user.id)
         assets.forEach { asset ->
             trnRepository.deleteByAssetId(asset.id)
@@ -196,10 +203,8 @@ class OffboardingService(
             assetRepository.delete(asset)
         }
 
-        // 3. Delete brokers — safe AFTER trns are gone (trn.broker_id FK).
-        //    Settlement accounts must be cleared first (broker_settlement_account.broker_id FK)
-        //    before the bulk broker delete. Both deletes are idempotent bulk operations.
-        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
+        // 4. Delete brokers — safe AFTER trns (trn.broker_id FK) and settlement
+        //    accounts are gone. Idempotent bulk delete.
         val brokerCount = brokerRepository.deleteByOwnerId(user.id)
 
         // 4. Delete tax rates

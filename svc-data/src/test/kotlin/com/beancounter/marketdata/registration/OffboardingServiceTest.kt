@@ -12,8 +12,11 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
+import com.beancounter.marketdata.broker.BrokerSettlementAccount
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
@@ -54,6 +57,12 @@ class OffboardingServiceTest {
 
     @Autowired
     private lateinit var brokerRepository: BrokerRepository
+
+    @Autowired
+    private lateinit var brokerSettlementAccountRepository: BrokerSettlementAccountRepository
+
+    @Autowired
+    private lateinit var assetRepository: AssetRepository
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -399,5 +408,44 @@ class OffboardingServiceTest {
 
         assertThat(accountResult.success).isTrue()
         assertThat(accountResult.message).isEqualTo("Account and all data deleted")
+    }
+
+    // Regression guard (kauri 409): broker_settlement_account FKs to BOTH broker and the cash
+    // asset (fk_settlement_account). Deleting the user's assets before clearing settlement
+    // accounts trips that NO-ACTION constraint, rolling back the whole account delete. The
+    // settlement-account clear must run before the asset delete.
+    @Test
+    fun `should delete account when a settlement account references a user asset`() {
+        val user = SystemUser(id = "offboard-settlement-user", email = "offboard-settlement@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        val asset =
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            "test" to
+                                AssetInput.toRealEstate(
+                                    currency = USD,
+                                    code = "OFFBOARD-SETTLE-CASH",
+                                    name = "Settlement Cash Asset",
+                                    owner = user.id
+                                )
+                        )
+                    )
+                ).data["test"]!!
+        val broker = brokerRepository.save(Broker(name = "Settlement Broker", owner = user))
+        brokerSettlementAccountRepository.save(
+            BrokerSettlementAccount(broker = broker, currencyCode = USD.code, account = asset)
+        )
+
+        val result = offboardingService.deleteUserAccount()
+
+        // Assert via repositories, not getSummary — the SystemUser is gone after the
+        // account delete, so getSummary can no longer resolve the caller.
+        assertThat(result.success).isTrue()
+        assertThat(result.message).isEqualTo("Account and all data deleted")
+        assertThat(brokerRepository.findByOwner(user)).isEmpty()
+        assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
     }
 }

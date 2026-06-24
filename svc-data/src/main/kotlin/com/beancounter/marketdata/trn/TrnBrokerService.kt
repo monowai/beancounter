@@ -5,6 +5,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.broker.BrokerService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -57,12 +58,20 @@ class TrnBrokerService(
                     brokerService.findById(brokerId, user).orElseThrow {
                         NotFoundException("Broker not found: $brokerId")
                     }
+                // Splits carry no broker; merge them so the Accumulator applies the
+                // split adjustment to the broker-scoped position.
                 trnRepository.findAllByBrokerIdForPositions(
                     broker.id,
                     user,
                     tradeDate,
                     TrnStatus.SETTLED
-                )
+                ) +
+                    trnRepository.findBrokerSplits(
+                        broker.id,
+                        user,
+                        tradeDate,
+                        TrnStatus.SETTLED
+                    )
             }
         log.trace("trns: ${results.size}, broker: $brokerId, asAt: $tradeDate")
         return postProcess(results.toList())
@@ -153,16 +162,33 @@ class TrnBrokerService(
                 brokerService.findById(brokerId, user).orElseThrow {
                     NotFoundException("Broker not found: $brokerId")
                 }
+            // Splits carry no broker; merge them so the quantity aggregation below is
+            // split-adjusted instead of reading negative on a sold-out holding.
+            val trades = trnRepository.findByBrokerIdAndOwner(brokerId, user, TrnStatus.SETTLED)
+            val splits = trnRepository.findBrokerSplits(brokerId, user, DateUtils().date, TrnStatus.SETTLED)
             Triple(
                 broker.id,
                 broker.name,
-                trnRepository.findByBrokerIdAndOwner(brokerId, user, TrnStatus.SETTLED)
+                trades + splits
             )
+        }
+
+    // Same-day tie-breaker for split-adjusted accumulation: buys/adds, then split, then sells.
+    private fun sameDayOrder(type: TrnType): Int =
+        when (type) {
+            TrnType.BUY, TrnType.ADD -> 0
+            TrnType.SPLIT -> 1
+            else -> 2
         }
 
     private fun aggregateByAsset(transactions: Collection<Trn>): Map<String, AssetAggregation> {
         val assetMap = mutableMapOf<String, AssetAggregation>()
-        for (trn in transactions) {
+        // Chronological order matters: a SPLIT multiplies whatever quantity is held at
+        // that point, so earlier buys scale up and later sells draw down the scaled total.
+        // Same-day events have no intra-day timestamp, so apply a deterministic order:
+        // buys/adds first, then the split, then sells/reduces — matching a broker ex-date
+        // where same-day trades settle against post-split share counts.
+        for (trn in transactions.sortedWith(compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) }))) {
             val asset = trn.asset
             val agg =
                 assetMap.getOrPut(asset.id) {
@@ -184,9 +210,22 @@ class TrnBrokerService(
 
             val quantityDelta =
                 when (trn.trnType) {
-                    TrnType.BUY, TrnType.ADD -> trn.quantity
-                    TrnType.SELL, TrnType.REDUCE -> trn.quantity.negate()
-                    else -> BigDecimal.ZERO
+                    TrnType.BUY, TrnType.ADD -> {
+                        trn.quantity
+                    }
+                    TrnType.SELL, TrnType.REDUCE -> {
+                        trn.quantity.negate()
+                    }
+                    // SPLIT quantity is the ratio (e.g. 4 = 4:1). The delta scales the
+                    // running holding: newQty = qty * ratio, so delta = qty * (ratio - 1).
+                    TrnType.SPLIT -> {
+                        portfolioTrns.quantity
+                            .multiply(trn.quantity)
+                            .subtract(portfolioTrns.quantity)
+                    }
+                    else -> {
+                        BigDecimal.ZERO
+                    }
                 }
             agg.quantity = agg.quantity.add(quantityDelta)
             portfolioTrns.quantity = portfolioTrns.quantity.add(quantityDelta)

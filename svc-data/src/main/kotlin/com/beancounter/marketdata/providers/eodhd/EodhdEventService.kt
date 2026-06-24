@@ -6,8 +6,11 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.providers.MarketDataRepo
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
 import java.math.BigDecimal
 
 /**
@@ -30,20 +33,46 @@ class EodhdEventService(
     private val eodhdConfig: EodhdConfig,
     private val marketDataRepo: MarketDataRepo
 ) {
-    @Cacheable("eodhd.asset.event")
+    // Cache-aware self-invocation: getEvents must call fetchProviderEvents through the Spring
+    // proxy or @Cacheable is bypassed. Defaults to `this` for plain unit tests; Spring injects
+    // the @Lazy proxy at startup (the setter), breaking the construction cycle.
+    @set:Autowired
+    @set:Lazy
+    internal var self: EodhdEventService = this
+
     fun getEvents(assetId: String): PriceResponse = getEvents(assetFinder.find(assetId))
 
-    @Cacheable("eodhd.asset.event", key = "#asset.id")
     fun getEvents(asset: Asset): PriceResponse {
         if (!isMarketSupported(asset.market.code)) {
             log.debug("Market {} not supported by EODHD; falling back to repo for {}", asset.market.code, asset.code)
-            return PriceResponse(marketDataRepo.findEventsByAssetId(asset.id))
+            return repoFallback(asset)
         }
+        return try {
+            self.fetchProviderEvents(asset)
+        } catch (e: RestClientException) {
+            // A provider I/O blip must not 500 the events endpoint — bc-event consumes it on
+            // a RabbitMQ listener, and a 500 exhausts the retry policy and drops the message
+            // (EVENT-1F). Degrade to stored events — and crucially do NOT cache this fallback,
+            // so a brief outage can't pin stale events for the cache TTL.
+            log.warn("EODHD events fetch failed for {} — falling back to stored events: {}", asset.code, e.message)
+            repoFallback(asset)
+        }
+    }
+
+    /**
+     * Provider fetch — cached on success only. The [RestClientException] on a provider I/O
+     * error propagates out (caches never store exceptions), so the caller's repo fallback is
+     * never cached under this key.
+     */
+    @Cacheable("eodhd.asset.event", key = "#asset.id")
+    fun fetchProviderEvents(asset: Asset): PriceResponse {
         val symbol = eodhdConfig.getPriceCode(asset)
         val divs = eodhdProxy.getDividends(symbol, eodhdConfig.apiKey).map { toDividendRow(asset, it) }
         val splits = eodhdProxy.getSplits(symbol, eodhdConfig.apiKey).map { toSplitRow(asset, it) }
         return PriceResponse(divs + splits)
     }
+
+    private fun repoFallback(asset: Asset): PriceResponse = PriceResponse(marketDataRepo.findEventsByAssetId(asset.id))
 
     private fun isMarketSupported(marketCode: String): Boolean {
         val supported = eodhdConfig.markets ?: return false

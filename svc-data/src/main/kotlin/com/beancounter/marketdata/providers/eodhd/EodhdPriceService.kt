@@ -77,17 +77,67 @@ class EodhdPriceService(
         // A 4xx for one symbol must not abort the whole batch — bc-position
         // schedules valuations across every portfolio, so one bad ticker would
         // otherwise halt every portfolio sequenced after it.
-        val rows =
-            try {
-                eodhdProxy.getPrice(symbol, priceDate, eodhdConfig.apiKey)
-            } catch (e: RestClientException) {
-                // Broad RestClientException, not just 4xx: also covers body-extraction
-                // failures when EODHD returns a non-array error payload for a bad or
-                // mis-tagged symbol. One bad ticker must never abort the valuation cycle.
+        return fetchSymbolRows(symbol, priceDate).fold(
+            onSuccess = { rows -> eodhdAdapter.toMarketData(asset, LocalDate.parse(priceDate), rows) },
+            onFailure = { e ->
                 log.warn("EODHD error for {} on {} — skipping: {}", symbol, priceDate, e.message)
-                return emptyList()
+                emptyList()
             }
-        return eodhdAdapter.toMarketData(asset, LocalDate.parse(priceDate), rows)
+        )
+    }
+
+    /**
+     * Fetch one symbol's rows, capturing a [RestClientException] as a failed [Result] rather
+     * than logging here — callers decide whether to log per-symbol (true single fetch) or as
+     * one batch summary (bulk fallback). Broad RestClientException, not just 4xx: also covers
+     * body-extraction failures when EODHD returns a non-array error payload, and transient
+     * I/O (e.g. a DNS/connection blip during the refresh burst).
+     */
+    private fun fetchSymbolRows(
+        symbol: String,
+        priceDate: String
+    ): Result<List<com.beancounter.marketdata.providers.eodhd.model.EodhdPrice>> =
+        try {
+            Result.success(eodhdProxy.getPrice(symbol, priceDate, eodhdConfig.apiKey))
+        } catch (e: RestClientException) {
+            Result.failure(e)
+        }
+
+    /**
+     * Per-symbol fallback for a failed bulk call. Collapses what used to be one WARN per
+     * failed symbol into a single batch summary — a transient I/O blip during the refresh
+     * burst previously emitted ~50 identical warnings (one per US symbol).
+     */
+    private fun fetchPerSymbol(
+        providerArguments: ProviderArguments,
+        symbols: List<String>,
+        priceDate: String
+    ): List<MarketData> {
+        val parsedDate = LocalDate.parse(priceDate)
+        val results = mutableListOf<MarketData>()
+        val failures = mutableListOf<String>()
+        var lastError: String? = null
+        for (symbol in symbols) {
+            val asset = providerArguments.getAsset(symbol)
+            fetchSymbolRows(symbol, priceDate).fold(
+                onSuccess = { rows -> results.addAll(eodhdAdapter.toMarketData(asset, parsedDate, rows)) },
+                onFailure = { e ->
+                    failures.add(symbol)
+                    lastError = e.message
+                }
+            )
+        }
+        if (failures.isNotEmpty()) {
+            log.warn(
+                "EODHD per-symbol fallback on {}: {}/{} symbols failed ({}): {}",
+                priceDate,
+                failures.size,
+                symbols.size,
+                lastError,
+                failures.joinToString(",")
+            )
+        }
+        return results
     }
 
     /**
@@ -124,7 +174,7 @@ class EodhdPriceService(
                     priceDate,
                     e.message
                 )
-                return symbols.flatMap { fetchSingle(providerArguments, it, priceDate) }
+                return fetchPerSymbol(providerArguments, symbols, priceDate)
             }
 
         val rowsByCode = bulkRows.groupBy { it.code.uppercase() }

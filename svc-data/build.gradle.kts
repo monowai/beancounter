@@ -30,6 +30,10 @@ dependencies {
     implementation(project(":jar-auth"))
     implementation(project(":jar-client"))
     implementation(libs.spring.boot.starter.web)
+    // Pooled HTTP client for external RestClients (ExternalApiRestClientConfig): keep-alive
+    // connection reuse avoids a fresh DNS lookup per request during the price-refresh burst.
+    // Version managed by the Spring Boot BOM.
+    implementation("org.apache.httpcomponents.client5:httpclient5")
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.logging)
     implementation(libs.spring.doc)

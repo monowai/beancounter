@@ -1,5 +1,9 @@
 package com.beancounter.marketdata.providers.eodhd
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
@@ -16,11 +20,13 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
@@ -341,6 +347,50 @@ internal class EodhdApiTest {
         val byCode = result.associateBy { it.asset.code }
         assertThat(byCode["AAPL"]?.close).isEqualByComparingTo(BigDecimal("237.33"))
         assertThat(byCode["MSFT"]?.close).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `bulk I-O failure with failing per-symbol fallback logs one summary not per-symbol warnings`() {
+        // Bulk endpoint and both per-symbol endpoints drop the connection (transient I/O —
+        // e.g. a DNS/connection blip during the refresh burst). Bulk fails, falls back to
+        // per-symbol, every per-symbol call also fails. This must emit ONE batch-summary
+        // WARN, not one WARN per symbol — the burst previously logged ~50 identical lines.
+        wireMock.stubFor(
+            get(urlPathEqualTo(BULK_LAST_DAY_US))
+                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+        )
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/eod/AAPL.US"))
+                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+        )
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/eod/MSFT.US"))
+                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+        )
+
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val logger = LoggerFactory.getLogger(EodhdPriceService::class.java) as Logger
+        logger.addAppender(appender)
+        try {
+            val result =
+                eodhdPriceService.getMarketData(
+                    PriceRequest(
+                        "2024-11-29",
+                        listOf(PriceAsset(AAPL), PriceAsset(MSFT))
+                    )
+                )
+            assertThat(result).isEmpty()
+        } finally {
+            logger.detachAppender(appender)
+        }
+
+        val warnings = appender.list.filter { it.level == Level.WARN }.map { it.formattedMessage }
+        assertThat(warnings.filter { it.contains("per-symbol fallback") })
+            .describedAs("one batch summary covering all failed symbols")
+            .hasSize(1)
+        assertThat(warnings.filter { it.contains("EODHD error for ") })
+            .describedAs("no per-symbol warnings")
+            .isEmpty()
     }
 
     private fun stubEod(

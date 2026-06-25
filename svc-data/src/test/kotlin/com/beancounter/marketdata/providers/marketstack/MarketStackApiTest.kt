@@ -203,6 +203,45 @@ internal class MarketStackApiTest {
     }
 
     @Test
+    fun `returns zero price when marketstack rejects all symbols with 422`() {
+        // DATA-5T: MarketStack returns the no_valid_symbols_provided body with HTTP 422
+        // (not 200) when an asset has no MarketStack-valid ticker - e.g. a cash/fund asset
+        // priced via GET /assets/{id}?includePrice=true. The gateway must degrade to a zero
+        // price rather than letting the 422 bubble to a 500.
+        val inputs = listOf(PriceAsset(MSFT))
+        wireMock.stubFor(
+            WireMock
+                .get(WireMock.urlPathEqualTo("/v2/eod/$priceDate"))
+                .withQueryParam("symbols", WireMock.equalTo(MSFT.code))
+                .withQueryParam("access_key", WireMock.equalTo("demo"))
+                .willReturn(
+                    WireMock
+                        .aResponse()
+                        .withHeader(
+                            HttpHeaders.CONTENT_TYPE,
+                            MediaType.APPLICATION_JSON_VALUE
+                        ).withBody(
+                            ClassPathResource("$CONTRACTS/no-data.json").file.readText()
+                        ).withStatus(422)
+                )
+        )
+        val prices =
+            marketStackService.getMarketData(
+                PriceRequest(
+                    priceDate,
+                    inputs
+                )
+            )
+        assertThat(prices).hasSize(inputs.size)
+        assertThat(
+            prices.first()
+        ).hasFieldOrPropertyWithValue(
+            closeField,
+            BigDecimal.ZERO
+        )
+    }
+
+    @Test
     fun `nzx market is correctly resolved and appended so Asset Price returns`() {
         val fph = getTestAsset(NZX, "FPH")
         val inputs = listOf(PriceAsset(fph))

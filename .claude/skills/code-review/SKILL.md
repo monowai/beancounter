@@ -130,11 +130,11 @@ Apply these only when the diff touches `*.kt` files. Skip if the file is a gener
 - **URI template hygiene** (Spring `RestClient.uri(template, vars)`):
   - String-interpolating values into the template (`"/api?x=$value"`) bypasses Spring's URI encoding and is unsafe even for internal callers if the value can ever contain reserved chars. Flag any `uri("…${var}…")` in a gateway/client — prefer `uri("…{var}…", value)` with the placeholder pattern.
 - **Upstream-failure backoff (quota amplification)**:
-  - When an external API call fails and a cache/cooldown row is only updated on success, every subsequent request re-hits the upstream — turning a transient outage or a 429 into a retry storm that burns quota and amplifies the upstream's load. Flag any provider integration where the cache TTL / cooldown record advances **only** on the success path. Recommend bumping the `last_fetched_at` (or equivalent) in the `catch` block so failures respect the same backoff window. Real BC incident: EODHD news service in PR #845 — caller would have retry-stormed on every 429 until CodeRabbit caught it.
+  - When an external API call fails and a cache/cooldown row is only updated on success, every subsequent request re-hits the upstream — turning a transient outage or a 429 into a retry storm that burns quota and amplifies the upstream's load. Flag any provider integration where the cache TTL / cooldown record advances **only** on the success path. Recommend bumping the `last_fetched_at` (or equivalent) in the `catch` block so failures respect the same backoff window. Real BC incident: EODHD news service in PR #845 — caller would have retry-stormed on every 429 until caught in review.
 - **Read-then-save upsert race**:
   - Code that does `findByX` → conditionally `new()` → `save()` can race when two concurrent transactions both miss the read and both try to insert the same unique key. Postgres throws on the second insert; Spring surfaces it as `DataIntegrityViolationException`. Flag any read-then-save against a `@Column(unique=true)` / `@UniqueConstraint` field that doesn't wrap the `save` in a `try`/`catch` that re-reads the winning row and merges. JPA has no native upsert — the catch-and-retry pattern is the canonical fix without dropping to dialect-specific SQL. Severity 🟠 because the symptom is sporadic 500s, not deterministic, so it slips through tests easily.
 - **`@ApiResponses` must list every status the method can produce**:
-  - When a controller method introduces a new exception path that maps to a non-2xx HTTP status (e.g. `throw ForbiddenException(...)` → 403, `throw NotFoundException(...)` → 404), the method's `@ApiResponses` block must include an `ApiResponse(responseCode = "<status>", description = "...")` entry for it. Flag any controller change that adds a new status-mapped exception (or adds a parameter that triggers one) without updating `@ApiResponses`. Severity 🟡 — pure-doc bug; breaks the generated OpenAPI contract / client codegen but doesn't affect runtime. Real BC incident: PR #904 added a `systemUserId` query param with a 403 path; CodeRabbit caught the missing `403` entries on both `/assets/config` and `/portfolios`.
+  - When a controller method introduces a new exception path that maps to a non-2xx HTTP status (e.g. `throw ForbiddenException(...)` → 403, `throw NotFoundException(...)` → 404), the method's `@ApiResponses` block must include an `ApiResponse(responseCode = "<status>", description = "...")` entry for it. Flag any controller change that adds a new status-mapped exception (or adds a parameter that triggers one) without updating `@ApiResponses`. Severity 🟡 — pure-doc bug; breaks the generated OpenAPI contract / client codegen but doesn't affect runtime. Real BC incident: PR #904 added a `systemUserId` query param with a 403 path; review caught the missing `403` entries on both `/assets/config` and `/portfolios`.
 
 ### Idioms — TypeScript / Next.js (bc-view)
 
@@ -157,9 +157,9 @@ Apply only when the diff touches `*.ts` / `*.tsx`.
   3. For other `src/lib/utils/<subdir>/...` targets (`assets`, `independence`, `broker`, …), either alias works. Codebase mixes both; prefer `@lib/<subdir>/...` in new code for consistency with newer files.
   4. **The literal form `@lib/utils/foo` is wrong — 🟠**. Because `@lib/*` already points inside `src/lib/utils/`, writing `@lib/utils/foo` resolves to `src/lib/utils/utils/foo` (non-existent). This is distinct from `@lib/api/foo`, which DOES resolve at compile time but breaks at runtime per rule 2.
 
-  CodeRabbit recurringly suggests `@lib/api/...` and `@lib/utils/api/...` — reject both.
-- **`types/beancounter` import path**: domain types live in `types/beancounter.d.ts` and must be imported as `"types/beancounter"` (bare, via `baseUrl`). Do NOT flag/suggest `@types/beancounter` — TS6137 reserves the `@types/*` prefix for DefinitelyTyped packages, and the alias is dead for `.d.ts` files. CodeRabbit gets this wrong; reject the suggestion if it appears.
-- **Payload types belong in `types/beancounter.d.ts`**: callback payload interfaces (`XxxData` carrying domain shapes like `Asset` / portfolio) live alongside `QuickSellData`, `WeightClickData`, `SetCashBalanceData`, etc. Flag any new `XxxData` declared inside a component file (`Rows.tsx`, `CardView.tsx`, …) and re-exported — even if Rows is the only emitter today. PR #693 took this hit for `PriceChartData` + `PortfolioBreakdownData`. Treat as 🟡. Same rule: add a `makeXxx` fixture in `src/test-fixtures/beancounter.ts` so tests don't hand-roll the literal (also a recurring CodeRabbit nitpick).
+  AI reviewers recurringly suggest `@lib/api/...` and `@lib/utils/api/...` — reject both.
+- **`types/beancounter` import path**: domain types live in `types/beancounter.d.ts` and must be imported as `"types/beancounter"` (bare, via `baseUrl`). Do NOT flag/suggest `@types/beancounter` — TS6137 reserves the `@types/*` prefix for DefinitelyTyped packages, and the alias is dead for `.d.ts` files. AI reviewers get this wrong; reject the suggestion if it appears.
+- **Payload types belong in `types/beancounter.d.ts`**: callback payload interfaces (`XxxData` carrying domain shapes like `Asset` / portfolio) live alongside `QuickSellData`, `WeightClickData`, `SetCashBalanceData`, etc. Flag any new `XxxData` declared inside a component file (`Rows.tsx`, `CardView.tsx`, …) and re-exported — even if Rows is the only emitter today. PR #693 took this hit for `PriceChartData` + `PortfolioBreakdownData`. Treat as 🟡. Same rule: add a `makeXxx` fixture in `src/test-fixtures/beancounter.ts` so tests don't hand-roll the literal (also a recurring AI-reviewer nitpick).
 - **React imports**: with React 17+ JSX transform, `import React from "react"` is unused noise unless the file references `React.X` directly — but the codebase still includes it; ESLint will flag dead imports, so don't double-flag.
 - **Jest mocks**: Auth0 mocks live in `__mocks__/@auth0/nextjs-auth0/` (per CLAUDE.md memory) — flag inline `jest.mock("@auth0/nextjs-auth0", ...)` that duplicates the global mock.
 
@@ -292,15 +292,14 @@ not the size of any single change.
   push to `main` — feature branch + PR only. Exceptions that commit straight to
   main: `bc-deploy` (rollout is the review gate) and `bc-claude` (docs-only).
 - **Pre-push**: run this local review on the staged diff and fix 🔴/🟠 first —
-  CodeRabbit auto-runs on every push and burns the user's 5/h quota.
+  Graphite Agent auto-reviews the PR after push, so land it clean.
 - **Verify the branch before pushing** — after a merge you can land back on
   `main`.
 - **PR + commit hygiene**: Conventional-Commits subject only (no body essays),
   no `Co-Authored-By` trailer, no PII (names / emails) in commit, PR body, or
   code.
-- **`@coderabbitai ignore`** (on its own line in the PR body) ONLY when a local
-  review actually ran. Manual eyeballing ≠ a local review — if none ran, omit it
-  so CodeRabbit does the second pass.
+- **Submit/merge via Graphite** (`gt submit --stack`, merge queue) — Graphite
+  Agent reviews automatically; there is no per-PR ignore keyword to manage.
 
 ### Clean up stale branches and worktrees
 

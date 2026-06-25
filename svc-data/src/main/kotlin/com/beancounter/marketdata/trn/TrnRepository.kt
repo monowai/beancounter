@@ -37,7 +37,7 @@ interface TrnRepository :
             "where t.portfolio.id = ?1 " +
             "and t.tradeDate <= ?2 " +
             "and t.status = ?3 " +
-            "order by t.tradeDate, t.asset.code"
+            "order by t.tradeDate, t.asset.code, t.createdAt"
     )
     fun findByPortfolioId(
         portfolioId: String,
@@ -105,7 +105,7 @@ interface TrnRepository :
             "where t.portfolio.id = ?1 " +
             "and t.asset.id = ?2 " +
             "and t.trnType in (?3) " +
-            "order by t.tradeDate desc, t.asset.code"
+            "order by t.tradeDate desc, t.asset.code, t.createdAt desc"
     )
     fun findByPortfolioIdAndAssetIdAndTrnType(
         portfolioId: String,
@@ -123,7 +123,7 @@ interface TrnRepository :
             "where t.portfolio.id = ?1 " +
             "and t.asset.id = ?2 " +
             "and t.tradeDate <= ?3 " +
-            "order by t.tradeDate asc"
+            "order by t.tradeDate asc, t.createdAt asc"
     )
     fun findByPortfolioIdAndAssetIdUpTo(
         id: String,
@@ -140,7 +140,7 @@ interface TrnRepository :
             "left join fetch t.cashCurrency " +
             "where t.portfolio.id = ?1 " +
             "and t.asset.id = ?2 " +
-            "order by t.tradeDate asc"
+            "order by t.tradeDate asc, t.createdAt asc"
     )
     fun findByPortfolioIdAndAssetId(
         portfolioId: String,
@@ -159,7 +159,7 @@ interface TrnRepository :
             "and t.trnType = ?3 " +
             "and t.tradeDate >= ?4 " +
             "and t.tradeDate <= ?5 " +
-            "order by t.tradeDate asc"
+            "order by t.tradeDate asc, t.createdAt asc"
     )
     fun findExisting(
         portfolio: String,
@@ -181,7 +181,7 @@ interface TrnRepository :
             "left join fetch t.cashCurrency " +
             "where t.portfolio.id = ?1 " +
             "and t.status = ?2 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByPortfolioIdAndStatus(
         portfolioId: String,
@@ -204,7 +204,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.trnType in (?2) " +
             "and t.tradeDate <= ?3 " +
-            "order by t.tradeDate asc"
+            "order by t.tradeDate asc, t.createdAt asc"
     )
     fun findDueEventTransactions(
         status: TrnStatus,
@@ -228,7 +228,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate <= ?3 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByStatusAndPortfolioOwner(
         status: TrnStatus,
@@ -262,7 +262,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.id in ?2 " +
             "and t.tradeDate <= ?3 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByStatusAndPortfolioIdIn(
         status: TrnStatus,
@@ -296,7 +296,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate = ?3 " +
-            "order by t.portfolio.code, t.asset.code"
+            "order by t.portfolio.code, t.asset.code, t.createdAt"
     )
     fun findByStatusAndPortfolioOwnerAndTradeDate(
         status: TrnStatus,
@@ -348,7 +348,7 @@ interface TrnRepository :
             "where t.portfolio.id = ?1 " +
             "and t.modelId = ?2 " +
             "and t.status = ?3 " +
-            "order by t.tradeDate asc"
+            "order by t.tradeDate asc, t.createdAt asc"
     )
     fun findByPortfolioIdAndModelId(
         portfolioId: String,

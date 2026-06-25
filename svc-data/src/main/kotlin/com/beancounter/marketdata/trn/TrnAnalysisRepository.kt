@@ -53,7 +53,7 @@ interface TrnAnalysisRepository {
             "and t.tradeDate >= ?2 " +
             "and t.tradeDate <= ?3 " +
             "and t.status = ?4 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findInvestmentsByOwnerAndDateRange(
         owner: SystemUser,
@@ -79,7 +79,7 @@ interface TrnAnalysisRepository {
             "and t.tradeDate >= ?2 " +
             "and t.tradeDate <= ?3 " +
             "and t.status = ?4 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findInvestmentsByPortfoliosAndDateRange(
         portfolioIds: List<String>,
@@ -104,7 +104,7 @@ interface TrnAnalysisRepository {
             "and t.tradeDate >= ?2 " +
             "and t.tradeDate <= ?3 " +
             "and t.status = ?4 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findIncomeByOwnerAndDateRange(
         owner: SystemUser,
@@ -129,7 +129,7 @@ interface TrnAnalysisRepository {
             "and t.tradeDate >= ?2 " +
             "and t.tradeDate <= ?3 " +
             "and t.status = ?4 " +
-            "order by t.tradeDate desc"
+            "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findIncomeByPortfoliosAndDateRange(
         portfolioIds: List<String>,

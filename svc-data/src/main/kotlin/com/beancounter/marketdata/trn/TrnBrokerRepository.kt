@@ -33,7 +33,7 @@ interface TrnBrokerRepository {
             "and t.trnType in ('BUY', 'SELL', 'ADD', 'REDUCE') " +
             "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
-            "order by t.asset.code, t.tradeDate"
+            "order by t.asset.code, t.tradeDate, t.createdAt"
     )
     fun findByBrokerIdAndOwner(
         brokerId: String,
@@ -62,7 +62,7 @@ interface TrnBrokerRepository {
             "and t.status = ?4 " +
             "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
-            "order by t.tradeDate, t.asset.code"
+            "order by t.tradeDate, t.asset.code, t.createdAt"
     )
     fun findAllByBrokerIdForPositions(
         brokerId: String,
@@ -97,7 +97,7 @@ interface TrnBrokerRepository {
             "and b.portfolio = t.portfolio " +
             "and b.asset = t.asset" +
             ") " +
-            "order by t.tradeDate, t.asset.code"
+            "order by t.tradeDate, t.asset.code, t.createdAt"
     )
     fun findBrokerSplits(
         brokerId: String,
@@ -125,7 +125,7 @@ interface TrnBrokerRepository {
             "and t.trnType in ('BUY', 'SELL', 'ADD', 'REDUCE') " +
             "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
-            "order by t.asset.code, t.tradeDate"
+            "order by t.asset.code, t.tradeDate, t.createdAt"
     )
     fun findWithNoBroker(
         owner: SystemUser,
@@ -152,7 +152,7 @@ interface TrnBrokerRepository {
             "and t.status = ?3 " +
             "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
-            "order by t.tradeDate, t.asset.code"
+            "order by t.tradeDate, t.asset.code, t.createdAt"
     )
     fun findAllWithNoBrokerForPositions(
         owner: SystemUser,

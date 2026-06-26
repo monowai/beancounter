@@ -214,6 +214,69 @@ internal class PortfolioControllerTests {
     }
 
     @Test
+    fun `should merge a source portfolio into a target and delete the source`() {
+        val source =
+            portfolioCreate(
+                PortfolioInput(
+                    UUID.randomUUID().toString().uppercase(Locale.getDefault()),
+                    "Merge Source",
+                    USD.code,
+                    NZD.code
+                ),
+                mockMvc,
+                token
+            ).data
+                .first()
+        val target =
+            portfolioCreate(
+                PortfolioInput(
+                    UUID.randomUUID().toString().uppercase(Locale.getDefault()),
+                    "Merge Target",
+                    USD.code,
+                    NZD.code
+                ),
+                mockMvc,
+                token
+            ).data
+                .first()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post(
+                        "$PORTFOLIO_ROOT/{sourceId}/merge/{targetId}",
+                        source.id,
+                        target.id
+                    ).with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers
+                    .jsonPath("$.sourceDeleted")
+                    .value(true)
+            ).andExpect(
+                MockMvcResultMatchers
+                    .jsonPath("$.targetPortfolioId")
+                    .value(target.id)
+            )
+
+        // Source is gone; target survives.
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("$PORTFOLIO_ROOT/{id}", source.id)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("$PORTFOLIO_ROOT/{id}", target.id)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+    }
+
+    @Test
     fun `should update portfolio`() {
         val portfolioResponse =
             portfolioCreate(

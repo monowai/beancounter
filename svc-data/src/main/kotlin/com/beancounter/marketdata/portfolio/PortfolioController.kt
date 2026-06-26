@@ -1,11 +1,13 @@
 package com.beancounter.marketdata.portfolio
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.contracts.PortfolioMergeResponse
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.trn.PortfolioMergeService
 import com.opencsv.CSVParserBuilder
 import com.opencsv.CSVReaderBuilder
 import com.opencsv.CSVWriterBuilder
@@ -49,7 +51,8 @@ import org.springframework.web.multipart.MultipartFile
 class PortfolioController internal constructor(
     private val portfolioService: PortfolioService,
     private val dateUtils: DateUtils,
-    private val portfolioIoDefinition: PortfolioIoDefinition
+    private val portfolioIoDefinition: PortfolioIoDefinition,
+    private val portfolioMergeService: PortfolioMergeService
 ) {
     @GetMapping
     @Operation(
@@ -232,6 +235,31 @@ class PortfolioController internal constructor(
         portfolioService.delete(id)
         return mapOf("deleted" to id)
     }
+
+    @PostMapping("/{sourceId}/merge/{targetId}")
+    @Operation(
+        summary = "Merge one portfolio into another",
+        description = """
+            Consolidates the source portfolio into the target: every transaction
+            in the source is reassigned to the target, then the emptied source
+            portfolio is deleted. Backs the "downgrade to a single portfolio"
+            (zen) wizard. Atomic — on failure nothing moves and the source
+            survives.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Portfolios merged"),
+            ApiResponse(responseCode = "400", description = "Source equals target"),
+            ApiResponse(responseCode = "404", description = "Portfolio not found")
+        ]
+    )
+    fun mergePortfolio(
+        @Parameter(description = "Source portfolio to drain and delete")
+        @PathVariable sourceId: String,
+        @Parameter(description = "Target portfolio that receives the transactions")
+        @PathVariable targetId: String
+    ): PortfolioMergeResponse = portfolioMergeService.merge(sourceId, targetId)
 
     @GetMapping("/code/{code}")
     @Operation(

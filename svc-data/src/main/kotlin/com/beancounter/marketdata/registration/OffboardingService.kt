@@ -81,6 +81,11 @@ class OffboardingService(
             )
         }
 
+        // Clear settlement accounts before assets: broker_settlement_account has a NO-ACTION
+        // FK to the cash asset (fk_settlement_account), so the asset delete below trips that
+        // constraint unless the settlement rows are gone first.
+        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
+
         var deletedCount = 0
         assets.forEach { asset ->
             trnRepository.deleteByAssetId(asset.id)
@@ -147,7 +152,12 @@ class OffboardingService(
         portfolioRepository.deleteByOwnerId(user.id)
         totalDeleted += portfolios.size
 
-        // 2. Delete assets and their data
+        // 2. Clear settlement accounts BEFORE assets. broker_settlement_account has a NO-ACTION
+        //    FK to the cash asset (fk_settlement_account); the asset delete below rolls back the
+        //    whole wealth delete (kauri 409) unless the settlement rows are cleared first.
+        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
+
+        // 3. Delete assets and their data
         val assets = assetRepository.findBySystemUserId(user.id)
         assets.forEach { asset ->
             trnRepository.deleteByAssetId(asset.id)

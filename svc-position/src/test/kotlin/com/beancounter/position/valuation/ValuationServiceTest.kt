@@ -14,8 +14,14 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.accumulation.Accumulator
+import com.beancounter.position.accumulation.BuyBehaviour
+import com.beancounter.position.accumulation.SellBehaviour
+import com.beancounter.position.accumulation.SplitBehaviour
+import com.beancounter.position.accumulation.TrnBehaviourFactory
 import com.beancounter.position.service.MarketValueUpdateProducer
 import com.beancounter.position.service.PositionService
 import com.beancounter.position.service.PositionValuationService
@@ -294,14 +300,6 @@ class ValuationServiceTest {
                     }
                 )
             }
-        val aggPositions =
-            Positions(portfolio).apply {
-                add(
-                    Position(asset, portfolio).apply {
-                        quantityValues.purchased = BigDecimal("15")
-                    }
-                )
-            }
 
         whenever(
             positionService.build(
@@ -315,20 +313,16 @@ class ValuationServiceTest {
                 argThat { trns.size == 1 }
             )
         ).thenReturn(PositionResponse(p2Positions))
-        whenever(
-            positionService.build(
-                argThat { id == portfolio.id },
-                argThat { trns.size == 2 }
-            )
-        ).thenReturn(PositionResponse(aggPositions))
 
         // When
         val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
 
-        // Then
+        // Then - the aggregate sums the two holdings (10 + 5)...
         val agg =
             result.data.positions.values
                 .first()
+        assertThat(agg.quantityValues.getTotal()).isEqualByComparingTo(BigDecimal("15"))
+        // ...and lists each contributing portfolio.
         assertThat(agg.portfolioBreakdown).hasSize(2)
         assertThat(agg.portfolioBreakdown.map { it.portfolioId })
             .containsExactlyInAnyOrder(portfolio.id, portfolio2.id)
@@ -395,15 +389,6 @@ class ValuationServiceTest {
                     }
                 )
             }
-        val aggPositions =
-            Positions(portfolio).apply {
-                add(
-                    Position(asset, portfolio).apply {
-                        quantityValues.purchased = BigDecimal("10")
-                    }
-                )
-            }
-
         whenever(
             positionService.build(
                 argThat { id == portfolio.id },
@@ -416,20 +401,16 @@ class ValuationServiceTest {
                 argThat { trns.size == 2 }
             )
         ).thenReturn(PositionResponse(p2Positions))
-        whenever(
-            positionService.build(
-                argThat { id == portfolio.id },
-                argThat { trns.size == 3 }
-            )
-        ).thenReturn(PositionResponse(aggPositions))
 
         // When
         val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
 
-        // Then - only P1 appears in the breakdown
+        // Then - the aggregate nets to P1's 10 (P2 bought then sold 10)...
         val agg =
             result.data.positions.values
                 .first()
+        assertThat(agg.quantityValues.getTotal()).isEqualByComparingTo(BigDecimal("10"))
+        // ...and only P1 appears in the breakdown (P2 is net-zero).
         assertThat(agg.portfolioBreakdown).hasSize(1)
         assertThat(agg.portfolioBreakdown.single().portfolioId).isEqualTo(portfolio.id)
         assertThat(agg.portfolioBreakdown.single().quantity).isEqualByComparingTo(BigDecimal("10"))
@@ -479,12 +460,11 @@ class ValuationServiceTest {
     }
 
     @Test
-    fun `getAggregatedPositions adopts targetCurrency on synthesised context portfolio`() {
+    fun `getAggregatedPositions adopts targetCurrency on the aggregate reporting view`() {
         // Given - first portfolio is USD but the caller requested SGD totals.
-        // Without target-currency adoption, MarketValue would price each
-        // PORTFOLIO bucket in USD and the controller would have to FX-back
-        // to SGD — a round-trip whose imperfect rate-inverse shows up as
-        // ~0.4% drift on PRIVATE / POLICY (constant `close=1`) positions.
+        // The aggregate adopts SGD so its PORTFOLIO bucket is priced directly
+        // against the target rather than via a lossy FX round-trip (the drift
+        // that showed on PRIVATE / POLICY constant-`close=1` positions).
         val usdPortfolio = TestHelpers.createTestPortfolio("usd-pf", currencyCode = "USD")
         val sgdPortfolio = TestHelpers.createTestPortfolio("sgd-pf", currencyCode = "SGD")
         val portfolios = listOf(usdPortfolio, sgdPortfolio)
@@ -502,23 +482,136 @@ class ValuationServiceTest {
         whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(listOf(trn)))
 
-        val contextCaptor = org.mockito.kotlin.argumentCaptor<Portfolio>()
-        whenever(positionService.build(contextCaptor.capture(), any()))
-            .thenReturn(PositionResponse(Positions(usdPortfolio)))
+        val held =
+            Positions(usdPortfolio).apply {
+                add(
+                    Position(asset, usdPortfolio).apply {
+                        quantityValues.purchased = BigDecimal("10")
+                    }
+                )
+            }
+        whenever(positionService.build(any(), any()))
+            .thenReturn(PositionResponse(held))
 
         // When - request aggregation in SGD
-        valuationService.getAggregatedPositions(
-            portfolios,
-            DateUtils.TODAY,
-            value = false,
-            targetCurrencyCode = "SGD"
-        )
+        val result =
+            valuationService.getAggregatedPositions(
+                portfolios,
+                DateUtils.TODAY,
+                value = false,
+                targetCurrencyCode = "SGD"
+            )
 
-        // Then - the context portfolio handed to positionService.build
-        // adopts SGD (not the first portfolio's USD), so downstream
-        // MarketValue prices each bucket directly in SGD.
-        assertThat(contextCaptor.firstValue.currency.code).isEqualTo("SGD")
-        assertThat(contextCaptor.firstValue.id).isEqualTo(usdPortfolio.id)
+        // Then - the aggregate reports in SGD and its PORTFOLIO bucket is
+        // denominated in the target currency.
+        assertThat(result.data.portfolio.currency.code).isEqualTo("SGD")
+        assertThat(result.data.portfolio.id).isEqualTo(usdPortfolio.id)
+        val agg =
+            result.data.positions.values
+                .first()
+        assertThat(agg.getMoneyValues(Position.In.PORTFOLIO).currency.code).isEqualTo("SGD")
+    }
+
+    @Test
+    fun `getAggregatedPositions applies per-portfolio splits once and sums cost across portfolios`() {
+        // Real accumulator: the split / cost-basis logic only misbehaves end-to-end.
+        // A mocked positionService.build cannot reproduce a corporate-action bug.
+        val realPositionService =
+            PositionService(
+                Accumulator(
+                    TrnBehaviourFactory(
+                        listOf(BuyBehaviour(), SellBehaviour(), SplitBehaviour())
+                    )
+                )
+            )
+        val service =
+            ValuationService(
+                positionValuationService,
+                trnService,
+                realPositionService,
+                marketValueUpdateProducer,
+                classificationClient,
+                dateUtils
+            )
+
+        val pfA = TestHelpers.createTestPortfolio("PF-A")
+        val pfB = TestHelpers.createTestPortfolio("PF-B")
+        val vo = TestHelpers.createTestAsset("VO", "US")
+
+        // PF-A: BUY 6 (cost 1801.74) then a 4:1 split -> 24 shares held.
+        val aBuy =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = vo,
+                portfolio = pfA,
+                quantity = BigDecimal("6"),
+                tradeAmount = BigDecimal("1801.74"),
+                tradeDate = LocalDate.of(2026, 1, 27)
+            )
+        val aSplit =
+            Trn(
+                trnType = TrnType.SPLIT,
+                asset = vo,
+                portfolio = pfA,
+                quantity = BigDecimal("4"),
+                tradeDate = LocalDate.of(2026, 4, 21)
+            )
+        // PF-B: BUY 12, the same 4:1 split -> 48, then SELL all 48 -> net zero.
+        val bBuy =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = vo,
+                portfolio = pfB,
+                quantity = BigDecimal("12"),
+                tradeAmount = BigDecimal("3285.00"),
+                tradeDate = LocalDate.of(2024, 12, 18)
+            )
+        val bSplit =
+            Trn(
+                trnType = TrnType.SPLIT,
+                asset = vo,
+                portfolio = pfB,
+                quantity = BigDecimal("4"),
+                tradeDate = LocalDate.of(2026, 4, 21)
+            )
+        val bSell =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = vo,
+                portfolio = pfB,
+                quantity = BigDecimal("48"),
+                tradeAmount = BigDecimal("3812.00"),
+                tradeDate = LocalDate.of(2026, 6, 23)
+            )
+
+        whenever(trnService.query(argThat { id == pfA.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(aBuy, aSplit)))
+        whenever(trnService.query(argThat { id == pfB.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(bBuy, bSplit, bSell)))
+
+        // When - aggregate without valuation (no market data needed)
+        val result =
+            service.getAggregatedPositions(
+                listOf(pfA, pfB),
+                DateUtils.TODAY,
+                value = false
+            )
+
+        // Then - the asset's split is recorded once per portfolio; merging the
+        // raw transaction streams used to compound it (24 -> 186). Per-portfolio
+        // accumulation + summation must report the real net quantity.
+        val voPosition =
+            result.data.positions.values
+                .first()
+        assertThat(voPosition.quantityValues.getTotal())
+            .describedAs("4:1 split recorded per portfolio must not compound across the aggregate")
+            .isEqualByComparingTo(BigDecimal("24"))
+
+        // And cost must be the sum of each portfolio's own basis, not a pooled
+        // average drawn down by PF-B's sell. PF-B is fully sold -> contributes 0.
+        assertThat(voPosition.getMoneyValues(Position.In.TRADE, vo.market.currency).costValue)
+            .describedAs("aggregate cost = PF-A basis (1801.74); fully-sold PF-B contributes 0")
+            .isEqualByComparingTo(BigDecimal("1801.74"))
     }
 
     @Test

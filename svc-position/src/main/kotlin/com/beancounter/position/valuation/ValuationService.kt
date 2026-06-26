@@ -9,6 +9,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.PortfolioBreakdown
 import com.beancounter.common.model.Position
@@ -49,6 +50,7 @@ class ValuationService
         private val dateUtils: DateUtils
     ) : Valuation {
         private val log = LoggerFactory.getLogger(ValuationService::class.java)
+        private val averageCost = AverageCost()
 
         override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
             val trnResponse = trnService.query(trnQuery) // Adhoc query
@@ -153,26 +155,35 @@ class ValuationService
                         }.awaitAll()
                 }
 
-            // Combine all transactions and sort by trade date
-            // Sorting is required because the Accumulator validates date sequence
-            val combinedTransactions =
-                portfolioTransactions
-                    .flatMap { it.second.data.toTrns() }
-                    .sortedBy { it.tradeDate }
+            // Accumulate each portfolio's positions INDEPENDENTLY, then sum them.
+            //
+            // The previous approach merged every portfolio's transactions into a
+            // single stream and re-accumulated it. That double-applied any
+            // corporate action recorded per-portfolio: a 4:1 split written into
+            // each holding portfolio compounded across the combined balance
+            // (24 real shares reported as 186), and a SELL in one portfolio drew
+            // down a pooled average cost that included another portfolio's lot.
+            // Accumulating per portfolio keeps each split and cost basis local;
+            // summing the results yields the correct aggregate.
+            val perPortfolioPositions =
+                portfolioTransactions.mapNotNull { (portfolio, trnResponse) ->
+                    val trns = trnResponse.data.toTrns()
+                    if (trns.isEmpty()) {
+                        null
+                    } else {
+                        portfolio to positionService.build(portfolio, PositionRequest(portfolio.id, trns)).data
+                    }
+                }
 
-            if (combinedTransactions.isEmpty()) {
+            if (perPortfolioPositions.isEmpty()) {
                 return PositionResponse()
             }
 
             // Use the first portfolio as context for owner / ids. When the
-            // caller passes a [targetCurrencyCode] (the user-visible
-            // reporting currency), adopt that currency on the synthesised
-            // context portfolio so MarketValue prices each PORTFOLIO bucket
-            // directly against the user's target. Without this the bucket
-            // ends up in portfolios.first().currency and a separate
-            // convertPositionsToCurrency step has to FX-back to target — a
-            // round-trip whose inverse-rate imprecision shows up as drift
-            // on PRIVATE / POLICY (constant `close=1`) positions.
+            // caller passes a [targetCurrencyCode] (the user-visible reporting
+            // currency), adopt it on the synthesised context portfolio so
+            // MarketValue prices each PORTFOLIO bucket directly against the
+            // target rather than via a lossy FX round-trip.
             val baseContext = portfolios.first()
             val contextPortfolio =
                 if (!targetCurrencyCode.isNullOrBlank() &&
@@ -185,55 +196,117 @@ class ValuationService
                     baseContext
                 }
 
-            // Build positions from combined transactions using the normal accumulation flow
-            val positionRequest =
-                PositionRequest(
-                    contextPortfolio.id,
-                    combinedTransactions
-                )
-            val positionResponse = positionService.build(contextPortfolio, positionRequest)
+            val aggregated = mergePositions(contextPortfolio, perPortfolioPositions.map { it.second })
 
-            // Attach per-portfolio breakdown so the UI can list which portfolios
-            // hold each asset. Cost/quantity accumulation on the aggregated
-            // position itself is unchanged.
-            applyPortfolioBreakdown(positionResponse.data, portfolioTransactions)
+            // Attach per-portfolio breakdown so the UI can list which portfolios hold each asset.
+            applyPortfolioBreakdown(aggregated, perPortfolioPositions)
 
             if (!valuationDate.equals(DateUtils.TODAY, ignoreCase = true)) {
-                positionResponse.data.asAt = valuationDate
+                aggregated.asAt = valuationDate
             }
 
-            // Value the positions if requested
-            // Pass skipMarketValueUpdate=true since aggregated positions don't belong to a single portfolio
+            // Value the positions if requested.
+            // Pass skipMarketValueUpdate=true since aggregated positions don't belong to a single portfolio.
             return if (value) {
                 value(
-                    positions = positionResponse.data,
+                    positions = aggregated,
                     skipMarketValueUpdate = true
                 )
             } else {
-                positionResponse
+                PositionResponse(aggregated)
             }
         }
 
         /**
-         * For each contributing portfolio, build its own positions and record the
-         * asset quantity it holds, then attach that list to the matching aggregated
-         * position. Portfolios with zero net quantity in an asset are skipped.
+         * Sum independently-accumulated per-portfolio positions into a single
+         * aggregate keyed by asset. Quantities, cost and cash-flow history add
+         * directly; TRADE and BASE buckets share a currency across a user's
+         * portfolios so they sum exactly. The PORTFOLIO bucket adopts the
+         * context (reporting) currency — exact when the portfolios share it.
+         * Market value, gains and IRR are (re)derived later by [value].
+         */
+        private fun mergePositions(
+            contextPortfolio: Portfolio,
+            perPortfolio: List<Positions>
+        ): Positions {
+            val aggregated = Positions(contextPortfolio)
+            perPortfolio.forEach { positions ->
+                positions.positions.values.forEach { source ->
+                    val target = aggregated.getOrCreate(source.asset)
+                    mergeQuantities(target, source)
+                    source.moneyValues.forEach { (bucket, sourceMv) ->
+                        mergeMoneyValues(target.getMoneyValues(bucket, sourceMv.currency), sourceMv)
+                    }
+                    target.periodicCashFlows.addAll(source.periodicCashFlows.cashFlows)
+                    mergeDates(target, source)
+                }
+            }
+            // Restate unit cost from the summed basis so display stays consistent.
+            aggregated.positions.values.forEach { position ->
+                val total = position.quantityValues.getTotal()
+                position.moneyValues.values.forEach { mv ->
+                    mv.averageCost = averageCost.value(mv.costBasis, total)
+                }
+            }
+            return aggregated
+        }
+
+        private fun mergeQuantities(
+            target: Position,
+            source: Position
+        ) {
+            target.quantityValues.purchased = target.quantityValues.purchased.add(source.quantityValues.purchased)
+            target.quantityValues.sold = target.quantityValues.sold.add(source.quantityValues.sold)
+            target.quantityValues.adjustment = target.quantityValues.adjustment.add(source.quantityValues.adjustment)
+        }
+
+        private fun mergeMoneyValues(
+            target: MoneyValues,
+            source: MoneyValues
+        ) {
+            target.costValue = target.costValue.add(source.costValue)
+            target.costBasis = target.costBasis.add(source.costBasis)
+            target.purchases = target.purchases.add(source.purchases)
+            target.sales = target.sales.add(source.sales)
+            target.dividends = target.dividends.add(source.dividends)
+            target.fees = target.fees.add(source.fees)
+            target.expenses = target.expenses.add(source.expenses)
+            target.realisedGain = target.realisedGain.add(source.realisedGain)
+        }
+
+        private fun mergeDates(
+            target: Position,
+            source: Position
+        ) {
+            target.dateValues.firstTransaction =
+                earliest(target.dateValues.firstTransaction, source.dateValues.firstTransaction)
+            target.dateValues.opened = earliest(target.dateValues.opened, source.dateValues.opened)
+        }
+
+        private fun earliest(
+            a: LocalDate?,
+            b: LocalDate?
+        ): LocalDate? =
+            when {
+                a == null -> b
+                b == null -> a
+                else -> if (a.isBefore(b)) a else b
+            }
+
+        /**
+         * For each contributing portfolio, record the asset quantity it holds and
+         * attach that list to the matching aggregated position. Portfolios with
+         * zero net quantity in an asset are skipped.
          */
         private fun applyPortfolioBreakdown(
             aggregated: Positions,
-            portfolioTransactions: List<Pair<Portfolio, TrnResponse>>
+            perPortfolioPositions: List<Pair<Portfolio, Positions>>
         ) {
             if (!aggregated.hasPositions()) return
 
             val breakdownByAsset = mutableMapOf<String, MutableList<PortfolioBreakdown>>()
-            portfolioTransactions.forEach { (portfolio, trnResponse) ->
-                val trns = trnResponse.data.toTrns()
-                if (trns.isEmpty()) return@forEach
-                val perPortfolio =
-                    positionService
-                        .build(portfolio, PositionRequest(portfolio.id, trns))
-                        .data
-                perPortfolio.positions.values.forEach { position ->
+            perPortfolioPositions.forEach { (portfolio, positions) ->
+                positions.positions.values.forEach { position ->
                     val quantity = position.quantityValues.getTotal()
                     if (quantity.signum() == 0) return@forEach
                     breakdownByAsset

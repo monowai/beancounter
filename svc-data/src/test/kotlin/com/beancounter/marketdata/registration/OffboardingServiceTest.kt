@@ -454,6 +454,74 @@ class OffboardingServiceTest {
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
     }
 
+    // Regression guard (kauri 409): the wealth path deletes the user's assets, so it must
+    // clear broker_settlement_account first — same NO-ACTION fk_settlement_account constraint
+    // that the account path already handles. Without it the asset delete rolls back the whole
+    // wealth delete and the offboarding wizard reports a partial failure.
+    @Test
+    fun `should delete wealth when a settlement account references a user asset`() {
+        val user = SystemUser(id = "offboard-wealth-settlement-user", email = "offboard-wealth-settlement@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        val asset =
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            "test" to
+                                AssetInput.toRealEstate(
+                                    currency = USD,
+                                    code = "OFFBOARD-WEALTH-SETTLE-CASH",
+                                    name = "Wealth Settlement Cash Asset",
+                                    owner = user.id
+                                )
+                        )
+                    )
+                ).data["test"]!!
+        val broker = brokerRepository.save(Broker(name = "Wealth Settlement Broker", owner = user))
+        brokerSettlementAccountRepository.save(
+            BrokerSettlementAccount(broker = broker, currencyCode = USD.code, account = asset)
+        )
+
+        val result = offboardingService.deleteUserWealth()
+
+        assertThat(result.success).isTrue()
+        assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+    }
+
+    // Regression guard (kauri 409): the assets path has the same FK exposure as the wealth and
+    // account paths — clear broker_settlement_account before deleting the referenced cash asset.
+    @Test
+    fun `should delete assets when a settlement account references a user asset`() {
+        val user = SystemUser(id = "offboard-assets-settlement-user", email = "offboard-assets-settlement@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        val asset =
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            "test" to
+                                AssetInput.toRealEstate(
+                                    currency = USD,
+                                    code = "OFFBOARD-ASSETS-SETTLE-CASH",
+                                    name = "Assets Settlement Cash Asset",
+                                    owner = user.id
+                                )
+                        )
+                    )
+                ).data["test"]!!
+        val broker = brokerRepository.save(Broker(name = "Assets Settlement Broker", owner = user))
+        brokerSettlementAccountRepository.save(
+            BrokerSettlementAccount(broker = broker, currencyCode = USD.code, account = asset)
+        )
+
+        val result = offboardingService.deleteUserAssets()
+
+        assertThat(result.success).isTrue()
+        assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+    }
+
     // Soft-delete: offboarding deletes the user's DATA but keeps the SystemUser row
     // marked inactive (re-registration reactivates it). cash_portfolio_id must be
     // cleared so the surviving row does not dangle a deleted portfolio.

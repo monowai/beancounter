@@ -6,6 +6,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import org.springframework.web.client.ResourceAccessException
 import java.util.Locale
 
 /**
@@ -48,7 +49,16 @@ class FigiProxy internal constructor(
                 bcAssetCode,
                 market
             )
-        val response = resolve(figiSearch)
+        val response =
+            try {
+                resolve(figiSearch)
+            } catch (e: ResourceAccessException) {
+                // DATA-4Z: a transient OpenFIGI I/O blip (api.openfigi.com: Try again) must not
+                // abort the caller. Degrade to no enrichment so the chain falls back to the
+                // default enricher rather than dead-lettering an async CSV-import message.
+                log.warn("FIGI lookup failed for {}/{} - {}; falling back", figiMarket, figiCode, e.message)
+                return null
+            }
         if (response?.error != null) {
             // Hard error (rate-limit / auth). Return null so the enricher chain falls
             // back to the default enricher rather than persisting a null-named asset.

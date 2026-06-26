@@ -14,8 +14,36 @@ import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
+import org.springframework.web.client.ResourceAccessException
 
 class FigiProxyAliasTest {
+    @Test
+    fun `find returns null when FIGI gateway throws a transient IO error`() {
+        // DATA-4Z: a transient OpenFIGI I/O blip (api.openfigi.com: Try again) used to
+        // propagate out of find(), abort the whole CSV-import message and exhaust the AMQP
+        // retry policy. find() must instead return null so the enricher chain falls back to
+        // the default enricher and the import continues rather than dead-lettering.
+        val config = Mockito.mock(FigiConfig::class.java)
+        whenever(config.apiKey).thenReturn("demoxx")
+        val gateway = Mockito.mock(FigiGateway::class.java)
+        val adapter = Mockito.mock(FigiAdapter::class.java)
+        val proxy = FigiProxy(config, gateway, adapter)
+        val lse = Market(code = "LSE", aliases = mapOf(FigiProxy.FIGI to "LN"))
+
+        whenever(gateway.search(any(), eq("demoxx")))
+            .thenThrow(
+                ResourceAccessException(
+                    "I/O error on POST request for \"https://api.openfigi.com/v3/mapping\": " +
+                        "api.openfigi.com: Try again"
+                )
+            )
+
+        val result = proxy.find(lse, "ANY")
+
+        assertThat(result).isNull()
+        Mockito.verifyNoInteractions(adapter)
+    }
+
     @Test
     fun `find skips FIGI and returns null when the market has no FIGI alias`() {
         // DATA-5K: enriching an asset on a market without a FIGI exchange alias

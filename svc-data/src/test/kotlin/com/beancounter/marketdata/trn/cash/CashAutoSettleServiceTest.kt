@@ -28,6 +28,7 @@ import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.trn.TrnSettlementService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -70,6 +71,9 @@ class CashAutoSettleServiceTest {
 
     @Autowired
     private lateinit var trnService: TrnService
+
+    @Autowired
+    private lateinit var trnSettlementService: TrnSettlementService
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
@@ -476,7 +480,7 @@ class CashAutoSettleServiceTest {
         val buy = buildBuy(invest, BigDecimal("-2000"))
         assertThat(findAutoSiblings(buy)).hasSize(2)
 
-        val response = trnService.unsettle(buy.id)
+        val response = trnSettlementService.unsettle(buy.id)
 
         assertThat(response.updated.id).isEqualTo(buy.id)
         assertThat(response.updated.status).isEqualTo(TrnStatus.PROPOSED)
@@ -500,7 +504,7 @@ class CashAutoSettleServiceTest {
         val buy = buildBuy(invest, BigDecimal("-1200"), status = TrnStatus.PROPOSED)
         assertThat(findAutoSiblings(buy)).isEmpty()
 
-        trnService.settleTransactions(invest.id, listOf(buy.id))
+        trnSettlementService.settleTransactions(invest.id, listOf(buy.id))
 
         assertThat(findAutoSiblings(buy)).hasSize(2)
     }
@@ -513,7 +517,7 @@ class CashAutoSettleServiceTest {
         assertThat(findAutoSiblings(b1)).hasSize(2)
         assertThat(findAutoSiblings(b2)).hasSize(2)
 
-        val result = trnService.unsettleTransactions(invest.id, listOf(b1.id, b2.id))
+        val result = trnSettlementService.unsettleTransactions(invest.id, listOf(b1.id, b2.id))
 
         assertThat(result).hasSize(2)
         assertThat(result.map { it.status }).containsOnly(TrnStatus.PROPOSED)
@@ -525,9 +529,9 @@ class CashAutoSettleServiceTest {
     fun `unsettle on already PROPOSED trn throws IllegalArgumentException`() {
         mockAuthConfig.login(testUser, systemUserService)
         val buy = buildBuy(invest, BigDecimal("-1000"))
-        trnService.unsettle(buy.id)
+        trnSettlementService.unsettle(buy.id)
         org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            trnService.unsettle(buy.id)
+            trnSettlementService.unsettle(buy.id)
         }
     }
 

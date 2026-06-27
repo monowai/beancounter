@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
@@ -8,16 +9,13 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.USD
-import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
-import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.portfolio.PortfolioShareRepository
-import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -27,18 +25,17 @@ import java.time.LocalDate
 import java.util.Optional
 
 /**
- * Focused unit tests for TrnService.settleTransactions covering settlement preconditions
- * (forward-dated trns must not flip to SETTLED) and FX deferral on settle.
+ * Focused unit tests for TrnSettlementService.settleTransactions covering settlement
+ * preconditions (forward-dated trns must not flip to SETTLED) and FX resolution on settle.
  */
 class TrnSettleTest {
     private lateinit var trnRepository: TrnRepository
     private lateinit var portfolioService: PortfolioService
-    private lateinit var trnMigrator: TrnMigrator
     private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
-    private lateinit var systemUserService: SystemUserService
-    private lateinit var trnService: TrnService
     private lateinit var dateUtils: DateUtils
+    private lateinit var fxTransactions: FxTransactions
     private lateinit var cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
+    private lateinit var trnPostProcessor: TrnPostProcessor
     private lateinit var trnSettlementService: TrnSettlementService
 
     private val today: LocalDate = LocalDate.of(2026, 6, 6)
@@ -58,40 +55,29 @@ class TrnSettleTest {
     fun setUp() {
         trnRepository = mock()
         portfolioService = mock()
-        trnMigrator = mock()
         cacheInvalidationProducer = mock()
-        systemUserService = mock()
         dateUtils = mock()
+        fxTransactions = mock()
         whenever(dateUtils.date).thenReturn(today)
         whenever(portfolioService.find("pf-1")).thenReturn(portfolio)
-        whenever(trnMigrator.upgrade(any())).thenAnswer { it.arguments[0] as Trn }
-        whenever(systemUserService.getOrThrow()).thenReturn(owner)
         cashAutoSettleService = mock()
         whenever(cashAutoSettleService.emitCompensatingTransfer(any()))
             .thenReturn(
                 com.beancounter.marketdata.cash
                     .AutoSettleResult()
             )
-        trnSettlementService = mock()
-        whenever(trnSettlementService.settle(any(), any())).thenAnswer {
-            val t = it.getArgument<Trn>(1)
-            t.status = TrnStatus.SETTLED
-            t
-        }
-        trnService =
-            TrnService(
+        trnPostProcessor = mock()
+        whenever(trnPostProcessor.postProcess(any<List<Trn>>()))
+            .thenAnswer { it.getArgument<List<Trn>>(0) }
+        trnSettlementService =
+            TrnSettlementService(
                 trnRepository = trnRepository,
-                trnInputMapper = mock(),
-                portfolioService = portfolioService,
-                trnMigrator = trnMigrator,
-                assetFinder = mock<AssetFinder>(),
-                systemUserService = systemUserService,
-                cacheInvalidationProducer = cacheInvalidationProducer,
-                portfolioShareRepository = mock<PortfolioShareRepository>(),
+                fxTransactions = fxTransactions,
                 cashAutoSettleService = cashAutoSettleService,
-                trnSettlementService = trnSettlementService,
+                portfolioService = portfolioService,
+                cacheInvalidationProducer = cacheInvalidationProducer,
                 dateUtils = dateUtils,
-                balanceContributionStamper = mock()
+                trnPostProcessor = trnPostProcessor
             )
     }
 
@@ -101,12 +87,12 @@ class TrnSettleTest {
         whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-future"))
             .thenReturn(Optional.of(forwardTrn))
 
-        val result = trnService.settleTransactions("pf-1", listOf("trn-future"))
+        val result = trnSettlementService.settleTransactions("pf-1", listOf("trn-future"))
 
         assertThat(result).isEmpty()
         assertThat(forwardTrn.status).isEqualTo(TrnStatus.PROPOSED)
         verify(trnRepository, never()).save(forwardTrn)
-        verify(trnSettlementService, never()).settle(any(), any())
+        verify(fxTransactions, never()).setRates(any<Portfolio>(), any<Trn>())
     }
 
     @Test
@@ -115,11 +101,12 @@ class TrnSettleTest {
         whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-today"))
             .thenReturn(Optional.of(dueTrn))
 
-        val result = trnService.settleTransactions("pf-1", listOf("trn-today"))
+        val result = trnSettlementService.settleTransactions("pf-1", listOf("trn-today"))
 
         assertThat(result).hasSize(1)
         assertThat(dueTrn.status).isEqualTo(TrnStatus.SETTLED)
-        verify(trnSettlementService).settle(portfolio, dueTrn)
+        verify(fxTransactions).setRates(eq(portfolio), eq(dueTrn))
+        verify(trnRepository).save(dueTrn)
     }
 
     private fun proposed(

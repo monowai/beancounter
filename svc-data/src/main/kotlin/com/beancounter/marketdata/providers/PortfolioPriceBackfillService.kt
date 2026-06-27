@@ -5,7 +5,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.trn.TrnFinder
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -18,7 +18,7 @@ import java.time.LocalDate
 @Service
 class PortfolioPriceBackfillService(
     private val portfolioService: PortfolioService,
-    private val trnService: TrnService,
+    private val trnFinder: TrnFinder,
     private val priceProcessor: MarketDataPriceProcessor,
     private val providerUtils: ProviderUtils,
     private val dateUtils: DateUtils,
@@ -30,7 +30,7 @@ class PortfolioPriceBackfillService(
         val portfolio = portfolioService.findByCode(code)
         val today = dateUtils.date
         val transactions =
-            trnService
+            trnFinder
                 .findForPortfolio(portfolio, today)
                 .sortedBy { it.tradeDate }
 

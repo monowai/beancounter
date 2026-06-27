@@ -11,7 +11,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.trn.TrnFinder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,7 +28,7 @@ import java.time.LocalDate
 class PortfolioPriceBackfillServiceTest {
     private lateinit var service: PortfolioPriceBackfillService
     private lateinit var portfolioService: PortfolioService
-    private lateinit var trnService: TrnService
+    private lateinit var trnFinder: TrnFinder
     private lateinit var priceProcessor: MarketDataPriceProcessor
     private lateinit var providerUtils: ProviderUtils
     private lateinit var dateUtils: DateUtils
@@ -49,7 +49,7 @@ class PortfolioPriceBackfillServiceTest {
     @BeforeEach
     fun setUp() {
         portfolioService = mock(PortfolioService::class.java)
-        trnService = mock(TrnService::class.java)
+        trnFinder = mock(TrnFinder::class.java)
         priceProcessor = mock(MarketDataPriceProcessor::class.java)
         providerUtils = mock(ProviderUtils::class.java)
         dateUtils = mock(DateUtils::class.java)
@@ -57,7 +57,7 @@ class PortfolioPriceBackfillServiceTest {
         service =
             PortfolioPriceBackfillService(
                 portfolioService,
-                trnService,
+                trnFinder,
                 priceProcessor,
                 providerUtils,
                 dateUtils,
@@ -70,7 +70,7 @@ class PortfolioPriceBackfillServiceTest {
 
     @Test
     fun `should return no_transactions when portfolio has no transactions`() {
-        `when`(trnService.findForPortfolio(portfolio, today)).thenReturn(emptyList())
+        `when`(trnFinder.findForPortfolio(portfolio, today)).thenReturn(emptyList())
 
         val result = service.backfill("TEST")
 
@@ -87,7 +87,7 @@ class PortfolioPriceBackfillServiceTest {
                 asset = cashAsset,
                 tradeDate = LocalDate.of(2025, 1, 15)
             )
-        `when`(trnService.findForPortfolio(portfolio, today)).thenReturn(listOf(cashTrn))
+        `when`(trnFinder.findForPortfolio(portfolio, today)).thenReturn(listOf(cashTrn))
 
         val result = service.backfill("TEST")
 
@@ -109,7 +109,7 @@ class PortfolioPriceBackfillServiceTest {
                 asset = assetMsft,
                 tradeDate = LocalDate.of(2025, 3, 10)
             )
-        `when`(trnService.findForPortfolio(portfolio, today)).thenReturn(listOf(trn1, trn2))
+        `when`(trnFinder.findForPortfolio(portfolio, today)).thenReturn(listOf(trn1, trn2))
         `when`(providerUtils.getInputs(any())).thenReturn(emptyList())
         `when`(priceProcessor.getPriceResponse(any())).thenReturn(PriceResponse(emptyList()))
 
@@ -169,7 +169,7 @@ class PortfolioPriceBackfillServiceTest {
                 asset = assetAapl,
                 tradeDate = LocalDate.of(2025, 3, 10)
             )
-        `when`(trnService.findForPortfolio(portfolio, today)).thenReturn(listOf(trn1, trn2))
+        `when`(trnFinder.findForPortfolio(portfolio, today)).thenReturn(listOf(trn1, trn2))
         `when`(providerUtils.getInputs(any())).thenReturn(emptyList())
         `when`(priceProcessor.getPriceResponse(any())).thenReturn(PriceResponse(emptyList()))
 

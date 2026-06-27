@@ -13,7 +13,7 @@ import java.time.LocalDate
  */
 @Service
 class TrnQueryService(
-    val trnService: TrnService,
+    val trnPostProcessor: TrnPostProcessor,
     val trnRepository: TrnRepository,
     val portfolioService: PortfolioService
 ) {
@@ -44,7 +44,7 @@ class TrnQueryService(
             portfolio.code,
             assetId
         )
-        return trnService.postProcess(
+        return trnPostProcessor.postProcess(
             results,
             false
         )
@@ -151,7 +151,7 @@ class TrnQueryService(
             portfolio.code,
             assetId
         )
-        return trnService.postProcess(
+        return trnPostProcessor.postProcess(
             results,
             true
         )

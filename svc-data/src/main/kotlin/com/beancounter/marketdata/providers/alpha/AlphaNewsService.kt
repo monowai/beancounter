@@ -135,7 +135,11 @@ class AlphaNewsService(
         try {
             @Suppress("UNCHECKED_CAST")
             objectMapper.readValue(json, Map::class.java) as Map<String, Any>
-        } catch (e: Exception) {
+        } catch (
+            // Provider JSON is untrusted; malformed payload or shape mismatch → drop the feed.
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
             log.warn("Failed to parse news feed: {}", e.message)
             null
         }

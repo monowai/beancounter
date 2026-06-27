@@ -74,7 +74,11 @@ class BearerTokenHttpHeadersProvider(
             val accessToken = client.accessToken
             cachedUserToken.set(CachedToken(accessToken.tokenValue, accessToken.expiresAt))
             accessToken.tokenValue
-        } catch (ex: Exception) {
+        } catch (
+            // Token load is best-effort; on any failure fall back to anonymous (null).
+            @Suppress("TooGenericExceptionCaught")
+            ex: Exception
+        ) {
             log.warn("failed to load OAuth2 access token for {}: {}", auth.name, ex.message)
             null
         }

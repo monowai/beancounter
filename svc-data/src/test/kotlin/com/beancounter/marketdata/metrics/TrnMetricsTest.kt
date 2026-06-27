@@ -305,7 +305,11 @@ class TrnMetricsTest {
                 @Suppress("TooGenericExceptionThrown")
                 throw RuntimeException("test exception")
             }
-        } catch (e: RuntimeException) {
+        } catch (
+            // Asserting the propagated test exception is the point of this test.
+            @Suppress("TooGenericExceptionCaught")
+            e: RuntimeException
+        ) {
             assertThat(e.message).isEqualTo("test exception")
         }
 

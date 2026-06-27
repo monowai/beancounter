@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod") // descriptive test names + linear scenario setup push these past detekt's 60-line cap
+
 package com.beancounter.marketdata.trn.cash
 
 import com.beancounter.auth.MockAuthConfig
@@ -308,8 +310,10 @@ class CashAutoSettleServiceTest {
     }
 
     @Test
-    fun `BUY skipped with warning when master has no cash asset history`() {
-        // Make a brand-new master with no DEPOSIT seed; link a new invest to it
+    fun `BUY with no master cash history still posts the transfer and warns of overdraw`() {
+        // Make a brand-new master with no DEPOSIT seed; link a new invest to it.
+        // The user opted into central funding, so we post the transfer anyway
+        // (master goes negative) rather than silently leaving invest unbalanced.
         val uniqueId = UUID.randomUUID().toString().substring(0, 8)
         val emptyMaster =
             bcMvcHelper.portfolio(
@@ -331,13 +335,87 @@ class CashAutoSettleServiceTest {
 
         mockAuthConfig.login(testUser, systemUserService)
         val result =
-            autoSettleService.emitCompensatingTransfer(
-                buildBuy(newInvest, BigDecimal("-500"))
+            trnService.saveWithResult(
+                newInvest,
+                TrnRequest(
+                    newInvest.id,
+                    listOf(
+                        TrnInput(
+                            assetId = aaplAsset.id,
+                            cashAssetId = usdCashAsset.id,
+                            trnType = TrnType.BUY,
+                            quantity = BigDecimal("1"),
+                            price = BigDecimal("500"),
+                            tradeAmount = BigDecimal("500"),
+                            tradeCurrency = "USD",
+                            cashCurrency = "USD",
+                            cashAmount = BigDecimal("-500"),
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeDate = LocalDate.now(),
+                            status = TrnStatus.SETTLED
+                        )
+                    )
+                )
             )
 
-        assertThat(result.transactions).isEmpty()
         assertThat(result.warnings).isNotEmpty
-        assertThat(result.warnings.first().lowercase()).contains("usd").contains("no")
+        assertThat(result.warnings.first().lowercase()).contains("overdraw")
+
+        val parent = result.trns.single { it.trnType == TrnType.BUY }
+        val siblings = findAutoSiblings(parent)
+        assertThat(siblings).hasSize(2)
+        assertThat(siblings.single { it.trnType == TrnType.WITHDRAWAL }.portfolio.id)
+            .isEqualTo(emptyMaster.id)
+    }
+
+    @Test
+    fun `re-emitting for an already-settled trade reconciles to a single pair`() {
+        // An edit that re-saves an already-SETTLED trade must not accumulate
+        // pairs — the prior pair is replaced, not added to.
+        mockAuthConfig.login(testUser, systemUserService)
+        val buy = buildBuy(invest, BigDecimal("-2000"))
+        val firstPair = findAutoSiblings(buy)
+        assertThat(firstPair).hasSize(2)
+
+        val result = autoSettleService.emitCompensatingTransfer(buy)
+
+        // Fresh pair posted, old pair deleted — exactly two legs remain.
+        assertThat(result.transactions).hasSize(2)
+        assertThat(findAutoSiblings(buy)).hasSize(2)
+        assertThat(result.transactions.map { it.id })
+            .doesNotContainAnyElementsOf(firstPair.map { it.id })
+    }
+
+    @Test
+    fun `editing a settled trade re-syncs the compensating pair to the new amount`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val buy = buildBuy(invest, BigDecimal("-2000"))
+        assertThat(findAutoSiblings(buy))
+            .allSatisfy { assertThat(it.tradeAmount).isEqualByComparingTo("2000") }
+
+        // Patch the settled trade to a larger amount (the in-place edit path).
+        trnService.patch(
+            invest,
+            buy.id,
+            TrnInput(
+                assetId = aaplAsset.id,
+                cashAssetId = usdCashAsset.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("1"),
+                price = BigDecimal("3000"),
+                tradeAmount = BigDecimal("3000"),
+                tradeCurrency = "USD",
+                cashCurrency = "USD",
+                cashAmount = BigDecimal("-3000"),
+                tradeCashRate = BigDecimal.ONE,
+                tradeDate = LocalDate.now(),
+                status = TrnStatus.SETTLED
+            )
+        )
+
+        val pair = findAutoSiblings(buy)
+        assertThat(pair).hasSize(2)
+        assertThat(pair).allSatisfy { assertThat(it.tradeAmount).isEqualByComparingTo("3000") }
     }
 
     @Test
@@ -514,6 +592,120 @@ class CashAutoSettleServiceTest {
         assertThat(trnRepository.findById(siblingIdsBefore[1]).isPresent).isTrue()
     }
 
+    @Test
+    fun `BUY in DBS settling IB-USD transfers from SGD funding portfolio and leaves DBS cash flat`() {
+        // Broker settles USD into a named cash asset "IB-USD". The SGD funding
+        // portfolio holds that IB-USD balance; DBS points its cashPortfolioId at it.
+        val uniqueId = UUID.randomUUID().toString().substring(0, 8)
+        val ibUsd = namedCashAsset("IB-USD", Constants.USD)
+        val msft =
+            assetService
+                .handle(
+                    AssetRequest(
+                        AssetInput(Constants.NASDAQ.code, "MSFT"),
+                        "MSFT"
+                    )
+                ).data["MSFT"]!!
+
+        val sgdFunding =
+            bcMvcHelper.portfolio(
+                PortfolioInput(
+                    code = "SGD_$uniqueId",
+                    base = "SGD",
+                    currency = "SGD"
+                )
+            )
+        val dbs =
+            bcMvcHelper.portfolio(
+                PortfolioInput(
+                    code = "DBS_$uniqueId",
+                    base = "SGD",
+                    currency = "SGD",
+                    cashPortfolioId = sgdFunding.id
+                )
+            )
+
+        // Seed the funding portfolio with an IB-USD balance so the cash-history
+        // gate passes (SGD:IB-USD funded by the brokerage settlement).
+        mockAuthConfig.login(testUser, systemUserService)
+        trnService.save(
+            sgdFunding,
+            TrnRequest(
+                sgdFunding.id,
+                listOf(
+                    TrnInput(
+                        assetId = ibUsd.id,
+                        cashAssetId = ibUsd.id,
+                        trnType = TrnType.DEPOSIT,
+                        tradeAmount = seedAmount,
+                        tradeCurrency = "USD",
+                        cashCurrency = "USD",
+                        price = BigDecimal.ONE,
+                        tradeDate = LocalDate.now().minusDays(1),
+                        status = TrnStatus.SETTLED
+                    )
+                )
+            )
+        )
+
+        // Buy MSFT in DBS, settling against IB-USD.
+        val buy =
+            trnService
+                .save(
+                    dbs,
+                    TrnRequest(
+                        dbs.id,
+                        listOf(
+                            TrnInput(
+                                assetId = msft.id,
+                                cashAssetId = ibUsd.id,
+                                trnType = TrnType.BUY,
+                                quantity = BigDecimal("10"),
+                                price = BigDecimal("200"),
+                                tradeAmount = BigDecimal("2000"),
+                                tradeCurrency = "USD",
+                                cashCurrency = "USD",
+                                cashAmount = BigDecimal("-2000"),
+                                tradeCashRate = BigDecimal.ONE,
+                                tradeDate = LocalDate.now(),
+                                status = TrnStatus.SETTLED
+                            )
+                        )
+                    )
+                ).single()
+
+        val siblings = findAutoSiblings(buy)
+        assertThat(siblings).hasSize(2)
+        val withdrawal = siblings.single { it.trnType == TrnType.WITHDRAWAL }
+        val deposit = siblings.single { it.trnType == TrnType.DEPOSIT }
+
+        // Transfer is SGD:IB-USD -> DBS:IB-USD
+        assertThat(withdrawal.portfolio.id).isEqualTo(sgdFunding.id)
+        assertThat(deposit.portfolio.id).isEqualTo(dbs.id)
+        assertThat(withdrawal.cashAsset?.id).isEqualTo(ibUsd.id)
+        assertThat(deposit.cashAsset?.id).isEqualTo(ibUsd.id)
+        assertThat(withdrawal.tradeAmount).isEqualByComparingTo("2000")
+        assertThat(deposit.tradeAmount).isEqualByComparingTo("2000")
+        // Cash legs carry a signed cashAmount (rate defaults to 1).
+        assertThat(withdrawal.cashAmount).isEqualByComparingTo("-2000")
+        assertThat(deposit.cashAmount).isEqualByComparingTo("2000")
+
+        // DBS:IB-USD nets to zero — the BUY debit (-2000) is matched by the
+        // auto-settle DEPOSIT (+2000). Mirror the position engine's cash rule:
+        // pure cash trns (DEPOSIT/WITHDRAWAL) move the balance by `quantity`,
+        // security trades by their `cashAmount` (DepositBehaviour.accumulate).
+        val dbsIbUsdBalance =
+            trnRepository
+                .findAll()
+                .filter {
+                    it.portfolio.id == dbs.id &&
+                        (it.asset.id == ibUsd.id || it.cashAsset?.id == ibUsd.id)
+                }.sumOf {
+                    if (TrnType.isCash(it.trnType)) it.quantity else it.cashAmount
+                }
+        assertThat(dbsIbUsdBalance).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
     private fun buildBuy(
         portfolio: Portfolio,
         cashAmount: BigDecimal,
@@ -550,6 +742,26 @@ class CashAutoSettleServiceTest {
                 it.callerRef?.provider == "BC-AUTO" &&
                     it.callerRef?.batch == parent.callerRef?.callerId
             }
+
+    private fun namedCashAsset(
+        code: String,
+        currency: Currency
+    ): Asset =
+        assetService
+            .handle(
+                AssetRequest(
+                    mapOf(
+                        code to
+                            AssetInput(
+                                market = "CASH",
+                                code = code,
+                                name = "$code Balance",
+                                currency = currency.code,
+                                category = "cash"
+                            )
+                    )
+                )
+            ).data[code]!!
 
     private fun getCashBalance(currency: Currency): Asset {
         val cashInput = AssetUtils.getCash(currency.code)

@@ -42,7 +42,12 @@ class TrnSettlementService(
             // Resolve FX now that settlement is confirmed. Ingest of forward-dated
             // event trns (DIVI payDate) defers FX; providers reject future dates.
             fxTransactions.setRates(portfolio, trn)
-        } catch (ex: RuntimeException) {
+        } catch (
+            // FX providers throw a range of runtime errors (rate lookup, parse,
+            // future-date rejection); any of them means "can't settle yet".
+            @Suppress("TooGenericExceptionCaught")
+            ex: RuntimeException
+        ) {
             log.warn(
                 "FX resolution failed for {} on {} — leaving PROPOSED for retry: {}",
                 trn.id,

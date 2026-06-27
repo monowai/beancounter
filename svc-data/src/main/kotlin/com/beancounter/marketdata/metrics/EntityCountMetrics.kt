@@ -133,7 +133,11 @@ class EntityCountMetrics(
     ): Double =
         try {
             repository.count().toDouble()
-        } catch (ex: Exception) {
+        } catch (
+            // Gauge sampling must never throw into the meter registry; degrade to NaN.
+            @Suppress("TooGenericExceptionCaught")
+            ex: Exception
+        ) {
             log.warn("entity count gauge failed for {}: {}", entity, ex.message)
             Double.NaN
         }

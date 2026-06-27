@@ -201,7 +201,11 @@ class AgentController(
                     timestamp = Instant.now().toString()
                 )
             )
-        } catch (e: Exception) {
+        } catch (
+            // Controller boundary: any LLM/tool failure becomes a 500 error body.
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
             log.error("Agent query failed: {}", e.message, e)
             ResponseEntity
                 .status(500)

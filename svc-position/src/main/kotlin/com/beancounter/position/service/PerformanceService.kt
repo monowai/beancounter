@@ -280,29 +280,20 @@ class PerformanceService(
         var cumulativeDividends = BigDecimal.ZERO
 
         for (valDate in valuationDates) {
-            var cashFlowOnDate = BigDecimal.ZERO
-
             // Accumulate transactions up to and including this date
-            while (trnIndex < transactions.size && !transactions[trnIndex].tradeDate.isAfter(valDate)) {
-                val trn = transactions[trnIndex]
-                accumulator.accumulate(trn, positions)
-
-                if (isExternalCashFlow(trn.trnType)) {
-                    val amount = convertCashFlowToPortfolioCurrency(trn, portfolio)
-                    netContributions = netContributions.add(amount)
-                    if (trn.tradeDate == valDate) {
-                        cashFlowOnDate = cashFlowOnDate.add(amount)
-                    }
-                }
-
-                if (trn.trnType == TrnType.DIVI) {
-                    cumulativeDividends =
-                        cumulativeDividends.add(
-                            convertDividendToPortfolioCurrency(trn, portfolio)
-                        )
-                }
-                trnIndex++
-            }
+            val acc =
+                accumulateUpTo(
+                    valDate,
+                    transactions,
+                    positions,
+                    portfolio,
+                    trnIndex,
+                    netContributions,
+                    cumulativeDividends
+                )
+            trnIndex = acc.trnIndex
+            netContributions = acc.netContributions
+            cumulativeDividends = acc.cumulativeDividends
 
             val marketValue = valuePositionsFromCache(positions, valDate, portfolio, priceCache, fxCache)
 
@@ -310,7 +301,7 @@ class PerformanceService(
                 ValuationSnapshot(
                     date = valDate,
                     marketValue = marketValue,
-                    externalCashFlow = cashFlowOnDate
+                    externalCashFlow = acc.cashFlowOnDate
                 )
             )
             netContributionsList.add(netContributions)
@@ -318,6 +309,55 @@ class PerformanceService(
         }
 
         return Triple(snapshots, netContributionsList, cumulativeDividendsList)
+    }
+
+    /** Running totals after accumulating all transactions up to a valuation date. */
+    private data class DateAccumulation(
+        val trnIndex: Int,
+        val netContributions: BigDecimal,
+        val cumulativeDividends: BigDecimal,
+        val cashFlowOnDate: BigDecimal
+    )
+
+    /**
+     * Accumulates transactions into [positions] up to and including [valDate],
+     * advancing from [startIndex] and folding contributions/dividends onto the
+     * running totals. Mutates [positions]; returns the updated scalar totals.
+     */
+    private fun accumulateUpTo(
+        valDate: LocalDate,
+        transactions: List<Trn>,
+        positions: Positions,
+        portfolio: Portfolio,
+        startIndex: Int,
+        startNetContributions: BigDecimal,
+        startCumulativeDividends: BigDecimal
+    ): DateAccumulation {
+        var trnIndex = startIndex
+        var netContributions = startNetContributions
+        var cumulativeDividends = startCumulativeDividends
+        var cashFlowOnDate = BigDecimal.ZERO
+
+        while (trnIndex < transactions.size && !transactions[trnIndex].tradeDate.isAfter(valDate)) {
+            val trn = transactions[trnIndex]
+            accumulator.accumulate(trn, positions)
+
+            if (isExternalCashFlow(trn.trnType)) {
+                val amount = convertCashFlowToPortfolioCurrency(trn, portfolio)
+                netContributions = netContributions.add(amount)
+                if (trn.tradeDate == valDate) {
+                    cashFlowOnDate = cashFlowOnDate.add(amount)
+                }
+            }
+
+            if (trn.trnType == TrnType.DIVI) {
+                cumulativeDividends =
+                    cumulativeDividends.add(convertDividendToPortfolioCurrency(trn, portfolio))
+            }
+            trnIndex++
+        }
+
+        return DateAccumulation(trnIndex, netContributions, cumulativeDividends, cashFlowOnDate)
     }
 
     private fun convertDividendToPortfolioCurrency(

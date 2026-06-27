@@ -28,6 +28,7 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.BcRowAdapter
+import com.beancounter.marketdata.trn.TrnFinder
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
 import io.restassured.RestAssured
@@ -76,6 +77,9 @@ class RealestateBase {
 
     @MockitoBean
     private lateinit var trnService: TrnService
+
+    @MockitoBean
+    private lateinit var trnFinder: TrnFinder
 
     @MockitoBean
     private lateinit var assetService: AssetService
@@ -247,10 +251,10 @@ class RealestateBase {
                 trns
             }
 
-        // Mock TrnService.findForPortfolio method for GET requests
+        // Mock TrnFinder.findForPortfolio method for GET requests
         Mockito
             .`when`(
-                trnService.findForPortfolio(
+                trnFinder.findForPortfolio(
                     any<String>(),
                     any<java.time.LocalDate>()
                 )

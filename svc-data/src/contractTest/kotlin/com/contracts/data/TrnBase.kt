@@ -18,6 +18,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.TrnFinder
 import com.beancounter.marketdata.trn.TrnQueryService
 import com.beancounter.marketdata.trn.TrnService
 import io.restassured.RestAssured
@@ -62,6 +63,9 @@ class TrnBase {
 
     @MockitoBean
     private lateinit var trnService: TrnService
+
+    @MockitoBean
+    private lateinit var trnFinder: TrnFinder
 
     @MockitoBean
     private lateinit var assetService: AssetService
@@ -182,7 +186,7 @@ class TrnBase {
             )
         Mockito
             .`when`(
-                trnService.findForPortfolio(
+                trnFinder.findForPortfolio(
                     portfolio.id,
                     dateUtils.getFormattedDate(date)
                 )

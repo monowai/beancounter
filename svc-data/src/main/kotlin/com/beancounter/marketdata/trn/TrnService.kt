@@ -462,8 +462,17 @@ class TrnService(
                 existing.iterator().next()
             )
         trnRepository.save(trn)
+        // Re-sync the compensating cash transfer to the edited values — reconcile
+        // deletes any stale pair and re-posts so the legs track the new
+        // amount/date/currency. Only settled trades carry a transfer.
+        val warnings =
+            if (trn.status == TrnStatus.SETTLED) {
+                cashAutoSettleService.emitCompensatingTransfer(trn).warnings
+            } else {
+                emptyList()
+            }
         cacheInvalidationProducer.sendTransactionEvent(portfolio.id, trn.tradeDate)
-        return TrnResponse(arrayListOf(trn))
+        return TrnResponse(arrayListOf(trn), warnings)
     }
 
     private fun postProcess(trns: List<Trn>): List<Trn> {

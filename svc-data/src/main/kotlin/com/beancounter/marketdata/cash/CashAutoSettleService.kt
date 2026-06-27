@@ -36,8 +36,14 @@ import java.time.LocalDate
  *   - cashAsset null or cashAmount == 0
  *   - no funding portfolio resolved
  *   - master == trade.portfolio
- *   - debit case AND master has never held this cash asset (block + warn;
- *     trade still succeeds with negative balance in invest portfolio)
+ *
+ * Re-save of an already-SETTLED trade (in-place edit): any existing sibling
+ * pair is deleted and re-posted, so the legs always track the current
+ * amount / date / currency (idempotent per parent — never duplicates).
+ *
+ * Debit case where master has never held this cash asset: the transfer is
+ * still posted (central funding was opted into) and the master is allowed to
+ * overdraw; a warning is returned so the negative balance is surfaced.
  */
 @Service
 class CashAutoSettleService(
@@ -75,18 +81,22 @@ class CashAutoSettleService(
         val isDebit = trade.trnType in cashDebitTypes
         val ccy = trade.cashCurrency?.code ?: cashAsset.market.currency.code
 
+        // Central-funding was opted into, so we always post the transfer to keep
+        // both ledgers balanced. When the master has never held this currency the
+        // withdrawal overdraws it (negative balance) — warn, but don't drop the
+        // leg and leave the trade portfolio silently unbalanced.
+        val warnings = mutableListOf<String>()
         if (isDebit && !masterHasCashHistory(master.id, cashAsset.id)) {
-            val msg =
-                "Cash portfolio ${master.code} has no $ccy balance; " +
-                    "deposit $ccy first to enable auto-settle"
-            log.info("auto_settle_skipped: trade={} reason=no_cash_history", trade.id)
-            return AutoSettleResult(warnings = listOf(msg))
+            warnings +=
+                "Cash portfolio ${master.code} has no prior $ccy balance; " +
+                "auto-settle will overdraw it"
+            log.warn("auto_settle_overdraw: trade={} master={} ccy={}", trade.id, master.code, ccy)
         }
 
         val groupBatch =
             trade.callerRef?.callerId
                 ?: return AutoSettleResult(
-                    warnings = listOf("Trade ${trade.id} missing callerId; auto-settle skipped")
+                    warnings = warnings + "Trade ${trade.id} missing callerId; auto-settle skipped"
                 )
         val amount = trade.cashAmount.abs()
         val tradeDate = trade.settleDate ?: trade.tradeDate
@@ -94,34 +104,30 @@ class CashAutoSettleService(
         val fromPortfolio = if (isDebit) master else trade.portfolio
         val toPortfolio = if (isDebit) trade.portfolio else master
 
-        val withdrawalInput =
+        // Reconcile: if a pair already exists for this parent (an edit re-saving
+        // a SETTLED trade), delete it before re-posting so the legs track the
+        // current amount/date/currency — prevents both stale legs and a
+        // duplicated pair (idempotent per parent).
+        val stale = findSiblings(trade)
+        if (stale.isNotEmpty()) trnRepository.deleteAll(stale)
+
+        fun leg(type: TrnType) =
             TrnInput(
                 callerRef = autoCallerRef(groupBatch),
                 assetId = cashAsset.id,
                 cashAssetId = cashAsset.id,
-                trnType = TrnType.WITHDRAWAL,
+                trnType = type,
                 tradeAmount = amount,
                 tradeCurrency = ccy,
                 cashCurrency = ccy,
+                tradeCashRate = BigDecimal.ONE,
                 price = BigDecimal.ONE,
                 tradeDate = tradeDate,
                 status = TrnStatus.SETTLED,
                 comments = "Auto-settle for ${trade.trnType} ${trade.asset.code}"
             )
-        val depositInput =
-            TrnInput(
-                callerRef = autoCallerRef(groupBatch),
-                assetId = cashAsset.id,
-                cashAssetId = cashAsset.id,
-                trnType = TrnType.DEPOSIT,
-                tradeAmount = amount,
-                tradeCurrency = ccy,
-                cashCurrency = ccy,
-                price = BigDecimal.ONE,
-                tradeDate = tradeDate,
-                status = TrnStatus.SETTLED,
-                comments = "Auto-settle for ${trade.trnType} ${trade.asset.code}"
-            )
+        val withdrawalInput = leg(TrnType.WITHDRAWAL)
+        val depositInput = leg(TrnType.DEPOSIT)
 
         val withdrawal =
             trnInputMapper
@@ -140,7 +146,7 @@ class CashAutoSettleService(
             saved[1].id,
             groupBatch
         )
-        return AutoSettleResult(transactions = saved)
+        return AutoSettleResult(transactions = saved, warnings = warnings)
     }
 
     /**

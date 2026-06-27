@@ -42,33 +42,26 @@ class MorningstarPriceService(
         log.info("Morningstar provider initialized for markets: {}", morningstarConfig.markets)
     }
 
-    override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-        val results = mutableListOf<MarketData>()
+    override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> =
+        priceRequest.assets.mapNotNull { it.resolvedAsset }.mapNotNull { fetchPrice(it) }
 
-        for ((_, _, resolvedAsset) in priceRequest.assets) {
-            if (resolvedAsset == null) continue
-
-            val priceCode = morningstarConfig.getPriceCode(resolvedAsset)
-            val currencyId = resolvedAsset.market.currency.code
-
-            try {
-                val json = morningstarProxy.getPrice(priceCode, currencyId)
-                if (json != null) {
-                    val marketData = parseResponse(json, resolvedAsset)
-                    if (marketData != null) {
-                        results.add(marketData)
-                    }
-                }
-            } catch (
-                @Suppress("TooGenericExceptionCaught")
-                e: Exception
-            ) {
-                // Continue processing other assets even if one fails
-                log.error("Error fetching price for {}: {}", priceCode, e.message)
-            }
+    /**
+     * Fetch and parse a single asset's price. Returns null (with a logged
+     * warning) on fetch/parse failure so other assets keep processing.
+     */
+    private fun fetchPrice(resolvedAsset: Asset): MarketData? {
+        val priceCode = morningstarConfig.getPriceCode(resolvedAsset)
+        val currencyId = resolvedAsset.market.currency.code
+        return try {
+            val json = morningstarProxy.getPrice(priceCode, currencyId) ?: return null
+            parseResponse(json, resolvedAsset)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.error("Error fetching price for {}: {}", priceCode, e.message)
+            null
         }
-
-        return results
     }
 
     /**

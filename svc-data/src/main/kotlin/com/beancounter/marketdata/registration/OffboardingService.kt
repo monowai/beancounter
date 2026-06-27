@@ -19,10 +19,12 @@ import org.springframework.stereotype.Service
  * 1. Transactions (via portfolio and asset)
  * 2. MarketData (via asset)
  * 3. Portfolios
- * 4. Assets
- * 5. TaxRates
- * 6. UserPreferences
- * 7. SystemUser
+ * 4. Settlement accounts (before assets and brokers)
+ * 5. Assets
+ * 6. Brokers (after transactions and assets — trn.broker_id FK)
+ * 7. TaxRates
+ * 8. UserPreferences
+ * 9. SystemUser
  */
 @Service
 @Transactional
@@ -94,7 +96,11 @@ class OffboardingService(
             deletedCount++
         }
 
-        log.info("Deleted {} assets for user {}", deletedCount, user.id)
+        // Delete brokers — safe AFTER trns (trn.broker_id FK) and settlement
+        // accounts are gone. Idempotent bulk delete.
+        val brokerCount = brokerRepository.deleteByOwnerId(user.id)
+
+        log.info("Deleted {} assets, {} brokers for user {}", deletedCount, brokerCount, user.id)
         return OffboardingResult(
             success = true,
             deletedCount = deletedCount,
@@ -166,11 +172,16 @@ class OffboardingService(
             totalDeleted++
         }
 
+        // 4. Delete brokers — safe AFTER trns (trn.broker_id FK) and settlement
+        //    accounts are gone. Idempotent bulk delete.
+        val brokerCount = brokerRepository.deleteByOwnerId(user.id)
+
         log.info(
-            "Deleted wealth data for user {}: {} portfolios, {} assets",
+            "Deleted wealth data for user {}: {} portfolios, {} assets, {} brokers",
             user.id,
             portfolios.size,
-            assets.size
+            assets.size,
+            brokerCount
         )
 
         return OffboardingResult(

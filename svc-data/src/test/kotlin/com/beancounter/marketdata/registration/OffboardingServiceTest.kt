@@ -487,6 +487,7 @@ class OffboardingServiceTest {
 
         assertThat(result.success).isTrue()
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+        assertThat(brokerRepository.findByOwner(user)).isEmpty()
     }
 
     // Regression guard (kauri 409): the assets path has the same FK exposure as the wealth and
@@ -520,6 +521,53 @@ class OffboardingServiceTest {
 
         assertThat(result.success).isTrue()
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+        assertThat(brokerRepository.findByOwner(user)).isEmpty()
+    }
+
+    // Brokers the user created must be removed on offboarding — safe once trns
+    // (trn.broker_id FK) and settlement accounts are gone. The wealth path
+    // deletes assets + their trns, so the broker delete that follows can't trip
+    // the FK. Mirrors the account path's broker cleanup.
+    @Test
+    fun `should delete brokers on wealth deletion`() {
+        val user = SystemUser(id = "offboard-wealth-broker-user", email = "offboard-wealth-broker@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        brokerRepository.save(Broker(name = "Wealth Broker", owner = user))
+
+        val result = offboardingService.deleteUserWealth()
+
+        assertThat(result.success).isTrue()
+        assertThat(brokerRepository.findByOwner(user)).isEmpty()
+    }
+
+    // Same broker cleanup on the assets-only path. deleteUserAssets early-returns
+    // when the user owns no assets, so this fixture creates one to exercise the
+    // full delete sequence ending in the broker removal.
+    @Test
+    fun `should delete brokers on assets deletion`() {
+        val user = SystemUser(id = "offboard-assets-broker-user", email = "offboard-assets-broker@test.com")
+        mockAuthConfig.login(user, systemUserService)
+
+        assetService.handle(
+            AssetRequest(
+                mapOf(
+                    "test" to
+                        AssetInput.toRealEstate(
+                            currency = USD,
+                            code = "OFFBOARD-ASSETS-BROKER-RE",
+                            name = "Assets Broker Real Estate",
+                            owner = user.id
+                        )
+                )
+            )
+        )
+        brokerRepository.save(Broker(name = "Assets Broker", owner = user))
+
+        val result = offboardingService.deleteUserAssets()
+
+        assertThat(result.success).isTrue()
+        assertThat(brokerRepository.findByOwner(user)).isEmpty()
     }
 
     // Soft-delete: offboarding deletes the user's DATA but keeps the SystemUser row

@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController
     description = "Export transactions to external formats"
 )
 class TrnExportController(
-    var trnService: TrnService,
+    var trnFinder: TrnFinder,
     var dateUtils: DateUtils,
     var trnIoDefinition: TrnIoDefinition
 ) {
@@ -78,7 +78,7 @@ class TrnExportController(
             "attachment; filename=\"${sanitizeFilename(portfolioId)}.csv\""
         )
         val trnResponse =
-            trnService.findForPortfolio(
+            trnFinder.findForPortfolio(
                 portfolioId,
                 dateUtils.date
             )

@@ -19,6 +19,7 @@ class TrnImportService(
     private val adapterFactory: AdapterFactory,
     private val portfolioService: PortfolioService,
     private val trnService: TrnService,
+    private val trnRepository: TrnRepository,
     private val trnMetrics: TrnMetrics
 ) {
     /**
@@ -71,7 +72,7 @@ class TrnImportService(
                 trnMetrics.recordTrnIgnored("portfolio_verification_failed")
                 return@timeTransactionImport emptySet()
             }
-            val existing = trnService.existing(trustedTrnEvent)
+            val existing = existing(trustedTrnEvent)
             if (existing.isNotEmpty()) {
                 // Calculate days difference for metrics
                 val daysDiff =
@@ -103,6 +104,23 @@ class TrnImportService(
             trnMetrics.recordTrnWritten(trustedTrnEvent.trnInput.trnType.name, written.size)
             written
         }
+    }
+
+    /**
+     * Existing transactions near the event's trade date, used to detect and skip
+     * duplicate corporate-action imports (the same DIVI/SPLIT arriving twice with
+     * a slightly different pay date).
+     */
+    fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
+        val start = trustedTrnEvent.trnInput.tradeDate.minusDays(5)
+        val endDate = trustedTrnEvent.trnInput.tradeDate.plusDays(20)
+        return trnRepository.findExisting(
+            trustedTrnEvent.portfolio.id,
+            trustedTrnEvent.trnInput.assetId!!,
+            trustedTrnEvent.trnInput.trnType,
+            start,
+            endDate
+        )
     }
 
     private fun writeTrn(

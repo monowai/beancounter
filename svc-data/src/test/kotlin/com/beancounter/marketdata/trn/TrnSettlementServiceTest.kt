@@ -41,7 +41,16 @@ class TrnSettlementServiceTest {
         fxTransactions = org.mockito.kotlin.mock()
         cashAutoSettleService = org.mockito.kotlin.mock()
         whenever(cashAutoSettleService.emitCompensatingTransfer(any())).thenReturn(AutoSettleResult())
-        service = TrnSettlementService(trnRepository, fxTransactions, cashAutoSettleService)
+        service =
+            TrnSettlementService(
+                trnRepository,
+                fxTransactions,
+                cashAutoSettleService,
+                org.mockito.kotlin.mock(),
+                org.mockito.kotlin.mock(),
+                org.mockito.kotlin.mock(),
+                org.mockito.kotlin.mock()
+            )
     }
 
     private fun proposed(id: String) =

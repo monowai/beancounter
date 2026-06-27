@@ -79,6 +79,9 @@ class TrnControllerTest {
     private lateinit var trnService: TrnService
 
     @Autowired
+    private lateinit var trnImportService: TrnImportService
+
+    @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
     @Autowired
@@ -182,7 +185,7 @@ class TrnControllerTest {
         // Then the existing dividend should be found
         val divi = existingTrns.iterator().next()
         val trustedTrnEvent = TrustedTrnEvent(portfolioA, trnInput = divi)
-        assertThat(trnService.existing(trustedTrnEvent)).isNotNull().isNotEmpty()
+        assertThat(trnImportService.existing(trustedTrnEvent)).isNotNull().isNotEmpty()
 
         // And the dividend should be retrievable via API
         val findByAsset =

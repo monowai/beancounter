@@ -53,6 +53,8 @@ import org.springframework.web.bind.annotation.RestController
 )
 class TrnController(
     var trnService: TrnService,
+    var trnFinder: TrnFinder,
+    var trnSettlementService: TrnSettlementService,
     var trnQueryService: TrnQueryService,
     var dateUtils: DateUtils,
     var positionMoveService: PositionMoveService
@@ -120,7 +122,7 @@ class TrnController(
         ) @RequestParam(required = false) asAt: String? = null
     ): TrnResponse =
         TrnResponse(
-            trnService.findForPortfolio(
+            trnFinder.findForPortfolio(
                 portfolioId,
                 dateUtils.getFormattedDate(asAt ?: dateUtils.today())
             )
@@ -156,7 +158,7 @@ class TrnController(
         ) trnId: String
     ): TrnResponse =
         TrnResponse(
-            trnService.getPortfolioTrn(
+            trnFinder.getPortfolioTrn(
                 trnId
             )
         )
@@ -369,7 +371,7 @@ class TrnController(
         require(request.status == TrnStatus.PROPOSED) {
             "Only PROPOSED is supported via this endpoint (Unsettle). Use POST /trns/settle for SETTLED."
         }
-        return trnService.unsettle(trnId)
+        return trnSettlementService.unsettle(trnId)
     }
 
     @GetMapping(
@@ -582,7 +584,7 @@ class TrnController(
         val trnStatus =
             com.beancounter.common.model.TrnStatus
                 .valueOf(status.uppercase())
-        return TrnResponse(trnService.findByStatus(portfolioId, trnStatus))
+        return TrnResponse(trnFinder.findByStatus(portfolioId, trnStatus))
     }
 
     @GetMapping(
@@ -614,7 +616,7 @@ class TrnController(
         @RequestParam(value = "asAt", required = false) asAt: String?
     ): TrnResponse =
         TrnResponse(
-            trnService.findProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today()))
+            trnFinder.findProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today()))
         )
 
     @GetMapping(
@@ -645,7 +647,7 @@ class TrnController(
         @Parameter(description = "Count proposed transactions due on or before this date (default today)")
         @RequestParam(value = "asAt", required = false) asAt: String?
     ): Map<String, Long> =
-        mapOf("count" to trnService.countProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today())))
+        mapOf("count" to trnFinder.countProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today())))
 
     @GetMapping(
         value = ["/settled"],
@@ -680,7 +682,7 @@ class TrnController(
             example = "2026-01-22",
             required = true
         ) @RequestParam("tradeDate") tradeDate: java.time.LocalDate
-    ): TrnResponse = TrnResponse(trnService.findSettledForUser(tradeDate))
+    ): TrnResponse = TrnResponse(trnFinder.findSettledForUser(tradeDate))
 
     @PostMapping(
         value = ["/portfolio/{portfolioId}/settle"],
@@ -717,7 +719,7 @@ class TrnController(
         @Parameter(
             description = "Request body containing transaction IDs to settle"
         ) @RequestBody request: SettleTransactionsRequest
-    ): TrnResponse = TrnResponse(trnService.settleTransactions(portfolioId, request.trnIds))
+    ): TrnResponse = TrnResponse(trnSettlementService.settleTransactions(portfolioId, request.trnIds))
 
     @PostMapping(
         value = ["/portfolio/{portfolioId}/unsettle"],
@@ -746,7 +748,7 @@ class TrnController(
         @Parameter(
             description = "Request body containing transaction IDs to unsettle"
         ) @RequestBody request: SettleTransactionsRequest
-    ): TrnResponse = TrnResponse(trnService.unsettleTransactions(portfolioId, request.trnIds))
+    ): TrnResponse = TrnResponse(trnSettlementService.unsettleTransactions(portfolioId, request.trnIds))
 
     @GetMapping(
         value = ["/{portfolioId}/cash-ladder/{cashAssetId}"],
@@ -785,7 +787,7 @@ class TrnController(
             description = "Cash asset identifier",
             example = "cash-usd-123"
         ) @PathVariable("cashAssetId") cashAssetId: String
-    ): TrnResponse = TrnResponse(trnService.getCashLadder(portfolioId, cashAssetId))
+    ): TrnResponse = TrnResponse(trnFinder.getCashLadder(portfolioId, cashAssetId))
 
     @GetMapping(
         value = ["/portfolio/{portfolioId}/model/{modelId}"],
@@ -825,7 +827,7 @@ class TrnController(
         ) @PathVariable("modelId") modelId: String
     ): TrnResponse =
         TrnResponse(
-            trnService.findByPortfolioAndModel(portfolioId, modelId)
+            trnFinder.findByPortfolioAndModel(portfolioId, modelId)
         )
 
     @PostMapping(

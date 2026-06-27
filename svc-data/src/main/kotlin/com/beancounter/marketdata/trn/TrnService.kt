@@ -263,42 +263,43 @@ class TrnService(
         trnIds: List<String>
     ): Collection<Trn> {
         val portfolio = portfolioService.find(portfolioId)
-        val settled = mutableListOf<Trn>()
-        for (trnId in trnIds) {
-            val trnOptional = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
-            if (trnOptional.isPresent) {
-                val trn = trnOptional.get()
-                if (trn.status == TrnStatus.PROPOSED) {
-                    if (trn.tradeDate.isAfter(dateUtils.date)) {
-                        log.warn(
-                            "Cannot settle transaction {} - tradeDate {} is in the future",
-                            trnId,
-                            trn.tradeDate
-                        )
-                        continue
-                    }
-                    // Shared settle core: FX + status flip + cash emit. Returns
-                    // null when FX can't resolve yet (leaves it PROPOSED for retry).
-                    val saved = trnSettlementService.settle(portfolio, trn) ?: continue
-                    settled.add(saved)
-                    log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
-                } else {
-                    log.warn(
-                        "Cannot settle transaction {} - status is {} not PROPOSED",
-                        trnId,
-                        trn.status
-                    )
-                }
-            } else {
-                log.warn("Transaction {} not found in portfolio {}", trnId, portfolio.code)
-            }
-        }
+        val settled = trnIds.mapNotNull { settleOne(portfolio, it) }
         log.info("Settled {} transactions for portfolio {}", settled.size, portfolio.code)
         val earliestSettled = settled.minOfOrNull { it.tradeDate }
         if (earliestSettled != null) {
             cacheInvalidationProducer.sendTransactionEvent(portfolio.id, earliestSettled)
         }
         return postProcess(settled)
+    }
+
+    /**
+     * Settle a single PROPOSED transaction. Returns the settled Trn, or null
+     * (with a warning) when it is missing, not PROPOSED, future-dated, or FX
+     * can't resolve yet (leaving it PROPOSED for retry).
+     */
+    private fun settleOne(
+        portfolio: Portfolio,
+        trnId: String
+    ): Trn? {
+        val trn =
+            trnRepository.findByPortfolioIdAndId(portfolio.id, trnId).orElse(null)
+                ?: run {
+                    log.warn("Transaction {} not found in portfolio {}", trnId, portfolio.code)
+                    return null
+                }
+        if (trn.status != TrnStatus.PROPOSED) {
+            log.warn("Cannot settle transaction {} - status is {} not PROPOSED", trnId, trn.status)
+            return null
+        }
+        if (trn.tradeDate.isAfter(dateUtils.date)) {
+            log.warn("Cannot settle transaction {} - tradeDate {} is in the future", trnId, trn.tradeDate)
+            return null
+        }
+        // Shared settle core: FX + status flip + cash emit. Returns null when FX
+        // can't resolve yet (leaves it PROPOSED for retry).
+        val saved = trnSettlementService.settle(portfolio, trn) ?: return null
+        log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
+        return saved
     }
 
     /**

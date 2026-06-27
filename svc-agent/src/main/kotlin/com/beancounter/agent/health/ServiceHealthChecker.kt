@@ -86,7 +86,11 @@ class ServiceHealthChecker(
             } else {
                 ServiceStatus(name = name, status = "DOWN", error = "HTTP ${response.statusCode.value()}")
             }
-        } catch (e: Exception) {
+        } catch (
+            // Any failure (connect/timeout/parse) means the probed service is DOWN.
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
             log.debug("Health probe failed for {} at {}: {}", name, url, e.message)
             ServiceStatus(name = name, status = "DOWN", error = e.message ?: e.javaClass.simpleName)
         }

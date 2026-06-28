@@ -106,7 +106,18 @@ data class PrivateAssetConfig(
         orphanRemoval = true,
         fetch = FetchType.EAGER
     )
-    @JoinColumn(name = "asset_id", referencedColumnName = "asset_id")
+    // Read-only join: each PrivateAssetSubAccount owns and writes its own
+    // (NOT NULL) `asset_id`. Marking the collection's join column
+    // insertable/updatable=false stops Hibernate's unidirectional-@OneToMany
+    // wart of issuing `UPDATE ... SET asset_id = NULL` before deleting children
+    // — that null-UPDATE violated the NOT NULL constraint and blocked deletes.
+    // cascade=ALL + orphanRemoval still DELETE the child rows directly.
+    @JoinColumn(
+        name = "asset_id",
+        referencedColumnName = "asset_id",
+        insertable = false,
+        updatable = false
+    )
     val subAccounts: MutableList<PrivateAssetSubAccount> = mutableListOf(),
     // Timestamps
     @Column(name = "created_date", nullable = false)

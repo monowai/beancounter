@@ -58,13 +58,18 @@ class MarketStackConfig(
         )
 
     override fun getPriceCode(asset: Asset): String {
-        // Use priceSymbol if set (e.g., "D05.SI" for FIGI ticker "DBS")
-        if (!asset.priceSymbol.isNullOrEmpty()) {
-            return asset.priceSymbol!!
+        // Only honour priceSymbol when it already carries an exchange suffix (contains ".").
+        // A bare priceSymbol (e.g. "SCI") is indistinguishable from the asset code and,
+        // when sent to MarketStack without an exchange suffix, resolves to whichever exchange
+        // MarketStack picks first — typically a US listing (e.g. NYSE:SCI) rather than the
+        // intended SGX:SCI. Fall through to the market-alias path in that case.
+        val ps = asset.priceSymbol
+        if (!ps.isNullOrEmpty() && ps.contains(".")) {
+            return ps
         }
         val marketCode = translateMarketCode(asset.market)
         return if (!marketCode.isNullOrEmpty()) {
-            asset.code + "." + marketCode
+            "${asset.code}.$marketCode"
         } else {
             asset.code
         }

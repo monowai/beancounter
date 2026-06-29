@@ -234,6 +234,7 @@ class AssetService(
                 NotFoundException("Asset not found: $assetId")
             }
         input.name?.let { asset.name = it }
+        input.priceSymbol?.let { asset.priceSymbol = it }
         if (input.category.isNotBlank()) {
             val newCategoryId = input.category.uppercase()
             val currency =

@@ -283,8 +283,9 @@ interface TrnRepository :
     ): Long
 
     /**
-     * Find all transactions with a specific status and trade date for portfolios owned by the given user.
-     * Used for showing settled transactions on a specific date across all portfolios.
+     * Find all transactions with a specific status whose tradeDate falls within the
+     * inclusive [from]..[to] window, for portfolios owned by the given user. Used by
+     * the cross-portfolio Transactions review page, which filters by a date range.
      */
     @Query(
         "select t from Trn t " +
@@ -295,13 +296,15 @@ interface TrnRepository :
             "left join fetch t.cashCurrency " +
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
-            "and t.tradeDate = ?3 " +
+            "and t.tradeDate >= ?3 " +
+            "and t.tradeDate <= ?4 " +
             "order by t.portfolio.code, t.asset.code, t.createdAt"
     )
-    fun findByStatusAndPortfolioOwnerAndTradeDate(
+    fun findByStatusAndPortfolioOwnerAndTradeDateBetween(
         status: TrnStatus,
         owner: SystemUser,
-        tradeDate: LocalDate
+        from: LocalDate,
+        to: LocalDate
     ): Collection<Trn>
 
     /**

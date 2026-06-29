@@ -145,12 +145,16 @@ class TrnFinder(
             .toSet()
 
     /**
-     * Find all SETTLED transactions for the current user on a specific trade date.
+     * Find all SETTLED transactions for the current user whose tradeDate falls within
+     * the inclusive [from]..[to] window.
      */
-    fun findSettledForUser(tradeDate: LocalDate): Collection<Trn> {
+    fun findSettledForUser(
+        from: LocalDate,
+        to: LocalDate
+    ): Collection<Trn> {
         val user = systemUserService.getOrThrow()
-        val results = trnRepository.findByStatusAndPortfolioOwnerAndTradeDate(TrnStatus.SETTLED, user, tradeDate)
-        log.trace("settled trns on $tradeDate: ${results.size}")
+        val results = trnRepository.findByStatusAndPortfolioOwnerAndTradeDateBetween(TrnStatus.SETTLED, user, from, to)
+        log.trace("settled trns $from..$to: ${results.size}")
         return trnPostProcessor.postProcess(results.toList())
     }
 

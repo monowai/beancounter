@@ -330,6 +330,41 @@ class BcRowAdapterTest {
         assertThat(result.cashAssetId).isEqualTo(privateCash.id)
     }
 
+    @Test
+    fun `generic-cash FX_BUY settles to the sell currency, not the bought currency`() {
+        // Buying USD by selling NZD from a generic cash balance: no specific bank
+        // account is picked, so CashAccount is empty and the sell currency (NZD)
+        // is carried in the CashCurrency column. The cash/settlement leg must debit
+        // NZD — NOT self-settle to the bought USD asset.
+        val values =
+            listOf(
+                "20250115", // Batch
+                "", // CallerId
+                "FX_BUY", // Type
+                CASH_MARKET.code, // Market (buy side)
+                USD.code, // Code (bought currency)
+                "", // Name
+                "", // CashAccount (empty — generic cash, no bank account)
+                NZD.code, // CashCurrency (sell side)
+                "2025-01-15", // Date
+                "100", // Quantity (USD bought)
+                "", // BaseRate
+                USD.code, // TradeCurrency (buy currency)
+                "1", // Price
+                "0", // Fees
+                "", // PortfolioRate
+                "", // TradeAmount
+                "-130", // CashAmount (NZD sold)
+                "Buy USD/Sell NZD" // Comments
+            )
+
+        val result = bcRowAdapter.transform(trustedTrnImportRequest(values))
+
+        assertThat(result.trnType).isEqualTo(TrnType.FX_BUY)
+        // Cash leg must resolve the sell currency (NZD), not self-settle to USD.
+        assertThat(result.cashAssetId).isEqualTo(nzdCashBalance.id)
+    }
+
     private fun trustedTrnImportRequest(values: List<String>): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
             portfolio = portfolio,

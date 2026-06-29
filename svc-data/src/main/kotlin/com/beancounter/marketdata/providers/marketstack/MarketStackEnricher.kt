@@ -54,12 +54,7 @@ class MarketStackEnricher(
                     apiKey = marketStackConfig.apiKey
                 )
 
-            val ticker =
-                response.data?.tickers?.firstOrNull {
-                    // Match by name containing the search term (case-insensitive)
-                    it.name.contains(assetInput.code, ignoreCase = true) ||
-                        it.symbol.contains(assetInput.code, ignoreCase = true)
-                }
+            val ticker = pickTicker(response.data?.tickers ?: emptyList(), assetInput.code)
 
             if (ticker != null) {
                 val marketAlias = market.getAlias(MarketStackService.ID)
@@ -97,6 +92,34 @@ class MarketStackEnricher(
             log.warn("Error enriching via MarketStack: ${e.message}")
             defaultEnricher.enrich(id, market, assetInput)
         }
+    }
+
+    /**
+     * Pick the best-matching ticker from a MarketStack response.
+     *
+     * Priority:
+     * 1. Exact symbol match — the base code (before ".") equals the search term exactly.
+     *    Prevents "KEP" from fuzzy-matching Keppel REIT (K71U) instead of Keppel Corp (BN4).
+     * 2. Single unambiguous name/symbol contains match — accepted only when there is exactly
+     *    one candidate. Multiple matches (e.g. "KEP" hitting both K71U and BN4 via "Keppel")
+     *    are rejected as ambiguous; the caller then falls back to the market-alias code path.
+     */
+    internal fun pickTicker(
+        tickers: List<com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker>,
+        code: String
+    ): com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker? {
+        val exact =
+            tickers.firstOrNull { t ->
+                t.symbol.substringBefore(".").equals(code, ignoreCase = true)
+            }
+        if (exact != null) return exact
+
+        val fuzzy =
+            tickers.filter { t ->
+                t.name.contains(code, ignoreCase = true) ||
+                    t.symbol.contains(code, ignoreCase = true)
+            }
+        return if (fuzzy.size == 1) fuzzy.first() else null
     }
 
     override fun canEnrich(asset: Asset): Boolean =

@@ -19,7 +19,9 @@ data class AssetInput(
     val category: String = "Equity",
     val owner: String = "",
     // Expected annual return rate (as decimal, e.g., 0.03 for 3%). Default 3% if null.
-    val expectedReturnRate: Double? = null
+    val expectedReturnRate: Double? = null,
+    // Admin override for the ticker symbol used by price providers (e.g. "BN4.SI" for Keppel Corp on MarketStack).
+    val priceSymbol: String? = null
 ) {
     companion object {
         @JvmStatic

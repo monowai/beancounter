@@ -76,8 +76,11 @@ class BcRowAdapter(
         val cashAsset: Asset? =
             if (TrnType.isCash(trnType)) {
                 asset
-            } else if (cashAccount.isEmpty() && cashUtils.isCash(asset)) {
-                // Asset is a bank/trade account — settle to itself
+            } else if (trnType != TrnType.FX_BUY && cashAccount.isEmpty() && cashUtils.isCash(asset)) {
+                // Asset is a bank/trade account — settle to itself. FX_BUY is excluded:
+                // its asset is the *bought* currency, while the cash/sell leg is a
+                // different currency carried in CashCurrency. Self-settling would debit
+                // the bought currency and silently drop the sell-side leg.
                 asset
             } else {
                 cashTrnServices.getCashAsset(trnType, cashAccount, cashCurrency, ownerId)

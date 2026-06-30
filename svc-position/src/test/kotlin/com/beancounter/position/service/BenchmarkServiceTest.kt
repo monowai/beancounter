@@ -153,9 +153,13 @@ class BenchmarkServiceTest {
     @Test
     fun `missing exact-date close falls back to nearest prior close`() {
         val today = dateUtils.date
-        val firstDate = today.minusMonths(2)
+        // Take the slots from the same grid the service builds. monthlyDates snaps
+        // to month-ends, so deriving midDate as today.minusMonths(1) drifts off the
+        // grid whenever today is a month-end before a longer month (a date-bomb).
+        val grid = benchmarkService.monthlyDates(today.minusMonths(2), today)
+        val firstDate = grid.first()
+        val midDate = grid[1]
         val priorDate = firstDate.minusDays(3)
-        val midDate = today.minusMonths(1)
         val bulk =
             BulkPriceResponse(
                 mapOf(

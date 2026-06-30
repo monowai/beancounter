@@ -654,14 +654,17 @@ class TrnController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
-        summary = "Get all settled transactions for current user on a specific date",
+        summary = "Get all settled transactions for current user within a date range",
         description = """
             Retrieves all SETTLED transactions across all portfolios owned by the current user
-            for a specific trade date.
+            whose tradeDate falls within the inclusive from..to window.
 
             Use this to:
-            * View settled transactions on a specific date
-            * Review what was executed on a particular trading day
+            * Review what was executed over a trading window
+            * Pair with the proposed list on the Transactions review page
+
+            `from`/`to` default to today. The legacy single-date `tradeDate` param is still
+            honoured (treated as from = to = tradeDate) when from/to are absent.
         """
     )
     @ApiResponses(
@@ -669,20 +672,26 @@ class TrnController(
             ApiResponse(
                 responseCode = "200",
                 description = "Settled transactions retrieved successfully"
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "tradeDate parameter is required"
             )
         ]
     )
     fun findSettled(
-        @Parameter(
-            description = "Trade date in YYYY-MM-DD format",
-            example = "2026-01-22",
-            required = true
-        ) @RequestParam("tradeDate") tradeDate: java.time.LocalDate
-    ): TrnResponse = TrnResponse(trnFinder.findSettledForUser(tradeDate))
+        @Parameter(description = "Window start (YYYY-MM-DD); defaults to today")
+        @RequestParam(value = "from", required = false) from: String?,
+        @Parameter(description = "Window end (YYYY-MM-DD); defaults to today")
+        @RequestParam(value = "to", required = false) to: String?,
+        @Parameter(description = "Legacy single trade date (YYYY-MM-DD); used when from/to absent")
+        @RequestParam(value = "tradeDate", required = false) tradeDate: String?
+    ): TrnResponse {
+        // Range mode wins as soon as either bound is supplied; the legacy single
+        // `tradeDate` is honoured only when neither from nor to is present, so a
+        // mixed `from` + `tradeDate` can't silently produce an unintended window.
+        val rangeMode = from != null || to != null
+        val legacy = tradeDate ?: dateUtils.today()
+        val fromDate = dateUtils.getFormattedDate(if (rangeMode) from ?: dateUtils.today() else legacy)
+        val toDate = dateUtils.getFormattedDate(if (rangeMode) to ?: dateUtils.today() else legacy)
+        return TrnResponse(trnFinder.findSettledForUser(fromDate, toDate))
+    }
 
     @PostMapping(
         value = ["/portfolio/{portfolioId}/settle"],

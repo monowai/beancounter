@@ -571,7 +571,7 @@ beancounter:
       mstack:
         url: https://api.marketstack.com
         batchSize: 10
-        markets: "NZX,SGX,ASX"
+        markets: "NZX,SGX"
 
       private:
         batchSize: 1
@@ -595,7 +595,9 @@ beancounter:
         # nightly PortfolioValuationSchedule collapses N per-symbol round-trips
         # into a single HTTP call (per-symbol quota is unchanged at 1 call each).
         batchSize: 50
-        markets: ""
+        # ASX served by EODHD (exchange code AU). Key entitlement verified
+        # 2026-06-30 via /api/exchanges-list + /api/eod/BHP.AU. Moved off mstack.
+        markets: "ASX"
         news:
           # Top-N articles returned to the caller after ranking. Keep small —
           # each article becomes tool_result tokens on the LLM's second inference call.

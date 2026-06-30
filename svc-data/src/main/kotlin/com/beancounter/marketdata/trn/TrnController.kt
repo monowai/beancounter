@@ -683,8 +683,13 @@ class TrnController(
         @Parameter(description = "Legacy single trade date (YYYY-MM-DD); used when from/to absent")
         @RequestParam(value = "tradeDate", required = false) tradeDate: String?
     ): TrnResponse {
-        val fromDate = dateUtils.getFormattedDate(from ?: tradeDate ?: dateUtils.today())
-        val toDate = dateUtils.getFormattedDate(to ?: tradeDate ?: dateUtils.today())
+        // Range mode wins as soon as either bound is supplied; the legacy single
+        // `tradeDate` is honoured only when neither from nor to is present, so a
+        // mixed `from` + `tradeDate` can't silently produce an unintended window.
+        val rangeMode = from != null || to != null
+        val legacy = tradeDate ?: dateUtils.today()
+        val fromDate = dateUtils.getFormattedDate(if (rangeMode) from ?: dateUtils.today() else legacy)
+        val toDate = dateUtils.getFormattedDate(if (rangeMode) to ?: dateUtils.today() else legacy)
         return TrnResponse(trnFinder.findSettledForUser(fromDate, toDate))
     }
 

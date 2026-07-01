@@ -102,9 +102,10 @@ class TrnAnalysisController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
-        summary = "Get monthly investment summary",
+        summary = "Get rolling investment summary",
         description = """
-            Returns the net amount invested (BUY + ADD - SELL) in a specific month.
+            Returns the net amount invested (BUY - SELL) over a rolling trailing window
+            (default 30 days, ending today). ADD transactions are excluded as transfers.
             Optionally scoped to specific portfolios and converted to a target currency.
 
             Use this to:
@@ -117,16 +118,17 @@ class TrnAnalysisController(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "Monthly investment summary retrieved successfully",
+                description = "Investment summary retrieved successfully",
                 content = [
                     Content(
                         mediaType = MediaType.APPLICATION_JSON_VALUE,
                         examples = [
                             ExampleObject(
-                                name = "Monthly Investment",
+                                name = "Rolling Investment",
                                 value = """
                                 {
-                                  "yearMonth": "2024-01",
+                                  "startDate": "2024-01-01",
+                                  "endDate": "2024-01-31",
                                   "totalInvested": 5000.00,
                                   "currency": "USD"
                                 }
@@ -140,9 +142,9 @@ class TrnAnalysisController(
     )
     fun getMonthlyInvestment(
         @Parameter(
-            description = "Year and month in YYYY-MM format. Defaults to current month.",
-            example = "2024-01"
-        ) @RequestParam(required = false) yearMonth: String?,
+            description = "Trailing window length in days, ending today. Defaults to 30.",
+            example = "30"
+        ) @RequestParam(required = false, defaultValue = "$DEFAULT_INVESTMENT_WINDOW_DAYS") days: Int,
         @Parameter(
             description = "Target currency code for FX conversion. Required for accurate results.",
             example = "USD"
@@ -152,24 +154,20 @@ class TrnAnalysisController(
             example = "portfolio-1,portfolio-2"
         ) @RequestParam(required = false) portfolioIds: String?
     ): MonthlyInvestmentResponse {
-        val month =
-            if (yearMonth != null) {
-                YearMonth.parse(yearMonth)
-            } else {
-                YearMonth.now()
-            }
+        val (startDate, endDate) = investmentWindow(days)
 
         val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
 
         val total =
             if (currency != null) {
-                trnAnalysisService.getMonthlyInvestmentConverted(month, portfolioIdList, currency)
+                trnAnalysisService.getMonthlyInvestmentConverted(startDate, endDate, portfolioIdList, currency)
             } else {
-                trnAnalysisService.getMonthlyInvestment(month)
+                trnAnalysisService.getMonthlyInvestment(startDate, endDate)
             }
 
         return MonthlyInvestmentResponse(
-            yearMonth = month.toString(),
+            startDate = startDate,
+            endDate = endDate,
             totalInvested = total,
             currency = currency
         )
@@ -180,37 +178,32 @@ class TrnAnalysisController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @Operation(
-        summary = "Get monthly investment transactions for current user",
+        summary = "Get rolling investment transactions for current user",
         description = """
-            Returns all investment transactions (BUY and ADD) for the current user
-            in a specific month. Defaults to the current month if not specified.
+            Returns all investment transactions (BUY and SELL) for the current user
+            over a rolling trailing window (default 30 days, ending today).
 
             Use this to:
-            * View individual investment transactions for the month
-            * Provide detailed breakdown of monthly investing activity
+            * View individual investment transactions for the window
+            * Provide detailed breakdown of recent investing activity
         """
     )
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "Monthly investment transactions retrieved successfully"
+                description = "Investment transactions retrieved successfully"
             )
         ]
     )
     fun getMonthlyInvestmentTransactions(
         @Parameter(
-            description = "Year and month in YYYY-MM format. Defaults to current month.",
-            example = "2024-01"
-        ) @RequestParam(required = false) yearMonth: String?
+            description = "Trailing window length in days, ending today. Defaults to 30.",
+            example = "30"
+        ) @RequestParam(required = false, defaultValue = "$DEFAULT_INVESTMENT_WINDOW_DAYS") days: Int
     ): TrnResponse {
-        val month =
-            if (yearMonth != null) {
-                YearMonth.parse(yearMonth)
-            } else {
-                YearMonth.now()
-            }
-        return TrnResponse(trnAnalysisService.getMonthlyInvestmentTransactions(month))
+        val (startDate, endDate) = investmentWindow(days)
+        return TrnResponse(trnAnalysisService.getMonthlyInvestmentTransactions(startDate, endDate))
     }
 
     @GetMapping(

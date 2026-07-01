@@ -31,16 +31,18 @@ class TrnAnalysisService(
     private val log = LoggerFactory.getLogger(TrnAnalysisService::class.java)
 
     /**
-     * Get the total investment amount for the current user in a specific month.
-     * Sums all BUY and ADD transactions across all portfolios.
+     * Get the net investment amount for the current user over a date range.
+     * Sums BUY - SELL (ADD excluded as transfers) across all portfolios.
      *
-     * @param yearMonth The month to calculate (e.g., YearMonth.now() for current month)
-     * @return Total investment amount for the month
+     * @param startDate window start (inclusive)
+     * @param endDate window end (inclusive)
+     * @return Total net investment for the window
      */
-    fun getMonthlyInvestment(yearMonth: YearMonth): BigDecimal {
+    fun getMonthlyInvestment(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): BigDecimal {
         val user = systemUserService.getOrThrow()
-        val startDate = yearMonth.atDay(1)
-        val endDate = yearMonth.atEndOfMonth()
         val total =
             trnRepository.sumInvestmentsByOwnerAndDateRange(
                 user,
@@ -48,21 +50,23 @@ class TrnAnalysisService(
                 endDate,
                 TrnStatus.SETTLED
             )
-        log.trace("Monthly investment for $yearMonth: $total")
+        log.trace("Investment for $startDate..$endDate: $total")
         return total
     }
 
     /**
-     * Get all investment transactions for the current user in a specific month.
-     * Returns individual BUY and ADD transactions across all portfolios.
+     * Get all investment transactions for the current user over a date range.
+     * Returns individual BUY and SELL transactions across all portfolios.
      *
-     * @param yearMonth The month to query
+     * @param startDate window start (inclusive)
+     * @param endDate window end (inclusive)
      * @return Collection of investment transactions
      */
-    fun getMonthlyInvestmentTransactions(yearMonth: YearMonth): Collection<Trn> {
+    fun getMonthlyInvestmentTransactions(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Collection<Trn> {
         val user = systemUserService.getOrThrow()
-        val startDate = yearMonth.atDay(1)
-        val endDate = yearMonth.atEndOfMonth()
         val results =
             trnRepository.findInvestmentsByOwnerAndDateRange(
                 user,
@@ -70,27 +74,26 @@ class TrnAnalysisService(
                 endDate,
                 TrnStatus.SETTLED
             )
-        log.trace("Monthly investment trns: ${results.size} in $yearMonth")
+        log.trace("Investment trns: ${results.size} in $startDate..$endDate")
         return results.toList()
     }
 
     /**
-     * Get net investment for specific portfolios in a month, converted to target currency.
-     * Calculates: BUY + ADD - SELL with FX conversion.
+     * Get net investment for specific portfolios over a date range, converted to target currency.
+     * Calculates: BUY - SELL with FX conversion.
      *
-     * @param yearMonth The month to calculate
+     * @param startDate window start (inclusive)
+     * @param endDate window end (inclusive)
      * @param portfolioIds List of portfolio IDs to include (empty = all user's portfolios)
      * @param targetCurrency Currency code to convert amounts to
      * @return Net investment amount in target currency
      */
     fun getMonthlyInvestmentConverted(
-        yearMonth: YearMonth,
+        startDate: LocalDate,
+        endDate: LocalDate,
         portfolioIds: List<String>,
         targetCurrency: String
     ): BigDecimal {
-        val startDate = yearMonth.atDay(1)
-        val endDate = yearMonth.atEndOfMonth()
-
         // Fetch transactions for the specified portfolios
         val transactions =
             if (portfolioIds.isEmpty()) {
@@ -130,7 +133,7 @@ class TrnAnalysisService(
                 }
         }
 
-        log.trace("Monthly investment for $yearMonth in $targetCurrency: $total (${transactions.size} trns)")
+        log.trace("Investment for $startDate..$endDate in $targetCurrency: $total (${transactions.size} trns)")
         return total
     }
 

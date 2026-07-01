@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets.figi
 
+import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
@@ -17,6 +18,7 @@ class FigiGateway(
     /**
      * Enrichment lookup - exact ticker match using /v3/mapping.
      */
+    @Retry(name = "providerHttp")
     fun search(
         searchBody: Collection<FigiSearch>,
         apiKey: String
@@ -35,6 +37,7 @@ class FigiGateway(
      * Keyword search using /v3/search endpoint.
      * Supports partial name/ticker matching.
      */
+    @Retry(name = "providerHttp")
     fun filter(
         request: FigiFilterRequest,
         apiKey: String

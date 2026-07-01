@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.fx.fxrates
 
+import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -14,6 +15,7 @@ class FrankfurterGateway(
     @Qualifier("frankfurterRestClient")
     private val restClient: RestClient
 ) {
+    @Retry(name = "providerHttp")
     fun getRatesForSymbols(
         date: String,
         base: String,

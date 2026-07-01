@@ -275,6 +275,18 @@ resilience4j:
         waitDuration: 10s
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
+      # Outbound market-data provider HTTP (FX / prices / FIGI search).
+      # Retries only transient network faults (ResourceAccessException wraps
+      # "I/O error ... Try again", read timeouts, connection resets) so a single
+      # blip no longer fails the whole request or aborts a price batch. 4xx/5xx
+      # business errors are NOT retried — they surface immediately.
+      providerHttp:
+        maxRetryAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
 
 beancounter:
   # Default FX rate provider: FRANKFURTER (free, unlimited) or EXCHANGE_RATES_API

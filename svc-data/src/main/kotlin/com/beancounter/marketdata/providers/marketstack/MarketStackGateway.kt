@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.marketstack
 
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackTickerResponse
+import io.github.resilience4j.retry.annotation.Retry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
@@ -19,6 +20,7 @@ class MarketStackGateway(
 ) {
     private val log = LoggerFactory.getLogger(MarketStackGateway::class.java)
 
+    @Retry(name = "providerHttp")
     fun getPrices(
         assetId: String,
         date: String,
@@ -45,6 +47,7 @@ class MarketStackGateway(
             }
         }
 
+    @Retry(name = "providerHttp")
     fun getHistory(
         symbol: String,
         dateFrom: String,
@@ -72,6 +75,7 @@ class MarketStackGateway(
      * @param apiKey MarketStack API key
      * @param limit Maximum number of results
      */
+    @Retry(name = "providerHttp")
     fun searchTickers(
         exchangeMic: String,
         searchTerm: String,

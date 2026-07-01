@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.fx.fxrates
 
+import io.github.resilience4j.retry.annotation.Retry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -19,6 +20,7 @@ class FxGateway(
 ) {
     private val log = LoggerFactory.getLogger(FxGateway::class.java)
 
+    @Retry(name = "providerHttp")
     fun getRatesForSymbols(
         date: String,
         base: String,

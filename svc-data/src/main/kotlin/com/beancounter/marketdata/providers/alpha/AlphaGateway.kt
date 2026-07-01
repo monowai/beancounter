@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
+import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -13,6 +14,7 @@ class AlphaGateway(
     @Qualifier("alphaVantageRestClient")
     private val restClient: RestClient
 ) {
+    @Retry(name = "providerHttp")
     fun getCurrent(
         assetId: String,
         apiKey: String
@@ -24,6 +26,7 @@ class AlphaGateway(
             .body<String>()
             ?: ""
 
+    @Retry(name = "providerHttp")
     fun getHistoric(
         assetId: String?,
         apiKey: String?
@@ -35,6 +38,7 @@ class AlphaGateway(
             .body<String>()
             ?: ""
 
+    @Retry(name = "providerHttp")
     fun getAdjusted(
         assetId: String?,
         apiKey: String?
@@ -49,6 +53,7 @@ class AlphaGateway(
             .body<String>()
             ?: ""
 
+    @Retry(name = "providerHttp")
     fun search(
         symbol: String?,
         apiKey: String?
@@ -64,6 +69,7 @@ class AlphaGateway(
      * Get company overview including sector and industry.
      * Used for Equity classification.
      */
+    @Retry(name = "providerHttp")
     fun getOverview(
         symbol: String,
         apiKey: String
@@ -79,6 +85,7 @@ class AlphaGateway(
      * Get ETF profile including sector allocations.
      * Used for ETF exposure classification.
      */
+    @Retry(name = "providerHttp")
     fun getEtfProfile(
         symbol: String,
         apiKey: String
@@ -90,6 +97,7 @@ class AlphaGateway(
             .body<String>()
             ?: ""
 
+    @Retry(name = "providerHttp")
     fun getNewsSentiment(
         tickers: String,
         apiKey: String,

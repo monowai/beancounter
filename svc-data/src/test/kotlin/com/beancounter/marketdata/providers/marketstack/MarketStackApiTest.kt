@@ -18,6 +18,7 @@ import com.beancounter.marketdata.providers.marketstack.model.MarketStackData
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -334,6 +335,55 @@ internal class MarketStackApiTest {
     /**
      * Constants for MarketStack.
      **/
+    @Test
+    fun `retries a transient provider I-O fault and recovers instead of aborting the batch`() {
+        // DATA-4Y / POSITION-45..48: a single transient network blip
+        // (ResourceAccessException) from MarketStack used to abort the whole
+        // price batch and surface as a 500. @Retry(name="providerHttp") on the
+        // gateway now retries the call, so a fault-then-success sequence yields
+        // prices rather than failing.
+        val inputs =
+            mutableListOf(
+                PriceAsset(AAPL),
+                PriceAsset(MSFT)
+            )
+        val response =
+            getResponseMap(
+                ClassPathResource("$CONTRACTS/${AAPL.code}-${MSFT.code}.json").file
+            )
+        val url = "/v2/eod/$priceDate?symbols=AAPL%2CMSFT&access_key=demo"
+        val scenario = "marketstack-transient"
+        // First attempt: connection reset -> ResourceAccessException.
+        wireMock.stubFor(
+            WireMock
+                .get(WireMock.urlEqualTo(url))
+                .inScenario(scenario)
+                .whenScenarioStateIs(com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED)
+                .willSetStateTo("recovered")
+                .willReturn(WireMock.aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+        )
+        // Retry: succeeds with a valid body.
+        wireMock.stubFor(
+            WireMock
+                .get(WireMock.urlEqualTo(url))
+                .inScenario(scenario)
+                .whenScenarioStateIs("recovered")
+                .willReturn(
+                    WireMock
+                        .aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(response))
+                        .withStatus(200)
+                )
+        )
+
+        val mdResult = marketStackService.getMarketData(PriceRequest(priceDate, inputs))
+
+        assertThat(mdResult)
+            .isNotNull
+            .hasSize(2)
+    }
+
     companion object {
         @JvmField
         @RegisterExtension

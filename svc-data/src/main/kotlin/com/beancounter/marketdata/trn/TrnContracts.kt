@@ -47,10 +47,12 @@ data class BrokerHoldingsResponse(
 )
 
 /**
- * Response for monthly investment summary.
+ * Response for the rolling investment window summary.
+ * [startDate]..[endDate] describe the trailing window the total covers.
  */
 data class MonthlyInvestmentResponse(
-    val yearMonth: String,
+    val startDate: LocalDate,
+    val endDate: LocalDate,
     val totalInvested: BigDecimal,
     val currency: String? = null
 )

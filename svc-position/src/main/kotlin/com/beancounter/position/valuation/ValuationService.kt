@@ -1,7 +1,10 @@
 package com.beancounter.position.valuation
 
+import com.beancounter.auth.TokenService
+import com.beancounter.client.FxService
 import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.TrnService
+import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
@@ -9,6 +12,8 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.PortfolioBreakdown
@@ -17,6 +22,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.setMarketValue
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MathUtils
 import com.beancounter.position.service.MarketValueUpdateProducer
 import com.beancounter.position.service.PositionService
 import com.beancounter.position.service.PositionValuationService
@@ -47,6 +53,8 @@ class ValuationService
         private val positionService: PositionService,
         private val marketValueUpdateProducer: MarketValueUpdateProducer,
         private val classificationClient: ClassificationClient,
+        private val fxRateService: FxService,
+        private val tokenService: TokenService,
         private val dateUtils: DateUtils
     ) : Valuation {
         private val log = LoggerFactory.getLogger(ValuationService::class.java)
@@ -196,7 +204,15 @@ class ValuationService
                     baseContext
                 }
 
-            val aggregated = mergePositions(contextPortfolio, perPortfolioPositions.map { it.second })
+            // The cost buckets are accumulated in each source portfolio's own
+            // currency. When the aggregate reports in a different currency (or
+            // spans portfolios with differing currencies) those costs must be
+            // FX-converted before summing, otherwise a raw foreign figure sits
+            // under the reporting-currency label. Market value is (re)priced
+            // later against the target rate; this keeps cost consistent with it.
+            val sourcePositions = perPortfolioPositions.map { it.second }
+            val rates = aggregationRates(contextPortfolio, sourcePositions, valuationDate)
+            val aggregated = mergePositions(contextPortfolio, sourcePositions, rates)
 
             // Attach per-portfolio breakdown so the UI can list which portfolios hold each asset.
             applyPortfolioBreakdown(aggregated, perPortfolioPositions)
@@ -227,7 +243,8 @@ class ValuationService
          */
         private fun mergePositions(
             contextPortfolio: Portfolio,
-            perPortfolio: List<Positions>
+            perPortfolio: List<Positions>,
+            rates: Map<IsoCurrencyPair, FxRate>
         ): Positions {
             val aggregated = Positions(contextPortfolio)
             perPortfolio.forEach { positions ->
@@ -235,7 +252,12 @@ class ValuationService
                     val target = aggregated.getOrCreate(source.asset)
                     mergeQuantities(target, source)
                     source.moneyValues.forEach { (bucket, sourceMv) ->
-                        mergeMoneyValues(target.getMoneyValues(bucket, sourceMv.currency), sourceMv)
+                        val targetCurrency = targetBucketCurrency(bucket, sourceMv.currency, contextPortfolio)
+                        mergeMoneyValues(
+                            target.getMoneyValues(bucket, targetCurrency),
+                            sourceMv,
+                            conversionRate(sourceMv.currency, targetCurrency, rates)
+                        )
                     }
                     target.periodicCashFlows.addAll(source.periodicCashFlows.cashFlows)
                     mergeDates(target, source)
@@ -251,6 +273,76 @@ class ValuationService
             return aggregated
         }
 
+        /**
+         * The currency each aggregated bucket is denominated in. TRADE stays in
+         * the asset's own trade currency (shared across a user's portfolios);
+         * PORTFOLIO adopts the context (reporting) currency and BASE the context
+         * base, so summed cost lands in the same currency as the (re)priced
+         * market value.
+         */
+        private fun targetBucketCurrency(
+            bucket: Position.In,
+            sourceCurrency: Currency,
+            context: Portfolio
+        ): Currency =
+            when (bucket) {
+                Position.In.TRADE -> sourceCurrency
+                Position.In.PORTFOLIO -> context.currency
+                Position.In.BASE -> context.base
+            }
+
+        /**
+         * Fetch the spot FX rates needed to convert each source bucket's cost
+         * into its aggregated (reporting) currency. Same-currency buckets need
+         * no rate; when every bucket already matches the context currency the
+         * request is skipped entirely (the common single-currency case).
+         *
+         * Cost basis is accumulated at many historical rates, so a single spot
+         * rate is an approximation — mirroring how market value is priced and
+         * how the frontend flags CUSTOM-currency cost as approximate.
+         */
+        private fun aggregationRates(
+            contextPortfolio: Portfolio,
+            perPortfolio: List<Positions>,
+            valuationDate: String
+        ): Map<IsoCurrencyPair, FxRate> {
+            val pairs = mutableSetOf<IsoCurrencyPair>()
+            perPortfolio.forEach { positions ->
+                positions.positions.values.forEach { position ->
+                    position.moneyValues.forEach { (bucket, mv) ->
+                        IsoCurrencyPair
+                            .toPair(
+                                mv.currency,
+                                targetBucketCurrency(bucket, mv.currency, contextPortfolio)
+                            )?.let { pairs.add(it) }
+                    }
+                }
+            }
+            if (pairs.isEmpty()) return emptyMap()
+
+            val fxRequest = FxRequest(rateDate = valuationDate)
+            pairs.forEach { fxRequest.add(it) }
+            return fxRateService.getRates(fxRequest, tokenService.bearerToken).data.rates
+        }
+
+        private fun conversionRate(
+            from: Currency,
+            to: Currency,
+            rates: Map<IsoCurrencyPair, FxRate>
+        ): BigDecimal {
+            if (from.code == to.code) return BigDecimal.ONE
+            val rate = rates[IsoCurrencyPair(from.code, to.code)]?.rate
+            if (rate == null) {
+                log.warn(
+                    "No FX rate for {}:{} while aggregating cost; leaving unconverted",
+                    from.code,
+                    to.code
+                )
+                return BigDecimal.ONE
+            }
+            return rate
+        }
+
         private fun mergeQuantities(
             target: Position,
             source: Position
@@ -262,17 +354,23 @@ class ValuationService
 
         private fun mergeMoneyValues(
             target: MoneyValues,
-            source: MoneyValues
+            source: MoneyValues,
+            rate: BigDecimal
         ) {
-            target.costValue = target.costValue.add(source.costValue)
-            target.costBasis = target.costBasis.add(source.costBasis)
-            target.purchases = target.purchases.add(source.purchases)
-            target.sales = target.sales.add(source.sales)
-            target.dividends = target.dividends.add(source.dividends)
-            target.fees = target.fees.add(source.fees)
-            target.expenses = target.expenses.add(source.expenses)
-            target.realisedGain = target.realisedGain.add(source.realisedGain)
+            target.costValue = target.costValue.add(convert(source.costValue, rate))
+            target.costBasis = target.costBasis.add(convert(source.costBasis, rate))
+            target.purchases = target.purchases.add(convert(source.purchases, rate))
+            target.sales = target.sales.add(convert(source.sales, rate))
+            target.dividends = target.dividends.add(convert(source.dividends, rate))
+            target.fees = target.fees.add(convert(source.fees, rate))
+            target.expenses = target.expenses.add(convert(source.expenses, rate))
+            target.realisedGain = target.realisedGain.add(convert(source.realisedGain, rate))
         }
+
+        private fun convert(
+            value: BigDecimal,
+            rate: BigDecimal
+        ): BigDecimal = MathUtils.multiply(value, rate) ?: value
 
         private fun mergeDates(
             target: Position,

@@ -1,14 +1,20 @@
 package com.beancounter.position.valuation
 
+import com.beancounter.auth.TokenService
+import com.beancounter.client.FxService
 import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.AssetClassificationSummary
 import com.beancounter.common.contracts.BulkClassificationResponse
+import com.beancounter.common.contracts.FxPairResults
+import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
@@ -69,6 +75,12 @@ class ValuationServiceTest {
     @Mock
     private lateinit var classificationClient: ClassificationClient
 
+    @Mock
+    private lateinit var fxRateService: FxService
+
+    @Mock
+    private lateinit var tokenService: TokenService
+
     @Captor
     private lateinit var portfolioCaptor: ArgumentCaptor<Portfolio>
 
@@ -86,6 +98,12 @@ class ValuationServiceTest {
                 classificationClient.getClassifications(any())
             ).thenReturn(BulkClassificationResponse())
 
+        Mockito.lenient().`when`(tokenService.bearerToken).thenReturn("")
+        Mockito
+            .lenient()
+            .`when`(fxRateService.getRates(any(), any()))
+            .thenReturn(FxResponse())
+
         valuationService =
             ValuationService(
                 positionValuationService,
@@ -93,6 +111,8 @@ class ValuationServiceTest {
                 positionService,
                 marketValueUpdateProducer,
                 classificationClient,
+                fxRateService,
+                tokenService,
                 dateUtils
             )
     }
@@ -513,6 +533,86 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions converts cost basis into the target reporting currency`() {
+        // Given - an NZD portfolio holding a private asset whose cost basis was
+        // booked at trade_base_rate=1.0 (trade=base=portfolio=NZD), so the cost
+        // is a raw NZD figure. The caller requests the aggregate in USD (the
+        // user's reporting currency). Previously the merge summed cost as-is,
+        // leaving NZD magnitude under a USD label while market value was FX'd.
+        val nzdPortfolio =
+            TestHelpers.createTestPortfolio(
+                "nzd-pf",
+                currencyCode = "NZD",
+                baseCurrency = "NZD"
+            )
+        val portfolios = listOf(nzdPortfolio)
+
+        val asset = TestHelpers.createTestAsset("APT", "PRIVATE")
+        val trn =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = nzdPortfolio,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("1"),
+                price = BigDecimal("1565000.00"),
+                tradeDate = LocalDate.of(2024, 1, 15)
+            )
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(listOf(trn)))
+
+        // Source position: cost accumulated in NZD (rate 1.0, unconverted).
+        val held =
+            Positions(nzdPortfolio).apply {
+                add(
+                    Position(asset, nzdPortfolio).apply {
+                        quantityValues.purchased = BigDecimal("1")
+                        getMoneyValues(Position.In.PORTFOLIO, Currency("NZD")).apply {
+                            costValue = BigDecimal("1565000.00")
+                            costBasis = BigDecimal("1565000.00")
+                            purchases = BigDecimal("1565000.00")
+                        }
+                    }
+                )
+            }
+        whenever(positionService.build(any(), any()))
+            .thenReturn(PositionResponse(held))
+
+        val nzdToUsd = BigDecimal("0.567")
+        whenever(fxRateService.getRates(any(), any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    mapOf(
+                        IsoCurrencyPair("NZD", "USD") to
+                            FxRate(Currency("NZD"), Currency("USD"), nzdToUsd)
+                    )
+                )
+            )
+        )
+
+        // When - aggregate in USD
+        val result =
+            valuationService.getAggregatedPositions(
+                portfolios,
+                DateUtils.TODAY,
+                value = false,
+                targetCurrencyCode = "USD"
+            )
+
+        // Then - the PORTFOLIO bucket is USD and its cost is FX-converted, not raw NZD.
+        val agg =
+            result.data.positions.values
+                .first()
+        val portfolioBucket = agg.getMoneyValues(Position.In.PORTFOLIO)
+        assertThat(portfolioBucket.currency.code).isEqualTo("USD")
+        assertThat(portfolioBucket.costValue)
+            .describedAs("cost must be FX-converted to USD (1565000 * 0.567), not the raw NZD basis")
+            .isEqualByComparingTo(BigDecimal("887355.00"))
+        assertThat(portfolioBucket.purchases)
+            .describedAs("purchases must be FX-converted alongside cost")
+            .isEqualByComparingTo(BigDecimal("887355.00"))
+    }
+
+    @Test
     fun `getAggregatedPositions applies per-portfolio splits once and sums cost across portfolios`() {
         // Real accumulator: the split / cost-basis logic only misbehaves end-to-end.
         // A mocked positionService.build cannot reproduce a corporate-action bug.
@@ -531,6 +631,8 @@ class ValuationServiceTest {
                 realPositionService,
                 marketValueUpdateProducer,
                 classificationClient,
+                fxRateService,
+                tokenService,
                 dateUtils
             )
 

@@ -175,7 +175,7 @@ sentry {
     if (isCI) {
         includeSourceContext = true
         org = "monowai-developments-ltd"
-        projectName = "position"
+        projectName = "data"
         authToken = System.getenv("SENTRY_AUTH_TOKEN")
     }
 }

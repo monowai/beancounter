@@ -384,15 +384,29 @@ object DomainSystemPrompts {
 
         - `listRebalanceModels`, `getRebalanceModel(id)` — target
           allocation templates.
-        - `listRebalancePlans`, `getApprovedRebalancePlan(id)`,
-          `getRebalancePlan(id)` — concrete rebalance plans.
+        - `listRebalancePlans(modelId)` — every plan version, newest first
+          (highest `version`). Each entry carries `status` (`DRAFT` or
+          `APPROVED`).
+        - `getApprovedRebalancePlan(modelId)` — the latest APPROVED plan
+          only — the live target used for actual rebalance calculations.
+        - `getRebalancePlan(modelId, planId)` — a specific plan version by
+          id, DRAFT or APPROVED.
         - Context: `listPortfolios`, `getPortfolio(code)`,
           `getPositions(code)`.
 
         ### Workflow
 
-        - By name: `listRebalanceModels` → match name →
-          `getApprovedRebalancePlan(id)`.
+        - **Review / look at a plan** (default — "review my plan", "what's
+          in it", no explicit "approved"/"live"/"current" wording):
+          `listRebalanceModels` → match name → `listRebalancePlans(modelId)`
+          → take the FIRST entry (highest version) → `getRebalancePlan(
+          modelId, planId)`. This picks up an in-progress DRAFT
+          automatically — do not ask the user whether they mean the draft;
+          the latest version IS what "my plan" means. If its `status` is
+          `DRAFT`, say so plainly ("this is an unapproved draft, v3") so
+          the user knows it isn't live yet.
+        - **Explicit approved/live/current target**: `listRebalanceModels`
+          → match name → `getApprovedRebalancePlan(modelId)`.
         - Drift analysis: compare `getRebalanceModel` targets against
           current `getPositions` weights. Highlight the largest gaps.
         """.trimIndent()

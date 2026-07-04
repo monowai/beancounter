@@ -109,10 +109,7 @@ class AssetSearchService(
         // `searchPublicAssets(market)` for external routing — the broader null-market fan-out
         // inside `searchLocalAssets` would fire scoped + unscoped external calls on the same
         // request, doubling latency and rate-limit pressure for no extra coverage.
-        val filtered =
-            searchLocalDbAssets(keyword).filter {
-                it.market.equals(market, ignoreCase = true)
-            }
+        val filtered = searchLocalDbAssets(keyword, market)
 
         val externalResults = searchPublicAssets(keyword, market)
         val localSymbols = filtered.map { it.symbol.uppercase() }.toSet()
@@ -234,23 +231,38 @@ class AssetSearchService(
     }
 
     /**
-     * Pure DB-only lookup with the US-preferred dedupe. Used by both the null-market entry
-     * (`searchLocalAssets`) and market-scoped lookups (`searchMarketAssets`) so neither has to
-     * pay for the other's external fan-out.
+     * Pure DB-only lookup. Used by both the null-market entry (`searchLocalAssets`) and
+     * market-scoped lookups (`searchMarketAssets`) so neither has to pay for the other's
+     * external fan-out.
+     *
+     * When [market] is given, results are scoped to that market only — no cross-market
+     * dedupe, since discarding a row here would make a market-scoped search seem to have no
+     * local match even when one exists (e.g. same code listed on both US and LON).
+     *
+     * When [market] is null (header bar), the same code can legitimately appear once per
+     * market, so results are deduped by code with a US-priority tiebreak — the header search
+     * surfaces one row per code rather than every market's variant.
      */
-    private fun searchLocalDbAssets(keyword: String): List<AssetSearchResult> {
+    private fun searchLocalDbAssets(
+        keyword: String,
+        market: String? = null
+    ): List<AssetSearchResult> {
         val assets = assetRepository.searchByCodeOrName(keyword)
-        val marketPriority = listOf("US", "NYSE", "NASDAQ", "ASX", "NZX")
-        val deduped =
-            assets
-                .groupBy { it.code.uppercase() }
-                .map { (_, variants) ->
-                    variants.minByOrNull { asset ->
-                        val idx = marketPriority.indexOf(asset.marketCode)
-                        if (idx >= 0) idx else marketPriority.size
-                    } ?: variants.first()
-                }
-        return deduped.take(50).map { toLocalSearchResult(it) }
+        val scoped =
+            if (market != null) {
+                assets.filter { it.marketCode.equals(market, ignoreCase = true) }
+            } else {
+                val marketPriority = listOf("US", "NYSE", "NASDAQ", "ASX", "NZX")
+                assets
+                    .groupBy { it.code.uppercase() }
+                    .map { (_, variants) ->
+                        variants.minByOrNull { asset ->
+                            val idx = marketPriority.indexOf(asset.marketCode)
+                            if (idx >= 0) idx else marketPriority.size
+                        } ?: variants.first()
+                    }
+            }
+        return scoped.take(50).map { toLocalSearchResult(it) }
     }
 
     // Markets that use FIGI for search (configured via figi.search.markets)

@@ -430,6 +430,47 @@ class AssetSearchPublicFallbackTest {
             .contains("HYSA")
     }
 
+    @Test
+    fun `market-scoped search returns the row for the requested market even when another market shares the code`() {
+        // Regression: searchLocalDbAssets deduped by code+US-priority across ALL markets before
+        // searchMarketAssets applied its market filter, so a US row for the same code silently
+        // discarded the LON row — a market-scoped lookup for LON then found nothing.
+        val smotUs =
+            com.beancounter.common.model.Asset(
+                id = "smot-us",
+                code = "SMOT",
+                name = "VanEck SMOT US",
+                market =
+                    com.beancounter.common.model
+                        .Market("US", currencyId = "USD"),
+                marketCode = "US",
+                category = "Equity"
+            )
+        val smotLon =
+            com.beancounter.common.model.Asset(
+                id = "smot-lon",
+                code = "SMOT",
+                name = "VanEck SMOT LON",
+                market =
+                    com.beancounter.common.model
+                        .Market("LON", currencyId = "USD"),
+                marketCode = "LON",
+                category = "Equity"
+            )
+        val (service, _) =
+            buildService(
+                marketProvider = mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                dbAssets = listOf(smotUs, smotLon),
+                alphaProxy = mock<AlphaProxy>()
+            )
+
+        val results = service.search("SMOT", "LON")
+
+        assertThat(results.data)
+            .extracting<String> { it.market }
+            .containsExactly("LON")
+    }
+
     companion object {
         private const val MUTUAL_FUND = "Mutual Fund"
         private const val HYSA_NAME = "Pacer International HY Corp Bond ETF"

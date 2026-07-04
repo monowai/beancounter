@@ -15,6 +15,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
+import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.model.Generation
 import org.springframework.mock.env.MockEnvironment
@@ -614,5 +615,92 @@ class AgentControllerTest {
                 permissiveAuthorizer
             )
         assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
+    }
+
+    @Test
+    fun `historyMessages returns empty list when history is null`() {
+        assertThat(controller().historyMessages(AgentQuery("hi"))).isEmpty()
+    }
+
+    @Test
+    fun `historyMessages returns empty list when history is empty`() {
+        assertThat(controller().historyMessages(AgentQuery("hi", history = emptyList()))).isEmpty()
+    }
+
+    @Test
+    fun `historyMessages maps roles to Message types preserving order`() {
+        val history =
+            listOf(
+                ChatTurn("user", "what's my NZD exposure?"),
+                ChatTurn("assistant", "which portfolio — Kiwi or Global?"),
+                ChatTurn("user", "Kiwi")
+            )
+
+        val messages = controller().historyMessages(AgentQuery("hi", history = history))
+
+        assertThat(messages).containsExactly(
+            UserMessage("what's my NZD exposure?"),
+            AssistantMessage("which portfolio — Kiwi or Global?"),
+            UserMessage("Kiwi")
+        )
+    }
+
+    @Test
+    fun `historyMessages truncates to the trailing 6 turns`() {
+        val history = (1..10).map { ChatTurn("user", "turn $it") }
+
+        val messages = controller().historyMessages(AgentQuery("hi", history = history))
+
+        assertThat(messages).hasSize(6)
+        assertThat(messages).containsExactly(
+            UserMessage("turn 5"),
+            UserMessage("turn 6"),
+            UserMessage("turn 7"),
+            UserMessage("turn 8"),
+            UserMessage("turn 9"),
+            UserMessage("turn 10")
+        )
+    }
+
+    @Test
+    fun `query threads history onto the prompt before the current user message`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val callResponse = mock<ChatClient.CallResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.chatResponse()).thenReturn(null)
+        whenever(callResponse.content()).thenReturn("Kiwi it is")
+        val history = listOf(ChatTurn("assistant", "which portfolio?"))
+
+        controller(chatClient = client).query(AgentQuery("Kiwi", history = history))
+
+        org.mockito.kotlin
+            .verify(request)
+            .messages(listOf(AssistantMessage("which portfolio?")))
+    }
+
+    @Test
+    fun `stream threads history onto the prompt before the current user message`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.chatResponse()).thenReturn(Flux.just(textResponse("ok")))
+        val history = listOf(ChatTurn("user", "earlier question"))
+
+        controller(chatClient = client)
+            .stream(AgentQuery("follow-up", history = history))
+            .collectList()
+            .block()
+
+        org.mockito.kotlin
+            .verify(request)
+            .messages(listOf(UserMessage("earlier question")))
     }
 }

@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.ai.anthropic.AnthropicCacheOptions
 import org.springframework.ai.anthropic.AnthropicChatOptions
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.messages.AssistantMessage
+import org.springframework.ai.chat.messages.Message
+import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.metadata.Usage
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
@@ -74,7 +77,28 @@ class AgentController(
         // enough to outlast a real outage — that surfaces as the error envelope.
         const val STREAM_RETRY_ATTEMPTS = 2L
         val STREAM_RETRY_MIN_BACKOFF: Duration = Duration.ofMillis(250)
+
+        // Caller-supplied history is trusted only up to this many trailing
+        // turns — bounds the tokens a single request can push into the
+        // prompt regardless of what the client sends.
+        const val MAX_HISTORY_TURNS = 6
     }
+
+    /**
+     * Map caller-supplied conversation history onto Spring AI [Message]s,
+     * truncated to the trailing [MAX_HISTORY_TURNS]. Plain text only — this
+     * replays the model's own prior *rendered* answers as ordinary assistant
+     * turns, never the raw `reasoning_content` a thinking-mode response
+     * carries, so it doesn't touch the known DeepSeek thinking-mode
+     * multi-turn tool-call round-trip issue.
+     */
+    internal fun historyMessages(request: AgentQuery): List<Message> =
+        request.history
+            ?.takeLast(MAX_HISTORY_TURNS)
+            ?.map { turn ->
+                if (turn.role == "assistant") AssistantMessage(turn.content) else UserMessage(turn.content)
+            }
+            ?: emptyList()
 
     /**
      * Anthropic-only feature: the per-call model override uses
@@ -178,6 +202,7 @@ class AgentController(
                 clientFor(request)
                     .prompt()
                     .system(systemPrompt)
+                    .messages(historyMessages(request))
                     .user(userMessage)
                     .tools(*tools)
             // Per-call options REPLACE (not merge) the ChatClient's default
@@ -410,6 +435,7 @@ class AgentController(
             clientFor(request)
                 .prompt()
                 .system(systemPromptSelector.selectFor(request.context))
+                .messages(historyMessages(request))
                 .user(buildUserMessage(request))
                 .tools(*tools)
         return buildOptions(modelId, request.deepThink)?.let { opts ->
@@ -559,7 +585,24 @@ data class AgentQuery(
      * or `claude-opus-*`). Off by default; flips model selection regardless of
      * page-context routing in [ChatModelSelector].
      */
-    val deepThink: Boolean = false
+    val deepThink: Boolean = false,
+    /**
+     * Prior conversation turns, oldest first, so the model can see its own
+     * previous question when the user replies to it instead of retyping the
+     * whole enriched question every round. Caller-supplied and scoped to
+     * this request only — no server-side persistence. Truncated server-side
+     * to the trailing few turns regardless of length.
+     */
+    val history: List<ChatTurn>? = null
+)
+
+/**
+ * One turn of caller-supplied conversation history. [role] is `"user"` or
+ * `"assistant"`; anything else is treated as `"user"`.
+ */
+data class ChatTurn(
+    val role: String,
+    val content: String
 )
 
 data class AgentResponse(

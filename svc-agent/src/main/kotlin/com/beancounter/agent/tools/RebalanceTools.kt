@@ -54,9 +54,13 @@ class RebalanceTools(
                 "composite structure (if it references other models), base currency and " +
                 "ownership/transfer state."
         const val LIST_PLANS_DESC =
-            "List every versioned plan for a given model. A plan captures the target " +
-                "weights + asset prices at a point in time and can be in DRAFT or APPROVED " +
-                "state. Returns plan ids, versions, statuses and approval timestamps."
+            "List every versioned plan for a given model, newest first (highest version). " +
+                "A plan captures the target weights + asset prices at a point in time and " +
+                "can be in DRAFT or APPROVED state. Returns plan ids, versions, statuses and " +
+                "approval timestamps. The first entry is the plan the user means by 'my " +
+                "plan' or 'review it' even when still DRAFT — use its id with " +
+                "getRebalancePlan, not getApprovedRebalancePlan, unless the user explicitly " +
+                "wants the approved/live target."
         const val APPROVED_PLAN_DESC =
             "Return the latest APPROVED plan for a model — the authoritative target " +
                 "allocation used for actual rebalance calculations. Use this when the " +

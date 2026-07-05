@@ -9,6 +9,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
+import com.beancounter.marketdata.providers.logApiKeyStatus
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
@@ -32,20 +33,7 @@ class MarketStackService(
     private val log = LoggerFactory.getLogger(MarketStackService::class.java)
 
     @PostConstruct
-    fun logStatus() {
-        log.info(
-            "BEANCOUNTER_MARKET_PROVIDERS_MSTACK_KEY: {}",
-            if (marketStackConfig.apiKey.equals(
-                    "DEMO",
-                    ignoreCase = true
-                )
-            ) {
-                "DEMO"
-            } else {
-                "** Redacted **"
-            }
-        )
-    }
+    fun logStatus() = logApiKeyStatus(log, "BEANCOUNTER_MARKET_PROVIDERS_MSTACK_KEY", marketStackConfig.apiKey, "DEMO")
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val apiRequests: MutableMap<Int, MarketStackResponse> = mutableMapOf()
@@ -92,11 +80,7 @@ class MarketStackService(
     override fun getId(): String = ID
 
     override fun isMarketSupported(market: Market): Boolean =
-        if (marketStackConfig.markets!!.isBlank()) {
-            false
-        } else {
-            marketStackConfig.markets!!.contains(market.code)
-        }
+        marketStackConfig.supportsMarketCode(marketStackConfig.markets, market.code)
 
     override fun getDate(
         market: Market,

@@ -11,6 +11,7 @@ import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
+import com.beancounter.marketdata.providers.logApiKeyStatus
 import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.CancellationException
@@ -50,23 +51,7 @@ class AlphaPriceService(
     }
 
     @PostConstruct
-    fun logStatus() =
-        log.info(
-            "BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: {}",
-            if (apiKey
-                    .substring(
-                        0,
-                        4
-                    ).equals(
-                        "demo",
-                        ignoreCase = true
-                    )
-            ) {
-                "demo"
-            } else {
-                "** Redacted **"
-            }
-        )
+    fun logStatus() = logApiKeyStatus(log, "BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY", apiKey)
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val providerArguments = getInstance(priceRequest, alphaConfig)
@@ -141,7 +126,7 @@ class AlphaPriceService(
 
     override fun getId(): String = ID
 
-    override fun isMarketSupported(market: Market) = alphaConfig.markets?.contains(market.code) ?: false
+    override fun isMarketSupported(market: Market) = alphaConfig.supportsMarketCode(alphaConfig.markets, market.code)
 
     override fun getDate(
         market: Market,

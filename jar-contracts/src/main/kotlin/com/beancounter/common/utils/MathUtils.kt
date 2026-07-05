@@ -105,7 +105,7 @@ private class CalculationUtils(
         if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
             return money
         }
-        return money!!.multiply(rate).setScale(moneyScale, RoundingMode.HALF_UP)
+        return requireNotNull(money).multiply(rate).setScale(moneyScale, RoundingMode.HALF_UP)
     }
 
     fun multiplyAbs(
@@ -116,7 +116,7 @@ private class CalculationUtils(
         if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
             return BigDecimal.ZERO
         }
-        return money!!.multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP)
+        return requireNotNull(money).multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP)
     }
 
     fun add(

@@ -81,16 +81,16 @@ class MdFactory internal constructor(
 
     private fun resolveProvider(market: Market): MarketDataPriceProvider {
         // ToDo: Map Market to Provider
-        for (key in providers.keys) {
-            if (providers[key]!!.isMarketSupported(market)) {
-                return providers[key]!!
+        for ((_, provider) in providers) {
+            if (provider.isMarketSupported(market)) {
+                return provider
             }
         }
         log.error(
             "Unable to identify a provider for {}",
             market
         )
-        return providers[CashProviderService.ID]!!
+        return providers.getValue(CashProviderService.ID)
     }
 
     companion object {

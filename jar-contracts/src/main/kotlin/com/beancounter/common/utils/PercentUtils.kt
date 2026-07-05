@@ -31,7 +31,7 @@ class PercentUtils {
         if (numberUtils.isUnset(previous) || numberUtils.isUnset(current)) {
             BigDecimal.ZERO
         } else {
-            previous!!.divide(
+            requireNotNull(previous).divide(
                 current,
                 percentScale,
                 RoundingMode.HALF_UP

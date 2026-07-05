@@ -1,5 +1,6 @@
 package com.beancounter.event.service
 
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.common.DateSplitter
 import com.beancounter.event.config.BackFillServiceConfig
 import com.beancounter.event.metrics.EventMetrics
@@ -25,7 +26,7 @@ class BackFillService(
 
     fun backFillEvents(
         portfolioId: String,
-        date: String = "today",
+        date: String = DateUtils.TODAY,
         toDate: String = date
     ) {
         val dates =

@@ -13,6 +13,7 @@ import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import com.beancounter.marketdata.providers.marketstack.MarketStackConfig
 import com.beancounter.marketdata.providers.marketstack.MarketStackGateway
 import com.beancounter.marketdata.registration.SystemUserService
@@ -75,7 +76,7 @@ class AssetSearchService(
 
         val response =
             when {
-                market.equals("PRIVATE", ignoreCase = true) -> searchPrivateAssets(keyword)
+                market.equals(PrivateMarketDataProvider.ID, ignoreCase = true) -> searchPrivateAssets(keyword)
                 market.equals("FIGI", ignoreCase = true) -> searchFigiGlobal(keyword)
                 market.isNullOrBlank() -> searchLocalAssets(keyword)
                 else -> searchMarketAssets(keyword, market)
@@ -566,7 +567,7 @@ class AssetSearchService(
         // when the asset truly is PRIVATE. Without the gate, dotted public tickers like BRK.B
         // get their prefix amputated to "B" on the way out.
         val displayCode =
-            if (asset.marketCode == "PRIVATE") {
+            if (asset.marketCode == PrivateMarketDataProvider.ID) {
                 asset.code.substringAfter(".")
             } else {
                 asset.code
@@ -575,9 +576,9 @@ class AssetSearchService(
             symbol = displayCode,
             name = asset.name ?: displayCode,
             type = asset.category,
-            region = "PRIVATE",
+            region = PrivateMarketDataProvider.ID,
             currency = asset.accountingType?.currency?.code,
-            market = "PRIVATE",
+            market = PrivateMarketDataProvider.ID,
             assetId = asset.id
         )
     }
@@ -585,7 +586,7 @@ class AssetSearchService(
     private fun toLocalSearchResult(asset: Asset): AssetSearchResult {
         // For private assets, display code without userId prefix
         val displayCode =
-            if (asset.marketCode == "PRIVATE") {
+            if (asset.marketCode == PrivateMarketDataProvider.ID) {
                 asset.code.substringAfter(".")
             } else {
                 asset.code

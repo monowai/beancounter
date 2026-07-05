@@ -11,6 +11,7 @@ import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.cash.CASH
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
@@ -83,7 +84,7 @@ class CashTrnServices(
                 val privateAsset =
                     assetFinder.findLocally(
                         AssetInput(
-                            market = "PRIVATE",
+                            market = PrivateMarketDataProvider.ID,
                             code = cashAccountCode,
                             owner = ownerId
                         )

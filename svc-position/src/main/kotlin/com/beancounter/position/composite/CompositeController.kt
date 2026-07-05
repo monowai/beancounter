@@ -36,7 +36,7 @@ class CompositeController(
     @Operation(summary = "Get synthesised position for a composite asset")
     fun byId(
         @PathVariable assetId: String,
-        @RequestParam(name = "asAt", required = false, defaultValue = "today")
+        @RequestParam(name = "asAt", required = false, defaultValue = DateUtils.TODAY)
         asAt: String
     ): CompositePositionResponse {
         val date = dateUtils.getDate(asAt)

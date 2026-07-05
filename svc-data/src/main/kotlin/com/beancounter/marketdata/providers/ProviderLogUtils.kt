@@ -11,8 +11,13 @@ import org.slf4j.Logger
  * mode are both visible.  The [demoLabel] default ("demo") matches AlphaVantage and EODHD;
  * pass "DEMO" for MarketStack to preserve its conventional uppercase label.
  *
- * Log output is byte-for-byte identical to the three inline `@PostConstruct logStatus()`
- * blocks it replaces:
+ * Detection is prefix-based — `apiKey.startsWith("demo", ignoreCase = true)` — which is a
+ * strict superset of the original exact comparisons (`equals("demo")` in EODHD/MarketStack,
+ * `substring(0,4) == "demo"` in AlphaVantage) and does not change their observable behaviour.
+ * The emitted value is always [demoLabel] or `"** Redacted **"` — never the key itself, so no
+ * key material can appear in logs regardless of the comparison result.
+ *
+ * Typical output (illustrative; exact env-var names are caller-supplied via [keyName]):
  *   "BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: demo"   / "** Redacted **"
  *   "BEANCOUNTER_MARKET_PROVIDERS_EODHD_KEY: demo"   / "** Redacted **"
  *   "BEANCOUNTER_MARKET_PROVIDERS_MSTACK_KEY: DEMO"  / "** Redacted **"

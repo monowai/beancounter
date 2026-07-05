@@ -22,14 +22,15 @@ interface DataProviderConfig {
     fun getPriceCode(asset: Asset): String
 
     /**
-     * Null-safe market-code membership check shared by all price providers.
+     * Null-safe, delimiter-aware market-code membership check shared by all price providers.
      *
      * A null or blank [markets] allowlist means the provider supports no markets.
-     * Preserves the MarketStack `isBlank()` guard alongside Alpha's `?.contains` pattern:
-     * both collapse to `false` here without a `!!` or NPE risk.
+     * The allowlist is comma-separated; each token is trimmed before comparison so
+     * `"ASX, NZX"` and `"ASX,NZX"` are equivalent.  Matching is case-sensitive and
+     * exact — `"SX"` does **not** match an entry `"ASX"`.
      */
     fun supportsMarketCode(
         markets: String?,
         code: String
-    ): Boolean = !markets.isNullOrBlank() && markets.contains(code)
+    ): Boolean = !markets.isNullOrBlank() && markets.split(",").any { it.trim() == code }
 }

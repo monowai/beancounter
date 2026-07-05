@@ -471,6 +471,47 @@ class AssetSearchPublicFallbackTest {
             .containsExactly("LON")
     }
 
+    @Test
+    fun `null-market search returns every market variant of a colliding code`() {
+        // Regression: searchLocalDbAssets deduped null-market DB hits down to one row per
+        // code (US-priority tiebreak), so a newly created LON asset sharing a US ticker
+        // (e.g. SMOT) never reached the header search results at all.
+        val smotUs =
+            com.beancounter.common.model.Asset(
+                id = "smot-us",
+                code = "SMOT",
+                name = "VanEck SMOT US",
+                market =
+                    com.beancounter.common.model
+                        .Market("US", currencyId = "USD"),
+                marketCode = "US",
+                category = "Equity"
+            )
+        val smotLon =
+            com.beancounter.common.model.Asset(
+                id = "smot-lon",
+                code = "SMOT",
+                name = "VanEck SMOT LON",
+                market =
+                    com.beancounter.common.model
+                        .Market("LON", currencyId = "USD"),
+                marketCode = "LON",
+                category = "Equity"
+            )
+        val (service, _) =
+            buildService(
+                marketProvider = mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
+                dbAssets = listOf(smotUs, smotLon),
+                alphaProxy = mock<AlphaProxy>()
+            )
+
+        val results = service.search("SMOT", null)
+
+        assertThat(results.data)
+            .extracting<String> { it.market }
+            .containsExactlyInAnyOrder("US", "LON")
+    }
+
     companion object {
         private const val MUTUAL_FUND = "Mutual Fund"
         private const val HYSA_NAME = "Pacer International HY Corp Bond ETF"

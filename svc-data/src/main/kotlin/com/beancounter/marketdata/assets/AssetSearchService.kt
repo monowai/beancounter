@@ -239,9 +239,10 @@ class AssetSearchService(
      * dedupe, since discarding a row here would make a market-scoped search seem to have no
      * local match even when one exists (e.g. same code listed on both US and LON).
      *
-     * When [market] is null (header bar), the same code can legitimately appear once per
-     * market, so results are deduped by code with a US-priority tiebreak — the header search
-     * surfaces one row per code rather than every market's variant.
+     * When [market] is null (header bar), the same code can legitimately appear on more than
+     * one market (e.g. SMOT on both US and LON) — every variant is returned, US-first, so the
+     * caller's market-grouped display can surface all of them rather than silently dropping
+     * whichever market lost an internal tiebreak.
      */
     private fun searchLocalDbAssets(
         keyword: String,
@@ -252,15 +253,7 @@ class AssetSearchService(
             if (market != null) {
                 assets.filter { it.marketCode.equals(market, ignoreCase = true) }
             } else {
-                val marketPriority = listOf("US", "NYSE", "NASDAQ", "ASX", "NZX")
-                assets
-                    .groupBy { it.code.uppercase() }
-                    .map { (_, variants) ->
-                        variants.minByOrNull { asset ->
-                            val idx = marketPriority.indexOf(asset.marketCode)
-                            if (idx >= 0) idx else marketPriority.size
-                        } ?: variants.first()
-                    }
+                assets.sortedBy { if (it.marketCode.uppercase() in US_MARKETS) 0 else 1 }
             }
         return scoped.take(50).map { toLocalSearchResult(it) }
     }

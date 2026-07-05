@@ -54,4 +54,21 @@ internal class DataProviderConfigTest {
         assertThat(config.supportsMarketCode("US,ASX,LON", "SGX")).isFalse()
         assertThat(config.supportsMarketCode("US,ASX,LON", "NZX")).isFalse()
     }
+
+    @Test
+    fun `supportsMarketCode rejects substring match - code must be an exact token`() {
+        // "SX" is a suffix of "ASX" — substring-contains would incorrectly return true
+        assertThat(config.supportsMarketCode("ASX,NZX", "SX")).isFalse()
+        // "AS" is a prefix of "ASX"
+        assertThat(config.supportsMarketCode("ASX,NZX", "AS")).isFalse()
+        // "NZ" is a prefix of "NZX"
+        assertThat(config.supportsMarketCode("ASX,NZX", "NZ")).isFalse()
+    }
+
+    @Test
+    fun `supportsMarketCode trims whitespace around tokens`() {
+        // Comma-separated list with spaces around entries still resolves correctly
+        assertThat(config.supportsMarketCode("ASX, NZX", "NZX")).isTrue()
+        assertThat(config.supportsMarketCode(" ASX , NZX ", "ASX")).isTrue()
+    }
 }

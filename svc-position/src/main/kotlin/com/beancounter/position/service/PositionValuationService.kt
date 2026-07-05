@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import kotlin.coroutines.cancellation.CancellationException
 
+private fun Positions.totalsFor(key: Position.In): Totals = requireNotNull(totals[key]) { "Missing totals for $key" }
+
 /**
  * Value the positions.
  */
@@ -148,9 +150,9 @@ class PositionValuationService(
         fxResponse: FxResponse,
         tradeCurrency: Currency
     ) {
-        val baseTotals = positions.totals[Position.In.BASE]!!
-        val refTotals = positions.totals[Position.In.PORTFOLIO]!!
-        val tradeTotals = positions.totals[Position.In.TRADE]!!
+        val baseTotals = positions.totalsFor(Position.In.BASE)
+        val refTotals = positions.totalsFor(Position.In.PORTFOLIO)
+        val tradeTotals = positions.totalsFor(Position.In.TRADE)
         for (marketData in priceResponse.data) {
             val position =
                 config.marketValue.value(
@@ -187,9 +189,9 @@ class PositionValuationService(
     }
 
     private fun weightsAndGains(positions: Positions) {
-        val baseTotals = positions.totals[Position.In.BASE]!!
-        val refTotals = positions.totals[Position.In.PORTFOLIO]!!
-        val tradeTotals = positions.totals[Position.In.TRADE]!!
+        val baseTotals = positions.totalsFor(Position.In.BASE)
+        val refTotals = positions.totalsFor(Position.In.PORTFOLIO)
+        val tradeTotals = positions.totalsFor(Position.In.TRADE)
         val asAtDate = config.dateUtils.getDate(positions.asAt)
 
         val totalsGroup = TotalsGroup(tradeTotals, baseTotals, refTotals)

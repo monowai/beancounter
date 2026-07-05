@@ -3,6 +3,7 @@ package com.beancounter.client.ingest
 import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
@@ -50,21 +51,33 @@ class FxTransactions(
         trnInput: TrnInput
     ) {
         if (fxRequest.tradePf != null && numberUtils.isUnset(trnInput.tradePortfolioRate)) {
-            trnInput.tradePortfolioRate = rates.rates[fxRequest.tradePf!!]!!.rate
+            trnInput.tradePortfolioRate =
+                (
+                    rates.rates[fxRequest.tradePf]
+                        ?: throw BusinessException("Missing FX rate for ${fxRequest.tradePf}")
+                ).rate
         } else {
             if (numberUtils.isUnset(trnInput.tradePortfolioRate)) {
                 trnInput.tradePortfolioRate = BigDecimal.ONE
             }
         }
         if (fxRequest.tradeBase != null && numberUtils.isUnset(trnInput.tradeBaseRate)) {
-            trnInput.tradeBaseRate = rates.rates[fxRequest.tradeBase]!!.rate
+            trnInput.tradeBaseRate =
+                (
+                    rates.rates[fxRequest.tradeBase]
+                        ?: throw BusinessException("Missing FX rate for ${fxRequest.tradeBase}")
+                ).rate
         } else {
             if (numberUtils.isUnset(trnInput.tradeBaseRate)) {
                 trnInput.tradeBaseRate = BigDecimal.ONE
             }
         }
         if (fxRequest.tradeCash != null && numberUtils.isUnset(trnInput.tradeCashRate)) {
-            trnInput.tradeCashRate = rates.rates[fxRequest.tradeCash!!]!!.rate
+            trnInput.tradeCashRate =
+                (
+                    rates.rates[fxRequest.tradeCash]
+                        ?: throw BusinessException("Missing FX rate for ${fxRequest.tradeCash}")
+                ).rate
         } else {
             if (numberUtils.isUnset(trnInput.tradeCashRate)) {
                 trnInput.tradeCashRate = BigDecimal.ONE

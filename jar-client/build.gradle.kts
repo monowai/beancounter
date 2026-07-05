@@ -13,8 +13,6 @@ dependencies {
     implementation(project(":jar-common"))
     implementation(project(":jar-auth"))
     implementation(libs.guava)
-    implementation("com.fasterxml.jackson.core:jackson-databind")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     implementation(libs.jackson.kotlin)

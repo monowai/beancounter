@@ -96,10 +96,7 @@ class TrnSettlementService(
      * no useful "transition to PROPOSED from PROPOSED" semantic.
      */
     fun unsettle(trnId: String): TrnStatusUpdateResponse {
-        val parent =
-            trnRepository.findById(trnId).orElseThrow {
-                NotFoundException("Transaction not found: $trnId")
-            }
+        val parent = trnRepository.getOrThrow(trnId)
         if (!portfolioService.canView(parent.portfolio)) {
             throw NotFoundException("Transaction not found: $trnId")
         }

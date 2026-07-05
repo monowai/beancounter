@@ -119,10 +119,7 @@ class TrnService(
     }
 
     fun delete(trnId: String): Collection<String> {
-        val result =
-            trnRepository.findById(trnId).orElseThrow {
-                NotFoundException("Transaction not found: $trnId")
-            }
+        val result = trnRepository.getOrThrow(trnId)
         val deleted = mutableListOf<Trn>()
         if (portfolioService.canView(result.portfolio)) {
             trnRepository.delete(result)
@@ -138,10 +135,7 @@ class TrnService(
      * issuing follow-up DELETEs for the W+D cash legs.
      */
     fun deleteWithSiblings(trnId: String): TrnDeleteResponse {
-        val parent =
-            trnRepository.findById(trnId).orElseThrow {
-                NotFoundException("Transaction not found: $trnId")
-            }
+        val parent = trnRepository.getOrThrow(trnId)
         if (!portfolioService.canView(parent.portfolio)) {
             // Match unsettle / delete-existing behaviour — surface as 404
             // rather than a silent empty success.

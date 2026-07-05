@@ -89,7 +89,7 @@ class PortfolioService(
                 systemUserService.getOrThrow()
             }
         val portfolios =
-            if (systemUser.id == "beancounter:system") {
+            if (systemUser.id == AuthConstants.SYSTEM) {
                 if (includeInactive) {
                     portfolioRepository.findAll().toList()
                 } else {

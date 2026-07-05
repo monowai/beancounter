@@ -7,6 +7,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.telemetry.runBlockingTraced
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.config.EventLoaderConfig
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
@@ -57,7 +58,7 @@ class EventLoader(
         val authContext = loginService.loginM2m()
         loginService.setAuthContext(authContext)
         runBlockingTraced {
-            val dates = dateSplitter.dateRange(date, "today")
+            val dates = dateSplitter.dateRange(date, DateUtils.TODAY)
             log.info("Loading missing events from date: $dates, portfolio: ${portfolio.code}/$portfolioId")
             for (processDate in dates) {
                 launch {

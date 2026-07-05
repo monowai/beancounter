@@ -14,6 +14,11 @@ import java.time.LocalDate
  */
 @NoRepositoryBean
 interface TrnBrokerRepository {
+    companion object {
+        /** JPQL IN-list of market codes that are never broker-tradeable (private/cash assets). */
+        private const val EXCLUDED_MARKET_CODES = "'PRIVATE', 'CASH'"
+    }
+
     /**
      * Find settled trade transactions for a specific broker across all portfolios owned by the user.
      * Only includes BUY, SELL, ADD, REDUCE transaction types for broker reconciliation.
@@ -31,7 +36,7 @@ interface TrnBrokerRepository {
             "and t.portfolio.owner = ?2 " +
             "and t.status = ?3 " +
             "and t.trnType in ('BUY', 'SELL', 'ADD', 'REDUCE') " +
-            "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
+            "and t.asset.marketCode not in (" + EXCLUDED_MARKET_CODES + ") " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
             "order by t.asset.code, t.tradeDate, t.createdAt"
     )
@@ -60,7 +65,7 @@ interface TrnBrokerRepository {
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate <= ?3 " +
             "and t.status = ?4 " +
-            "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
+            "and t.asset.marketCode not in (" + EXCLUDED_MARKET_CODES + ") " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
             "order by t.tradeDate, t.asset.code, t.createdAt"
     )
@@ -123,7 +128,7 @@ interface TrnBrokerRepository {
             "and t.portfolio.owner = ?1 " +
             "and t.status = ?2 " +
             "and t.trnType in ('BUY', 'SELL', 'ADD', 'REDUCE') " +
-            "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
+            "and t.asset.marketCode not in (" + EXCLUDED_MARKET_CODES + ") " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
             "order by t.asset.code, t.tradeDate, t.createdAt"
     )
@@ -150,7 +155,7 @@ interface TrnBrokerRepository {
             "and t.portfolio.owner = ?1 " +
             "and t.tradeDate <= ?2 " +
             "and t.status = ?3 " +
-            "and t.asset.marketCode not in ('PRIVATE', 'CASH') " +
+            "and t.asset.marketCode not in (" + EXCLUDED_MARKET_CODES + ") " +
             "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
             "order by t.tradeDate, t.asset.code, t.createdAt"
     )

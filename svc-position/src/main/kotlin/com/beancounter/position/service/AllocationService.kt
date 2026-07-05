@@ -13,6 +13,7 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import org.slf4j.LoggerFactory
@@ -196,7 +197,7 @@ class AllocationService(
         allocation: AllocationData,
         targetCurrency: String,
         fxService: FxService,
-        rateDate: String = "today"
+        rateDate: String = DateUtils.TODAY
     ): AllocationData {
         if (allocation.totalValue == BigDecimal.ZERO) {
             return allocation.copy(currency = targetCurrency)
@@ -265,7 +266,7 @@ class AllocationService(
     fun convertPositionsToCurrency(
         positions: Positions,
         targetCurrencyCode: String,
-        rateDate: String = "today"
+        rateDate: String = DateUtils.TODAY
     ): Positions {
         if (!positions.hasPositions()) return positions
 

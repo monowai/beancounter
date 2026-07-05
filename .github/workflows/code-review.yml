@@ -17,12 +17,6 @@ permissions:
   contents: read
   pull-requests: write
 
-env:
-  # Force JS actions still pinned to Node 20 onto Node 24 — Node 20 is
-  # being removed from GHA runners. See:
-  # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 # Cancel an in-flight review if a new commit lands on the same PR.
 concurrency:
   group: code-review-${{ github.event.pull_request.number }}

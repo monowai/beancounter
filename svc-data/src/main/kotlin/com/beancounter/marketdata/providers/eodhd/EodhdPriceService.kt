@@ -12,6 +12,7 @@ import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
+import com.beancounter.marketdata.providers.logApiKeyStatus
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -35,16 +36,7 @@ class EodhdPriceService(
     private val log = LoggerFactory.getLogger(EodhdPriceService::class.java)
 
     @PostConstruct
-    fun logStatus() {
-        log.info(
-            "BEANCOUNTER_MARKET_PROVIDERS_EODHD_KEY: {}",
-            if (eodhdConfig.apiKey.equals("demo", ignoreCase = true)) {
-                "demo"
-            } else {
-                "** Redacted **"
-            }
-        )
-    }
+    fun logStatus() = logApiKeyStatus(log, "BEANCOUNTER_MARKET_PROVIDERS_EODHD_KEY", eodhdConfig.apiKey)
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val providerArguments = getInstance(priceRequest, eodhdConfig, dateUtils)
@@ -199,11 +191,7 @@ class EodhdPriceService(
     override fun getId(): String = ID
 
     override fun isMarketSupported(market: Market): Boolean =
-        if (eodhdConfig.markets.isNullOrBlank()) {
-            false
-        } else {
-            eodhdConfig.markets!!.contains(market.code)
-        }
+        eodhdConfig.supportsMarketCode(eodhdConfig.markets, market.code)
 
     override fun getDate(
         market: Market,

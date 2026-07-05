@@ -20,4 +20,16 @@ interface DataProviderConfig {
     ): LocalDate
 
     fun getPriceCode(asset: Asset): String
+
+    /**
+     * Null-safe market-code membership check shared by all price providers.
+     *
+     * A null or blank [markets] allowlist means the provider supports no markets.
+     * Preserves the MarketStack `isBlank()` guard alongside Alpha's `?.contains` pattern:
+     * both collapse to `false` here without a `!!` or NPE risk.
+     */
+    fun supportsMarketCode(
+        markets: String?,
+        code: String
+    ): Boolean = !markets.isNullOrBlank() && markets.contains(code)
 }

@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PositionMoveRequest
 import com.beancounter.common.contracts.PositionMoveResponse
 import com.beancounter.common.contracts.TrnDeleteResponse
+import com.beancounter.common.contracts.TrnGroupBy
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.contracts.TrnStatusUpdateRequest
@@ -452,13 +453,17 @@ class TrnController(
             description = "Asset identifier",
             example = "AAPL"
         ) @PathVariable("assetId") assetId: String
-    ): TrnResponse =
-        TrnResponse(
+    ): TrnResponse {
+        val trns =
             trnQueryService.findAssetTrades(
                 portfolioId,
                 assetId
             )
+        return TrnResponse(
+            trns,
+            TrnTradeSummaryBuilder.build(trns, TrnGroupBy.BROKER)
         )
+    }
 
     @GetMapping(
         value = ["/asset/{assetId}/trades"],
@@ -497,13 +502,17 @@ class TrnController(
             description = "Comma-separated portfolio identifiers",
             example = "portfolio-123,portfolio-456"
         ) @RequestParam("portfolios") portfolios: String
-    ): TrnResponse =
-        TrnResponse(
+    ): TrnResponse {
+        val trns =
             trnQueryService.findAssetTrades(
                 portfolios.split(",").map { it.trim() }.filter { it.isNotBlank() },
                 assetId
             )
+        return TrnResponse(
+            trns,
+            TrnTradeSummaryBuilder.build(trns, TrnGroupBy.PORTFOLIO)
         )
+    }
 
     @PostMapping(
         value = ["/query"]

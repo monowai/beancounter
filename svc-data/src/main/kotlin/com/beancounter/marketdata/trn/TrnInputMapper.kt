@@ -52,13 +52,15 @@ class TrnInputMapper(
             trnInput
         )
 
+        val broker = getBroker(trnInput, existing)
         // Preserve existing cashAsset if no new one is provided (similar to broker handling)
         val cashAsset =
             cashTrnServices.getCashAsset(
                 trnInput.trnType,
                 trnInput.cashAssetId,
                 trnInput.cashCurrency,
-                portfolio.owner.id
+                portfolio.owner.id,
+                broker?.id
             ) ?: existing?.cashAsset
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
@@ -102,7 +104,6 @@ class TrnInputMapper(
             )
         val asset = getAsset(trnInput, existing)
         val tradeCurrency = resolveTradeCurrency(asset, trnInput.tradeCurrency)
-        val broker = getBroker(trnInput, existing)
         return Trn(
             id = existing?.id ?: keyGenUtils.id,
             trnType = trnInput.trnType,

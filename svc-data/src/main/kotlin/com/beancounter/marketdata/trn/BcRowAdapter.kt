@@ -83,7 +83,7 @@ class BcRowAdapter(
                 // the bought currency and silently drop the sell-side leg.
                 asset
             } else {
-                cashTrnServices.getCashAsset(trnType, cashAccount, cashCurrency, ownerId)
+                cashTrnServices.getCashAsset(trnType, cashAccount, cashCurrency, ownerId, getBrokerId(row))
             }
         return cashAsset?.id
     }

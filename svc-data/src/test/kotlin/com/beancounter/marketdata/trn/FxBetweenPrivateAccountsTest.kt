@@ -14,6 +14,7 @@ import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -41,6 +42,9 @@ class FxBetweenPrivateAccountsTest {
 
     @Mock
     private lateinit var ais: AssetIngestService
+
+    @Mock
+    private lateinit var brokerSettlementAccountRepository: BrokerSettlementAccountRepository
 
     private lateinit var bcRowAdapter: BcRowAdapter
     private lateinit var cashTrnServices: CashTrnServices
@@ -83,7 +87,8 @@ class FxBetweenPrivateAccountsTest {
 
     @BeforeEach
     fun setUp() {
-        cashTrnServices = CashTrnServices(assetFinder, assetService, currencyService)
+        cashTrnServices =
+            CashTrnServices(assetFinder, assetService, currencyService, brokerSettlementAccountRepository)
         bcRowAdapter = BcRowAdapter(ais, cashTrnServices)
     }
 

@@ -73,6 +73,10 @@ internal class TrnInputMapperTest {
     @MockitoBean
     private lateinit var brokerRepository: com.beancounter.marketdata.broker.BrokerRepository
 
+    @MockitoBean
+    private lateinit var brokerSettlementAccountRepository:
+        com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
+
     @Autowired
     private lateinit var trnInputMapper: TrnInputMapper
 

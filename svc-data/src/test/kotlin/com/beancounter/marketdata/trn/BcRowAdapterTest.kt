@@ -19,6 +19,7 @@ import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -53,6 +54,9 @@ class BcRowAdapterTest {
     @Mock
     private lateinit var ais: AssetIngestService
 
+    @Mock
+    private lateinit var brokerSettlementAccountRepository: BrokerSettlementAccountRepository
+
     private lateinit var bcRowAdapter: BcRowAdapter
     private lateinit var cashTrnServices: CashTrnServices
 
@@ -63,7 +67,8 @@ class BcRowAdapterTest {
 
     @BeforeEach
     fun setUp() {
-        cashTrnServices = CashTrnServices(assetFinder, assetService, currencyService)
+        cashTrnServices =
+            CashTrnServices(assetFinder, assetService, currencyService, brokerSettlementAccountRepository)
         bcRowAdapter = BcRowAdapter(ais, cashTrnServices)
 
         setupMocks()

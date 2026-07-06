@@ -18,6 +18,22 @@ interface BrokerSettlementAccountRepository : JpaRepository<BrokerSettlementAcco
         @Param("brokerId") brokerId: String
     ): List<BrokerSettlementAccount>
 
+    /**
+     * Resolve a broker's settlement account for a specific currency.
+     * Keyed on the unique (broker_id, currency_code) constraint — used at trade
+     * time to settle a cash leg to the broker's designated account instead of a
+     * generic bare-currency balance.
+     */
+    @Query(
+        "SELECT b FROM BrokerSettlementAccount b " +
+            "JOIN FETCH b.broker JOIN FETCH b.account " +
+            "WHERE b.broker.id = :brokerId AND b.currencyCode = :currencyCode"
+    )
+    fun findByBrokerIdAndCurrencyCode(
+        @Param("brokerId") brokerId: String,
+        @Param("currencyCode") currencyCode: String
+    ): BrokerSettlementAccount?
+
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM BrokerSettlementAccount b WHERE b.broker.id = :brokerId")
     fun deleteByBrokerId(brokerId: String)

@@ -9,6 +9,7 @@ import com.beancounter.common.model.TrnType.Companion.debitsCash
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.cash.CASH
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
@@ -22,7 +23,8 @@ import java.math.BigDecimal
 class CashTrnServices(
     private val assetFinder: AssetFinder,
     private val assetService: AssetService,
-    val currencyService: CurrencyService
+    val currencyService: CurrencyService,
+    private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository
 ) {
     fun getCashImpact(
         trnInput: TrnInput,
@@ -56,13 +58,16 @@ class CashTrnServices(
      *                        Can be an asset code or UUID for backward compatibility.
      * @param cashCurrency Currency code for generic cash balance fallback (e.g., "SGD")
      * @param ownerId Owner ID for looking up private assets by code
+     * @param brokerId Optional broker whose per-currency settlement account is used
+     *                 when no explicit cash account is supplied
      * @return The resolved Asset, or null if no cash asset is required
      */
     fun getCashAsset(
         trnType: TrnType,
         cashAccountCode: String?,
         cashCurrency: String?,
-        ownerId: String? = null
+        ownerId: String? = null,
+        brokerId: String? = null
     ): Asset? {
         if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
@@ -92,6 +97,19 @@ class CashTrnServices(
                 if (privateAsset != null) {
                     return privateAsset
                 }
+            }
+        }
+
+        // No explicit account resolved — settle to the broker's designated
+        // account for this currency, if one is configured.
+        if (!brokerId.isNullOrEmpty() && !cashCurrency.isNullOrEmpty()) {
+            val settlement =
+                brokerSettlementAccountRepository.findByBrokerIdAndCurrencyCode(
+                    brokerId,
+                    cashCurrency
+                )
+            if (settlement != null) {
+                return settlement.account
             }
         }
 

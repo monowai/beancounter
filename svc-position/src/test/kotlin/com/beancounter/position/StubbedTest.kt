@@ -15,8 +15,8 @@ import org.springframework.test.context.ActiveProfiles
  * Annotate the test to use the MarketData stubs
  */
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:0.1.1:stubs:10993"]
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = ["beancounter:svc-data:0.1.1:stubs:10993"]
 )
 // Profiles are hard-wired here: a custom `profiles` attribute aliased with
 // @AliasFor does not survive Kotlin annotation compilation reliably (see

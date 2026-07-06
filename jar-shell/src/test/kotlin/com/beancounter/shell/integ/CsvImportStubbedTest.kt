@@ -23,8 +23,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
  */
 @Tag("slow")
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:0.1.1:stubs:10991"]
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = ["beancounter:svc-data:0.1.1:stubs:10991"]
 )
 @ActiveProfiles("jar-shell-shared", "contract-base")
 @SpringBootTest(

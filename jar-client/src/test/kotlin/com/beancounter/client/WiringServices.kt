@@ -22,8 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:0.1.1:stubs:11000"]
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = ["beancounter:svc-data:0.1.1:stubs:11000"]
 )
 class WiringServices {
     @Autowired

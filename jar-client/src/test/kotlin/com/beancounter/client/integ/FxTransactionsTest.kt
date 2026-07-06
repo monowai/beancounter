@@ -44,8 +44,8 @@ import java.math.BigDecimal
  * Client side fx rate functionality. Mocks out bc-data responses.
  */
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:0.1.1:stubs:10990"]
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = ["beancounter:svc-data:0.1.1:stubs:10990"]
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])

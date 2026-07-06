@@ -38,35 +38,12 @@ jobs:
             - v2-build-cache-{{ checksum "build.gradle.kts" }}
             - v1-build-cache
 
-      # Use manual build order to handle circular dependencies
-      # Optimization: Use daemon (faster JVM reuse) and combine invocations
+      # Contract stubs flow between modules as Gradle project artifacts
+      # (svc-data/svc-position `stubs` configurations), so a single invocation
+      # builds everything in the right order — no manual phases.
       - run:
-          name: Build All Projects and Publish Stubs
-          command: |
-            echo "🔨 Building all projects and publishing stubs..."
-
-            # Phase 1: Core libraries (can run in parallel)
-            echo "📦 Phase 1: Building core libraries..."
-            ./gradlew :jar-common:build :jar-auth:build --parallel
-
-            # Phase 2: svc-data + stubs (needed by svc-position and clients)
-            echo "📦 Phase 2: Building svc-data and publishing stubs..."
-            ./gradlew :svc-data:build :svc-data:pubStubs --parallel
-
-            # Phase 3: svc-position + stubs AND client libraries (both need svc-data stubs)
-            # These can run in parallel since they only need svc-data stubs
-            echo "📦 Phase 3: Building svc-position, stubs, and client libraries..."
-            ./gradlew :svc-position:build :svc-position:pubStubs :jar-client:build :jar-shell:build --parallel
-
-            # Phase 4: svc-event (needs both svc-data and svc-position stubs)
-            echo "📦 Phase 4: Building svc-event..."
-            ./gradlew :svc-event:build --parallel
-
-            # Phase 5: svc-agent + svc-admin (leaf services, no stub deps)
-            echo "📦 Phase 5: Building svc-agent and svc-admin..."
-            ./gradlew :svc-agent:build :svc-admin:build --parallel
-
-            echo "✅ Build completed!"
+          name: Build All Projects
+          command: ./gradlew build --parallel
 
       # Upload coverage for all projects
       - codecov/upload:

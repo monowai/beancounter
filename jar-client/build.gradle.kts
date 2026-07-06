@@ -36,7 +36,5 @@ dependencies {
     testImplementation(libs.spring.boot.starter.webflux)
     testImplementation(testFixtures(project(":jar-auth")))
     
-    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
-        isTransitive = false
-    }
+    testImplementation(project(mapOf("path" to ":svc-data", "configuration" to "stubs")))
 }

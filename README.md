@@ -22,36 +22,18 @@ Check out the [demo stack](http://github.com/monowai/bc-demo).
 
 ### Building the Project
 
-#### ⚠️ Important: Circular Dependencies
+#### Standard Build
 
-This project has circular dependencies that affect the build process. 
-**Clean builds (Day 0) will fail** with dependency resolution errors. 
-This is expected behavior.
-
-#### Smart Build (Recommended for daily development)
+Contract stubs flow between modules as regular Gradle artifacts (svc-data and
+svc-position expose a `stubs` configuration consumed by jar-client, jar-shell,
+svc-position and svc-event), so a plain build works from a clean checkout:
 
 ```bash
-# Fast build - checks for stubs first
-./gradlew buildSmart
+# Build everything (clean checkout OK)
+./gradlew build
 
-# Fast test - checks for stubs first
-./gradlew testSmart
-```
-
-#### Complete Build (For CI/CD or clean builds)
-
-```bash
-# Manual build order to handle circular dependencies
-./gradlew :jar-common:build :jar-auth:build
-./gradlew :svc-data:build
-./gradlew :svc-data:pubStubs
-./gradlew :svc-position:build
-./gradlew :svc-position:pubStubs
-./gradlew :svc-event:build
-./gradlew :jar-client:build :jar-shell:build
-
-# Or use the build script
-./build-with-stubs.sh
+# Run all tests
+./gradlew testAll
 ```
 
 #### Individual Module Builds
@@ -71,11 +53,8 @@ This is expected behavior.
 #### Stub Management
 
 ```bash
-# Publish contract stubs
+# Optionally publish contract stubs to ~/.m2 (not required for building)
 ./gradlew publishStubs
-
-# Verify stub availability
-./gradlew verifyStubs
 ```
 
 #### Utility Tasks
@@ -117,10 +96,6 @@ The project uses Spring Cloud Contract for contract testing with a hybrid approa
 - **Isolated Context**: Complex tests (like Kafka) use isolated contexts for reliability
 
 See [CONTRACT_TEST_ARCHITECTURE.md](CONTRACT_TEST_ARCHITECTURE.md) for detailed information.
-
-## Build Process
-
-For detailed information about the build process and stub management, see [BUILD_PROCESS.md](BUILD_PROCESS.md).
 
 ## Development
 
@@ -164,8 +139,7 @@ For detailed information about the build process and stub management, see [BUILD
 
 The project uses CircleCI with optimized build pipelines:
 
-- **build-core**: Builds core libraries and publishes stubs
-- **build-services**: Tests services using published stubs
+- **build-and-test**: Single `./gradlew build` (stub ordering handled by Gradle)
 - **package-***: Creates Docker images (main branch only)
 
 See [.circleci/config.yml](.circleci/config.yml) for configuration details.

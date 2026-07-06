@@ -72,9 +72,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(testFixtures(project(":jar-auth")))
     
-    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
-        isTransitive = false
-    }
+    testImplementation(project(mapOf("path" to ":svc-data", "configuration" to "stubs")))
 }
 
 // RestAssured 5.5.7's legacy Groovy HTTPBuilder (used by EXPLICIT-mode contract
@@ -99,6 +97,19 @@ contracts {
 tasks.register("pubStubs") {
     dependsOn("build")
     dependsOn("publishToMavenLocal")
+}
+
+// Outgoing stubs configuration: svc-event depends on
+// project(":svc-position", configuration = "stubs") so Gradle builds
+// verifierStubsJar first — no pre-published ~/.m2 artifact or manual build
+// ordering required.
+val stubs by configurations.creating {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
+
+artifacts {
+    add("stubs", tasks.named("verifierStubsJar"))
 }
 
 springBoot {

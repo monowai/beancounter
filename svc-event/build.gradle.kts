@@ -61,9 +61,7 @@ dependencies {
     testImplementation(libs.kotest.framework.engine)
     testImplementation(testFixtures(project(":jar-auth")))
 
-    testImplementation("org.beancounter:svc-position:0.1.1:stubs") {
-        isTransitive = false
-    }
+    testImplementation(project(mapOf("path" to ":svc-position", "configuration" to "stubs")))
 }
 
 springBoot {

@@ -32,8 +32,8 @@ import java.math.BigDecimal
  * @since 2019-02-12
  */
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:0.1.1:stubs:10990"]
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = ["beancounter:svc-data:0.1.1:stubs:10990"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 @ActiveProfiles("jar-client-shared", "contract-base")

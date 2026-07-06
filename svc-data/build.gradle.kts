@@ -28,7 +28,6 @@ dependencies {
     implementation(platform(libs.otel.bom))
     implementation(project(":jar-common"))
     implementation(project(":jar-auth"))
-    implementation(project(":jar-client"))
     implementation(libs.spring.boot.starter.web)
     // Pooled HTTP client for external RestClients (ExternalApiRestClientConfig): keep-alive
     // connection reuse avoids a fresh DNS lookup per request during the price-refresh burst.
@@ -128,6 +127,19 @@ tasks.named<Test>("test") {
 tasks.register("pubStubs") {
     dependsOn("build")
     dependsOn("publishToMavenLocal")
+}
+
+// Outgoing stubs configuration: consumers (jar-client, jar-shell, svc-position)
+// depend on project(":svc-data", configuration = "stubs") so Gradle builds
+// verifierStubsJar first — no pre-published ~/.m2 artifact or manual build
+// ordering required.
+val stubs by configurations.creating {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
+
+artifacts {
+    add("stubs", tasks.named("verifierStubsJar"))
 }
 
 // Contract test linting and formatting tasks - only configure if they exist

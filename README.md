@@ -39,13 +39,7 @@ svc-position and svc-event), so a plain build works from a clean checkout:
 #### Individual Module Builds
 
 ```bash
-# Build core libraries
-./gradlew buildCore
-
-# Build all services
-./gradlew buildServices
-
-# Build specific module
+# Build specific module (Gradle builds any stub producers it needs first)
 ./gradlew :jar-client:build
 ./gradlew :svc-data:build
 ```

@@ -33,7 +33,7 @@ reason; `validateDependencies` enforces the rule.
 # Build everything (clean checkout OK)
 ./gradlew build
 
-# Run all tests (buildSmart/testSmart/testWithStubs remain as aliases)
+# Run all tests incl. contract tests (buildSmart/testSmart remain as aliases)
 ./gradlew testAll
 
 # Code quality

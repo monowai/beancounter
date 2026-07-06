@@ -289,35 +289,8 @@ version = "0.0.1-SNAPSHOT"
 // ordering or ~/.m2 stub publishing is required — plain `./gradlew build` works
 // from a clean checkout.
 tasks.register("buildAll") {
-    dependsOn(":jar-common:build")
-    dependsOn(":jar-auth:build")
-    dependsOn(":jar-client:build")
-    dependsOn(":jar-shell:build")
-    dependsOn(":svc-data:build")
-    dependsOn(":svc-position:build")
-    dependsOn(":svc-event:build")
-    dependsOn(":svc-admin:build")
-    description = "Build all subprojects in dependency order"
-}
-
-// Build core libraries first (no service dependencies)
-tasks.register("buildCoreLibraries") {
-    dependsOn(":jar-contracts:build")
-    dependsOn(":jar-common:build")
-    dependsOn(":jar-auth:build")
-    dependsOn(":jar-client:build")
-    dependsOn(":jar-shell:build")
-    description = "Build core libraries (no service dependencies)"
-}
-
-// Build services after core libraries
-tasks.register("buildServices") {
-    dependsOn("buildCoreLibraries")
-    dependsOn(":svc-data:build")
-    dependsOn(":svc-position:build")
-    dependsOn(":svc-event:build")
-    dependsOn(":svc-admin:build")
-    description = "Build services after core libraries"
+    dependsOn(subprojects.map { "${it.path}:build" })
+    description = "Build all subprojects"
 }
 
 // Publish contract stubs for services that need them
@@ -349,15 +322,12 @@ tasks.register("publishJarsLocal") {
 }
 
 tasks.register("testAll") {
-    dependsOn(":jar-common:test")
-    dependsOn(":jar-auth:test")
-    dependsOn(":jar-client:test")
-    dependsOn(":jar-shell:test")
-    dependsOn(":svc-data:test")
-    dependsOn(":svc-position:test")
-    dependsOn(":svc-event:test")
-    dependsOn(":svc-admin:test")
-    description = "Test all subprojects (stub ordering handled by Gradle)"
+    dependsOn(subprojects.map { "${it.path}:test" })
+    // contractTest is a separate source set/task on the stub producers and is
+    // not wired into `test` — include it so testAll covers contract checks.
+    dependsOn(":svc-data:contractTest")
+    dependsOn(":svc-position:contractTest")
+    description = "Test all subprojects incl. contract tests (stub ordering handled by Gradle)"
 }
 
 tasks.register("cleanAll") {
@@ -371,14 +341,6 @@ tasks.register("verifyDependencies") {
     description = "Verify all project dependencies"
 }
 
-// Build core libraries first (no service dependencies)
-tasks.register("buildCore") {
-    dependsOn(":jar-common:build")
-    dependsOn(":jar-auth:build")
-    dependsOn(":jar-client:build")
-    description = "Build core libraries (jar-common, jar-auth, jar-client)"
-}
-
 // Legacy aliases: stubs are now wired as Gradle project artifacts, so the
 // old "verify stubs exist in ~/.m2 first" dance is gone. Kept so existing
 // muscle memory / scripts / docs keep working.
@@ -388,11 +350,6 @@ tasks.register("buildSmart") {
 }
 
 tasks.register("testSmart") {
-    dependsOn("testAll")
-    description = "Alias for testAll (stub ordering handled by Gradle)"
-}
-
-tasks.register("testWithStubs") {
     dependsOn("testAll")
     description = "Alias for testAll (stub ordering handled by Gradle)"
 }

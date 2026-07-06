@@ -87,7 +87,6 @@ class Accumulator(
         }
 
         // Track broker holdings - only for trades that affect quantity per broker
-        // SPLIT is asset-level (not broker-specific)
         // DIVI transactions should be generated per-broker when creating dividend transactions
         trn.broker?.let { broker ->
             val brokerKey = broker.name
@@ -106,6 +105,13 @@ class Accumulator(
                     position.held.remove(brokerKey)
                 }
             }
+        }
+
+        // A SPLIT is asset-wide and carries no broker, so scale every broker's
+        // holding by the ratio to keep per-broker `held` consistent with the
+        // split-adjusted position total.
+        if (trn.trnType == TrnType.SPLIT) {
+            position.held.replaceAll { _, qty -> qty.multiply(trn.quantity) }
         }
 
         // Note: We do NOT reset dates when sold out - they remain for display purposes.

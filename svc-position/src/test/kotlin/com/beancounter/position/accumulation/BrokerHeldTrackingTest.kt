@@ -149,6 +149,51 @@ class BrokerHeldTrackingTest {
     }
 
     @Test
+    fun `should split-adjust each broker's held quantity`() {
+        val positions = Positions()
+
+        // Buy 100 via Broker A, 50 via Broker B
+        accumulator.accumulate(
+            Trn(
+                asset = asset,
+                trnType = TrnType.BUY,
+                quantity = hundred,
+                tradeAmount = BigDecimal("1000"),
+                broker = brokerA,
+                tradeDate = LocalDate.of(2026, 1, 1)
+            ),
+            positions
+        )
+        accumulator.accumulate(
+            Trn(
+                asset = asset,
+                trnType = TrnType.BUY,
+                quantity = fifty,
+                tradeAmount = BigDecimal("500"),
+                broker = brokerB,
+                tradeDate = LocalDate.of(2026, 1, 1)
+            ),
+            positions
+        )
+
+        // 2:1 SPLIT — asset-wide, carries no broker.
+        val position =
+            accumulator.accumulate(
+                Trn(
+                    asset = asset,
+                    trnType = TrnType.SPLIT,
+                    quantity = BigDecimal("2"),
+                    broker = null,
+                    tradeDate = LocalDate.of(2026, 2, 1)
+                ),
+                positions
+            )
+
+        assertThat(position.held["Broker A"]).isEqualByComparingTo("200")
+        assertThat(position.held["Broker B"]).isEqualByComparingTo("100")
+    }
+
+    @Test
     fun `should remove only sold-out broker when multiple brokers exist`() {
         val positions = Positions()
 
@@ -214,35 +259,37 @@ class BrokerHeldTrackingTest {
     }
 
     @Test
-    fun `should not affect held on SPLIT transaction`() {
+    fun `should split-adjust held even when the SPLIT carries a broker`() {
         val positions = Positions()
 
         // Buy 100 via Broker A
-        val buyTrn =
+        accumulator.accumulate(
             Trn(
                 asset = asset,
                 trnType = TrnType.BUY,
                 quantity = hundred,
                 tradeAmount = BigDecimal("1000"),
                 broker = brokerA,
-                tradeDate = LocalDate.now()
-            )
-        accumulator.accumulate(buyTrn, positions)
+                tradeDate = LocalDate.of(2026, 1, 1)
+            ),
+            positions
+        )
 
-        // Split (2:1) via Broker A - should not affect held tracking
-        val splitTrn =
-            Trn(
-                asset = asset,
-                trnType = TrnType.SPLIT,
-                quantity = hundred, // Additional shares from split
-                tradeAmount = BigDecimal.ZERO,
-                broker = brokerA,
-                tradeDate = LocalDate.now()
+        // 2:1 SPLIT (quantity is the ratio). Even if the row happens to carry a
+        // broker, the ratio scales the whole holding.
+        val position =
+            accumulator.accumulate(
+                Trn(
+                    asset = asset,
+                    trnType = TrnType.SPLIT,
+                    quantity = BigDecimal("2"),
+                    tradeAmount = BigDecimal.ZERO,
+                    broker = brokerA,
+                    tradeDate = LocalDate.of(2026, 2, 1)
+                ),
+                positions
             )
-        val position = accumulator.accumulate(splitTrn, positions)
 
-        // Held should still show original 100, not 200
-        // (SPLIT affects total quantity but not broker breakdown per plan)
-        assertThat(position.held["Broker A"]).isEqualByComparingTo(hundred)
+        assertThat(position.held["Broker A"]).isEqualByComparingTo("200")
     }
 }

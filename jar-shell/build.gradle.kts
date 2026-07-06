@@ -32,7 +32,5 @@ dependencies {
     testImplementation(libs.spring.cloud.stream.test.binder)
     testImplementation("org.junit.jupiter:junit-jupiter")
     
-    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
-        isTransitive = false
-    }
+    testImplementation(project(mapOf("path" to ":svc-data", "configuration" to "stubs")))
 }

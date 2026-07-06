@@ -283,11 +283,11 @@ subprojects {
 group = "com.beancounter"
 version = "0.0.1-SNAPSHOT"
 
-val mavenLocalBc = File(System.getProperty("user.home") + "/.m2/repository/org/beancounter")
-val svcDataStubsPath = "svc-data/0.1.1/svc-data-0.1.1-stubs.jar"
-val svcPositionStubsPath = "svc-position/0.1.1/svc-position-0.1.1-stubs.jar"
-
-// Root project tasks with proper dependency order
+// Root project tasks. Contract stubs flow between modules as regular Gradle
+// artifacts (svc-data/svc-position expose a `stubs` configuration consumed by
+// jar-client, jar-shell, svc-position and svc-event), so no manual build
+// ordering or ~/.m2 stub publishing is required — plain `./gradlew build` works
+// from a clean checkout.
 tasks.register("buildAll") {
     dependsOn(":jar-common:build")
     dependsOn(":jar-auth:build")
@@ -349,7 +349,6 @@ tasks.register("publishJarsLocal") {
 }
 
 tasks.register("testAll") {
-    dependsOn("verifyStubs") // Verify stubs are available
     dependsOn(":jar-common:test")
     dependsOn(":jar-auth:test")
     dependsOn(":jar-client:test")
@@ -358,7 +357,7 @@ tasks.register("testAll") {
     dependsOn(":svc-position:test")
     dependsOn(":svc-event:test")
     dependsOn(":svc-admin:test")
-    description = "Test all subprojects in dependency order (stubs must be available)"
+    description = "Test all subprojects (stub ordering handled by Gradle)"
 }
 
 tasks.register("cleanAll") {
@@ -380,112 +379,22 @@ tasks.register("buildCore") {
     description = "Build core libraries (jar-common, jar-auth, jar-client)"
 }
 
-// Verify stubs are available before building
-tasks.register("verifyStubsForBuild") {
-    doLast {
-        val svcDataStubs = File(mavenLocalBc, svcDataStubsPath)
-        val svcPositionStubs = File(mavenLocalBc, svcPositionStubsPath)
-
-        if (!svcDataStubs.exists() || !svcPositionStubs.exists()) {
-            println("📦 Contract stubs missing!")
-            println("   Run: ./gradlew buildWithStubs")
-            println("   This will build everything and publish stubs.")
-            throw GradleException("Contract stubs are missing. Run './gradlew buildWithStubs' for a complete build.")
-        } else {
-            println("✅ Contract stubs available, proceeding with build...")
-        }
-    }
-    description = "Verify that contract stubs are available before building"
-}
-
-// Smart build that checks for stubs first
+// Legacy aliases: stubs are now wired as Gradle project artifacts, so the
+// old "verify stubs exist in ~/.m2 first" dance is gone. Kept so existing
+// muscle memory / scripts / docs keep working.
 tasks.register("buildSmart") {
-    dependsOn("verifyStubsForBuild")
     dependsOn("buildAll")
-    description = "Smart build - checks for stubs and builds if available"
+    description = "Alias for buildAll (stub ordering handled by Gradle)"
 }
 
-// Build services first and publish stubs
-tasks.register("buildServicesAndPublishStubs") {
-    dependsOn(":jar-common:build")
-    dependsOn(":jar-auth:build")
-    dependsOn(":svc-data:build")
-    dependsOn(":svc-position:build")
-    dependsOn(":svc-event:build")
-    dependsOn(":svc-admin:build")
-    dependsOn("publishStubs")
-    description = "Build services and publish stubs"
-}
-
-// Complete build with stub publishing (for CI/CD or explicit stub publishing)
-tasks.register("buildWithStubs") {
-    doLast {
-        println("🔨 Complete build with stub publishing completed successfully!")
-    }
-    description = "Complete build including contract stub publishing"
-}
-
-// Build everything in the correct order
-tasks.register("buildAllWithStubs") {
-    dependsOn("buildServicesAndPublishStubs")
-    dependsOn(":jar-client:build")
-    dependsOn(":jar-shell:build")
-    finalizedBy("buildWithStubs")
-    description = "Build all projects in correct order with stub publishing"
-}
-
-// Verify stubs are available before testing
-tasks.register("verifyStubsForTest") {
-    doLast {
-        val svcDataStubs = File(mavenLocalBc, svcDataStubsPath)
-        val svcPositionStubs = File(mavenLocalBc, svcPositionStubsPath)
-
-        if (!svcDataStubs.exists() || !svcPositionStubs.exists()) {
-            println("📦 Contract stubs missing!")
-            println("   Run: ./gradlew testWithStubs")
-            println("   This will publish stubs and run all tests.")
-            throw GradleException("Contract stubs are missing. Run './gradlew testWithStubs' for a complete test run.")
-        } else {
-            println("✅ Contract stubs available, proceeding with tests...")
-        }
-    }
-    description = "Verify that contract stubs are available before testing"
-}
-
-// Smart test that checks for stubs first
 tasks.register("testSmart") {
-    dependsOn("verifyStubsForTest")
     dependsOn("testAll")
-    description = "Smart test - checks for stubs and tests if available"
+    description = "Alias for testAll (stub ordering handled by Gradle)"
 }
 
-// Complete test with stub publishing (for CI/CD or explicit stub publishing)
 tasks.register("testWithStubs") {
-    dependsOn("publishStubs")
     dependsOn("testAll")
-    description = "Complete test run including contract stub publishing"
-}
-
-// Verify stub availability
-tasks.register("verifyStubs") {
-    doLast {
-        println("Verifying contract stubs are available...")
-
-        val svcDataStubs = File(mavenLocalBc, svcDataStubsPath)
-        val svcPositionStubs = File(mavenLocalBc, svcPositionStubsPath)
-
-        if (!svcDataStubs.exists()) {
-            throw GradleException("svc-data stubs not found. Run 'publishStubs' first.")
-        }
-        if (!svcPositionStubs.exists()) {
-            throw GradleException("svc-position stubs not found. Run 'publishStubs' first.")
-        }
-
-        println("✅ Contract stubs are available:")
-        println("  - svc-data: ${svcDataStubs.absolutePath}")
-        println("  - svc-position: ${svcPositionStubs.absolutePath}")
-    }
-    description = "Verify that contract stubs are available in local Maven repository"
+    description = "Alias for testAll (stub ordering handled by Gradle)"
 }
 
 // Validate dependency order
@@ -508,7 +417,9 @@ tasks.register("validateDependencies") {
             throw GradleException("jar-client must depend on jar-auth")
         }
 
-        // Check services depend on core libraries
+        // Check services depend on core libraries. svc-data must NOT depend on
+        // jar-client — that edge re-creates the circular build dependency
+        // (jar-client tests consume svc-data's contract stubs).
         listOf("svc-data", "svc-position", "svc-event").forEach { serviceName ->
             val serviceDeps = project(":$serviceName").configurations.getByName("implementation").dependencies
             if (!serviceDeps.any { it.name == "jar-common" }) {
@@ -517,9 +428,16 @@ tasks.register("validateDependencies") {
             if (!serviceDeps.any { it.name == "jar-auth" }) {
                 throw GradleException("$serviceName must depend on jar-auth")
             }
+        }
+        listOf("svc-position", "svc-event").forEach { serviceName ->
+            val serviceDeps = project(":$serviceName").configurations.getByName("implementation").dependencies
             if (!serviceDeps.any { it.name == "jar-client" }) {
                 throw GradleException("$serviceName must depend on jar-client")
             }
+        }
+        val svcDataDeps = project(":svc-data").configurations.getByName("implementation").dependencies
+        if (svcDataDeps.any { it.name == "jar-client" }) {
+            throw GradleException("svc-data must NOT depend on jar-client (circular stub dependency)")
         }
 
         println("✅ All dependencies are correctly configured!")

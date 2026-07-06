@@ -31,8 +31,8 @@ import tools.jackson.core.type.TypeReference
  */
 @ActiveProfiles("jar-shell-shared", "contract-base")
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:0.1.1:stubs:10991"]
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = ["beancounter:svc-data:0.1.1:stubs:10991"]
 )
 @SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class, ShareSightConfig::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

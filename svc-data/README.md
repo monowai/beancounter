@@ -41,20 +41,12 @@ curl -X GET http://localhost:9510/AX/AMP
 
 ### Contract Stubs
 
-This service generates contract stubs that are used by other services for testing:
-
-- **Stub Artifact**: `org.beancounter:svc-data:0.1.1:stubs`
-- **Local Path**: `~/.m2/repository/org/beancounter/svc-data/0.1.1/`
-
-The stubs are automatically published when using the smart build tasks:
-
-```bash
-# Smart build (publishes stubs if needed)
-./gradlew buildSmart
-
-# Complete build (always publishes stubs)
-./gradlew buildWithStubs
-```
+This service exposes its Spring Cloud Contract stubs as a Gradle `stubs`
+configuration (built from `verifierStubsJar`), consumed by jar-client, jar-shell and svc-position via
+`testImplementation(project(path = ":svc-data", configuration = "stubs"))`.
+Gradle builds the stubs automatically before any consumer tests run — no
+manual publishing needed. `./gradlew :svc-data:pubStubs` still publishes to
+`~/.m2` if an external consumer ever needs it.
 
 ### Docker
 

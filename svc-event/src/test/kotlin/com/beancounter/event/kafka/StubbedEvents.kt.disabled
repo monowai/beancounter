@@ -64,10 +64,10 @@ private const val EMAIL = "blah@blah.com"
  */
 
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
     ids = [
-        "org.beancounter:svc-data:0.1.1:stubs:11999",
-        "org.beancounter:svc-position:0.1.1:stubs:12999"
+        "beancounter:svc-data:0.1.1:stubs:11999",
+        "beancounter:svc-position:0.1.1:stubs:12999"
     ]
 )
 @Tag("stream")

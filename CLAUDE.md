@@ -6,38 +6,35 @@ repository.
 ## Project Overview
 
 This is a financial transaction processing service built with Kotlin and Spring Boot. It transforms
-financial transaction data into portfolio positions for valuation against market data. The project
-consists of multiple interconnected services with circular dependencies that require careful build
-management.
+financial transaction data into portfolio positions for valuation against market data.
 
 ## Critical Build Information
 
-### ⚠️ Circular Dependencies
+### Contract stubs are Gradle artifacts
 
-This project has circular dependencies that **will cause clean builds to fail**. This is expected
-behavior. Services depend on each other's contract stubs, creating a chicken-and-egg problem.
+Spring Cloud Contract stubs flow between modules as regular Gradle project
+artifacts: svc-data and svc-position each expose a `stubs` configuration
+(built from `verifierStubsJar`), consumed via
+`testImplementation(project(path = ..., configuration = "stubs"))` by
+jar-client, jar-shell, svc-position and svc-event. Stub-runner tests use
+`StubsMode.CLASSPATH` with ids like `beancounter:svc-data:0.1.1:stubs:10990`.
+Gradle orders producer before consumer automatically — clean builds just work;
+no ~/.m2 stub publishing, no manual build phases.
+
+**Guardrail:** svc-data must NOT depend on `:jar-client` — that edge
+re-creates the old circular build dependency (jar-client tests consume
+svc-data's stubs). The shared ingest/SPI surface (`com.beancounter.client.*`
+interfaces, `ingest/`, `sharesight/`) lives in **jar-common** for exactly this
+reason; `validateDependencies` enforces the rule.
 
 ### Common Build Commands
 
 ```bash
-# For daily development (recommended - fast build when stubs exist)
-./gradlew buildSmart
-./gradlew testSmart
+# Build everything (clean checkout OK)
+./gradlew build
 
-# Clean build from scratch (Day 0 - use this order)
-./gradlew :jar-common:build :jar-auth:build
-./gradlew :svc-data:build
-./gradlew :svc-data:pubStubs
-./gradlew :svc-position:build
-./gradlew :svc-position:pubStubs
-./gradlew :svc-event:build
-./gradlew :jar-client:build :jar-shell:build
-
-# Or use the build script for clean builds
-./build-with-stubs.sh
-
-# Testing (ensures stubs are available)
-./gradlew testWithStubs
+# Run all tests (buildSmart/testSmart/testWithStubs remain as aliases)
+./gradlew testAll
 
 # Code quality
 ./gradlew formatKotlin
@@ -47,17 +44,9 @@ behavior. Services depend on each other's contract stubs, creating a chicken-and
 
 ### Stub Management
 
-Contract stubs are published to local Maven repository (`~/.m2/repository`):
-
-- svc-data stubs: Required by jar-client, jar-shell, svc-position, svc-event
-- svc-position stubs: Required by svc-event
-
 ```bash
-# Publish stubs
+# Optionally publish stubs to ~/.m2 (not required for building or testing)
 ./gradlew publishStubs
-
-# Verify stubs exist
-./gradlew verifyStubs
 ```
 
 ## Architecture
@@ -214,11 +203,10 @@ To switch from RabbitMQ to Kafka:
 
 ## Development Workflow
 
-1. **Daily Development**: Use `./gradlew buildSmart` and `./gradlew testSmart` - these check for
-   stubs first
-2. **After Clean**: Use manual build order or `./build-with-stubs.sh`
-3. **Before Committing**: Run `./gradlew check` for code quality
-4. **Code Formatting**: Auto-format with `./gradlew formatKotlin`
+1. **Daily Development**: `./gradlew build` / `./gradlew testAll` (clean checkout OK;
+   `buildSmart`/`testSmart` remain as aliases)
+2. **Before Committing**: Run `./gradlew check` for code quality
+3. **Code Formatting**: Auto-format with `./gradlew formatKotlin`
 
 ## Authentication
 
@@ -296,10 +284,6 @@ For cross-repository work (debugging message flows, tracing requests, architectu
 - **`../bc-deploy/CLAUDE.md`**: Production deployment (kauri.monowai.com), Kubernetes/Helm
 - **`../bc-view/CLAUDE.md`**: Next.js frontend
 
-## Important Files
-
-- `build-with-stubs.sh`: Script for clean builds handling circular dependencies
-
 # Test-Driven Development
 
 TDD is mandatory. Red → Green → Refactor → Lint. See
@@ -309,9 +293,7 @@ guidance — it applies unchanged here.
 
 ## Pre-Commit Checklist (beancounter-specific)
 
-Use the `*Smart` tasks; they handle the circular-dependency stub check.
-
-- [ ] All tests passing: `./gradlew testSmart`
+- [ ] All tests passing: `./gradlew testSmart` (alias of `testAll`)
 - [ ] New functionality has tests
 - [ ] Code formatted: `./gradlew formatKotlin`
 - [ ] Linting passes: `./gradlew lintKotlin`

@@ -309,6 +309,8 @@ class ValuationServiceTest {
                 add(
                     Position(asset, portfolio).apply {
                         quantityValues.purchased = BigDecimal("10")
+                        held["DBS"] = BigDecimal("7")
+                        held["SCB"] = BigDecimal("3")
                     }
                 )
             }
@@ -317,6 +319,7 @@ class ValuationServiceTest {
                 add(
                     Position(asset, portfolio2).apply {
                         quantityValues.purchased = BigDecimal("5")
+                        held["DBS"] = BigDecimal("5")
                     }
                 )
             }
@@ -349,6 +352,14 @@ class ValuationServiceTest {
         assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio.id }.quantity)
             .isEqualByComparingTo(BigDecimal("10"))
         assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio2.id }.quantity)
+            .isEqualByComparingTo(BigDecimal("5"))
+        // ...with each row scoped to ITS portfolio's broker holdings, so the
+        // UI can cap a sell at what the chosen portfolio holds per broker.
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio.id }.held)
+            .containsOnlyKeys("DBS", "SCB")
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio.id }.held["DBS"])
+            .isEqualByComparingTo(BigDecimal("7"))
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio2.id }.held["DBS"])
             .isEqualByComparingTo(BigDecimal("5"))
     }
 

@@ -13,5 +13,7 @@ data class PortfolioBreakdown(
     val portfolioId: String,
     val portfolioCode: String,
     val portfolioName: String,
-    val quantity: BigDecimal
+    val quantity: BigDecimal,
+    /** Broker name -> quantity held within THIS portfolio. */
+    val held: Map<String, BigDecimal> = emptyMap()
 )

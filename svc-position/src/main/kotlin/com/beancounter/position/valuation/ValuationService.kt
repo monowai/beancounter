@@ -422,7 +422,8 @@ class ValuationService
                                 portfolioId = portfolio.id,
                                 portfolioCode = portfolio.code,
                                 portfolioName = portfolio.name,
-                                quantity = quantity
+                                quantity = quantity,
+                                held = position.held.toMap()
                             )
                         )
                 }

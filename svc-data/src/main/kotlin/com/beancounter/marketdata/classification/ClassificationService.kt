@@ -118,6 +118,10 @@ class ClassificationService(
     /**
      * Classify an asset with a specific classification item.
      * Replaces any existing classification at the same level.
+     *
+     * A manual (user-defined) classification takes precedence: provider
+     * enrichment must not clobber a user override. Provider-over-provider and
+     * manual-over-provider replacements still apply.
      */
     fun classifyAsset(
         asset: Asset,
@@ -126,10 +130,14 @@ class ClassificationService(
         level: ClassificationLevel,
         source: String
     ): AssetClassification {
+        val existing = classificationRepository.findByAssetIdAndLevel(asset.id, level).orElse(null)
+        if (existing != null && existing.source == SOURCE_MANUAL && source != SOURCE_MANUAL) {
+            // User override wins over provider enrichment.
+            return existing
+        }
+
         // Remove existing classification at this level
-        classificationRepository
-            .findByAssetIdAndLevel(asset.id, level)
-            .ifPresent { classificationRepository.delete(it) }
+        existing?.let { classificationRepository.delete(it) }
 
         // Use a managed reference to ensure proper FK handling
         val managedAsset = entityManager.getReference(Asset::class.java, asset.id)

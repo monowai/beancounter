@@ -265,6 +265,9 @@ class ValuationService
                     source.held.forEach { (broker, qty) ->
                         target.held.merge(broker, qty, BigDecimal::add)
                     }
+                    source.subAccounts.forEach { (code, balance) ->
+                        target.subAccounts.merge(code, balance, BigDecimal::add)
+                    }
                     mergeDates(target, source)
                 }
             }

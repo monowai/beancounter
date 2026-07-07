@@ -390,6 +390,7 @@ class ValuationServiceTest {
                         quantityValues.purchased = BigDecimal("255")
                         held["DBS"] = BigDecimal("175")
                         held["SCB"] = BigDecimal("80")
+                        subAccounts["OA"] = BigDecimal("1000")
                     }
                 )
             }
@@ -399,6 +400,7 @@ class ValuationServiceTest {
                     Position(asset, portfolio2).apply {
                         quantityValues.purchased = BigDecimal("25")
                         held["DBS"] = BigDecimal("25")
+                        subAccounts["OA"] = BigDecimal("500")
                     }
                 )
             }
@@ -426,6 +428,8 @@ class ValuationServiceTest {
         assertThat(agg.held).hasSize(2)
         assertThat(agg.held["DBS"]).isEqualByComparingTo(BigDecimal("200"))
         assertThat(agg.held["SCB"]).isEqualByComparingTo(BigDecimal("80"))
+        // ...and per-sub-account balances sum the same way
+        assertThat(agg.subAccounts["OA"]).isEqualByComparingTo(BigDecimal("1500"))
     }
 
     @Test

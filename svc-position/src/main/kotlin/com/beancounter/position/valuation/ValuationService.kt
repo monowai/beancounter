@@ -260,6 +260,14 @@ class ValuationService
                         )
                     }
                     target.periodicCashFlows.addAll(source.periodicCashFlows.cashFlows)
+                    // Per-broker holdings survive aggregation so the UI can cap
+                    // a sell at what the chosen broker actually holds.
+                    source.held.forEach { (broker, qty) ->
+                        target.held.merge(broker, qty, BigDecimal::add)
+                    }
+                    source.subAccounts.forEach { (code, balance) ->
+                        target.subAccounts.merge(code, balance, BigDecimal::add)
+                    }
                     mergeDates(target, source)
                 }
             }
@@ -414,7 +422,8 @@ class ValuationService
                                 portfolioId = portfolio.id,
                                 portfolioCode = portfolio.code,
                                 portfolioName = portfolio.name,
-                                quantity = quantity
+                                quantity = quantity,
+                                held = position.held.toMap()
                             )
                         )
                 }

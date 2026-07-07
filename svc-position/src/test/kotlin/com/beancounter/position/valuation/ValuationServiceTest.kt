@@ -309,6 +309,8 @@ class ValuationServiceTest {
                 add(
                     Position(asset, portfolio).apply {
                         quantityValues.purchased = BigDecimal("10")
+                        held["DBS"] = BigDecimal("7")
+                        held["SCB"] = BigDecimal("3")
                     }
                 )
             }
@@ -317,6 +319,7 @@ class ValuationServiceTest {
                 add(
                     Position(asset, portfolio2).apply {
                         quantityValues.purchased = BigDecimal("5")
+                        held["DBS"] = BigDecimal("5")
                     }
                 )
             }
@@ -350,6 +353,94 @@ class ValuationServiceTest {
             .isEqualByComparingTo(BigDecimal("10"))
         assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio2.id }.quantity)
             .isEqualByComparingTo(BigDecimal("5"))
+        // ...with each row scoped to ITS portfolio's broker holdings, so the
+        // UI can cap a sell at what the chosen portfolio holds per broker.
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio.id }.held)
+            .containsOnlyKeys("DBS", "SCB")
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio.id }.held["DBS"])
+            .isEqualByComparingTo(BigDecimal("7"))
+        assertThat(agg.portfolioBreakdown.first { it.portfolioId == portfolio2.id }.held["DBS"])
+            .isEqualByComparingTo(BigDecimal("5"))
+    }
+
+    @Test
+    fun `getAggregatedPositions merges per-broker held quantities across portfolios`() {
+        // Given - two portfolios holding the same asset at overlapping brokers
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        val portfolios = listOf(portfolio, portfolio2)
+
+        val asset = TestHelpers.createTestAsset("SCHD", "US")
+        val trn1 =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = portfolio,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("255"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 15)
+            )
+        val trn2 =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = portfolio2,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("25"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 16)
+            )
+
+        whenever(trnService.query(argThat { id == portfolio.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(trn1)))
+        whenever(trnService.query(argThat { id == portfolio2.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(trn2)))
+
+        val p1Positions =
+            Positions(portfolio).apply {
+                add(
+                    Position(asset, portfolio).apply {
+                        quantityValues.purchased = BigDecimal("255")
+                        held["DBS"] = BigDecimal("175")
+                        held["SCB"] = BigDecimal("80")
+                        subAccounts["OA"] = BigDecimal("1000")
+                    }
+                )
+            }
+        val p2Positions =
+            Positions(portfolio2).apply {
+                add(
+                    Position(asset, portfolio2).apply {
+                        quantityValues.purchased = BigDecimal("25")
+                        held["DBS"] = BigDecimal("25")
+                        subAccounts["OA"] = BigDecimal("500")
+                    }
+                )
+            }
+
+        whenever(
+            positionService.build(
+                argThat { id == portfolio.id },
+                argThat { trns.size == 1 }
+            )
+        ).thenReturn(PositionResponse(p1Positions))
+        whenever(
+            positionService.build(
+                argThat { id == portfolio2.id },
+                argThat { trns.size == 1 }
+            )
+        ).thenReturn(PositionResponse(p2Positions))
+
+        // When
+        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+
+        // Then - per-broker quantities survive aggregation, same broker sums
+        val agg =
+            result.data.positions.values
+                .first()
+        assertThat(agg.held).hasSize(2)
+        assertThat(agg.held["DBS"]).isEqualByComparingTo(BigDecimal("200"))
+        assertThat(agg.held["SCB"]).isEqualByComparingTo(BigDecimal("80"))
+        // ...and per-sub-account balances sum the same way
+        assertThat(agg.subAccounts["OA"]).isEqualByComparingTo(BigDecimal("1500"))
     }
 
     @Test

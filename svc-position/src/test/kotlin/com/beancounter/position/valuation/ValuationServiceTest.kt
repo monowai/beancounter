@@ -353,6 +353,82 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions merges per-broker held quantities across portfolios`() {
+        // Given - two portfolios holding the same asset at overlapping brokers
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        val portfolios = listOf(portfolio, portfolio2)
+
+        val asset = TestHelpers.createTestAsset("SCHD", "US")
+        val trn1 =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = portfolio,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("255"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 15)
+            )
+        val trn2 =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = portfolio2,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("25"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 16)
+            )
+
+        whenever(trnService.query(argThat { id == portfolio.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(trn1)))
+        whenever(trnService.query(argThat { id == portfolio2.id }, any<String>()))
+            .thenReturn(TrnResponse(listOf(trn2)))
+
+        val p1Positions =
+            Positions(portfolio).apply {
+                add(
+                    Position(asset, portfolio).apply {
+                        quantityValues.purchased = BigDecimal("255")
+                        held["DBS"] = BigDecimal("175")
+                        held["SCB"] = BigDecimal("80")
+                    }
+                )
+            }
+        val p2Positions =
+            Positions(portfolio2).apply {
+                add(
+                    Position(asset, portfolio2).apply {
+                        quantityValues.purchased = BigDecimal("25")
+                        held["DBS"] = BigDecimal("25")
+                    }
+                )
+            }
+
+        whenever(
+            positionService.build(
+                argThat { id == portfolio.id },
+                argThat { trns.size == 1 }
+            )
+        ).thenReturn(PositionResponse(p1Positions))
+        whenever(
+            positionService.build(
+                argThat { id == portfolio2.id },
+                argThat { trns.size == 1 }
+            )
+        ).thenReturn(PositionResponse(p2Positions))
+
+        // When
+        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+
+        // Then - per-broker quantities survive aggregation, same broker sums
+        val agg =
+            result.data.positions.values
+                .first()
+        assertThat(agg.held).hasSize(2)
+        assertThat(agg.held["DBS"]).isEqualByComparingTo(BigDecimal("200"))
+        assertThat(agg.held["SCB"]).isEqualByComparingTo(BigDecimal("80"))
+    }
+
+    @Test
     fun `getAggregatedPositions excludes portfolio with net-zero quantity from breakdown`() {
         // Given - P1 holds 10 AAPL; P2 bought 10 then sold 10 (net zero)
         val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")

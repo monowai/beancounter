@@ -260,6 +260,11 @@ class ValuationService
                         )
                     }
                     target.periodicCashFlows.addAll(source.periodicCashFlows.cashFlows)
+                    // Per-broker holdings survive aggregation so the UI can cap
+                    // a sell at what the chosen broker actually holds.
+                    source.held.forEach { (broker, qty) ->
+                        target.held.merge(broker, qty, BigDecimal::add)
+                    }
                     mergeDates(target, source)
                 }
             }

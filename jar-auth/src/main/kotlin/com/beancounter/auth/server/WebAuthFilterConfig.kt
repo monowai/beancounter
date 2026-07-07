@@ -81,11 +81,14 @@ class WebAuthFilterConfig {
                 auth.requestMatchers("$apiPath/swagger-ui/**").permitAll()
                 auth
                     .requestMatchers("$apiPath/**")
-                    .hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users
+                    .hasAnyAuthority(
+                        AuthConstants.SCOPE_USER,
+                        AuthConstants.SCOPE_SYSTEM,
+                        AuthConstants.SCOPE_ADMIN
+                    ) // Deny by default: only known, scoped callers
                 auth
                     .requestMatchers("$actuatorPath/**")
                     .hasAnyAuthority(AuthConstants.SCOPE_ADMIN, AuthConstants.SCOPE_SYSTEM) // Admin or System users
-//            auth.requestMatchers("$actuatorPath/**").hasRole(AuthConstants.ADMIN) // Admin users
                 auth.anyRequest().permitAll() //
             }.csrf { csrf ->
                 csrf.disable()

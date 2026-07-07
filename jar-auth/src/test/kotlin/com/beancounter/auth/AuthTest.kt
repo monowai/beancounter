@@ -94,6 +94,7 @@ class AuthTest {
     companion object {
         private const val HELLO = "/api/hello"
         const val WHAT = "/api/what"
+        private const val PLAIN = "/api/plain"
     }
 
     @Test
@@ -172,6 +173,28 @@ class AuthTest {
     }
 
     @Test
+    fun `should deny access to api path when only bare beancounter scope is granted`() {
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(PLAIN)
+                    .with(jwt().authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_BC)))
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
+            .andReturn()
+    }
+
+    @Test
+    fun `should allow access to api path when beancounter user scope is granted`() {
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(PLAIN)
+                    .with(jwt().authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_USER)))
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+    }
+
+    @Test
     fun swaggerUi_IsAccessibleWithoutAuthentication() {
         val result =
             mockMvc
@@ -203,5 +226,11 @@ class AuthTest {
 
         @GetMapping("/api/swagger-ui/index.html")
         fun swaggerUi(): String = SWAGGER_UI_RESPONSE
+
+        // No @PreAuthorize: exercises the filter-chain-level rule alone,
+        // proving the "$apiPath/**" gate itself denies a bare `beancounter`
+        // scope while accepting `beancounter:user`.
+        @GetMapping("/api/plain")
+        fun plain(): String = "plain"
     }
 }

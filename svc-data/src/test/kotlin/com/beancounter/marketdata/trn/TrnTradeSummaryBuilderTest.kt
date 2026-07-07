@@ -45,6 +45,17 @@ class TrnTradeSummaryBuilderTest {
         groupId: String
     ): BigDecimal = summary.groups.first { it.groupId == groupId }.quantity
 
+    private fun subQtyFor(
+        summary: com.beancounter.common.contracts.TrnTradeSummary,
+        portfolioId: String,
+        brokerId: String
+    ): BigDecimal =
+        summary.groups
+            .first { it.groupId == portfolioId }
+            .subTotals
+            .first { it.groupId == brokerId }
+            .quantity
+
     @Test
     fun `broker group applies split as a multiply not an add`() {
         val dbs = Broker(name = "DBS", owner = owner)
@@ -109,6 +120,38 @@ class TrnTradeSummaryBuilderTest {
 
         assertThat(qtyFor(summary, "p1")).isEqualByComparingTo("20")
         assertThat(qtyFor(summary, "p2")).isEqualByComparingTo("3")
+    }
+
+    @Test
+    fun `portfolio grouping nests split-adjusted broker sub-totals`() {
+        val dbs = Broker(name = "DBS", owner = owner)
+        val scb = Broker(name = "SCB", owner = owner)
+        val trns =
+            listOf(
+                trn(TrnType.BUY, "175", "2024-12-10", portfolio = p1, broker = dbs),
+                trn(TrnType.BUY, "80", "2025-12-03", portfolio = p1, broker = scb),
+                trn(TrnType.SPLIT, "2", "2026-01-01", portfolio = p1) // portfolio-wide
+            )
+
+        val summary = TrnTradeSummaryBuilder.build(trns, TrnGroupBy.PORTFOLIO)
+
+        // Portfolio total = (175 + 80) * 2 = 510.
+        assertThat(qtyFor(summary, "p1")).isEqualByComparingTo("510")
+        // Each broker sub-total carries the portfolio-wide split: 175*2, 80*2.
+        assertThat(subQtyFor(summary, "p1", dbs.id)).isEqualByComparingTo("350")
+        assertThat(subQtyFor(summary, "p1", scb.id)).isEqualByComparingTo("160")
+    }
+
+    @Test
+    fun `broker grouping carries no sub-totals`() {
+        val dbs = Broker(name = "DBS", owner = owner)
+        val summary =
+            TrnTradeSummaryBuilder.build(
+                listOf(trn(TrnType.BUY, "10", "2026-01-01", broker = dbs)),
+                TrnGroupBy.BROKER
+            )
+
+        assertThat(summary.groups.first { it.groupId == dbs.id }.subTotals).isEmpty()
     }
 
     @Test

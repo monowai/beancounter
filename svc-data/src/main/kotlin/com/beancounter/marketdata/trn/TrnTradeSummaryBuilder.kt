@@ -48,25 +48,47 @@ object TrnTradeSummaryBuilder {
 
         val groups =
             trns.groupBy(keyOf).map { (groupId, groupTrns) ->
-                val portfolioIds = groupTrns.map { it.portfolio.id }.toSet()
-                val splitEvents = portfolioIds.flatMap { splitsByPortfolio[it].orEmpty() }
-                // Fold the group's own non-split trns plus the portfolio's splits.
-                val events = groupTrns.filter { it.trnType != TrnType.SPLIT } + splitEvents
-                var quantity = BigDecimal.ZERO
-                for (trn in events.sortedWith(
-                    compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) })
-                )) {
-                    quantity =
-                        when (trn.trnType) {
-                            TrnType.BUY, TrnType.ADD -> quantity.add(trn.quantity)
-                            TrnType.SELL, TrnType.REDUCE -> quantity.subtract(trn.quantity)
-                            TrnType.SPLIT -> quantity.multiply(trn.quantity)
-                            TrnType.BALANCE -> trn.quantity
-                            else -> quantity
-                        }
-                }
-                TrnGroupTotal(groupId, quantity)
+                // When grouping by portfolio, break the group down by broker too,
+                // so the aggregated drill-down can show one asset's split across
+                // the brokers holding it. Broker grouping needs no finer level.
+                val subTotals =
+                    if (groupBy == TrnGroupBy.PORTFOLIO) {
+                        groupTrns
+                            .groupBy { it.broker?.id ?: "" }
+                            .map { (brokerId, brokerTrns) ->
+                                TrnGroupTotal(brokerId, foldQuantity(brokerTrns, splitsByPortfolio))
+                            }
+                    } else {
+                        emptyList()
+                    }
+                TrnGroupTotal(groupId, foldQuantity(groupTrns, splitsByPortfolio), subTotals)
             }
         return TrnTradeSummary(groupBy, groups)
+    }
+
+    // Fold a group's own non-split trns plus its portfolio's (portfolio-wide)
+    // splits into a single split-adjusted quantity. A SPLIT multiplies the
+    // running holding; a BALANCE resets it to an absolute snapshot.
+    private fun foldQuantity(
+        groupTrns: List<Trn>,
+        splitsByPortfolio: Map<String, List<Trn>>
+    ): BigDecimal {
+        val portfolioIds = groupTrns.map { it.portfolio.id }.toSet()
+        val splitEvents = portfolioIds.flatMap { splitsByPortfolio[it].orEmpty() }
+        val events = groupTrns.filter { it.trnType != TrnType.SPLIT } + splitEvents
+        var quantity = BigDecimal.ZERO
+        for (trn in events.sortedWith(
+            compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) })
+        )) {
+            quantity =
+                when (trn.trnType) {
+                    TrnType.BUY, TrnType.ADD -> quantity.add(trn.quantity)
+                    TrnType.SELL, TrnType.REDUCE -> quantity.subtract(trn.quantity)
+                    TrnType.SPLIT -> quantity.multiply(trn.quantity)
+                    TrnType.BALANCE -> trn.quantity
+                    else -> quantity
+                }
+        }
+        return quantity
     }
 }

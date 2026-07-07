@@ -14,10 +14,16 @@ enum class TrnGroupBy {
  * [groupId] is the broker id (empty string for "no broker") when the summary
  * groups by [TrnGroupBy.BROKER], or the portfolio id when it groups by
  * [TrnGroupBy.PORTFOLIO].
+ *
+ * [subTotals] breaks a portfolio group down by broker (empty for broker
+ * grouping and for portfolios that never carried a broker). Each sub-total is
+ * split-adjusted with the portfolio-wide split applied, so summing the
+ * sub-totals reconstructs [quantity].
  */
 data class TrnGroupTotal(
     val groupId: String,
-    val quantity: BigDecimal
+    val quantity: BigDecimal,
+    val subTotals: List<TrnGroupTotal> = emptyList()
 )
 
 /**

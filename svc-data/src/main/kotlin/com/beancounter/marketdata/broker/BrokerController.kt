@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.broker
 
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.BrokerResponse
 import com.beancounter.common.contracts.BrokerWithAccountsResponse
 import com.beancounter.common.contracts.BrokersResponse
@@ -11,6 +12,7 @@ import com.beancounter.marketdata.trn.TrnBrokerService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -23,6 +25,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/brokers")
+@PreAuthorize(
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
+)
 class BrokerController(
     private val brokerService: BrokerService,
     private val systemUserService: SystemUserService,

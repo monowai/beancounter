@@ -28,6 +28,6 @@ object AuthConstants {
      */
     fun isAdmin(jwt: Jwt): Boolean {
         val scope = jwt.getClaimAsString("scope") ?: ""
-        return scope.contains(ADMIN)
+        return scope.split(" ").contains(ADMIN)
     }
 }

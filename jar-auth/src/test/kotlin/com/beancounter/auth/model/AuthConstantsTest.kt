@@ -53,4 +53,16 @@ class AuthConstantsTest {
         val jwt = createJwt(AuthConstants.ADMIN)
         assertThat(AuthConstants.isAdmin(jwt)).isTrue()
     }
+
+    @Test
+    fun `isAdmin returns false when scope contains admin as a substring of another token`() {
+        val jwt = createJwt("beancounter profile xbeancounter:adminx")
+        assertThat(AuthConstants.isAdmin(jwt)).isFalse()
+    }
+
+    @Test
+    fun `isAdmin returns false when scope contains admin as a suffix of another token`() {
+        val jwt = createJwt("beancounter profile notbeancounter:admin")
+        assertThat(AuthConstants.isAdmin(jwt)).isFalse()
+    }
 }

@@ -64,6 +64,21 @@ data class BrokerHoldingsResponse(
 )
 
 /**
+ * A single asset's holding at one broker — the reverse view of
+ * [BrokerHoldingsResponse] used by the frontend's WeightedSellDialog to pick
+ * which broker(s) to sell an asset from.
+ */
+data class AssetBrokerHolding(
+    val brokerId: String,
+    val brokerName: String,
+    val holding: BrokerHoldingPosition
+)
+
+data class AssetBrokerHoldingsResponse(
+    val data: List<AssetBrokerHolding> = emptyList()
+)
+
+/**
  * Response for the rolling investment window summary.
  * [startDate]..[endDate] describe the trailing window the total covers.
  */

@@ -219,4 +219,87 @@ interface TrnBrokerRepository {
         brokerId: String,
         owner: SystemUser
     ): Collection<Trn>
+
+    /**
+     * Find settled trade transactions for a specific asset across every broker, for
+     * portfolios owned by the user. Reverse of [findByBrokerIdAndOwner] — groups by
+     * broker for the asset-brokers lookup (which broker(s) hold this asset).
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "join fetch t.broker " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.asset.id = ?1 " +
+            "and t.broker is not null " +
+            "and t.portfolio.owner = ?2 " +
+            "and t.status = ?3 " +
+            "and t.trnType in ('BUY', 'SELL', 'ADD', 'REDUCE') " +
+            "and t.asset.marketCode not in (" + EXCLUDED_MARKET_CODES + ") " +
+            "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
+            "order by t.broker.id, t.portfolio.code, t.tradeDate, t.createdAt"
+    )
+    fun findByAssetAndOwner(
+        assetId: String,
+        owner: SystemUser,
+        status: TrnStatus
+    ): Collection<Trn>
+
+    /**
+     * Find settled trade transactions for a specific asset with no broker assigned,
+     * for portfolios owned by the user. Reverse of [findWithNoBroker] — feeds the
+     * [TrnBrokerService.NO_BROKER] group of the asset-brokers lookup.
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.asset.id = ?1 " +
+            "and t.broker is null " +
+            "and t.portfolio.owner = ?2 " +
+            "and t.status = ?3 " +
+            "and t.trnType in ('BUY', 'SELL', 'ADD', 'REDUCE') " +
+            "and t.asset.marketCode not in (" + EXCLUDED_MARKET_CODES + ") " +
+            "and t.asset.category not in ('CASH', 'ACCOUNT', 'TRADE', 'BANK ACCOUNT') " +
+            "order by t.portfolio.code, t.tradeDate, t.createdAt"
+    )
+    fun findWithNoBrokerByAssetAndOwner(
+        assetId: String,
+        owner: SystemUser,
+        status: TrnStatus
+    ): Collection<Trn>
+
+    /**
+     * Find broker-null SPLIT corporate actions for a specific asset, for portfolios
+     * owned by the user, up to the given date. Splits carry no broker so this is
+     * merged into whichever broker/NO_BROKER group the same portfolio's trades fall
+     * under — mirrors [findBrokerSplits] but scoped by asset instead of broker.
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.asset.id = ?1 " +
+            "and t.broker is null " +
+            "and t.trnType = 'SPLIT' " +
+            "and t.portfolio.owner = ?2 " +
+            "and t.tradeDate <= ?3 " +
+            "and t.status = ?4 " +
+            "order by t.portfolio.code, t.tradeDate, t.createdAt"
+    )
+    fun findSplitsByAssetAndOwner(
+        assetId: String,
+        owner: SystemUser,
+        tradeDate: LocalDate,
+        status: TrnStatus
+    ): Collection<Trn>
 }

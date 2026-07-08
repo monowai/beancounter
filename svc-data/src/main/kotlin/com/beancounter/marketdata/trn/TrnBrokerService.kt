@@ -157,6 +157,83 @@ class TrnBrokerService(
     }
 
     /**
+     * Reverse lookup: which broker(s) hold [assetId] for the calling user, shaped
+     * for the frontend's WeightedSellDialog. Mirrors [getBrokerHoldings]'s owner
+     * scoping, SETTLED-only status, and split-adjustment handling, but groups by
+     * broker for a single asset instead of by asset for a single broker.
+     *
+     * Unlike [buildPortfolioGroups] (used by the broker reconciliation view, which
+     * intentionally keeps sold-out portfolio groups for context), zero-quantity
+     * portfolio groups are excluded here — this feeds a sell picker, so only
+     * actionable holdings are relevant.
+     */
+    fun getAssetBrokerHoldings(assetId: String): AssetBrokerHoldingsResponse {
+        val user = systemUserService.getOrThrow()
+
+        val brokerTrades = trnRepository.findByAssetAndOwner(assetId, user, TrnStatus.SETTLED)
+        val noBrokerTrades = trnRepository.findWithNoBrokerByAssetAndOwner(assetId, user, TrnStatus.SETTLED)
+        if (brokerTrades.isEmpty() && noBrokerTrades.isEmpty()) {
+            return AssetBrokerHoldingsResponse()
+        }
+        val splits = trnRepository.findSplitsByAssetAndOwner(assetId, user, DateUtils().date, TrnStatus.SETTLED)
+
+        val groups = linkedMapOf<String, MutableList<Trn>>()
+        val brokerNames = mutableMapOf<String, String>()
+        for (trn in brokerTrades) {
+            val broker = trn.broker ?: continue
+            groups.getOrPut(broker.id) { mutableListOf() }.add(trn)
+            brokerNames[broker.id] = broker.name
+        }
+        if (noBrokerTrades.isNotEmpty()) {
+            groups[NO_BROKER] = noBrokerTrades.toMutableList()
+            brokerNames[NO_BROKER] = "No Broker"
+        }
+
+        val results = mutableListOf<AssetBrokerHolding>()
+        for ((brokerId, trns) in groups) {
+            val portfolioIds = trns.map { it.portfolio.id }.toSet()
+            val relevantSplits = splits.filter { it.portfolio.id in portfolioIds }
+            val holding = buildAssetHoldingPosition(assetId, trns + relevantSplits) ?: continue
+            results.add(
+                AssetBrokerHolding(
+                    brokerId = brokerId,
+                    brokerName = brokerNames.getValue(brokerId),
+                    holding = holding
+                )
+            )
+        }
+
+        return AssetBrokerHoldingsResponse(data = results.sortedBy { it.brokerName })
+    }
+
+    /**
+     * Aggregate [transactions] (all for the same [assetId]) into a single
+     * [BrokerHoldingPosition], excluding zero-quantity portfolio groups. Returns
+     * null when the asset's net quantity across all groups is zero, or every
+     * portfolio group nets to zero.
+     */
+    private fun buildAssetHoldingPosition(
+        assetId: String,
+        transactions: Collection<Trn>
+    ): BrokerHoldingPosition? {
+        val agg = aggregateByAsset(transactions)[assetId] ?: return null
+        if (agg.quantity.compareTo(BigDecimal.ZERO) == 0) return null
+        val portfolioGroups =
+            buildPortfolioGroups(agg.portfolioMap.values)
+                .filter { it.quantity.compareTo(BigDecimal.ZERO) != 0 }
+        if (portfolioGroups.isEmpty()) return null
+        return BrokerHoldingPosition(
+            assetId = agg.assetId,
+            assetCode = agg.assetCode,
+            assetName = agg.assetName,
+            market = agg.market,
+            quantity = agg.quantity,
+            boardLot = agg.boardLot,
+            portfolioGroups = portfolioGroups
+        )
+    }
+
+    /**
      * Create weighted PROPOSED SELL transactions from the broker reconciliation
      * view — one per portfolio holding [BrokerProposalRequest.assetId] at the
      * broker, sized as `weight` * that portfolio's split-adjusted broker holding,

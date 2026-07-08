@@ -16,6 +16,8 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AccountingTypeService
+import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -51,6 +53,12 @@ class TrnBrokerServiceProposeTest {
     private lateinit var assetService: AssetService
 
     @Autowired
+    private lateinit var assetRepository: AssetRepository
+
+    @Autowired
+    private lateinit var accountingTypeService: AccountingTypeService
+
+    @Autowired
     private lateinit var trnRepository: TrnRepository
 
     @Autowired
@@ -74,6 +82,20 @@ class TrnBrokerServiceProposeTest {
         assetService
             .handle(AssetRequest(AssetInput(NASDAQ.code, code), code))
             .data[code]!!
+
+    private fun assetWithLot(
+        code: String,
+        boardLot: Int
+    ): com.beancounter.common.model.Asset {
+        val asset = asset(code)
+        asset.accountingType =
+            accountingTypeService.getOrCreate(
+                category = "LOT$boardLot",
+                currency = USD,
+                boardLot = boardLot
+            )
+        return assetRepository.save(asset)
+    }
 
     private fun buy(
         portfolio: Portfolio,
@@ -233,6 +255,205 @@ class TrnBrokerServiceProposeTest {
         assertThat(trns).hasSize(1)
         // 10 -> *2 (split) = 20 holding; weight 0.5 -> 10
         assertThat(trns.first().quantity).isEqualByComparingTo("10")
+    }
+
+    @Test
+    fun `should round weighted quantity to whole shares by default`() {
+        val user = login("propose-whole-shares@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-LOT1", owner = user))
+        val p1 = portfolio("PWL1-P1")
+        val p2 = portfolio("PWL1-P2")
+        val asset = asset("PWLA1")
+        buy(p1, broker, asset, "69")
+        buy(p2, broker, asset, "18")
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.5"),
+                    price = BigDecimal("687.08")
+                )
+            )
+
+        val byPortfolio = response.data.trns.associateBy { it.portfolioId }
+        assertThat(byPortfolio).hasSize(2)
+        // 34.5 raw -> whole share HALF_UP -> 35; 9 stays 9
+        assertThat(byPortfolio[p1.id]!!.quantity).isEqualByComparingTo("35")
+        assertThat(byPortfolio[p2.id]!!.quantity).isEqualByComparingTo("9")
+        assertThat(
+            trnBrokerService
+                .getBrokerHoldings(broker.id)
+                .holdings
+                .first()
+                .boardLot
+        ).isEqualTo(1)
+    }
+
+    @Test
+    fun `should round to board lot multiples when accounting type defines a lot`() {
+        val user = login("propose-board-lot@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-LOT100", owner = user))
+        val p1 = portfolio("PWL2-P1")
+        val p2 = portfolio("PWL2-P2")
+        val asset = assetWithLot("PWLA2", 100)
+        buy(p1, broker, asset, "1000")
+        buy(p2, broker, asset, "130")
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.5"),
+                    price = BigDecimal("2.00")
+                )
+            )
+
+        val byPortfolio = response.data.trns.associateBy { it.portfolioId }
+        assertThat(byPortfolio).hasSize(2)
+        assertThat(byPortfolio[p1.id]!!.quantity).isEqualByComparingTo("500")
+        // 65 raw -> nearest 100-lot -> 100 (still within the 130 held)
+        assertThat(byPortfolio[p2.id]!!.quantity).isEqualByComparingTo("100")
+        assertThat(
+            trnBrokerService
+                .getBrokerHoldings(broker.id)
+                .holdings
+                .first()
+                .boardLot
+        ).isEqualTo(100)
+    }
+
+    @Test
+    fun `should skip portfolio when rounded quantity is below one board lot`() {
+        val user = login("propose-below-lot@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-LOT-SKIP", owner = user))
+        val p1 = portfolio("PWL3-P1")
+        val asset = assetWithLot("PWLA3", 100)
+        buy(p1, broker, asset, "40")
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.5"),
+                    price = BigDecimal("2.00")
+                )
+            )
+
+        // 20 raw -> rounds to zero lots -> nothing proposed
+        assertThat(response.data.trns).isEmpty()
+    }
+
+    @Test
+    fun `should not round above held quantity`() {
+        val user = login("propose-cap-held@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-LOT-CAP", owner = user))
+        val p1 = portfolio("PWL4-P1")
+        val asset = assetWithLot("PWLA4", 10)
+        buy(p1, broker, asset, "9")
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("1"),
+                    price = BigDecimal("2.00")
+                )
+            )
+
+        // 9 raw -> nearest lot 10 would oversell -> capped to floor (0 lots) -> skipped
+        assertThat(response.data.trns).isEmpty()
+    }
+
+    @Test
+    fun `should keep fractional quantity when accounting type board lot is zero`() {
+        val user = login("propose-fractional@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-LOT0", owner = user))
+        val p1 = portfolio("PWL5-P1")
+        val asset = assetWithLot("PWLA5", 0)
+        buy(p1, broker, asset, "69")
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.5"),
+                    price = BigDecimal("687.08")
+                )
+            )
+
+        assertThat(response.data.trns).hasSize(1)
+        assertThat(
+            response.data.trns
+                .first()
+                .quantity
+        ).isEqualByComparingTo("34.5")
+    }
+
+    @Test
+    fun `should reject when a proposed sell already exists for the asset at the broker`() {
+        val user = login("propose-duplicate@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-DUP", owner = user))
+        val p1 = portfolio("PWD-P1")
+        val asset = asset("PWDA1")
+        buy(p1, broker, asset, "100")
+
+        val first =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.5"),
+                    price = BigDecimal("2.00")
+                )
+            )
+        assertThat(first.data.trns).hasSize(1)
+
+        assertThatThrownBy {
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.25"),
+                    price = BigDecimal("2.00")
+                )
+            )
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("proposed sell already exists")
+    }
+
+    @Test
+    fun `should allow proposing when prior proposal was settled`() {
+        val user = login("propose-after-settle@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-SETTLED", owner = user))
+        val p1 = portfolio("PWAS-P1")
+        val asset = asset("PWSA1")
+        buy(p1, broker, asset, "100")
+        // A SETTLED sell at this broker must not block a new proposal
+        sell(p1, broker, asset, "20")
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.5"),
+                    price = BigDecimal("2.00")
+                )
+            )
+
+        assertThat(response.data.trns).hasSize(1)
+        // holding after settled sell: 80; weight 0.5 -> 40
+        assertThat(
+            response.data.trns
+                .first()
+                .quantity
+        ).isEqualByComparingTo("40")
     }
 
     @Test

@@ -129,6 +129,7 @@ class TrnBrokerService(
         val assetCode: String,
         val assetName: String?,
         val market: String,
+        val boardLot: Int,
         var quantity: BigDecimal = BigDecimal.ZERO,
         val portfolioMap: MutableMap<String, PortfolioTrns> = mutableMapOf()
     )
@@ -158,7 +159,8 @@ class TrnBrokerService(
     /**
      * Create weighted PROPOSED SELL transactions from the broker reconciliation
      * view — one per portfolio holding [BrokerProposalRequest.assetId] at the
-     * broker, sized as `weight` * that portfolio's split-adjusted broker holding.
+     * broker, sized as `weight` * that portfolio's split-adjusted broker holding,
+     * rounded to the asset's board lot (see [roundToLot]).
      * No cash auto-settle fires: proposals are PROPOSED, not SETTLED.
      */
     fun proposeWeighted(
@@ -177,6 +179,17 @@ class TrnBrokerService(
         if (brokerId == NO_BROKER) {
             throw BusinessException("A broker is required to propose transactions")
         }
+        val user = systemUserService.getOrThrow()
+        if (trnRepository.existsByBrokerAndAssetAndTypeAndStatus(
+                brokerId,
+                request.assetId,
+                TrnType.SELL,
+                TrnStatus.PROPOSED,
+                user
+            )
+        ) {
+            throw BusinessException("A proposed sell already exists for this asset at this broker")
+        }
 
         val holdings = getBrokerHoldings(brokerId)
         val position =
@@ -194,7 +207,12 @@ class TrnBrokerService(
         val created = mutableListOf<Trn>()
         for (group in position.portfolioGroups) {
             if (group.quantity.compareTo(BigDecimal.ZERO) <= 0) continue
-            val quantity = group.quantity.multiply(request.weight).setScale(6, RoundingMode.HALF_UP)
+            val quantity =
+                roundToLot(
+                    group.quantity.multiply(request.weight),
+                    position.boardLot,
+                    group.quantity
+                )
             if (quantity.compareTo(BigDecimal.ZERO) == 0) continue
             val tradeAmount = quantity.multiply(request.price).setScale(2, RoundingMode.HALF_UP)
             val trnInput =
@@ -215,6 +233,27 @@ class TrnBrokerService(
             created.addAll(result.trns)
         }
         return TrnResponse(created)
+    }
+
+    /**
+     * Round [raw] to the asset's board lot. Lot 0 = fractional allowed (6dp,
+     * HALF_UP). Otherwise the nearest whole lot multiple, capped at [held]
+     * rounded DOWN to a full lot so a proposal never oversells — a fractional
+     * holding (e.g. DRIP residue) therefore floors to fewer units than
+     * weight * held, and a holding below one lot yields zero (skipped).
+     */
+    private fun roundToLot(
+        raw: BigDecimal,
+        boardLot: Int,
+        held: BigDecimal
+    ): BigDecimal {
+        if (boardLot < 1) return raw.setScale(6, RoundingMode.HALF_UP)
+        val lot = boardLot.toBigDecimal()
+        val rounded = raw.divide(lot, 0, RoundingMode.HALF_UP).multiply(lot)
+        if (rounded > held) {
+            return held.divide(lot, 0, RoundingMode.DOWN).multiply(lot)
+        }
+        return rounded
     }
 
     private fun resolveBrokerTransactions(
@@ -266,7 +305,8 @@ class TrnBrokerService(
                         assetId = asset.id,
                         assetCode = asset.code,
                         assetName = asset.name,
-                        market = asset.marketCode
+                        market = asset.marketCode,
+                        boardLot = asset.accountingType?.boardLot ?: 1
                     )
                 }
 
@@ -315,6 +355,7 @@ class TrnBrokerService(
                     assetName = agg.assetName,
                     market = agg.market,
                     quantity = agg.quantity,
+                    boardLot = agg.boardLot,
                     portfolioGroups = buildPortfolioGroups(agg.portfolioMap.values)
                 )
             }

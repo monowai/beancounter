@@ -51,6 +51,9 @@ data class BrokerHoldingPosition(
     val assetName: String?,
     val market: String,
     val quantity: BigDecimal,
+    // Trade-size granularity from the asset's accounting type: quantities trade
+    // in whole multiples of this lot; 0 means fractional quantities are allowed.
+    val boardLot: Int = 1,
     val portfolioGroups: List<BrokerPortfolioGroup>
 )
 

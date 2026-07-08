@@ -156,4 +156,36 @@ class TrnBrokerController(
             description = "Weighted SELL proposal request"
         ) @RequestBody request: BrokerProposalRequest
     ): TrnResponse = trnBrokerService.proposeWeighted(brokerId, request)
+
+    @GetMapping(
+        value = ["/asset/{assetId}/brokers"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get brokers holding a given asset for the calling user",
+        description = """
+            Reverse lookup of getBrokerHoldings: finds which broker(s) hold the given
+            asset, with per-broker split-adjusted quantities and portfolio groups.
+
+            Use this to:
+            * Populate the WeightedSellDialog's broker picker for an asset
+            * Show where an asset is actually held before staging a weighted sell
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description =
+                    "Asset broker holdings retrieved successfully (empty data " +
+                        "list when the asset is unknown or not currently held)"
+            )
+        ]
+    )
+    fun getAssetBrokerHoldings(
+        @Parameter(
+            description = "Asset identifier",
+            example = "asset-123"
+        ) @PathVariable("assetId") assetId: String
+    ): AssetBrokerHoldingsResponse = trnBrokerService.getAssetBrokerHoldings(assetId)
 }

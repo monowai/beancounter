@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.common.model.TrnType
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -8,6 +9,19 @@ import java.time.LocalDate
  */
 data class SettleTransactionsRequest(
     val trnIds: List<String>
+)
+
+/**
+ * Request to create weighted PROPOSED SELL transactions from the broker
+ * reconciliation view — one per portfolio holding [assetId] at the broker,
+ * sized as [weight] * that portfolio's split-adjusted broker holding.
+ */
+data class BrokerProposalRequest(
+    val assetId: String,
+    val trnType: TrnType = TrnType.SELL,
+    val weight: BigDecimal,
+    val price: BigDecimal,
+    val tradeDate: LocalDate? = null
 )
 
 /**

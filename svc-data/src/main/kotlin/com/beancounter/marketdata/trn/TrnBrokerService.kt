@@ -1,6 +1,10 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
@@ -8,11 +12,13 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.broker.BrokerService
+import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
  * Service for broker-related transaction operations including holdings aggregation and transfers.
@@ -24,7 +30,9 @@ class TrnBrokerService(
     private val brokerService: BrokerService,
     private val systemUserService: SystemUserService,
     private val assetFinder: AssetFinder,
-    private val trnMigrator: TrnMigrator
+    private val trnMigrator: TrnMigrator,
+    private val trnService: TrnService,
+    private val portfolioService: PortfolioService
 ) {
     private val log = LoggerFactory.getLogger(TrnBrokerService::class.java)
 
@@ -145,6 +153,68 @@ class TrnBrokerService(
             brokerName = brokerName,
             holdings = holdings
         )
+    }
+
+    /**
+     * Create weighted PROPOSED SELL transactions from the broker reconciliation
+     * view — one per portfolio holding [BrokerProposalRequest.assetId] at the
+     * broker, sized as `weight` * that portfolio's split-adjusted broker holding.
+     * No cash auto-settle fires: proposals are PROPOSED, not SETTLED.
+     */
+    fun proposeWeighted(
+        brokerId: String,
+        request: BrokerProposalRequest
+    ): TrnResponse {
+        if (request.trnType != TrnType.SELL) {
+            throw BusinessException("Only SELL proposals are supported")
+        }
+        if (request.weight <= BigDecimal.ZERO || request.weight > BigDecimal.ONE) {
+            throw BusinessException("Weight must be greater than 0 and less than or equal to 1")
+        }
+        if (request.price <= BigDecimal.ZERO) {
+            throw BusinessException("Price must be greater than 0")
+        }
+        if (brokerId == NO_BROKER) {
+            throw BusinessException("A broker is required to propose transactions")
+        }
+
+        val holdings = getBrokerHoldings(brokerId)
+        val position =
+            holdings.holdings.firstOrNull { it.assetId == request.assetId }
+                ?: throw NotFoundException("Asset not held at broker: ${request.assetId}")
+
+        // Resolve trade currency up front (same fallback CSV import uses via
+        // BcRowAdapter.getTradeCurrency) so FxTransactions.setRates compares
+        // like-for-like currencies instead of tripping over the TrnInput
+        // default empty tradeCurrency, which reads as an unknown "" currency.
+        val asset = assetFinder.find(request.assetId)
+        val tradeCurrencyCode = asset.accountingType?.currency?.code ?: asset.market.currency.code
+
+        val tradeDate = request.tradeDate ?: DateUtils().date
+        val created = mutableListOf<Trn>()
+        for (group in position.portfolioGroups) {
+            if (group.quantity.compareTo(BigDecimal.ZERO) <= 0) continue
+            val quantity = group.quantity.multiply(request.weight).setScale(6, RoundingMode.HALF_UP)
+            if (quantity.compareTo(BigDecimal.ZERO) == 0) continue
+            val tradeAmount = quantity.multiply(request.price).setScale(2, RoundingMode.HALF_UP)
+            val trnInput =
+                TrnInput(
+                    assetId = request.assetId,
+                    trnType = TrnType.SELL,
+                    quantity = quantity,
+                    tradeCurrency = tradeCurrencyCode,
+                    price = request.price,
+                    tradeAmount = tradeAmount,
+                    cashAmount = tradeAmount,
+                    status = TrnStatus.PROPOSED,
+                    brokerId = brokerId,
+                    tradeDate = tradeDate
+                )
+            val portfolio = portfolioService.find(group.portfolioId)
+            val result = trnService.saveWithResult(portfolio, TrnRequest(portfolio.id, listOf(trnInput)))
+            created.addAll(result.trns)
+        }
+        return TrnResponse(created)
     }
 
     private fun resolveBrokerTransactions(

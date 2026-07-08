@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
+import com.beancounter.common.model.TrnType
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.NoRepositoryBean
 import java.time.LocalDate
@@ -164,6 +165,27 @@ interface TrnBrokerRepository {
         tradeDate: LocalDate,
         status: TrnStatus
     ): Collection<Trn>
+
+    /**
+     * True when the owner already has a transaction of the given type/status
+     * for this asset at this broker (any portfolio). Used to block duplicate
+     * weighted sell proposals from the reconciliation view.
+     */
+    @Query(
+        "select count(t) > 0 from Trn t " +
+            "where t.broker.id = ?1 " +
+            "and t.asset.id = ?2 " +
+            "and t.trnType = ?3 " +
+            "and t.status = ?4 " +
+            "and t.portfolio.owner = ?5"
+    )
+    fun existsByBrokerAndAssetAndTypeAndStatus(
+        brokerId: String,
+        assetId: String,
+        trnType: TrnType,
+        status: TrnStatus,
+        owner: SystemUser
+    ): Boolean
 
     /**
      * Count transactions for a specific broker owned by the user.

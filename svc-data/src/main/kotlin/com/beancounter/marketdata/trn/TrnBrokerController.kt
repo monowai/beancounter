@@ -13,6 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -112,4 +114,46 @@ class TrnBrokerController(
                 dateUtils.getFormattedDate(asAt ?: dateUtils.today())
             )
         )
+
+    @PostMapping(
+        value = ["/broker/{brokerId}/propose"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Propose weighted SELL transactions from broker holdings",
+        description = """
+            Creates PROPOSED SELL transactions for every portfolio holding the given asset
+            at the broker, sized as `weight` * that portfolio's split-adjusted broker holding.
+
+            Use this to:
+            * Kick off a broker-wide partial (or full) liquidation from the reconciliation view
+            * Stage proposals for review/settle without directly mutating live positions
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Proposed transactions created successfully"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid proposal request"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Broker or asset not found"
+            )
+        ]
+    )
+    fun proposeWeighted(
+        @Parameter(
+            description = "Broker identifier",
+            example = "broker-123"
+        ) @PathVariable("brokerId") brokerId: String,
+        @Parameter(
+            description = "Weighted SELL proposal request"
+        ) @RequestBody request: BrokerProposalRequest
+    ): TrnResponse = trnBrokerService.proposeWeighted(brokerId, request)
 }

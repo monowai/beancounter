@@ -46,6 +46,15 @@ data class PrivateAssetConfigRequest(
     // CPF-specific settings
     val cpfLifePlan: String? = null,
     val cpfPayoutStartAge: Int? = null,
+    // US 401k/IRA + UK ISA specific settings.
+    // taxTreatment is validated (not typed as an enum) so an invalid value
+    // surfaces as a clear BusinessException rather than a generic Jackson
+    // deserialization 400. Valid values: TRADITIONAL | ROTH | TAX_FREE.
+    val taxTreatment: String? = null,
+    val employeeDeferralPercent: BigDecimal? = null,
+    val employerMatchPercent: BigDecimal? = null,
+    val employerMatchCapPercent: BigDecimal? = null,
+    val withdrawalTaxRate: BigDecimal? = null,
     val subAccounts: List<SubAccountRequest>? = null
 )
 

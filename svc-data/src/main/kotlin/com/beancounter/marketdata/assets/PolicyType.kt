@@ -6,5 +6,8 @@ package com.beancounter.marketdata.assets
  */
 enum class PolicyType {
     CPF,
-    GENERIC
+    GENERIC,
+    US_401K,
+    US_IRA,
+    UK_ISA
 }

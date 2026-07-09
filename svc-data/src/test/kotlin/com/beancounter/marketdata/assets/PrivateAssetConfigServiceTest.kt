@@ -921,4 +921,126 @@ class PrivateAssetConfigServiceTest {
                 .code
         ).isEqualTo("FUND-A")
     }
+
+    // ============ US 401k/IRA + UK ISA Tests ============
+
+    @Test
+    fun `saveConfig persists US_401K config with taxTreatment TRADITIONAL and employer match fields`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                policyType = PolicyType.US_401K,
+                taxTreatment = "TRADITIONAL",
+                employeeDeferralPercent = BigDecimal("0.0600"),
+                employerMatchPercent = BigDecimal("0.5000"),
+                employerMatchCapPercent = BigDecimal("0.0600"),
+                withdrawalTaxRate = BigDecimal("0.2200")
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.policyType).isEqualTo(PolicyType.US_401K)
+        assertThat(response.data.taxTreatment).isEqualTo(TaxTreatment.TRADITIONAL)
+        assertThat(response.data.employeeDeferralPercent).isEqualByComparingTo(BigDecimal("0.0600"))
+        assertThat(response.data.employerMatchPercent).isEqualByComparingTo(BigDecimal("0.5000"))
+        assertThat(response.data.employerMatchCapPercent).isEqualByComparingTo(BigDecimal("0.0600"))
+        assertThat(response.data.withdrawalTaxRate).isEqualByComparingTo(BigDecimal("0.2200"))
+
+        // Read back: GET reflects what was just saved.
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(response.data))
+        val readBack = configService.getConfig(assetId)
+
+        assertThat(readBack).isNotNull
+        assertThat(readBack!!.data.taxTreatment).isEqualTo(TaxTreatment.TRADITIONAL)
+        assertThat(readBack.data.employeeDeferralPercent).isEqualByComparingTo(BigDecimal("0.0600"))
+    }
+
+    @Test
+    fun `saveConfig persists UK_ISA config with taxTreatment TAX_FREE`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                policyType = PolicyType.UK_ISA,
+                taxTreatment = "TAX_FREE"
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.policyType).isEqualTo(PolicyType.UK_ISA)
+        assertThat(response.data.taxTreatment).isEqualTo(TaxTreatment.TAX_FREE)
+    }
+
+    @Test
+    fun `saveConfig rejects invalid taxTreatment`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                policyType = PolicyType.US_IRA,
+                taxTreatment = "BOGUS"
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+
+        assertThatThrownBy {
+            configService.saveConfig(assetId, request)
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("Invalid taxTreatment")
+    }
+
+    @Test
+    fun `saveConfig allows tax-treatment and match fields on GENERIC policy type (permissive MVP)`() {
+        val asset = createTestAsset()
+        val request =
+            PrivateAssetConfigRequest(
+                policyType = PolicyType.GENERIC,
+                taxTreatment = "ROTH",
+                employeeDeferralPercent = BigDecimal("0.10")
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.taxTreatment).isEqualTo(TaxTreatment.ROTH)
+        assertThat(response.data.employeeDeferralPercent).isEqualByComparingTo(BigDecimal("0.10"))
+    }
+
+    @Test
+    fun `saveConfig preserves existing taxTreatment and match fields when request omits them`() {
+        val asset = createTestAsset()
+        val existing =
+            PrivateAssetConfig(
+                assetId = assetId,
+                policyType = PolicyType.US_401K,
+                taxTreatment = TaxTreatment.TRADITIONAL,
+                employeeDeferralPercent = BigDecimal("0.0600"),
+                employerMatchPercent = BigDecimal("0.5000")
+            )
+        val request = PrivateAssetConfigRequest(payoutAge = 65)
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(existing))
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.taxTreatment).isEqualTo(TaxTreatment.TRADITIONAL)
+        assertThat(response.data.employeeDeferralPercent).isEqualByComparingTo(BigDecimal("0.0600"))
+        assertThat(response.data.employerMatchPercent).isEqualByComparingTo(BigDecimal("0.5000"))
+    }
 }

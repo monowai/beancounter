@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
  *
  * The per-trn core ([settle] / [unsettle]) owns the transition itself: FX
  * resolution, the status flip + persist, and the compensating cash transfer
- * (emit on settle, cascade-delete on unsettle). The batch entry points own the
+ * (reconcile on settle, revert legs to PROPOSED on unsettle). The batch entry points own the
  * surrounding preconditions (future-date guard, auth/view checks, status checks)
  * and cache invalidation.
  */
@@ -88,8 +88,8 @@ class TrnSettlementService(
     }
 
     /**
-     * Toggle a trn from SETTLED to PROPOSED, cascade-deleting its auto-emitted
-     * cash legs (see [unsettle]). `siblings` reports the removed leg ids for the
+     * Toggle a trn from SETTLED to PROPOSED, reverting its auto-emitted cash legs
+     * to PROPOSED (see [unsettle]). `siblings` reports the affected leg ids for the
      * UI to refresh.
      *
      * Idempotency: calling unsettle on a trn that isn't SETTLED throws — there's
@@ -181,15 +181,17 @@ class TrnSettlementService(
     }
 
     /**
-     * Unsettle one trn: cascade-delete the auto-emitted cash legs, flip
-     * SETTLED→PROPOSED, persist. Returns the removed sibling ids. The cash legs
-     * are re-emitted if the trn settles again.
+     * Unsettle one trn: revert the auto-emitted cash legs to PROPOSED so status
+     * moves in sync with the parent, flip the parent SETTLED→PROPOSED, persist.
+     * Returns the affected sibling ids. The legs stay linked (not deleted) and
+     * re-settle to SETTLED when the parent settles again.
      */
     fun unsettle(trn: Trn): List<String> {
         val siblings = cashAutoSettleService.findSiblings(trn)
         if (siblings.isNotEmpty()) {
-            trnRepository.deleteAll(siblings)
-            log.info("Unsettle of {} removed {} auto-settled cash leg(s)", trn.id, siblings.size)
+            siblings.forEach { it.status = TrnStatus.PROPOSED }
+            trnRepository.saveAll(siblings)
+            log.info("Unsettle of {} reverted {} auto-settled cash leg(s) to PROPOSED", trn.id, siblings.size)
         }
         trn.status = TrnStatus.PROPOSED
         trnRepository.save(trn)

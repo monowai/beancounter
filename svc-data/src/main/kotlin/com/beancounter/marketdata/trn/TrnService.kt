@@ -8,7 +8,6 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
-import com.beancounter.common.model.TrnStatus
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -79,11 +78,11 @@ class TrnService(
         // types (DEPOSIT/WITHDRAWAL etc.) — no recursion risk.
         val warnings = mutableListOf<String>()
         for (trn in results.toList()) {
-            // Cash auto-settle fires on SETTLEMENT, not creation. A PROPOSED trade
-            // carries no compensating cash transfer until it settles (see
-            // TrnSettlementService.settleTransactions); a trade saved already-SETTLED
-            // still emits here.
-            if (trn.status != TrnStatus.SETTLED) continue
+            // Cash auto-settle emits a compensating pair whose status mirrors the
+            // parent — a PROPOSED trade carries PROPOSED legs (no settled cash
+            // impact), a SETTLED trade carries SETTLED legs. Settling later
+            // reconciles them to SETTLED. emitCompensatingTransfer no-ops for
+            // non-trigger types (DEPOSIT/WITHDRAWAL etc.), so no recursion.
             val res = cashAutoSettleService.emitCompensatingTransfer(trn)
             warnings.addAll(res.warnings)
         }
@@ -171,13 +170,9 @@ class TrnService(
         trnRepository.save(trn)
         // Re-sync the compensating cash transfer to the edited values — reconcile
         // deletes any stale pair and re-posts so the legs track the new
-        // amount/date/currency. Only settled trades carry a transfer.
-        val warnings =
-            if (trn.status == TrnStatus.SETTLED) {
-                cashAutoSettleService.emitCompensatingTransfer(trn).warnings
-            } else {
-                emptyList()
-            }
+        // amount/date/currency AND the new status. Editing a SETTLED trade down to
+        // PROPOSED must revert its legs to PROPOSED too (not orphan them settled).
+        val warnings = cashAutoSettleService.emitCompensatingTransfer(trn).warnings
         cacheInvalidationProducer.sendTransactionEvent(portfolio.id, trn.tradeDate)
         return TrnResponse(arrayListOf(trn), warnings)
     }

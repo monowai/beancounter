@@ -390,6 +390,33 @@ interface TrnRepository :
     ): List<Trn>
 
     /**
+     * PROPOSED trigger-type trades that carry no auto-settle (BC-AUTO) cash legs.
+     * Feeds the one-off backfill that emits the compensating pair for trades
+     * created / unsettled before leg status mirrored the parent. Trades without a
+     * funding link or with a zero cash amount are pruned downstream by
+     * [com.beancounter.marketdata.cash.CashAutoSettleService] (it no-ops), so this
+     * only needs to exclude trades that already have legs.
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.status = com.beancounter.common.model.TrnStatus.PROPOSED " +
+            "and t.trnType in (:types) " +
+            "and not exists (" +
+            "select 1 from Trn l " +
+            "where l.callerRef.provider = 'BC-AUTO' " +
+            "and l.callerRef.batch = t.callerRef.callerId" +
+            ")"
+    )
+    fun findProposedMissingAutoSettleLegs(
+        @Param("types") types: Collection<TrnType>
+    ): List<Trn>
+
+    /**
      * Earliest SETTLED tradeDate for this asset across every portfolio that has ever held it.
      * Anchors price backfill: if portfolio A imported trades since 2020 and portfolio B since 2010,
      * backfill must reach 2010 for the wealth-performance "ALL" chart to be drawable.

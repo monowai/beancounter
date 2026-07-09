@@ -94,16 +94,22 @@ class TrnSettlementServiceTest {
     }
 
     @Test
-    fun `unsettle deletes the cash legs, flips to PROPOSED and reports removed ids`() {
+    fun `unsettle reverts the cash legs to PROPOSED, flips parent and reports ids`() {
         val trn = proposed("t3").apply { status = TrnStatus.SETTLED }
-        val legs = listOf(proposed("w"), proposed("d"))
+        val legs =
+            listOf(
+                proposed("w").apply { status = TrnStatus.SETTLED },
+                proposed("d").apply { status = TrnStatus.SETTLED }
+            )
         whenever(cashAutoSettleService.findSiblings(trn)).thenReturn(legs)
 
         val removed = service.unsettle(trn)
 
         assertThat(removed).containsExactly("w", "d")
         assertThat(trn.status).isEqualTo(TrnStatus.PROPOSED)
-        verify(trnRepository).deleteAll(legs)
+        // Legs move in sync — reverted to PROPOSED and persisted, not deleted.
+        assertThat(legs.map { it.status }).containsOnly(TrnStatus.PROPOSED)
+        verify(trnRepository).saveAll(legs)
         verify(trnRepository).save(trn)
     }
 
@@ -116,7 +122,7 @@ class TrnSettlementServiceTest {
 
         assertThat(removed).isEmpty()
         assertThat(trn.status).isEqualTo(TrnStatus.PROPOSED)
-        verify(trnRepository, never()).deleteAll(any<List<Trn>>())
+        verify(trnRepository, never()).saveAll(any<List<Trn>>())
         verify(trnRepository).save(trn)
     }
 }

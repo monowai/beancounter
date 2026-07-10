@@ -13,15 +13,18 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.msftInput
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
+import com.beancounter.marketdata.cash.CashAutoSettleService.Companion.AUTO_PROVIDER
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils
@@ -71,6 +74,12 @@ class ProposedTransactionsTest {
 
     @Autowired
     private lateinit var trnService: TrnService
+
+    @Autowired
+    private lateinit var assetService: AssetService
+
+    @Autowired
+    private lateinit var trnRepository: TrnRepository
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
@@ -154,6 +163,142 @@ class ProposedTransactionsTest {
             )
         assertThat(response.data.trns).isNotEmpty
         assertThat(response.data.trns.filter { it.status == TrnStatus.PROPOSED }).hasSizeGreaterThanOrEqualTo(2)
+    }
+
+    @Test
+    fun `proposed view and count exclude auto-settle cash legs`() {
+        // A PROPOSED trade in a funded portfolio now emits PROPOSED BC-AUTO cash
+        // legs. They are derivative of the parent (settle in sync), so must NOT
+        // appear as independent items in the proposed/unsettled review.
+        val msft = bcMvcHelper.asset(AssetRequest(msftInput))
+        val usdCash =
+            assetService
+                .handle(AssetRequest(mapOf(USD.code to AssetUtils.getCash(USD.code))))
+                .data[USD.code]!!
+
+        val master =
+            bcMvcHelper.portfolio(
+                PortfolioInput("AUTOLEG-MASTER", "Master", currency = USD.code)
+            )
+        val invest =
+            bcMvcHelper.portfolio(
+                PortfolioInput(
+                    "AUTOLEG-INV",
+                    "Invest",
+                    currency = USD.code,
+                    cashPortfolioId = master.id
+                )
+            )
+
+        val buy =
+            TrnInput(
+                CallerRef(batch = "AUTOLEG", callerId = "autoleg-parent"),
+                msft.id,
+                cashAssetId = usdCash.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal.ONE,
+                tradeCurrency = USD.code,
+                cashCurrency = USD.code,
+                cashAmount = BigDecimal("-100"),
+                tradeCashRate = BigDecimal.ONE,
+                tradeDate = dateUtils.getFormattedDate("2024-03-10"),
+                price = BigDecimal("100"),
+                status = TrnStatus.PROPOSED
+            )
+        trnService.save(invest, TrnRequest(invest.id, listOf(buy)))
+
+        // Guard: the two PROPOSED BC-AUTO legs really exist in the DB.
+        val autoLegs =
+            trnRepository.findByCallerRefProviderAndCallerRefBatch(AUTO_PROVIDER, "autoleg-parent")
+        assertThat(autoLegs)
+            .hasSize(2)
+            .allSatisfy { assertThat(it.status).isEqualTo(TrnStatus.PROPOSED) }
+
+        val result =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/proposed")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        val response =
+            objectMapper.readValue(result.response.contentAsString, TrnResponse::class.java)
+
+        // Parent trade is shown; neither BC-AUTO leg is.
+        assertThat(response.data.trns)
+            .anyMatch { it.callerRef?.callerId == "autoleg-parent" && it.trnType == TrnType.BUY }
+        assertThat(response.data.trns).noneMatch { it.callerRef?.provider == AUTO_PROVIDER }
+
+        // Count matches the filtered list (no auto legs inflating it).
+        val countResult =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/proposed/count")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        val count = objectMapper.readTree(countResult.response.contentAsString).get("count").asInt()
+        assertThat(count).isEqualTo(response.data.trns.size)
+    }
+
+    @Test
+    fun `settled transactions review excludes auto-settle cash legs`() {
+        // The settled review must also show the trade, not its auto-settle plumbing.
+        val msft = bcMvcHelper.asset(AssetRequest(msftInput))
+        val usdCash =
+            assetService
+                .handle(AssetRequest(mapOf(USD.code to AssetUtils.getCash(USD.code))))
+                .data[USD.code]!!
+        val master =
+            bcMvcHelper.portfolio(PortfolioInput("SETLEG-MASTER", "Master", currency = USD.code))
+        val invest =
+            bcMvcHelper.portfolio(
+                PortfolioInput(
+                    "SETLEG-INV",
+                    "Invest",
+                    currency = USD.code,
+                    cashPortfolioId = master.id
+                )
+            )
+
+        val buy =
+            TrnInput(
+                CallerRef(batch = "SETLEG", callerId = "setleg-parent"),
+                msft.id,
+                cashAssetId = usdCash.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal.ONE,
+                tradeCurrency = USD.code,
+                cashCurrency = USD.code,
+                cashAmount = BigDecimal("-100"),
+                tradeCashRate = BigDecimal.ONE,
+                tradeDate = dateUtils.getFormattedDate("2024-03-10"),
+                price = BigDecimal("100"),
+                status = TrnStatus.SETTLED
+            )
+        trnService.save(invest, TrnRequest(invest.id, listOf(buy)))
+
+        val autoLegs =
+            trnRepository.findByCallerRefProviderAndCallerRefBatch(AUTO_PROVIDER, "setleg-parent")
+        assertThat(autoLegs)
+            .hasSize(2)
+            .allSatisfy { assertThat(it.status).isEqualTo(TrnStatus.SETTLED) }
+
+        val result =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/settled")
+                        .param("from", "2024-03-10")
+                        .param("to", "2024-03-10")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        val response =
+            objectMapper.readValue(result.response.contentAsString, TrnResponse::class.java)
+
+        assertThat(response.data.trns)
+            .anyMatch { it.callerRef?.callerId == "setleg-parent" && it.trnType == TrnType.BUY }
+        assertThat(response.data.trns).noneMatch { it.callerRef?.provider == AUTO_PROVIDER }
     }
 
     @Test

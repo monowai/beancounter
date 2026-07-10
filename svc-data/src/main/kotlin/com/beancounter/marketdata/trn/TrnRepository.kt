@@ -4,6 +4,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.cash.CashAutoSettleService.Companion.AUTO_PROVIDER
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
@@ -217,6 +218,10 @@ interface TrnRepository :
      * those whose tradeDate is on or before [asAt]. Used for the cross-portfolio proposed-review
      * view — `asAt` defaults to today at the controller, so not-yet-due (future-dated) proposed
      * transactions stay hidden until their date arrives.
+     *
+     * Auto-settle cash legs (provider BC-AUTO) are excluded: they are derivative
+     * of their parent trade and settle in sync with it, so they are not
+     * independently actionable in the proposed/unsettled review.
      */
     @Query(
         "select t from Trn t " +
@@ -228,6 +233,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate <= ?3 " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "' " +
             "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByStatusAndPortfolioOwner(
@@ -244,7 +250,8 @@ interface TrnRepository :
         "select count(t) from Trn t " +
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
-            "and t.tradeDate <= ?3"
+            "and t.tradeDate <= ?3 " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "'"
     )
     fun countByStatusAndPortfolioOwner(
         status: TrnStatus,
@@ -262,6 +269,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.id in ?2 " +
             "and t.tradeDate <= ?3 " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "' " +
             "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByStatusAndPortfolioIdIn(
@@ -274,7 +282,8 @@ interface TrnRepository :
         "select count(t) from Trn t " +
             "where t.status = ?1 " +
             "and t.portfolio.id in ?2 " +
-            "and t.tradeDate <= ?3"
+            "and t.tradeDate <= ?3 " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "'"
     )
     fun countByStatusAndPortfolioIdIn(
         status: TrnStatus,
@@ -286,6 +295,9 @@ interface TrnRepository :
      * Find all transactions with a specific status whose tradeDate falls within the
      * inclusive [from]..[to] window, for portfolios owned by the given user. Used by
      * the cross-portfolio Transactions review page, which filters by a date range.
+     *
+     * Auto-settle cash legs (provider BC-AUTO) are excluded — they are derivative
+     * of their parent trade, so the review shows the trade, not its plumbing.
      */
     @Query(
         "select t from Trn t " +
@@ -298,6 +310,7 @@ interface TrnRepository :
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate >= ?3 " +
             "and t.tradeDate <= ?4 " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "' " +
             "order by t.portfolio.code, t.asset.code, t.createdAt"
     )
     fun findByStatusAndPortfolioOwnerAndTradeDateBetween(
@@ -408,7 +421,7 @@ interface TrnRepository :
             "and t.trnType in (:types) " +
             "and not exists (" +
             "select 1 from Trn l " +
-            "where l.callerRef.provider = 'BC-AUTO' " +
+            "where l.callerRef.provider = '" + AUTO_PROVIDER + "' " +
             "and l.callerRef.batch = t.callerRef.callerId" +
             ")"
     )

@@ -39,6 +39,13 @@ class Position(
 
     var subAccounts: MutableMap<String, java.math.BigDecimal> = mutableMapOf()
 
+    // Signed net quantity of PROPOSED cash legs (DEPOSIT +, WITHDRAWAL −) in this
+    // cash asset's own currency. Accumulation-time scalar; MarketValue mints the
+    // per-bucket money figure (MoneyValues.earmarked) from it using the same FX
+    // rate as marketValue. @JsonIgnore — only the derived money is serialized.
+    @JsonIgnore
+    var earmarkedQuantity: java.math.BigDecimal = java.math.BigDecimal.ZERO
+
     /**
      * Per-portfolio contribution for aggregated views.
      * Empty for single-portfolio positions; populated only by the aggregated

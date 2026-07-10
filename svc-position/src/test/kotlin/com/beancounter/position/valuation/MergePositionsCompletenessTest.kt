@@ -25,7 +25,8 @@ class MergePositionsCompletenessTest {
             "periodicCashFlows", // addAll
             "held", // per-broker quantities, summed by broker name
             "subAccounts", // per-sub-account balances, summed by code
-            "dateValues" // mergeDates (earliest firstTransaction/opened)
+            "dateValues", // mergeDates (earliest firstTransaction/opened)
+            "earmarkedQuantity" // signed net PROPOSED cash-leg qty, summed in mergeQuantities
         )
 
     /** Properties intentionally not merged. */

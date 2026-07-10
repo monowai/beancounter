@@ -808,6 +808,19 @@ class TrnController(
     ): TrnResponse = TrnResponse(trnFinder.getCashLadder(portfolioId, cashAssetId))
 
     @GetMapping(
+        value = ["/portfolio/{portfolioId}/proposed-cash"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(summary = "Proposed cash legs (DEPOSIT/WITHDRAWAL) for a portfolio as at a date")
+    fun findProposedCash(
+        @PathVariable portfolioId: String,
+        @RequestParam(required = false) asAt: String? = null
+    ): TrnResponse =
+        TrnResponse(
+            trnFinder.findProposedCash(portfolioId, dateUtils.getFormattedDate(asAt ?: dateUtils.today()))
+        )
+
+    @GetMapping(
         value = ["/portfolio/{portfolioId}/model/{modelId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )

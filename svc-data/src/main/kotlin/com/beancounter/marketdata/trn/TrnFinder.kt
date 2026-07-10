@@ -179,6 +179,21 @@ class TrnFinder(
     }
 
     /**
+     * PROPOSED DEPOSIT / WITHDRAWAL legs for a portfolio as at a date. Resolves
+     * the portfolio for authorisation, then post-processes the legs so the
+     * consumer (svc-position earmark) sees the same shape as other finders.
+     */
+    fun findProposedCash(
+        portfolioId: String,
+        asAt: LocalDate
+    ): Collection<Trn> {
+        val portfolio = portfolioService.find(portfolioId)
+        return trnPostProcessor.postProcess(
+            trnRepository.findProposedCashLegs(portfolio.id, asAt).toList()
+        )
+    }
+
+    /**
      * Find all transactions for a portfolio that belong to a specific rebalance model.
      */
     fun findByPortfolioAndModel(

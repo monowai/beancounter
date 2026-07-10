@@ -294,6 +294,9 @@ interface TrnRepository :
      * Find all transactions with a specific status whose tradeDate falls within the
      * inclusive [from]..[to] window, for portfolios owned by the given user. Used by
      * the cross-portfolio Transactions review page, which filters by a date range.
+     *
+     * Auto-settle cash legs (provider BC-AUTO) are excluded — they are derivative
+     * of their parent trade, so the review shows the trade, not its plumbing.
      */
     @Query(
         "select t from Trn t " +
@@ -306,6 +309,7 @@ interface TrnRepository :
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate >= ?3 " +
             "and t.tradeDate <= ?4 " +
+            "and t.callerRef.provider <> 'BC-AUTO' " +
             "order by t.portfolio.code, t.asset.code, t.createdAt"
     )
     fun findByStatusAndPortfolioOwnerAndTradeDateBetween(

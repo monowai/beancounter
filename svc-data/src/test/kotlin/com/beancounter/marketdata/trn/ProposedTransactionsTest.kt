@@ -241,6 +241,66 @@ class ProposedTransactionsTest {
     }
 
     @Test
+    fun `settled transactions review excludes auto-settle cash legs`() {
+        // The settled review must also show the trade, not its auto-settle plumbing.
+        val msft = bcMvcHelper.asset(AssetRequest(msftInput))
+        val usdCash =
+            assetService
+                .handle(AssetRequest(mapOf(USD.code to AssetUtils.getCash(USD.code))))
+                .data[USD.code]!!
+        val master =
+            bcMvcHelper.portfolio(PortfolioInput("SETLEG-MASTER", "Master", currency = USD.code))
+        val invest =
+            bcMvcHelper.portfolio(
+                PortfolioInput(
+                    "SETLEG-INV",
+                    "Invest",
+                    currency = USD.code,
+                    cashPortfolioId = master.id
+                )
+            )
+
+        val buy =
+            TrnInput(
+                CallerRef(batch = "SETLEG", callerId = "setleg-parent"),
+                msft.id,
+                cashAssetId = usdCash.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal.ONE,
+                tradeCurrency = USD.code,
+                cashCurrency = USD.code,
+                cashAmount = BigDecimal("-100"),
+                tradeCashRate = BigDecimal.ONE,
+                tradeDate = dateUtils.getFormattedDate("2024-03-10"),
+                price = BigDecimal("100"),
+                status = TrnStatus.SETTLED
+            )
+        trnService.save(invest, TrnRequest(invest.id, listOf(buy)))
+
+        val autoLegs =
+            trnRepository.findByCallerRefProviderAndCallerRefBatch("BC-AUTO", "setleg-parent")
+        assertThat(autoLegs)
+            .hasSize(2)
+            .allSatisfy { assertThat(it.status).isEqualTo(TrnStatus.SETTLED) }
+
+        val result =
+            mockMvc
+                .perform(
+                    get("$TRNS_ROOT/settled")
+                        .param("from", "2024-03-10")
+                        .param("to", "2024-03-10")
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        val response =
+            objectMapper.readValue(result.response.contentAsString, TrnResponse::class.java)
+
+        assertThat(response.data.trns)
+            .anyMatch { it.callerRef?.callerId == "setleg-parent" && it.trnType == TrnType.BUY }
+        assertThat(response.data.trns).noneMatch { it.callerRef?.provider == "BC-AUTO" }
+    }
+
+    @Test
     fun `should return proposed transaction count across all portfolios`() {
         // Given: A portfolio with proposed transactions
         val msft = bcMvcHelper.asset(AssetRequest(msftInput))

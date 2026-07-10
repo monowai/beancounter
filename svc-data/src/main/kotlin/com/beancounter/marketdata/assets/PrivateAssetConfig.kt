@@ -101,6 +101,23 @@ data class PrivateAssetConfig(
     val cpfLifePlan: String? = null,
     @Column(name = "cpf_payout_start_age")
     val cpfPayoutStartAge: Int? = null,
+    // US 401k/IRA + UK ISA specific settings (relevant when policyType is
+    // US_401K, US_IRA or UK_ISA, but kept permissive for other types — MVP).
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tax_treatment", length = 20)
+    val taxTreatment: TaxTreatment? = null,
+    // % of gross salary deferred into the account (e.g. 0.0600 = 6%)
+    @Column(name = "employee_deferral_percent", precision = 5, scale = 4)
+    val employeeDeferralPercent: BigDecimal? = null,
+    // Employer match as a % of salary (e.g. 0.5000 = 50c per $1 deferred)
+    @Column(name = "employer_match_percent", precision = 5, scale = 4)
+    val employerMatchPercent: BigDecimal? = null,
+    // Salary % cap on the employer match (e.g. 0.0600 = match capped at 6% of salary)
+    @Column(name = "employer_match_cap_percent", precision = 5, scale = 4)
+    val employerMatchCapPercent: BigDecimal? = null,
+    // Effective flat tax rate applied to TRADITIONAL withdrawals at projection time
+    @Column(name = "withdrawal_tax_rate", precision = 5, scale = 4)
+    val withdrawalTaxRate: BigDecimal? = null,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,

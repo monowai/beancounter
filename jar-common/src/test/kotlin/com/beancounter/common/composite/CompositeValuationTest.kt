@@ -83,6 +83,46 @@ class CompositeValuationTest {
     }
 
     @Test
+    fun `US_401K rolls up sub-account balances`() {
+        val result =
+            valuation.value(
+                policyType = "US_401K",
+                subAccounts =
+                    listOf(
+                        SubAccountBalance(code = "TRADITIONAL", balance = BigDecimal("120000"), liquid = true),
+                        SubAccountBalance(code = "ROTH", balance = BigDecimal("30000"), liquid = true)
+                    )
+            )
+
+        assertThat(result).isNotNull
+        assertThat(result!!.total).isEqualByComparingTo(BigDecimal("150000"))
+        assertThat(result.liquid).isEqualByComparingTo(BigDecimal("150000"))
+        assertThat(result.byCode).containsOnly(
+            entry("TRADITIONAL", BigDecimal("120000")),
+            entry("ROTH", BigDecimal("30000"))
+        )
+    }
+
+    @Test
+    fun `US_IRA and UK_ISA are supported policy types`() {
+        val ira =
+            valuation.value(
+                policyType = "US_IRA",
+                subAccounts = listOf(SubAccountBalance(code = "IRA", balance = BigDecimal("55000")))
+            )
+        val isa =
+            valuation.value(
+                policyType = "UK_ISA",
+                subAccounts = listOf(SubAccountBalance(code = "ISA", balance = BigDecimal("20000")))
+            )
+
+        assertThat(ira).isNotNull
+        assertThat(ira!!.total).isEqualByComparingTo(BigDecimal("55000"))
+        assertThat(isa).isNotNull
+        assertThat(isa!!.total).isEqualByComparingTo(BigDecimal("20000"))
+    }
+
+    @Test
     fun `CPF with empty sub-accounts is zero`() {
         val result = valuation.value(policyType = "CPF", subAccounts = emptyList())
 

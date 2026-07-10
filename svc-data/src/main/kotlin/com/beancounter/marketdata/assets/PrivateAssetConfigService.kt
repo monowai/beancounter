@@ -101,6 +101,7 @@ class PrivateAssetConfigService(
         verifyAssetOwnership(assetId)
         logSaveRequest(assetId, request)
         validateSubAccountCodes(request.subAccounts)
+        validateTaxTreatment(request)
 
         val existing = configRepository.findById(assetId).orElse(null)
         val config =
@@ -178,6 +179,7 @@ class PrivateAssetConfigService(
                 .mergeTransactionSettings(request)
                 .mergePensionSettings(request)
                 .mergeCpfSettings(request)
+                .mergeUsUkPolicySettings(request)
         mergeSubAccounts(updated, assetId, request.subAccounts)
         return updated
     }
@@ -226,6 +228,20 @@ class PrivateAssetConfigService(
         )
 
     /**
+     * Merge US 401k/IRA + UK ISA settings. Kept permissive (MVP): fields are
+     * accepted regardless of [PrivateAssetConfig.policyType] and are harmless
+     * (unused) on policy types that don't consume them.
+     */
+    private fun PrivateAssetConfig.mergeUsUkPolicySettings(request: PrivateAssetConfigRequest) =
+        copy(
+            taxTreatment = request.taxTreatment?.let { TaxTreatment.valueOf(it) } ?: taxTreatment,
+            employeeDeferralPercent = request.employeeDeferralPercent ?: employeeDeferralPercent,
+            employerMatchPercent = request.employerMatchPercent ?: employerMatchPercent,
+            employerMatchCapPercent = request.employerMatchCapPercent ?: employerMatchCapPercent,
+            withdrawalTaxRate = request.withdrawalTaxRate ?: withdrawalTaxRate
+        )
+
+    /**
      * Create a new config with request values and sensible defaults.
      */
     private fun createNewConfig(
@@ -260,6 +276,11 @@ class PrivateAssetConfigService(
             lockedUntilDate = request.lockedUntilDate,
             cpfLifePlan = request.cpfLifePlan,
             cpfPayoutStartAge = request.cpfPayoutStartAge,
+            taxTreatment = request.taxTreatment?.let { TaxTreatment.valueOf(it) },
+            employeeDeferralPercent = request.employeeDeferralPercent,
+            employerMatchPercent = request.employerMatchPercent,
+            employerMatchCapPercent = request.employerMatchCapPercent,
+            withdrawalTaxRate = request.withdrawalTaxRate,
             subAccounts = toSubAccountEntities(assetId, request.subAccounts),
             createdDate = LocalDate.now(),
             updatedDate = LocalDate.now()
@@ -274,6 +295,21 @@ class PrivateAssetConfigService(
         val duplicates = codes.groupBy { it }.filter { it.value.size > 1 }.keys
         if (duplicates.isNotEmpty()) {
             throw BusinessException("Duplicate sub-account codes: ${duplicates.joinToString()}")
+        }
+    }
+
+    /**
+     * Reject an unknown [PrivateAssetConfigRequest.taxTreatment] string.
+     * Permissive on which [PolicyType] it's attached to (MVP) — only the
+     * value itself is validated against [TaxTreatment].
+     */
+    private fun validateTaxTreatment(request: PrivateAssetConfigRequest) {
+        val value = request.taxTreatment ?: return
+        if (TaxTreatment.entries.none { it.name == value }) {
+            throw BusinessException(
+                "Invalid taxTreatment: $value. Must be one of: " +
+                    TaxTreatment.entries.joinToString { it.name }
+            )
         }
     }
 

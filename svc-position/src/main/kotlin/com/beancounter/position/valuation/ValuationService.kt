@@ -55,7 +55,8 @@ class ValuationService
         private val classificationClient: ClassificationClient,
         private val fxRateService: FxService,
         private val tokenService: TokenService,
-        private val dateUtils: DateUtils
+        private val dateUtils: DateUtils,
+        private val earmarkService: EarmarkService
     ) : Valuation {
         private val log = LoggerFactory.getLogger(ValuationService::class.java)
         private val averageCost = AverageCost()
@@ -116,6 +117,9 @@ class ValuationService
             ) {
                 positionResponse.data.asAt = valuationDate
             }
+            // Stamp signed earmarked cash-ccy quantity BEFORE market-value runs so
+            // MarketValue can mint MoneyValues.earmarked from it per bucket.
+            earmarkService.stamp(portfolio, positionResponse.data, valuationDate)
             return positionResponse
         }
 
@@ -179,7 +183,11 @@ class ValuationService
                     if (trns.isEmpty()) {
                         null
                     } else {
-                        portfolio to positionService.build(portfolio, PositionRequest(portfolio.id, trns)).data
+                        val built = positionService.build(portfolio, PositionRequest(portfolio.id, trns)).data
+                        // Stamp each per-portfolio Positions with ITS own portfolio's
+                        // proposed cash legs before the merge sums earmarkedQuantity.
+                        earmarkService.stamp(portfolio, built, valuationDate)
+                        portfolio to built
                     }
                 }
 
@@ -358,6 +366,7 @@ class ValuationService
             target.quantityValues.purchased = target.quantityValues.purchased.add(source.quantityValues.purchased)
             target.quantityValues.sold = target.quantityValues.sold.add(source.quantityValues.sold)
             target.quantityValues.adjustment = target.quantityValues.adjustment.add(source.quantityValues.adjustment)
+            target.earmarkedQuantity = target.earmarkedQuantity.add(source.earmarkedQuantity)
         }
 
         private fun mergeMoneyValues(

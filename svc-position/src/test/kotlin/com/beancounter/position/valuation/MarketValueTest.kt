@@ -464,6 +464,105 @@ internal class MarketValueTest {
         assertThat(position.quantityValues.getTotal()).isEqualTo(hundred)
     }
 
+    private fun cashAsset(): Asset =
+        getTestAsset(NASDAQ, "USD").apply {
+            assetCategory =
+                com.beancounter.common.model
+                    .AssetCategory(com.beancounter.common.model.AssetCategory.CASH, "Cash")
+        }
+
+    /**
+     * Build a valued cash position: [settled] shares as the settled balance and
+     * [earmarkedQty] as the signed PROPOSED cash-leg quantity. Returns the
+     * position after MarketValue has run with a non-ONE PORTFOLIO fx rate.
+     */
+    private fun valuedCashPosition(
+        settled: BigDecimal,
+        earmarkedQty: BigDecimal,
+        close: BigDecimal = BigDecimal("1.00")
+    ): Pair<Position, BigDecimal> {
+        val cash = cashAsset()
+        val positions = Positions(portfolio)
+        val position = positions.getOrCreate(cash)
+        position.quantityValues.purchased = settled
+        position.earmarkedQuantity = earmarkedQty
+
+        val marketData = MarketData(cash, close = close)
+        MarketValue(Gains()).value(positions, marketData, getRates(portfolio, cash, simpleRate))
+        return position to simpleRate
+    }
+
+    @Test
+    fun `cash earmarked is close times earmarkedQuantity per bucket`() {
+        val settled = BigDecimal("1000.00")
+        val earmarkedQty = BigDecimal("300.00")
+        val (position, rate) = valuedCashPosition(settled, earmarkedQty)
+
+        // TRADE and BASE share USD (rate ONE); PORTFOLIO is NZD at simpleRate.
+        listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { bucket ->
+            val mv = position.getMoneyValues(bucket)
+            val close = mv.priceData.close
+            // earmarked minted from the SAME per-bucket close as marketValue.
+            assertThat(mv.earmarked)
+                .describedAs("earmarked == close x earmarkedQuantity for $bucket")
+                .isEqualByComparingTo(close.multiply(earmarkedQty).setScale(2))
+            // marketValue + earmarked == close x (settled + earmarkedQty) == nominal.
+            assertThat(mv.marketValue.add(mv.earmarked))
+                .describedAs("marketValue + earmarked == nominal for $bucket")
+                .isEqualByComparingTo(close.multiply(settled.add(earmarkedQty)).setScale(2))
+        }
+        // PORTFOLIO bucket applied the non-ONE rate.
+        assertThat(position.getMoneyValues(Position.In.PORTFOLIO).earmarked)
+            .isEqualByComparingTo(BigDecimal("300.00").multiply(rate))
+    }
+
+    @Test
+    fun `cash withdrawal produces negative earmarked`() {
+        val (position, _) = valuedCashPosition(BigDecimal("1000.00"), BigDecimal("-250.00"))
+        val trade = position.getMoneyValues(Position.In.TRADE)
+        assertThat(trade.earmarked)
+            .describedAs("negative earmarkedQuantity (withdrawal) yields negative earmarked")
+            .isEqualByComparingTo(BigDecimal("-250.00"))
+    }
+
+    @Test
+    fun `zero settled balance still reports earmarked from close`() {
+        val (position, _) = valuedCashPosition(BigDecimal.ZERO, BigDecimal("300.00"))
+        val trade = position.getMoneyValues(Position.In.TRADE)
+        assertThat(trade.marketValue)
+            .describedAs("zero settled balance -> zero market value")
+            .isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(trade.earmarked)
+            .describedAs("earmarked still derived from close even with zero settled balance")
+            .isEqualByComparingTo(BigDecimal("300.00"))
+    }
+
+    @Test
+    fun `non-cash position never earmarks`() {
+        val positions = Positions(portfolio)
+        val position =
+            buyBehaviour.accumulate(
+                Trn(
+                    trnType = TrnType.BUY,
+                    asset = asset,
+                    quantity = hundred,
+                    tradeAmount = twoThousand,
+                    tradePortfolioRate = simpleRate,
+                    portfolio = portfolio
+                ),
+                positions
+            )
+        // Even if a stray earmarkedQuantity is present, the non-cash branch ignores it.
+        position.earmarkedQuantity = BigDecimal("500.00")
+        val marketData = MarketData(asset, close = BigDecimal("10.00"))
+        MarketValue(Gains()).value(positions, marketData, getRates(portfolio, asset, simpleRate))
+        listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { bucket ->
+            assertThat(position.getMoneyValues(bucket).earmarked)
+                .describedAs("non-cash earmarked stays ZERO for $bucket")
+                .isEqualByComparingTo(BigDecimal.ZERO)
+        }
+    }
+
     private fun getRates(
         portfolio: Portfolio,
         asset: Asset,

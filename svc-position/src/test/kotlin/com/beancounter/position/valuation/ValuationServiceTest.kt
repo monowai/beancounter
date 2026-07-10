@@ -81,6 +81,9 @@ class ValuationServiceTest {
     @Mock
     private lateinit var tokenService: TokenService
 
+    @Mock
+    private lateinit var earmarkService: EarmarkService
+
     @Captor
     private lateinit var portfolioCaptor: ArgumentCaptor<Portfolio>
 
@@ -113,7 +116,8 @@ class ValuationServiceTest {
                 classificationClient,
                 fxRateService,
                 tokenService,
-                dateUtils
+                dateUtils,
+                earmarkService
             )
     }
 
@@ -724,7 +728,8 @@ class ValuationServiceTest {
                 classificationClient,
                 fxRateService,
                 tokenService,
-                dateUtils
+                dateUtils,
+                earmarkService
             )
 
         val pfA = TestHelpers.createTestPortfolio("PF-A")

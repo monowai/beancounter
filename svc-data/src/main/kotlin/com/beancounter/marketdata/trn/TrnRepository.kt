@@ -351,6 +351,28 @@ interface TrnRepository :
     ): Collection<Trn>
 
     /**
+     * PROPOSED DEPOSIT / WITHDRAWAL legs for a portfolio, bounded to those due on
+     * or before [asAt]. Feeds the "earmarked cash" figure: cash reserved by
+     * unsettled cash legs that will move a cash asset once they settle.
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset join fetch t.tradeCurrency join fetch t.portfolio " +
+            "left join fetch t.cashAsset left join fetch t.cashCurrency " +
+            "where t.portfolio.id = ?1 " +
+            "and t.status = com.beancounter.common.model.TrnStatus.PROPOSED " +
+            "and t.trnType in (" +
+            "com.beancounter.common.model.TrnType.DEPOSIT, " +
+            "com.beancounter.common.model.TrnType.WITHDRAWAL) " +
+            "and t.tradeDate <= ?2 " +
+            "order by t.tradeDate asc, t.createdAt asc"
+    )
+    fun findProposedCashLegs(
+        portfolioId: String,
+        asAt: java.time.LocalDate
+    ): Collection<Trn>
+
+    /**
      * Find all transactions for a portfolio that belong to a specific rebalance model.
      * Used for model-level position tracking to show only quantities attributable to a model.
      */

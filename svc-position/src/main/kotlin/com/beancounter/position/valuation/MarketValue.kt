@@ -111,6 +111,15 @@ class MarketValue(
             moneyValues.unrealisedGain = BigDecimal.ZERO // moneyValues.marketValue.subtract(moneyValues.costBasis)
             moneyValues.totalGain = BigDecimal.ZERO
             // moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
+            // Signed earmark, priced with the SAME per-bucket close as marketValue so
+            // marketValue + earmarked = nominal in the same currency. Zero-guard: MathUtils
+            // .multiply(x, ZERO) returns x (treats a zero rate as "unset"), NOT 0.
+            moneyValues.earmarked =
+                if (position.earmarkedQuantity.signum() == 0) {
+                    BigDecimal.ZERO
+                } else {
+                    multiply(moneyValues.priceData.close, position.earmarkedQuantity) ?: BigDecimal.ZERO
+                }
         } else if (mktData.asset.assetCategory.id == "POLICY" &&
             moneyValues.costBasis.signum() == 0
         ) {

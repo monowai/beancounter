@@ -23,6 +23,12 @@ data class MoneyValues(
     var purchases: BigDecimal = BigDecimal.ZERO
     var sales: BigDecimal = BigDecimal.ZERO
     var marketValue: BigDecimal = BigDecimal.ZERO
+
+    // Cash reserved by PROPOSED (unsettled) cash legs that will move this cash
+    // asset once they settle. Signed and in the same currency/bucket as
+    // marketValue, so marketValue + earmarked = the "nominal" balance. Zero for
+    // non-cash positions.
+    var earmarked: BigDecimal = BigDecimal.ZERO
     var weight: BigDecimal = BigDecimal.ZERO
     var irr: BigDecimal = BigDecimal.ZERO
     var roi: BigDecimal = BigDecimal.ZERO

@@ -58,6 +58,23 @@ class TrnService(
             ?: throw BusinessException("Failed to query portfolio transactions")
 
     /**
+     * PROPOSED cash legs (DEPOSIT / WITHDRAWAL) for a portfolio as at a date.
+     * Feeds the svc-position "earmarked cash" figure.
+     */
+    @CircuitBreaker(name = "default")
+    fun queryProposedCash(
+        portfolioId: String,
+        asAt: String = "today"
+    ): TrnResponse =
+        restClient
+            .get()
+            .uri("/trns/portfolio/{portfolioId}/proposed-cash?asAt={asAt}", portfolioId, asAt)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(TrnResponse::class.java)
+            ?: throw BusinessException("Failed to query proposed cash legs")
+
+    /**
      * Query transactions for a specific broker as of a given date.
      * Returns all transaction types needed for position building with split adjustments.
      */

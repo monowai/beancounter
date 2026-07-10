@@ -37,9 +37,12 @@ import java.time.LocalDate
  *   - no funding portfolio resolved
  *   - master == trade.portfolio
  *
- * Re-save of an already-SETTLED trade (in-place edit): any existing sibling
- * pair is deleted and re-posted, so the legs always track the current
- * amount / date / currency (idempotent per parent — never duplicates).
+ * Leg status mirrors the parent trade: a PROPOSED trade emits PROPOSED legs
+ * (no settled cash impact), a SETTLED trade emits SETTLED legs.
+ *
+ * Re-save of a trade (in-place edit or settle): any existing sibling pair is
+ * deleted and re-posted, so the legs always track the current
+ * amount / date / currency / status (idempotent per parent — never duplicates).
  *
  * Debit case where master has never held this cash asset: the transfer is
  * still posted (central funding was opted into) and the master is allowed to
@@ -123,7 +126,10 @@ class CashAutoSettleService(
                 tradeCashRate = BigDecimal.ONE,
                 price = BigDecimal.ONE,
                 tradeDate = tradeDate,
-                status = TrnStatus.SETTLED,
+                // Legs mirror the parent trade's status so settled/proposed move
+                // in sync — a PROPOSED trade carries PROPOSED cash legs (no settled
+                // cash impact), a SETTLED trade carries SETTLED legs.
+                status = trade.status,
                 comments = "Auto-settle for ${trade.trnType} ${trade.asset.code}"
             )
         val withdrawalInput = leg(TrnType.WITHDRAWAL)

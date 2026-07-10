@@ -24,6 +24,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
+import com.beancounter.marketdata.cash.AutoSettleBackfill
 import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.trn.TrnRepository
@@ -423,6 +424,39 @@ class CashAutoSettleServiceTest {
     }
 
     @Test
+    fun `patching a SETTLED trade to PROPOSED reverts its cash pair to PROPOSED`() {
+        // KARS regression: an unsettled equity trade must not leave a settled
+        // cash impact. The patch/edit path used to reconcile legs only for SETTLED
+        // trades, orphaning SETTLED legs when the parent was edited to PROPOSED.
+        mockAuthConfig.login(testUser, systemUserService)
+        val buy = buildBuy(invest, BigDecimal("-2000"))
+        assertThat(findAutoSiblings(buy).map { it.status }).containsOnly(TrnStatus.SETTLED)
+
+        trnService.patch(
+            invest,
+            buy.id,
+            TrnInput(
+                assetId = aaplAsset.id,
+                cashAssetId = usdCashAsset.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("1"),
+                price = BigDecimal("2000"),
+                tradeAmount = BigDecimal("2000"),
+                tradeCurrency = "USD",
+                cashCurrency = "USD",
+                cashAmount = BigDecimal("-2000"),
+                tradeCashRate = BigDecimal.ONE,
+                tradeDate = LocalDate.now(),
+                status = TrnStatus.PROPOSED
+            )
+        )
+
+        val siblings = findAutoSiblings(buy)
+        assertThat(siblings).hasSize(2)
+        assertThat(siblings.map { it.status }).containsOnly(TrnStatus.PROPOSED)
+    }
+
+    @Test
     fun `cash history check accepts DIVI as proof master holds the currency`() {
         // Distinct master+invest pair so we control the cash-history seeding.
         val uniqueId = UUID.randomUUID().toString().substring(0, 8)
@@ -475,42 +509,49 @@ class CashAutoSettleServiceTest {
     }
 
     @Test
-    fun `unsettle deletes the auto-emitted cash pair and reports the removed ids`() {
+    fun `unsettle reverts the auto-emitted cash pair to PROPOSED and reports the ids`() {
         mockAuthConfig.login(testUser, systemUserService)
         val buy = buildBuy(invest, BigDecimal("-2000"))
-        assertThat(findAutoSiblings(buy)).hasSize(2)
+        assertThat(findAutoSiblings(buy).map { it.status }).containsOnly(TrnStatus.SETTLED)
 
         val response = trnSettlementService.unsettle(buy.id)
 
         assertThat(response.updated.id).isEqualTo(buy.id)
         assertThat(response.updated.status).isEqualTo(TrnStatus.PROPOSED)
-        // The two cash legs are removed server-side; the ids are reported back.
+        // Legs stay linked but move in sync — reverted to PROPOSED, not deleted.
         assertThat(response.siblings).hasSize(2)
-        assertThat(findAutoSiblings(buy)).isEmpty()
+        val siblings = findAutoSiblings(buy)
+        assertThat(siblings).hasSize(2)
+        assertThat(siblings.map { it.status }).containsOnly(TrnStatus.PROPOSED)
     }
 
     @Test
-    fun `a PROPOSED trade emits no cash transfer until it is settled`() {
+    fun `a PROPOSED trade emits a PROPOSED cash pair that moves in sync`() {
         mockAuthConfig.login(testUser, systemUserService)
         val buy = buildBuy(invest, BigDecimal("-1200"), status = TrnStatus.PROPOSED)
 
         assertThat(buy.status).isEqualTo(TrnStatus.PROPOSED)
-        assertThat(findAutoSiblings(buy)).isEmpty()
+        // Legs exist but mirror the parent: PROPOSED, so no settled cash impact.
+        val siblings = findAutoSiblings(buy)
+        assertThat(siblings).hasSize(2)
+        assertThat(siblings.map { it.status }).containsOnly(TrnStatus.PROPOSED)
     }
 
     @Test
-    fun `settling a PROPOSED trade emits the compensating cash transfer`() {
+    fun `settling a PROPOSED trade transitions its cash pair to SETTLED`() {
         mockAuthConfig.login(testUser, systemUserService)
         val buy = buildBuy(invest, BigDecimal("-1200"), status = TrnStatus.PROPOSED)
-        assertThat(findAutoSiblings(buy)).isEmpty()
+        assertThat(findAutoSiblings(buy).map { it.status }).containsOnly(TrnStatus.PROPOSED)
 
         trnSettlementService.settleTransactions(invest.id, listOf(buy.id))
 
-        assertThat(findAutoSiblings(buy)).hasSize(2)
+        val siblings = findAutoSiblings(buy)
+        assertThat(siblings).hasSize(2)
+        assertThat(siblings.map { it.status }).containsOnly(TrnStatus.SETTLED)
     }
 
     @Test
-    fun `bulk unsettle reverts each trade and deletes all their cash legs`() {
+    fun `bulk unsettle reverts each trade and its cash legs to PROPOSED`() {
         mockAuthConfig.login(testUser, systemUserService)
         val b1 = buildBuy(invest, BigDecimal("-1000"))
         val b2 = buildBuy(invest, BigDecimal("-1500"))
@@ -521,8 +562,8 @@ class CashAutoSettleServiceTest {
 
         assertThat(result).hasSize(2)
         assertThat(result.map { it.status }).containsOnly(TrnStatus.PROPOSED)
-        assertThat(findAutoSiblings(b1)).isEmpty()
-        assertThat(findAutoSiblings(b2)).isEmpty()
+        assertThat(findAutoSiblings(b1).map { it.status }).containsOnly(TrnStatus.PROPOSED)
+        assertThat(findAutoSiblings(b2).map { it.status }).containsOnly(TrnStatus.PROPOSED)
     }
 
     @Test
@@ -708,6 +749,60 @@ class CashAutoSettleServiceTest {
                     if (TrnType.isCash(it.trnType)) it.quantity else it.cashAmount
                 }
         assertThat(dbsIbUsdBalance).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `backfill emits PROPOSED legs for legless proposed trades and is idempotent`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val buy = buildBuy(invest, BigDecimal("-1000"), status = TrnStatus.PROPOSED)
+        // Simulate a pre-mirror trade: strip its auto legs so it has none, the
+        // state of trades created/unsettled before legs mirrored parent status.
+        trnRepository.deleteAll(findAutoSiblings(buy))
+        assertThat(findAutoSiblings(buy)).isEmpty()
+
+        val backfill = AutoSettleBackfill(trnRepository, autoSettleService)
+        backfill.run()
+
+        val legs = findAutoSiblings(buy)
+        assertThat(legs).hasSize(2)
+        assertThat(legs.map { it.status }).containsOnly(TrnStatus.PROPOSED)
+
+        // Idempotent: the trade now has legs, so a second run emits nothing new.
+        backfill.run()
+        assertThat(findAutoSiblings(buy)).hasSize(2)
+    }
+
+    @Test
+    fun `backfill skips a proposed trade with zero cash amount (no phantom legs)`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        // A proposed DIVI whose cash amount is not yet known — no transfer to post.
+        val divi =
+            trnService
+                .save(
+                    invest,
+                    TrnRequest(
+                        invest.id,
+                        listOf(
+                            TrnInput(
+                                assetId = aaplAsset.id,
+                                cashAssetId = usdCashAsset.id,
+                                trnType = TrnType.DIVI,
+                                tradeAmount = BigDecimal.ZERO,
+                                cashAmount = BigDecimal.ZERO,
+                                tradeCurrency = "USD",
+                                cashCurrency = "USD",
+                                price = BigDecimal.ONE,
+                                tradeDate = LocalDate.now(),
+                                status = TrnStatus.PROPOSED
+                            )
+                        )
+                    )
+                ).single()
+        assertThat(findAutoSiblings(divi)).isEmpty()
+
+        AutoSettleBackfill(trnRepository, autoSettleService).run()
+
+        assertThat(findAutoSiblings(divi)).isEmpty()
     }
 
     private fun buildBuy(

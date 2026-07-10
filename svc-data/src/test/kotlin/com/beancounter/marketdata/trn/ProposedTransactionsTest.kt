@@ -24,6 +24,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
+import com.beancounter.marketdata.cash.CashAutoSettleService.Companion.AUTO_PROVIDER
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils
@@ -208,7 +209,7 @@ class ProposedTransactionsTest {
 
         // Guard: the two PROPOSED BC-AUTO legs really exist in the DB.
         val autoLegs =
-            trnRepository.findByCallerRefProviderAndCallerRefBatch("BC-AUTO", "autoleg-parent")
+            trnRepository.findByCallerRefProviderAndCallerRefBatch(AUTO_PROVIDER, "autoleg-parent")
         assertThat(autoLegs)
             .hasSize(2)
             .allSatisfy { assertThat(it.status).isEqualTo(TrnStatus.PROPOSED) }
@@ -226,7 +227,7 @@ class ProposedTransactionsTest {
         // Parent trade is shown; neither BC-AUTO leg is.
         assertThat(response.data.trns)
             .anyMatch { it.callerRef?.callerId == "autoleg-parent" && it.trnType == TrnType.BUY }
-        assertThat(response.data.trns).noneMatch { it.callerRef?.provider == "BC-AUTO" }
+        assertThat(response.data.trns).noneMatch { it.callerRef?.provider == AUTO_PROVIDER }
 
         // Count matches the filtered list (no auto legs inflating it).
         val countResult =
@@ -278,7 +279,7 @@ class ProposedTransactionsTest {
         trnService.save(invest, TrnRequest(invest.id, listOf(buy)))
 
         val autoLegs =
-            trnRepository.findByCallerRefProviderAndCallerRefBatch("BC-AUTO", "setleg-parent")
+            trnRepository.findByCallerRefProviderAndCallerRefBatch(AUTO_PROVIDER, "setleg-parent")
         assertThat(autoLegs)
             .hasSize(2)
             .allSatisfy { assertThat(it.status).isEqualTo(TrnStatus.SETTLED) }
@@ -297,7 +298,7 @@ class ProposedTransactionsTest {
 
         assertThat(response.data.trns)
             .anyMatch { it.callerRef?.callerId == "setleg-parent" && it.trnType == TrnType.BUY }
-        assertThat(response.data.trns).noneMatch { it.callerRef?.provider == "BC-AUTO" }
+        assertThat(response.data.trns).noneMatch { it.callerRef?.provider == AUTO_PROVIDER }
     }
 
     @Test

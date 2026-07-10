@@ -4,6 +4,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.cash.CashAutoSettleService.Companion.AUTO_PROVIDER
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
@@ -232,7 +233,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate <= ?3 " +
-            "and t.callerRef.provider <> 'BC-AUTO' " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "' " +
             "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByStatusAndPortfolioOwner(
@@ -250,7 +251,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate <= ?3 " +
-            "and t.callerRef.provider <> 'BC-AUTO'"
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "'"
     )
     fun countByStatusAndPortfolioOwner(
         status: TrnStatus,
@@ -268,7 +269,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.id in ?2 " +
             "and t.tradeDate <= ?3 " +
-            "and t.callerRef.provider <> 'BC-AUTO' " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "' " +
             "order by t.tradeDate desc, t.createdAt desc"
     )
     fun findByStatusAndPortfolioIdIn(
@@ -282,7 +283,7 @@ interface TrnRepository :
             "where t.status = ?1 " +
             "and t.portfolio.id in ?2 " +
             "and t.tradeDate <= ?3 " +
-            "and t.callerRef.provider <> 'BC-AUTO'"
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "'"
     )
     fun countByStatusAndPortfolioIdIn(
         status: TrnStatus,
@@ -309,7 +310,7 @@ interface TrnRepository :
             "and t.portfolio.owner = ?2 " +
             "and t.tradeDate >= ?3 " +
             "and t.tradeDate <= ?4 " +
-            "and t.callerRef.provider <> 'BC-AUTO' " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "' " +
             "order by t.portfolio.code, t.asset.code, t.createdAt"
     )
     fun findByStatusAndPortfolioOwnerAndTradeDateBetween(
@@ -420,7 +421,7 @@ interface TrnRepository :
             "and t.trnType in (:types) " +
             "and not exists (" +
             "select 1 from Trn l " +
-            "where l.callerRef.provider = 'BC-AUTO' " +
+            "where l.callerRef.provider = '" + AUTO_PROVIDER + "' " +
             "and l.callerRef.batch = t.callerRef.callerId" +
             ")"
     )

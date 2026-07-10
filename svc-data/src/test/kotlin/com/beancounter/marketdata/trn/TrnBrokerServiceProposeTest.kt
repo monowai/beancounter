@@ -20,6 +20,8 @@ import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
+import com.beancounter.marketdata.broker.BrokerSettlementAccount
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -60,6 +62,9 @@ class TrnBrokerServiceProposeTest {
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
+
+    @Autowired
+    private lateinit var brokerSettlementAccountRepository: BrokerSettlementAccountRepository
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -168,6 +173,34 @@ class TrnBrokerServiceProposeTest {
         assertThat(byPortfolio[p1.id]!!.tradeAmount).isEqualByComparingTo("500.00")
         assertThat(byPortfolio[p2.id]!!.quantity).isEqualByComparingTo("30")
         assertThat(byPortfolio[p2.id]!!.tradeAmount).isEqualByComparingTo("300.00")
+    }
+
+    @Test
+    fun `should settle proposed SELL to the broker's configured settlement account`() {
+        val user = login("propose-settlement@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-SETTLE", owner = user))
+        val p1 = portfolio("PWSET-P1")
+        val asset = asset("PWSETA1")
+        buy(p1, broker, asset, "100")
+        // Broker settles USD trades to this designated account.
+        val settlementAccount = asset("PWSET-USD-CASH")
+        brokerSettlementAccountRepository.save(
+            BrokerSettlementAccount(broker = broker, currencyCode = USD.code, account = settlementAccount)
+        )
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("1"),
+                    price = BigDecimal("10.00")
+                )
+            )
+
+        val trns = response.data.trns
+        assertThat(trns).hasSize(1)
+        assertThat(trns.first().cashAssetId).isEqualTo(settlementAccount.id)
     }
 
     @Test

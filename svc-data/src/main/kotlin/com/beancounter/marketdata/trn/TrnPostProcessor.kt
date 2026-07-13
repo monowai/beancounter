@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.common.model.Trn
-import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.portfolio.PortfolioAccessControl
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -23,7 +23,7 @@ class TrnPostProcessor(
     private val trnRepository: TrnRepository,
     private val balanceContributionStamper: BalanceContributionStamper,
     private val systemUserService: SystemUserService,
-    private val portfolioService: PortfolioService
+    private val portfolioAccessControl: PortfolioAccessControl
 ) {
     private val log = LoggerFactory.getLogger(TrnPostProcessor::class.java)
 
@@ -51,7 +51,7 @@ class TrnPostProcessor(
             val systemUser = systemUserService.getOrThrow()
             val filteredTrns =
                 trns.filter {
-                    portfolioService.isViewable(systemUser, it.portfolio)
+                    portfolioAccessControl.isViewable(systemUser, it.portfolio)
                 }
             return postProcess(filteredTrns)
         } else {

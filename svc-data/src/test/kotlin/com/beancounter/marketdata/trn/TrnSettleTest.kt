@@ -75,6 +75,7 @@ class TrnSettleTest {
                 fxTransactions = fxTransactions,
                 cashAutoSettleService = cashAutoSettleService,
                 portfolioService = portfolioService,
+                portfolioAccessControl = mock(),
                 cacheInvalidationProducer = cacheInvalidationProducer,
                 dateUtils = dateUtils,
                 trnPostProcessor = trnPostProcessor

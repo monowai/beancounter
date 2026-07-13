@@ -10,6 +10,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashAutoSettleService
+import com.beancounter.marketdata.portfolio.PortfolioAccessControl
 import com.beancounter.marketdata.portfolio.PortfolioService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -31,6 +32,7 @@ class TrnService(
     private val trnRepository: TrnRepository,
     private val trnInputMapper: TrnInputMapper,
     private val portfolioService: PortfolioService,
+    private val portfolioAccessControl: PortfolioAccessControl,
     private val cacheInvalidationProducer: CacheInvalidationProducer,
     private val cashAutoSettleService: CashAutoSettleService,
     private val trnFinder: TrnFinder
@@ -120,7 +122,7 @@ class TrnService(
     fun delete(trnId: String): Collection<String> {
         val result = trnRepository.getOrThrow(trnId)
         val deleted = mutableListOf<Trn>()
-        if (portfolioService.canView(result.portfolio)) {
+        if (portfolioAccessControl.canView(result.portfolio)) {
             trnRepository.delete(result)
             deleted.add(result)
             cacheInvalidationProducer.sendTransactionEvent(result.portfolio.id, result.tradeDate)
@@ -135,7 +137,7 @@ class TrnService(
      */
     fun deleteWithSiblings(trnId: String): TrnDeleteResponse {
         val parent = trnRepository.getOrThrow(trnId)
-        if (!portfolioService.canView(parent.portfolio)) {
+        if (!portfolioAccessControl.canView(parent.portfolio)) {
             // Match unsettle / delete-existing behaviour — surface as 404
             // rather than a silent empty success.
             throw NotFoundException("Transaction not found: $trnId")

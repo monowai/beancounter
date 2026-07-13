@@ -51,7 +51,12 @@ class PrivateAssetConfigServiceTest {
                 assetRepository,
                 systemUserService,
                 trnRepository,
-                portfolioShareRepository
+                AssetAccessControl(
+                    assetRepository,
+                    systemUserService,
+                    trnRepository,
+                    portfolioShareRepository
+                )
             )
     }
 

@@ -6,8 +6,6 @@ import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.model.ShareStatus
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
@@ -23,14 +21,13 @@ import java.util.function.Consumer
  */
 @Service
 @Transactional
-@Suppress("TooManyFunctions") // PortfolioService has 12 functions, threshold is 11
 class PortfolioService(
     private val portfolioInputAdapter: PortfolioInputAdapter,
     private val portfolioRepository: PortfolioRepository,
     private val trnRepository: TrnRepository,
     private val systemUserService: SystemUserService,
     private val dateUtils: DateUtils,
-    private val portfolioShareRepository: PortfolioShareRepository
+    private val accessControl: PortfolioAccessControl
 ) {
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = systemUserService.getOrThrow()
@@ -43,25 +40,6 @@ class PortfolioService(
                 )
             ).forEach(Consumer { e: Portfolio -> results.add(e) })
         return results
-    }
-
-    fun canView(portfolio: Portfolio): Boolean {
-        val systemUser = systemUserService.getOrThrow()
-        return isViewable(
-            systemUser,
-            portfolio
-        )
-    }
-
-    fun isViewable(
-        systemUser: SystemUser,
-        portfolio: Portfolio
-    ): Boolean {
-        if (systemUser.id == AuthConstants.SYSTEM || portfolio.owner.id == systemUser.id) {
-            return true
-        }
-        val share = portfolioShareRepository.findByPortfolioAndSharedWith(portfolio, systemUser)
-        return share.isPresent && share.get().status == ShareStatus.ACTIVE
     }
 
     /**
@@ -135,7 +113,7 @@ class PortfolioService(
             found.orElseThrow {
                 NotFoundException("Portfolio not found: $id")
             }
-        if (canView(portfolio)) {
+        if (accessControl.canView(portfolio)) {
             return portfolio
         }
         throw NotFoundException("Portfolio not found: $id")
@@ -160,7 +138,7 @@ class PortfolioService(
             found.orElseThrow {
                 NotFoundException("Portfolio not found: $code")
             }
-        if (canView(portfolio)) {
+        if (accessControl.canView(portfolio)) {
             return portfolio
         }
         throw NotFoundException("Portfolio not found: $code")
@@ -216,7 +194,7 @@ class PortfolioService(
     ): PortfoliosResponse {
         val all = findWhereHeld(assetId, tradeDate).data
         val systemUser = systemUserService.getOrThrow()
-        val viewable = all.filter { isViewable(systemUser, it) }
+        val viewable = all.filter { accessControl.isViewable(systemUser, it) }
         log.trace(
             "Filtered {} -> {} viewable holders for assetId: {} on behalf of {}",
             all.size,

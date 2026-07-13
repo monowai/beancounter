@@ -9,6 +9,7 @@ import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashAutoSettleService
+import com.beancounter.marketdata.portfolio.PortfolioAccessControl
 import com.beancounter.marketdata.portfolio.PortfolioService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -34,6 +35,7 @@ class TrnSettlementService(
     private val fxTransactions: FxTransactions,
     private val cashAutoSettleService: CashAutoSettleService,
     private val portfolioService: PortfolioService,
+    private val portfolioAccessControl: PortfolioAccessControl,
     private val cacheInvalidationProducer: CacheInvalidationProducer,
     private val dateUtils: DateUtils,
     private val trnPostProcessor: TrnPostProcessor
@@ -97,7 +99,7 @@ class TrnSettlementService(
      */
     fun unsettle(trnId: String): TrnStatusUpdateResponse {
         val parent = trnRepository.getOrThrow(trnId)
-        if (!portfolioService.canView(parent.portfolio)) {
+        if (!portfolioAccessControl.canView(parent.portfolio)) {
             throw NotFoundException("Transaction not found: $trnId")
         }
         require(parent.status == TrnStatus.SETTLED) {

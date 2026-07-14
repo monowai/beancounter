@@ -32,10 +32,14 @@ import java.time.LocalDate
  *           uses this to find and prompt the user to remove the cash legs.
  *
  * Skip conditions (no transactions emitted; warnings may be returned):
- *   - non-trigger trnType
- *   - cashAsset null or cashAmount == 0
- *   - no funding portfolio resolved
- *   - master == trade.portfolio
+ *   - non-trigger trnType — silent, no warning (auto-settle is opt-in via
+ *     funding portfolio, this isn't a settlement-eligible type)
+ *   - no funding portfolio resolved, or master == trade.portfolio — silent,
+ *     no warning (auto-settle simply isn't configured for this trade)
+ *   - cashAsset null or cashAmount == 0, evaluated AFTER a funding portfolio
+ *     is confirmed — returns a warning, since the user opted into central
+ *     funding but the trade can't be settled (e.g. #1040: brokerId set but
+ *     no settlement account/currency resolved a cash asset)
  *
  * Leg status mirrors the parent trade: a PROPOSED trade emits PROPOSED legs
  * (no settled cash impact), a SETTLED trade emits SETTLED legs.
@@ -59,14 +63,33 @@ class CashAutoSettleService(
 
     fun emitCompensatingTransfer(trade: Trn): AutoSettleResult {
         if (trade.trnType !in triggerTypes) return AutoSettleResult()
-        val cashAsset = trade.cashAsset ?: return AutoSettleResult()
-        if (trade.cashAmount.signum() == 0) return AutoSettleResult()
 
         val masterId =
             trade.portfolio.cashPortfolioId
                 ?: trade.portfolio.owner.cashPortfolioId
                 ?: return AutoSettleResult()
         if (masterId == trade.portfolio.id) return AutoSettleResult()
+
+        // A funding portfolio IS configured, so from here on a skip is
+        // surfaced as a warning rather than silently swallowed — the user
+        // opted into central funding and the trade wasn't settled (#1040).
+        val cashAsset =
+            trade.cashAsset ?: return AutoSettleResult(
+                warnings =
+                    listOf(
+                        "Trade ${trade.id} (${trade.trnType} ${trade.asset.code}) has no " +
+                            "settlement account; cash auto-settle skipped"
+                    )
+            )
+        if (trade.cashAmount.signum() == 0) {
+            return AutoSettleResult(
+                warnings =
+                    listOf(
+                        "Trade ${trade.id} (${trade.trnType} ${trade.asset.code}) has " +
+                            "zero cash amount; cash auto-settle skipped"
+                    )
+            )
+        }
 
         // findOrNull (not find) — stream-consumer threads have no JWT, and
         // `find` calls `canView` which throws via `systemUserService.getOrThrow()`.

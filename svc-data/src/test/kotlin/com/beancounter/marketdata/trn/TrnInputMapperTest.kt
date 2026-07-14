@@ -7,6 +7,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.AccountingType
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.Broker
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Trn
@@ -20,9 +21,11 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.systemUser
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.broker.BrokerSettlementAccount
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketConfig
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -38,6 +41,7 @@ import java.math.BigDecimal.ONE
 import java.math.BigDecimal.TEN
 import java.math.BigDecimal.ZERO
 import java.util.Locale
+import java.util.Optional
 
 /**
  * TRN Adapter tests.
@@ -447,5 +451,99 @@ internal class TrnInputMapperTest {
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.first())
             .hasFieldOrPropertyWithValue("tradeCurrency", SGD)
+    }
+
+    @Test
+    fun `should default settlement to broker account when cash currency omitted`() {
+        // #1040: a SELL saved with brokerId but no cashCurrency/cashAssetId used to
+        // resolve cashAsset = null (CashTrnServices.getCashAsset needs BOTH brokerId
+        // AND cashCurrency for the broker settlement-account tier) — silently
+        // dropping the compensating auto-settle transfer. The mapper must default
+        // the settlement currency to the trade currency so the broker's configured
+        // per-currency account is found.
+        val broker = Broker(id = "broker-1", name = "IBKR", owner = systemUser)
+        Mockito
+            .`when`(brokerRepository.findById(broker.id))
+            .thenReturn(Optional.of(broker))
+        Mockito
+            .`when`(
+                brokerSettlementAccountRepository.findByBrokerIdAndCurrencyCode(
+                    broker.id,
+                    USD.code
+                )
+            ).thenReturn(
+                BrokerSettlementAccount(
+                    broker = broker,
+                    currencyCode = USD.code,
+                    account = usdCashBalance
+                )
+            )
+
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = asset.id, // MSFT, market currency USD
+                trnType = TrnType.SELL,
+                brokerId = broker.id,
+                quantity = TEN,
+                price = price,
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first())
+            .hasFieldOrPropertyWithValue("cashAsset.id", usdCashBalance.id)
+            .hasFieldOrPropertyWithValue("cashCurrency", USD)
+    }
+
+    @Test
+    fun `should not default cash currency for FX_BUY`() {
+        // FX_BUY's cash leg currency is the SOLD currency, not the trade (bought)
+        // currency — defaulting to trade currency here would corrupt it. When no
+        // cashCurrency/cashAssetId is supplied, FX_BUY must keep today's behaviour:
+        // no broker settlement-account tier is consulted, cashAsset stays null.
+        val broker = Broker(id = "broker-fx", name = "FX-BROKER", owner = systemUser)
+        Mockito
+            .`when`(brokerRepository.findById(broker.id))
+            .thenReturn(Optional.of(broker))
+
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = asset.id,
+                trnType = TrnType.FX_BUY,
+                brokerId = broker.id,
+                quantity = TEN,
+                price = price,
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first().cashAsset).isNull()
+        assertThat(trnResponse.first().cashCurrency).isNull()
     }
 }

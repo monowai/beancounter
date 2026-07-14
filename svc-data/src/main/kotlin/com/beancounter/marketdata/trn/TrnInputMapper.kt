@@ -53,12 +53,35 @@ class TrnInputMapper(
         )
 
         val broker = getBroker(trnInput, existing)
+        val asset = getAsset(trnInput, existing)
+
+        // A broker was supplied but no explicit settlement account/currency —
+        // default the settlement currency to the trade currency so
+        // CashTrnServices.getCashAsset can resolve the broker's per-currency
+        // settlement account. Without this, brokerId-only SELL/BUY/etc saves
+        // resolve cashAsset = null and CashAutoSettleService silently skips
+        // the compensating transfer (#1040). FX_BUY is excluded — its cash
+        // leg currency is the SOLD currency, not the trade (bought) currency,
+        // so defaulting here would corrupt it.
+        val effectiveCashCurrency =
+            if (trnInput.cashCurrency.isNullOrEmpty() &&
+                trnInput.cashAssetId.isNullOrEmpty() &&
+                broker != null &&
+                TrnType.isCashImpacted(trnInput.trnType) &&
+                !TrnType.isCash(trnInput.trnType) &&
+                trnInput.trnType != TrnType.FX_BUY
+            ) {
+                resolveTradeCurrency(asset, trnInput.tradeCurrency).code
+            } else {
+                trnInput.cashCurrency
+            }
+
         // Preserve existing cashAsset if no new one is provided (similar to broker handling)
         val cashAsset =
             cashTrnServices.getCashAsset(
                 trnInput.trnType,
                 trnInput.cashAssetId,
-                trnInput.cashCurrency,
+                effectiveCashCurrency,
                 portfolio.owner.id,
                 broker?.id
             ) ?: existing?.cashAsset
@@ -102,7 +125,6 @@ class TrnInputMapper(
                 trnInput,
                 tradeAmount
             )
-        val asset = getAsset(trnInput, existing)
         val tradeCurrency = resolveTradeCurrency(asset, trnInput.tradeCurrency)
         return Trn(
             id = existing?.id ?: keyGenUtils.id,

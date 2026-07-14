@@ -13,6 +13,8 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Broker
+import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
@@ -24,6 +26,9 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
+import com.beancounter.marketdata.broker.BrokerRepository
+import com.beancounter.marketdata.broker.BrokerSettlementAccount
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.cash.AutoSettleBackfill
 import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.fx.FxRateService
@@ -90,6 +95,12 @@ class CashAutoSettleServiceTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var brokerRepository: BrokerRepository
+
+    @Autowired
+    private lateinit var brokerSettlementAccountRepository: BrokerSettlementAccountRepository
 
     private lateinit var bcMvcHelper: BcMvcHelper
     private lateinit var testUser: SystemUser
@@ -282,6 +293,122 @@ class CashAutoSettleServiceTest {
             )
         val deposit = deposits.single()
         assertThat(findAutoSiblings(deposit)).isEmpty()
+    }
+
+    @Test
+    fun `should warn when funding portfolio configured but trade has no settlement account`() {
+        // #1040: a SELL saved with brokerId but no settlement account resolved
+        // ends up with cashAsset = null. Once a funding portfolio IS configured
+        // (invest.cashPortfolioId == master.id), that must surface as a warning
+        // rather than silently dropping the compensating transfer.
+        val trade =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = aaplAsset,
+                quantity = BigDecimal("5"),
+                portfolio = invest,
+                cashAsset = null,
+                cashAmount = BigDecimal("1100"),
+                callerRef = CallerRef(callerId = "no-settlement-1")
+            )
+
+        val result = autoSettleService.emitCompensatingTransfer(trade)
+
+        assertThat(result.transactions).isEmpty()
+        assertThat(result.warnings).hasSize(1)
+        assertThat(result.warnings.first()).contains("no settlement account")
+    }
+
+    @Test
+    fun `should warn when funding portfolio configured but cash amount is zero`() {
+        val trade =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = aaplAsset,
+                quantity = BigDecimal("5"),
+                portfolio = invest,
+                cashAsset = usdCashAsset,
+                cashAmount = BigDecimal.ZERO,
+                callerRef = CallerRef(callerId = "zero-cash-1")
+            )
+
+        val result = autoSettleService.emitCompensatingTransfer(trade)
+
+        assertThat(result.transactions).isEmpty()
+        assertThat(result.warnings).hasSize(1)
+        assertThat(result.warnings.first()).contains("zero cash amount")
+    }
+
+    @Test
+    fun `should stay silent when no funding portfolio is linked`() {
+        // master has no cashPortfolioId, and testUser (its owner) has no
+        // account-wide cashPortfolioId either — auto-settle was never opted
+        // into, so a trade with no settlement account must not generate
+        // warning noise for users who never linked a funding portfolio.
+        val trade =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = aaplAsset,
+                quantity = BigDecimal("5"),
+                portfolio = master,
+                cashAsset = null,
+                cashAmount = BigDecimal("1100"),
+                callerRef = CallerRef(callerId = "no-funding-1")
+            )
+
+        val result = autoSettleService.emitCompensatingTransfer(trade)
+
+        assertThat(result.transactions).isEmpty()
+        assertThat(result.warnings).isEmpty()
+    }
+
+    @Test
+    fun `SELL with only brokerId settles to broker's account and auto-settle posts the compensating pair`() {
+        // #1040 end-to-end: production bug was brokerId set, cashCurrency/
+        // cashAssetId omitted -> cashAsset resolved null -> auto-settle silently
+        // skipped. TrnInputMapper now defaults the settlement currency to the
+        // trade currency so the broker's configured account is found, and
+        // CashAutoSettleService posts the compensating pair for it.
+        mockAuthConfig.login(testUser, systemUserService)
+        val broker = brokerRepository.save(Broker(name = "IBKR-1040", owner = testUser))
+        brokerSettlementAccountRepository.save(
+            BrokerSettlementAccount(broker = broker, currencyCode = "USD", account = usdCashAsset)
+        )
+
+        val sells =
+            trnService.save(
+                invest,
+                TrnRequest(
+                    invest.id,
+                    listOf(
+                        TrnInput(
+                            assetId = aaplAsset.id,
+                            brokerId = broker.id,
+                            trnType = TrnType.SELL,
+                            quantity = BigDecimal("5"),
+                            price = BigDecimal("220"),
+                            tradeAmount = BigDecimal("1100"),
+                            cashAmount = BigDecimal("1100"),
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeDate = LocalDate.now(),
+                            status = TrnStatus.SETTLED
+                        )
+                    )
+                )
+            )
+
+        val sell = sells.single()
+        assertThat(sell.cashAsset?.id).isEqualTo(usdCashAsset.id)
+        assertThat(sell.cashCurrency).isEqualTo(Constants.USD)
+
+        val siblings = findAutoSiblings(sell)
+        assertThat(siblings).hasSize(2)
+        val withdrawal = siblings.single { it.trnType == TrnType.WITHDRAWAL }
+        val deposit = siblings.single { it.trnType == TrnType.DEPOSIT }
+        assertThat(withdrawal.portfolio.id).isEqualTo(invest.id)
+        assertThat(deposit.portfolio.id).isEqualTo(master.id)
+        assertThat(withdrawal.tradeAmount).isEqualByComparingTo("1100")
+        assertThat(deposit.tradeAmount).isEqualByComparingTo("1100")
     }
 
     @Test

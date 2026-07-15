@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.cash
 
 import com.beancounter.common.contracts.TrnRequest
-import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
@@ -10,6 +9,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnInputMapper
 import com.beancounter.marketdata.trn.TrnRepository
+import com.beancounter.marketdata.trn.cashLegInput
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -51,6 +51,9 @@ import java.time.LocalDate
  * Debit case where master has never held this cash asset: the transfer is
  * still posted (central funding was opted into) and the master is allowed to
  * overdraw; a warning is returned so the negative balance is surfaced.
+ *
+ * Not to be confused with [com.beancounter.marketdata.trn.AutoSettleService] —
+ * that class is the scheduled job which settles due PROPOSED DIVI/SPLIT trns.
  */
 @Service
 class CashAutoSettleService(
@@ -138,22 +141,19 @@ class CashAutoSettleService(
         if (stale.isNotEmpty()) trnRepository.deleteAll(stale)
 
         fun leg(type: TrnType) =
-            TrnInput(
-                callerRef = autoCallerRef(groupBatch),
-                assetId = cashAsset.id,
+            cashLegInput(
                 cashAssetId = cashAsset.id,
                 trnType = type,
-                tradeAmount = amount,
-                tradeCurrency = ccy,
-                cashCurrency = ccy,
-                tradeCashRate = BigDecimal.ONE,
-                price = BigDecimal.ONE,
+                amount = amount,
+                currency = ccy,
                 tradeDate = tradeDate,
                 // Legs mirror the parent trade's status so settled/proposed move
                 // in sync — a PROPOSED trade carries PROPOSED cash legs (no settled
                 // cash impact), a SETTLED trade carries SETTLED legs.
                 status = trade.status,
-                comments = "Auto-settle for ${trade.trnType} ${trade.asset.code}"
+                comments = "Auto-settle for ${trade.trnType} ${trade.asset.code}",
+                callerRef = autoCallerRef(groupBatch),
+                tradeCashRate = BigDecimal.ONE
             )
         val withdrawalInput = leg(TrnType.WITHDRAWAL)
         val depositInput = leg(TrnType.DEPOSIT)

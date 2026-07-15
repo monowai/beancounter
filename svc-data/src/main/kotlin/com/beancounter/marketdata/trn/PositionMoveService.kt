@@ -193,17 +193,18 @@ class PositionMoveService(
         tradeCurrency: String,
         comment: String
     ): TrnInput =
-        TrnInput(
-            callerRef = CallerRef(),
-            assetId = cashAssetId,
+        cashLegInput(
             cashAssetId = cashAssetId,
             trnType = trnType,
-            tradeAmount = amount,
-            tradeCurrency = tradeCurrency,
-            cashCurrency = tradeCurrency,
+            amount = amount,
+            currency = tradeCurrency,
             tradeDate = LocalDate.now(),
             status = TrnStatus.SETTLED,
-            comments = comment
+            comments = comment,
+            // Preserve historical behaviour: this call site never set price, so
+            // persisted trns got TrnInput's own default (ZERO), not the
+            // factory's ONE default used by CashAutoSettleService/CashTransferService.
+            price = BigDecimal.ZERO
         )
 
     private fun recalculateFxRates(

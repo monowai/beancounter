@@ -1,14 +1,13 @@
 package com.beancounter.marketdata.cash
 
 import com.beancounter.common.contracts.TrnRequest
-import com.beancounter.common.input.TrnInput
-import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.trn.cashLegInput
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -68,15 +67,11 @@ class CashTransferService(
         // Create WITHDRAWAL transaction (amount sent from source)
         // Set cashAssetId = fromAsset.id so the cash ladder can track this transaction
         val withdrawalInput =
-            TrnInput(
-                callerRef = CallerRef(),
-                assetId = fromAsset.id,
+            cashLegInput(
                 cashAssetId = fromAsset.id,
                 trnType = TrnType.WITHDRAWAL,
-                tradeAmount = request.sentAmount,
-                tradeCurrency = fromCurrency,
-                cashCurrency = fromCurrency,
-                price = BigDecimal.ONE,
+                amount = request.sentAmount,
+                currency = fromCurrency,
                 tradeDate = request.tradeDate,
                 status = TrnStatus.SETTLED,
                 comments = request.description ?: "Transfer to ${toAsset.code}"
@@ -95,15 +90,11 @@ class CashTransferService(
         // Create DEPOSIT transaction (amount received at destination)
         // Set cashAssetId = toAsset.id so the cash ladder can track this transaction
         val depositInput =
-            TrnInput(
-                callerRef = CallerRef(),
-                assetId = toAsset.id,
+            cashLegInput(
                 cashAssetId = toAsset.id,
                 trnType = TrnType.DEPOSIT,
-                tradeAmount = request.receivedAmount,
-                tradeCurrency = toCurrency,
-                cashCurrency = toCurrency,
-                price = BigDecimal.ONE,
+                amount = request.receivedAmount,
+                currency = toCurrency,
                 tradeDate = request.tradeDate,
                 status = TrnStatus.SETTLED,
                 comments = request.description ?: "Transfer from ${fromAsset.code}"

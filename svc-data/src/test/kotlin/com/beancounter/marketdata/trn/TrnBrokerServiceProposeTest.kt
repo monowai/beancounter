@@ -176,6 +176,58 @@ class TrnBrokerServiceProposeTest {
     }
 
     @Test
+    fun `should reject price not greater than zero`() {
+        val user = login("propose-zero-price@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-ZERO-PRICE", owner = user))
+        val p1 = portfolio("PWZP-P1")
+        val asset = asset("PWZPA1")
+        buy(p1, broker, asset, "10")
+
+        assertThatThrownBy {
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("0.5"),
+                    price = BigDecimal.ZERO
+                )
+            )
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("Price must be greater than 0")
+    }
+
+    @Test
+    fun `should default settlement currency to the trade currency via the mapper`() {
+        // Locks in the mapper-default path (#1041 effectiveCashCurrency) now that
+        // proposeWeighted no longer sets cashCurrency on the TrnInput itself —
+        // TrnInputMapper is the single authority for defaulting settlement currency.
+        val user = login("propose-mapper-default@test.com")
+        val broker = brokerRepository.save(Broker(name = "PW-BROKER-MAPPER-DEFAULT", owner = user))
+        val p1 = portfolio("PWMD-P1")
+        val asset = asset("PWMDA1")
+        buy(p1, broker, asset, "100")
+        val settlementAccount = asset("PWMD-USD-CASH")
+        brokerSettlementAccountRepository.save(
+            BrokerSettlementAccount(broker = broker, currencyCode = USD.code, account = settlementAccount)
+        )
+
+        val response =
+            trnBrokerService.proposeWeighted(
+                broker.id,
+                BrokerProposalRequest(
+                    assetId = asset.id,
+                    weight = BigDecimal("1"),
+                    price = BigDecimal("10.00")
+                )
+            )
+
+        val trns = response.data.trns
+        assertThat(trns).hasSize(1)
+        assertThat(trns.first().cashCurrencyCode).isEqualTo(USD.code)
+        assertThat(trns.first().cashAssetId).isEqualTo(settlementAccount.id)
+    }
+
+    @Test
     fun `should settle proposed SELL to the broker's configured settlement account`() {
         val user = login("propose-settlement@test.com")
         val broker = brokerRepository.save(Broker(name = "PW-BROKER-SETTLE", owner = user))

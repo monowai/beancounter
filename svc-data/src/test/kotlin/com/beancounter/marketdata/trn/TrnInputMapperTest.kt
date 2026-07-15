@@ -509,6 +509,86 @@ internal class TrnInputMapperTest {
     }
 
     @Test
+    fun `patch path preserves prior broker and cashAsset`() {
+        // Patching without brokerId/cashAssetId/cashCurrency must not clobber the
+        // trn's existing broker or cashAsset — getBroker/cashAsset fall back to
+        // `existing` when the input omits them. cashTrnServices.getCashAsset()
+        // resolves null here (unstubbed broker-settlement + generic-cash mocks),
+        // so the `?: existing?.cashAsset` fallback is what preserves it.
+        val broker = Broker(id = "broker-existing", name = "IBKR", owner = systemUser)
+        val existing =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                broker = broker,
+                cashAsset = usdCashBalance,
+                cashCurrency = USD,
+                portfolio = getPortfolio(portfolioId)
+            )
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = asset.id,
+                trnType = TrnType.SELL,
+                quantity = TEN,
+                price = price,
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trn =
+            trnInputMapper.map(
+                getPortfolio(portfolioId),
+                trnInput,
+                existing
+            )
+
+        assertThat(trn.broker).isEqualTo(broker)
+        assertThat(trn.cashAsset).isEqualTo(usdCashBalance)
+    }
+
+    @Test
+    fun `explicit cashCurrency differing from trade currency wins`() {
+        // Precedence order for cashCurrency: explicit trnInput.cashCurrency >
+        // existing.cashCurrency (patch) > the resolved cash asset's own currency.
+        Mockito.`when`(currencyService.getCode(SGD.code)).thenReturn(SGD)
+
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = asset.id, // MSFT, trade currency USD
+                trnType = TrnType.BUY,
+                cashAssetId = toKey("USD-X", "USER"), // resolves via assetFinder tier-2 UUID short-circuit
+                cashCurrency = SGD.code,
+                quantity = TEN,
+                price = price,
+                tradeAmount = BigDecimal("100"),
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first())
+            .hasFieldOrPropertyWithValue("cashCurrency", SGD)
+    }
+
+    @Test
     fun `should not default cash currency for FX_BUY`() {
         // FX_BUY's cash leg currency is the SOLD currency, not the trade (bought)
         // currency — defaulting to trade currency here would corrupt it. When no

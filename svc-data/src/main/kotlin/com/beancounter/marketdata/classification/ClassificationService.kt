@@ -255,6 +255,17 @@ class ClassificationService(
         )
 
     /**
+     * Get the EODHD classification standard.
+     */
+    fun getEodhdStandard(): ClassificationStandard =
+        getOrCreateStandard(
+            key = ClassificationStandard.EODHD,
+            name = "EODHD Sector Classification",
+            version = "1.0",
+            provider = ClassificationStandard.PROVIDER_EODHD
+        )
+
+    /**
      * Get all distinct sectors in the system.
      */
     fun getAllSectors(): List<ClassificationItem> =

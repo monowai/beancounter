@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController
 @CrossOrigin
 @Tag(name = "Classifications", description = "Asset classification and sector exposure management")
 class ClassificationController(
-    private val classificationEnricher: AlphaClassificationEnricher,
+    private val classificationEnricher: ClassificationEnricher,
     private val classificationService: ClassificationService,
     private val classificationRefreshService: ClassificationRefreshService,
     private val assetRepository: AssetRepository,

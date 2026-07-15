@@ -21,7 +21,7 @@ import java.util.Optional
 class ClassificationRefreshServiceTest {
     private lateinit var assetRepository: AssetRepository
     private lateinit var assetFinder: AssetFinder
-    private lateinit var classificationEnricher: AlphaClassificationEnricher
+    private lateinit var classificationEnricher: ClassificationEnricher
     private lateinit var service: ClassificationRefreshService
 
     private val testMarket = Market(code = "NASDAQ", name = "NASDAQ")

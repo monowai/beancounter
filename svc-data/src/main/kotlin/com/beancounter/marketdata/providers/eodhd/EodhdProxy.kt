@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.eodhd
 
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
+import com.beancounter.marketdata.providers.eodhd.model.EodhdFundamentals
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
@@ -90,6 +91,16 @@ class EodhdProxy(
             symbol,
             limit,
             from,
+            apiKey
+        )
+
+    @RateLimiter(name = "eodhd")
+    fun getFundamentals(
+        symbol: String,
+        apiKey: String
+    ): EodhdFundamentals =
+        eodhdGateway.getFundamentals(
+            symbol,
             apiKey
         )
 

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.eodhd
 
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
+import com.beancounter.marketdata.providers.eodhd.model.EodhdFundamentals
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
@@ -192,6 +193,29 @@ class EodhdGateway(
             .body<Array<EodhdSearchResult>>()
             ?.toList()
             ?: emptyList()
+
+    /**
+     * ETF/equity fundamentals, projected to the classification fields.
+     *
+     * GET /api/fundamentals/{symbol}?filter=General,ETF_Data&api_token={apiKey}&fmt=json
+     *
+     * `filter` trims the payload to the two blocks the classification enricher reads (it does not
+     * reduce the per-request API-call cost, which is fixed). Requires a plan with fundamentals
+     * access; the `demo` token serves a small whitelist (AAPL, TSLA, VTI, MCD…) for scaffolding.
+     */
+    fun getFundamentals(
+        symbol: String,
+        apiKey: String = DEMO_KEY
+    ): EodhdFundamentals =
+        restClient
+            .get()
+            .uri(
+                "/api/fundamentals/{symbol}?filter=General,ETF_Data&api_token={apiKey}&fmt=json",
+                symbol,
+                apiKey
+            ).retrieve()
+            .body<EodhdFundamentals>()
+            ?: EodhdFundamentals()
 
     companion object {
         const val DEMO_KEY = "demo"

@@ -21,5 +21,7 @@ data class ClassificationStandard(
     companion object {
         const val ALPHA = "ALPHA"
         const val PROVIDER_ALPHA = "ALPHAVANTAGE"
+        const val EODHD = "EODHD"
+        const val PROVIDER_EODHD = "EODHD"
     }
 }

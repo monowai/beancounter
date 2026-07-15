@@ -22,7 +22,7 @@ class AlphaClassificationEnricher(
     private val alphaConfig: AlphaConfig,
     private val alphaProxy: AlphaProxy,
     private val classificationService: ClassificationService
-) {
+) : ClassificationEnricher {
     private val log = LoggerFactory.getLogger(AlphaClassificationEnricher::class.java)
     private val objectMapper = alphaConfig.getObjectMapper()
 
@@ -32,7 +32,7 @@ class AlphaClassificationEnricher(
     /**
      * Check if this asset can be enriched with classification data.
      */
-    fun canEnrich(asset: Asset): Boolean {
+    override fun canEnrich(asset: Asset): Boolean {
         val category = asset.category.uppercase()
         return category in EQUITY_CATEGORIES || category in ETF_CATEGORIES
     }
@@ -40,18 +40,18 @@ class AlphaClassificationEnricher(
     /**
      * Check if this asset is an ETF.
      */
-    fun isEtf(asset: Asset): Boolean = asset.category.uppercase() in ETF_CATEGORIES
+    override fun isEtf(asset: Asset): Boolean = asset.category.uppercase() in ETF_CATEGORIES
 
     /**
      * Check if this asset is an Equity.
      */
-    fun isEquity(asset: Asset): Boolean = asset.category.uppercase() in EQUITY_CATEGORIES
+    override fun isEquity(asset: Asset): Boolean = asset.category.uppercase() in EQUITY_CATEGORIES
 
     /**
      * Enrich an asset with classification data.
      * Returns true if enrichment was successful.
      */
-    fun enrichClassification(asset: Asset): Boolean =
+    override fun enrichClassification(asset: Asset): Boolean =
         try {
             when {
                 isEquity(asset) -> enrichEquity(asset)

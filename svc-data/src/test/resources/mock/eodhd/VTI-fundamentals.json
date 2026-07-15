@@ -1,0 +1,59 @@
+{
+  "General": {
+    "Code": "VTI",
+    "Type": "ETF",
+    "Name": "Vanguard Total Stock Market Index Fund ETF Shares",
+    "CurrencyCode": "USD",
+    "Category": "Large Blend"
+  },
+  "ETF_Data": {
+    "ISIN": "US9229087690",
+    "Company_Name": "Vanguard",
+    "Sector_Weights": {
+      "Basic Materials": {
+        "Equity_%": "2.02624",
+        "Relative_to_Category": "2.1798"
+      },
+      "Consumer Cyclicals": {
+        "Equity_%": "10.01344",
+        "Relative_to_Category": "9.8147"
+      },
+      "Financial Services": {
+        "Equity_%": "11.97072",
+        "Relative_to_Category": "12.83563"
+      },
+      "Real Estate": {
+        "Equity_%": "2.42537",
+        "Relative_to_Category": "1.60848"
+      },
+      "Communication Services": {
+        "Equity_%": "10.33534",
+        "Relative_to_Category": "10.1228"
+      },
+      "Energy": {
+        "Equity_%": "3.71661",
+        "Relative_to_Category": "3.84163"
+      },
+      "Industrials": {
+        "Equity_%": "9.81211",
+        "Relative_to_Category": "10.52139"
+      },
+      "Technology": {
+        "Equity_%": "33.52294",
+        "Relative_to_Category": "31.40656"
+      },
+      "Consumer Defensive": {
+        "Equity_%": "4.64679",
+        "Relative_to_Category": "4.98622"
+      },
+      "Healthcare": {
+        "Equity_%": "9.19848",
+        "Relative_to_Category": "10.09355"
+      },
+      "Utilities": {
+        "Equity_%": "2.33196",
+        "Relative_to_Category": "2.58923"
+      }
+    }
+  }
+}

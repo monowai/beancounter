@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 class ClassificationRefreshService(
     private val assetRepository: AssetRepository,
     private val assetFinder: AssetFinder,
-    private val classificationEnricher: AlphaClassificationEnricher
+    private val classificationEnricher: ClassificationEnricher
 ) {
     private val log = LoggerFactory.getLogger(ClassificationRefreshService::class.java)
 

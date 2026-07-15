@@ -24,6 +24,7 @@ class SectorNormalizer {
                 // Consumer Discretionary
                 "CONSUMER DISCRETIONARY" to "Consumer Discretionary",
                 "CONSUMER CYCLICAL" to "Consumer Discretionary",
+                "CONSUMER CYCLICALS" to "Consumer Discretionary",
                 // Consumer Staples
                 "CONSUMER STAPLES" to "Consumer Staples",
                 "CONSUMER DEFENSIVE" to "Consumer Staples",

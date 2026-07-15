@@ -119,17 +119,6 @@ class TrnService(
         return count
     }
 
-    fun delete(trnId: String): Collection<String> {
-        val result = trnRepository.getOrThrow(trnId)
-        val deleted = mutableListOf<Trn>()
-        if (portfolioAccessControl.canView(result.portfolio)) {
-            trnRepository.delete(result)
-            deleted.add(result)
-            cacheInvalidationProducer.sendTransactionEvent(result.portfolio.id, result.tradeDate)
-        }
-        return deleted.map { it.id }
-    }
-
     /**
      * Delete one trn and surface its auto-settled siblings (without cascading).
      * The UI uses [TrnDeleteResponse.siblings] to prompt the user before

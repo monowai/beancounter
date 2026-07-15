@@ -18,6 +18,10 @@ import org.springframework.stereotype.Service
  * Honours the per-owner `autoSettle` preference: rows whose portfolio owner has
  * disabled auto-settlement are left in PROPOSED so the user can confirm them
  * manually.
+ *
+ * Not to be confused with [com.beancounter.marketdata.cash.CashAutoSettleService] —
+ * that class emits the compensating WITHDRAWAL+DEPOSIT pair against a linked
+ * funding portfolio.
  */
 @Service
 @Transactional

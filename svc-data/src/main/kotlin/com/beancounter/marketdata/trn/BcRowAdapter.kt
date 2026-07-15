@@ -83,6 +83,12 @@ class BcRowAdapter(
                 // the bought currency and silently drop the sell-side leg.
                 asset
             } else {
+                // Resolve at import time (rather than leaving cashAssetId null for the
+                // mapper to fill in later) so the self-settle branches above can compare
+                // against this resolved trade asset. TrnInputMapper.map subsequently calls
+                // CashTrnServices.getCashAsset again with this resolved UUID — an
+                // intentional double-pass, cheap because the UUID tier short-circuits
+                // before the broker/generic-currency tiers run a second time.
                 cashTrnServices.getCashAsset(trnType, cashAccount, cashCurrency, ownerId, getBrokerId(row))
             }
         return cashAsset?.id

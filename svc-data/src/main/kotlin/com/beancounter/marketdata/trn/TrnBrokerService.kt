@@ -301,10 +301,6 @@ class TrnBrokerService(
                     price = request.price,
                     tradeAmount = tradeAmount,
                     cashAmount = tradeAmount,
-                    // Settle in the trade currency so the mapper can resolve the
-                    // broker's per-currency settlement account (getCashAsset needs
-                    // brokerId AND cashCurrency); without it the settlement is null.
-                    cashCurrency = tradeCurrencyCode,
                     status = TrnStatus.PROPOSED,
                     brokerId = brokerId,
                     tradeDate = tradeDate

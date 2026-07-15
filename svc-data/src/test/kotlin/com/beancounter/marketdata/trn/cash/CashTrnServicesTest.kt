@@ -108,6 +108,42 @@ internal class CashTrnServicesTest {
     }
 
     @Test
+    fun `should return null when brokerId present but cashCurrency is null`() {
+        // brokerId alone can't resolve the broker-settlement tier (needs cashCurrency
+        // too), and no cashCurrency means the generic-balance fallback has nothing
+        // to look up either — both tiers are skipped, result is null.
+        assertThat(
+            cashTrnServices.getCashAsset(
+                trnType = TrnType.BUY,
+                cashAccountCode = null,
+                cashCurrency = null,
+                ownerId = systemUser.id,
+                brokerId = broker.id
+            )
+        ).isNull()
+        Mockito.verifyNoInteractions(brokerSettlementAccountRepository)
+        Mockito.verifyNoInteractions(assetService)
+    }
+
+    @Test
+    fun `should short-circuit on a known asset UUID without touching broker or generic tiers`() {
+        Mockito
+            .`when`(assetFinder.find(ibrkUsd.id))
+            .thenReturn(ibrkUsd)
+        assertThat(
+            cashTrnServices.getCashAsset(
+                trnType = TrnType.BUY,
+                cashAccountCode = ibrkUsd.id,
+                cashCurrency = USD.code,
+                ownerId = systemUser.id,
+                brokerId = broker.id
+            )
+        ).isEqualTo(ibrkUsd)
+        Mockito.verifyNoInteractions(brokerSettlementAccountRepository)
+        Mockito.verifyNoInteractions(assetService)
+    }
+
+    @Test
     fun is_CashBalanceFromTradeCurrency() {
         // Trade Currency, but no defined Cash Asset, resolves to a generic Balance asset.
         val trnInput =

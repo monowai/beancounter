@@ -397,6 +397,9 @@ class PriceService(
             window
                 .groupBy { it.asset.id }
                 .mapValues { (_, series) -> adjustSeriesForSplits(series) }
+                .toMutableMap()
+
+        topUpMissingPrivateAssets(assets, byAsset, maxDate)
 
         val result = mutableMapOf<String, List<MarketData>>()
         for (date in dates) {
@@ -409,6 +412,31 @@ class PriceService(
             result[date.toString()] = mdList
         }
         return result
+    }
+
+    /**
+     * PRIVATE-market assets (user-entered prices for real estate, art, etc.) can go
+     * months between updates — the FALLBACK_LOOKBACK_DAYS window that suits listed
+     * markets is far too narrow to reach their single price row. Top up any PRIVATE
+     * asset that came back empty from the windowed load with its single latest
+     * on-or-before-maxDate row, so the existing [nearestOnOrBefore] resolution below
+     * picks it up for every requested date instead of silently omitting the asset
+     * (which pushed svc-position back onto its purchase-cost fallback, see #1045).
+     * One extra query per missing PRIVATE asset — they are rare (typically 1-2 per
+     * user) so this doesn't reintroduce the N+1 pattern the window query replaced.
+     */
+    private fun topUpMissingPrivateAssets(
+        assets: Collection<Asset>,
+        byAsset: MutableMap<String, List<MarketData>>,
+        maxDate: LocalDate
+    ) {
+        for (asset in assets) {
+            if (asset.market.code != PrivateMarketDataProvider.ID) continue
+            if (!byAsset[asset.id].isNullOrEmpty()) continue
+            marketDataRepo
+                .findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(asset, maxDate)
+                .ifPresent { latest -> byAsset[asset.id] = listOf(latest) }
+        }
     }
 
     /**

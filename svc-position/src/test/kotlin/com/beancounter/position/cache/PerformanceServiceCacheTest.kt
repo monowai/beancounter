@@ -441,6 +441,70 @@ class PerformanceServiceCacheTest {
     }
 
     @Test
+    fun `cache hit requires newest snapshot to reach end date`() {
+        // Regression: RabbitMQ invalidation (CacheInvalidationConsumer.invalidateFrom)
+        // deletes snapshots >= a trn's tradeDate. The surviving older rows still
+        // satisfy the old HIT conditions (earliest <= startDate, something
+        // in-window), so the series stayed frozen before that date forever and
+        // never re-extended to today. HIT must also require the newest cached
+        // snapshot to reach endDate.
+        whenever(cacheService.isAvailable()).thenReturn(true)
+
+        val now = LocalDate.now()
+        val cachedSnapshots =
+            listOf(
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(12),
+                    marketValue = BigDecimal("10000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                ),
+                CachedSnapshot(
+                    valuationDate = now.minusMonths(2),
+                    marketValue = BigDecimal("11000"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("10000"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            )
+        whenever(cacheService.findAllSnapshots(eq(portfolio.id)))
+            .thenReturn(cachedSnapshots)
+
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = testAsset,
+                tradeDate = now.minusMonths(1),
+                quantity = BigDecimal("100"),
+                tradeAmount = BigDecimal("15000")
+            )
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn)))
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                positions.getOrCreate(testAsset)
+            }
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(emptyMap()))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+
+        // 12-month window: earliest cached snapshot covers startDate, and one
+        // snapshot falls in-window — the OLD HIT conditions are satisfied. But
+        // the newest cached snapshot (-2M) is well short of endDate (today),
+        // so this must MISS and recompute rather than serve a stale series.
+        performanceService.calculate(portfolio, 12)
+
+        verify(trnService).query(any<Portfolio>(), any())
+        verify(priceService).getBulkPrices(any(), any())
+        verify(cacheService).storeSnapshots(eq(portfolio.id), any())
+    }
+
+    @Test
     fun `cache with insufficient history triggers recomputation`() {
         whenever(cacheService.isAvailable()).thenReturn(true)
 

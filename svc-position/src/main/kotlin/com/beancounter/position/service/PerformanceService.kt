@@ -79,8 +79,23 @@ class PerformanceService(
         val cached = tryLoadFromCache(portfolio.id)
         if (cached != null) {
             val earliestCached = cached.minOf { it.valuationDate }
+            val latestCached = cached.maxOf { it.valuationDate }
             val hasInWindow = cached.any { !it.valuationDate.isBefore(startDate) }
-            if (!earliestCached.isAfter(startDate) && hasInWindow) {
+            // `earliestCached <= startDate` alone is not enough: if every cached
+            // snapshot predates startDate, `anchorToStartDate` returns just the
+            // synthesised anchor (single-point series), producing 0% TWR and 0
+            // gain. Require at least one snapshot in `[startDate, endDate]`.
+            val hasSufficientHistory = !earliestCached.isAfter(startDate) && hasInWindow
+            // RabbitMQ invalidation (CacheInvalidationConsumer.invalidateFrom) deletes
+            // snapshots >= a trn's tradeDate; the surviving older rows can still
+            // satisfy `hasSufficientHistory`, leaving the series frozen before that
+            // date forever. Require the newest cached snapshot to reach endDate too.
+            // determineValuationDates always includes endDate in its result (it's
+            // unconditionally unioned in before the range filter), and buildSnapshots
+            // emits one snapshot per valuation date, so a fresh cache always has a
+            // snapshot dated endDate.
+            val isFresh = !latestCached.isBefore(endDate)
+            if (hasSufficientHistory && isFresh) {
                 val anchored = anchorToStartDate(cached, startDate)
                 log.debug(
                     "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
@@ -90,16 +105,14 @@ class PerformanceService(
                 )
                 return buildResponseFromCache(portfolio, anchored)
             }
-            // `earliestCached <= startDate` alone is not enough: if every cached
-            // snapshot predates startDate, `anchorToStartDate` returns just the
-            // synthesised anchor (single-point series), producing 0% TWR and 0
-            // gain. Require at least one snapshot in `[startDate, endDate]`.
             log.debug(
-                "Cache PARTIAL: portfolio={}, earliest={}, latest={}, requested from {}, recomputing",
+                "Cache PARTIAL: portfolio={}, earliest={}, latest={}, requested from {} to {}, reason={}, recomputing",
                 portfolio.code,
                 earliestCached,
-                cached.maxOf { it.valuationDate },
-                startDate
+                latestCached,
+                startDate,
+                endDate,
+                if (!hasSufficientHistory) "insufficient history" else "stale tail"
             )
         }
 
@@ -278,6 +291,10 @@ class PerformanceService(
         var trnIndex = 0
         var netContributions = BigDecimal.ZERO
         var cumulativeDividends = BigDecimal.ZERO
+        // Computed once per pass (not per date) — PRIVATE-market assets only
+        // ever get one price row (see valuePositionsFromCache), so every other
+        // valuation date needs this fallback.
+        val latestPriceIndex = buildLatestPriceIndex(priceCache)
 
         for (valDate in valuationDates) {
             // Accumulate transactions up to and including this date
@@ -295,7 +312,8 @@ class PerformanceService(
             netContributions = acc.netContributions
             cumulativeDividends = acc.cumulativeDividends
 
-            val marketValue = valuePositionsFromCache(positions, valDate, portfolio, priceCache, fxCache)
+            val marketValue =
+                valuePositionsFromCache(positions, valDate, portfolio, priceCache, fxCache, latestPriceIndex)
 
             snapshots.add(
                 ValuationSnapshot(
@@ -375,6 +393,28 @@ class PerformanceService(
     }
 
     /**
+     * Indexes the most recent [MarketData] per asset across every date present
+     * in [priceCache]. PRIVATE-market assets (off-market property, etc.) are
+     * stamped by PrivateMarketDataProvider with a single latest-price row and
+     * no daily history, so the per-date lookup in [valuePositionsFromCache]
+     * only ever finds a row on that one date — every other valuation date
+     * needs this fallback instead of purchase cost.
+     */
+    private fun buildLatestPriceIndex(priceCache: Map<String, Collection<MarketData>>): Map<String, MarketData> {
+        val latest = mutableMapOf<String, MarketData>()
+        for (marketDataForDate in priceCache.values) {
+            for (marketData in marketDataForDate) {
+                val key = "${marketData.asset.market.code}:${marketData.asset.code}"
+                val existing = latest[key]
+                if (existing == null || marketData.priceDate.isAfter(existing.priceDate)) {
+                    latest[key] = marketData
+                }
+            }
+        }
+        return latest
+    }
+
+    /**
      * Calculates total portfolio market value at a given date in the portfolio's
      * reference currency, using pre-fetched price and FX caches.
      *
@@ -388,7 +428,8 @@ class PerformanceService(
         date: LocalDate,
         portfolio: Portfolio,
         priceCache: Map<String, Collection<MarketData>>,
-        fxCache: Map<String, FxPairResults>
+        fxCache: Map<String, FxPairResults>,
+        latestPriceIndex: Map<String, MarketData>
     ): BigDecimal {
         val dateStr = date.toString()
         val fxRates = findNearestFxRates(dateStr, fxCache)
@@ -432,6 +473,19 @@ class PerformanceService(
             val price =
                 if (marketData != null) {
                     marketData.close
+                } else if (pos.asset.market.code == PRIVATE_MARKET && latestPriceIndex[key] != null) {
+                    // PRIVATE assets only ever get one price row (stamped today by
+                    // PrivateMarketDataProvider) — use it in preference to purchase
+                    // cost for every other valuation date.
+                    val latest = latestPriceIndex.getValue(key)
+                    log.debug(
+                        "No price for PRIVATE asset {} on {}, using latest known price {} from {}",
+                        key,
+                        dateStr,
+                        latest.close,
+                        latest.priceDate
+                    )
+                    latest.close
                 } else {
                     // Fall back to average cost when no market price is available
                     val avgCost = pos.moneyValues[Position.In.TRADE]?.averageCost ?: BigDecimal.ZERO
@@ -944,6 +998,10 @@ class PerformanceService(
 
     companion object {
         private val log = LoggerFactory.getLogger(PerformanceService::class.java)
+
+        // Matches PrivateMarketDataProvider.ID in svc-data: single latest-price
+        // row, no daily history.
+        private const val PRIVATE_MARKET = "PRIVATE"
 
         /**
          * External cash flows are money entering or leaving the portfolio from outside.

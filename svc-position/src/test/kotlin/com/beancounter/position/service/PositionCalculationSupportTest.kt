@@ -88,9 +88,8 @@ class PositionCalculationSupportTest {
         // When
         val result = calculationSupport.calculateRoi(moneyValues)
 
-        // Then
-        assertThat(result).isNotNull()
-        // Note: The actual ROI calculation depends on the RoiCalculator implementation
+        // Then — total gain over capital deployed: 400 / 800 = 0.50 (sales do not reduce the basis).
+        assertThat(result).isEqualByComparingTo(BigDecimal("0.50"))
     }
 
     @Test
@@ -107,9 +106,8 @@ class PositionCalculationSupportTest {
         // When
         val result = calculationSupport.calculatePortfolioRoi(totals)
 
-        // Then
-        assertThat(result).isNotNull()
-        // Note: The actual ROI calculation depends on the RoiCalculator implementation
+        // Then — portfolio gain over capital deployed: 400 / 800 = 0.50 (same basis as position ROI).
+        assertThat(result).isEqualByComparingTo(BigDecimal("0.50"))
     }
 
     @Test

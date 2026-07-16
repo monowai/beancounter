@@ -104,9 +104,20 @@ internal class EodhdClassificationApiTest {
 
         // Weights are parsed from the `Equity_%` strings.
         val weights = argumentCaptor<BigDecimal>()
-        verify(classificationService, times(11)).addExposure(anyOrNull(), anyOrNull(), anyOrNull(), weights.capture(), anyOrNull())
+        verify(
+            classificationService,
+            times(11)
+        ).addExposure(anyOrNull(), anyOrNull(), anyOrNull(), weights.capture(), anyOrNull())
         assertThat(weights.allValues).contains(BigDecimal("33.52294"))
-        assertThat(weights.allValues.sumOf { it }).isCloseTo(BigDecimal("100"), org.assertj.core.data.Offset.offset(BigDecimal("0.5")))
+        assertThat(
+            weights.allValues.sumOf {
+                it
+            }
+        ).isCloseTo(
+            BigDecimal("100"),
+            org.assertj.core.data.Offset
+                .offset(BigDecimal("0.5"))
+        )
     }
 
     @Test
@@ -118,15 +129,28 @@ internal class EodhdClassificationApiTest {
         assertThat(enriched).isTrue()
 
         val rawSector = argumentCaptor<String>()
-        verify(classificationService).getOrCreateItem(anyOrNull(), eq(ClassificationLevel.SECTOR), anyOrNull(), rawSector.capture(), anyOrNull())
+        verify(
+            classificationService
+        ).getOrCreateItem(anyOrNull(), eq(ClassificationLevel.SECTOR), anyOrNull(), rawSector.capture(), anyOrNull())
         assertThat(rawSector.firstValue).isEqualTo("Technology")
 
         val industryName = argumentCaptor<String>()
-        verify(classificationService).getOrCreateItem(anyOrNull(), eq(ClassificationLevel.INDUSTRY), industryName.capture(), anyOrNull(), anyOrNull())
+        verify(
+            classificationService
+        ).getOrCreateItem(
+            anyOrNull(),
+            eq(ClassificationLevel.INDUSTRY),
+            industryName.capture(),
+            anyOrNull(),
+            anyOrNull()
+        )
         assertThat(industryName.firstValue).isEqualTo("Consumer Electronics")
 
         val levels = argumentCaptor<ClassificationLevel>()
-        verify(classificationService, times(2)).classifyAsset(anyOrNull(), anyOrNull(), anyOrNull(), levels.capture(), eq(AssetClassification.SOURCE_EODHD))
+        verify(
+            classificationService,
+            times(2)
+        ).classifyAsset(anyOrNull(), anyOrNull(), anyOrNull(), levels.capture(), eq(AssetClassification.SOURCE_EODHD))
         assertThat(levels.allValues).containsExactly(ClassificationLevel.SECTOR, ClassificationLevel.INDUSTRY)
     }
 

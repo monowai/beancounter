@@ -348,6 +348,70 @@ class PerformanceServiceTest {
     }
 
     @Test
+    fun `values private asset at latest known price when date has no price row`() {
+        // PRIVATE-market assets (e.g. off-market property) get a single
+        // latest-price row stamped by PrivateMarketDataProvider (priceDate=today,
+        // no daily history). Every earlier valuation date has no row in
+        // priceCache for the asset, so it must fall back to the latest known
+        // PRIVATE price across the whole cache — not purchase cost.
+        val privateMarket = Market("PRIVATE")
+        val privateAsset =
+            Asset(
+                code = "HOUSE",
+                id = "house-id",
+                name = "Property",
+                market = privateMarket
+            )
+        val buyDate = LocalDate.now().minusYears(2)
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = privateAsset,
+                tradeDate = buyDate,
+                quantity = BigDecimal("1"),
+                price = BigDecimal("1565000"),
+                tradeAmount = BigDecimal("1565000"),
+                cashAmount = BigDecimal("-1565000")
+            )
+
+        whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
+            .thenReturn(TrnResponse(listOf(buyTrn)))
+
+        whenever(accumulator.accumulate(any(), any()))
+            .thenAnswer { invocation ->
+                val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
+                val pos = positions.getOrCreate(privateAsset)
+                pos.quantityValues.purchased = BigDecimal("1")
+                pos.moneyValues[Position.In.TRADE]!!.averageCost = BigDecimal("1565000")
+                pos
+            }
+
+        val today = LocalDate.now()
+        val latestPrice =
+            com.beancounter.common.model.MarketData(
+                asset = privateAsset,
+                priceDate = today,
+                close = BigDecimal("1450000")
+            )
+
+        // Only today's date has a price row — every other valuation date must
+        // fall back to the latest-known-price index, not averageCost.
+        lenient()
+            .`when`(priceService.getBulkPrices(any(), any()))
+            .thenReturn(BulkPriceResponse(mapOf(today.toString() to listOf(latestPrice))))
+        lenient()
+            .`when`(fxRateService.getBulkRates(any(), any()))
+            .thenReturn(BulkFxResponse(emptyMap()))
+
+        val result = performanceService.calculate(portfolio, 12)
+
+        assertThat(result.data.series).isNotEmpty
+        val earlierPoint = result.data.series.first { it.date.isBefore(today) }
+        assertThat(earlierPoint.marketValue.toDouble())
+            .isCloseTo(1450000.0, Offset.offset(0.01))
+    }
+
+    @Test
     fun `growth of 1000 starts at 1000`() {
         // Setup: single BUY transaction, price is available
         val buyDate = LocalDate.now().minusMonths(6)

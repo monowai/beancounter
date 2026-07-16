@@ -369,9 +369,9 @@ class PerformanceServiceTest {
                 asset = privateAsset,
                 tradeDate = buyDate,
                 quantity = BigDecimal("1"),
-                price = BigDecimal("1565000"),
-                tradeAmount = BigDecimal("1565000"),
-                cashAmount = BigDecimal("-1565000")
+                price = BigDecimal("800000"),
+                tradeAmount = BigDecimal("800000"),
+                cashAmount = BigDecimal("-800000")
             )
 
         whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
@@ -382,7 +382,7 @@ class PerformanceServiceTest {
                 val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
                 val pos = positions.getOrCreate(privateAsset)
                 pos.quantityValues.purchased = BigDecimal("1")
-                pos.moneyValues[Position.In.TRADE]!!.averageCost = BigDecimal("1565000")
+                pos.moneyValues[Position.In.TRADE]!!.averageCost = BigDecimal("800000")
                 pos
             }
 
@@ -391,7 +391,7 @@ class PerformanceServiceTest {
             com.beancounter.common.model.MarketData(
                 asset = privateAsset,
                 priceDate = today,
-                close = BigDecimal("1450000")
+                close = BigDecimal("750000")
             )
 
         // Only today's date has a price row — every other valuation date must
@@ -408,7 +408,7 @@ class PerformanceServiceTest {
         assertThat(result.data.series).isNotEmpty
         val earlierPoint = result.data.series.first { it.date.isBefore(today) }
         assertThat(earlierPoint.marketValue.toDouble())
-            .isCloseTo(1450000.0, Offset.offset(0.01))
+            .isCloseTo(750000.0, Offset.offset(0.01))
     }
 
     @Test

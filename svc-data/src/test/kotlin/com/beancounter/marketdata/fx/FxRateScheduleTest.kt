@@ -3,6 +3,7 @@ package com.beancounter.marketdata.fx
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -23,6 +24,7 @@ import java.time.LocalDate
 class FxRateScheduleTest {
     private val fxProviderService = mock<FxProviderService>()
     private val fxRateRepository = mock<FxRateRepository>()
+    private val cacheInvalidationProducer = mock<CacheInvalidationProducer>()
     private val dateUtils = DateUtils()
 
     private val usd = Currency("USD")
@@ -45,7 +47,7 @@ class FxRateScheduleTest {
             fxRateRepository = fxRateRepository,
             dateUtils = dateUtils,
             backfillDays = backfillDays
-        )
+        ).apply { setCacheInvalidationProducer(cacheInvalidationProducer) }
 
     @Test
     fun `fetches today plus backfill range and saves uncached dates`() {
@@ -107,5 +109,43 @@ class FxRateScheduleTest {
         verify(fxProviderService, times(1)).getRates(eq(today.toString()), isNull())
         verify(fxRateRepository, times(1)).saveAll(any<Iterable<FxRate>>())
         assertThat(true).isTrue() // anchor: idempotency is asserted via call counts above
+    }
+
+    @Test
+    fun `emits an FX cache-invalidation event for each newly-saved date`() {
+        val today = LocalDate.now(dateUtils.zoneId)
+        val yesterday = today.minusDays(1)
+        whenever(fxRateRepository.findByDateRange(any(), any())).thenReturn(emptyList())
+        whenever(fxProviderService.getRates(any<String>(), isNull())).thenAnswer { invocation ->
+            sampleRates(LocalDate.parse(invocation.arguments[0] as String))
+        }
+
+        newSchedule(backfillDays = 1).prefetchRates()
+
+        // svc-position revalues portfolios off these events, so a freshly
+        // pre-warmed FX date must publish one — otherwise persisted
+        // portfolio.marketValue keeps stale FX until the next cron.
+        verify(cacheInvalidationProducer).sendFxEvent(today)
+        verify(cacheInvalidationProducer).sendFxEvent(yesterday)
+    }
+
+    @Test
+    fun `does not emit an event for cached dates`() {
+        val today = LocalDate.now(dateUtils.zoneId)
+        whenever(fxRateRepository.findByDateRange(today)).thenReturn(sampleRates(today))
+
+        newSchedule(backfillDays = 0).prefetchRates()
+
+        verify(cacheInvalidationProducer, never()).sendFxEvent(any())
+    }
+
+    @Test
+    fun `does not emit an event when the provider returns no rates`() {
+        whenever(fxRateRepository.findByDateRange(any(), any())).thenReturn(emptyList())
+        whenever(fxProviderService.getRates(any<String>(), isNull())).thenReturn(emptyList())
+
+        newSchedule(backfillDays = 0).prefetchRates()
+
+        verify(cacheInvalidationProducer, never()).sendFxEvent(any())
     }
 }

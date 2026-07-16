@@ -1,9 +1,11 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.PRIVATE_MARKET
 import com.beancounter.marketdata.assets.AssetFinder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -11,9 +13,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.Optional
 
 /**
  * Bulk price retrieval is the hot path for wealth-performance prefetch. The implementation
@@ -148,5 +152,58 @@ class BulkPriceServiceTest {
 
         assertThat(result).hasSize(1)
         assertThat(result["2024-01-01"]).isEmpty()
+    }
+
+    @Test
+    fun `bulk prices include private asset latest price when row predates lookback window`() {
+        // PRIVATE-market assets (real estate, art, etc) get a single user-entered price
+        // that can sit months old. The windowed load only reaches back
+        // FALLBACK_LOOKBACK_DAYS, so such rows are otherwise invisible to the bulk
+        // response and svc-position falls back to purchase-cost averaging (#1045 gap).
+        val privateAsset = getTestAsset(PRIVATE_MARKET, "REALESTATE")
+        val requestDate1 = LocalDate.of(2024, 1, 15)
+        val requestDate2 = LocalDate.of(2024, 2, 15)
+        val assets = listOf(privateAsset)
+        val dates = listOf(requestDate1, requestDate2)
+
+        // Row predates the window start (requestDate1 - FALLBACK_LOOKBACK_DAYS) by months.
+        val oldPriceDate = requestDate1.minusMonths(5)
+        val oldPrice =
+            MarketData(asset = privateAsset, priceDate = oldPriceDate, close = BigDecimal("500000"))
+
+        whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
+            .thenReturn(emptyList())
+        whenever(
+            marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
+                eq(privateAsset),
+                eq(requestDate2)
+            )
+        ).thenReturn(Optional.of(oldPrice))
+
+        val result = priceService.getBulkMarketData(assets, dates)
+
+        assertThat(result["2024-01-15"]).hasSize(1)
+        assertThat(result["2024-01-15"]!![0].close).isEqualByComparingTo(BigDecimal("500000"))
+        assertThat(result["2024-02-15"]).hasSize(1)
+        assertThat(result["2024-02-15"]!![0].close).isEqualByComparingTo(BigDecimal("500000"))
+    }
+
+    @Test
+    fun `bulk prices leave non-private asset absent when its only row predates lookback window`() {
+        // Behaviour for listed-market assets is unchanged: an out-of-window row with no
+        // top-up path simply leaves the asset absent from the bulk response.
+        val requestDate = LocalDate.of(2024, 1, 15)
+        val assets = listOf(AAPL)
+
+        whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
+            .thenReturn(emptyList())
+
+        val result = priceService.getBulkMarketData(assets, listOf(requestDate))
+
+        assertThat(result["2024-01-15"]).isEmpty()
+        verify(
+            marketDataRepo,
+            org.mockito.kotlin.never()
+        ).findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(any(), any())
     }
 }

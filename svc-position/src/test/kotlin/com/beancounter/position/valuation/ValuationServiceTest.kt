@@ -642,14 +642,14 @@ class ValuationServiceTest {
             )
         val portfolios = listOf(nzdPortfolio)
 
-        val asset = TestHelpers.createTestAsset("APT", "PRIVATE")
+        val asset = TestHelpers.createTestAsset("HOUSE", "PRIVATE")
         val trn =
             TestHelpers.createTestTransaction(
                 asset = asset,
                 portfolio = nzdPortfolio,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal("1"),
-                price = BigDecimal("1565000.00"),
+                price = BigDecimal("1000000.00"),
                 tradeDate = LocalDate.of(2024, 1, 15)
             )
         whenever(trnService.query(any<Portfolio>(), any<String>()))
@@ -662,9 +662,9 @@ class ValuationServiceTest {
                     Position(asset, nzdPortfolio).apply {
                         quantityValues.purchased = BigDecimal("1")
                         getMoneyValues(Position.In.PORTFOLIO, Currency("NZD")).apply {
-                            costValue = BigDecimal("1565000.00")
-                            costBasis = BigDecimal("1565000.00")
-                            purchases = BigDecimal("1565000.00")
+                            costValue = BigDecimal("1000000.00")
+                            costBasis = BigDecimal("1000000.00")
+                            purchases = BigDecimal("1000000.00")
                         }
                     }
                 )
@@ -700,11 +700,11 @@ class ValuationServiceTest {
         val portfolioBucket = agg.getMoneyValues(Position.In.PORTFOLIO)
         assertThat(portfolioBucket.currency.code).isEqualTo("USD")
         assertThat(portfolioBucket.costValue)
-            .describedAs("cost must be FX-converted to USD (1565000 * 0.567), not the raw NZD basis")
-            .isEqualByComparingTo(BigDecimal("887355.00"))
+            .describedAs("cost must be FX-converted to USD (1000000 * 0.567), not the raw NZD basis")
+            .isEqualByComparingTo(BigDecimal("567000.00"))
         assertThat(portfolioBucket.purchases)
             .describedAs("purchases must be FX-converted alongside cost")
-            .isEqualByComparingTo(BigDecimal("887355.00"))
+            .isEqualByComparingTo(BigDecimal("567000.00"))
     }
 
     @Test

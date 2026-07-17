@@ -1,9 +1,11 @@
 package com.beancounter.marketdata.fx
 
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
 import io.sentry.spring7.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
@@ -43,6 +45,17 @@ class FxRateSchedule(
         private val log = LoggerFactory.getLogger(FxRateSchedule::class.java)
     }
 
+    // Optional: absent when messaging is disabled (mirrors FxRateService). When
+    // present, a freshly pre-warmed date publishes an FX event so svc-position
+    // revalues portfolios against the new rates instead of holding stale FX
+    // until the next valuation cron.
+    private var cacheInvalidationProducer: CacheInvalidationProducer? = null
+
+    @Autowired(required = false)
+    fun setCacheInvalidationProducer(producer: CacheInvalidationProducer?) {
+        this.cacheInvalidationProducer = producer
+    }
+
     @SentryTransaction(operation = "scheduled", name = "FxRateSchedule.prefetchRates")
     @Scheduled(
         cron = "#{@fxRateScheduleCron}",
@@ -70,6 +83,7 @@ class FxRateSchedule(
             val rates = fxProviderService.getRates(date.toString(), providerId = null)
             if (rates.isNotEmpty()) {
                 fxRateRepository.saveAll(rates)
+                cacheInvalidationProducer?.sendFxEvent(date)
                 hits++
                 log.info("Pre-warmed FX rates for {}: {} rates", date, rates.size)
             } else {

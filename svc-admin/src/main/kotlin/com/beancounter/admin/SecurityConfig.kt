@@ -87,6 +87,9 @@ class SecurityConfig(
                 "$contextPath/actuator/health/**",
                 "$contextPath/actuator/info"
             ).authorizeHttpRequests { it.anyRequest().permitAll() }
+            // deepcode ignore DisablesCSRFProtection: probe chain serves only
+            // unauthenticated, read-only K8s health/info endpoints — no state
+            // change and no cookie session for a forged request to ride.
             .csrf { it.disable() }
         return http.build()
     }
@@ -99,6 +102,10 @@ class SecurityConfig(
             .securityMatcher("$contextPath/instances/**", "$contextPath/actuator/**")
             .authorizeHttpRequests { it.anyRequest().authenticated() }
             .httpBasic(withDefaults())
+            // deepcode ignore DisablesCSRFProtection: SBA clients (bc-data,
+            // bc-position, …) authenticate these paths with stateless HTTP
+            // Basic, not a browser cookie session. The interactive UI chain
+            // below retains CSRF via CookieCsrfTokenRepository.
             .csrf { it.disable() }
         return http.build()
     }

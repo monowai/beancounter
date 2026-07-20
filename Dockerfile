@@ -18,7 +18,13 @@ ENV OTEL_LOGS_EXPORTER="none"
 
 WORKDIR /app
 
-RUN apk add --no-cache --virtual .build-deps curl && \
+# Patch OS packages in the base layer first. Temurin's published
+# 25-jre-alpine tag lags Alpine security bumps, so `apk upgrade` pulls the
+# fixed p11-kit (SNYK-ALPINE323-P11KIT-17486696, High) and expat
+# (SNYK-ALPINE323-EXPAT-17675120, Medium) now rather than waiting for the
+# upstream image rebuild. Propagates to every service via this shared base.
+RUN apk --no-cache upgrade && \
+    apk add --no-cache --virtual .build-deps curl && \
     curl -o /app/sentry-opentelemetry-agent-${SENTRY_VERSION}.jar -L \
       https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/${SENTRY_VERSION}/sentry-opentelemetry-agent-${SENTRY_VERSION}.jar && \
     apk del .build-deps

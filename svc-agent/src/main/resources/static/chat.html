@@ -636,9 +636,14 @@
     // DOM. `setHtmlSafe` is used everywhere that HTML needs to be injected —
     // never call .innerHTML directly on untrusted content.
     function setHtmlSafe(element, html) {
-        const clean = window.DOMPurify
-            ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] })
-            : html;
+        // If DOMPurify failed to load (e.g. the CDN is blocked), NEVER fall
+        // back to injecting the raw HTML — that reopens the XSS hole this
+        // function exists to close. Degrade to plain text instead.
+        if (!window.DOMPurify) {
+            element.textContent = html;
+            return;
+        }
+        const clean = DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
         // DOMPurify returns a sanitized string; parse it into a fragment and
         // append, so we don't need to touch innerHTML directly.
         const template = document.createElement('template');

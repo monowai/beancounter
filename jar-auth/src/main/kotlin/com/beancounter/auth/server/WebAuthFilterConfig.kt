@@ -4,11 +4,15 @@ import com.beancounter.auth.AuthConfig
 import com.beancounter.auth.OAuthConfig
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.model.AuthConstants
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.core.env.ConfigurableEnvironment
+import org.springframework.core.env.EnumerablePropertySource
+import org.springframework.core.env.Environment
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -53,6 +57,40 @@ class WebAuthFilterConfig {
     @Value("\${cors.exposedHeaders:Authorization}")
     private lateinit var exposedHeaders: List<String>
 
+    @Autowired
+    private lateinit var environment: Environment
+
+    private val unrestricted = "unrestricted"
+
+    /**
+     * Honour Spring Boot's actuator access model. When
+     * `management.endpoints.access.default=unrestricted` the whole actuator
+     * surface is anonymous (local profile use); otherwise the ADMIN/SYSTEM
+     * rule stands, with per-endpoint `management.endpoint.<id>.access`
+     * overrides opening individual endpoints.
+     */
+    private fun actuatorDefaultUnrestricted(): Boolean =
+        unrestricted.equals(
+            environment.getProperty("management.endpoints.access.default"),
+            ignoreCase = true
+        )
+
+    private fun unrestrictedEndpointIds(): List<String> {
+        val configurable = environment as? ConfigurableEnvironment ?: return emptyList()
+        val accessKey = Regex("management\\.endpoint\\.([a-zA-Z0-9-]+)\\.access")
+        return configurable.propertySources
+            .filterIsInstance<EnumerablePropertySource<*>>()
+            .flatMap { it.propertyNames.asList() }
+            .mapNotNull { accessKey.matchEntire(it)?.groupValues?.get(1) }
+            .distinct()
+            .filter {
+                unrestricted.equals(
+                    environment.getProperty("management.endpoint.$it.access"),
+                    ignoreCase = true
+                )
+            }
+    }
+
     @Bean
     fun configureBcSecurity(http: HttpSecurity): SecurityFilterChain {
         val corsConfiguration = CorsConfiguration()
@@ -86,9 +124,16 @@ class WebAuthFilterConfig {
                         AuthConstants.SCOPE_SYSTEM,
                         AuthConstants.SCOPE_ADMIN
                     ) // Deny by default: only known, scoped callers
-                auth
-                    .requestMatchers("$actuatorPath/**")
-                    .hasAnyAuthority(AuthConstants.SCOPE_ADMIN, AuthConstants.SCOPE_SYSTEM) // Admin or System users
+                if (actuatorDefaultUnrestricted()) {
+                    auth.requestMatchers("$actuatorPath/**").permitAll()
+                } else {
+                    unrestrictedEndpointIds().forEach { id ->
+                        auth.requestMatchers("$actuatorPath/$id", "$actuatorPath/$id/**").permitAll()
+                    }
+                    auth
+                        .requestMatchers("$actuatorPath/**")
+                        .hasAnyAuthority(AuthConstants.SCOPE_ADMIN, AuthConstants.SCOPE_SYSTEM) // Admin or System users
+                }
                 auth.anyRequest().permitAll() //
             }.csrf { csrf ->
                 csrf.disable()

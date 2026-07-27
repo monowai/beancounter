@@ -1,0 +1,18 @@
+# fantail service definition — discovered by `fantail` (see monowai/fantail)
+description: Market data, portfolios, trns (bc-data)
+cwd: ..                          # gradle runs from the mono-repo root
+command: ["./gradlew", ":svc-data:bootRun", "--args=--spring.profiles.active=local"]
+port: 9510
+health: http://localhost:9511/actuator/health
+env:                             # instance offsets reach the JVM via env
+  SERVER_PORT: "${self.port}"
+  MANAGEMENT_SERVER_PORT: "${self.health_port}"
+requires:
+  - tcp: localhost:5432          # postgres (db: bc)
+  - env: AUTH0_CLIENT_SECRET     # auth.client-secret in application-local.yml; M2M dead without
+wants:
+  - tcp: localhost:5672          # rabbit — ssh -f -N -L 5672:192.168.139.2:30672 kauri
+
+# untracked runtime files copied into worktrees on start (fantail worktree fallback)
+runtime_config:
+  - src/main/resources/application-local.yml

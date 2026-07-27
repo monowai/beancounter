@@ -1,0 +1,18 @@
+# fantail service definition — discovered by `fantail` (see monowai/fantail)
+description: Corporate events (bc-event)
+cwd: ..
+command: ["./gradlew", ":svc-event:bootRun", "--args=--spring.profiles.active=local"]
+port: 9520
+health: http://localhost:9521/actuator/health
+env:                             # instance offsets reach the JVM via env
+  SERVER_PORT: "${self.port}"
+  MANAGEMENT_SERVER_PORT: "${self.health_port}"
+requires:
+  - tcp: localhost:5432                # postgres (db: ev)
+wants:
+  - tcp: kauri.monowai.com:30672       # local profile points rabbit at kauri
+  - service: svc-data                  # upstream, at the instance's effective port
+
+# untracked runtime files copied into worktrees on start (fantail worktree fallback)
+runtime_config:
+  - src/main/resources/application-local.yaml

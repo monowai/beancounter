@@ -1,0 +1,18 @@
+# fantail service definition — discovered by `fantail` (see monowai/fantail)
+description: Holdings & valuations (bc-position)
+cwd: ..
+command: ["./gradlew", ":svc-position:bootRun", "--args=--spring.profiles.active=local"]
+port: 9500
+health: http://localhost:9501/actuator/health
+env:                             # instance offsets reach the JVM via env
+  SERVER_PORT: "${self.port}"
+  MANAGEMENT_SERVER_PORT: "${self.health_port}"
+requires:
+  - tcp: localhost:5432          # postgres (db: position)
+wants:
+  - tcp: localhost:5672          # rabbit
+  - service: svc-data            # upstream, at the instance's effective port
+
+# untracked runtime files copied into worktrees on start (fantail worktree fallback)
+runtime_config:
+  - src/main/resources/application-local.yaml

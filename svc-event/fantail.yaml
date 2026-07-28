@@ -7,6 +7,13 @@ health: http://localhost:9521/actuator/health
 env:                             # instance offsets reach the JVM via env
   SERVER_PORT: "${self.port}"
   MANAGEMENT_SERVER_PORT: "${self.health_port}"
+# `fantail start` launches this as a plain java process (not bootRun) so the
+# gradle daemon stays free to recompile while it runs, and `fantail reload`
+# can recompile + restart the app context via devtools in ~10s. Changes to
+# jar-common/jar-auth still need a full restart — they load as jars.
+reload:
+  gradle: ":svc-event"
+
 requires:
   - tcp: localhost:5432                # postgres (db: ev)
 wants:

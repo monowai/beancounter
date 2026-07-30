@@ -1,16 +1,19 @@
 # fantail service definition — discovered by `fantail` (see monowai/fantail)
 description: Corporate events (bc-event)
 cwd: ..
+# fallback launch — used by `fantail start --no-dev`; see `reload:` below
 command: ["./gradlew", ":svc-event:bootRun", "--args=--spring.profiles.active=local"]
 port: 9520
 health: http://localhost:9521/actuator/health
 env:                             # instance offsets reach the JVM via env
   SERVER_PORT: "${self.port}"
   MANAGEMENT_SERVER_PORT: "${self.health_port}"
-# `fantail start` launches this as a plain java process (not bootRun) so the
-# gradle daemon stays free to recompile while it runs, and `fantail reload`
-# can recompile + restart the app context via devtools in ~10s. Changes to
-# jar-common/jar-auth still need a full restart — they load as jars.
+# Presence of `reload:` changes how `command:` above is used: `fantail start`
+# ignores it and launches a plain java process instead, so the gradle daemon
+# stays free to recompile while the service runs and `fantail reload` can
+# restart the app context via devtools in ~10s. `command:` remains the
+# fallback — `fantail start --no-dev` runs bootRun exactly as written.
+# Changes to jar-common/jar-auth still need a full restart: they load as jars.
 reload:
   gradle: ":svc-event"
 

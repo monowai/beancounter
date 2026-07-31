@@ -2,7 +2,8 @@
 description: Market data, portfolios, trns (bc-data)
 cwd: ..                          # gradle runs from the mono-repo root
 # fallback launch — used by `fantail start --no-dev`; see `reload:` below
-command: ["./gradlew", ":svc-data:bootRun", "--args=--spring.profiles.active=local"]
+command: ["./gradlew", ":svc-data:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+profile: local                   # the one config knob — ${self.profile} above
 port: 9510
 health: http://localhost:9511/actuator/health
 env:                             # instance offsets reach the JVM via env

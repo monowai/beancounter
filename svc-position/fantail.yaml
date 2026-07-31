@@ -2,7 +2,8 @@
 description: Holdings & valuations (bc-position)
 cwd: ..
 # fallback launch — used by `fantail start --no-dev`; see `reload:` below
-command: ["./gradlew", ":svc-position:bootRun", "--args=--spring.profiles.active=local"]
+command: ["./gradlew", ":svc-position:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+profile: local                   # the one config knob — ${self.profile} above
 port: 9500
 health: http://localhost:9501/actuator/health
 env:                             # instance offsets reach the JVM via env

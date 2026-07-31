@@ -1,0 +1,16 @@
+# fantail service definition — discovered by `fantail` (see monowai/fantail)
+description: AI agent service (bc-agent)
+cwd: ..                          # gradle runs from the mono-repo root
+command: ["./gradlew", ":svc-agent:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+profile: local                   # the one config knob — ${self.profile} above
+port: 9530
+health: http://localhost:9531/actuator/health
+env:                             # instance offsets reach the JVM via env
+  SERVER_PORT: "${self.port}"
+  MANAGEMENT_SERVER_PORT: "${self.health_port}"
+reload:
+  gradle: ":svc-agent"
+
+# untracked runtime files copied into worktrees on start (fantail worktree fallback)
+runtime_config:
+  - src/main/resources/application-local.yaml

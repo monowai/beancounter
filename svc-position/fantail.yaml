@@ -1,12 +1,12 @@
 # fantail service definition — discovered by `fantail` (see monowai/fantail)
-description: Holdings & valuations (bc-position)
+description: Holdings & valuations
 cwd: ..
 # fallback launch — used by `fantail start --no-dev`; see `reload:` below
-command: ["./gradlew", ":svc-position:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+command: [ "./gradlew", ":svc-position:bootRun", "--args=--spring.profiles.active=${self.profile}" ]
 profile: local                   # the one config knob — ${self.profile} above
 port: 9500
 health: http://localhost:9501/actuator/health
-env:                             # instance offsets reach the JVM via env
+env: # instance offsets reach the JVM via env
   SERVER_PORT: "${self.port}"
   MANAGEMENT_SERVER_PORT: "${self.health_port}"
 # Presence of `reload:` changes how `command:` above is used: `fantail start`

@@ -8,6 +8,13 @@ health: http://localhost:9531/actuator/health
 env:                             # instance offsets reach the JVM via env
   SERVER_PORT: "${self.port}"
   MANAGEMENT_SERVER_PORT: "${self.health_port}"
+  # Peer URLs resolve per stack (own port block, or main's when shared) —
+  # application.yml's localhost defaults only fit the main stack.
+  MARKETDATA_URL: "${svc:svc-data.url}/api"
+  EVENT_URL: "${svc:svc-event.url}/api"
+  POSITION_URL: "${svc:svc-position.url}/api"
+  RETIRE_URL: "${svc:svc-retire.url}/api"
+  REBALANCE_URL: "${svc:svc-rebalance.url}/api"
 reload:
   gradle: ":svc-agent"
 

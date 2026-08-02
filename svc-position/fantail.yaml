@@ -9,6 +9,9 @@ health: http://localhost:9501/actuator/health
 env: # instance offsets reach the JVM via env
   SERVER_PORT: "${self.port}"
   MANAGEMENT_SERVER_PORT: "${self.health_port}"
+  # Peer URLs resolve per stack (own port block, or main's when shared) —
+  # application.yml's localhost defaults only fit the main stack.
+  MARKETDATA_URL: "${svc:svc-data.url}/api"
 # Presence of `reload:` changes how `command:` above is used: `fantail start`
 # ignores it and launches a plain java process instead, so the gradle daemon
 # stays free to recompile while the service runs and `fantail reload` can

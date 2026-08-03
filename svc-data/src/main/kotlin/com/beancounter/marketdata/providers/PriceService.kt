@@ -102,6 +102,13 @@ class PriceService(
         return existing
     }
 
+    /**
+     * User-entered revaluation of a PRIVATE market asset (real estate, art, ...).
+     *
+     * Emits the same PRICE cache-invalidation event as the provider path in [handle]
+     * so svc-position drops its cached `performance_snapshot` for [date]; without it
+     * a re-valued private asset kept being charted at its previous close.
+     */
     private fun handlePrivateMarketPrice(
         asset: Asset,
         closePrice: BigDecimal,
@@ -123,7 +130,9 @@ class PriceService(
                     source = "USER"
                 )
             }
-        return Optional.of(marketDataRepo.save(marketData))
+        val saved = marketDataRepo.save(marketData)
+        cacheInvalidationProducer?.sendPriceEvent(date)
+        return Optional.of(saved)
     }
 
     /**

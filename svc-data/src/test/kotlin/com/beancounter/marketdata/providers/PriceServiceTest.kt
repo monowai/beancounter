@@ -2,12 +2,15 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -19,6 +22,9 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.never
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
@@ -31,17 +37,94 @@ class PriceServiceTest {
     private lateinit var marketDataRepo: MarketDataRepo
     private lateinit var cashUtils: CashUtils
     private lateinit var eventProducer: EventProducer
+    private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
     private val assetFinder = mock(AssetFinder::class.java)
     private val asset = Asset(code = "1", market = NASDAQ)
+    private val privateAsset =
+        Asset(
+            code = "HOUSE",
+            market = Market(PrivateMarketDataProvider.ID)
+        )
 
     @BeforeEach
     fun setUp() {
         marketDataRepo = mock(MarketDataRepo::class.java)
         cashUtils = mock(CashUtils::class.java)
         eventProducer = mock(EventProducer::class.java)
+        cacheInvalidationProducer = mock(CacheInvalidationProducer::class.java)
         priceService = PriceService(marketDataRepo, cashUtils, assetFinder)
         priceService.setEventWriter(eventProducer)
+        priceService.setCacheInvalidationProducer(cacheInvalidationProducer)
         `when`(assetFinder.find(asset.id)).thenReturn(asset)
+        `when`(assetFinder.find(privateAsset.id)).thenReturn(privateAsset)
+    }
+
+    @Test
+    fun `should invalidate the price cache when a new private market price is written`() {
+        val priceDate = LocalDate.of(2026, 3, 31)
+        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
+            .thenReturn(Optional.empty())
+        `when`(marketDataRepo.save(any<MarketData>())).thenAnswer { it.arguments[0] }
+
+        val result =
+            priceService.getMarketData(
+                privateAsset.id,
+                priceDate,
+                BigDecimal("250000.00")
+            )
+
+        assertThat(result).isPresent
+        val assetCaptor = argumentCaptor<String>()
+        val dateCaptor = argumentCaptor<LocalDate>()
+        verify(cacheInvalidationProducer)
+            .sendPriceHistoryEvent(assetCaptor.capture(), dateCaptor.capture())
+        assertThat(assetCaptor.firstValue).isEqualTo(privateAsset.id)
+        assertThat(dateCaptor.firstValue).isEqualTo(priceDate)
+    }
+
+    @Test
+    fun `should invalidate the price cache when an existing private market price is revalued`() {
+        val priceDate = LocalDate.of(2026, 3, 31)
+        val existing =
+            MarketData(
+                asset = privateAsset,
+                priceDate = priceDate,
+                close = BigDecimal("200000.00"),
+                source = "USER"
+            )
+        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
+            .thenReturn(Optional.of(existing))
+        `when`(marketDataRepo.save(any<MarketData>())).thenAnswer { it.arguments[0] }
+
+        val result =
+            priceService.getMarketData(
+                privateAsset.id,
+                priceDate,
+                BigDecimal("250000.00")
+            )
+
+        assertThat(result).isPresent
+        assertThat(result.get().close).isEqualByComparingTo(BigDecimal("250000.00"))
+        val assetCaptor = argumentCaptor<String>()
+        val dateCaptor = argumentCaptor<LocalDate>()
+        verify(cacheInvalidationProducer)
+            .sendPriceHistoryEvent(assetCaptor.capture(), dateCaptor.capture())
+        assertThat(assetCaptor.firstValue).isEqualTo(privateAsset.id)
+        assertThat(dateCaptor.firstValue).isEqualTo(priceDate)
+    }
+
+    @Test
+    fun `should not invalidate the price cache when a private market read writes nothing`() {
+        val priceDate = LocalDate.of(2026, 3, 31)
+        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
+            .thenReturn(Optional.empty())
+
+        // No closePrice supplied — this is a plain read, not a revaluation.
+        val result = priceService.getMarketData(privateAsset.id, priceDate)
+
+        assertThat(result).isEmpty
+        verify(marketDataRepo, never()).save(any<MarketData>())
+        verify(cacheInvalidationProducer, never()).sendPriceHistoryEvent(any(), any())
     }
 
     @Test

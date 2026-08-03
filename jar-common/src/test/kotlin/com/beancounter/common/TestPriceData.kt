@@ -64,23 +64,13 @@ class TestPriceData {
                 marketData,
                 two
             )
-        assertThat(withFx)
-            .hasFieldOrPropertyWithValue(
-                P_OPEN,
-                BigDecimal("4.00")
-            ).hasFieldOrPropertyWithValue(
-                P_CLOSE,
-                BigDecimal("4.00")
-            ).hasFieldOrPropertyWithValue(
-                P_PREVIOUS_CLOSE,
-                BigDecimal("2.00")
-            ).hasFieldOrPropertyWithValue(
-                P_CHANGE,
-                BigDecimal("2.00")
-            ).hasFieldOrPropertyWithValue(
-                P_CHANGE_PERCENT,
-                BigDecimal("0.01")
-            )
+        // Converted prices are compared numerically - a conversion keeps whatever scale
+        // the multiplication yields, so 4.000 and 4.00 are the same price.
+        assertThat(withFx.open).isEqualByComparingTo(BigDecimal("4.00"))
+        assertThat(withFx.close).isEqualByComparingTo(BigDecimal("4.00"))
+        assertThat(withFx.previousClose).isEqualByComparingTo(BigDecimal("2.00"))
+        assertThat(withFx.change).isEqualByComparingTo(BigDecimal("2.00"))
+        assertThat(withFx.changePercent).isEqualByComparingTo(BigDecimal("0.01"))
     }
 
     @Test
@@ -116,20 +106,46 @@ class TestPriceData {
                 marketData,
                 two
             )
-        assertThat(withFx)
-            .hasFieldOrPropertyWithValue(
-                P_PREVIOUS_CLOSE,
-                BigDecimal("81.84")
-            ).hasFieldOrPropertyWithValue(
-                P_CLOSE,
-                BigDecimal("82.70")
-            ).hasFieldOrPropertyWithValue(
-                P_CHANGE,
-                BigDecimal("0.86")
-            ).hasFieldOrPropertyWithValue(
-                P_CHANGE_PERCENT,
-                BigDecimal("0.0104")
+        assertThat(withFx.previousClose).isEqualByComparingTo(BigDecimal("81.84"))
+        assertThat(withFx.close).isEqualByComparingTo(BigDecimal("82.70"))
+        assertThat(withFx.change).isEqualByComparingTo(BigDecimal("0.86"))
+        assertThat(withFx.changePercent).isEqualByComparingTo(BigDecimal("0.0104"))
+    }
+
+    @Test
+    fun is_UnitPricePrecisionRetained() {
+        // Unitised funds price beyond cents. Rounding a price to the money scale hides
+        // sub-cent edits and overstates market value, which is computed from this close.
+        val marketData =
+            MarketData(
+                asset,
+                previousClose = BigDecimal("1.5900"),
+                open = BigDecimal("1.5968"),
+                close = BigDecimal("1.5968")
             )
+
+        assertThat(
+            PriceData.of(
+                marketData,
+                BigDecimal.ONE
+            )
+        ).hasFieldOrPropertyWithValue(
+            P_CLOSE,
+            BigDecimal("1.5968")
+        ).hasFieldOrPropertyWithValue(
+            P_OPEN,
+            BigDecimal("1.5968")
+        )
+
+        assertThat(
+            PriceData.of(
+                marketData,
+                BigDecimal("0.5887")
+            )
+        ).hasFieldOrPropertyWithValue(
+            P_CLOSE,
+            BigDecimal("0.94003616")
+        )
     }
 
     @Test

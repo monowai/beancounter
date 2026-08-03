@@ -202,24 +202,24 @@ internal class FxValuationMvcTests {
 
         // We need to have a Quantity in order to get the price, so create a position
         val positions = getValuedPositions(asset)
-        assertThat(
+        val moneyValues =
             positions.getOrCreate(asset).getMoneyValues(
                 Position.In.TRADE,
                 asset.market.currency
             )
-        ).hasFieldOrPropertyWithValue(
-            "unrealisedGain",
-            BigDecimal("8000.00")
-        ).hasFieldOrPropertyWithValue(
-            "priceData.close",
-            BigDecimal("100.00")
-        ).hasFieldOrPropertyWithValue(
-            "marketValue",
-            BigDecimal("10000.00")
-        ).hasFieldOrPropertyWithValue(
-            "totalGain",
-            BigDecimal("8000.00")
-        )
+        assertThat(moneyValues)
+            .hasFieldOrPropertyWithValue(
+                "unrealisedGain",
+                BigDecimal("8000.00")
+            ).hasFieldOrPropertyWithValue(
+                "marketValue",
+                BigDecimal("10000.00")
+            ).hasFieldOrPropertyWithValue(
+                "totalGain",
+                BigDecimal("8000.00")
+            )
+        // The price keeps the precision it was quoted at, so compare it numerically.
+        assertThat(moneyValues.priceData.close).isEqualByComparingTo(BigDecimal("100.00"))
     }
 
     @Test

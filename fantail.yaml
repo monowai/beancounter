@@ -1,0 +1,84 @@
+# fantail service definitions for the mono-repo — one file, every service
+# (see monowai/fantail). Each `services:` key names the service AND its
+# module directory, which is what per-service files hang off: untracked
+# runtime config (src/main/resources/application-local.y*ml, .env*) is carried
+# into worktrees per module by fantail's default `runtime_config` globs.
+#
+# No `cwd:` anywhere: it is relative to THIS file, which already sits at the
+# mono-repo root — where ./gradlew runs. (The old per-module files each
+# needed `cwd: ..` to climb back here.)
+
+defaults:
+  profile: local                   # the one config knob — ${self.profile} below
+  env:                             # instance offsets reach the JVM via env
+    SERVER_PORT: "${self.port}"
+    MANAGEMENT_SERVER_PORT: "${self.health_port}"
+
+# Presence of `reload:` changes how `command:` is used: `fantail start` ignores
+# it and launches a plain java process instead, so the gradle daemon stays free
+# to recompile while the service runs and `fantail reload` can restart the app
+# context via devtools in ~10s. `command:` remains the fallback —
+# `fantail start --no-dev` runs bootRun exactly as written.
+# Changes to jar-common/jar-auth still need a full restart: they load as jars.
+
+services:
+
+  svc-data:
+    description: Market data, portfolios, trns (bc-data)
+    command: ["./gradlew", ":svc-data:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+    port: 9510
+    health_port: 9511
+    reload:
+      gradle: ":svc-data"
+    requires:
+      - tcp: localhost:5432        # postgres (db: bc)
+      - env: AUTH0_CLIENT_SECRET   # auth.client-secret in application-local.yml; M2M dead without
+    wants:
+      - tcp: localhost:5672        # rabbit — ssh -f -N -L 5672:192.168.139.2:30672 kauri
+
+  svc-position:
+    description: Holdings & valuations
+    command: ["./gradlew", ":svc-position:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+    port: 9500
+    health_port: 9501
+    env:
+      # Peer URLs resolve per stack (own port block, or main's when shared) —
+      # application.yml's localhost defaults only fit the main stack.
+      MARKETDATA_URL: "${svc:svc-data.url}/api"
+    reload:
+      gradle: ":svc-position"
+    requires:
+      - tcp: localhost:5432        # postgres (db: position)
+    wants:
+      - tcp: localhost:5672        # rabbit
+      - service: svc-data          # upstream, at the instance's effective port
+
+  svc-event:
+    description: Corporate events (bc-event)
+    command: ["./gradlew", ":svc-event:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+    port: 9520
+    health_port: 9521
+    env:
+      MARKETDATA_URL: "${svc:svc-data.url}/api"
+      POSITION_URL: "${svc:svc-position.url}/api"
+    reload:
+      gradle: ":svc-event"
+    requires:
+      - tcp: localhost:5432               # postgres (db: ev)
+    wants:
+      - tcp: kauri.monowai.com:30672      # local profile points rabbit at kauri
+      - service: svc-data                 # upstream, at the instance's effective port
+
+  svc-agent:
+    description: AI agent service (bc-agent)
+    command: ["./gradlew", ":svc-agent:bootRun", "--args=--spring.profiles.active=${self.profile}"]
+    port: 9530
+    health_port: 9531
+    env:
+      MARKETDATA_URL: "${svc:svc-data.url}/api"
+      EVENT_URL: "${svc:svc-event.url}/api"
+      POSITION_URL: "${svc:svc-position.url}/api"
+      RETIRE_URL: "${svc:svc-retire.url}/api"
+      REBALANCE_URL: "${svc:svc-rebalance.url}/api"
+    reload:
+      gradle: ":svc-agent"

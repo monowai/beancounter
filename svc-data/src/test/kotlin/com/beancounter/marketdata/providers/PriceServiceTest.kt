@@ -74,8 +74,11 @@ class PriceServiceTest {
             )
 
         assertThat(result).isPresent
+        val assetCaptor = argumentCaptor<String>()
         val dateCaptor = argumentCaptor<LocalDate>()
-        verify(cacheInvalidationProducer).sendPriceEvent(dateCaptor.capture())
+        verify(cacheInvalidationProducer)
+            .sendPriceHistoryEvent(assetCaptor.capture(), dateCaptor.capture())
+        assertThat(assetCaptor.firstValue).isEqualTo(privateAsset.id)
         assertThat(dateCaptor.firstValue).isEqualTo(priceDate)
     }
 
@@ -102,8 +105,11 @@ class PriceServiceTest {
 
         assertThat(result).isPresent
         assertThat(result.get().close).isEqualByComparingTo(BigDecimal("250000.00"))
+        val assetCaptor = argumentCaptor<String>()
         val dateCaptor = argumentCaptor<LocalDate>()
-        verify(cacheInvalidationProducer).sendPriceEvent(dateCaptor.capture())
+        verify(cacheInvalidationProducer)
+            .sendPriceHistoryEvent(assetCaptor.capture(), dateCaptor.capture())
+        assertThat(assetCaptor.firstValue).isEqualTo(privateAsset.id)
         assertThat(dateCaptor.firstValue).isEqualTo(priceDate)
     }
 
@@ -118,7 +124,7 @@ class PriceServiceTest {
 
         assertThat(result).isEmpty
         verify(marketDataRepo, never()).save(any<MarketData>())
-        verify(cacheInvalidationProducer, never()).sendPriceEvent(any())
+        verify(cacheInvalidationProducer, never()).sendPriceHistoryEvent(any(), any())
     }
 
     @Test

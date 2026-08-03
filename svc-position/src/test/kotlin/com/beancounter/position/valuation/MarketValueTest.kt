@@ -53,6 +53,48 @@ internal class MarketValueTest {
     private val simpleRate = BigDecimal("0.20")
 
     @Test
+    fun `should value a unitised price without rounding it to cents`() {
+        val positions = Positions(portfolio)
+        val position =
+            buyBehaviour.accumulate(
+                Trn(
+                    trnType = TrnType.BUY,
+                    asset = asset,
+                    quantity = hundred,
+                    tradeAmount = oneHundred,
+                    tradePortfolioRate = simpleRate,
+                    portfolio = portfolio
+                ),
+                positions
+            )
+        val marketData =
+            MarketData(
+                asset,
+                close = BigDecimal("1.5968")
+            )
+
+        MarketValue(Gains()).value(
+            positions,
+            marketData,
+            getRates(
+                positions.portfolio,
+                asset,
+                simpleRate
+            )
+        )
+
+        val tradeValues =
+            position.getMoneyValues(
+                Position.In.TRADE,
+                position.asset.market.currency
+            )
+        // A fund priced to four decimals must survive valuation intact - rounding the
+        // price to cents hides sub-cent edits and overstates the holding.
+        assertThat(tradeValues.priceData.close).isEqualByComparingTo(BigDecimal("1.5968"))
+        assertThat(tradeValues.marketValue).isEqualByComparingTo(BigDecimal("159.68"))
+    }
+
+    @Test
     fun `should calculate market value from behaviour`() {
         val positions = Positions(portfolio)
         val position =

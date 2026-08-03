@@ -13,11 +13,17 @@ import java.text.ParseException
 class MathUtils private constructor() {
     companion object {
         private const val MONEY_SCALE = 2
+
+        /**
+         * Unit prices are not money amounts - unitised funds quote well beyond cents,
+         * so prices are capped rather than rounded to [MONEY_SCALE].
+         */
+        private const val PRICE_SCALE = 8
         private val mathContext = MathContext(10)
         private val numberUtils = NumberUtils()
 
         // Delegate to specialized utilities
-        private val calculationUtils = CalculationUtils(MONEY_SCALE, numberUtils)
+        private val calculationUtils = CalculationUtils(MONEY_SCALE, PRICE_SCALE, numberUtils)
         private val parsingUtils = ParsingUtils()
         private val validationUtils = ValidationUtils()
 
@@ -46,6 +52,16 @@ class MathUtils private constructor() {
             rate: BigDecimal?,
             moneyScale: Int = MONEY_SCALE
         ): BigDecimal = calculationUtils.multiplyAbs(money, rate, moneyScale)
+
+        /**
+         * Convert a unit price, retaining its precision. Unlike [multiplyAbs] the result
+         * keeps the scale the multiplication produces, capped at [PRICE_SCALE].
+         */
+        @JvmStatic
+        fun multiplyPrice(
+            price: BigDecimal?,
+            rate: BigDecimal?
+        ): BigDecimal = calculationUtils.multiplyPrice(price, rate)
 
         @JvmStatic
         fun add(
@@ -85,6 +101,7 @@ class MathUtils private constructor() {
  */
 private class CalculationUtils(
     private val moneyScale: Int,
+    private val priceScale: Int,
     private val numberUtils: NumberUtils
 ) {
     fun divide(
@@ -117,6 +134,25 @@ private class CalculationUtils(
             return BigDecimal.ZERO
         }
         return requireNotNull(money).multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP)
+    }
+
+    fun multiplyPrice(
+        price: BigDecimal?,
+        rate: BigDecimal?
+    ): BigDecimal {
+        if (numberUtils.isUnset(rate) || numberUtils.isUnset(price)) {
+            return BigDecimal.ZERO
+        }
+        val unitPrice = requireNotNull(price).abs()
+        if (BigDecimal.ONE.compareTo(rate) == 0) {
+            return unitPrice
+        }
+        val converted = unitPrice.multiply(rate).abs()
+        return if (converted.scale() > priceScale) {
+            converted.setScale(priceScale, RoundingMode.HALF_UP)
+        } else {
+            converted
+        }
     }
 
     fun add(

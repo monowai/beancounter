@@ -2,7 +2,7 @@ package com.beancounter.common.model
 
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
-import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
+import com.beancounter.common.utils.MathUtils.Companion.multiplyPrice
 import com.beancounter.common.utils.NumberUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import java.math.BigDecimal
@@ -40,27 +40,27 @@ data class PriceData(
             val result =
                 PriceData(
                     mktData.priceDate,
-                    multiplyAbs(
+                    multiplyPrice(
                         mktData.open,
                         rate
                     ),
-                    multiplyAbs(
+                    multiplyPrice(
                         mktData.close,
                         rate
                     ),
-                    multiplyAbs(
+                    multiplyPrice(
                         mktData.low,
                         rate
                     ),
-                    multiplyAbs(
+                    multiplyPrice(
                         mktData.high,
                         rate
                     ),
-                    multiplyAbs(
+                    multiplyPrice(
                         mktData.previousClose,
                         rate
                     ),
-                    multiplyAbs(
+                    multiplyPrice(
                         mktData.change,
                         rate
                     ),
@@ -73,7 +73,7 @@ data class PriceData(
             if (hasValidConversionRate && hasPriceData) {
                 // For currency conversion, we need to convert the change amount
                 // but keep the changePercent the same (percentage doesn't change with currency)
-                result.change = multiplyAbs(money = mktData.change, rate = rate)
+                result.change = multiplyPrice(price = mktData.change, rate = rate)
                 // changePercent remains the same as it's already a percentage
             }
             return result

@@ -102,8 +102,12 @@ class MarketValue(
 
             if (!isCash && moneyValues.priceData.previousClose.signum() != 0) {
                 // Only calculate gainOnDay when there's valid previous close data
+                // Prices carry more precision than cents, so the money result is rounded.
                 moneyValues.gainOnDay =
-                    (close.subtract(moneyValues.priceData.previousClose)).multiply(total)
+                    multiply(
+                        close.subtract(moneyValues.priceData.previousClose),
+                        total
+                    ) ?: BigDecimal.ZERO
             }
         }
         if (isCash) {

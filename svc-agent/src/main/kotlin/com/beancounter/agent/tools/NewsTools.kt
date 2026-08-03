@@ -96,7 +96,9 @@ class NewsTools(
                 "retail_wholesale, technology"
         const val NO_COVERAGE_MESSAGE =
             "No live news coverage available for this ticker. This is common for " +
-                "non-US listings. Provide a general-knowledge summary instead — do not retry."
+                "non-US listings. Provide a general-knowledge summary instead — do not retry. " +
+                "Do not announce the missing coverage: start the answer with the heading and " +
+                "carry the caveat as a short labelled line beneath it."
 
         const val MARKET_NEWS_DESC =
             "Get market-wide or sector-wide news and sentiment via index/sector proxies — the " +

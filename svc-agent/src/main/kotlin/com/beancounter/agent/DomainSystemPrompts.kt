@@ -56,6 +56,13 @@ object DomainSystemPrompts {
           Bullets/short paragraphs are still the default; a table is fine
           when it genuinely compares things — keep it to 4 columns or
           fewer with short headers. Never dump raw tool output.
+        - **No preamble.** Open with the substance — a heading, the
+          sentiment line, or the first bullet. Never a lead-in sentence
+          restating the question, narrating what you are about to do, or
+          announcing that live data was unavailable ("No live news
+          coverage is available for X...", "Here's a summary instead").
+          A data caveat belongs as a short labelled line under the first
+          heading, not above it.
         - **Don't repeat what's on screen** — add analysis/outliers/
           observations instead of re-listing visible rows.
         - **Conclusions only, no workings.** Do arithmetic (weighted

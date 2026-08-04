@@ -2,6 +2,7 @@ package com.beancounter.position.service
 
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Totals
+import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
@@ -21,57 +22,100 @@ class PositionCalculationSupportTest {
     fun `should calculate trade money values correctly`() {
         // Given
         val position = TestHelpers.createTestPosition()
-        val refTotals = Totals(USD, marketValue = BigDecimal("1000.00"))
 
         // When
-        val result = calculationSupport.calculateTradeMoneyValues(position, refTotals)
+        val result = calculationSupport.calculateTradeMoneyValues(position)
 
         // Then
         assertThat(result).isNotNull()
         assertThat(result.currency).isEqualTo(USD)
-        assertThat(result.weight).isNotNull()
     }
 
     @Test
     fun `should calculate base money values correctly`() {
         // Given
         val position = TestHelpers.createTestPosition()
-        val baseTotals = Totals(USD, marketValue = BigDecimal("1000.00"))
         val baseCurrency = USD
 
         // When
-        val result = calculationSupport.calculateBaseMoneyValues(position, baseTotals, baseCurrency)
+        val result = calculationSupport.calculateBaseMoneyValues(position, baseCurrency)
 
         // Then
         assertThat(result).isNotNull()
         assertThat(result.currency).isEqualTo(USD)
-        assertThat(result.weight).isNotNull()
     }
 
     @Test
     fun `should calculate portfolio money values correctly`() {
         // Given
         val position = TestHelpers.createTestPosition()
-        val tradeMoneyValues =
-            MoneyValues(USD).apply {
-                marketValue = BigDecimal("500.00")
-            }
-        val tradeTotals = Totals(USD, marketValue = BigDecimal("1000.00"))
         val portfolioCurrency = USD
 
         // When
-        val result =
-            calculationSupport.calculatePortfolioMoneyValues(
-                position,
-                tradeMoneyValues,
-                tradeTotals,
-                portfolioCurrency
-            )
+        val result = calculationSupport.calculatePortfolioMoneyValues(position, portfolioCurrency)
 
         // Then
         assertThat(result).isNotNull()
         assertThat(result.currency).isEqualTo(USD)
-        assertThat(result.weight).isNotNull()
+    }
+
+    /**
+     * A foreign holding: 5 VOO valued USD 3,482 in a portfolio whose base and
+     * reporting currency is SGD, where the same holding is SGD 4,462.53 of an
+     * SGD 248,065.03 portfolio.
+     */
+    private fun foreignHolding(): MoneyValuesGroup =
+        MoneyValuesGroup(
+            tradeMoneyValues = MoneyValues(USD).apply { marketValue = BigDecimal("3482.00") },
+            baseMoneyValues = MoneyValues(SGD).apply { marketValue = BigDecimal("4462.53") },
+            portfolioMoneyValues = MoneyValues(SGD).apply { marketValue = BigDecimal("4462.53") }
+        )
+
+    @Test
+    fun `weight is the same-currency ratio, not a trade value over a mixed-currency total`() {
+        // Given — the trade total sums market values across every trade currency
+        // the portfolio holds, so it is not a currency at all and cannot be a
+        // denominator.
+        val moneyValues = foreignHolding()
+        val baseTotals = Totals(SGD, marketValue = BigDecimal("248065.03"))
+
+        // When
+        calculationSupport.assignWeights(moneyValues, baseTotals)
+
+        // Then — 4,462.53 / 248,065.03 SGD, not 3,482 USD / 245,867.22 "SGD".
+        assertThat(moneyValues.baseMoneyValues.weight)
+            .isEqualByComparingTo(BigDecimal("0.017989"))
+    }
+
+    @Test
+    fun `every bucket carries the same weight because a weight is dimensionless`() {
+        // Given
+        val moneyValues = foreignHolding()
+        val baseTotals = Totals(SGD, marketValue = BigDecimal("248065.03"))
+
+        // When
+        calculationSupport.assignWeights(moneyValues, baseTotals)
+
+        // Then — viewing the position in USD does not change what fraction of
+        // the portfolio it is.
+        assertThat(moneyValues.tradeMoneyValues.weight)
+            .isEqualByComparingTo(moneyValues.baseMoneyValues.weight)
+        assertThat(moneyValues.portfolioMoneyValues.weight)
+            .isEqualByComparingTo(moneyValues.baseMoneyValues.weight)
+    }
+
+    @Test
+    fun `an empty portfolio weighs nothing rather than dividing by zero`() {
+        // Given
+        val moneyValues = foreignHolding()
+
+        // When
+        calculationSupport.assignWeights(moneyValues, Totals(SGD, marketValue = BigDecimal.ZERO))
+
+        // Then
+        assertThat(moneyValues.baseMoneyValues.weight).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(moneyValues.tradeMoneyValues.weight).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(moneyValues.portfolioMoneyValues.weight).isEqualByComparingTo(BigDecimal.ZERO)
     }
 
     @Test

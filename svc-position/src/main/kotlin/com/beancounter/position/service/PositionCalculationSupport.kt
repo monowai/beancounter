@@ -47,42 +47,51 @@ class PositionCalculationSupport {
     private val roiCalculator = RoiCalculator()
 
     /**
-     * Calculates trade money values and sets the weight based on reference totals.
+     * The position's money values in the asset's own trade currency.
      */
-    fun calculateTradeMoneyValues(
-        position: Position,
-        refTotals: Totals
-    ): MoneyValues {
-        val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
-        tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.marketValue)
-        return tradeMoneyValues
-    }
+    fun calculateTradeMoneyValues(position: Position): MoneyValues =
+        position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
 
     /**
-     * Calculates base money values and sets the weight based on base totals.
+     * The position's money values in the owner's base currency.
      */
     fun calculateBaseMoneyValues(
         position: Position,
-        baseTotals: Totals,
         baseCurrency: Currency
-    ): MoneyValues {
-        val baseMoneyValues = position.getMoneyValues(Position.In.BASE, baseCurrency)
-        baseMoneyValues.weight = percentUtils.percent(baseMoneyValues.marketValue, baseTotals.marketValue)
-        return baseMoneyValues
-    }
+    ): MoneyValues = position.getMoneyValues(Position.In.BASE, baseCurrency)
 
     /**
-     * Calculates portfolio money values and sets the weight based on trade totals.
+     * The position's money values in the portfolio's reporting currency.
      */
     fun calculatePortfolioMoneyValues(
         position: Position,
-        tradeMoneyValues: MoneyValues,
-        tradeTotals: Totals,
         portfolioCurrency: Currency
-    ): MoneyValues {
-        val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, portfolioCurrency)
-        portfolioMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, tradeTotals.marketValue)
-        return portfolioMoneyValues
+    ): MoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, portfolioCurrency)
+
+    /**
+     * A weight is dimensionless: the fraction of the portfolio a position
+     * represents is the same number whichever currency you value it in. So it
+     * is computed once — in the base currency, the one currency every position
+     * converts to — and stamped on every bucket.
+     *
+     * Both sides of the ratio must share a currency. A trade-currency market
+     * value over the trade-currency totals is not a ratio at all: those totals
+     * sum values across every trade currency the portfolio holds, so the
+     * denominator has no currency. A foreign holding weighed that way comes out
+     * wrong by its own FX rate.
+     */
+    fun assignWeights(
+        moneyValuesGroup: MoneyValuesGroup,
+        baseTotals: Totals
+    ) {
+        val weight =
+            percentUtils.percent(
+                moneyValuesGroup.baseMoneyValues.marketValue,
+                baseTotals.marketValue
+            )
+        moneyValuesGroup.tradeMoneyValues.weight = weight
+        moneyValuesGroup.baseMoneyValues.weight = weight
+        moneyValuesGroup.portfolioMoneyValues.weight = weight
     }
 
     /**

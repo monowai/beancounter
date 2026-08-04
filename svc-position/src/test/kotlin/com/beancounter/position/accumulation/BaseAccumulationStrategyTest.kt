@@ -95,18 +95,16 @@ internal class BaseAccumulationStrategyTest {
     }
 
     @Test
-    fun `should maintain performance under repeated currency context creation`() {
+    fun `should reuse the same money values across repeated currency context creation`() {
         // Given multiple transactions (simulating high-frequency processing)
         val transactions = (1..100).map { createTestTransaction() }
         val position = positions.getOrCreate(transactions.first())
 
         // When creating currency contexts repeatedly
-        val startTime = System.nanoTime()
         val contexts =
             transactions.map { trn ->
                 testStrategy.createCurrencyContext(trn, position)
             }
-        val endTime = System.nanoTime()
 
         // Then all contexts should be created successfully
         assertThat(contexts).hasSize(100)
@@ -116,47 +114,56 @@ internal class BaseAccumulationStrategyTest {
             assertThat(context.portfolioMoneyValues).isNotNull
         }
 
-        // And performance should be reasonable (less than 1ms per context on average)
-        val avgTimePerContext = (endTime - startTime) / 100.0 / 1_000_000.0 // Convert to milliseconds
-        assertThat(avgTimePerContext).isLessThan(1.0)
+        // And every context resolves to the position's existing MoneyValues rather than
+        // allocating fresh ones per transaction - that reuse is the actual optimisation.
+        // (Previously asserted via a wall-clock budget, which flaked on loaded CI agents.)
+        val first = contexts.first()
+        contexts.forEach { context ->
+            assertThat(context.tradeMoneyValues).isSameAs(first.tradeMoneyValues)
+            assertThat(context.baseMoneyValues).isSameAs(first.baseMoneyValues)
+            assertThat(context.portfolioMoneyValues).isSameAs(first.portfolioMoneyValues)
+        }
     }
 
+    /**
+     * The single-context path must resolve to exactly the same [com.beancounter.common.model.MoneyValues]
+     * as resolving TRADE / BASE / PORTFOLIO individually — that equivalence is what makes the
+     * optimisation safe to use in place of the three separate calls.
+     *
+     * This previously asserted a sub-millisecond wall-clock budget on both paths, which measured
+     * JIT warm-up and CI-agent load rather than the code, and broke `main` (CircleCI 3717).
+     */
     @Test
-    fun `should demonstrate currency resolution optimization compared to individual calls`() {
+    fun `should resolve the same money values as three individual currency resolutions`() {
         // Given a transaction and position
         val trn = createTestTransaction()
         val position = positions.getOrCreate(trn)
 
-        // When timing optimized approach (single context creation)
-        val optimizedStartTime = System.nanoTime()
+        // When taking the optimized approach (single context creation)
         val context = testStrategy.createCurrencyContext(trn, position)
         testStrategy.applyMultiCurrencyUpdate(context, trn) { _, _ -> }
-        val optimizedEndTime = System.nanoTime()
 
-        // When timing traditional approach (3 separate currency resolutions)
-        val traditionalStartTime = System.nanoTime()
-        position.getMoneyValues(
-            Position.In.TRADE,
-            currencyResolver.resolve(Position.In.TRADE, trn.portfolio, trn.tradeCurrency)
-        )
-        position.getMoneyValues(
-            Position.In.BASE,
-            currencyResolver.resolve(Position.In.BASE, trn.portfolio, trn.tradeCurrency)
-        )
-        position.getMoneyValues(
-            Position.In.PORTFOLIO,
-            currencyResolver.resolve(Position.In.PORTFOLIO, trn.portfolio, trn.tradeCurrency)
-        )
-        val traditionalEndTime = System.nanoTime()
+        // And taking the traditional approach (3 separate currency resolutions)
+        val trade =
+            position.getMoneyValues(
+                Position.In.TRADE,
+                currencyResolver.resolve(Position.In.TRADE, trn.portfolio, trn.tradeCurrency)
+            )
+        val base =
+            position.getMoneyValues(
+                Position.In.BASE,
+                currencyResolver.resolve(Position.In.BASE, trn.portfolio, trn.tradeCurrency)
+            )
+        val portfolio =
+            position.getMoneyValues(
+                Position.In.PORTFOLIO,
+                currencyResolver.resolve(Position.In.PORTFOLIO, trn.portfolio, trn.tradeCurrency)
+            )
 
-        val optimizedTime = optimizedEndTime - optimizedStartTime
-        val traditionalTime = traditionalEndTime - traditionalStartTime
-
-        // Then optimized approach should be reasonable performance-wise
-        // Note: This is more about correctness than raw performance in unit tests
-        // Both approaches should complete within reasonable time bounds
-        assertThat(optimizedTime).isLessThan(1_000_000) // Less than 1ms in nanoseconds
-        assertThat(traditionalTime).isLessThan(1_000_000) // Less than 1ms in nanoseconds
+        // Then both paths land on the same money values
+        assertThat(context.tradeMoneyValues).isSameAs(trade)
+        assertThat(context.baseMoneyValues).isSameAs(base)
+        assertThat(context.portfolioMoneyValues).isSameAs(portfolio)
     }
 
     private fun createTestTransaction(): Trn {

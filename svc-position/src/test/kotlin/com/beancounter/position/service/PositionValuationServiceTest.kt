@@ -104,10 +104,10 @@ class PositionValuationServiceTest {
 
         // Mock calculation support methods to return proper MoneyValues
         val mockMoneyValues = MoneyValues(portfolio.currency)
-        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(mockMoneyValues)
         whenever(
-            calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any())
+            calculationSupport.calculatePortfolioMoneyValues(any(), any())
         ).thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal.ZERO)
         whenever(irrCalculator.calculate(any())).thenReturn(0.0)
@@ -175,9 +175,9 @@ class PositionValuationServiceTest {
 
         val expectedRoi = BigDecimal("0.38")
         val mockMoneyValues = MoneyValues(portfolio.currency)
-        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
             .thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
         // IRR calculator returns different value - but for short holding period, ROI should be used
@@ -222,9 +222,9 @@ class PositionValuationServiceTest {
 
         val mockMoneyValues = MoneyValues(portfolio.currency)
         mockMoneyValues.costValue = BigDecimal("90312.5")
-        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
             .thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal("0.38"))
         whenever(irrCalculator.calculate(any())).thenReturn(0.0)
@@ -269,9 +269,9 @@ class PositionValuationServiceTest {
 
         val expectedRoi = BigDecimal("0.38")
         val mockMoneyValues = MoneyValues(portfolio.currency)
-        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
             .thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
         whenever(irrCalculator.calculate(any())).thenReturn(0.27)
@@ -320,9 +320,9 @@ class PositionValuationServiceTest {
 
         val expectedRoi = BigDecimal("0.20") // 20% ROI
         val mockMoneyValues = MoneyValues(portfolio.currency)
-        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
             .thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
         whenever(irrCalculator.calculate(any())).thenReturn(0.18) // XIRR returns different value
@@ -360,9 +360,9 @@ class PositionValuationServiceTest {
 
         val expectedRoi = BigDecimal("0.15")
         val mockMoneyValues = MoneyValues(portfolio.currency)
-        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
             .thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
         whenever(irrCalculator.calculate(any())).thenReturn(0.12)
@@ -421,9 +421,9 @@ class PositionValuationServiceTest {
         val mockMoneyValues = MoneyValues(portfolio.currency)
         mockMoneyValues.realisedGain = BigDecimal("500.00")
         mockMoneyValues.totalGain = BigDecimal("500.00")
-        whenever(calculationSupport.calculateTradeMoneyValues(any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculateBaseMoneyValues(any(), any(), any())).thenReturn(mockMoneyValues)
-        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any(), any(), any()))
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(mockMoneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
             .thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
         whenever(irrCalculator.calculate(any())).thenReturn(0.55)

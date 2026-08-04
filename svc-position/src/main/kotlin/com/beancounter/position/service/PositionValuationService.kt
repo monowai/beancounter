@@ -205,26 +205,20 @@ class PositionValuationService(
         positionContext: PositionContext,
         totalsGroup: TotalsGroup
     ) {
-        val tradeMoneyValues =
-            calculationSupport.calculateTradeMoneyValues(
-                positionContext.position,
-                totalsGroup.tradeTotals
-            )
+        val tradeMoneyValues = calculationSupport.calculateTradeMoneyValues(positionContext.position)
         val baseMoneyValues =
             calculationSupport.calculateBaseMoneyValues(
                 positionContext.position,
-                totalsGroup.baseTotals,
                 positionContext.positions.portfolio.base
             )
         val portfolioMoneyValues =
             calculationSupport.calculatePortfolioMoneyValues(
                 positionContext.position,
-                tradeMoneyValues,
-                totalsGroup.tradeTotals,
                 positionContext.positions.portfolio.currency
             )
 
         val moneyValuesGroup = MoneyValuesGroup(tradeMoneyValues, baseMoneyValues, portfolioMoneyValues)
+        calculationSupport.assignWeights(moneyValuesGroup, totalsGroup.baseTotals)
 
         if (!cashUtils.isCash(positionContext.position.asset)) {
             processNonCashPosition(positionContext, totalsGroup, moneyValuesGroup)

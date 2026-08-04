@@ -207,9 +207,11 @@ class AlphaClassificationEnricher(
                     continue
                 }
 
+                // Persist the normalized form: the unique constraint is case-sensitive, so
+                // storing raw casing would let the same ticker land twice across runs.
                 classificationService.addHolding(
                     asset = asset,
-                    symbol = rawSymbol,
+                    symbol = normalizedSymbol,
                     name = holdingData.description,
                     weight = weight
                 )
@@ -234,8 +236,12 @@ class AlphaClassificationEnricher(
      * disqualifying: neither ever appears in a valid OVERVIEW or ETF_PROFILE payload. An invalid
      * API key also lands here, and aborting the run is the right response to that too.
      */
-    private fun isRateLimited(response: String): Boolean =
-        response.contains("\"Information\"") || response.contains("\"Note\"")
+    private fun isRateLimited(response: String): Boolean {
+        val root =
+            runCatching { objectMapper.readTree(response) }.getOrNull()
+                ?: return false
+        return root.has("Information") || root.has("Note")
+    }
 
     companion object {
         private val EQUITY_CATEGORIES = setOf("EQUITY", "COMMON STOCK")

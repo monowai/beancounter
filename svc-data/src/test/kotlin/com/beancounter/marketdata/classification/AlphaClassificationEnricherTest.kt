@@ -120,8 +120,8 @@ class AlphaClassificationEnricherTest {
                 {"symbol": "AAPL", "description": "Apple Inc", "weight": "0.07"},
                 {"symbol": "n/a", "description": "Unlisted", "weight": "0.02"},
                 {"symbol": "N/A", "description": "Unlisted 2", "weight": "0.02"},
-                {"symbol": "AAPL", "description": "Apple Inc dup", "weight": "0.07"},
-                {"symbol": "MSFT", "description": "Microsoft", "weight": "0.05"},
+                {"symbol": "aapl", "description": "Apple Inc dup, different casing", "weight": "0.07"},
+                {"symbol": " MSFT ", "description": "Microsoft, padded", "weight": "0.05"},
                 {"symbol": "--", "description": "Placeholder", "weight": "0.01"}
               ]
             }
@@ -137,7 +137,9 @@ class AlphaClassificationEnricherTest {
         // Sector exposures are written even though the holdings list contained junk rows.
         verify(classificationService, times(2)).addExposure(any(), any(), any(), any(), any())
 
-        // Only the two real, de-duplicated symbols are persisted.
+        // Only the two real symbols are persisted, de-duplicated case-insensitively and stored in
+        // normalized form - the asset_holding unique constraint is case-sensitive, so persisting
+        // raw casing would let "aapl" and "AAPL" both land for the same parent.
         val symbols = argumentCaptor<String>()
         verify(classificationService, times(2)).addHolding(any(), symbols.capture(), anyOrNull(), any(), any())
         assertThat(symbols.allValues).containsExactlyInAnyOrder("AAPL", "MSFT")

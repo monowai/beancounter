@@ -10,7 +10,9 @@ import java.time.LocalDateTime
 
 /**
  * Scheduled refresh of asset classification data.
- * Runs weekly to keep ETF sector exposures up to date.
+ * Runs daily to keep ETF sector exposures up to date. Each run only attempts a bounded batch of
+ * assets due a recheck (see `ClassificationRefreshService`), so a daily cadence - not weekly - is
+ * needed for the full population to cycle through in a reasonable time.
  */
 @Service
 @ConditionalOnProperty(
@@ -27,11 +29,11 @@ class ClassificationSchedule(
     }
 
     /**
-     * Refresh ETF sector exposures weekly.
-     * Runs every Sunday at 6:00 AM in the configured timezone.
+     * Refresh ETF sector exposures daily.
+     * Runs every day at 6:00 AM in the configured timezone.
      */
     @SentryTransaction(operation = "scheduled", name = "ClassificationSchedule.refreshEtfSectors")
-    @Scheduled(cron = "0 0 6 * * SUN", zone = "#{@scheduleZone}")
+    @Scheduled(cron = "0 0 6 * * *", zone = "#{@scheduleZone}")
     fun refreshEtfSectors() {
         log.info(
             "Scheduled ETF sector refresh starting {} - {}",

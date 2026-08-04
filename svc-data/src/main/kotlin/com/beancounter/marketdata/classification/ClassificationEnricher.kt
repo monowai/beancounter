@@ -19,8 +19,8 @@ interface ClassificationEnricher {
     /** True when this asset is an equity (single sector/industry). */
     fun isEquity(asset: Asset): Boolean
 
-    /** Fetch and persist classification data. Returns true when anything was stored. */
-    fun enrichClassification(asset: Asset): Boolean
+    /** Fetch and persist classification data. See [EnrichmentResult] for the possible outcomes. */
+    fun enrichClassification(asset: Asset): EnrichmentResult
 
     companion object {
         val EQUITY_CATEGORIES = setOf("EQUITY", "COMMON STOCK")

@@ -33,28 +33,31 @@ class EodhdClassificationEnricher(
 
     override fun isEquity(asset: Asset): Boolean = ClassificationEnricher.categoryIsEquity(asset)
 
-    override fun enrichClassification(asset: Asset): Boolean =
+    override fun enrichClassification(asset: Asset): EnrichmentResult =
         try {
             when {
                 isEquity(asset) -> enrichEquity(asset)
                 isEtf(asset) -> enrichEtf(asset)
-                else -> false
+                else -> EnrichmentResult.NO_DATA
             }
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
+            // EODHD signals quota exhaustion via HTTP status (thrown as an exception by the
+            // REST client), not a 200-body throttle marker like AlphaVantage - map straight to
+            // FAILED rather than inventing EODHD-specific rate-limit parsing.
             log.warn("Failed to enrich classification for ${asset.code}: ${e.message}")
-            false
+            EnrichmentResult.FAILED
         }
 
-    private fun enrichEquity(asset: Asset): Boolean {
+    private fun enrichEquity(asset: Asset): EnrichmentResult {
         val symbol = eodhdConfig.getPriceCode(asset)
         val general = eodhdProxy.getFundamentals(symbol, eodhdConfig.apiKey).general
 
         if (general?.sector.isNullOrBlank()) {
             log.debug("No sector in fundamentals for $symbol")
-            return false
+            return EnrichmentResult.NO_DATA
         }
 
         val standard = classificationService.getEodhdStandard()
@@ -93,16 +96,16 @@ class EodhdClassificationEnricher(
         }
 
         log.info("Classified ${asset.code} as ${general.sector} / ${general.industry ?: "N/A"}")
-        return true
+        return EnrichmentResult.ENRICHED
     }
 
-    private fun enrichEtf(asset: Asset): Boolean {
+    private fun enrichEtf(asset: Asset): EnrichmentResult {
         val symbol = eodhdConfig.getPriceCode(asset)
         val sectorWeights = eodhdProxy.getFundamentals(symbol, eodhdConfig.apiKey).etfData?.sectorWeights
 
         if (sectorWeights.isNullOrEmpty()) {
             log.debug("No sector weights in fundamentals for $symbol")
-            return false
+            return EnrichmentResult.NO_DATA
         }
 
         val standard = classificationService.getEodhdStandard()
@@ -132,6 +135,6 @@ class EodhdClassificationEnricher(
         }
 
         log.info("Added $sectorCount sector exposures for ${asset.code}")
-        return sectorCount > 0
+        return if (sectorCount > 0) EnrichmentResult.ENRICHED else EnrichmentResult.NO_DATA
     }
 }

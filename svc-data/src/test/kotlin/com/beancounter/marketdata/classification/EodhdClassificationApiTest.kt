@@ -88,7 +88,7 @@ internal class EodhdClassificationApiTest {
 
         val enriched = enricher.enrichClassification(asset("VTI", "ETF"))
 
-        assertThat(enriched).isTrue()
+        assertThat(enriched).isEqualTo(EnrichmentResult.ENRICHED)
         verify(classificationService).clearExposures("VTI-id")
 
         // All 11 EODHD sector names reach getOrCreateItem verbatim (normalization is downstream).
@@ -126,7 +126,7 @@ internal class EodhdClassificationApiTest {
 
         val enriched = enricher.enrichClassification(asset("AAPL", "EQUITY"))
 
-        assertThat(enriched).isTrue()
+        assertThat(enriched).isEqualTo(EnrichmentResult.ENRICHED)
 
         val rawSector = argumentCaptor<String>()
         verify(

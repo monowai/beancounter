@@ -48,15 +48,14 @@ class AlphaClassificationEnricher(
     override fun isEquity(asset: Asset): Boolean = asset.category.uppercase() in EQUITY_CATEGORIES
 
     /**
-     * Enrich an asset with classification data.
-     * Returns true if enrichment was successful.
+     * Enrich an asset with classification data. See [EnrichmentResult].
      */
-    override fun enrichClassification(asset: Asset): Boolean =
+    override fun enrichClassification(asset: Asset): EnrichmentResult =
         try {
             when {
                 isEquity(asset) -> enrichEquity(asset)
                 isEtf(asset) -> enrichEtf(asset)
-                else -> false
+                else -> EnrichmentResult.NO_DATA
             }
         } catch (
             @Suppress("TooGenericExceptionCaught")
@@ -64,23 +63,28 @@ class AlphaClassificationEnricher(
         ) {
             // Gracefully handle API/parsing failures without propagating
             log.warn("Failed to enrich classification for ${asset.code}: ${e.message}")
-            false
+            EnrichmentResult.FAILED
         }
 
-    private fun enrichEquity(asset: Asset): Boolean {
+    private fun enrichEquity(asset: Asset): EnrichmentResult {
         val symbol = alphaConfig.getPriceCode(asset)
         val response = alphaProxy.getOverview(symbol, apiKey)
 
+        if (isRateLimited(response)) {
+            log.warn("AlphaVantage rate limit hit while enriching $symbol")
+            return EnrichmentResult.RATE_LIMITED
+        }
+
         if (response.isBlank() || response.contains("Error")) {
             log.debug("No overview data for $symbol")
-            return false
+            return EnrichmentResult.FAILED
         }
 
         val overview = objectMapper.readValue(response, AlphaOverviewResponse::class.java)
 
         if (overview.sector.isNullOrBlank()) {
             log.debug("No sector in overview for $symbol")
-            return false
+            return EnrichmentResult.NO_DATA
         }
 
         val standard = classificationService.getAlphaStandard()
@@ -121,16 +125,21 @@ class AlphaClassificationEnricher(
         }
 
         log.info("Classified ${asset.code} as ${overview.sector} / ${overview.industry ?: "N/A"}")
-        return true
+        return EnrichmentResult.ENRICHED
     }
 
-    private fun enrichEtf(asset: Asset): Boolean {
+    private fun enrichEtf(asset: Asset): EnrichmentResult {
         val symbol = alphaConfig.getPriceCode(asset)
         val response = alphaProxy.getEtfProfile(symbol, apiKey)
 
+        if (isRateLimited(response)) {
+            log.warn("AlphaVantage rate limit hit while enriching $symbol")
+            return EnrichmentResult.RATE_LIMITED
+        }
+
         if (response.isBlank() || response.contains("Error")) {
             log.debug("No ETF profile data for $symbol")
-            return false
+            return EnrichmentResult.FAILED
         }
 
         val profile = objectMapper.readValue(response, AlphaEtfProfileResponse::class.java)
@@ -140,7 +149,7 @@ class AlphaClassificationEnricher(
 
         if (!hasSectors && !hasHoldings) {
             log.debug("No sector allocations or holdings in ETF profile for $symbol")
-            return false
+            return EnrichmentResult.NO_DATA
         }
 
         val standard = classificationService.getAlphaStandard()
@@ -173,20 +182,36 @@ class AlphaClassificationEnricher(
             }
         }
 
-        // Process top 10 holdings
+        // Process top holdings - skip placeholder symbols (AlphaVantage returns literal "n/a"
+        // for unlisted positions) and de-duplicate within the batch, since two identical
+        // symbols for the same parent asset violate the asset_holding unique constraint and
+        // roll back the whole enrichment (including the sector exposures above).
         var holdingCount = 0
         if (hasHoldings) {
             classificationService.clearHoldings(asset.id)
 
-            for (holdingData in profile.holdings.take(MAX_HOLDINGS)) {
+            val seenSymbols = mutableSetOf<String>()
+            for (holdingData in profile.holdings) {
+                if (holdingCount >= MAX_HOLDINGS) {
+                    break
+                }
+
                 val weight = holdingData.weight?.toBigDecimalOrNull()
-                if (weight == null || weight.signum() <= 0 || holdingData.symbol.isNullOrBlank()) {
+                val rawSymbol = holdingData.symbol?.trim()
+                if (weight == null || weight.signum() <= 0 || rawSymbol.isNullOrBlank()) {
                     continue
                 }
 
+                val normalizedSymbol = rawSymbol.uppercase()
+                if (normalizedSymbol in PLACEHOLDER_SYMBOLS || !seenSymbols.add(normalizedSymbol)) {
+                    continue
+                }
+
+                // Persist the normalized form: the unique constraint is case-sensitive, so
+                // storing raw casing would let the same ticker land twice across runs.
                 classificationService.addHolding(
                     asset = asset,
-                    symbol = holdingData.symbol,
+                    symbol = normalizedSymbol,
                     name = holdingData.description,
                     weight = weight
                 )
@@ -195,12 +220,33 @@ class AlphaClassificationEnricher(
         }
 
         log.info("Added $sectorCount sector exposures and $holdingCount holdings for ${asset.code}")
-        return sectorCount > 0 || holdingCount > 0
+        return if (sectorCount > 0 || holdingCount > 0) EnrichmentResult.ENRICHED else EnrichmentResult.NO_DATA
+    }
+
+    /**
+     * AlphaVantage signals quota exhaustion with a top-level `Information` or `Note` key returned
+     * over HTTP 200 - not the usual "Error Message" body. Must be checked before parsing: such a
+     * body deserializes cleanly into an empty response and would otherwise be indistinguishable
+     * from [EnrichmentResult.NO_DATA], which is precisely the bug that let a whole refresh run
+     * silently no-op.
+     *
+     * The wording is not stable - observed variants include "standard API rate limit is 25
+     * requests per day", "lift the free key rate limit", and "our standard API call frequency is
+     * 5 calls per minute". Rather than chase phrasing, treat the presence of either key as
+     * disqualifying: neither ever appears in a valid OVERVIEW or ETF_PROFILE payload. An invalid
+     * API key also lands here, and aborting the run is the right response to that too.
+     */
+    private fun isRateLimited(response: String): Boolean {
+        val root =
+            runCatching { objectMapper.readTree(response) }.getOrNull()
+                ?: return false
+        return root.has("Information") || root.has("Note")
     }
 
     companion object {
         private val EQUITY_CATEGORIES = setOf("EQUITY", "COMMON STOCK")
         private val ETF_CATEGORIES = setOf("ETF", "EXCHANGE TRADED FUND")
+        private val PLACEHOLDER_SYMBOLS = setOf("N/A", "NA", "-", "--")
         private const val MAX_HOLDINGS = 10
     }
 }

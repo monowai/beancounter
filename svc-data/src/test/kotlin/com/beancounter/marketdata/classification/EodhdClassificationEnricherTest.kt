@@ -101,7 +101,7 @@ class EodhdClassificationEnricherTest {
 
         val result = enricher.enrichClassification(etf())
 
-        assertThat(result).isTrue()
+        assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
         verify(classificationService).clearExposures("etf-1")
 
         val weights = argumentCaptor<BigDecimal>()
@@ -123,7 +123,7 @@ class EodhdClassificationEnricherTest {
 
         val result = enricher.enrichClassification(equity())
 
-        assertThat(result).isTrue()
+        assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
         val levels = argumentCaptor<ClassificationLevel>()
         verify(classificationService, times(2)).classifyAsset(
             any(),
@@ -136,13 +136,24 @@ class EodhdClassificationEnricherTest {
     }
 
     @Test
-    fun `returns false when no fundamentals data`() {
+    fun `returns NO_DATA when no fundamentals data`() {
         whenever(eodhdConfig.getPriceCode(any())).thenReturn("VTI.US")
         whenever(eodhdProxy.getFundamentals(any(), any())).thenReturn(EodhdFundamentals())
 
         val result = enricher.enrichClassification(etf())
 
-        assertThat(result).isFalse()
+        assertThat(result).isEqualTo(EnrichmentResult.NO_DATA)
+        verify(classificationService, never()).addExposure(any(), any(), any(), any(), any())
+    }
+
+    @Test
+    fun `returns FAILED when the provider call throws`() {
+        whenever(eodhdConfig.getPriceCode(any())).thenReturn("VTI.US")
+        whenever(eodhdProxy.getFundamentals(any(), any())).thenThrow(RuntimeException("quota exceeded"))
+
+        val result = enricher.enrichClassification(etf())
+
+        assertThat(result).isEqualTo(EnrichmentResult.FAILED)
         verify(classificationService, never()).addExposure(any(), any(), any(), any(), any())
     }
 }

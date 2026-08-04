@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Transient
 import jakarta.persistence.UniqueConstraint
+import java.time.LocalDate
 
 /**
  * Persistent representation of an instrument traded on a market.
@@ -58,7 +59,14 @@ data class Asset(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var industry: String? = null,
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    var expectedReturnRate: Double? = null
+    var expectedReturnRate: Double? = null,
+    /**
+     * Date this asset's sector/industry classification (or, for ETFs, its sector exposures) was
+     * last *attempted*. Drives resume-aware classification refresh — see
+     * `ClassificationRefreshService`. Not part of the public API surface consumed by bc-view.
+     */
+    @JsonIgnore
+    var classificationCheckedAt: LocalDate? = null
 ) {
     companion object {
         @JvmStatic

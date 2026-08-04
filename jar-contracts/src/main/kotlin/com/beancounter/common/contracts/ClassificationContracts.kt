@@ -52,12 +52,23 @@ data class AssetHoldingsResponse(
 ) : Payload<List<AssetHolding>>
 
 /**
- * Result of a backfill operation.
+ * Result of a backfill/refresh operation.
+ *
+ * @param processed count of assets successfully enriched (data was written)
+ * @param errors count of assets where enrichment failed (exception or provider error)
+ * @param total full candidate population considered for this run
+ * @param noData count of assets where the provider responded fine but had nothing for this asset
+ * @param rateLimited count of assets skipped because provider quota/rate limit was hit
+ * @param skipped count of assets not attempted this run (still within the staleness window, or
+ *                beyond the batch limit)
  */
 data class BackfillResult(
     val processed: Int = 0,
     val errors: Int = 0,
-    val total: Int = 0
+    val total: Int = 0,
+    val noData: Int = 0,
+    val rateLimited: Int = 0,
+    val skipped: Int = 0
 )
 
 /**

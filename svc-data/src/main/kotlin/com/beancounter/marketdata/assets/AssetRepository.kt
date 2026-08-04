@@ -4,6 +4,7 @@ import com.beancounter.common.model.Asset
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.LocalDate
 import java.util.Optional
 import java.util.stream.Stream
 
@@ -149,6 +150,40 @@ interface AssetRepository : JpaRepository<Asset, String> {
             "AND a.code IS NOT NULL AND a.code <> ''"
     )
     fun findActiveEquities(): List<Asset>
+
+    /**
+     * Find active ETF assets *due* for a classification refresh: never checked, or last checked
+     * before [cutoff]. Ordered so never-checked assets (NULL) and the longest-stale come first -
+     * this is what makes the refresh resume-aware instead of re-hammering the same head of the
+     * list every run. See `ClassificationRefreshService`.
+     */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND UPPER(a.category) IN ('ETF', 'EXCHANGE TRADED FUND') " +
+            "AND a.code IS NOT NULL AND a.code <> '' " +
+            "AND (a.classificationCheckedAt IS NULL OR a.classificationCheckedAt < :cutoff) " +
+            "ORDER BY a.classificationCheckedAt ASC NULLS FIRST"
+    )
+    fun findEtfsDueForClassification(
+        @Param("cutoff") cutoff: LocalDate
+    ): List<Asset>
+
+    /**
+     * Find active Equity assets *due* for a classification refresh. Mirrors
+     * [findEtfsDueForClassification] for the equity category set.
+     */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND UPPER(a.category) IN ('EQUITY', 'COMMON STOCK') " +
+            "AND a.code IS NOT NULL AND a.code <> '' " +
+            "AND (a.classificationCheckedAt IS NULL OR a.classificationCheckedAt < :cutoff) " +
+            "ORDER BY a.classificationCheckedAt ASC NULLS FIRST"
+    )
+    fun findEquitiesDueForClassification(
+        @Param("cutoff") cutoff: LocalDate
+    ): List<Asset>
 
     fun countByAccountingTypeId(id: String): Long
 

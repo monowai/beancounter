@@ -86,11 +86,20 @@ class ClassificationController(
 
         var processed = 0
         var errors = 0
+        var noData = 0
+        var rateLimited = 0
 
         for (asset in assets) {
             try {
-                if (classificationEnricher.enrichClassification(asset)) {
-                    processed++
+                // Goes through the refresh service (not the enricher directly) so
+                // classificationCheckedAt gets stamped here too - otherwise a manually
+                // backfilled asset would still look "never checked" to the resume-aware
+                // scheduled refresh and get re-attempted for no reason.
+                when (classificationRefreshService.attempt(asset)) {
+                    EnrichmentResult.ENRICHED -> processed++
+                    EnrichmentResult.FAILED -> errors++
+                    EnrichmentResult.NO_DATA -> noData++
+                    EnrichmentResult.RATE_LIMITED -> rateLimited++
                 }
             } catch (
                 @Suppress("TooGenericExceptionCaught")
@@ -102,7 +111,14 @@ class ClassificationController(
             }
         }
 
-        val result = BackfillResult(processed = processed, errors = errors, total = assets.size)
+        val result =
+            BackfillResult(
+                processed = processed,
+                errors = errors,
+                total = assets.size,
+                noData = noData,
+                rateLimited = rateLimited
+            )
         log.info("Classification backfill complete: $result")
 
         return BackfillResponse(data = result)
@@ -285,10 +301,11 @@ class ClassificationController(
         @PathVariable assetId: String
     ): Map<String, Any> {
         log.info("Refreshing classification for asset: $assetId")
-        val success = classificationRefreshService.refreshAsset(assetId)
+        val result = classificationRefreshService.refreshAsset(assetId)
         return mapOf(
             "assetId" to assetId,
-            "refreshed" to success
+            "refreshed" to (result == EnrichmentResult.ENRICHED),
+            "result" to result.name
         )
     }
 
@@ -308,11 +325,12 @@ class ClassificationController(
         @PathVariable code: String
     ): Map<String, Any> {
         log.info("Refreshing classification for $market:$code")
-        val success = classificationRefreshService.refreshAssetByCode(market, code)
+        val result = classificationRefreshService.refreshAssetByCode(market, code)
         return mapOf(
             "market" to market,
             "code" to code,
-            "refreshed" to success
+            "refreshed" to (result == EnrichmentResult.ENRICHED),
+            "result" to result.name
         )
     }
 

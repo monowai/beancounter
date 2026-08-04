@@ -213,7 +213,8 @@ class FigiAssetApiTest {
                 "reportCategory",
                 "sector",
                 "industry",
-                "expectedReturnRate"
+                "expectedReturnRate",
+                "classificationCheckedAt"
             ).isNotNull
     }
 

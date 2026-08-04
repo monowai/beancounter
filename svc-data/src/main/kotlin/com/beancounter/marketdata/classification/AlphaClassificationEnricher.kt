@@ -244,8 +244,10 @@ class AlphaClassificationEnricher(
     }
 
     companion object {
-        private val EQUITY_CATEGORIES = setOf("EQUITY", "COMMON STOCK")
-        private val ETF_CATEGORIES = setOf("ETF", "EXCHANGE TRADED FUND")
+        // Category sets live on ClassificationEnricher - a local copy here silently drifted out of
+        // sync with the shared one, which is how MUTUAL FUND ended up handled inconsistently.
+        private val EQUITY_CATEGORIES = ClassificationEnricher.EQUITY_CATEGORIES
+        private val ETF_CATEGORIES = ClassificationEnricher.ETF_CATEGORIES
         private val PLACEHOLDER_SYMBOLS = setOf("N/A", "NA", "-", "--")
         private const val MAX_HOLDINGS = 10
     }

@@ -107,6 +107,35 @@ class AlphaClassificationEnricherTest {
             status = Status.Active
         )
 
+    /**
+     * Providers routinely type exchange-traded funds as `MUTUAL FUND`. kauri categorises VanEck's
+     * US-listed SMOT that way — a NASDAQ ETF whose sector weights AlphaVantage serves today — so
+     * treating the category as non-fund meant it was never asked about at all.
+     */
+    @Test
+    fun `a MUTUAL FUND is treated as fund-like and enriched from the ETF profile`() {
+        val fund =
+            Asset(
+                id = "etf-1",
+                code = "SMOT",
+                name = "VANECK MORNINGSTAR SMID MOAT",
+                category = "MUTUAL FUND",
+                market = market,
+                priceSymbol = "SMOT",
+                status = Status.Active
+            )
+        val body = """{"sectors": [{"sector": "Health Care", "weight": "0.18"}]}"""
+        whenever(alphaProxy.getEtfProfile(eq("SMOT"), any())).thenReturn(body)
+
+        assertThat(enricher.canEnrich(fund)).isTrue()
+        assertThat(enricher.isEtf(fund)).isTrue()
+
+        val result = enricher.enrichClassification(fund)
+
+        assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
+        verify(classificationService).addExposure(any(), any(), any(), any(), any())
+    }
+
     @Test
     fun `enrichEtf skips placeholder and duplicate holding symbols but still writes sectors`() {
         val body =

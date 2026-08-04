@@ -63,9 +63,12 @@ data class Asset(
     /**
      * Date this asset's sector/industry classification (or, for ETFs, its sector exposures) was
      * last *attempted*. Drives resume-aware classification refresh — see
-     * `ClassificationRefreshService`. Not part of the public API surface consumed by bc-view.
+     * `ClassificationRefreshService`. Serialized to bc-view so the sector-weightings UI can
+     * distinguish "never checked" from "checked, but the provider had no sector data" — an
+     * empty exposures list carries no `asOf` of its own, so this field is the only signal
+     * available in that case.
      */
-    @JsonIgnore
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     var classificationCheckedAt: LocalDate? = null
 ) {
     companion object {

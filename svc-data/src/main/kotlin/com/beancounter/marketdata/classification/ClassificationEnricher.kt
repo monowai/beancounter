@@ -24,7 +24,16 @@ interface ClassificationEnricher {
 
     companion object {
         val EQUITY_CATEGORIES = setOf("EQUITY", "COMMON STOCK")
-        val ETF_CATEGORIES = setOf("ETF", "EXCHANGE TRADED FUND")
+
+        /**
+         * Fund-like categories that can carry pooled sector exposures.
+         *
+         * `MUTUAL FUND` is included because providers routinely type exchange-traded funds that
+         * way — kauri categorises VanEck's US-listed `SMOT` (a NASDAQ ETF whose sector weights
+         * AlphaVantage serves today) as `MUTUAL FUND`, as well as `EIMI` and the LSE/LON `SMOT`
+         * listings. Excluding the category meant those funds were never even asked about.
+         */
+        val ETF_CATEGORIES = setOf("ETF", "EXCHANGE TRADED FUND", "MUTUAL FUND")
 
         fun categoryCanEnrich(asset: Asset): Boolean {
             val category = asset.category.uppercase()

@@ -135,7 +135,7 @@ interface AssetRepository : JpaRepository<Asset, String> {
     @Query(
         "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
             "WHERE a.status = com.beancounter.common.model.Status.Active " +
-            "AND UPPER(a.category) IN ('ETF', 'EXCHANGE TRADED FUND') " +
+            "AND UPPER(a.category) IN ('ETF', 'EXCHANGE TRADED FUND', 'MUTUAL FUND') " +
             "AND a.code IS NOT NULL AND a.code <> ''"
     )
     fun findActiveEtfs(): List<Asset>
@@ -160,7 +160,7 @@ interface AssetRepository : JpaRepository<Asset, String> {
     @Query(
         "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
             "WHERE a.status = com.beancounter.common.model.Status.Active " +
-            "AND UPPER(a.category) IN ('ETF', 'EXCHANGE TRADED FUND') " +
+            "AND UPPER(a.category) IN ('ETF', 'EXCHANGE TRADED FUND', 'MUTUAL FUND') " +
             "AND a.code IS NOT NULL AND a.code <> '' " +
             "AND (a.classificationCheckedAt IS NULL OR a.classificationCheckedAt < :cutoff) " +
             "ORDER BY a.classificationCheckedAt ASC NULLS FIRST"

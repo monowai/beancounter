@@ -160,6 +160,20 @@ spring:
       rabbit:
         binder:
           connection-name-prefix: bc-data
+        bindings:
+          # Writes that fail validation (bad trade date, unknown asset, closed
+          # portfolio) used to exhaust the retry policy and get acked away — the
+          # payload was gone and the caller saw success (#1067). Dead-letter them
+          # instead: republish-to-dlq keeps the original body and stamps the failure
+          # headers, so <destination>.bc-data.dlq holds a replayable message.
+          csvImportConsumer-in-0:
+            consumer:
+              auto-bind-dlq: true
+              republish-to-dlq: true
+          trnEventConsumer-in-0:
+            consumer:
+              auto-bind-dlq: true
+              republish-to-dlq: true
   rabbitmq:
     host: localhost
     port: 5672

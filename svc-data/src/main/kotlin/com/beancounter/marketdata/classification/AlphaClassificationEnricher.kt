@@ -3,6 +3,7 @@ package com.beancounter.marketdata.classification
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.ClassificationLevel
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaEtfProfileResponse
 import com.beancounter.marketdata.providers.alpha.AlphaOverviewResponse
@@ -21,7 +22,8 @@ import org.springframework.stereotype.Service
 class AlphaClassificationEnricher(
     private val alphaConfig: AlphaConfig,
     private val alphaProxy: AlphaProxy,
-    private val classificationService: ClassificationService
+    private val classificationService: ClassificationService,
+    private val dateUtils: DateUtils = DateUtils()
 ) : ClassificationEnricher {
     private val log = LoggerFactory.getLogger(AlphaClassificationEnricher::class.java)
     private val objectMapper = alphaConfig.getObjectMapper()
@@ -176,7 +178,8 @@ class AlphaClassificationEnricher(
                     asset = asset,
                     standard = standard,
                     item = sectorItem,
-                    weight = weight
+                    weight = weight,
+                    asOf = dateUtils.date
                 )
                 sectorCount++
             }
@@ -213,7 +216,8 @@ class AlphaClassificationEnricher(
                     asset = asset,
                     symbol = normalizedSymbol,
                     name = holdingData.description,
-                    weight = weight
+                    weight = weight,
+                    asOf = dateUtils.date
                 )
                 holdingCount++
             }

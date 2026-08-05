@@ -42,6 +42,10 @@ class DateUtilsMocker {
             Mockito
                 .`when`(dateUtils.getFormattedDate(TODAY))
                 .thenReturn(DateUtils().getFormattedDate())
+
+            Mockito
+                .`when`(dateUtils.date)
+                .thenReturn(DateUtils().date)
         }
     }
 }

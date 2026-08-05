@@ -4,11 +4,11 @@ import com.beancounter.common.model.MilestoneMode
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.UserExplorerAction
 import com.beancounter.common.model.UserMilestone
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.UserPreferencesService
 import jakarta.transaction.Transactional
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 
 /**
  * Service for managing user milestones and explorer actions.
@@ -18,7 +18,8 @@ import java.time.LocalDate
 class MilestoneService(
     private val milestoneRepository: UserMilestoneRepository,
     private val explorerActionRepository: UserExplorerActionRepository,
-    private val userPreferencesService: UserPreferencesService
+    private val userPreferencesService: UserPreferencesService,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     fun getEarnedMilestones(owner: SystemUser): List<UserMilestone> = milestoneRepository.findByOwner(owner)
 
@@ -35,7 +36,7 @@ class MilestoneService(
             val milestone = existing.get()
             if (tier > milestone.tier) {
                 milestone.tier = tier
-                milestone.earnedAt = LocalDate.now()
+                milestone.earnedAt = dateUtils.date
                 return milestoneRepository.save(milestone)
             }
             return milestone
@@ -45,7 +46,8 @@ class MilestoneService(
                 UserMilestone(
                     owner = owner,
                     milestoneId = milestoneId,
-                    tier = tier
+                    tier = tier,
+                    earnedAt = dateUtils.date
                 )
             )
         } catch (_: DataIntegrityViolationException) {
@@ -57,7 +59,7 @@ class MilestoneService(
                     }
             if (tier > raced.tier) {
                 raced.tier = tier
-                raced.earnedAt = LocalDate.now()
+                raced.earnedAt = dateUtils.date
                 return milestoneRepository.save(raced)
             }
             raced
@@ -77,7 +79,8 @@ class MilestoneService(
             explorerActionRepository.save(
                 UserExplorerAction(
                     owner = owner,
-                    actionId = actionId
+                    actionId = actionId,
+                    recordedAt = dateUtils.date
                 )
             )
         } catch (_: DataIntegrityViolationException) {

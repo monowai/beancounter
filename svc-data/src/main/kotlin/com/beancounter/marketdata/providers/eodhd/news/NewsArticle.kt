@@ -33,8 +33,11 @@ import java.time.LocalDateTime
 data class NewsArticle(
     @Column(name = "external_id", nullable = false, length = 2048)
     var externalId: String = "",
+    // No default: the one call site that omits it (EodhdNewsService.saveOrMerge, for
+    // a brand-new row) immediately overwrites both this and fetchedAt via
+    // applyIncoming() before the entity is ever saved.
     @Column(nullable = false)
-    var published: LocalDateTime = LocalDateTime.now(),
+    var published: LocalDateTime,
     @Column(nullable = false, length = 1024)
     var title: String = "",
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -54,7 +57,7 @@ data class NewsArticle(
     @Column(nullable = false, length = 16)
     var source: String = "EODHD",
     @Column(name = "fetched_at", nullable = false)
-    var fetchedAt: LocalDateTime = LocalDateTime.now(),
+    var fetchedAt: LocalDateTime,
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "news_article_tag",

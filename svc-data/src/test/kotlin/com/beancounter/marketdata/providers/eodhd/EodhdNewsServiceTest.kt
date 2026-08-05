@@ -374,6 +374,8 @@ internal class EodhdNewsServiceTest {
         val winner =
             NewsArticle(
                 externalId = "https://example.com/news/race",
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
                 title = "winner inserted first"
             )
         whenever(articleRepo.findByExternalId(eq("https://example.com/news/race")))
@@ -404,6 +406,8 @@ internal class EodhdNewsServiceTest {
         val existing =
             NewsArticle(
                 externalId = "https://example.com/news/123",
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
                 title = "old title",
                 content = "old"
             )
@@ -454,6 +458,7 @@ internal class EodhdNewsServiceTest {
         NewsArticle(
             externalId = "ext-${title.hashCode()}",
             published = LocalDateTime.now().minusHours(1),
+            fetchedAt = LocalDateTime.now(),
             title = title,
             content = content,
             summary = summary,

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.morningstar
 
+import com.beancounter.common.utils.DateUtils
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -16,7 +17,9 @@ import java.time.format.DateTimeFormatter
  * The API is publicly accessible without authentication.
  */
 @Component
-class MorningstarGateway {
+class MorningstarGateway(
+    private val dateUtils: DateUtils = DateUtils()
+) {
     private val restTemplate = RestTemplate()
 
     companion object {
@@ -35,7 +38,7 @@ class MorningstarGateway {
     fun getPrice(
         securityId: String,
         currencyId: String = "GBP",
-        startDate: LocalDate = LocalDate.now().minusDays(7)
+        startDate: LocalDate = dateUtils.date.minusDays(7)
     ): String? =
         try {
             // Determine if it's a Morningstar ID or ISIN

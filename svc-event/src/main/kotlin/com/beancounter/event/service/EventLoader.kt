@@ -27,7 +27,8 @@ import java.util.concurrent.Executors
 class EventLoader(
     config: EventLoaderConfig,
     @Value("\${beancounter.events.dividend.days-to-add:10}")
-    private val daysToAdd: Long = 10
+    private val daysToAdd: Long = 10,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val portfolioService = config.sharedConfig.portfolioService
     private val positionService = config.serviceConfig.positionService
@@ -134,7 +135,7 @@ class EventLoader(
      */
     fun loadEventsForAsset(
         assetId: String,
-        date: LocalDate = LocalDate.now()
+        date: LocalDate = dateUtils.date
     ): Int {
         var eventCount = 0
         val events = priceService.getEvents(assetId)

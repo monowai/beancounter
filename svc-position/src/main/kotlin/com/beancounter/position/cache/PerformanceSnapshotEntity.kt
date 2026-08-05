@@ -35,6 +35,9 @@ data class PerformanceSnapshotEntity(
     val netContributions: BigDecimal = BigDecimal.ZERO,
     @Column(name = "cumulative_dividends", nullable = false, precision = 19, scale = 4)
     val cumulativeDividends: BigDecimal = BigDecimal.ZERO,
+    // No default: this is a JPA entity with no DI, so it cannot resolve "now" in the
+    // configured beancounter.zone itself. The one caller (JpaPerformanceCacheService)
+    // passes an explicit LocalDateTime.now(dateUtils.zoneId).
     @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime
 )

@@ -33,6 +33,9 @@ data class UserMilestone(
     val owner: SystemUser,
     val milestoneId: String,
     var tier: Int = 1,
+    // No default: this is a JPA entity with no DI, so it cannot resolve "today" in
+    // the configured beancounter.zone itself. Callers must pass an explicit date —
+    // see MilestoneService, which uses DateUtils.date.
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    var earnedAt: LocalDate = LocalDate.now()
+    var earnedAt: LocalDate
 )

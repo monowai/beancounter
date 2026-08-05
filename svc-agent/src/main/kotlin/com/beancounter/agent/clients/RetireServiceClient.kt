@@ -3,6 +3,7 @@ package com.beancounter.agent.clients
 import com.beancounter.auth.TokenService
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -12,7 +13,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import tools.jackson.module.kotlin.readValue
-import java.time.LocalDate
 
 /**
  * A single phase in a composite (multi-plan) retirement projection.
@@ -50,7 +50,8 @@ data class CompositePhaseInput(
 class RetireServiceClient(
     @Qualifier("retireRestClient")
     private val restClient: RestClient,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     /**
      * `GET /settings` — the user's stored independence settings, including
@@ -79,7 +80,7 @@ class RetireServiceClient(
 
         // Compute current age from yearOfBirth (optionally using monthOfBirth)
         (raw["yearOfBirth"] as? Number)?.toInt()?.let { yob ->
-            val today = LocalDate.now()
+            val today = dateUtils.date
             val monthOfBirth = (raw["monthOfBirth"] as? Number)?.toInt()
             val age =
                 if (monthOfBirth != null && today.monthValue < monthOfBirth) {

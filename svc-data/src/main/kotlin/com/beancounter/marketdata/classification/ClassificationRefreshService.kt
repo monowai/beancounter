@@ -2,11 +2,11 @@ package com.beancounter.marketdata.classification
 
 import com.beancounter.common.contracts.BackfillResult
 import com.beancounter.common.model.Asset
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 
 /**
  * Service for refreshing asset classification data.
@@ -36,7 +36,8 @@ class ClassificationRefreshService(
     @Value("\${beancounter.classification.stale-after-days:7}")
     private val staleAfterDays: Long = 7,
     @Value("\${beancounter.classification.batch-limit:20}")
-    private val batchLimit: Int = 20
+    private val batchLimit: Int = 20,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(ClassificationRefreshService::class.java)
 
@@ -45,7 +46,7 @@ class ClassificationRefreshService(
      */
     fun refreshEtfSectors(): BackfillResult {
         log.info("Starting ETF sector refresh")
-        val cutoff = LocalDate.now().minusDays(staleAfterDays)
+        val cutoff = dateUtils.date.minusDays(staleAfterDays)
         val totalActive = assetRepository.findActiveEtfs().size
         val due = assetRepository.findEtfsDueForClassification(cutoff)
         return processAssets(totalActive, due, "ETF sectors")
@@ -56,7 +57,7 @@ class ClassificationRefreshService(
      */
     fun refreshEquityClassifications(): BackfillResult {
         log.info("Starting Equity classification refresh")
-        val cutoff = LocalDate.now().minusDays(staleAfterDays)
+        val cutoff = dateUtils.date.minusDays(staleAfterDays)
         val totalActive = assetRepository.findActiveEquities().size
         val due = assetRepository.findEquitiesDueForClassification(cutoff)
         return processAssets(totalActive, due, "Equity classifications")
@@ -117,7 +118,7 @@ class ClassificationRefreshService(
         if (result == EnrichmentResult.RATE_LIMITED) {
             return
         }
-        asset.classificationCheckedAt = LocalDate.now()
+        asset.classificationCheckedAt = dateUtils.date
         assetRepository.save(asset)
     }
 

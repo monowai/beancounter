@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDate
 
 /**
  * Market Data MVC for price management operations.
@@ -336,7 +335,7 @@ class PriceController(
         val fromDate = dateUtils.getFormattedDate(from)
         val toDate = dateUtils.getFormattedDate(to)
         val initial = priceService.getPriceHistory(assetId, fromDate, toDate)
-        val targetFrom = fromDate.coerceAtLeast(LocalDate.now().minusYears(MAX_BACKFILL_YEARS))
+        val targetFrom = fromDate.coerceAtLeast(dateUtils.date.minusYears(MAX_BACKFILL_YEARS))
 
         if (initial.prices.isEmpty()) {
             // Nothing cached at all — block briefly so the chart isn't empty.
@@ -432,7 +431,7 @@ class PriceController(
     fun ensureHistory(
         @RequestBody request: EnsureHistoryRequest
     ): EnsureHistoryResponse {
-        val targetFrom = request.fromDate.coerceAtLeast(LocalDate.now().minusYears(MAX_BACKFILL_YEARS))
+        val targetFrom = request.fromDate.coerceAtLeast(dateUtils.date.minusYears(MAX_BACKFILL_YEARS))
         // Trim and de-duplicate so a sloppy caller (e.g. a portfolio with the same asset across
         // currencies) doesn't blow the per-asset cooldown budget on phantom IDs, and so the
         // returned `scheduled` count reflects what we actually queued.

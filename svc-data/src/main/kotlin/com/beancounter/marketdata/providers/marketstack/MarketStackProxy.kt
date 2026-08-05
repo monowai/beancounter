@@ -4,7 +4,6 @@ import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackData
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackResponse
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
 
 /**
  * Async proxy to obtain MarketData.
@@ -39,8 +38,7 @@ class MarketStackProxy(
                 missingPrices.add(
                     marketStackAdapter.getMsDefault(
                         assetCode,
-                        "",
-                        LocalDateTime.now()
+                        ""
                     )
                 )
             }

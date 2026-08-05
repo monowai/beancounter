@@ -2,12 +2,12 @@ package com.beancounter.marketdata.tax
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.time.LocalDate
 
 /**
  * Service for managing user-defined tax rates by country.
@@ -19,7 +19,8 @@ import java.time.LocalDate
 @Transactional
 class TaxRateService(
     private val taxRateRepository: TaxRateRepository,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -88,15 +89,15 @@ class TaxRateService(
             if (existing != null) {
                 existing.copy(
                     rate = request.rate,
-                    updatedDate = LocalDate.now()
+                    updatedDate = dateUtils.date
                 )
             } else {
                 TaxRate(
                     owner = user,
                     countryCode = normalizedCode,
                     rate = request.rate,
-                    createdDate = LocalDate.now(),
-                    updatedDate = LocalDate.now()
+                    createdDate = dateUtils.date,
+                    updatedDate = dateUtils.date
                 )
             }
 

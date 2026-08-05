@@ -32,6 +32,9 @@ data class UserExplorerAction(
     @JsonIgnore
     val owner: SystemUser,
     val actionId: String,
+    // No default: this is a JPA entity with no DI, so it cannot resolve "today" in
+    // the configured beancounter.zone itself. Callers must pass an explicit date —
+    // see MilestoneService.recordExplorerAction, which uses DateUtils.date.
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    val recordedAt: LocalDate = LocalDate.now()
+    val recordedAt: LocalDate
 )

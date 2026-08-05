@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.eodhd
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.telemetry.runBlockingTraced
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.providers.NewsProvider
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
@@ -45,7 +46,8 @@ class EodhdNewsService(
     private val newsProperties: EodhdNewsProperties,
     private val newsArticleRepo: NewsArticleRepo,
     private val newsFetchRepo: NewsFetchRepo,
-    private val assetFinder: AssetFinder
+    private val assetFinder: AssetFinder,
+    private val dateUtils: DateUtils = DateUtils()
 ) : NewsProvider {
     private val log = LoggerFactory.getLogger(EodhdNewsService::class.java)
 
@@ -84,10 +86,10 @@ class EodhdNewsService(
     ): Map<String, Any> {
         if (symbols.isEmpty()) return emptyMap()
 
-        val refreshCutoff = LocalDateTime.now().minusHours(newsProperties.refreshAfterHours)
+        val refreshCutoff = LocalDateTime.now(dateUtils.zoneId).minusHours(newsProperties.refreshAfterHours)
         refreshStaleSymbols(symbols.filter { shouldRefresh(it, refreshCutoff) })
 
-        val retentionStart = LocalDateTime.now().minusDays(newsProperties.retentionDays)
+        val retentionStart = LocalDateTime.now(dateUtils.zoneId).minusDays(newsProperties.retentionDays)
         val stored = newsArticleRepo.findByTickersAfter(symbols, retentionStart)
         val ranked =
             stored
@@ -164,15 +166,18 @@ class EodhdNewsService(
         when (outcome) {
             is FetchResult.Success -> {
                 upsertAll(symbol, outcome.articles)
-                newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(), outcome.articles.size))
+                newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(dateUtils.zoneId), outcome.articles.size))
             }
             FetchResult.Failure -> {
                 // Burn the refresh cooldown even on failure — otherwise a transient EODHD outage
                 // or 429 turns every subsequent request into a quota-amplifying retry storm. Next
                 // attempt waits `refresh-after-hours`, matching the success-path backoff. Articles
                 // already in the DB keep serving in the meantime.
-                val existing = newsFetchRepo.findById(symbol).orElseGet { NewsFetch(symbol) }
-                existing.lastFetchedAt = LocalDateTime.now()
+                val existing =
+                    newsFetchRepo
+                        .findById(symbol)
+                        .orElseGet { NewsFetch(ticker = symbol, lastFetchedAt = LocalDateTime.now(dateUtils.zoneId)) }
+                existing.lastFetchedAt = LocalDateTime.now(dateUtils.zoneId)
                 newsFetchRepo.save(existing)
             }
         }
@@ -209,7 +214,13 @@ class EodhdNewsService(
         incoming: EodhdNewsArticle
     ) {
         val existing = newsArticleRepo.findByExternalId(externalId).orElse(null)
-        val article = existing ?: NewsArticle(externalId = externalId)
+        val article =
+            existing ?: NewsArticle(
+                externalId = externalId,
+                // Placeholder — applyIncoming() overwrites both stamps immediately below.
+                published = LocalDateTime.now(dateUtils.zoneId),
+                fetchedAt = LocalDateTime.now(dateUtils.zoneId)
+            )
         applyIncoming(article, externalId, symbol, incoming)
         try {
             newsArticleRepo.save(article)
@@ -238,7 +249,7 @@ class EodhdNewsService(
             article.sentimentNeu = s.neu
         }
         article.source = "EODHD"
-        article.fetchedAt = LocalDateTime.now()
+        article.fetchedAt = LocalDateTime.now(dateUtils.zoneId)
 
         // Refresh the tag set — EODHD can revise tags between fetches.
         article.tags.clear()

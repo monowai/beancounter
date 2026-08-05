@@ -114,19 +114,26 @@ class MarketStackAdapter {
 
     fun getMsDefault(
         asset: String,
-        exchange: String,
-        date: LocalDateTime
+        exchange: String
     ): MarketStackData {
         log.trace(
             "{} - unable to locate a price",
             asset
         )
+        // A default/missing-price stub always has close == ZERO, so toMarketData()
+        // always takes the getDefault() branch for it and never reads this date —
+        // it's a placeholder to satisfy MarketStackData's non-null field, not a
+        // real timestamp. See MarketStackAdapter.toMarketData / getMarketData.
         return MarketStackData(
             symbol = asset,
             exchange = exchange,
-            date = date,
+            date = MISSING_PRICE_PLACEHOLDER_DATE,
             close = BigDecimal.ZERO
         )
+    }
+
+    companion object {
+        private val MISSING_PRICE_PLACEHOLDER_DATE: LocalDateTime = LocalDateTime.MIN
     }
 
     fun getDefault(

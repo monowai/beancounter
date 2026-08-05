@@ -9,6 +9,19 @@ version = "0.1.3-SNAPSHOT"
 
 extra["guavaVersion"] = "33.3.1-jre"
 
+// ZoneLeakGuardTest scans every module's production sources, which Gradle cannot
+// infer. Without declaring them the task stays UP-TO-DATE while another module
+// introduces a leak, and the guard silently passes.
+tasks.named<Test>("test") {
+    inputs
+        .files(
+            fileTree(rootDir) {
+                include("*/src/main/kotlin/**/*.kt")
+            }
+        ).withPropertyName("zoneGuardSources")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 dependencies {
     // Boot-agnostic tier (contracts/model/input/exception types/utils/…).
     // `api` so all downstream consumers keep seeing these symbols transitively

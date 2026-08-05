@@ -26,7 +26,10 @@ data class CashTransferRequest(
     val toAssetId: String,
     val sentAmount: BigDecimal,
     val receivedAmount: BigDecimal = sentAmount,
-    val tradeDate: LocalDate = LocalDate.now(),
+    // Null means "today", resolved by CashTransferService in the configured
+    // beancounter.zone. A LocalDate.now() default here would resolve in the JVM
+    // zone and back-date the settled legs for callers east of it.
+    val tradeDate: LocalDate? = null,
     val description: String? = null
 )
 

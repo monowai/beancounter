@@ -1,0 +1,47 @@
+# Files under */src/main/kotlin that still read the clock through the JVM default
+# zone (bare LocalDate.now() / LocalDateTime.now() / ZoneId.systemDefault() etc.)
+# instead of the configured beancounter.zone via DateUtils.
+#
+# This is a SHRINKING baseline, not an allowlist to grow. ZoneLeakGuardTest fails if
+# a file not listed here starts leaking, and also fails if a listed file no longer
+# leaks — delete the line when you fix one.
+#
+# Why it matters: the pods run UTC while users are SGT (UTC+8). A bare now() dated a
+# same-day trade as "tomorrow" and the CSV import consumer rejected it silently (#1067,
+# fixed for the import guard in #1068).
+jar-contracts/src/main/kotlin/com/beancounter/common/model/AssetClassification.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/AssetExposure.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/AssetHolding.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/FxRate.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/MarketData.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/PriceData.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/SystemUser.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/UserExplorerAction.kt
+jar-contracts/src/main/kotlin/com/beancounter/common/model/UserMilestone.kt
+svc-agent/src/main/kotlin/com/beancounter/agent/clients/RetireServiceClient.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/assets/PrivateAssetConfig.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/assets/PrivateAssetConfigService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/cash/CashAutoSettleService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/classification/ClassificationRefreshService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/classification/ClassificationService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/markets/MarketCalendarConfig.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/milestone/MilestoneService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/MarketDataBackfillService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/MarketDataPriceProvider.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/PriceController.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/alpha/AlphaNewsService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/alpha/AlphaPriceDeserializer.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/EodhdNewsService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/news/NewsArticle.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/news/NewsFetch.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/news/NewsRetentionSchedule.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/marketstack/MarketStackProxy.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/morningstar/MorningstarGateway.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/morningstar/MorningstarProxy.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/tax/TaxRate.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/tax/TaxRateService.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/trn/InvestmentWindow.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/trn/TrnAnalysisController.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/trn/TrnAnalysisService.kt
+svc-event/src/main/kotlin/com/beancounter/event/service/EventLoader.kt
+svc-position/src/main/kotlin/com/beancounter/position/cache/PerformanceSnapshotEntity.kt

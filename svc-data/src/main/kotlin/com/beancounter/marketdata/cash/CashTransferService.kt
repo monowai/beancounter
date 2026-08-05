@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnService
@@ -26,7 +27,8 @@ import java.math.BigDecimal
 class CashTransferService(
     private val assetService: AssetService,
     private val portfolioService: PortfolioService,
-    private val trnService: TrnService
+    private val trnService: TrnService,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(CashTransferService::class.java)
 
@@ -62,6 +64,7 @@ class CashTransferService(
             "Cannot transfer between different currencies: $fromCurrency and $toCurrency"
         }
 
+        val tradeDate = request.tradeDate ?: dateUtils.date
         val transactions = mutableListOf<Trn>()
 
         // Create WITHDRAWAL transaction (amount sent from source)
@@ -72,7 +75,7 @@ class CashTransferService(
                 trnType = TrnType.WITHDRAWAL,
                 amount = request.sentAmount,
                 currency = fromCurrency,
-                tradeDate = request.tradeDate,
+                tradeDate = tradeDate,
                 status = TrnStatus.SETTLED,
                 comments = request.description ?: "Transfer to ${toAsset.code}"
             )
@@ -95,7 +98,7 @@ class CashTransferService(
                 trnType = TrnType.DEPOSIT,
                 amount = request.receivedAmount,
                 currency = toCurrency,
-                tradeDate = request.tradeDate,
+                tradeDate = tradeDate,
                 status = TrnStatus.SETTLED,
                 comments = request.description ?: "Transfer from ${fromAsset.code}"
             )

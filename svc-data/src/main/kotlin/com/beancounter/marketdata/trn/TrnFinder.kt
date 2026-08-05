@@ -166,7 +166,7 @@ class TrnFinder(
         cashAssetId: String
     ): Collection<Trn> {
         val portfolio = portfolioService.find(portfolioId)
-        val today = LocalDate.now()
+        val today = dateUtils.date
         val results =
             trnRepository.findByPortfolioIdAndCashAssetId(
                 portfolio.id,

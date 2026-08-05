@@ -11,6 +11,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.portfolio.PortfolioService
 import jakarta.transaction.Transactional
@@ -26,7 +27,8 @@ class PositionMoveService(
     private val portfolioService: PortfolioService,
     private val fxTransactions: FxTransactions,
     private val trnService: TrnService,
-    private val cacheInvalidationProducer: CacheInvalidationProducer
+    private val cacheInvalidationProducer: CacheInvalidationProducer,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(PositionMoveService::class.java)
 
@@ -71,7 +73,7 @@ class PositionMoveService(
 
         trnRepository.saveAll(transactions)
 
-        val earliestDate = transactions.minOfOrNull { it.tradeDate } ?: LocalDate.now()
+        val earliestDate = transactions.minOfOrNull { it.tradeDate } ?: dateUtils.date
         cacheInvalidationProducer.sendTransactionEvent(sourcePortfolio.id, earliestDate)
         cacheInvalidationProducer.sendTransactionEvent(targetPortfolio.id, earliestDate)
 
@@ -198,7 +200,7 @@ class PositionMoveService(
             trnType = trnType,
             amount = amount,
             currency = tradeCurrency,
-            tradeDate = LocalDate.now(),
+            tradeDate = dateUtils.date,
             status = TrnStatus.SETTLED,
             comments = comment,
             // Preserve historical behaviour: this call site never set price, so

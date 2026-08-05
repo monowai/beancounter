@@ -159,7 +159,7 @@ class DateUtils(
             OffsetDateTime.now(UTC)
         } else {
             OffsetDateTime.of(
-                getFormattedDate(date).atTime(LocalTime.now()),
+                getFormattedDate(date).atTime(LocalTime.now(zoneId)),
                 UTC
             )
         }

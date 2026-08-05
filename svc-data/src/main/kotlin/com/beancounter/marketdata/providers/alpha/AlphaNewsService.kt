@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.NewsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -32,7 +33,8 @@ class AlphaNewsService(
     private val alphaGateway: AlphaGateway,
     private val alphaConfig: AlphaConfig,
     private val objectMapper: ObjectMapper,
-    private val newsProperties: NewsProperties
+    private val newsProperties: NewsProperties,
+    private val dateUtils: DateUtils = DateUtils()
 ) : NewsProvider {
     private val log = LoggerFactory.getLogger(AlphaNewsService::class.java)
 
@@ -219,7 +221,7 @@ class AlphaNewsService(
             .toSet()
 
     private fun businessDaysAgo(days: Int): LocalDate {
-        var date = LocalDate.now()
+        var date = dateUtils.date
         var remaining = days
         while (remaining > 0) {
             date = date.minusDays(1)

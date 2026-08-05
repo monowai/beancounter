@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Asset
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.MAX_BACKFILL_YEARS
@@ -50,7 +51,8 @@ class MarketDataBackfillService(
     private val marketDataRepo: MarketDataRepo,
     private val trnRepository: TrnRepository,
     @Suppress("unused") private val cacheInvalidationProducer: CacheInvalidationProducer? = null,
-    private val maxBackfillYears: Long = MAX_BACKFILL_YEARS
+    private val maxBackfillYears: Long = MAX_BACKFILL_YEARS,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(MarketDataBackfillService::class.java)
 
@@ -65,7 +67,7 @@ class MarketDataBackfillService(
         asset: Asset,
         fromDate: LocalDate = defaultBackfillFrom()
     ) {
-        val today = LocalDate.now()
+        val today = dateUtils.date
         val anchored = anchorFromDate(asset.id, fromDate, today)
         val priorDbMin = marketDataRepo.findEarliestPriceDateByAssetId(asset.id)
         val priorDbMax = marketDataRepo.findLatestPriceDateByAssetId(asset.id)
@@ -92,7 +94,7 @@ class MarketDataBackfillService(
     internal fun anchorFromDate(
         assetId: String,
         fromDate: LocalDate,
-        today: LocalDate = LocalDate.now()
+        today: LocalDate = dateUtils.date
     ): LocalDate {
         val earliestHeld = trnRepository.findEarliestTradeDateByAssetId(assetId)
         val widened =

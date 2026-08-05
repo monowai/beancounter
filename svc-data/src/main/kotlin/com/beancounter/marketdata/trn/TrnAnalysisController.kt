@@ -2,6 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.utils.DateUtils
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -35,7 +36,8 @@ import java.time.YearMonth
             "including summaries, monthly investments, and income"
 )
 class TrnAnalysisController(
-    var trnAnalysisService: TrnAnalysisService
+    var trnAnalysisService: TrnAnalysisService,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     @GetMapping(
         value = ["/summary"],
@@ -154,7 +156,7 @@ class TrnAnalysisController(
             example = "portfolio-1,portfolio-2"
         ) @RequestParam(required = false) portfolioIds: String?
     ): MonthlyInvestmentResponse {
-        val (startDate, endDate) = investmentWindow(days)
+        val (startDate, endDate) = investmentWindow(days, dateUtils.date)
 
         val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
 
@@ -202,7 +204,7 @@ class TrnAnalysisController(
             example = "30"
         ) @RequestParam(required = false, defaultValue = "$DEFAULT_INVESTMENT_WINDOW_DAYS") days: Int
     ): TrnResponse {
-        val (startDate, endDate) = investmentWindow(days)
+        val (startDate, endDate) = investmentWindow(days, dateUtils.date)
         return TrnResponse(trnAnalysisService.getMonthlyInvestmentTransactions(startDate, endDate))
     }
 
@@ -288,7 +290,7 @@ class TrnAnalysisController(
             if (endMonth != null) {
                 YearMonth.parse(endMonth)
             } else {
-                YearMonth.now()
+                YearMonth.now(dateUtils.zoneId)
             }
         val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
         return trnAnalysisService.getMonthlyIncome(months, end, portfolioIdList, groupBy)

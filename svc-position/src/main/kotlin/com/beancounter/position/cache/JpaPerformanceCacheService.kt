@@ -1,16 +1,19 @@
 package com.beancounter.position.cache
 
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 @Primary
 class JpaPerformanceCacheService(
-    private val repository: PerformanceSnapshotRepository
+    private val repository: PerformanceSnapshotRepository,
+    private val dateUtils: DateUtils = DateUtils()
 ) : PerformanceCacheService {
     private val log = LoggerFactory.getLogger(JpaPerformanceCacheService::class.java)
     private val keyGen = KeyGenUtils()
@@ -60,7 +63,8 @@ class JpaPerformanceCacheService(
                     marketValue = snapshot.marketValue,
                     externalCashFlow = snapshot.externalCashFlow,
                     netContributions = snapshot.netContributions,
-                    cumulativeDividends = snapshot.cumulativeDividends
+                    cumulativeDividends = snapshot.cumulativeDividends,
+                    createdAt = LocalDateTime.now(dateUtils.zoneId)
                 )
             }
         repository.saveAll(toSave)

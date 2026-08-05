@@ -5,6 +5,7 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.fx.FxRateService
@@ -26,7 +27,8 @@ class TrnAnalysisService(
     private val systemUserService: SystemUserService,
     private val fxRateService: FxRateService,
     private val assetRepository: AssetRepository,
-    private val classificationService: ClassificationService
+    private val classificationService: ClassificationService,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(TrnAnalysisService::class.java)
 
@@ -149,7 +151,7 @@ class TrnAnalysisService(
         weeks: Int,
         targetCurrency: String
     ): TransactionSummary {
-        val endDate = LocalDate.now()
+        val endDate = dateUtils.date
         val startDate = endDate.minusWeeks(weeks.toLong())
 
         val user = systemUserService.getOrThrow()
@@ -226,7 +228,7 @@ class TrnAnalysisService(
      */
     fun getMonthlyIncome(
         months: Int = 12,
-        endMonth: YearMonth = YearMonth.now(),
+        endMonth: YearMonth = YearMonth.now(dateUtils.zoneId),
         portfolioIds: List<String> = emptyList(),
         groupBy: String = "assetClass"
     ): MonthlyIncomeResponse {

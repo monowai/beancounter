@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.markets
 
+import com.beancounter.common.utils.DateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -19,13 +20,14 @@ import java.time.LocalDate
 class MarketCalendarConfig
     @Autowired
     constructor(
-        val values: List<MarketHolidayAnnual>
+        val values: List<MarketHolidayAnnual>,
+        private val dateUtils: DateUtils = DateUtils()
     ) {
         private val map: MutableMap<String, List<LocalDate>> = mutableMapOf()
 
         @Cacheable("market.holidays")
         fun marketHolidays(
-            year: Int = LocalDate.now().year,
+            year: Int = dateUtils.date.year,
             market: String
         ): List<LocalDate> =
             map.getOrPut(cacheKey(market, year)) {
@@ -36,7 +38,7 @@ class MarketCalendarConfig
             }
 
         fun buildMarketHolidays(
-            year: Int = LocalDate.now().year,
+            year: Int = dateUtils.date.year,
             market: String
         ): List<LocalDate> {
             return values

@@ -14,6 +14,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.time.LocalDate
 import java.util.Optional
 
 class MilestoneServiceTest {
@@ -23,6 +24,11 @@ class MilestoneServiceTest {
     private lateinit var milestoneService: MilestoneService
 
     private val user = SystemUser(id = "user-123", email = "test@test.com")
+
+    // Fixed, arbitrary date — these tests assert on tier/milestoneId/actionId, never
+    // on the stamp itself. Zone-correctness of the stamp is covered separately by
+    // MilestoneServiceZoneTest.
+    private val someDate = LocalDate.of(2026, 1, 1)
 
     @BeforeEach
     fun setUp() {
@@ -41,8 +47,8 @@ class MilestoneServiceTest {
     fun `getEarnedMilestones returns all milestones for user`() {
         val milestones =
             listOf(
-                UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 1),
-                UserMilestone(owner = user, milestoneId = "first-steps", tier = 2)
+                UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 1, earnedAt = someDate),
+                UserMilestone(owner = user, milestoneId = "first-steps", tier = 2, earnedAt = someDate)
             )
         whenever(milestoneRepository.findByOwner(user)).thenReturn(milestones)
 
@@ -71,7 +77,7 @@ class MilestoneServiceTest {
     @Test
     fun `earnMilestone upgrades tier when new tier is higher`() {
         val existing =
-            UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 1)
+            UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 1, earnedAt = someDate)
         whenever(
             milestoneRepository.findByOwnerAndMilestoneId(user, "portfolio-builder")
         ).thenReturn(Optional.of(existing))
@@ -88,7 +94,7 @@ class MilestoneServiceTest {
     @Test
     fun `earnMilestone does not downgrade tier`() {
         val existing =
-            UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 3)
+            UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 3, earnedAt = someDate)
         whenever(
             milestoneRepository.findByOwnerAndMilestoneId(user, "portfolio-builder")
         ).thenReturn(Optional.of(existing))
@@ -102,7 +108,7 @@ class MilestoneServiceTest {
     @Test
     fun `earnMilestone does not change tier when same`() {
         val existing =
-            UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 2)
+            UserMilestone(owner = user, milestoneId = "portfolio-builder", tier = 2, earnedAt = someDate)
         whenever(
             milestoneRepository.findByOwnerAndMilestoneId(user, "portfolio-builder")
         ).thenReturn(Optional.of(existing))
@@ -117,8 +123,8 @@ class MilestoneServiceTest {
     fun `getExplorerActions returns all actions for user`() {
         val actions =
             listOf(
-                UserExplorerAction(owner = user, actionId = "view:heatmap"),
-                UserExplorerAction(owner = user, actionId = "view:table")
+                UserExplorerAction(owner = user, actionId = "view:heatmap", recordedAt = someDate),
+                UserExplorerAction(owner = user, actionId = "view:table", recordedAt = someDate)
             )
         whenever(explorerActionRepository.findByOwner(user)).thenReturn(actions)
 

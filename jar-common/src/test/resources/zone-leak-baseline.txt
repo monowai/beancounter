@@ -9,39 +9,57 @@
 # Why it matters: the pods run UTC while users are SGT (UTC+8). A bare now() dated a
 # same-day trade as "tomorrow" and the CSV import consumer rejected it silently (#1067,
 # fixed for the import guard in #1068).
+#
+# Dead entity defaults below (AssetClassification/AssetExposure/AssetHolding/FxRate/
+# PriceData): every current caller already passes an explicit date, so the default
+# itself is unreachable in practice — but these are plain JPA data classes with no DI,
+# so making the field required would only be safe after auditing every construction
+# site (including test fixtures) for a value that's silently relied upon. Left as a
+# smaller, safer diff; drain opportunistically.
 jar-contracts/src/main/kotlin/com/beancounter/common/model/AssetClassification.kt
 jar-contracts/src/main/kotlin/com/beancounter/common/model/AssetExposure.kt
 jar-contracts/src/main/kotlin/com/beancounter/common/model/AssetHolding.kt
 jar-contracts/src/main/kotlin/com/beancounter/common/model/FxRate.kt
+# MarketData.priceDate: when a price date matters, the correct authority is the
+# MARKET's zone (trading-day close), not the service zone — do not "fix" this by
+# wiring beancounter.zone through MarketData. Every current caller already passes an
+# explicit priceDate; the bare default is unreachable but left alone.
 jar-contracts/src/main/kotlin/com/beancounter/common/model/MarketData.kt
 jar-contracts/src/main/kotlin/com/beancounter/common/model/PriceData.kt
+# SystemUser.since: attempted the Tier 1 fix (SystemUserService.register /
+# registerSystemAccount passing dateUtils.date explicitly, TDD-covered by a
+# SystemUserServiceZoneTest) and reverted it. SystemUserService.register() sits on
+# the registration path exercised by nearly every MockMvc integration test's setup
+# across svc-data, svc-data's contractTest source set, and jar-client — many of them
+# @MockitoBean DateUtils without stubbing `.date`, so the mock's unstubbed null
+# return blew up SystemUser's non-null `since` constructor param (NPE at
+# SystemUserService.kt in ~6+ test classes). Fixing every call site's stub is exactly
+# the kind of test-touching ripple the brief asked to avoid for a field ("member
+# since") that is cosmetic at worst. Reverted; left in the baseline for a dedicated
+# follow-up that also updates the affected tests.
 jar-contracts/src/main/kotlin/com/beancounter/common/model/SystemUser.kt
-jar-contracts/src/main/kotlin/com/beancounter/common/model/UserExplorerAction.kt
-jar-contracts/src/main/kotlin/com/beancounter/common/model/UserMilestone.kt
-svc-agent/src/main/kotlin/com/beancounter/agent/clients/RetireServiceClient.kt
+# PrivateAssetConfig.createdDate/updatedDate: PrivateAssetConfigService (the one
+# production caller) now passes dateUtils.date explicitly for both. The entity
+# default itself is left in place — PrivateAssetConfigServiceTest alone has ~29
+# direct constructions that omit the dates and don't assert on them; touching all of
+# them for a field nobody observes isn't worth the diff.
 svc-data/src/main/kotlin/com/beancounter/marketdata/assets/PrivateAssetConfig.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/assets/PrivateAssetConfigService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/cash/CashAutoSettleService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/classification/ClassificationRefreshService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/classification/ClassificationService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/markets/MarketCalendarConfig.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/milestone/MilestoneService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/MarketDataBackfillService.kt
+# MarketDataPriceProvider.defaultBackfillFrom(): a companion-object function with no
+# DI, used as the default `fromDate` across 8+ MarketDataPriceProvider implementors'
+# backFill() overrides. Genuinely live (reached whenever a caller omits fromDate), but
+# fixing it means plumbing DateUtils through an interface implemented by every price
+# provider — out of proportion to this pass. Left for a dedicated follow-up.
 svc-data/src/main/kotlin/com/beancounter/marketdata/providers/MarketDataPriceProvider.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/PriceController.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/alpha/AlphaNewsService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/alpha/AlphaPriceDeserializer.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/EodhdNewsService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/news/NewsArticle.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/news/NewsFetch.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/eodhd/news/NewsRetentionSchedule.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/marketstack/MarketStackProxy.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/morningstar/MorningstarGateway.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/providers/morningstar/MorningstarProxy.kt
+# TaxRate.createdDate/updatedDate: TaxRateService (the one production caller) now
+# passes dateUtils.date explicitly for both. The entity default itself is left in
+# place — it's a plain data-class fallback with no other caller.
 svc-data/src/main/kotlin/com/beancounter/marketdata/tax/TaxRate.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/tax/TaxRateService.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/trn/InvestmentWindow.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/trn/TrnAnalysisController.kt
-svc-data/src/main/kotlin/com/beancounter/marketdata/trn/TrnAnalysisService.kt
-svc-event/src/main/kotlin/com/beancounter/event/service/EventLoader.kt
-svc-position/src/main/kotlin/com/beancounter/position/cache/PerformanceSnapshotEntity.kt
+# MorningstarProxy.getPrice: attempted (dateUtils.date.minusDays(7) default), then
+# reverted. MorningstarPriceServiceTest constructs MorningstarProxy via raw
+# Mockito `mock()`, which never runs the real constructor — the injected DateUtils
+# field is left null, and Kotlin evaluates the default `startDate` argument by
+# calling back into the real (non-mocked) default-value bridge method on that null
+# field before the stubbed 2-arg call is ever matched, throwing an NPE the
+# production try/catch swallows into a silent empty result. Reverted rather than
+# touch the test's mocking strategy.
+svc-data/src/main/kotlin/com/beancounter/marketdata/providers/morningstar/MorningstarProxy.kt

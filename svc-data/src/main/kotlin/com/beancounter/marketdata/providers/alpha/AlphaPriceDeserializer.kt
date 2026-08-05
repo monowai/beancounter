@@ -152,7 +152,7 @@ class AlphaPriceDeserializer : ValueDeserializer<PriceResponse>() {
 
     private fun getPrice(
         asset: Asset,
-        priceDate: LocalDate = LocalDate.now(),
+        priceDate: LocalDate = dateUtils.date,
         data: Map<String, Any> = mapOf()
     ): MarketData {
         val price: MarketData?

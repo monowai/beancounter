@@ -8,6 +8,7 @@ import com.beancounter.common.model.AssetHolding
 import com.beancounter.common.model.ClassificationItem
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.ClassificationStandard
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
@@ -28,7 +29,8 @@ class ClassificationService(
     private val holdingRepository: AssetHoldingRepository,
     private val sectorNormalizer: SectorNormalizer,
     private val keyGenUtils: KeyGenUtils,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     /**
      * Get or create a classification standard.
@@ -150,7 +152,7 @@ class ClassificationService(
                 item = item,
                 level = level,
                 source = source,
-                asOf = LocalDate.now()
+                asOf = dateUtils.date
             )
         )
     }
@@ -163,7 +165,7 @@ class ClassificationService(
         standard: ClassificationStandard,
         item: ClassificationItem,
         weight: BigDecimal,
-        asOf: LocalDate = LocalDate.now()
+        asOf: LocalDate = dateUtils.date
     ): AssetExposure {
         // Use a managed reference to ensure proper FK handling
         val managedAsset = entityManager.getReference(Asset::class.java, asset.id)
@@ -195,7 +197,7 @@ class ClassificationService(
         symbol: String,
         name: String?,
         weight: BigDecimal,
-        asOf: LocalDate = LocalDate.now()
+        asOf: LocalDate = dateUtils.date
     ): AssetHolding {
         val managedAsset = entityManager.getReference(Asset::class.java, asset.id)
 
@@ -395,7 +397,7 @@ class ClassificationService(
                 item = sectorItem,
                 level = ClassificationLevel.SECTOR,
                 source = SOURCE_MANUAL,
-                asOf = LocalDate.now()
+                asOf = dateUtils.date
             )
         )
 
@@ -416,7 +418,7 @@ class ClassificationService(
                     item = industryItem,
                     level = ClassificationLevel.INDUSTRY,
                     source = SOURCE_MANUAL,
-                    asOf = LocalDate.now()
+                    asOf = dateUtils.date
                 )
             )
         }

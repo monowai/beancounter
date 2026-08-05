@@ -5,6 +5,7 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnInputMapper
@@ -13,7 +14,6 @@ import com.beancounter.marketdata.trn.cashLegInput
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.time.LocalDate
 
 /**
  * Emits a compensating cash transfer (WITHDRAWAL + DEPOSIT) when a
@@ -60,7 +60,8 @@ class CashAutoSettleService(
     private val portfolioService: PortfolioService,
     private val trnInputMapper: TrnInputMapper,
     private val trnRepository: TrnRepository,
-    private val keyGenUtils: KeyGenUtils
+    private val keyGenUtils: KeyGenUtils,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(CashAutoSettleService::class.java)
 
@@ -212,7 +213,7 @@ class CashAutoSettleService(
             .findByPortfolioIdAndCashAssetId(
                 portfolioId,
                 cashAssetId,
-                LocalDate.now(),
+                dateUtils.date,
                 TrnStatus.SETTLED
             ).isNotEmpty()
 

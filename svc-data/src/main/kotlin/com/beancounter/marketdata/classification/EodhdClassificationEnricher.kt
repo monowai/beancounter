@@ -3,6 +3,7 @@ package com.beancounter.marketdata.classification
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.ClassificationLevel
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
 import com.beancounter.marketdata.providers.eodhd.EodhdProxy
 import org.slf4j.LoggerFactory
@@ -23,7 +24,8 @@ import org.springframework.stereotype.Service
 class EodhdClassificationEnricher(
     private val eodhdConfig: EodhdConfig,
     private val eodhdProxy: EodhdProxy,
-    private val classificationService: ClassificationService
+    private val classificationService: ClassificationService,
+    private val dateUtils: DateUtils = DateUtils()
 ) : ClassificationEnricher {
     private val log = LoggerFactory.getLogger(EodhdClassificationEnricher::class.java)
 
@@ -129,7 +131,8 @@ class EodhdClassificationEnricher(
                 asset = asset,
                 standard = standard,
                 item = sectorItem,
-                weight = weight
+                weight = weight,
+                asOf = dateUtils.date
             )
             sectorCount++
         }

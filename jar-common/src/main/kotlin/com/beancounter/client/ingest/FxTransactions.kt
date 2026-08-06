@@ -3,6 +3,7 @@ package com.beancounter.client.ingest
 import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
+import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Currency
@@ -122,10 +123,23 @@ class FxTransactions(
     ) {
         if (needsRates(trnInput)) {
             val fxRequest = getFxRequest(portfolio, trnInput)
-            val (data) = fxClientService.getRates(fxRequest)
+            val (data) = getRates(fxRequest)
             setRates(data, fxRequest, trnInput)
         }
     }
+
+    /**
+     * A request with no pairs has nothing to convert — trade, portfolio, base and cash
+     * all share one currency, so every rate is 1. Skip the round trip: the server
+     * resolves rates by date, so an empty request still fails when no rate is cached
+     * for that date, rejecting a trade that never needed FX.
+     */
+    private fun getRates(fxRequest: FxRequest): FxResponse =
+        if (fxRequest.pairs.isEmpty()) {
+            FxResponse(FxPairResults())
+        } else {
+            fxClientService.getRates(fxRequest)
+        }
 
     /**
      * Settle-time FX resolution. PROPOSED corporate-event trns (DIVI) are written with
@@ -139,7 +153,7 @@ class FxTransactions(
     ) {
         if (!needsRates(trn)) return
         val fxRequest = getFxRequest(portfolio, trn)
-        val (data) = fxClientService.getRates(fxRequest)
+        val (data) = getRates(fxRequest)
         // Resolve all three rates into locals first. If the provider returns an
         // incomplete response, throw before touching the managed entity so the
         // Trn is not left partially mutated in the JPA persistence context.

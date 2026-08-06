@@ -20,12 +20,17 @@ import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
+import com.beancounter.marketdata.fx.fxrates.FxGateway
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.TRNS_ROOT
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.Jwt
@@ -47,11 +52,16 @@ import java.math.BigDecimal
 class RebalanceTrnTest {
     private val dateUtils = DateUtils()
 
+    private val usdSgd = BigDecimal("1.35")
+
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 
     @MockitoBean
     private lateinit var figiProxy: FigiProxy
+
+    @MockitoBean
+    private lateinit var fxGateway: FxGateway
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -80,6 +90,32 @@ class RebalanceTrnTest {
         bcMvcHelper = BcMvcHelper(mockMvc, token)
 
         RegistrationUtils.registerUser(mockMvc, token)
+        mockFxRates()
+    }
+
+    /**
+     * FX rates are looked up by date against a database that all `@SpringMvcDbTest`
+     * classes share, so a trade priced today resolves — or fails — according to whatever
+     * ran before it (#1075). Stub the provider so this class supplies the one rate it
+     * needs and the outcome no longer depends on execution order.
+     */
+    private fun mockFxRates() {
+        `when`(
+            fxGateway.getRatesForSymbols(
+                any(),
+                eq(USD.code),
+                eq(currencyService.currenciesAs())
+            )
+        ).thenReturn(
+            ExRatesResponse(
+                USD.code,
+                dateUtils.date,
+                mapOf(
+                    USD.code to BigDecimal.ONE,
+                    SGD.code to usdSgd
+                )
+            )
+        )
     }
 
     @Test
@@ -227,7 +263,9 @@ class RebalanceTrnTest {
         assertThat(response.data.trns).hasSize(1)
         val createdTrn = response.data.trns.first()
         assertThat(createdTrn.tradeCurrencyCode).isEqualTo(USD.code)
-        // FX rates should be populated by svc-data
-        assertThat(createdTrn.tradeBaseRate).isNotNull()
+        // USD trade into an SGD portfolio: svc-data resolves the stubbed USD:SGD rate.
+        // Base is USD, so the trade needs no conversion to it.
+        assertThat(createdTrn.tradePortfolioRate).isEqualByComparingTo(usdSgd)
+        assertThat(createdTrn.tradeBaseRate).isEqualByComparingTo(BigDecimal.ONE)
     }
 }

@@ -97,14 +97,14 @@ See [CONTRACT_TEST_ARCHITECTURE.md](CONTRACT_TEST_ARCHITECTURE.md) for detailed 
 
 ```bash
 # Run all tests
-./gradlew testSmart
+./gradlew testAll
 
 # Run specific module tests
 ./gradlew :jar-client:test
 ./gradlew :svc-data:test
 
 # Run with coverage
-./gradlew testSmart jacocoTestReport
+./gradlew testAll jacocoTestReport
 ```
 
 ### Code Quality

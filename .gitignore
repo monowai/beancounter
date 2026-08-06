@@ -125,3 +125,6 @@ SENTRY.md
 /asset-classification.md
 FX.md
 TRN.md
+
+# Local-only agent guidance — kept on disk, not shared via the repo.
+CLAUDE.md

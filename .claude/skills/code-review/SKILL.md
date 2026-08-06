@@ -292,14 +292,14 @@ not the size of any single change.
   push to `main` — feature branch + PR only. Exceptions that commit straight to
   main: `bc-deploy` (rollout is the review gate) and `bc-claude` (docs-only).
 - **Pre-push**: run this local review on the staged diff and fix 🔴/🟠 first —
-  Graphite Agent auto-reviews the PR after push, so land it clean.
+  no reviewer runs after the push, so this is the last look before merge.
 - **Verify the branch before pushing** — after a merge you can land back on
   `main`.
 - **PR + commit hygiene**: Conventional-Commits subject only (no body essays),
   no `Co-Authored-By` trailer, no PII (names / emails) in commit, PR body, or
   code.
-- **Submit/merge via Graphite** (`gt submit --stack`, merge queue) — Graphite
-  Agent reviews automatically; there is no per-PR ignore keyword to manage.
+- **Submit/merge with plain `git` + `gh`** — push the branch, `gh pr create`,
+  merge from the GitHub UI once CI is green. No stacking tool.
 
 ### Clean up stale branches and worktrees
 

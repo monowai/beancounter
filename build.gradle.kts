@@ -362,19 +362,6 @@ tasks.register("verifyDependencies") {
     description = "Verify all project dependencies"
 }
 
-// Legacy aliases: stubs are now wired as Gradle project artifacts, so the
-// old "verify stubs exist in ~/.m2 first" dance is gone. Kept so existing
-// muscle memory / scripts / docs keep working.
-tasks.register("buildSmart") {
-    dependsOn("buildAll")
-    description = "Alias for buildAll (stub ordering handled by Gradle)"
-}
-
-tasks.register("testSmart") {
-    dependsOn("testAll")
-    description = "Alias for testAll (stub ordering handled by Gradle)"
-}
-
 // Validate dependency order
 tasks.register("validateDependencies") {
     doLast {

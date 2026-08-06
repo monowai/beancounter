@@ -33,7 +33,7 @@ reason; `validateDependencies` enforces the rule.
 # Build everything (clean checkout OK)
 ./gradlew build
 
-# Run all tests incl. contract tests (buildSmart/testSmart remain as aliases)
+# Run all tests incl. contract tests
 ./gradlew testAll
 
 # Code quality
@@ -203,8 +203,7 @@ To switch from RabbitMQ to Kafka:
 
 ## Development Workflow
 
-1. **Daily Development**: `./gradlew build` / `./gradlew testAll` (clean checkout OK;
-   `buildSmart`/`testSmart` remain as aliases)
+1. **Daily Development**: `./gradlew build` / `./gradlew testAll` (clean checkout OK)
 2. **Before Committing**: Run `./gradlew check` for code quality
 3. **Code Formatting**: Auto-format with `./gradlew formatKotlin`
 
@@ -293,7 +292,7 @@ guidance — it applies unchanged here.
 
 ## Pre-Commit Checklist (beancounter-specific)
 
-- [ ] All tests passing: `./gradlew testSmart` (alias of `testAll`)
+- [ ] All tests passing: `./gradlew testAll`
 - [ ] New functionality has tests
 - [ ] Code formatted: `./gradlew formatKotlin`
 - [ ] Linting passes: `./gradlew lintKotlin`

@@ -94,6 +94,13 @@ contracts {
     baseClassForTests.set("com.contracts.position.ContractVerifierBase")
 }
 
+// `contractTest` is its own source set, so the spring-cloud-contract plugin does
+// not attach it to `check`. CI runs `./gradlew build --parallel`, which means
+// contract verification was never executed there — only locally, via `testAll`.
+tasks.named("check") {
+    dependsOn("contractTest")
+}
+
 tasks.register("pubStubs") {
     dependsOn("build")
     dependsOn("publishToMavenLocal")

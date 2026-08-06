@@ -1,5 +1,9 @@
 package com.beancounter.marketdata.classification
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.ClassificationItem
 import com.beancounter.common.model.ClassificationLevel
@@ -20,6 +24,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 
 /**
  * Unit tests for [AlphaClassificationEnricher].
@@ -298,5 +303,50 @@ class AlphaClassificationEnricherTest {
         verify(classificationService, never()).clearExposures(any())
         verify(classificationService, never()).addExposure(any(), any(), any(), any(), any())
         verify(classificationService, never()).addHolding(any(), any(), anyOrNull(), any(), any())
+    }
+
+    /**
+     * NO_DATA stamps `classificationCheckedAt`, so the asset drops behind the staleness window
+     * and is not looked at again for a week. At DEBUG that outcome left no trace in a normal
+     * kauri log - VUAA sat with zero sector exposures for months with nothing to grep for. The
+     * warning has to name the provider and the exact symbol that was asked for: the symbol is
+     * composed from the market alias, so it is the one thing that identifies a mapping fault.
+     */
+    @Test
+    fun `an empty ETF profile warns with provider and the symbol that was queried`() {
+        whenever(alphaProxy.getEtfProfile(eq("VUAA.LON"), any())).thenReturn("{}")
+
+        val warnings = captureWarnings { enricher.enrichClassification(etf("VUAA.LON")) }
+
+        assertThat(warnings)
+            .describedAs("empty ETF profile must be visible at WARN")
+            .anySatisfy { message ->
+                assertThat(message).contains("ALPHA").contains("VUAA.LON")
+            }
+    }
+
+    @Test
+    fun `an overview carrying no sector warns with provider and the symbol that was queried`() {
+        whenever(alphaProxy.getOverview(eq("TSCO.LON"), any())).thenReturn("{}")
+
+        val warnings = captureWarnings { enricher.enrichClassification(equity("TSCO.LON")) }
+
+        assertThat(warnings)
+            .describedAs("empty overview must be visible at WARN")
+            .anySatisfy { message ->
+                assertThat(message).contains("ALPHA").contains("TSCO.LON")
+            }
+    }
+
+    private fun captureWarnings(block: () -> Unit): List<String> {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val logger = LoggerFactory.getLogger(AlphaClassificationEnricher::class.java) as Logger
+        logger.addAppender(appender)
+        try {
+            block()
+        } finally {
+            logger.detachAppender(appender)
+        }
+        return appender.list.filter { it.level == Level.WARN }.map { it.formattedMessage }
     }
 }

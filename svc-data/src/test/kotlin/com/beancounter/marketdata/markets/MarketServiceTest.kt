@@ -83,6 +83,10 @@ class MarketServiceTest {
             .hasFieldOrPropertyWithValue("currency.code", USD.code)
             .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone("Europe/London"))
         assertThat(lse.getAlias("eodhd")).isEqualTo("LSE")
+        // AlphaVantage suffixes London listings `.LON` (SYMBOL_SEARCH: VUAA.LON) - it has no
+        // concept of an `LSE` suffix, so BC's USD-line market needs an explicit alpha alias or
+        // every Alpha call composes an unknown symbol.
+        assertThat(lse.getAlias("alpha")).isEqualTo("LON")
 
         val lon = marketService.getMarket("LON")
         assertThat(lon.currency.code).isEqualTo(GBP.code)

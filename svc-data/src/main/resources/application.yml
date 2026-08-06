@@ -542,6 +542,13 @@ beancounter:
         aliases:
           FIGI: "LN"
           eodhd: "LSE"
+          # AlphaVantage suffixes London listings ".LON" — SYMBOL_SEARCH for VUAA
+          # returns VUAA.LON (plus .FRK / .DEX). It has no ".LSE" suffix at all, so
+          # without this alias every Alpha call for a USD London line composes an
+          # unknown symbol. Note Alpha serves no fundamentals for non-US listings
+          # regardless (OVERVIEW/ETF_PROFILE answer "{}"), so this fixes the symbol,
+          # not the coverage.
+          alpha: "LON"
 
       - code: "AMS"
         name: "Euronext Amsterdam"

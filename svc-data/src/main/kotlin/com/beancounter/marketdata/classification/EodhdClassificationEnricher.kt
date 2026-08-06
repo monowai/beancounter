@@ -5,6 +5,7 @@ import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
+import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
 import com.beancounter.marketdata.providers.eodhd.EodhdProxy
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -53,12 +54,30 @@ class EodhdClassificationEnricher(
             EnrichmentResult.FAILED
         }
 
+    /**
+     * See [AlphaClassificationEnricher.logNoData] — a NO_DATA outcome stamps the asset as checked
+     * and silences it for the staleness window, so it has to be visible at WARN with the exact
+     * symbol that was queried.
+     */
+    private fun logNoData(
+        asset: Asset,
+        symbol: String,
+        reason: String
+    ) = log.warn(
+        "No classification data from {} for symbol {} ({}:{}) - {}",
+        EodhdPriceService.ID,
+        symbol,
+        asset.market.code,
+        asset.code,
+        reason
+    )
+
     private fun enrichEquity(asset: Asset): EnrichmentResult {
         val symbol = eodhdConfig.getPriceCode(asset)
         val general = eodhdProxy.getFundamentals(symbol, eodhdConfig.apiKey).general
 
         if (general?.sector.isNullOrBlank()) {
-            log.debug("No sector in fundamentals for $symbol")
+            logNoData(asset, symbol, "fundamentals carried no General.Sector")
             return EnrichmentResult.NO_DATA
         }
 
@@ -106,7 +125,7 @@ class EodhdClassificationEnricher(
         val sectorWeights = eodhdProxy.getFundamentals(symbol, eodhdConfig.apiKey).etfData?.sectorWeights
 
         if (sectorWeights.isNullOrEmpty()) {
-            log.debug("No sector weights in fundamentals for $symbol")
+            logNoData(asset, symbol, "fundamentals carried no ETF_Data.Sector_Weights")
             return EnrichmentResult.NO_DATA
         }
 

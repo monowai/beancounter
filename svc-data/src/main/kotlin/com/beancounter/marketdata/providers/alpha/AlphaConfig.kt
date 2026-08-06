@@ -69,9 +69,26 @@ class AlphaConfig(
 
     override fun getBatchSize() = 1
 
+    /**
+     * AlphaVantage symbol suffix for [market].
+     *
+     * The `alpha:` alias in `application.yml` wins — BC market codes are not AlphaVantage
+     * exchange codes and the two only coincide by accident. BC's `LSE` market (USD-settled
+     * London lines such as VUAA) is the case that made this matter: AlphaVantage suffixes
+     * London with `.LON` and has no `.LSE`, so the pass-through below composed `VUAA.LSE`
+     * and every fundamentals lookup answered `{}`.
+     *
+     * The hardcoded fallbacks stay for markets carrying no `alpha` alias, and for [Market]
+     * instances built without an alias map (test fixtures, and any caller holding a Market
+     * that did not come through `MarketService`).
+     */
     fun translateMarketCode(market: Market): String? {
         if (isNullMarket(market.code)) {
             return null
+        }
+        val alias = market.getAlias(AlphaPriceService.ID)
+        if (!alias.isNullOrBlank()) {
+            return alias
         }
         return when (market.code.uppercase()) {
             "ASX" -> "AX"

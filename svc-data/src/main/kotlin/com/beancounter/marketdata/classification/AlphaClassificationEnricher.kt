@@ -7,6 +7,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaEtfProfileResponse
 import com.beancounter.marketdata.providers.alpha.AlphaOverviewResponse
+import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -78,14 +79,14 @@ class AlphaClassificationEnricher(
         }
 
         if (response.isBlank() || response.contains("Error")) {
-            log.debug("No overview data for $symbol")
+            logNoData(asset, symbol, "OVERVIEW returned an error or empty body")
             return EnrichmentResult.FAILED
         }
 
         val overview = objectMapper.readValue(response, AlphaOverviewResponse::class.java)
 
         if (overview.sector.isNullOrBlank()) {
-            log.debug("No sector in overview for $symbol")
+            logNoData(asset, symbol, "OVERVIEW carried no Sector")
             return EnrichmentResult.NO_DATA
         }
 
@@ -140,7 +141,7 @@ class AlphaClassificationEnricher(
         }
 
         if (response.isBlank() || response.contains("Error")) {
-            log.debug("No ETF profile data for $symbol")
+            logNoData(asset, symbol, "ETF_PROFILE returned an error or empty body")
             return EnrichmentResult.FAILED
         }
 
@@ -150,7 +151,7 @@ class AlphaClassificationEnricher(
         val hasHoldings = !profile.holdings.isNullOrEmpty()
 
         if (!hasSectors && !hasHoldings) {
-            log.debug("No sector allocations or holdings in ETF profile for $symbol")
+            logNoData(asset, symbol, "ETF_PROFILE carried no sector allocations or holdings")
             return EnrichmentResult.NO_DATA
         }
 
@@ -226,6 +227,29 @@ class AlphaClassificationEnricher(
         log.info("Added $sectorCount sector exposures and $holdingCount holdings for ${asset.code}")
         return if (sectorCount > 0 || holdingCount > 0) EnrichmentResult.ENRICHED else EnrichmentResult.NO_DATA
     }
+
+    /**
+     * A no-data outcome stamps `classificationCheckedAt` (see `ClassificationRefreshService`), so
+     * the asset drops behind the staleness window and is not reconsidered for a week. At DEBUG
+     * that left no trace in a normal deployment log — VUAA sat with zero sector exposures and
+     * nothing to grep for.
+     *
+     * The queried symbol is the payload that matters: it is composed from the market's `alpha`
+     * alias, so it distinguishes a mapping fault (a symbol the provider has never heard of) from
+     * genuine coverage absence (AlphaVantage serves no fundamentals for non-US listings at all).
+     */
+    private fun logNoData(
+        asset: Asset,
+        symbol: String,
+        reason: String
+    ) = log.warn(
+        "No classification data from {} for symbol {} ({}:{}) - {}",
+        AlphaPriceService.ID,
+        symbol,
+        asset.market.code,
+        asset.code,
+        reason
+    )
 
     /**
      * AlphaVantage signals quota exhaustion with a top-level `Information` or `Note` key returned

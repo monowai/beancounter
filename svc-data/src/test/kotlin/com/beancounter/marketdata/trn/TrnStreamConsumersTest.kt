@@ -5,6 +5,7 @@ import com.beancounter.auth.TokenService
 import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.auth.model.OpenIdResponse
+import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -14,7 +15,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 
 /**
@@ -37,6 +40,24 @@ class TrnStreamConsumersTest {
         return JwtAuthenticationToken(jwt)
     }
 
+    /**
+     * Faithful stand-in for LoginService.retryOnJwtExpiry's documented contract: run the
+     * operation, and on JwtException (e.g. BadJwtException from a stale cached M2M token),
+     * evict the cache and retry once.
+     */
+    private fun stubRetryOnJwtExpiry(loginService: LoginService) {
+        whenever(loginService.retryOnJwtExpiry<Any>(any())).thenAnswer { inv ->
+            @Suppress("UNCHECKED_CAST")
+            val op = inv.arguments[0] as () -> Any
+            try {
+                op()
+            } catch (e: JwtException) {
+                loginService.clearTokenCache()
+                op()
+            }
+        }
+    }
+
     @Test
     fun `csv consumer processes inside an M2M service context and clears it afterwards`() {
         val authConfig = mock<AuthConfig>()
@@ -48,6 +69,7 @@ class TrnStreamConsumersTest {
             SecurityContextHolder.getContext().authentication = serviceToken()
             it.arguments[0]
         }
+        stubRetryOnJwtExpiry(loginService)
 
         val tokenService = TokenService(mock<AuthConfig>())
         var serviceTokenDuringProcessing: Boolean? = null
@@ -81,6 +103,80 @@ class TrnStreamConsumersTest {
         consumers.csvImportConsumer().accept(mock<TrustedTrnImportRequest>())
 
         assertThat(processed).isTrue()
+    }
+
+    @Test
+    fun `csv consumer recovers when the cached M2M token has expired`() {
+        // Simulates the auth.m2m cache outliving the underlying Auth0 token: the first
+        // setAuthContext call decodes a stale/expired token and throws BadJwtException; the
+        // consumer must recover via retryOnJwtExpiry rather than dead-lettering the message.
+        val authConfig = mock<AuthConfig>()
+        whenever(authConfig.clientSecret).thenReturn("secret")
+        val loginService = mock<LoginService>()
+        whenever(loginService.authConfig).thenReturn(authConfig)
+        whenever(loginService.loginM2m(any())).thenReturn(mock<OpenIdResponse>())
+
+        var setAuthContextCalls = 0
+        whenever(loginService.setAuthContext(any())).thenAnswer {
+            setAuthContextCalls++
+            if (setAuthContextCalls == 1) {
+                throw BadJwtException("Expired JWT", RuntimeException("expired"))
+            }
+            SecurityContextHolder.getContext().authentication = serviceToken()
+            it.arguments[0]
+        }
+        stubRetryOnJwtExpiry(loginService)
+
+        val tokenService = TokenService(mock<AuthConfig>())
+        var serviceTokenDuringProcessing: Boolean? = null
+        val importService = mock<TrnImportService>()
+        whenever(importService.fromCsvImport(any())).thenAnswer {
+            serviceTokenDuringProcessing = tokenService.isServiceToken
+            emptySet<Any>()
+        }
+
+        val consumers = TrnStreamConsumers(importService, providerFor(loginService))
+        consumers.csvImportConsumer().accept(mock<TrustedTrnImportRequest>())
+
+        assertThat(setAuthContextCalls).isEqualTo(2)
+        assertThat(serviceTokenDuringProcessing).isTrue()
+        // Context must not leak onto the pooled AMQP thread.
+        assertThat(SecurityContextHolder.getContext().authentication).isNull()
+    }
+
+    @Test
+    fun `trn event consumer recovers when the cached M2M token has expired`() {
+        val authConfig = mock<AuthConfig>()
+        whenever(authConfig.clientSecret).thenReturn("secret")
+        val loginService = mock<LoginService>()
+        whenever(loginService.authConfig).thenReturn(authConfig)
+        whenever(loginService.loginM2m(any())).thenReturn(mock<OpenIdResponse>())
+
+        var setAuthContextCalls = 0
+        whenever(loginService.setAuthContext(any())).thenAnswer {
+            setAuthContextCalls++
+            if (setAuthContextCalls == 1) {
+                throw BadJwtException("Expired JWT", RuntimeException("expired"))
+            }
+            SecurityContextHolder.getContext().authentication = serviceToken()
+            it.arguments[0]
+        }
+        stubRetryOnJwtExpiry(loginService)
+
+        val tokenService = TokenService(mock<AuthConfig>())
+        var serviceTokenDuringProcessing: Boolean? = null
+        val importService = mock<TrnImportService>()
+        whenever(importService.fromTrnRequest(any())).thenAnswer {
+            serviceTokenDuringProcessing = tokenService.isServiceToken
+            emptySet<Any>()
+        }
+
+        val consumers = TrnStreamConsumers(importService, providerFor(loginService))
+        consumers.trnEventConsumer().accept(mock<TrustedTrnEvent>())
+
+        assertThat(setAuthContextCalls).isEqualTo(2)
+        assertThat(serviceTokenDuringProcessing).isTrue()
+        assertThat(SecurityContextHolder.getContext().authentication).isNull()
     }
 
     private fun providerFor(loginService: LoginService?): ObjectProvider<LoginService> {

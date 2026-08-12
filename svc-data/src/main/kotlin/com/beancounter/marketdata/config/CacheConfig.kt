@@ -39,7 +39,12 @@ class CacheConfig {
                 ConcurrentMapCache(name)
             } + CaffeineCache("alpha.asset.event", Duration.ofMinutes(10), 200) +
                 CaffeineCache("eodhd.asset.event", Duration.ofMinutes(10), 200) +
-                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100)
+                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100) +
+                // Auth0 M2M client-credentials tokens carry a 24h TTL. A ConcurrentMapCache never
+                // expires entries, so a pod living longer than that serves a stale token forever -
+                // every setAuthContext() call then throws JwtException. Expire well inside the
+                // token's TTL so LoginService always re-authenticates before that happens.
+                CaffeineCache("auth.m2m", Duration.ofHours(12), 2)
         // Note: EODHD news is no longer cached in-memory — it persists to `news_article` and is
         // served from there. See EodhdNewsService + V19 migration.
 
@@ -65,7 +70,6 @@ class CacheConfig {
                 "currency.code",
                 "currency.all",
                 "jwt.token",
-                "auth.m2m",
                 "market.holidays"
             )
     }

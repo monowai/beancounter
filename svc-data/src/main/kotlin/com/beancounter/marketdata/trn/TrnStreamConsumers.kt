@@ -48,11 +48,18 @@ class TrnStreamConsumers(
      * message dead-lettered after exhausting the retry policy. Establish the cached M2M
      * service token for the duration of processing, then clear it so nothing leaks onto the
      * pooled thread.
+     *
+     * The `auth.m2m` cache has no TTL boundary of its own to react to, so a long-lived pod can
+     * hold a cached token past its Auth0 expiry; setAuthContext() then throws JwtException on
+     * every message. Wrap only the context establishment in retryOnJwtExpiry (evicts the cache
+     * and re-authenticates on JwtException/UnauthorizedException), then run the block once -
+     * unlike svc-event's EventStreamConsumer, we do not retry block() itself, since re-running a
+     * partially applied trn import could duplicate transactions.
      */
     private fun <T> withServiceContext(block: () -> T): T {
         val login = loginService.ifAvailable ?: return block()
         return try {
-            login.setAuthContext(login.loginM2m())
+            login.retryOnJwtExpiry { login.setAuthContext(login.loginM2m()) }
             block()
         } finally {
             SecurityContextHolder.clearContext()

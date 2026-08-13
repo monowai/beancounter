@@ -247,15 +247,15 @@ internal class EodhdNewsServiceTest {
                 storedArticle(polarity = 0.9, title = "Apple 2", ageHours = 2),
                 storedArticle(polarity = 0.9, title = "Apple 3", ageHours = 3),
                 storedArticle(polarity = 0.9, title = "Apple 4", ageHours = 4),
-                storedArticle(polarity = -0.9, title = "Cisco falls", ageHours = 9, ticker = "CSCO.US")
+                storedArticle(polarity = -0.9, title = "Xyz falls", ageHours = 9, ticker = "XYZ.US")
             )
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
 
-        val result = service.getNewsSentiment("AAPL,CSCO")
+        val result = service.getNewsSentiment("AAPL,XYZ")
 
         @Suppress("UNCHECKED_CAST")
         val feed = result["feed"] as List<Map<String, Any>>
-        assertThat(feed.map { it["title"] }).contains("Cisco falls")
+        assertThat(feed.map { it["title"] }).contains("Xyz falls")
     }
 
     @Test
@@ -266,11 +266,11 @@ internal class EodhdNewsServiceTest {
         val stored =
             (1..4).map { storedArticle(polarity = 0.5, title = "Apple $it", ageHours = it.toLong()) } +
                 (1..4).map {
-                    storedArticle(polarity = 0.5, title = "Cisco $it", ageHours = it.toLong(), ticker = "CSCO.US")
+                    storedArticle(polarity = 0.5, title = "Xyz $it", ageHours = it.toLong(), ticker = "XYZ.US")
                 }
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
 
-        val result = service.getNewsSentiment("AAPL,CSCO")
+        val result = service.getNewsSentiment("AAPL,XYZ")
 
         @Suppress("UNCHECKED_CAST")
         val feed = result["feed"] as List<Map<String, Any>>

@@ -89,14 +89,14 @@ class PositionToolsTest {
         val today = LocalDate.now(dateUtils.zoneId).toString()
         val client =
             mock<PositionClient> {
-                on { getPositionsByCode("USV", "today", true) } doReturn PositionResponse(samplePositions())
+                on { getPositionsByCode("TEST", "today", true) } doReturn PositionResponse(samplePositions())
             }
         val tools = PositionTools(client, scrubber, dateUtils)
 
-        val result = tools.getPositions("USV", today)
+        val result = tools.getPositions("TEST", today)
 
         assertThat(result.rows).hasSize(1)
-        verify(client).getPositionsByCode("USV", "today", true)
+        verify(client).getPositionsByCode("TEST", "today", true)
     }
 
     @Test

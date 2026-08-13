@@ -46,9 +46,11 @@ internal class EodhdNewsServiceTest {
     private val marketService = mock<MarketService>()
     private val articleRepo = mock<NewsArticleRepo>()
     private val fetchRepo = mock<NewsFetchRepo>()
+    private val fixedNow: LocalDateTime = LocalDateTime.now()
     private val props =
         EodhdNewsProperties(
             maxArticles = 3,
+            maxArticlesPerSymbol = 3,
             providerLimit = 10,
             refreshAfterHours = 6,
             retentionDays = 30
@@ -85,8 +87,10 @@ internal class EodhdNewsServiceTest {
         whenever(fetchRepo.findById(sector)).thenReturn(Optional.empty())
         whenever(proxy.getNews(any(), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.6)))
         whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        // findByTickersAfter joins on the ticker link, so a stored row always carries one of the
+        // requested symbols — the fixture mirrors that contract.
         whenever(articleRepo.findByTickersAfter(any(), any()))
-            .thenReturn(listOf(storedArticle(polarity = 0.7, title = headline)))
+            .thenReturn(listOf(storedArticle(polarity = 0.7, title = headline, ticker = index)))
 
         val result = service.getMarketNews(listOf(index, "xlk.us"), topics = null)
 
@@ -179,19 +183,22 @@ internal class EodhdNewsServiceTest {
         verify(proxy).getNews(eq("BARC.LSE"), any(), anyOrNull(), any())
     }
 
+    // EODHD polarity saturates at ±1.0 across large swathes of the feed, so ranking on magnitude
+    // alone was effectively an arbitrary tie-break that surfaced weeks-old articles ahead of the
+    // ones explaining today's move. Recency leads; polarity only breaks ties within a timestamp.
     @Test
-    fun `ranks stored articles by absolute polarity and truncates to maxArticles`() {
+    fun `ranks stored articles by recency and truncates to maxArticles`() {
         // No upstream refresh needed — fetch row is fresh.
         whenever(fetchRepo.findById("AAPL.US")).thenReturn(
             Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 5))
         )
         val stored =
             listOf(
-                storedArticle(polarity = 0.1, title = "Low impact"),
-                storedArticle(polarity = -0.9, title = "Very bearish"),
-                storedArticle(polarity = 0.6, title = "Bullish"),
-                storedArticle(polarity = 0.4, title = "Mildly bullish"),
-                storedArticle(polarity = -0.2, title = "Slightly bearish")
+                storedArticle(polarity = 1.0, title = "Three weeks old", ageHours = 24 * 21),
+                storedArticle(polarity = 1.0, title = "Last month", ageHours = 24 * 28),
+                storedArticle(polarity = 0.1, title = "This morning", ageHours = 2),
+                storedArticle(polarity = 1.0, title = "Two weeks old", ageHours = 24 * 14),
+                storedArticle(polarity = -0.2, title = "Yesterday", ageHours = 26)
             )
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
 
@@ -201,9 +208,74 @@ internal class EodhdNewsServiceTest {
         val feed = result["feed"] as List<Map<String, Any>>
         assertThat(feed).hasSize(3)
         assertThat(feed.map { it["title"] })
-            .containsExactly("Very bearish", "Bullish", "Mildly bullish")
-        assertThat(feed.first()["sentimentLabel"]).isEqualTo("Bearish")
+            .containsExactly("This morning", "Yesterday", "Two weeks old")
         assertThat(result["count"]).isEqualTo(3)
+    }
+
+    @Test
+    fun `equally recent articles fall back to polarity magnitude`() {
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 3))
+        )
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.2, title = "Mild", ageHours = 3),
+                storedArticle(polarity = -0.95, title = "Loud", ageHours = 3),
+                storedArticle(polarity = 0.5, title = "Middling", ageHours = 3)
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).containsExactly("Loud", "Middling", "Mild")
+        assertThat(feed.first()["sentimentLabel"]).isEqualTo("Bearish")
+    }
+
+    // A portfolio briefing asks for every holding in one call. A flat top-N over the merged result
+    // let one well-covered ticker consume the whole budget, leaving the LLM with zero articles for
+    // the holding that actually moved — it then narrated from training data.
+    @Test
+    fun `each requested symbol keeps coverage when another ticker dominates the feed`() {
+        whenever(fetchRepo.findById(any())).thenReturn(
+            Optional.of(NewsFetch("x", LocalDateTime.now().minusMinutes(30), 5))
+        )
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.9, title = "Apple 1", ageHours = 1),
+                storedArticle(polarity = 0.9, title = "Apple 2", ageHours = 2),
+                storedArticle(polarity = 0.9, title = "Apple 3", ageHours = 3),
+                storedArticle(polarity = 0.9, title = "Apple 4", ageHours = 4),
+                storedArticle(polarity = -0.9, title = "Cisco falls", ageHours = 9, ticker = "CSCO.US")
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL,CSCO")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).contains("Cisco falls")
+    }
+
+    @Test
+    fun `per-symbol coverage still respects the overall article cap`() {
+        whenever(fetchRepo.findById(any())).thenReturn(
+            Optional.of(NewsFetch("x", LocalDateTime.now().minusMinutes(30), 5))
+        )
+        val stored =
+            (1..4).map { storedArticle(polarity = 0.5, title = "Apple $it", ageHours = it.toLong()) } +
+                (1..4).map {
+                    storedArticle(polarity = 0.5, title = "Cisco $it", ageHours = it.toLong(), ticker = "CSCO.US")
+                }
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL,CSCO")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed).hasSize(props.maxArticles)
+        assertThat(result["count"]).isEqualTo(props.maxArticles)
     }
 
     @Test
@@ -453,11 +525,16 @@ internal class EodhdNewsServiceTest {
         title: String = "headline",
         content: String = "body",
         tags: Set<String> = emptySet(),
-        summary: String? = null
+        summary: String? = null,
+        ageHours: Long = 1,
+        ticker: String = "AAPL.US"
     ): NewsArticle =
         NewsArticle(
             externalId = "ext-${title.hashCode()}",
-            published = LocalDateTime.now().minusHours(1),
+            // Ages measured off one fixed instant so articles given the same age really do share a
+            // publish timestamp — otherwise each `now()` call differs by nanos and the polarity
+            // tie-break never runs.
+            published = fixedNow.minusHours(ageHours),
             fetchedAt = LocalDateTime.now(),
             title = title,
             content = content,
@@ -466,6 +543,6 @@ internal class EodhdNewsServiceTest {
             tags = tags.toMutableSet(),
             tickerLinks = mutableSetOf()
         ).also {
-            it.tickerLinks.add(NewsArticleTicker(ticker = "AAPL.US"))
+            it.tickerLinks.add(NewsArticleTicker(ticker = ticker))
         }
 }

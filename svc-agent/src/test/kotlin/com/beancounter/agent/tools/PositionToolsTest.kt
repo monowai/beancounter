@@ -8,11 +8,14 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Confirms [PositionTools] delegates correctly and exposes an aggregated
@@ -33,6 +36,7 @@ class PositionToolsTest {
             irr = BigDecimal("0.11")
         )
     private val scrubber = ResponseScrubber()
+    private val dateUtils = DateUtils("Asia/Singapore")
 
     private fun samplePositions(): Positions {
         val asset = Asset(code = "AAPL", market = nasdaq, category = "Equity")
@@ -75,5 +79,53 @@ class PositionToolsTest {
         val result = tools.getAggregatedPositions(" A , , B ", "today")
 
         assertThat(result.rows).hasSize(1)
+    }
+
+    // svc-position resolves a literal date to the close BEFORE it, while `today` resolves to the
+    // most recent close. An LLM handed `[Current date: 2026-08-14]` naturally passes that date
+    // through, and silently gets the prior session's price moves. Normalise it back to `today`.
+    @Test
+    fun `today's literal date is normalised to today`() {
+        val today = LocalDate.now(dateUtils.zoneId).toString()
+        val client =
+            mock<PositionClient> {
+                on { getPositionsByCode("USV", "today", true) } doReturn PositionResponse(samplePositions())
+            }
+        val tools = PositionTools(client, scrubber, dateUtils)
+
+        val result = tools.getPositions("USV", today)
+
+        assertThat(result.rows).hasSize(1)
+        verify(client).getPositionsByCode("USV", "today", true)
+    }
+
+    @Test
+    fun `an historic date is passed through unchanged`() {
+        val historic = LocalDate.now(dateUtils.zoneId).minusDays(5).toString()
+        val client =
+            mock<PositionClient> {
+                on { getPositionsById("pf-1", historic, true) } doReturn PositionResponse(samplePositions())
+            }
+        val tools = PositionTools(client, scrubber, dateUtils)
+
+        tools.getPositionsByPortfolioId("pf-1", historic)
+
+        verify(client).getPositionsById("pf-1", historic, true)
+    }
+
+    @Test
+    fun `aggregated positions normalise today's literal date`() {
+        val today = LocalDate.now(dateUtils.zoneId).toString()
+        val client =
+            mock<PositionClient> {
+                on { getAggregatedPositions(listOf("A", "B"), "today") } doReturn
+                    PositionResponse(samplePositions())
+            }
+        val tools = PositionTools(client, scrubber, dateUtils)
+
+        val result = tools.getAggregatedPositions("A,B", today)
+
+        assertThat(result.rows).hasSize(1)
+        verify(client).getAggregatedPositions(listOf("A", "B"), "today", true)
     }
 }

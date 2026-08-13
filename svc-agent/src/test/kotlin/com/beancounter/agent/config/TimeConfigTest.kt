@@ -10,9 +10,9 @@ import java.time.ZoneId
  *
  * The agent stamps `[Current date: ...]` onto every user message from this clock and the system
  * prompt tells the LLM to trust it over training data. A UTC clock in an east-of-UTC deployment
- * (kauri runs Asia/Singapore) reports yesterday's date for the first eight hours of every local
- * day — the LLM then requests positions for the wrong `asAt` and narrates the prior session's
- * price moves as if they were today's.
+ * reports yesterday's date for the opening hours of every local day — the LLM then requests
+ * positions for the wrong `asAt` and narrates the prior session's price moves as if they were
+ * today's.
  */
 internal class TimeConfigTest {
     @Test

@@ -1,18 +1,26 @@
 package com.beancounter.agent.config
 
+import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.ZoneOffset
+import java.time.ZoneId
 
 /**
- * Pins that the supplied [java.time.Clock] is UTC — the agent stamps message dates from it, so a
- * locally-zoned clock would drift the "current date" off the user's expectation near midnight.
+ * Pins that the supplied [java.time.Clock] runs in the configured `beancounter.zone`.
+ *
+ * The agent stamps `[Current date: ...]` onto every user message from this clock and the system
+ * prompt tells the LLM to trust it over training data. A UTC clock in an east-of-UTC deployment
+ * (kauri runs Asia/Singapore) reports yesterday's date for the first eight hours of every local
+ * day — the LLM then requests positions for the wrong `asAt` and narrates the prior session's
+ * price moves as if they were today's.
  */
 internal class TimeConfigTest {
     @Test
-    fun `clock bean is UTC`() {
-        val clock = TimeConfig().clock()
+    fun `clock bean runs in the configured beancounter zone`() {
+        val zone = "Asia/Singapore"
 
-        assertThat(clock.zone).isEqualTo(ZoneOffset.UTC)
+        val clock = TimeConfig().clock(DateUtils(zone))
+
+        assertThat(clock.zone).isEqualTo(ZoneId.of(zone))
     }
 }

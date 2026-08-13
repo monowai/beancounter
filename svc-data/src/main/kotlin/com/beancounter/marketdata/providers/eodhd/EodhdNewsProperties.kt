@@ -9,8 +9,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  */
 @ConfigurationProperties(prefix = "beancounter.market.providers.eodhd.news")
 data class EodhdNewsProperties(
-    /** Top-N articles returned to the caller after ranking. */
-    val maxArticles: Int = 5,
+    /**
+     * Overall cap on articles returned to the caller after ranking. A portfolio briefing asks for
+     * every holding in one call, so this budget is shared across the requested symbols.
+     */
+    val maxArticles: Int = 12,
+    /**
+     * Per-symbol slice of [maxArticles]. Bounds how much of the shared budget any one well-covered
+     * ticker can consume before the other holdings have been served.
+     */
+    val maxArticlesPerSymbol: Int = 3,
     /** How many articles to ask EODHD for per ticker before we rank + merge. */
     val providerLimit: Int = 50,
     /**

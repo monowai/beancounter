@@ -76,9 +76,9 @@ class EodhdNewsService(
     ): Map<String, Any> = newsForSymbols(symbols.map { it.trim().uppercase() }.filter { it.isNotBlank() }, topics)
 
     /**
-     * Shared read path: refresh any stale symbols from upstream, then rank the stored articles by
-     * sentiment magnitude and project to the `{feed, count}` shape. Returns an empty map when no
-     * symbols resolve or nothing ranks — the no-coverage signal svc-agent's NewsTools expects.
+     * Shared read path: refresh any stale symbols from upstream, then rank the stored articles and
+     * project to the `{feed, count}` shape. Returns an empty map when no symbols resolve or nothing
+     * ranks — the no-coverage signal svc-agent's NewsTools expects.
      */
     private fun newsForSymbols(
         symbols: List<String>,
@@ -91,20 +91,53 @@ class EodhdNewsService(
 
         val retentionStart = LocalDateTime.now(dateUtils.zoneId).minusDays(newsProperties.retentionDays)
         val stored = newsArticleRepo.findByTickersAfter(symbols, retentionStart)
-        val ranked =
-            stored
-                .asSequence()
-                .filter { topics.isNullOrBlank() || matchesTopic(it, topics) }
-                .sortedByDescending { abs(it.polarity.toDouble()) }
-                .take(newsProperties.maxArticles)
-                .map { project(it) }
-                .toList()
+        val ranked = rank(stored, symbols, topics).map { project(it) }
 
         if (ranked.isEmpty()) return emptyMap()
         return mapOf(
             "feed" to ranked,
             "count" to ranked.size
         )
+    }
+
+    /**
+     * Rank the stored window down to the articles worth spending prompt tokens on.
+     *
+     * Recency leads. EODHD polarity saturates at ±1.0 across a large share of the feed, so ranking
+     * on magnitude alone was an arbitrary tie-break that floated weeks-old articles above the ones
+     * explaining today's move — a holding could drop 8% and the agent would see a month-old
+     * industry round-up instead. Polarity now only separates articles published at the same instant.
+     *
+     * Selection is round-robin across the requested symbols: each takes its newest article before
+     * any takes a second. A portfolio briefing requests every holding in one call, and a flat
+     * top-N let one well-covered mega-cap consume the whole budget — leaving the LLM with nothing
+     * on the holding that actually moved, which it then filled in from training data.
+     */
+    private fun rank(
+        stored: List<NewsArticle>,
+        symbols: List<String>,
+        topics: String?
+    ): List<NewsArticle> {
+        val eligible = stored.filter { topics.isNullOrBlank() || matchesTopic(it, topics) }
+        if (eligible.isEmpty()) return emptyList()
+
+        val perSymbol =
+            symbols.map { symbol ->
+                eligible
+                    .filter { article -> article.tickerLinks.any { it.ticker == symbol } }
+                    .sortedWith(NEWEST_FIRST)
+                    .take(newsProperties.maxArticlesPerSymbol)
+            }
+
+        // Keyed by id so an article tagged to several requested holdings is only counted once.
+        val picked = LinkedHashMap<String, NewsArticle>()
+        rounds@ for (round in 0 until newsProperties.maxArticlesPerSymbol) {
+            for (candidates in perSymbol) {
+                if (picked.size >= newsProperties.maxArticles) break@rounds
+                candidates.getOrNull(round)?.let { picked.putIfAbsent(it.id, it) }
+            }
+        }
+        return picked.values.sortedWith(NEWEST_FIRST).take(newsProperties.maxArticles)
     }
 
     private fun shouldRefresh(
@@ -369,6 +402,14 @@ class EodhdNewsService(
         // Caps simultaneous EODHD news round-trips per request. 8 covers a typical portfolio's
         // holdings in one wave while leaving headroom under the shared daily quota.
         private const val MAX_CONCURRENT_FETCHES = 8
+
+        // Recency first; polarity magnitude only separates articles sharing a publish instant.
+        // externalId is the final tie-break so a given window always ranks the same way.
+        private val NEWEST_FIRST =
+            compareByDescending<NewsArticle> { it.published }
+                .thenByDescending { abs(it.polarity.toDouble()) }
+                .thenBy { it.externalId }
+
         private const val SUMMARY_CHARS = 400
         private const val BULLISH_THRESHOLD = 0.35
         private const val BEARISH_THRESHOLD = -0.35

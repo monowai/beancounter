@@ -1,6 +1,7 @@
 package com.beancounter.agent.tools
 
 import com.beancounter.agent.client.PositionClient
+import com.beancounter.common.utils.DateUtils
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Service
@@ -20,14 +21,27 @@ import org.springframework.stereotype.Service
 @Service
 class PositionTools(
     private val positionClient: PositionClient,
-    private val scrubber: ResponseScrubber
+    private val scrubber: ResponseScrubber,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
+    /**
+     * svc-position resolves a literal date to the close *before* it, while `today` resolves to the
+     * most recent close. An LLM handed `[Current date: 2026-08-14]` naturally passes that date
+     * straight through and silently receives the prior session's price moves — the same holding
+     * reads +2.9% in the briefing and -8.4% on screen. Collapse today's date back to `today` so
+     * both paths value against the same close.
+     */
+    private fun normaliseAsAt(asAt: String): String {
+        val requested = asAt.trim()
+        return if (requested == dateUtils.today()) DateUtils.TODAY else requested
+    }
+
     @Tool(description = POSITIONS_DESC)
     fun getPositions(
         @ToolParam(description = "Portfolio code as the user types it, e.g. 'TYLER'") portfolioCode: String,
-        @ToolParam(description = "Valuation date YYYY-MM-DD or 'today'") asAt: String = "today"
+        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY
     ): ScrubbedPositionResponse =
-        scrubber.scrub(positionClient.getPositionsByCode(portfolioCode, asAt, includeValues = true))
+        scrubber.scrub(positionClient.getPositionsByCode(portfolioCode, normaliseAsAt(asAt), includeValues = true))
 
     @Tool(description = POSITIONS_BY_ID_DESC)
     fun getPositionsByPortfolioId(
@@ -37,9 +51,9 @@ class PositionTools(
                     "Required for managed/shared portfolios where the user is not the owner. " +
                     "Use this when the page context provides `portfolioId` instead of `portfolioCode`."
         ) portfolioId: String,
-        @ToolParam(description = "Valuation date YYYY-MM-DD or 'today'") asAt: String = "today"
+        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY
     ): ScrubbedPositionResponse =
-        scrubber.scrub(positionClient.getPositionsById(portfolioId, asAt, includeValues = true))
+        scrubber.scrub(positionClient.getPositionsById(portfolioId, normaliseAsAt(asAt), includeValues = true))
 
     @Tool(description = POSITIONS_AGGREGATED_DESC)
     fun getAggregatedPositions(
@@ -52,7 +66,7 @@ class PositionTools(
                     "portfolios — treat it as a single combined dataset and do NOT narrate " +
                     "per-portfolio breakdowns; the `weight` column is intentionally absent."
         ) portfolioCodes: String,
-        @ToolParam(description = "Valuation date YYYY-MM-DD or 'today'") asAt: String = "today"
+        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY
     ): ScrubbedPositionResponse {
         val codes =
             portfolioCodes
@@ -60,11 +74,16 @@ class PositionTools(
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
         return scrubber.scrubAggregated(
-            positionClient.getAggregatedPositions(codes, asAt, includeValues = true)
+            positionClient.getAggregatedPositions(codes, normaliseAsAt(asAt), includeValues = true)
         )
     }
 
     companion object {
+        const val ASAT_DESC =
+            "Valuation date. Pass 'today' for the current valuation — never today's calendar " +
+                "date, which values against the previous close. Use an explicit YYYY-MM-DD only " +
+                "when the user asks about a past date."
+
         const val POSITIONS_DESC =
             "Get the positions for a portfolio identified by its code. " +
                 "Response is columnar to minimise tokens: `cols` lists field names " +

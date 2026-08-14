@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.client.FxService
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.AccountingType
 import com.beancounter.common.model.Asset
@@ -21,6 +22,7 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.Constants.Companion.systemUser
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetFinder
@@ -630,5 +632,232 @@ internal class TrnInputMapperTest {
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.first().cashAsset).isNull()
         assertThat(trnResponse.first().cashCurrency).isNull()
+    }
+
+    private fun cashAccount(code: String = "IBRK-USD"): Asset =
+        Asset.of(
+            AssetInput.toAccount(
+                USD,
+                code,
+                "$code Account",
+                systemUser.id
+            ),
+            market = Market("PRIVATE")
+        )
+
+    @Test
+    fun `income on a cash account settles to that account`() {
+        // Interest paid into a brokerage cash account (category ACCOUNT) belongs in
+        // that account — not the generic "USD Balance". The CSV path already does
+        // this (BcRowAdapter); the REST path used to fall through to the generic
+        // cash tier, silently crediting a balance the user never chose.
+        val account = cashAccount()
+        Mockito.`when`(assetFinder.find(account.id)).thenReturn(account)
+
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = account.id,
+                trnType = TrnType.INCOME,
+                quantity = ONE,
+                price = BigDecimal("150.00"),
+                tradeAmount = BigDecimal("150.00"),
+                cashCurrency = USD.code,
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first())
+            .hasFieldOrPropertyWithValue("cashAsset.id", account.id)
+            .hasFieldOrPropertyWithValue("cashCurrency", USD)
+    }
+
+    @Test
+    fun `explicit settlement account beats the trade asset`() {
+        // Self-settle is a default, not a rule — a user who nominates a different
+        // account (transferring interest out to a bank) still gets what they picked.
+        val account = cashAccount()
+        Mockito.`when`(assetFinder.find(account.id)).thenReturn(account)
+
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = account.id,
+                trnType = TrnType.INCOME,
+                cashAssetId = toKey("USD-X", "USER"),
+                quantity = ONE,
+                price = BigDecimal("150.00"),
+                tradeAmount = BigDecimal("150.00"),
+                cashCurrency = USD.code,
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first())
+            .hasFieldOrPropertyWithValue("cashAsset.id", usdCashBalance.id)
+    }
+
+    @Test
+    fun `patching a cash-account trn keeps the settlement already stored`() {
+        // Self-settle is a default for new transactions. Patching an unrelated
+        // field (a comment, the date) must not rewrite where the money went —
+        // the stored account is the user's answer, and re-pointing it at the
+        // trade asset would re-post the compensating cash legs somewhere else.
+        val account = cashAccount()
+        Mockito.`when`(assetFinder.find(account.id)).thenReturn(account)
+        val existing =
+            Trn(
+                trnType = TrnType.INCOME,
+                asset = account,
+                cashAsset = usdCashBalance,
+                cashCurrency = USD,
+                portfolio = getPortfolio(portfolioId)
+            )
+
+        val trn =
+            trnInputMapper.map(
+                getPortfolio(portfolioId),
+                TrnInput(
+                    CallerRef(
+                        portfolioId.uppercase(Locale.getDefault()),
+                        one,
+                        one
+                    ),
+                    assetId = account.id,
+                    trnType = TrnType.INCOME,
+                    quantity = ONE,
+                    price = BigDecimal("150.00"),
+                    tradeAmount = BigDecimal("150.00"),
+                    tradeBaseRate = ONE,
+                    tradeCashRate = ONE,
+                    tradePortfolioRate = ONE
+                ),
+                existing
+            )
+
+        assertThat(trn.cashAsset).isEqualTo(usdCashBalance)
+    }
+
+    @Test
+    fun `expense on a non-cash private asset settles to the generic balance`() {
+        // Only cash-like assets (CASH/ACCOUNT) self-settle. Property maintenance
+        // must still debit a real cash account, never the property itself.
+        val property =
+            Asset.of(
+                AssetInput.toRealEstate(
+                    USD,
+                    "APT",
+                    "Apartment",
+                    systemUser.id
+                ),
+                market = Market("PRIVATE")
+            )
+        Mockito.`when`(assetFinder.find(property.id)).thenReturn(property)
+        Mockito
+            .`when`(
+                assetService.findOrCreate(
+                    AssetInput(
+                        "CASH",
+                        USD.code
+                    )
+                )
+            ).thenReturn(usdCashBalance)
+
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = property.id,
+                trnType = TrnType.EXPENSE,
+                quantity = ONE,
+                price = BigDecimal("500.00"),
+                tradeAmount = BigDecimal("500.00"),
+                cashCurrency = USD.code,
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first())
+            .hasFieldOrPropertyWithValue("cashAsset.id", usdCashBalance.id)
+    }
+
+    @Test
+    fun `FX_BUY into a cash account does not self-settle`() {
+        // The FX_BUY asset is the BOUGHT currency's account; its cash leg is the
+        // SOLD side. Self-settling would debit and credit the same account and
+        // silently drop the sell leg (same trap as #1093's import path).
+        val account = cashAccount()
+        Mockito.`when`(assetFinder.find(account.id)).thenReturn(account)
+        Mockito
+            .`when`(
+                assetService.findOrCreate(
+                    AssetInput(
+                        "CASH",
+                        NZD.code
+                    )
+                )
+            ).thenReturn(nzdCashBalance)
+
+        val trnInput =
+            TrnInput(
+                CallerRef(
+                    portfolioId.uppercase(Locale.getDefault()),
+                    one,
+                    one
+                ),
+                assetId = account.id,
+                trnType = TrnType.FX_BUY,
+                quantity = TEN,
+                price = ONE,
+                cashCurrency = NZD.code,
+                tradeBaseRate = ONE,
+                tradeCashRate = ONE,
+                tradePortfolioRate = ONE
+            )
+
+        val trnResponse =
+            trnInputMapper.convert(
+                portfolioService.find(portfolioId),
+                TrnRequest(portfolioId, listOf(trnInput))
+            )
+
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.first())
+            .hasFieldOrPropertyWithValue("cashAsset.id", nzdCashBalance.id)
     }
 }

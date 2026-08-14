@@ -40,10 +40,12 @@ class AssetMarketVerifierTest {
 
     @BeforeEach
     fun stubMarkets() {
-        whenever(marketService.getMarket("US")).thenReturn(market("US", "US"))
-        whenever(marketService.getMarket("NASDAQ")).thenReturn(market("NASDAQ", "US"))
-        whenever(marketService.getMarket("LSE")).thenReturn(market("LSE", "LSE"))
-        whenever(marketService.getMarket("AMS")).thenReturn(market("AMS", "AS"))
+        // AssetMarketVerifier resolves exchange keys via getMarketOrNull, not getMarket —
+        // see its KDoc on MarketService (#1088).
+        whenever(marketService.getMarketOrNull("US")).thenReturn(market("US", "US"))
+        whenever(marketService.getMarketOrNull("NASDAQ")).thenReturn(market("NASDAQ", "US"))
+        whenever(marketService.getMarketOrNull("LSE")).thenReturn(market("LSE", "LSE"))
+        whenever(marketService.getMarketOrNull("AMS")).thenReturn(market("AMS", "AS"))
     }
 
     @Test

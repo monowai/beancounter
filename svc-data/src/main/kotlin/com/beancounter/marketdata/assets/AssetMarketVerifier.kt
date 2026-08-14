@@ -55,7 +55,10 @@ class AssetMarketVerifier(
                 .onFailure { log.debug("Market verify search failed for {}: {}", ticker, it.message) }
                 .getOrDefault(emptyList())
                 .filter { it.symbol.equals(ticker, ignoreCase = true) && !it.market.isNullOrBlank() }
-                .mapNotNull { runCatching { marketService.getMarket(it.market!!) }.getOrNull() }
+                // getMarketOrNull, not runCatching around getMarket: a provider venue we
+                // cannot map is expected, and MarketService is @Transactional, so the
+                // swallowed exception left create()'s transaction rollback-only (#1088).
+                .mapNotNull { marketService.getMarketOrNull(it.market!!) }
                 .map { exchangeKey(it) }
                 .toSet()
 

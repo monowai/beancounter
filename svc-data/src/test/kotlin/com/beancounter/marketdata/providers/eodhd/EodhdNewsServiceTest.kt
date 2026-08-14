@@ -171,7 +171,9 @@ internal class EodhdNewsServiceTest {
 
     @Test
     fun `routes non-US tickers via the eodhd market alias`() {
-        whenever(marketService.getMarket("LON"))
+        // resolveSymbols' exchange-alias lookup resolves via getMarketOrNull, not getMarket —
+        // see its KDoc on MarketService (#1088).
+        whenever(marketService.getMarketOrNull("LON"))
             .thenReturn(Market(code = "LON", aliases = mapOf("eodhd" to "LSE")))
         whenever(fetchRepo.findById("BARC.LSE")).thenReturn(Optional.empty())
         whenever(proxy.getNews(eq("BARC.LSE"), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.5)))

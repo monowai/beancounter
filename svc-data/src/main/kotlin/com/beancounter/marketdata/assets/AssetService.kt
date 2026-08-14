@@ -119,22 +119,26 @@ class AssetService(
         throw BusinessException("Unable to resolve asset ${assetInput.code}")
     }
 
-    fun resolveAsset(priceAsset: PriceAsset): Asset? =
-        try {
+    fun resolveAsset(priceAsset: PriceAsset): Asset? {
+        // findOrNull/findLocally, not find: an unresolvable entry in a price request is
+        // routine, and catching AssetFinder's exception left this transaction marked
+        // rollback-only — the whole batch then 500'd at commit (#1088).
+        val asset =
             if (priceAsset.assetId.isNotBlank()) {
-                assetFinder.find(priceAsset.assetId)
+                assetFinder.findOrNull(priceAsset.assetId)
             } else {
                 assetFinder.findLocally(AssetInput(priceAsset.market, priceAsset.code))
             }
-        } catch (_: Exception) {
+        if (asset == null) {
             log.warn(
                 "Could not resolve asset: market={}, code={}, id={}",
                 priceAsset.market,
                 priceAsset.code,
                 priceAsset.assetId
             )
-            null
         }
+        return asset
+    }
 
     fun resolveAssets(priceRequest: PriceRequest): PriceRequest {
         // Two-stage resolution: prefer bulk lookup by assetId (cheap, single
@@ -156,13 +160,11 @@ class AssetService(
                 val asset =
                     byIdMatch
                         ?: if (priceAsset.market.isNotBlank() && priceAsset.code.isNotBlank()) {
-                            try {
-                                assetFinder.findLocally(
-                                    AssetInput(priceAsset.market, priceAsset.code)
-                                )
-                            } catch (_: Exception) {
-                                null
-                            }
+                            // findLocally returns null for an unknown market rather than
+                            // throwing, so there is nothing left to catch here (#1088).
+                            assetFinder.findLocally(
+                                AssetInput(priceAsset.market, priceAsset.code)
+                            )
                         } else {
                             null
                         }

@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.common.contracts.AssetSearchResult
-import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson
@@ -58,7 +57,19 @@ class AssetSearchPublicFallbackTest {
             mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
         allProviders: Collection<MarketDataPriceProvider> = listOf(marketProvider),
         dbAssets: List<com.beancounter.common.model.Asset> = emptyList(),
-        marketService: MarketService = mock { on { getMarket(any()) } doReturn usMarket }
+        // onSupportedMarket / toLocalSearchResult resolve via getMarketOrNull, not getMarket —
+        // see its KDoc on MarketService (#1088). getMarket is still stubbed for the unrelated
+        // searchViaConfiguredProvider/searchFigiAssets/searchMarketStackAssets paths.
+        marketService: MarketService =
+            mock {
+                on { getMarket(any()) } doReturn usMarket
+                // Two explicit matchers, not getMarketOrNull(any()): the Kotlin default
+                // parameter (orByAlias) is filled in via the synthetic `$default` bridge,
+                // which passes a raw `true` rather than a matcher for the second argument.
+                // Mixing one matcher with that raw value trips Mockito's "N matchers
+                // expected, 1 recorded" — see getMarketOrNull's KDoc on MarketService (#1088).
+                on { getMarketOrNull(any(), any()) } doReturn usMarket
+            }
     ): Pair<AssetSearchService, AlphaProxy> {
         val alphaConfig =
             mock<AlphaConfig> {
@@ -136,7 +147,10 @@ class AssetSearchPublicFallbackTest {
         val strictMarkets =
             mock<MarketService> {
                 on { getMarket("US") } doReturn usMarket
-                on { getMarket(unsupported) } doThrow NotFoundException("Unable to resolve market code $unsupported")
+                // onSupportedMarket's actual call — see its KDoc on MarketService (#1088).
+                // An unmappable venue now returns null rather than throwing.
+                on { getMarketOrNull("US") } doReturn usMarket
+                on { getMarketOrNull(unsupported) } doReturn null
             }
         val (service, _) = buildService(marketProvider = provider, marketService = strictMarkets)
 

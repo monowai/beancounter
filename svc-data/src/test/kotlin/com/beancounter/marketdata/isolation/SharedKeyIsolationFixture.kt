@@ -19,7 +19,9 @@ import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -64,6 +66,9 @@ abstract class SharedKeyIsolationFixture {
     @Autowired
     private lateinit var defaultEnricher: DefaultEnricher
 
+    @Autowired
+    private lateinit var environment: Environment
+
     private lateinit var bcMvcHelper: BcMvcHelper
 
     @BeforeEach
@@ -71,6 +76,17 @@ abstract class SharedKeyIsolationFixture {
         enrichmentFactory.register(defaultEnricher)
         bcMvcHelper = BcMvcHelper(mockMvc, mockAuthConfig.getUserToken(Constants.systemUser))
         bcMvcHelper.registerUser()
+    }
+
+    /**
+     * The contended-key half of this guard only bites when both classes run in the same
+     * JVM, and `forkEvery = 100` means they might not. This assertion holds either way:
+     * remove the factory and it fails on its own.
+     */
+    @Test
+    fun `should be pointed at a database named for this test class`() {
+        assertThat(environment.getProperty("spring.datasource.url"))
+            .contains(javaClass.name)
     }
 
     /**

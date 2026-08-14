@@ -31,7 +31,7 @@ class TrnInputMapper(
     val fxTransactions: FxTransactions,
     val keyGenUtils: KeyGenUtils,
     val brokerRepository: BrokerRepository,
-    val cashUtils: CashUtils
+    val cashUtils: CashUtils = CashUtils()
 ) {
     fun convert(
         portfolio: Portfolio,
@@ -80,7 +80,7 @@ class TrnInputMapper(
 
         // Preserve existing cashAsset if no new one is provided (similar to broker handling)
         val cashAsset =
-            selfSettleAsset(trnInput, asset)
+            selfSettleAsset(trnInput, asset, existing)
                 ?: cashTrnServices.getCashAsset(
                     trnInput.trnType,
                     trnInput.cashAssetId,
@@ -172,10 +172,16 @@ class TrnInputMapper(
      */
     private fun selfSettleAsset(
         trnInput: TrnInput,
-        asset: Asset
+        asset: Asset,
+        existing: Trn?
     ): Asset? {
         if (!trnInput.cashAssetId.isNullOrEmpty()) {
             return null // The caller nominated an account — respect it.
+        }
+        if (existing?.cashAsset != null) {
+            // A default only applies to a new transaction. Patching a comment or
+            // a date must not re-point a settlement the user already answered.
+            return null
         }
         if (!TrnType.isCashImpacted(trnInput.trnType) || trnInput.trnType == TrnType.FX_BUY) {
             return null

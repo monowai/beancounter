@@ -14,7 +14,6 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
-import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
@@ -54,7 +53,6 @@ import java.util.Optional
         TrnInputMapper::class,
         TradeCalculator::class,
         CashTrnServices::class,
-        CashUtils::class,
         MarketConfig::class,
         KeyGenUtils::class
     ]
@@ -721,6 +719,47 @@ internal class TrnInputMapperTest {
         assertThat(trnResponse).hasSize(1)
         assertThat(trnResponse.first())
             .hasFieldOrPropertyWithValue("cashAsset.id", usdCashBalance.id)
+    }
+
+    @Test
+    fun `patching a cash-account trn keeps the settlement already stored`() {
+        // Self-settle is a default for new transactions. Patching an unrelated
+        // field (a comment, the date) must not rewrite where the money went —
+        // the stored account is the user's answer, and re-pointing it at the
+        // trade asset would re-post the compensating cash legs somewhere else.
+        val account = cashAccount()
+        Mockito.`when`(assetFinder.find(account.id)).thenReturn(account)
+        val existing =
+            Trn(
+                trnType = TrnType.INCOME,
+                asset = account,
+                cashAsset = usdCashBalance,
+                cashCurrency = USD,
+                portfolio = getPortfolio(portfolioId)
+            )
+
+        val trn =
+            trnInputMapper.map(
+                getPortfolio(portfolioId),
+                TrnInput(
+                    CallerRef(
+                        portfolioId.uppercase(Locale.getDefault()),
+                        one,
+                        one
+                    ),
+                    assetId = account.id,
+                    trnType = TrnType.INCOME,
+                    quantity = ONE,
+                    price = BigDecimal("150.00"),
+                    tradeAmount = BigDecimal("150.00"),
+                    tradeBaseRate = ONE,
+                    tradeCashRate = ONE,
+                    tradePortfolioRate = ONE
+                ),
+                existing
+            )
+
+        assertThat(trn.cashAsset).isEqualTo(usdCashBalance)
     }
 
     @Test

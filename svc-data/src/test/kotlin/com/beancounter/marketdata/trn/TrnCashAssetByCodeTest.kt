@@ -109,7 +109,17 @@ class TrnCashAssetByCodeTest {
         // (owner prefix stripped), not its generated id.
         val incomeTrn =
             TrnInput(
-                callerRef = CallerRef(callerId = "1"),
+                // Trn is globally unique on (provider, batch, callerId) — not
+                // portfolio-scoped — and every @SpringMvcDbTest shares one H2
+                // (#1081). A bare callerId collides with the same id in another
+                // class and 409s whichever test commits second, so scope the
+                // whole ref to this test.
+                callerRef =
+                    CallerRef(
+                        provider = "CASH-CODE-TEST",
+                        batch = "cash-code",
+                        callerId = "income-by-code"
+                    ),
                 assetId = cashAsset.id,
                 cashAssetId = "IBRK-USD",
                 cashCurrency = USD.code,

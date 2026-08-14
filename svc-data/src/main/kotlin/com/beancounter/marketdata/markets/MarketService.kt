@@ -83,21 +83,42 @@ class MarketService
             if (marketCode == null) {
                 throw BusinessException("Null Market Code")
             }
-            var market = getMarketMap()[marketCode.uppercase(Locale.getDefault())]
             val errorMessage =
                 String.format(
                     Locale.US,
                     "Unable to resolve market code %s",
                     marketCode
                 )
-            if (market == null && orByAlias) {
-                val byAlias = resolveAlias(marketCode)
-                market = marketMap[byAlias]
+            return getMarketOrNull(
+                marketCode,
+                orByAlias
+            ) ?: throw NotFoundException(errorMessage)
+        }
+
+        /**
+         * Resolves a market via its code property, or null when the code is unknown.
+         *
+         * Callers that treat an unresolvable code as a normal outcome must use this
+         * rather than catching [getMarket]'s exception. This class is `@Transactional`,
+         * so an exception escaping [getMarket] marks the caller's participating
+         * transaction rollback-only, and catching it afterwards does not undo that —
+         * the caller's commit then fails with `UnexpectedRollbackException` (#1088).
+         *
+         * @param marketCode market code, or an alias when [orByAlias] is set
+         * @return the resolved market, or null if no market has that code
+         */
+        fun getMarketOrNull(
+            marketCode: String?,
+            orByAlias: Boolean = true
+        ): Market? {
+            if (marketCode == null) {
+                return null
             }
-            if (market == null) {
-                throw NotFoundException(errorMessage)
+            val market = getMarketMap()[marketCode.uppercase(Locale.getDefault())]
+            if (market != null || !orByAlias) {
+                return market
             }
-            return market
+            return marketMap[resolveAlias(marketCode)]
         }
 
         override fun getMarkets(): MarketResponse = MarketResponse(getMarketMap().values.filter { it.active })

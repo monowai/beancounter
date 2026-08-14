@@ -46,52 +46,59 @@ class MarketStackEnricher(
             return defaultEnricher.enrich(id, market, assetInput)
         }
 
-        return try {
-            val response =
+        // Only the provider call is guarded. currencyService and accountingTypeService are
+        // both @Transactional, and a broad catch spanning them swallowed exceptions that
+        // had already marked this transaction rollback-only — the enrich "recovered" and
+        // the caller's commit then blew up (#1088). A bad currency config is a real error
+        // and now surfaces as one; an unreachable provider still falls back.
+        val response =
+            try {
                 marketStackGateway.searchTickers(
                     exchangeMic = micCode,
                     searchTerm = assetInput.code,
                     apiKey = marketStackConfig.apiKey
                 )
-
-            val ticker = pickTicker(response.data?.tickers ?: emptyList(), assetInput.code)
-
-            if (ticker != null) {
-                val marketAlias = market.getAlias(MarketStackService.ID)
-                val priceSymbol =
-                    if (!marketAlias.isNullOrEmpty()) {
-                        val baseCode = ticker.symbol.substringBefore(".")
-                        "$baseCode.$marketAlias"
-                    } else {
-                        ticker.symbol
-                    }
-                val currency = currencyService.getCode(market.currencyId)
-                val accountingType =
-                    accountingTypeService.getOrCreate(
-                        category = "Equity",
-                        currency = currency
-                    )
-                Asset(
-                    code = assetInput.code.uppercase(Locale.getDefault()),
-                    id = id,
-                    name = ticker.name,
-                    market = market,
-                    marketCode = market.code,
-                    priceSymbol = priceSymbol,
-                    category = "Equity",
-                    accountingType = accountingType
-                )
-            } else {
-                log.debug("No MarketStack ticker found for ${assetInput.code} on ${market.code}")
-                defaultEnricher.enrich(id, market, assetInput)
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception
+            ) {
+                log.warn("Error enriching via MarketStack: {}", e.message, e)
+                null
             }
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.warn("Error enriching via MarketStack: ${e.message}")
-            defaultEnricher.enrich(id, market, assetInput)
+
+        // Picking the ticker is local data-shaping, not a provider call — leave it outside
+        // the catch so a malformed payload surfaces rather than masquerading as an outage.
+        val ticker = response?.let { pickTicker(it.data?.tickers ?: emptyList(), assetInput.code) }
+
+        if (ticker == null) {
+            log.debug("No MarketStack ticker found for ${assetInput.code} on ${market.code}")
+            return defaultEnricher.enrich(id, market, assetInput)
         }
+
+        val marketAlias = market.getAlias(MarketStackService.ID)
+        val priceSymbol =
+            if (!marketAlias.isNullOrEmpty()) {
+                val baseCode = ticker.symbol.substringBefore(".")
+                "$baseCode.$marketAlias"
+            } else {
+                ticker.symbol
+            }
+        val currency = currencyService.getCode(market.currencyId)
+        val accountingType =
+            accountingTypeService.getOrCreate(
+                category = "Equity",
+                currency = currency
+            )
+        return Asset(
+            code = assetInput.code.uppercase(Locale.getDefault()),
+            id = id,
+            name = ticker.name,
+            market = market,
+            marketCode = market.code,
+            priceSymbol = priceSymbol,
+            category = "Equity",
+            accountingType = accountingType
+        )
     }
 
     /**

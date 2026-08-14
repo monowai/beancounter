@@ -28,7 +28,11 @@ class EventServiceFacade(
     private val eodhdConfig: EodhdConfig
 ) {
     fun getEvents(assetId: String): PriceResponse {
-        val asset = assetFinder.find(assetId)
+        // findOrNull, not find: PriceService's split lookups call this inside a
+        // transaction and treat "no events" as normal, catching whatever comes out.
+        // find's NotFoundException would have marked that transaction rollback-only
+        // before the catch ever saw it (#1088). No asset, no events.
+        val asset = assetFinder.findOrNull(assetId) ?: return PriceResponse()
         return if (isEodhdMarket(asset.market.code)) {
             eodhdEventService.getEvents(asset)
         } else {

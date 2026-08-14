@@ -53,6 +53,10 @@ class AssetFinder(
     /**
      * Find an asset locally by market code and asset code.
      *
+     * An unknown market code is "not found", not an error — this used to throw out of
+     * `marketService.getMarket`, which contradicted the contract below and poisoned the
+     * caller's transaction on the way out (#1088).
+     *
      * @param assetInput the asset input containing market and code information
      * @return the found asset or null if not found
      */
@@ -61,7 +65,7 @@ class AssetFinder(
         val code = assetInput.code
 
         // Search Local
-        val market = marketService.getMarket(marketCode.uppercase())
+        val market = marketService.getMarketOrNull(marketCode) ?: return null
         val findCode =
             if (market.code == PrivateMarketEnricher.ID) {
                 PrivateMarketEnricher.parseCode(SystemUser(assetInput.owner), code)

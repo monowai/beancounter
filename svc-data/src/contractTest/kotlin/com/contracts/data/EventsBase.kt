@@ -47,6 +47,10 @@ class EventsBase : ContractVerifierBase() {
         Mockito
             .`when`(assetFinder.find(asset.id))
             .thenReturn(asset)
+        // EventServiceFacade.getEvents resolves via findOrNull, not find (#1088).
+        Mockito
+            .`when`(assetFinder.findOrNull(asset.id))
+            .thenReturn(asset)
         Mockito
             .`when`(
                 alphaGateway.getAdjusted(

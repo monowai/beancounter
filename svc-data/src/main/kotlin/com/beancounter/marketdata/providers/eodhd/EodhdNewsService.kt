@@ -323,15 +323,13 @@ class EodhdNewsService(
             if (market.isNullOrBlank()) {
                 "US"
             } else {
-                try {
-                    eodhdConfig.marketService.getMarket(market).getAlias(EodhdPriceService.ID) ?: market
-                } catch (
-                    @Suppress("TooGenericExceptionCaught")
-                    e: Exception
-                ) {
-                    log.debug("No EODHD alias for market {}: {}", market, e.message)
-                    market
-                }
+                // Caller-supplied market codes are not guaranteed to be ours, and
+                // MarketService is @Transactional — catching its exception left the
+                // caller's transaction rollback-only (#1088).
+                eodhdConfig.marketService
+                    .getMarketOrNull(market)
+                    ?.getAlias(EodhdPriceService.ID)
+                    ?: market.also { log.debug("No EODHD alias for market {}", it) }
             }
         val bcMarket = if (market.isNullOrBlank()) "US" else market
         return tickers
@@ -352,15 +350,14 @@ class EodhdNewsService(
         code: String,
         bcMarket: String
     ): String =
-        try {
-            assetFinder.findLocally(AssetInput(bcMarket, code))?.priceSymbol?.takeIf { it.isNotBlank() } ?: code
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.debug("No local asset for {}/{}: {}", bcMarket, code, e.message)
-            code
-        }
+        // findLocally now returns null for an unknown market instead of throwing, so the
+        // "not held locally" fallback no longer needs a catch that would have left the
+        // caller's transaction rollback-only (#1088).
+        assetFinder
+            .findLocally(AssetInput(bcMarket, code))
+            ?.priceSymbol
+            ?.takeIf { it.isNotBlank() }
+            ?: code.also { log.debug("No local asset for {}/{}", bcMarket, it) }
 
     private fun matchesTopic(
         article: NewsArticle,

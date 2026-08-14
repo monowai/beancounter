@@ -94,7 +94,10 @@ class AssetSearchService(
     private fun onSupportedMarket(result: AssetSearchResult): Boolean {
         val code = result.market
         if (code.isNullOrBlank()) return false
-        return runCatching { marketService.getMarket(code) }.isSuccess
+        // An unmappable venue is the normal case this guard exists to filter, so ask a
+        // question that has a null answer rather than catching an exception that has
+        // already marked the caller's transaction rollback-only (#1088).
+        return marketService.getMarketOrNull(code) != null
     }
 
     /**
@@ -594,13 +597,11 @@ class AssetSearchService(
         // market is @Transient so resolve currency from MarketService
         val currency =
             asset.accountingType?.currency?.code
-                ?: try {
-                    marketService.getMarket(asset.marketCode).currency.code
-                } catch (
-                    @Suppress("TooGenericExceptionCaught")
-                    e: Exception
-                ) {
-                    log.warn("Could not resolve currency for market ${asset.marketCode}: ${e.message}")
+                ?: marketService.getMarketOrNull(asset.marketCode)?.currency?.code
+                ?: run {
+                    // Unresolvable market means "no currency to show", not a failure — and
+                    // catching getMarket's exception poisoned the transaction (#1088).
+                    log.warn("Could not resolve currency for market ${asset.marketCode}")
                     null
                 }
         return AssetSearchResult(

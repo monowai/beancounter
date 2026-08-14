@@ -27,11 +27,32 @@ internal class EventServiceFacadeTest {
     private val aapl = Asset(code = "AAPL", market = us, id = "asset-aapl")
     private val barc = Asset(code = "BARC", market = lon, id = "asset-barc")
 
+    /**
+     * An unknown asset id used to throw `NotFoundException` out of `assetFinder.find`.
+     * `AssetFinder` is `@Transactional`, and `PriceService`'s split lookups call this from
+     * inside a transaction and catch whatever comes back — by which point the transaction
+     * was already marked rollback-only and the caller's commit was doomed (#1088).
+     *
+     * No asset means no events. Neither provider should be asked.
+     */
+    @Test
+    fun `returns no events for an asset that does not exist`() {
+        val (_, eodhd, alpha) = facade(eodhdMarkets = "")
+        val finder = mock<AssetFinder>()
+        whenever(finder.findOrNull("asset-gone")).thenReturn(null)
+        val real = EventServiceFacade(finder, eodhd, alpha, configWith(""))
+
+        assertThat(real.getEvents("asset-gone").data).isEmpty()
+        verifyNoInteractions(eodhd)
+        verifyNoInteractions(alpha)
+    }
+
     @Test
     fun `defaults to AlphaVantage when EODHD markets allowlist is empty`() {
         val (facade, eodhd, alpha) = facade(eodhdMarkets = "")
         val finder = mock<AssetFinder>()
-        whenever(finder.find("asset-aapl")).thenReturn(aapl)
+        // getEvents resolves via findOrNull, not find — see its KDoc on AssetFinder (#1088).
+        whenever(finder.findOrNull("asset-aapl")).thenReturn(aapl)
         val real = EventServiceFacade(finder, eodhd, alpha, configWith(""))
         whenever(alpha.getEvents(aapl)).thenReturn(PriceResponse())
 
@@ -45,7 +66,8 @@ internal class EventServiceFacadeTest {
     fun `routes to EODHD when asset market is in the allowlist`() {
         val (_, eodhd, alpha) = facade(eodhdMarkets = "LON")
         val finder = mock<AssetFinder>()
-        whenever(finder.find("asset-barc")).thenReturn(barc)
+        // getEvents resolves via findOrNull, not find — see its KDoc on AssetFinder (#1088).
+        whenever(finder.findOrNull("asset-barc")).thenReturn(barc)
         val real = EventServiceFacade(finder, eodhd, alpha, configWith("LON"))
         whenever(eodhd.getEvents(any<Asset>())).thenReturn(PriceResponse())
 
@@ -63,7 +85,8 @@ internal class EventServiceFacadeTest {
         // assertion.
         val (_, eodhd, alpha) = facade(eodhdMarkets = "US")
         val finder = mock<AssetFinder>()
-        whenever(finder.find("asset-barc")).thenReturn(barc)
+        // getEvents resolves via findOrNull, not find — see its KDoc on AssetFinder (#1088).
+        whenever(finder.findOrNull("asset-barc")).thenReturn(barc)
         val real = EventServiceFacade(finder, eodhd, alpha, configWith("US"))
         whenever(alpha.getEvents(barc)).thenReturn(PriceResponse())
 

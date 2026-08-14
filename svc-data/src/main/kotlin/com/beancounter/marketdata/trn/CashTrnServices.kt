@@ -75,13 +75,16 @@ class CashTrnServices(
 
         // If a specific cash account code is provided, try to resolve it
         if (!cashAccountCode.isNullOrEmpty()) {
-            // First, try to find by UUID (backward compatibility)
-            try {
-                val foundById = assetFinder.find(cashAccountCode)
-                // If found by UUID, return it
+            // First, try to find by UUID (backward compatibility). findOrNull, not
+            // find: a miss here is expected (bc-view sends the settlement account's
+            // code, not its id) and AssetFinder is @Transactional, so letting
+            // NotFoundException escape it would mark this participating transaction
+            // rollback-only. Catching it does not undo that — TrnService.saveWithResult
+            // then died at commit with UnexpectedRollbackException (a 500 on a trn
+            // that had otherwise saved cleanly).
+            val foundById = assetFinder.findOrNull(cashAccountCode)
+            if (foundById != null) {
                 return foundById
-            } catch (_: Exception) {
-                // Not a UUID or not found, continue to try as asset code
             }
 
             // Try to find as a private asset by code

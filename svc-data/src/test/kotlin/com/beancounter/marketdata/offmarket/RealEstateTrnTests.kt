@@ -79,10 +79,21 @@ class RealEstateTrnTests {
 
     @BeforeEach
     fun configure() {
+        // Register the owner this test names on its private asset. It used to log in as
+        // an anonymous SystemUser and rely on some other test class having created
+        // "test-user" in the shared database (#1081); with a database per class there is
+        // nobody else to lean on.
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,
-                mockAuthConfig.login(SystemUser(), systemUserService)
+                mockAuthConfig.login(
+                    SystemUser(
+                        HOUSE_OWNER,
+                        "$HOUSE_OWNER@testing.com",
+                        auth0 = "auth0"
+                    ),
+                    systemUserService
+                )
             )
 
         assertThat(figiProxy).isNotNull
@@ -103,7 +114,7 @@ class RealEstateTrnTests {
                 USD,
                 "USAPT",
                 "NY Apartment",
-                "test-user"
+                HOUSE_OWNER
             )
         val houseAsset =
             assetService
@@ -195,5 +206,10 @@ class RealEstateTrnTests {
                 oneK,
                 BigDecimal.ZERO
             )
+    }
+
+    private companion object {
+        /** Owner of the private real-estate asset; registered in [configure]. */
+        const val HOUSE_OWNER = "test-user"
     }
 }

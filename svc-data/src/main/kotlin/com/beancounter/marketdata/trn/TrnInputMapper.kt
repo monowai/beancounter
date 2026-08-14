@@ -10,6 +10,7 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetFinder
@@ -29,7 +30,8 @@ class TrnInputMapper(
     val cashTrnServices: CashTrnServices,
     val fxTransactions: FxTransactions,
     val keyGenUtils: KeyGenUtils,
-    val brokerRepository: BrokerRepository
+    val brokerRepository: BrokerRepository,
+    val cashUtils: CashUtils
 ) {
     fun convert(
         portfolio: Portfolio,
@@ -78,13 +80,14 @@ class TrnInputMapper(
 
         // Preserve existing cashAsset if no new one is provided (similar to broker handling)
         val cashAsset =
-            cashTrnServices.getCashAsset(
-                trnInput.trnType,
-                trnInput.cashAssetId,
-                effectiveCashCurrency,
-                portfolio.owner.id,
-                broker?.id
-            ) ?: existing?.cashAsset
+            selfSettleAsset(trnInput, asset)
+                ?: cashTrnServices.getCashAsset(
+                    trnInput.trnType,
+                    trnInput.cashAssetId,
+                    effectiveCashCurrency,
+                    portfolio.owner.id,
+                    broker?.id
+                ) ?: existing?.cashAsset
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
             cashCurrency =
@@ -153,6 +156,31 @@ class TrnInputMapper(
             modelId = trnInput.modelId ?: existing?.modelId,
             subAccounts = trnInput.subAccounts ?: existing?.subAccounts
         )
+    }
+
+    /**
+     * Income, expense or a cash movement recorded *against* a cash-like asset (a
+     * bank or brokerage account) belongs in that account. Without this the caller
+     * has to name the account twice, and anything that omits `cashAssetId` — the
+     * quick "Record Income" dialog included — silently credits the generic
+     * "<ccy> Balance" instead of the account the user was looking at.
+     *
+     * Mirrors the CSV import rule in [BcRowAdapter.getCashAssetId], including its
+     * FX_BUY exclusion: an FX_BUY's asset is the *bought* currency's account while
+     * its cash leg is the *sold* side, so self-settling would collapse both legs
+     * into one account.
+     */
+    private fun selfSettleAsset(
+        trnInput: TrnInput,
+        asset: Asset
+    ): Asset? {
+        if (!trnInput.cashAssetId.isNullOrEmpty()) {
+            return null // The caller nominated an account — respect it.
+        }
+        if (!TrnType.isCashImpacted(trnInput.trnType) || trnInput.trnType == TrnType.FX_BUY) {
+            return null
+        }
+        return if (cashUtils.isCash(asset)) asset else null
     }
 
     private fun getBroker(

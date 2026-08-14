@@ -115,6 +115,11 @@ internal class TrnInputMapperTest {
         Mockito
             .`when`(assetFinder.find("USD-X:USER"))
             .thenReturn(usdCashBalance)
+        // CashTrnServices.getCashAsset resolves the cashAccountCode tier via
+        // findOrNull, not find — see AssetFinder.findOrNull kdoc.
+        Mockito
+            .`when`(assetFinder.findOrNull("USD-X:USER"))
+            .thenReturn(usdCashBalance)
         Mockito
             .`when`(assetFinder.find(asset.id))
             .thenReturn(MSFT)

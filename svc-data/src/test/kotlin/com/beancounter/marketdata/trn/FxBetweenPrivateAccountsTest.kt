@@ -252,9 +252,10 @@ class FxBetweenPrivateAccountsTest {
                 )
             ).thenReturn(scbUsdAccount)
 
-        // Mock sell asset lookup by UUID
+        // Mock sell asset lookup by UUID. CashTrnServices.getCashAsset resolves the
+        // cashAccountCode tier via findOrNull, not find — see AssetFinder.findOrNull kdoc.
         lenient()
-            .`when`(assetFinder.find(scbSgdAccount.id))
+            .`when`(assetFinder.findOrNull(scbSgdAccount.id))
             .thenReturn(scbSgdAccount)
 
         // CSV row with sell asset UUID in CashAccount field

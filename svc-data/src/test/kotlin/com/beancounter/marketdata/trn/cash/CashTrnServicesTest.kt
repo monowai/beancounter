@@ -127,8 +127,10 @@ internal class CashTrnServicesTest {
 
     @Test
     fun `should short-circuit on a known asset UUID without touching broker or generic tiers`() {
+        // getCashAsset resolves the cashAccountCode tier via findOrNull, not find —
+        // see AssetFinder.findOrNull kdoc.
         Mockito
-            .`when`(assetFinder.find(ibrkUsd.id))
+            .`when`(assetFinder.findOrNull(ibrkUsd.id))
             .thenReturn(ibrkUsd)
         assertThat(
             cashTrnServices.getCashAsset(

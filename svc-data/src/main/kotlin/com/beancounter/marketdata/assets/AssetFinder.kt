@@ -34,6 +34,23 @@ class AssetFinder(
             .orElseThrow { NotFoundException("Asset not found: $assetId") }
 
     /**
+     * Find an asset by its ID, returning null when it does not exist.
+     *
+     * Callers that treat a miss as a normal outcome (e.g. "is this string an id
+     * or a code?") must use this rather than catching [find]'s [NotFoundException]:
+     * this class is `@Transactional`, so an exception escaping [find] marks the
+     * caller's participating transaction rollback-only. Swallowing it leaves a
+     * poisoned transaction that fails at commit with `UnexpectedRollbackException`.
+     *
+     * @param assetId the unique identifier of the asset
+     * @return the found asset, or null if no asset has that id
+     */
+    fun findOrNull(assetId: String): Asset? =
+        assetRepository
+            .findById(assetId)
+            .orElse(null)
+
+    /**
      * Find an asset locally by market code and asset code.
      *
      * @param assetInput the asset input containing market and code information

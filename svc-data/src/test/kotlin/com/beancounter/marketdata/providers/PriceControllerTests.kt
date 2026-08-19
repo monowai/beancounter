@@ -623,6 +623,89 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
+        fun is_AsyncBackfillScheduledWhenLatestTrailsRequestedTo() {
+            // A benchmark nobody holds sits outside the scheduled refresh, so its
+            // cached tail rots even though the leading edge is fully covered. The
+            // chart's ratio overlay blanks from the stale date onward (it will not
+            // carry a close forward past the end of a leg), so the range looks
+            // truncated. Schedule the fill; the next open draws to the right edge.
+            val today = LocalDate.now()
+            val from = today.minusMonths(6)
+            val to = today
+            val staleTail = today.minusDays(30)
+            val cached =
+                listOf(
+                    MarketData(asset, close = BigDecimal("10.00"), priceDate = from),
+                    MarketData(asset, close = BigDecimal("11.00"), priceDate = staleTail)
+                )
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(cached)
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/prices/{assetId}/history", asset.id)
+                        .param("from", from.toString())
+                        .param("to", to.toString())
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+
+            val staleFromCaptor = argumentCaptor<LocalDate>()
+            org.mockito.Mockito
+                .verify(priceBackfillCoordinator)
+                .scheduleBackfill(eq(asset.id), staleFromCaptor.capture())
+            assertThat(staleFromCaptor.firstValue).isEqualTo(from)
+            // Async only — the caller still gets the cached rows without provider latency.
+            org.mockito.Mockito
+                .verify(marketDataService, org.mockito.Mockito.never())
+                .backFill(eq(asset.id), any())
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
+        fun is_NoBackfillWhenTailIsOnlyWeekendStale() {
+            // Friday's close read on Monday is not a gap. Without a tolerance the
+            // chart would schedule a provider call on every open for every asset,
+            // burning one quota unit per asset per cooldown window for no rows.
+            val today = LocalDate.now()
+            val from = today.minusMonths(6)
+            val to = today
+            val cached =
+                listOf(
+                    MarketData(asset, close = BigDecimal("10.00"), priceDate = from),
+                    MarketData(asset, close = BigDecimal("11.00"), priceDate = today.minusDays(3))
+                )
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(cached)
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/prices/{assetId}/history", asset.id)
+                        .param("from", from.toString())
+                        .param("to", to.toString())
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+
+            org.mockito.Mockito
+                .verify(priceBackfillCoordinator, org.mockito.Mockito.never())
+                .scheduleBackfill(any(), any())
+        }
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
         fun is_EnsureHistoryEndpointSchedulesPerAsset() {
             val body =
                 """{"assetIds":["asset-1","asset-2","asset-3"],"fromDate":"2020-01-01"}"""
@@ -690,15 +773,16 @@ internal class PriceControllerTests
             roles = [AuthConstants.USER]
         )
         fun is_NoBackfillScheduledWhenCachedRangeCoversRequest() {
-            // Earliest cached price is already before (or equal to) the requested
-            // `from` plus the retry buffer — nothing to fill, no async schedule.
+            // Both ends are covered: the earliest cached price is already before
+            // the requested `from` plus the retry buffer, and the latest is
+            // current. Nothing to fill, no async schedule.
             val today = LocalDate.now()
             val from = today.minusMonths(12)
             val to = today
             val history =
                 listOf(
                     MarketData(asset, close = BigDecimal("9.00"), priceDate = from.minusDays(30)),
-                    MarketData(asset, close = BigDecimal("10.00"), priceDate = from.plusMonths(2))
+                    MarketData(asset, close = BigDecimal("10.00"), priceDate = today)
                 )
             `when`(assetFinder.find(asset.id)).thenReturn(asset)
             `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(history)

@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 /**
  * Market Data MVC for price management operations.
@@ -323,7 +324,9 @@ class PriceController(
             Retrieves daily closing prices for an asset between the supplied dates (inclusive),
             sorted by price date ascending. If the asset has no persisted price history we try
             once to backfill from the configured external provider so newly-researched assets
-            return data on first chart open. Returns the hydrated asset together with a
+            return data on first chart open. A cached series that falls short of the requested
+            window — at either end — is returned as-is and an async backfill is scheduled, so
+            the next call serves the extended range. Returns the hydrated asset together with a
             collection of price points.
         """
     )
@@ -352,19 +355,46 @@ class PriceController(
         }
 
         // We have something to render. If the cached range falls short of what
-        // was asked for, schedule an async backfill so the next request can
-        // return the extended history without paying provider latency now.
+        // was asked for — at either end — schedule an async backfill so the next
+        // request can return the extended history without paying provider
+        // latency now.
         val earliest = initial.prices.minByOrNull { it.priceDate }?.priceDate
-        if (earliest != null && earliest > targetFrom.plusDays(BACKFILL_RETRY_BUFFER_DAYS)) {
+        val latest = initial.prices.maxByOrNull { it.priceDate }?.priceDate
+        val shortAtStart = earliest != null && earliest > targetFrom.plusDays(BACKFILL_RETRY_BUFFER_DAYS)
+        if (shortAtStart || staleTail(latest, toDate)) {
             priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
         }
         return initial
+    }
+
+    /**
+     * True when the cached series stops well short of the end of the requested
+     * window. The daily refresh only prices held assets and INDEX benchmarks, so
+     * anything else — a chart overlay's legs, a ticker researched but never
+     * bought — keeps whatever tail it was last backfilled with, forever. The
+     * leading-edge check above cannot see that: its earliest date is perfect.
+     *
+     * Tolerance covers a normal non-trading stretch (Friday's close read on a
+     * Tuesday after a Monday holiday) so routine chart opens don't spend a
+     * provider call per asset per cooldown window on a series that is already
+     * current.
+     */
+    private fun staleTail(
+        latest: LocalDate?,
+        toDate: LocalDate
+    ): Boolean {
+        if (latest == null) return false
+        val windowEnd = minOf(toDate, dateUtils.date)
+        return latest < windowEnd.minusDays(STALE_TAIL_BUFFER_DAYS)
     }
 
     private companion object {
         // Headroom buffer so we don't re-trigger backfills when the cached
         // earliest already sits right at the provider's reachable floor.
         const val BACKFILL_RETRY_BUFFER_DAYS = 7L
+
+        // Trading days the tail may lag the window end before we call it stale.
+        const val STALE_TAIL_BUFFER_DAYS = 5L
     }
 
     @PostMapping("/bulk")

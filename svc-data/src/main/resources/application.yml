@@ -10,6 +10,14 @@ server:
 schedule:
   enabled: false
 
+price:
+  refresh:
+    # Tickers the scheduled refresh prices even though nobody holds them and
+    # they aren't on the INDEX market. Chart overlays divide by these (RSP/SPY
+    # is the breadth read), and a leg whose tail stops updating draws the
+    # overlay short of the right edge. MARKET:CODE, comma separated.
+    benchmarks: US:SPY,US:RSP
+
 springdoc:
   use-management-port: true
   swagger-ui:

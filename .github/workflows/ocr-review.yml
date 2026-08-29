@@ -1,6 +1,10 @@
 name: AI Code Review
 
-# Runs OpenCodeReview when a PR is promoted out of draft.
+# Runs OpenCodeReview when a PR becomes ready for review — either promoted out
+# of draft, or opened straight into the ready state. Both event types are
+# needed: `ready_for_review` only fires on the transition, so on its own it
+# silently skipped every normally-opened PR. Drafts are filtered out by the
+# shared job, so each PR is still reviewed exactly once.
 #
 # The job itself lives in monowai/.github, shared by beancounter, bc-view,
 # svc-retire and svc-rebalance — see that repo's README for the rationale,
@@ -14,7 +18,7 @@ name: AI Code Review
 
 on:
   pull_request:
-    types: [ready_for_review]
+    types: [opened, ready_for_review]
   workflow_dispatch:
     inputs:
       pr_number:

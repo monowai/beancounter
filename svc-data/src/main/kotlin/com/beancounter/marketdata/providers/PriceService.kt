@@ -16,7 +16,6 @@ import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +32,8 @@ import java.util.TreeMap
 class PriceService(
     private val marketDataRepo: MarketDataRepo,
     private val cashUtils: CashUtils,
-    private val assetFinder: AssetFinder
+    private val assetFinder: AssetFinder,
+    private val entityManager: EntityManager
 ) {
     private val log = LoggerFactory.getLogger(PriceService::class.java)
     private var eventProducer: EventProducer? = null
@@ -41,17 +41,6 @@ class PriceService(
     private var alphaEventService: AlphaEventService? = null
     private var eventServiceFacade: EventServiceFacade? = null
     private var adjustedSources: Set<String> = emptySet()
-
-    // Optional: only wired when running inside a Spring/JPA context. Plain
-    // unit-constructed instances (the many mock-based tests in this module)
-    // leave it null, which persistInChunks() treats as "skip the mid-batch
-    // flush/clear" — saveAll(chunk) alone is enough for those tests.
-    private var entityManager: EntityManager? = null
-
-    @PersistenceContext
-    fun setEntityManager(entityManager: EntityManager) {
-        this.entityManager = entityManager
-    }
 
     @Autowired(required = false)
     fun setAlphaEventService(alphaEventService: AlphaEventService?) {
@@ -250,8 +239,8 @@ class PriceService(
     private fun persistInChunks(createSet: List<MarketData>) {
         createSet.chunked(SAVE_CHUNK_SIZE).forEach { chunk ->
             marketDataRepo.saveAll(chunk)
-            entityManager?.flush()
-            entityManager?.clear()
+            entityManager.flush()
+            entityManager.clear()
         }
     }
 

@@ -11,6 +11,7 @@ import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -52,7 +53,7 @@ class PriceServiceTest {
         cashUtils = mock(CashUtils::class.java)
         eventProducer = mock(EventProducer::class.java)
         cacheInvalidationProducer = mock(CacheInvalidationProducer::class.java)
-        priceService = PriceService(marketDataRepo, cashUtils, assetFinder)
+        priceService = PriceService(marketDataRepo, cashUtils, assetFinder, mock(EntityManager::class.java))
         priceService.setEventWriter(eventProducer)
         priceService.setCacheInvalidationProducer(cacheInvalidationProducer)
         `when`(assetFinder.find(asset.id)).thenReturn(asset)

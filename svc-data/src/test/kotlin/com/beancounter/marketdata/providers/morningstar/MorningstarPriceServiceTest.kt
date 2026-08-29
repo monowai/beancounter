@@ -159,4 +159,22 @@ class MorningstarPriceServiceTest {
 
         assertThat(morningstarConfig.getPriceCode(asset)).isEqualTo("GB00B6WZJX05")
     }
+
+    @Test
+    fun `priceApiUrl defaults to the lt-morningstar host`() {
+        // tools.morningstar.co.uk is decommissioned upstream (CNAME with no
+        // A/AAAA). lt.morningstar.com is the verified working replacement,
+        // same API path, same token, same JSON shape (#1097).
+        assertThat(morningstarConfig.priceApiUrl)
+            .isEqualTo("https://lt.morningstar.com/api/rest.svc/timeseries_price/t92wz0sj7c")
+    }
+
+    @Test
+    fun `priceApiUrl is overridable without a redeploy`() {
+        val overridden = MorningstarConfig(dateUtils)
+        overridden.priceApiUrl = "https://override.example.com/timeseries_price/xyz"
+
+        assertThat(overridden.priceApiUrl)
+            .isEqualTo("https://override.example.com/timeseries_price/xyz")
+    }
 }

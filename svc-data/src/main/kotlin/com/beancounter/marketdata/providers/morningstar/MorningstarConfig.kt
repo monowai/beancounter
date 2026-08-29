@@ -26,11 +26,19 @@ class MorningstarConfig(
     @Value("\${beancounter.market.providers.morningstar.markets:MUTF}")
     var markets: String = "MUTF"
 
+    // tools.morningstar.co.uk is decommissioned upstream (CNAME with no
+    // A/AAAA). lt.morningstar.com is the verified working replacement — same
+    // API path, same token, same JSON shape (#1097). A property (rather than
+    // a hardcoded const) lets a future host change be applied via env var,
+    // without a redeploy.
+    @Value(
+        "\${beancounter.market.providers.morningstar.url:" +
+            "https://lt.morningstar.com/api/rest.svc/timeseries_price/t92wz0sj7c}"
+    )
+    var priceApiUrl: String = "https://lt.morningstar.com/api/rest.svc/timeseries_price/t92wz0sj7c"
+
     companion object {
         const val ID = "MORNINGSTAR"
-
-        // Morningstar API endpoint (publicly accessible)
-        const val PRICE_API_URL = "https://tools.morningstar.co.uk/api/rest.svc/timeseries_price/t92wz0sj7c"
     }
 
     override fun getBatchSize() = 1

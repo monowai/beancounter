@@ -1,5 +1,7 @@
 package com.beancounter.marketdata.providers
 
+import io.opentelemetry.context.Context
+import io.opentelemetry.extension.kotlin.asContextElement
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -83,7 +85,15 @@ class PriceBackfillCoordinator(
             log.warn("Backfill capacity saturated; dropping submission for {}", assetId)
             return false
         }
-        scope.launch {
+        // Launch with a DETACHED root OTel context rather than inheriting the
+        // caller's. A plain `scope.launch { ... }` would propagate the inbound
+        // HTTP request's Context (and therefore its trace), so every span from
+        // every backfill in a storm landed on ONE trace — an unbounded
+        // SpanNode tree in the Sentry exporter, whose copy-on-write child list
+        // is quadratic in children-per-node. That was the OOM allocation site
+        // during the 116-backfill storm (#1096). Each backfill gets its own
+        // root trace instead, bounding every span tree to one backfill's work.
+        scope.launch(Context.root().asContextElement()) {
             try {
                 runBackfill(assetId, fromDate)
             } finally {

@@ -1,6 +1,9 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.MarketData.Companion.isDividend
+import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
@@ -81,7 +84,34 @@ class MarketDataBackfillService(
         }
         val byFactory = providerUtils.splitProviders(providerUtils.getInputs(listOf(asset)))
         for (marketDataProvider in byFactory.keys) {
-            priceService.handle(marketDataProvider.backFill(asset, anchored))
+            val response = marketDataProvider.backFill(asset, anchored)
+            // Some providers (Alpha Vantage) ignore fromDate and return their
+            // FULL history — up to 25y for a long-listed asset. Trimming here,
+            // provider-agnostically, keeps PriceService.handle from batching
+            // and enriching decades of rows it's about to discard anyway
+            // (#1096: this padded out the per-backfill memory footprint).
+            //
+            // Dividend/split rows are always kept regardless of date: they're
+            // the only thing PriceService.handle's corporate-event loop ever
+            // sees, so trimming one away silently drops a real historical
+            // event. Kept rows go through handle()'s FULL path — persisted
+            // into price history as well as dispatched — matching what the
+            // untrimmed pre-#1096 behavior did with them. They're a
+            // negligible fraction of a full history dump, so keeping them
+            // doesn't reopen the memory problem.
+            val trimmed =
+                response.data.filter {
+                    !it.priceDate.isBefore(anchored) || isDividend(it) || isSplit(it)
+                }
+            if (trimmed.size != response.data.size) {
+                log.debug(
+                    "Trimmed {} backfill rows before anchor {} for asset {}",
+                    response.data.size - trimmed.size,
+                    anchored,
+                    asset.id
+                )
+            }
+            priceService.handle(PriceResponse(trimmed))
         }
         // PRICE_HISTORY invalidation intentionally omitted — see class kdoc.
     }

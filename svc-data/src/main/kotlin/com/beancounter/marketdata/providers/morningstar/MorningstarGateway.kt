@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter
  */
 @Component
 class MorningstarGateway(
+    private val morningstarConfig: MorningstarConfig,
     private val dateUtils: DateUtils = DateUtils()
 ) {
     private val restTemplate = RestTemplate()
@@ -53,7 +54,7 @@ class MorningstarGateway(
 
             val uri =
                 UriComponentsBuilder
-                    .fromUriString(MorningstarConfig.PRICE_API_URL)
+                    .fromUriString(morningstarConfig.priceApiUrl)
                     .queryParam("currencyId", currencyId)
                     .queryParam("idtype", idType)
                     .queryParam("frequency", "daily")

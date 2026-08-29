@@ -5,6 +5,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.assets.AssetFinder
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -32,7 +33,7 @@ class PriceRepairServiceTest {
     @BeforeEach
     fun setUp() {
         marketDataRepo = mock(MarketDataRepo::class.java)
-        priceService = PriceService(marketDataRepo, CashUtils(), assetFinder)
+        priceService = PriceService(marketDataRepo, CashUtils(), assetFinder, mock(EntityManager::class.java))
         priceService.setEventServiceFacade(eventServiceFacade)
         whenever(assetFinder.find(AAPL.id)).thenReturn(AAPL)
     }

@@ -1,0 +1,45 @@
+name: AI Code Review
+
+# Runs OpenCodeReview when a PR becomes ready for review — either promoted out
+# of draft, or opened straight into the ready state. Both event types are
+# needed: `ready_for_review` only fires on the transition, so on its own it
+# silently skipped every normally-opened PR. Drafts are filtered out by the
+# shared job, so each PR is still reviewed exactly once.
+#
+# The job itself lives in monowai/.github, shared by beancounter, bc-view,
+# svc-retire and svc-rebalance — see that repo's README for the rationale,
+# inputs and the re-review recipe. Only the triggers are here, because `on:`
+# cannot live in a reusable workflow.
+#
+# Pinned at @v1. Moving the v1 tag in monowai/.github rolls a change out to
+# every repo at once.
+#
+# Requires the OCR_LLM_AUTH_TOKEN secret (organisation-level, or per-repo).
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to review"
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    uses: monowai/.github/.github/workflows/ocr-review.yml@v1
+    with:
+      pr_number: ${{ inputs.pr_number }}
+    secrets:
+      # Passed explicitly rather than `secrets: inherit`, which would hand
+      # every secret in this repo to a workflow defined in a public repo.
+      OCR_LLM_AUTH_TOKEN: ${{ secrets.OCR_LLM_AUTH_TOKEN }}

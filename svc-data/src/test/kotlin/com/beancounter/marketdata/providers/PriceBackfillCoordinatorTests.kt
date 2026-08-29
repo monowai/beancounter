@@ -1,5 +1,7 @@
 package com.beancounter.marketdata.providers
 
+import io.opentelemetry.api.trace.Span
+import io.opentelemetry.sdk.trace.SdkTracerProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -130,6 +132,40 @@ internal class PriceBackfillCoordinatorTests {
         assertThat(first).isTrue()
         assertThat(second).isTrue()
         verify(backfillService, times(2)).backFill(any<String>(), any<LocalDate>())
+    }
+
+    @Test
+    fun is_BackfillDetachedFromCallerTrace() {
+        // The launched backfill must NOT inherit the caller's OTel span — each
+        // backfill in a storm landing on the same trace built an unbounded
+        // SpanNode tree in the Sentry exporter, which is what OOM'd bc-data
+        // (#1096). We install a real caller span as current, capture the
+        // trace id the coordinator's coroutine body actually sees, and assert
+        // it differs from the caller's.
+        var capturedTraceId: String? = null
+        val backfillService = mock<MarketDataBackfillService>()
+        whenever(backfillService.backFill(eq("asset-1"), any())).thenAnswer {
+            capturedTraceId = Span.current().spanContext.traceId
+            Unit
+        }
+        val coordinator = PriceBackfillCoordinator(backfillService, scope, DEFAULT_PERMITS)
+
+        val tracerProvider = SdkTracerProvider.builder().build()
+        try {
+            val tracer = tracerProvider.get("test")
+            val callerSpan = tracer.spanBuilder("caller-request").startSpan()
+            val callerTraceId =
+                callerSpan.makeCurrent().use {
+                    coordinator.scheduleBackfill("asset-1", LocalDate.now().minusYears(5))
+                    callerSpan.spanContext.traceId
+                }
+            callerSpan.end()
+
+            verify(backfillService).backFill(eq("asset-1"), any())
+            assertThat(capturedTraceId).isNotEqualTo(callerTraceId)
+        } finally {
+            tracerProvider.shutdown()
+        }
     }
 
     private companion object {

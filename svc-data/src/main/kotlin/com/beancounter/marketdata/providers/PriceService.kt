@@ -15,6 +15,8 @@ import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
+import java.util.TreeMap
 
 /**
  * Persist prices obtained from providers and detect if Corporate Events need to be dispatched.
@@ -38,6 +41,17 @@ class PriceService(
     private var alphaEventService: AlphaEventService? = null
     private var eventServiceFacade: EventServiceFacade? = null
     private var adjustedSources: Set<String> = emptySet()
+
+    // Optional: only wired when running inside a Spring/JPA context. Plain
+    // unit-constructed instances (the many mock-based tests in this module)
+    // leave it null, which persistInChunks() treats as "skip the mid-batch
+    // flush/clear" — saveAll(chunk) alone is enough for those tests.
+    private var entityManager: EntityManager? = null
+
+    @PersistenceContext
+    fun setEntityManager(entityManager: EntityManager) {
+        this.entityManager = entityManager
+    }
 
     @Autowired(required = false)
     fun setAlphaEventService(alphaEventService: AlphaEventService?) {
@@ -149,18 +163,18 @@ class PriceService(
      */
     @Transactional
     fun handle(priceResponse: PriceResponse): Iterable<MarketData> {
+        val eligible = priceResponse.data.filter { !cashUtils.isCash(it.asset) && isValidPrice(it) }
+
+        // Batched per asset (#1096): DB state doesn't change mid-call — saveAll
+        // only happens after every group is built — so loading each asset's
+        // pre-existing rows once up front yields identical per-row dedup /
+        // previousClose answers to the old per-row query approach, at two
+        // queries per asset instead of two queries per row.
         val createSet =
-            priceResponse.data
-                .filter { !cashUtils.isCash(it.asset) && isValidPrice(it) }
-                .filter { marketData ->
-                    // Skip if already exists (idempotent operation)
-                    marketDataRepo.countByAssetIdAndPriceDate(
-                        marketData.asset.id,
-                        marketData.priceDate
-                    ) == 0L
-                }.map { marketData ->
-                    enrichWithPreviousClose(marketData)
-                }
+            eligible
+                .groupBy { it.asset.id }
+                .values
+                .flatMap { rows -> buildCreateSet(rows) }
 
         priceResponse.data
             .filter { !cashUtils.isCash(it.asset) && isCorporateEvent(it) }
@@ -171,11 +185,56 @@ class PriceService(
         return if (createSet.isEmpty()) {
             createSet
         } else {
-            val saved = marketDataRepo.saveAll(createSet)
+            val saved = persistInChunks(createSet)
             val dates = createSet.map { it.priceDate }.distinct()
             dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
             saved
         }
+    }
+
+    /**
+     * Dedup + enrich one asset's rows against its pre-existing stored state,
+     * loaded once for the whole group instead of per row.
+     */
+    private fun buildCreateSet(rows: List<MarketData>): List<MarketData> {
+        val asset = rows.first().asset
+        val minDate = rows.minOf { it.priceDate }
+        val maxDate = rows.maxOf { it.priceDate }
+
+        val storedInRange = marketDataRepo.findByAssetIdAndPriceDateBetween(asset.id, minDate, maxDate)
+        val existingDates = storedInRange.map { it.priceDate }.toSet()
+        val priorRow =
+            marketDataRepo
+                .findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, minDate)
+                .orElse(null)
+
+        val byDate = TreeMap<LocalDate, MarketData>()
+        storedInRange.forEach { byDate[it.priceDate] = it }
+        priorRow?.let { byDate[it.priceDate] = it }
+
+        return rows
+            .filter { it.priceDate !in existingDates }
+            .map { marketData ->
+                enrichWithPreviousClose(marketData, byDate.lowerEntry(marketData.priceDate)?.value)
+            }
+    }
+
+    /**
+     * Persists in bounded-size chunks, flushing and clearing the persistence
+     * context after each one. Without this a large backfill (a year ≈ 260
+     * rows, a storm of concurrent backfills far more) keeps every managed
+     * `MarketData` entity — plus Hibernate's dirty-check snapshots — alive in
+     * one session for the whole call, which is what pushed bc-data over a
+     * 512m heap during the #1096 incident.
+     */
+    private fun persistInChunks(createSet: List<MarketData>): List<MarketData> {
+        val saved = mutableListOf<MarketData>()
+        createSet.chunked(SAVE_CHUNK_SIZE).forEach { chunk ->
+            saved.addAll(marketDataRepo.saveAll(chunk))
+            entityManager?.flush()
+            entityManager?.clear()
+        }
+        return saved
     }
 
     /**
@@ -198,13 +257,11 @@ class PriceService(
      * Example: Monday $1000 → Tuesday 25:1 split → close $40 stored, previousClose $40 stored,
      * change 0, changePercent 0.
      */
-    private fun enrichWithPreviousClose(marketData: MarketData): MarketData {
-        val previousDayData =
-            marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
-                marketData.asset,
-                marketData.priceDate
-            )
-        if (!previousDayData.isPresent) {
+    private fun enrichWithPreviousClose(
+        marketData: MarketData,
+        previousDayData: MarketData?
+    ): MarketData {
+        if (previousDayData == null) {
             return marketData
         }
 
@@ -215,7 +272,7 @@ class PriceService(
         // Gate the lookup behind a "likely missing split" anomaly check so we
         // don't hit Alpha for every normal split=1 row (the common case).
         if (marketData.split.compareTo(BigDecimal.ONE) == 0 &&
-            looksLikeMissingSplit(marketData, previousDayData.get())
+            looksLikeMissingSplit(marketData, previousDayData)
         ) {
             knownSplitFor(marketData.asset, marketData.priceDate)?.let { factor ->
                 marketData.split = factor
@@ -225,7 +282,7 @@ class PriceService(
         val split = marketData.split
         val hasSplit =
             split.compareTo(BigDecimal.ZERO) > 0 && split.compareTo(BigDecimal.ONE) != 0
-        val previousSplit = previousDayData.get().split
+        val previousSplit = previousDayData.split
         // Only treat this row as a split ex-date when the previous day's row did not
         // already carry the same split factor. Some providers keep the split value
         // "sticky" on subsequent rows — re-adjusting those rows would divide prices twice.
@@ -242,18 +299,16 @@ class PriceService(
             if (providerGavePreviousClose) {
                 marketData.previousClose
             } else {
-                previousDayData.get().close
+                previousDayData.close
             }
 
         if (isSplitExDate) {
             // Close looks unadjusted when it's more than 2× the expected post-split level
             // derived from yesterday's raw close. Rebase OHLC onto the post-split basis.
             val closeLooksUnadjusted =
-                previousDayData.get().close.compareTo(BigDecimal.ZERO) > 0 &&
+                previousDayData.close.compareTo(BigDecimal.ZERO) > 0 &&
                     marketData.close.compareTo(
-                        previousDayData
-                            .get()
-                            .close
+                        previousDayData.close
                             .divide(split, 6, java.math.RoundingMode.HALF_UP)
                             .multiply(BigDecimal("2"))
                     ) > 0
@@ -725,5 +780,11 @@ class PriceService(
         // nearest-prior fallback has something to resolve to. 10 days is plenty
         // for any developed market.
         private const val FALLBACK_LOOKBACK_DAYS = 10L
+
+        // Batch size for the chunked saveAll() in persistInChunks. Flushing and
+        // clearing the persistence context between chunks keeps the largest
+        // backfills (multi-year, hundreds of rows) from holding every managed
+        // entity in memory for the whole handle() call — see #1096.
+        private const val SAVE_CHUNK_SIZE = 500
     }
 }

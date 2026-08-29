@@ -631,6 +631,68 @@ class PriceServiceTest {
     }
 
     @Test
+    fun `should batch dedup and enrichment across a multi-asset multi-row response`() {
+        // Given: assetA has one already-stored row (day1) and one new row (day2)
+        // that should be enriched from day1's stored close. assetB has a single
+        // new row with nothing stored before it — a virgin range that gets no
+        // enrichment. This exercises the per-asset-group batching in handle():
+        // two queries per asset group (range + prior row) instead of one pair
+        // of per-row queries.
+        val assetA = Asset(code = "BATCH-A", market = NASDAQ)
+        val assetB = Asset(code = "BATCH-B", market = NASDAQ)
+        val day1 = LocalDate.of(2026, 1, 1)
+        val day2 = LocalDate.of(2026, 1, 2)
+        val virginDay = LocalDate.of(2026, 2, 1)
+
+        val storedDay1 = MarketData(asset = assetA, priceDate = day1, close = BigDecimal("100.00"))
+        val providerDay1 = MarketData(asset = assetA, priceDate = day1, close = BigDecimal("100.00"))
+        val newDay2 =
+            MarketData(
+                asset = assetA,
+                priceDate = day2,
+                close = BigDecimal("105.00"),
+                previousClose = BigDecimal.ZERO,
+                change = BigDecimal.ZERO,
+                changePercent = BigDecimal.ZERO
+            )
+        val newVirginRow =
+            MarketData(
+                asset = assetB,
+                priceDate = virginDay,
+                close = BigDecimal("50.00"),
+                previousClose = BigDecimal.ZERO
+            )
+
+        `when`(cashUtils.isCash(assetA)).thenReturn(false)
+        `when`(cashUtils.isCash(assetB)).thenReturn(false)
+        `when`(marketDataRepo.findByAssetIdAndPriceDateBetween(assetA.id, day1, day2))
+            .thenReturn(listOf(storedDay1))
+        `when`(marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(assetA, day1))
+            .thenReturn(Optional.empty())
+        `when`(marketDataRepo.findByAssetIdAndPriceDateBetween(assetB.id, virginDay, virginDay))
+            .thenReturn(emptyList())
+        `when`(marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(assetB, virginDay))
+            .thenReturn(Optional.empty())
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        val result =
+            priceService
+                .handle(PriceResponse(listOf(providerDay1, newDay2, newVirginRow)))
+                .toList()
+
+        // Then: only the two new rows are persisted — day1 was already stored.
+        assertThat(result).hasSize(2)
+        assertThat(result.map { it.priceDate }).containsExactlyInAnyOrder(day2, virginDay)
+
+        val savedDay2 = result.first { it.priceDate == day2 }
+        assertThat(savedDay2.previousClose).isEqualByComparingTo("100.00")
+        assertThat(savedDay2.change).isEqualByComparingTo("5.00")
+
+        val savedVirgin = result.first { it.priceDate == virginDay }
+        assertThat(savedVirgin.previousClose).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
     fun `should reject negative close prices as invalid`() {
         // Given: Market data with negative close price (invalid data from provider)
         val today = LocalDate.of(2025, 12, 3)

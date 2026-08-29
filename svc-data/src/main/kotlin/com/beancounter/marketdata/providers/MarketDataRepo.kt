@@ -106,6 +106,19 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
     ): List<MarketData>
 
     /**
+     * Single-asset variant of [findByAssetInAndPriceDateBetween]. Lets
+     * [com.beancounter.marketdata.providers.PriceService.handle] load one asset
+     * group's pre-existing stored rows (for dedup + previous-close resolution)
+     * in a single query instead of one `countByAssetIdAndPriceDate` call per row
+     * (#1096: a 1y/260-row backfill was issuing 500+ per-row queries).
+     */
+    fun findByAssetIdAndPriceDateBetween(
+        assetId: String,
+        from: LocalDate,
+        to: LocalDate
+    ): List<MarketData>
+
+    /**
      * Find stored prices that represent corporate events (dividend or split).
      */
     @Query(

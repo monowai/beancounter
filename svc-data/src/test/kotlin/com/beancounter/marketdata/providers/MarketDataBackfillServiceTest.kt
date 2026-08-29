@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
@@ -17,6 +18,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -163,5 +165,66 @@ class MarketDataBackfillServiceTest {
         verify(provider).backFill(eq(asset), eq(today.minusYears(7)))
         verify(cacheInvalidationProducer, never()).sendPriceHistoryEvent(any(), any())
         verify(cacheInvalidationProducer, never()).sendPriceEvent(any())
+    }
+
+    @Test
+    fun `trims provider rows before the anchored fromDate`() {
+        // Alpha Vantage ignores fromDate and returns FULL history (can be
+        // 25y). backFill must trim the provider's response to
+        // [anchored, ...] before handing it to priceService.handle,
+        // regardless of how far back the provider actually returned (#1096).
+        val anchored = today.minusYears(2)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findEarliestPriceDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findLatestPriceDateByAssetId(asset.id)).thenReturn(null)
+
+        val beforeAnchor = MarketData(asset = asset, priceDate = anchored.minusYears(20), close = BigDecimal("1.00"))
+        val onAnchor = MarketData(asset = asset, priceDate = anchored, close = BigDecimal("2.00"))
+        val afterAnchor = MarketData(asset = asset, priceDate = anchored.plusDays(1), close = BigDecimal("3.00"))
+        whenever(provider.backFill(any(), any()))
+            .thenReturn(PriceResponse(listOf(beforeAnchor, onAnchor, afterAnchor)))
+
+        service.backFill(asset, anchored)
+
+        val captor = argumentCaptor<PriceResponse>()
+        verify(priceService).handle(captor.capture())
+        assertThat(captor.firstValue.data.map { it.priceDate })
+            .containsExactlyInAnyOrder(anchored, anchored.plusDays(1))
+    }
+
+    @Test
+    fun `keeps dividend and split rows even when they land before the anchored fromDate`() {
+        // A provider's full-history dump can carry a real corporate event
+        // (dividend/split) decades before the anchor window. Trimming must
+        // not silently swallow it — PriceService.handle's corporate-event
+        // loop is the only thing that ever dispatches it downstream, and it
+        // only ever sees what backFill hands it. Regression: an earlier cut
+        // of the #1096 trim dropped these rows outright, which broke
+        // AlphaPriceApiTest.is_BackFillWritingDividendEvent (KMI dividend
+        // fixture dated 2020-05-01, ~4y before a 2y default anchor).
+        val anchored = today.minusYears(2)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findEarliestPriceDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findLatestPriceDateByAssetId(asset.id)).thenReturn(null)
+
+        val ancientDividend =
+            MarketData(
+                asset = asset,
+                priceDate = anchored.minusYears(4),
+                close = BigDecimal("14.56"),
+                dividend = BigDecimal("0.2625")
+            )
+        val ancientPlainRow =
+            MarketData(asset = asset, priceDate = anchored.minusYears(4).plusDays(1), close = BigDecimal("14.90"))
+        val inRangeRow = MarketData(asset = asset, priceDate = anchored, close = BigDecimal("15.00"))
+        whenever(provider.backFill(any(), any()))
+            .thenReturn(PriceResponse(listOf(ancientDividend, ancientPlainRow, inRangeRow)))
+
+        service.backFill(asset, anchored)
+
+        val captor = argumentCaptor<PriceResponse>()
+        verify(priceService).handle(captor.capture())
+        assertThat(captor.firstValue.data.map { it.priceDate })
+            .containsExactlyInAnyOrder(ancientDividend.priceDate, inRangeRow.priceDate)
     }
 }

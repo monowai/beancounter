@@ -1,27 +1,16 @@
 name: AI Code Review
 
-# Runs OpenCodeReview over the branch the moment a PR leaves draft.
+# Runs OpenCodeReview when a PR is promoted out of draft.
 #
-# Draft -> Ready is our "this is ready to be looked at" signal, so the review
-# lands *before* a human opens the PR rather than after. This replaces running
-# `ocr review --from main --to HEAD` by hand before every push.
+# The job itself lives in monowai/.github, shared by beancounter, bc-view,
+# svc-retire and svc-rebalance — see that repo's README for the rationale,
+# inputs and the re-review recipe. Only the triggers are here, because `on:`
+# cannot live in a reusable workflow.
 #
-# Deliberately NOT on every push. Each run bills the DeepSeek account behind
-# OCR_LLM_AUTH_TOKEN, and the agent reads well beyond the diff — a single
-# small-file review measured ~364k tokens. The triggers are therefore:
-#   - ready_for_review  : the PR is promoted out of draft
-#   - workflow_dispatch : an explicit manual re-run against a PR number
+# Pinned at @v1. Moving the v1 tag in monowai/.github rolls a change out to
+# every repo at once.
 #
-# To re-review after pushing fixes, dispatch this workflow with the PR number.
-# Re-running the original job would re-review the head SHA it first saw.
-#
-# Required secret (organisation-level, or per-repo):
-#   OCR_LLM_AUTH_TOKEN  - DeepSeek API key
-# The endpoint and model are not secrets and live in `env` below, so they can
-# be changed in review rather than through the settings UI.
-#
-# This file is kept byte-identical across beancounter, bc-view, svc-retire and
-# svc-rebalance. Change it in one place and sync the others.
+# Requires the OCR_LLM_AUTH_TOKEN secret (organisation-level, or per-repo).
 
 on:
   pull_request:
@@ -41,74 +30,12 @@ permissions:
   contents: read
   pull-requests: write
 
-env:
-  # DeepSeek speaks the OpenAI-compatible protocol, hence llm_use_anthropic: false.
-  OCR_LLM_URL: https://api.deepseek.com/chat/completions
-  OCR_LLM_MODEL: deepseek-v4-pro
-
 jobs:
   review:
-    name: OpenCodeReview
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # Fork PRs never receive secrets under the `pull_request` trigger, so the
-    # review would fail with an empty token rather than say anything useful.
-    # Skip them explicitly. Only relevant where the repo is public, but kept
-    # everywhere so this file stays identical across repos.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
-    steps:
-      # workflow_dispatch carries no pull_request payload, so the base ref and
-      # head SHA have to be resolved from the PR number. On ready_for_review
-      # these stay empty and the action falls back to the event payload.
-      - name: Resolve dispatch target
-        id: target
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          set -euo pipefail
-          # Passed through env and quoted rather than interpolated into the
-          # command, and constrained to digits so it can never be read as a
-          # flag by gh.
-          case "$PR_NUMBER" in
-            ''|*[!0-9]*)
-              echo "::error::pr_number must be digits only, got: $PR_NUMBER"
-              exit 1
-              ;;
-          esac
-          pr=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-                 --json baseRefName,headRefOid,isDraft)
-          if [ "$(jq -r .isDraft <<<"$pr")" = "true" ]; then
-            echo "::error::PR #${PR_NUMBER} is still a draft — promote it or review it locally."
-            exit 1
-          fi
-          {
-            echo "base_ref=$(jq -r .baseRefName <<<"$pr")"
-            echo "head_sha=$(jq -r .headRefOid <<<"$pr")"
-          } >> "$GITHUB_OUTPUT"
-
-      # The action installs the ocr CLI, checks out the trusted base at
-      # fetch-depth 0, fetches the head blobs, and posts inline comments plus a
-      # sticky summary. No checkout step is needed ahead of it.
-      - name: Run OpenCodeReview
-        uses: alibaba/open-code-review@v1.11.0
-        with:
-          llm_url: ${{ env.OCR_LLM_URL }}
-          llm_model: ${{ env.OCR_LLM_MODEL }}
-          llm_auth_token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
-          llm_use_anthropic: "false"
-          base_ref: ${{ steps.target.outputs.base_ref }}
-          head_sha: ${{ steps.target.outputs.head_sha }}
-          # Update one summary comment in place instead of stacking a new one
-          # on every run.
-          sticky_summary: "true"
-          # Only append inline comments that do not overlap an existing bot
-          # comment, so a dispatched re-run after fixes does not repeat itself.
-          # History is never deleted.
-          incremental: "true"
-          # Raw JSON result + stderr land as run artifacts, which is what makes
-          # a disputed finding checkable after the fact.
-          upload_artifacts: "true"
+    uses: monowai/.github/.github/workflows/ocr-review.yml@v1
+    with:
+      pr_number: ${{ inputs.pr_number }}
+    secrets:
+      # Passed explicitly rather than `secrets: inherit`, which would hand
+      # every secret in this repo to a workflow defined in a public repo.
+      OCR_LLM_AUTH_TOKEN: ${{ secrets.OCR_LLM_AUTH_TOKEN }}

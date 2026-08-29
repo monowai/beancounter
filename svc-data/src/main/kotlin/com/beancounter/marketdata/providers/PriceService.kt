@@ -185,10 +185,15 @@ class PriceService(
         return if (createSet.isEmpty()) {
             createSet
         } else {
-            val saved = persistInChunks(createSet)
+            persistInChunks(createSet)
             val dates = createSet.map { it.priceDate }.distinct()
             dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
-            saved
+            // Return the application-constructed rows, not saveAll's managed
+            // copies — those are detached by the per-chunk clear() and would
+            // hand any future caller entities whose associations can't be
+            // trusted after the transaction ends. createSet holds the same
+            // data with plain in-memory references throughout.
+            createSet
         }
     }
 
@@ -208,6 +213,13 @@ class PriceService(
                 .findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, minDate)
                 .orElse(null)
 
+        // Keyed on priceDate alone while the table's uniqueness is
+        // (source, asset_id, priceDate): when two providers hold rows for the
+        // same date they are intentionally coalesced to one arbitrary source —
+        // any provider's close is acceptable for previous-close resolution
+        // (established price-source policy), and the per-row
+        // findTop1ByAssetAndPriceDateLessThan query this replaced picked just
+        // as arbitrarily on such ties.
         val byDate = TreeMap<LocalDate, MarketData>()
         storedInRange.forEach { byDate[it.priceDate] = it }
         priorRow?.let { byDate[it.priceDate] = it }
@@ -227,14 +239,12 @@ class PriceService(
      * one session for the whole call, which is what pushed bc-data over a
      * 512m heap during the #1096 incident.
      */
-    private fun persistInChunks(createSet: List<MarketData>): List<MarketData> {
-        val saved = mutableListOf<MarketData>()
+    private fun persistInChunks(createSet: List<MarketData>) {
         createSet.chunked(SAVE_CHUNK_SIZE).forEach { chunk ->
-            saved.addAll(marketDataRepo.saveAll(chunk))
+            marketDataRepo.saveAll(chunk)
             entityManager?.flush()
             entityManager?.clear()
         }
-        return saved
     }
 
     /**

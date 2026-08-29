@@ -160,6 +160,14 @@ class PriceService(
      *
      * IMPORTANT: Prices with close <= 0 are rejected as invalid data from the provider.
      * A zero or negative price indicates a provider issue and should never be stored.
+     *
+     * Caller contract: the chunked persist clears the whole persistence context
+     * (see [persistInChunks]), so do NOT invoke this inside an enclosing
+     * transaction whose managed entities you keep using afterwards — they would
+     * be silently detached. Every current caller lets this method own its
+     * transaction; keep it that way. The returned rows are the
+     * application-constructed inputs (plain in-memory references, safe after
+     * commit), never Hibernate-managed instances.
      */
     @Transactional
     fun handle(priceResponse: PriceResponse): Iterable<MarketData> {

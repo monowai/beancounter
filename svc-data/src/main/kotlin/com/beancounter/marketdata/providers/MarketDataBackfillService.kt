@@ -94,8 +94,11 @@ class MarketDataBackfillService(
             // Dividend/split rows are always kept regardless of date: they're
             // the only thing PriceService.handle's corporate-event loop ever
             // sees, so trimming one away silently drops a real historical
-            // event. They're a negligible fraction of a full history dump,
-            // so keeping them doesn't reopen the memory problem.
+            // event. Kept rows go through handle()'s FULL path — persisted
+            // into price history as well as dispatched — matching what the
+            // untrimmed pre-#1096 behavior did with them. They're a
+            // negligible fraction of a full history dump, so keeping them
+            // doesn't reopen the memory problem.
             val trimmed =
                 response.data.filter {
                     !it.priceDate.isBefore(anchored) || isDividend(it) || isSplit(it)

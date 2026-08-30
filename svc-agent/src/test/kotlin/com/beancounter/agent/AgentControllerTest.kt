@@ -53,6 +53,27 @@ private fun transientConnectError(): Throwable {
 }
 
 /**
+ * DeepSeek's out-of-credit failure on the blocking path. Spring AI's
+ * `RetryUtils.DEFAULT_RESPONSE_ERROR_HANDLER` formats every non-2xx as
+ * `"<status> - <body>"`, so the HTTP status only ever reaches us as the leading
+ * token of the message.
+ */
+private fun outOfCreditSync(): Throwable =
+    RuntimeException(
+        "402 - {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\"," +
+            "\"param\":null,\"code\":\"invalid_request_error\"}}"
+    )
+
+/**
+ * The same provider failure on the streaming path, which goes through WebClient
+ * and therefore surfaces a typed [org.springframework.web.reactive.function.client.WebClientResponseException]
+ * with a differently shaped message. Both shapes must classify identically.
+ */
+private fun outOfCreditStream(): Throwable =
+    org.springframework.web.reactive.function.client.WebClientResponseException
+        .create(402, "Payment Required", org.springframework.http.HttpHeaders(), ByteArray(0), null)
+
+/**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
  * Spring AI tool calling, which is exercised end-to-end against a real LLM —
  * not in a unit test. Here we only check the controller's contract: health
@@ -213,6 +234,39 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `query returns 402 and provider-quota when the provider is out of credit`() {
+        // An exhausted credit balance is an administrative state on our LLM
+        // account, not a fault in the request. It must not land in the same
+        // 500 agent-error bucket as a genuine failure, or the UI can only ever
+        // tell the user something broke.
+        val client = mock<ChatClient>()
+        whenever(client.prompt()).thenThrow(outOfCreditSync())
+
+        val response = controller(chatClient = client).query(AgentQuery("anything"))
+
+        assertThat(response.statusCode.value()).isEqualTo(402)
+        assertThat(response.body?.error).isEqualTo("provider-quota")
+        // The provider's raw text never reaches the browser; the UI renders
+        // its own copy off the code.
+        assertThat(response.body?.response).doesNotContain("Insufficient Balance")
+    }
+
+    @Test
+    fun `query maps rate limits and timeouts to their own statuses`() {
+        val rateLimited = mock<ChatClient>()
+        whenever(rateLimited.prompt()).thenThrow(RuntimeException("429 - rate_limit_exceeded"))
+        val rateResponse = controller(chatClient = rateLimited).query(AgentQuery("anything"))
+        assertThat(rateResponse.statusCode.value()).isEqualTo(429)
+        assertThat(rateResponse.body?.error).isEqualTo("provider-rate")
+
+        val timedOut = mock<ChatClient>()
+        whenever(timedOut.prompt()).thenThrow(RuntimeException("Read timed out"))
+        val timeoutResponse = controller(chatClient = timedOut).query(AgentQuery("anything"))
+        assertThat(timeoutResponse.statusCode.value()).isEqualTo(504)
+        assertThat(timeoutResponse.body?.error).isEqualTo("provider-timeout")
+    }
+
+    @Test
     fun `stream emits a single error event when no LLM is configured`() {
         val events =
             controller(chatClient = null)
@@ -222,7 +276,9 @@ class AgentControllerTest {
 
         assertThat(events).hasSize(1)
         assertThat(events[0].event()).isEqualTo(EVENT_ERROR)
-        assertThat(events[0].data()).contains("No LLM")
+        // A code, matching what /query puts in AgentResponse.error — the UI
+        // renders the wording, so prose here would print raw to the user.
+        assertThat(events[0].data()).isEqualTo("no-llm")
     }
 
     @Test
@@ -355,6 +411,52 @@ class AgentControllerTest {
             )
         assertThat(controller().classifyError(anthropicQuota))
             .isEqualTo("provider-quota")
+    }
+
+    @Test
+    fun `classifyError returns provider-quota for a DeepSeek 402 on either transport`() {
+        // DeepSeek answers an empty balance with HTTP 402 / "Insufficient
+        // Balance" — nothing like Anthropic's 400 + "credit balance" text, so
+        // the original body-string match classified it as a generic
+        // agent-error and the UI told the user their request had failed.
+        assertThat(controller().classifyError(outOfCreditSync()))
+            .isEqualTo("provider-quota")
+        assertThat(controller().classifyError(outOfCreditStream()))
+            .isEqualTo("provider-quota")
+    }
+
+    @Test
+    fun `classifyError finds the provider failure through a wrapper exception`() {
+        // Reactor and Spring AI both re-wrap the provider error before it
+        // reaches onErrorResume, so classification has to read the cause chain.
+        val wrapped = IllegalStateException("stream failed", outOfCreditStream())
+
+        assertThat(controller().classifyError(wrapped)).isEqualTo("provider-quota")
+    }
+
+    @Test
+    fun `classifyError does not read a 402 out of an unrelated number`() {
+        assertThat(controller().classifyError(RuntimeException("tool returned 11402 rows")))
+            .isEqualTo(OPAQUE_ERROR)
+    }
+
+    @Test
+    fun `classifyError needs one exception to carry both the 400 and the billing text`() {
+        // Scanning the joined cause chain would combine a "billing" mentioned
+        // in a tool result with a 400 raised somewhere else and call it a
+        // quota failure.
+        val split =
+            RuntimeException(
+                "tool result: monthly billing summary",
+                RuntimeException("400 - {\"error\":{\"message\":\"model does not exist\"}}")
+            )
+        assertThat(controller().classifyError(split)).isEqualTo(OPAQUE_ERROR)
+
+        // The genuine Anthropic shape — one exception, both signals — still
+        // classifies.
+        val anthropicBilling =
+            RuntimeException("400 - {\"error\":{\"message\":\"Please check your Plans & Billing page.\"}}")
+        assertThat(controller().classifyError(anthropicBilling)).isEqualTo("provider-quota")
     }
 
     @Test

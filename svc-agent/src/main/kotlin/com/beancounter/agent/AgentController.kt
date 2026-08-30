@@ -82,6 +82,26 @@ class AgentController(
         // turns — bounds the tokens a single request can push into the
         // prompt regardless of what the client sends.
         const val MAX_HISTORY_TURNS = 6
+
+        // Stable client-facing failure codes. bc-view keys its copy off these
+        // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
+        const val NO_LLM = "no-llm"
+        const val PROVIDER_QUOTA = "provider-quota"
+        const val PROVIDER_RATE = "provider-rate"
+        const val PROVIDER_TIMEOUT = "provider-timeout"
+        const val AGENT_ERROR = "agent-error"
+
+        const val BAD_REQUEST = 400
+        const val PAYMENT_REQUIRED = 402
+        const val TOO_MANY_REQUESTS = 429
+        const val INTERNAL_ERROR = 500
+        const val GATEWAY_TIMEOUT = 504
+
+        // Only a status at the very start of the message is trusted — that is
+        // where Spring AI's "<status> - <body>" puts it. Digit boundaries stop
+        // a number inside a tool result from reading as a status.
+        val LEADING_HTTP_STATUS = Regex("""^\s*(\d{3})(?!\d)""")
+        const val CAUSE_CHAIN_DEPTH = 5
     }
 
     /**
@@ -187,7 +207,7 @@ class AgentController(
                         query = safeQuery,
                         response = "No LLM is configured. Set the 'ollama', 'openai', or 'anthropic' Spring profile.",
                         timestamp = Instant.now().toString(),
-                        error = "no-llm"
+                        error = NO_LLM
                     )
                 )
         }
@@ -227,19 +247,25 @@ class AgentController(
                 )
             )
         } catch (
-            // Controller boundary: any LLM/tool failure becomes a 500 error body.
+            // Controller boundary: every LLM/tool failure becomes an error
+            // body, classified the same way the streaming path classifies it.
+            // Without this the two transports disagreed — a stream told the UI
+            // "provider-quota", the same failure on /query told it
+            // "agent-error", and the non-streaming surfaces (Asset Review, News
+            // Sentiment) could only ever say something went wrong.
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
-            log.error("Agent query failed: {}", e.message, e)
+            val errorCode = classifyError(e)
+            log.error("Agent query failed ({}): {}", errorCode, e.message, e)
             ResponseEntity
-                .status(500)
+                .status(statusFor(errorCode))
                 .body(
                     AgentResponse(
                         query = safeQuery,
-                        response = "The agent failed to process the request.",
+                        response = messageFor(errorCode),
                         timestamp = Instant.now().toString(),
-                        error = "agent-error"
+                        error = errorCode
                     )
                 )
         }
@@ -274,7 +300,10 @@ class AgentController(
         @RequestBody request: AgentQuery
     ): Flux<ServerSentEvent<String>> {
         scopeAuthorizer.authorize(request.context)
-        if (chatClient == null) return errorEvent("No LLM is configured.")
+        // A code, not prose: the streaming path's error payload is a contract
+        // the UI renders copy from, and `/query` already answers this case
+        // with the same NO_LLM code.
+        if (chatClient == null) return errorEvent(NO_LLM)
         // Wrap the pipeline in Flux.defer so setup-time exceptions (selector
         // failures, options builder failures) become Flux errors and reach
         // onErrorResume rather than escaping out of the controller as a 500.
@@ -298,42 +327,128 @@ class AgentController(
     }
 
     /**
-     * Map an upstream exception into a stable, opaque SSE error code. The
-     * client is free to render a friendly message keyed off the code; the
-     * raw exception text never reaches the client.
+     * Map an upstream exception into a stable, opaque error code, used by both
+     * transports. The client renders a friendly message keyed off the code;
+     * the raw exception text never reaches the client.
      *
-     *   `provider-quota`   — Anthropic credit balance exhausted (HTTP 400
-     *                        invalid_request_error with "credit balance").
+     *   `provider-quota`   — The LLM account has no credit left. Anthropic
+     *                        says so with HTTP 400 + "credit balance";
+     *                        DeepSeek with HTTP 402 + "Insufficient Balance".
+     *                        Nothing the caller does can clear it — an admin
+     *                        has to top the account up.
      *   `provider-rate`    — Provider rate-limited the request (HTTP 429).
      *   `provider-timeout` — Upstream took too long.
      *   `agent-error`      — Anything else.
+     *
+     * Both the exception and its causes are inspected: Reactor and Spring AI
+     * re-wrap the provider error on the way out, so the status is often one or
+     * two levels down.
      */
     internal fun classifyError(e: Throwable): String {
-        val message = e.message.orEmpty()
-        // Anthropic returns 400 with the credit-balance text in the body.
-        // Match on the body string rather than the status code so we don't
-        // accidentally match unrelated 400s.
+        val chain = causeChain(e)
+        val message = chain.joinToString(" | ") { it.message.orEmpty() }
+        val statuses = chain.mapNotNull(::httpStatusOf)
+
+        // Distinctive phrases are matched across the whole chain — no other
+        // failure says "credit balance" or "insufficient balance".
         val isCreditBalance = message.contains("credit balance", ignoreCase = true)
+        val isOutOfCredit =
+            message.contains("insufficient balance", ignoreCase = true) ||
+                message.contains("insufficient_quota", ignoreCase = true)
+        // "billing" is not distinctive enough for that, and neither is a bare
+        // "400". Anthropic's billing rejection is only trusted when one
+        // exception carries both — otherwise a "billing" in a tool result and
+        // a 400 from an unrelated wrapper would combine into a false quota.
         val isBilling400 =
-            message.contains("billing", ignoreCase = true) &&
-                message.contains("400", ignoreCase = true)
-        if (isCreditBalance || isBilling400) {
-            return "provider-quota"
+            chain.any { cause ->
+                httpStatusOf(cause) == BAD_REQUEST &&
+                    cause.message.orEmpty().contains("billing", ignoreCase = true)
+            }
+        if (statuses.contains(PAYMENT_REQUIRED) || isCreditBalance || isBilling400 || isOutOfCredit) {
+            return PROVIDER_QUOTA
         }
-        if (message.contains("429") ||
+        // Likewise a bare "429": the status is read from where it is trusted,
+        // and the wording covers providers that report it in prose.
+        if (statuses.contains(TOO_MANY_REQUESTS) ||
+            message.contains("too many requests", ignoreCase = true) ||
             message.contains("rate limit", ignoreCase = true) ||
             message.contains("rate_limit", ignoreCase = true)
         ) {
-            return "provider-rate"
+            return PROVIDER_RATE
         }
-        if (e is java.util.concurrent.TimeoutException ||
+        if (chain.any { it is java.util.concurrent.TimeoutException } ||
             message.contains("timed out", ignoreCase = true) ||
             message.contains("timeout", ignoreCase = true)
         ) {
-            return "provider-timeout"
+            return PROVIDER_TIMEOUT
         }
-        return "agent-error"
+        return AGENT_ERROR
     }
+
+    /** The exception plus its causes, depth-capped so a cyclic chain can't hang us. */
+    private fun causeChain(e: Throwable): List<Throwable> =
+        generateSequence(e) { current -> current.cause?.takeIf { it !== current } }
+            .take(CAUSE_CHAIN_DEPTH)
+            .toList()
+
+    /**
+     * The provider's HTTP status, where it is actually knowable. WebClient
+     * (streaming path) carries it as a typed field; Spring AI's blocking error
+     * handler only formats it as `"<status> - <body>"`, so it is read back from
+     * the head of the message. Anything else yields null rather than a guess —
+     * a status scraped from anywhere in the text would match numbers that are
+     * part of a tool result.
+     */
+    private fun httpStatusOf(e: Throwable): Int? =
+        when (e) {
+            is org.springframework.web.reactive.function.client.WebClientResponseException -> {
+                e.statusCode.value()
+            }
+            else -> {
+                LEADING_HTTP_STATUS
+                    .find(e.message.orEmpty())
+                    ?.groupValues
+                    ?.get(1)
+                    ?.toIntOrNull()
+            }
+        }
+
+    /**
+     * HTTP status for a failed blocking `/query`, so the browser can tell an
+     * administrative outage from a broken request without parsing prose.
+     * 402 is passed straight through: it means the same thing to us as it does
+     * to the provider — the account behind the feature needs topping up.
+     */
+    private fun statusFor(errorCode: String): Int =
+        when (errorCode) {
+            PROVIDER_QUOTA -> PAYMENT_REQUIRED
+            PROVIDER_RATE -> TOO_MANY_REQUESTS
+            PROVIDER_TIMEOUT -> GATEWAY_TIMEOUT
+            else -> INTERNAL_ERROR
+        }
+
+    /**
+     * Fallback prose for clients that render the body instead of keying off
+     * [AgentResponse.error]. Deliberately says whose problem it is; the rich
+     * copy lives in the UI, next to the retry affordances.
+     */
+    private fun messageFor(errorCode: String): String =
+        when (errorCode) {
+            PROVIDER_QUOTA -> {
+                "AI features are paused: the AI provider account has run out of credit. " +
+                    "This is a service administration issue, not a problem with your request. " +
+                    "Please try again once the balance has been topped up."
+            }
+            PROVIDER_RATE -> {
+                "The AI provider is rate-limiting requests. Please wait a moment and try again."
+            }
+            PROVIDER_TIMEOUT -> {
+                "The AI provider took too long to respond. Please try again."
+            }
+            else -> {
+                "The agent failed to process the request."
+            }
+        }
 
     private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {
         val safeQuery = HtmlUtils.htmlEscape(request.query)

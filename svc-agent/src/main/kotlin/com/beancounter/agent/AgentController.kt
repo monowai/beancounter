@@ -91,6 +91,7 @@ class AgentController(
         const val PROVIDER_TIMEOUT = "provider-timeout"
         const val AGENT_ERROR = "agent-error"
 
+        const val BAD_REQUEST = 400
         const val PAYMENT_REQUIRED = 402
         const val TOO_MANY_REQUESTS = 429
         const val INTERNAL_ERROR = 500
@@ -348,22 +349,28 @@ class AgentController(
         val message = chain.joinToString(" | ") { it.message.orEmpty() }
         val statuses = chain.mapNotNull(::httpStatusOf)
 
-        // Anthropic returns 400 with the credit-balance text in the body, so
-        // that one is matched on the body string rather than the status code —
-        // unrelated 400s must not be swept up with it. DeepSeek's 402 is
-        // unambiguous on its own.
+        // Distinctive phrases are matched across the whole chain — no other
+        // failure says "credit balance" or "insufficient balance".
         val isCreditBalance = message.contains("credit balance", ignoreCase = true)
-        val isBilling400 =
-            message.contains("billing", ignoreCase = true) &&
-                message.contains("400", ignoreCase = true)
         val isOutOfCredit =
             message.contains("insufficient balance", ignoreCase = true) ||
                 message.contains("insufficient_quota", ignoreCase = true)
+        // "billing" is not distinctive enough for that, and neither is a bare
+        // "400". Anthropic's billing rejection is only trusted when one
+        // exception carries both — otherwise a "billing" in a tool result and
+        // a 400 from an unrelated wrapper would combine into a false quota.
+        val isBilling400 =
+            chain.any { cause ->
+                httpStatusOf(cause) == BAD_REQUEST &&
+                    cause.message.orEmpty().contains("billing", ignoreCase = true)
+            }
         if (statuses.contains(PAYMENT_REQUIRED) || isCreditBalance || isBilling400 || isOutOfCredit) {
             return PROVIDER_QUOTA
         }
+        // Likewise a bare "429": the status is read from where it is trusted,
+        // and the wording covers providers that report it in prose.
         if (statuses.contains(TOO_MANY_REQUESTS) ||
-            message.contains("429") ||
+            message.contains("too many requests", ignoreCase = true) ||
             message.contains("rate limit", ignoreCase = true) ||
             message.contains("rate_limit", ignoreCase = true)
         ) {

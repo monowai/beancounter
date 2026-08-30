@@ -441,6 +441,25 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `classifyError needs one exception to carry both the 400 and the billing text`() {
+        // Scanning the joined cause chain would combine a "billing" mentioned
+        // in a tool result with a 400 raised somewhere else and call it a
+        // quota failure.
+        val split =
+            RuntimeException(
+                "tool result: monthly billing summary",
+                RuntimeException("400 - {\"error\":{\"message\":\"model does not exist\"}}")
+            )
+        assertThat(controller().classifyError(split)).isEqualTo(OPAQUE_ERROR)
+
+        // The genuine Anthropic shape — one exception, both signals — still
+        // classifies.
+        val anthropicBilling =
+            RuntimeException("400 - {\"error\":{\"message\":\"Please check your Plans & Billing page.\"}}")
+        assertThat(controller().classifyError(anthropicBilling)).isEqualTo("provider-quota")
+    }
+
+    @Test
     fun `classifyError returns provider-rate for HTTP 429 and rate-limit text`() {
         assertThat(controller().classifyError(RuntimeException("HTTP 429 Too Many Requests")))
             .isEqualTo("provider-rate")

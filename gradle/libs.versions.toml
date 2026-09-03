@@ -6,32 +6,29 @@ kotlin = "2.4.0"
 kotlinter = "5.5.0"
 spring-boot = "4.1.1"
 spring-cloud = "2025.1.2"
+# Also pins the contract BOM import (spring-cloud-contract-dependencies):
+# the 2025.1.x release train dropped it from spring-cloud-dependencies.
 spring-cloud-contract = "5.0.3"
-spring-security = "6.5.10"
-spring-doc = "3.1.0"
-jackson = "2.21.1"
-mockitoKotlin = '6.3.0'
-kotest = '6.2.1'
-sentry = "8.53.0"
-postgres = "42.7.13"
-guava = "33.6.0-jre"
-servlet-api = "6.1.0"
+spring-doc = "3.1.0" # not BOM-managed
+mockitoKotlin = '6.3.0' # not BOM-managed
+kotest = '6.2.1' # not BOM-managed
+sentry = "8.53.0" # not BOM-managed
+guava = "33.6.0-jre" # not BOM-managed
 spring-ai = "2.0.1"
-flyway = "12.9.0"
-# Pinned because jar-common exposes the bridge as an api dep but
-# downstream modules (e.g. jar-shell) don't import the spring-boot
-# platform, so version resolution falls back to the catalog.
-micrometer-tracing = "1.7.0"
+flyway = "12.9.0" # Boot BOM manages an older line; 12.x is deliberate
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
+spring-cloud-contract-dependencies = { module = "org.springframework.cloud:spring-cloud-contract-dependencies", version.ref = "spring-cloud-contract" }
+spring-shell-dependencies = { module = "org.springframework.shell:spring-shell-dependencies", version = "3.4.3" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring-doc" }
 spring-doc-mvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-api", version.ref = "spring-doc" }
-spring-stub-runner = { module = "org.springframework.cloud:spring-cloud-contract-stub-runner", version.ref = "spring-cloud-contract" }
+spring-stub-runner = { module = "org.springframework.cloud:spring-cloud-contract-stub-runner" }
 apache-groovy = { module = "org.apache.groovy:groovy", version = "5.0.6" } # stub runner importing older version
-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "servlet-api" }
+servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
 otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version = "2.29.0" }
+otel-core-bom = { module = "io.opentelemetry:opentelemetry-bom", version = "1.63.0" }
 resilience4j = { module = "io.github.resilience4j:resilience4j-all", version = "2.4.0" }
 resilience4j-annotations = { module = "io.github.resilience4j:resilience4j-annotations", version = "2.4.0" }
 resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot4", version = "2.4.0" }
@@ -39,41 +36,41 @@ commons-io = { module = "commons-io:commons-io", version = "2.22.0" }
 spring-cloud-stream = { module = "org.springframework.cloud:spring-cloud-stream" }
 spring-cloud-stream-binder-rabbit = { module = "org.springframework.cloud:spring-cloud-stream-binder-rabbit" }
 spring-cloud-stream-test-binder = { module = "org.springframework.cloud:spring-cloud-stream-test-binder" }
-spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
-spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
-spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
-spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "spring-boot" }
-spring-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging", version.ref = "spring-boot" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging" }
 # Boot 4.1 no longer publishes spring-boot-starter-aop; AopAutoConfiguration
 # ships in spring-boot-autoconfigure and only needs aspectjweaver on the
 # classpath. Alias repointed (BOM-managed version) so consumers are unchanged.
 spring-boot-starter-aop = { module = "org.aspectj:aspectjweaver" }
-spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "spring-boot" }
-spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "spring-boot" }
-spring-boot-starter-integration = { module = "org.springframework.boot:spring-boot-starter-integration", version.ref = "spring-boot" }
-spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "spring-boot" }
-spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
-spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-integration = { module = "org.springframework.boot:spring-boot-starter-integration" }
+spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 spring-security-oauth2 = { module = "org.springframework.security:spring-security-oauth2-resource-server" }
 spring-security-jose = { module = "org.springframework.security:spring-security-oauth2-jose" }
 sentry-opentelemetry = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentry" }
 sentry-spring-boot = { module = "io.sentry:sentry-spring-boot-4", version.ref = "sentry" }
-micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel", version.ref = "micrometer-tracing" }
+micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel" }
 sentry-jdbc = { module = "io.sentry:sentry-jdbc", version.ref = "sentry" }
 sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
-assertj = { module = "org.assertj:assertj-core", version = "3.27.7" }
+assertj = { module = "org.assertj:assertj-core" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+postgresql = { module = "org.postgresql:postgresql" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai" }
-spring-ai-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai", version.ref = "spring-ai" }
-spring-ai-ollama = { module = "org.springframework.ai:spring-ai-starter-model-ollama", version.ref = "spring-ai" }
-spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-starter-model-anthropic", version.ref = "spring-ai" }
-spring-ai-deepseek = { module = "org.springframework.ai:spring-ai-starter-model-deepseek", version.ref = "spring-ai" }
+spring-ai-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai" }
+spring-ai-ollama = { module = "org.springframework.ai:spring-ai-starter-model-ollama" }
+spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-starter-model-anthropic" }
+spring-ai-deepseek = { module = "org.springframework.ai:spring-ai-starter-model-deepseek" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 

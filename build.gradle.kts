@@ -236,9 +236,9 @@ subprojects {
         }
 
         // Common test dependencies
-        testImplementation(
-            platform("org.springframework.boot:spring-boot-dependencies:${rootProject.libs.versions.spring.boot.get()}")
-        )
+        testImplementation(platform(rootProject.libs.spring.boot.dependencies))
+        // 2025.1.x spring-cloud-dependencies no longer imports the spring-cloud-contract BOM.
+        testImplementation(platform(rootProject.libs.spring.cloud.contract.dependencies))
         testImplementation(rootProject.libs.assertj)
     }
 

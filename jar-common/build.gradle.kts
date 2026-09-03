@@ -46,7 +46,7 @@ dependencies {
     // BOMs are `api` so downstream modules (jar-shell, svc-data, etc.) inherit
     // the version constraints for the `api(...)` artifacts below.
     api(platform(libs.spring.boot.dependencies))
-    api(platform("io.opentelemetry:opentelemetry-bom:1.63.0"))
+    api(platform(libs.otel.core.bom))
     implementation("io.opentelemetry:opentelemetry-sdk")
     // Bridges OTel `Context` to Kotlin coroutine `CoroutineContext` so the
     // current Span propagates across suspension and dispatcher switches

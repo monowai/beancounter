@@ -37,7 +37,7 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
-    testImplementation("org.springframework.cloud:spring-cloud-starter-contract-stub-runner")
+    testImplementation(libs.spring.stub.runner)
     testImplementation(libs.jackson.kotlin)
     testImplementation(libs.spring.boot.autoconfigure)
     testImplementation("org.springframework.security:spring-security-test")

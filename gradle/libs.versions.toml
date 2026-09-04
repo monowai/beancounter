@@ -21,7 +21,6 @@ flyway = "12.9.0" # Boot BOM manages an older line; 12.x is deliberate
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
 spring-cloud-contract-dependencies = { module = "org.springframework.cloud:spring-cloud-contract-dependencies", version.ref = "spring-cloud-contract" }
-spring-shell-dependencies = { module = "org.springframework.shell:spring-shell-dependencies", version = "3.4.3" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring-doc" }
 spring-doc-mvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-api", version.ref = "spring-doc" }
 spring-stub-runner = { module = "org.springframework.cloud:spring-cloud-contract-stub-runner" }

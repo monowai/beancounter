@@ -31,7 +31,7 @@ private val HANDLER_ANNOTATIONS =
  * BrokerController gap found in the 2026-07 auth audit.
  *
  * Allowlist is explicit and must not grow silently:
- * - [AuthController]: permitAll login proxy for bc-shell
+ * - [AuthController]: permitAll CLI/password-grant login proxy
  *   (`WebAuthFilterConfig`: "$apiPath/auth" is permitAll).
  */
 class ControllerAuthorizationTest {

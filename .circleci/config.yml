@@ -53,8 +53,6 @@ jobs:
       - codecov/upload:
           file: ./jar-client/build/reports/jacoco/test/jacocoTestReport.xml
       - codecov/upload:
-          file: ./jar-shell/build/reports/jacoco/test/jacocoTestReport.xml
-      - codecov/upload:
           file: ./svc-data/build/reports/jacoco/test/jacocoTestReport.xml
       - codecov/upload:
           file: ./svc-position/build/reports/jacoco/test/jacocoTestReport.xml
@@ -86,7 +84,6 @@ jobs:
             cp -r ~/project/jar-common/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-common artifacts"
             cp -r ~/project/jar-auth/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-auth artifacts"
             cp -r ~/project/jar-client/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-client artifacts"
-            cp -r ~/project/jar-shell/build/libs/* ~/artifacts/core-libs/ 2>/dev/null || echo "No jar-shell artifacts"
       - store_artifacts:
           path: ~/artifacts/core-libs
           destination: core-libraries
@@ -133,7 +130,6 @@ jobs:
             cp -r ~/project/jar-common/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-common artifacts"
             cp -r ~/project/jar-auth/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-auth artifacts"
             cp -r ~/project/jar-client/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-client artifacts"
-            cp -r ~/project/jar-shell/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No jar-shell artifacts"
             cp -r ~/project/svc-data/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-data artifacts"
             cp -r ~/project/svc-position/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-position artifacts"
             cp -r ~/project/svc-event/build/libs/* ~/workspace-artifacts/build-artifacts/ 2>/dev/null || echo "No svc-event artifacts"
@@ -148,61 +144,6 @@ jobs:
             - .
 
   # Docker packaging jobs (only for main branch)
-  package-shell:
-    executor: java-build
-    environment:
-      IMAGE_NAME: bc-shell
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-      - checkout
-      - restore_cache:
-          keys:
-            - v3-build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "settings.gradle.kts" }}
-      - attach_workspace:
-          at: ~/workspace
-      - setup_remote_docker
-      - run:
-          name: Setup Docker Buildx and Registry Login
-          command: |
-            echo "🐳 Setting up Docker buildx and logging into registry..."
-
-            # Install QEMU for multi-platform builds
-            docker run --rm --privileged tonistiigi/binfmt --install all
-
-            # Create and use a new builder instance
-            docker buildx create --name multiarch-builder --use || true
-            docker buildx inspect --bootstrap
-
-            # Login to GitHub Container Registry
-            echo "$GH_GCR" | docker login ghcr.io -u "$DOCKER_USER" --password-stdin
-
-            echo "✅ Docker buildx setup complete"
-      - run:
-          name: Build and Push BC-SHELL
-          command: |
-            echo "📦 Building and pushing bc-shell Docker image..."
-
-            # Copy built artifacts to expected locations
-            echo "📋 Copying built artifacts from workspace..."
-            mkdir -p ~/project/jar-shell/build/libs/
-            cp ~/workspace/build-artifacts/jar-shell-*.jar ~/project/jar-shell/build/libs/ 2>/dev/null || echo "No jar-shell JAR found in workspace"
-
-            # Verify JAR file exists
-            echo "🔍 Checking for JAR file:"
-            ls -la ~/project/jar-shell/build/libs/ || echo "No build/libs directory"
-
-            # Build and push multi-platform image
-            docker buildx build \
-              --platform linux/amd64,linux/arm64 \
-              --push \
-              --tag "ghcr.io/monowai/bc-shell:latest" \
-              --tag "ghcr.io/monowai/bc-shell:${STACK_VER}" \
-              ~/project/jar-shell/
-
-            echo "✅ bc-shell image built and pushed successfully"
-
   package-data:
     executor: java-build
     environment:
@@ -546,14 +487,6 @@ workflows:
       # Docker packaging jobs (run concurrently after build completes)
       # All jobs start in parallel once build-and-test succeeds
       # Branch patterns can be configured via CircleCI environment variables
-      - package-shell:
-          filters:
-            branches:
-              only:
-                - main
-                - /^deploy\/.*/
-          requires:
-            - build-and-test
       - package-data:
           filters:
             branches:

@@ -5,7 +5,6 @@
 # 
 # Shared Context Approach (for most tests):
 # - jar-client: application-jar-client-shared.yml (port 10990)
-# - jar-shell: application-jar-shell-shared.yml (port 10991) 
 # - svc-event: application-svc-event-shared.yml (port 10992)
 # - svc-position: application-svc-position-shared.yml (port 10993)
 # 

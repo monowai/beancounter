@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * To support bc-shell.  User logs in via a CLI and needs a token. We don't want secrets in BCS,
- * so we keep all that server side.  PASSWORD auth is not a long term solution.
+ * CLI/password-grant login proxy. A caller logs in with credentials and needs a
+ * token; we don't want secrets held client-side, so we keep all that server side.
+ * PASSWORD auth is not a long term solution.
  */
 @RestController
 @RequestMapping("/auth")

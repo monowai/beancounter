@@ -1,3 +1,12 @@
+coverage:
+  status:
+    project:
+      default:
+        # Removing well-tested code (e.g. the jar-shell module) shifts the
+        # project total slightly without any real regression - allow small
+        # movements; patch coverage still gates new code strictly.
+        threshold: 0.5%
+
 ignore:
   - svc-position/src/main/kotlin/com/beancounter/position/PositionBoot.*
   - svc-data/src/main/kotlin/com/beancounter/marketdata/MarketDataBoot.*

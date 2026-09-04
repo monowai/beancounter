@@ -1,8 +1,10 @@
 package com.beancounter.common.model
 
 import com.beancounter.common.utils.KeyGenUtils
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
@@ -26,7 +28,10 @@ import java.time.Instant
 )
 data class ApiKey(
     @Id val id: String = KeyGenUtils().id,
-    @ManyToOne val owner: SystemUser,
+    @ManyToOne
+    @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnore
+    val owner: SystemUser,
     val name: String,
     val prefix: String,
     val keyHash: String,

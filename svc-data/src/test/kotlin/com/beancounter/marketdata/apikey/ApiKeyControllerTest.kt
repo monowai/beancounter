@@ -277,4 +277,55 @@ internal class ApiKeyControllerTest {
         assertThatThrownBy { apiKeyService.verify(expiredRawKey) }
             .isInstanceOf(UnauthorizedException::class.java)
     }
+
+    @Test
+    fun `blank name rejected`() {
+        val token = registeredToken("apikey-blank-name")
+        mockMvc
+            .perform(
+                post(API_KEYS_ROOT)
+                    .with(jwt().jwt(token))
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsBytes(ApiKeyRequest(name = "   ")))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().is4xxClientError)
+        assertThat(apiKeyRepository.findAll()).noneMatch { it.name.isBlank() }
+    }
+
+    @Test
+    fun `past expiresAt rejected`() {
+        val token = registeredToken("apikey-past-expiry")
+        mockMvc
+            .perform(
+                post(API_KEYS_ROOT)
+                    .with(jwt().jwt(token))
+                    .with(csrf())
+                    .content(
+                        objectMapper.writeValueAsBytes(
+                            ApiKeyRequest(
+                                name = "stillborn",
+                                expiresAt = Instant.now().minusSeconds(60)
+                            )
+                        )
+                    ).contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().is4xxClientError)
+    }
+
+    @Test
+    fun `verify rejects key of deactivated owner`() {
+        val token = registeredToken("apikey-offboarded")
+        val created = createKey(token)
+        assertThat(apiKeyService.verify(created.apiKey)).isNotNull()
+
+        val owner =
+            systemUserRepository.findByEmail("apikey-offboarded@testing.com").orElseThrow {
+                IllegalStateException("Owner not registered")
+            }
+        owner.active = false
+        systemUserRepository.save(owner)
+
+        assertThatThrownBy { apiKeyService.verify(created.apiKey) }
+            .isInstanceOf(UnauthorizedException::class.java)
+            .hasMessageContaining("inactive")
+    }
 }

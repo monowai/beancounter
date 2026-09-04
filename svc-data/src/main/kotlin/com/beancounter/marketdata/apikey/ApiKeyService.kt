@@ -14,6 +14,7 @@ import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
  * Business logic for BC-issued API keys (MCP/agent access, phase 1 of
@@ -31,6 +32,13 @@ class ApiKeyService(
 ) {
     fun create(request: ApiKeyRequest): ApiKeyCreatedResponse {
         val owner = systemUserService.getOrThrow()
+        if (request.name.isBlank()) {
+            throw BusinessException("API key name is required")
+        }
+        val expiresAt = request.expiresAt
+        if (expiresAt != null && !expiresAt.isAfter(Instant.now())) {
+            throw BusinessException("expiresAt must be in the future")
+        }
         val scopes = validatedScopes(request.scopes)
         val generated = apiKeyGenerator.generate()
 
@@ -62,7 +70,7 @@ class ApiKeyService(
         val owner = systemUserService.getOrThrow()
         val existing = findOwnedOrThrow(id, owner.id)
         if (existing.revokedAt == null) {
-            existing.revokedAt = Instant.now()
+            existing.revokedAt = auditInstant()
             apiKeyRepository.save(existing)
         }
         return ApiKeyResponse(existing.toView())
@@ -80,13 +88,26 @@ class ApiKeyService(
         if (found.revokedAt != null) {
             throw UnauthorizedException("API key has been revoked")
         }
+        if (!found.owner.active) {
+            // Offboarded (deactivated) owners must not authenticate - a key
+            // is never more alive than the SystemUser it belongs to.
+            throw UnauthorizedException("API key owner is inactive")
+        }
         val expiresAt = found.expiresAt
         if (expiresAt != null && expiresAt.isBefore(Instant.now())) {
             throw UnauthorizedException("API key has expired")
         }
-        found.lastUsedAt = Instant.now()
+        // Write-per-verify is acceptable: phase 2 caches the exchanged JWT
+        // for its lifetime, so this runs about once an hour per active key,
+        // not per request.
+        found.lastUsedAt = auditInstant()
         return apiKeyRepository.save(found)
     }
+
+    // Millisecond precision so a value read back from the database compares
+    // equal to the value we set - JDK nanos don't survive the TIMESTAMP
+    // round-trip on all platforms.
+    private fun auditInstant(): Instant = Instant.now().truncatedTo(ChronoUnit.MILLIS)
 
     private fun findOwnedOrThrow(
         id: String,

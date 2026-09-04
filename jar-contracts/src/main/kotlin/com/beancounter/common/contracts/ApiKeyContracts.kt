@@ -10,7 +10,9 @@ import java.time.Instant
  */
 data class ApiKeyRequest(
     val name: String,
-    val scopes: Collection<String> = listOf("beancounter", "beancounter:user", "beancounter:ai"),
+    // Empty means "apply the service defaults" - the allowed/default scope
+    // sets are owned by ApiKeyService (svc-data), the single source of truth.
+    val scopes: Collection<String> = emptyList(),
     val expiresAt: Instant? = null
 )
 

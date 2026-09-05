@@ -108,6 +108,17 @@ auth:
   # To support interactive login via the /auth endpoint
   client: "not-set"
   client-secret: "not-set"
+  # bc-claude/MCP.md phase 2: svc-data mints its own short-lived JWTs in
+  # exchange for BC API keys (see marketdata.apikey.ApiKeyTokenController).
+  # `uri` doubles as this service's own issuer identity (must end with
+  # '/' - jar-auth's OAuthConfig derives the JWKS URL by concatenation, not
+  # URI resolution) AND, in every other local service's application.yml,
+  # the second trusted issuer to route JWT validation to. `signing-key`
+  # blank means an ephemeral RSA key is generated at startup - fine for
+  # local dev, but tokens won't survive a restart.
+  bc-issuer:
+    uri: "http://localhost:9510/api/"
+    signing-key: ""
 
 stream:
   enabled: true

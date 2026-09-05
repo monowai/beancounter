@@ -1,0 +1,16 @@
+spring:
+  security:
+    oauth2:
+      registration:
+        custom:
+          client-secret: secret
+      resourceserver:
+        jwt:
+          issuer-uri: "${auth.uri}"
+
+auth:
+  enabled: true
+  uri: http://localhost:${wiremock.server.port}/auth0/
+  audience: audience-api-url
+  bc-issuer:
+    uri: http://localhost:${wiremock.server.port}/bc/

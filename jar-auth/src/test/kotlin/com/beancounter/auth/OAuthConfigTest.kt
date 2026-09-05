@@ -16,6 +16,7 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.web.client.RestTemplate
@@ -159,6 +160,15 @@ class OAuthConfigTest {
     fun `should create JWT decoder from auth configuration`() {
         val decoder = OAuthConfig().jwtDecoder(authConfig)
         assertThat(decoder).isNotNull
+    }
+
+    @Test
+    fun `plain NimbusJwtDecoder returned when no second issuer is configured`() {
+        // No auth.bc-issuer.uri in this profile - the issuer-routing wrapper
+        // must not kick in, so the exact same decoder type as before is returned.
+        assertThat(authConfig.bcIssuerUri).isBlank()
+        val decoder = OAuthConfig().jwtDecoder(authConfig)
+        assertThat(decoder).isInstanceOf(NimbusJwtDecoder::class.java)
     }
 
     @Test

@@ -136,7 +136,7 @@ tasks.register("pubStubs") {
     dependsOn("publishToMavenLocal")
 }
 
-// Outgoing stubs configuration: consumers (jar-client, jar-shell, svc-position)
+// Outgoing stubs configuration: consumers (jar-client, svc-position)
 // depend on project(":svc-data", configuration = "stubs") so Gradle builds
 // verifierStubsJar first — no pre-published ~/.m2 artifact or manual build
 // ordering required.

@@ -1,3 +1,0 @@
-marketdata:
-  url: http://localhost:${stubrunner.port:0}
-ratesIgnored: false

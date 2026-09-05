@@ -306,7 +306,7 @@ version = "0.0.1-SNAPSHOT"
 
 // Root project tasks. Contract stubs flow between modules as regular Gradle
 // artifacts (svc-data/svc-position expose a `stubs` configuration consumed by
-// jar-client, jar-shell, svc-position and svc-event), so no manual build
+// jar-client, svc-position and svc-event), so no manual build
 // ordering or ~/.m2 stub publishing is required — plain `./gradlew build` works
 // from a clean checkout.
 tasks.register("buildAll") {

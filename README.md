@@ -25,7 +25,7 @@ Check out the [demo stack](http://github.com/monowai/bc-demo).
 #### Standard Build
 
 Contract stubs flow between modules as regular Gradle artifacts (svc-data and
-svc-position expose a `stubs` configuration consumed by jar-client, jar-shell,
+svc-position expose a `stubs` configuration consumed by jar-client,
 svc-position and svc-event), so a plain build works from a clean checkout:
 
 ```bash
@@ -74,7 +74,6 @@ svc-position and svc-event), so a plain build works from a clean checkout:
 - **jar-common**: Shared utilities, models, and contracts
 - **jar-auth**: Authentication and authorization
 - **jar-client**: Client libraries for service communication
-- **jar-shell**: Command-line interface
 
 ### Services
 

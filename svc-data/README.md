@@ -42,7 +42,7 @@ curl -X GET http://localhost:9510/AX/AMP
 ### Contract Stubs
 
 This service exposes its Spring Cloud Contract stubs as a Gradle `stubs`
-configuration (built from `verifierStubsJar`), consumed by jar-client, jar-shell and svc-position via
+configuration (built from `verifierStubsJar`), consumed by jar-client and svc-position via
 `testImplementation(project(path = ":svc-data", configuration = "stubs"))`.
 Gradle builds the stubs automatically before any consumer tests run — no
 manual publishing needed. `./gradlew :svc-data:pubStubs` still publishes to

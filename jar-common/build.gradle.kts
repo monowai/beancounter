@@ -38,12 +38,12 @@ dependencies {
     // service that pulls jar-common emits Spring AI / Spring MVC / Hikari
     // / Resilience4j / Spring Data observations as OTel spans, which the
     // sentry-opentelemetry-agent javaagent already exports to Sentry.
-    // Pinned in the version catalog because some consumers (e.g. jar-shell)
-    // don't import the spring-boot-dependencies platform.
+    // Pinned in the version catalog because some consumers don't import the
+    // spring-boot-dependencies platform.
     api(libs.micrometer.tracing.bridge.otel)
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    // BOMs are `api` so downstream modules (jar-shell, svc-data, etc.) inherit
+    // BOMs are `api` so downstream modules (svc-data, etc.) inherit
     // the version constraints for the `api(...)` artifacts below.
     api(platform(libs.spring.boot.dependencies))
     api(platform(libs.otel.core.bom))

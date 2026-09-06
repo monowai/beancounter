@@ -177,3 +177,8 @@ auth:
   enabled: true
   email: "${auth.audience}/claims/email"
   web: true
+  # Trust svc-data as a second JWT issuer (bc-claude/MCP.md phase 2) so
+  # tokens minted locally by svc-data's /api-keys/token are accepted here
+  # too. JWKS fetch is lazy, so this adds no startup coupling.
+  bc-issuer:
+    uri: "http://localhost:9510/api/"

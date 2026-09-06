@@ -11,6 +11,8 @@ import com.nimbusds.jose.jwk.source.JWKSourceBuilder
 import com.nimbusds.jose.proc.JWSVerificationKeySelector
 import com.nimbusds.jose.proc.SecurityContext
 import com.nimbusds.jose.util.DefaultResourceRetriever
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -21,11 +23,13 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
 import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.security.oauth2.core.OAuth2TokenValidator
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult
+import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtValidators
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import java.net.URI
+import java.text.ParseException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -40,9 +44,47 @@ class OAuthConfig {
 
     @Bean
     fun jwtDecoder(authConfig: AuthConfig): JwtDecoder {
-        // Auth0 JWKS URI follows a standard convention — derive directly
-        // to avoid an OIDC discovery HTTP call with no timeout protection
-        val jwkSetUri = "${authConfig.issuer}.well-known/jwks.json"
+        if (authConfig.bcIssuerUri.isNotBlank()) {
+            // Fail fast on the two misconfigurations that would otherwise only
+            // surface per-request: a slash-less URI derives a malformed JWKS URL
+            // (string concatenation, not URI resolution), and identical issuers
+            // collapse the routing map to a single entry.
+            check(authConfig.bcIssuerUri.endsWith("/")) {
+                "auth.bc-issuer.uri must end with '/' (got: ${authConfig.bcIssuerUri})"
+            }
+            check(authConfig.bcIssuerUri != authConfig.issuer) {
+                "auth.bc-issuer.uri must differ from the primary issuer (${authConfig.issuer})"
+            }
+        }
+        val primaryDecoder = buildNimbusDecoder(authConfig.issuer, authConfig)
+        if (authConfig.bcIssuerUri.isBlank()) {
+            // No second issuer configured - identical behaviour to before
+            // svc-data-issued tokens existed.
+            return primaryDecoder
+        }
+        log.info("Second trusted JWT issuer enabled: {}", authConfig.bcIssuerUri)
+        val bcDecoder = buildNimbusDecoder(authConfig.bcIssuerUri, authConfig)
+        return IssuerRoutingJwtDecoder(
+            mapOf(
+                authConfig.issuer to primaryDecoder,
+                authConfig.bcIssuerUri to bcDecoder
+            )
+        )
+    }
+
+    /**
+     * Builds a [NimbusJwtDecoder] for a single trusted issuer: JWKS URI
+     * derived by convention (`$issuer.well-known/jwks.json`), cached +
+     * retrying key source, standard issuer/expiry validation plus the
+     * configured audience.
+     */
+    private fun buildNimbusDecoder(
+        issuer: String,
+        authConfig: AuthConfig
+    ): NimbusJwtDecoder {
+        // JWKS URI follows a standard convention — derive directly to avoid
+        // an OIDC discovery HTTP call with no timeout protection
+        val jwkSetUri = "$issuer.well-known/jwks.json"
         log.info("JWKS URI: {}", jwkSetUri)
 
         // Create a cached JWK source with configurable lifespan and refresh-ahead
@@ -75,7 +117,7 @@ class OAuthConfig {
         val audienceValidator: OAuth2TokenValidator<Jwt> = AudienceValidator(authConfig.audience)
         val withAudience: OAuth2TokenValidator<Jwt> =
             DelegatingOAuth2TokenValidator(
-                JwtValidators.createDefaultWithIssuer(authConfig.issuer),
+                JwtValidators.createDefaultWithIssuer(issuer),
                 audienceValidator
             )
         jwtDecoder.setJwtValidator(withAudience)
@@ -135,5 +177,43 @@ class OAuthConfig {
                     )
                 )
             }
+    }
+
+    /**
+     * A single [JwtDecoder] bean that fronts multiple trusted issuers
+     * (deliberately not an `AuthenticationManagerResolver` - every consumer,
+     * test included, wires exactly one `JwtDecoder` bean/mock). The token's
+     * `iss` claim is read WITHOUT signature verification purely to pick
+     * which per-issuer decoder does the real (signature + claims)
+     * validation; an unknown/missing issuer or an unparseable token is
+     * rejected before either decoder is consulted.
+     */
+    internal class IssuerRoutingJwtDecoder(
+        private val decodersByIssuer: Map<String, JwtDecoder>
+    ) : JwtDecoder {
+        override fun decode(token: String): Jwt {
+            val issuer = unverifiedIssuer(token)
+            val decoder =
+                decodersByIssuer[issuer]
+                    ?: throw BadJwtException("Untrusted JWT issuer: $issuer")
+            return decoder.decode(token)
+        }
+
+        private fun unverifiedIssuer(token: String): String {
+            val claims: JWTClaimsSet? =
+                try {
+                    JWTParser.parse(token).jwtClaimsSet
+                } catch (e: ParseException) {
+                    throw BadJwtException("Malformed JWT", e)
+                } catch (e: IllegalArgumentException) {
+                    throw BadJwtException("Malformed JWT", e)
+                }
+            if (claims == null) {
+                // An EncryptedJWT (JWE) parses fine but exposes no claims until
+                // decrypted - Nimbus returns null rather than throwing.
+                throw BadJwtException("JWT claims are not readable")
+            }
+            return claims.issuer ?: throw BadJwtException("JWT is missing the iss claim")
+        }
     }
 }

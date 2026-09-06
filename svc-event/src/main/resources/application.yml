@@ -89,6 +89,11 @@ auth:
     # Proactive refresh time in seconds (default: 48 hours = 172800 seconds)
     # Tokens will be refreshed this many seconds before expiry
     proactive-refresh-seconds: 172800
+  # Trust svc-data as a second JWT issuer (bc-claude/MCP.md phase 2) so
+  # tokens minted locally by svc-data's /api-keys/token are accepted here
+  # too. JWKS fetch is lazy, so this adds no startup coupling.
+  bc-issuer:
+    uri: "http://localhost:9510/api/"
 
 spring:
   application:

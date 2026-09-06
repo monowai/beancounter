@@ -20,6 +20,15 @@ class AuthConfig(
     @Value($$"${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     val issuer: String = "not-set"
 
+    // Optional second trusted JWT issuer, alongside Auth0 - svc-data's own
+    // token-exchange endpoint (bc-claude/MCP.md phase 2). Blank (default)
+    // means "not configured": OAuthConfig.jwtDecoder then behaves exactly
+    // as it did before this issuer existed. When set, it must end with '/'
+    // (same convention as `issuer`) since the JWKS URI is derived by simple
+    // string concatenation, not URI resolution.
+    @Value($$"${auth.bc-issuer.uri:}")
+    var bcIssuerUri: String = ""
+
     @Value($$"${spring.security.oauth2.registration.custom.client-id:bc-service}")
     lateinit var clientId: String
 

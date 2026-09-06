@@ -1,5 +1,7 @@
 package com.beancounter.marketdata
 
+import com.beancounter.marketdata.apikey.ApiKeyTokenController
+import com.beancounter.marketdata.apikey.JwksController
 import com.beancounter.marketdata.registration.AuthController
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -33,11 +35,24 @@ private val HANDLER_ANNOTATIONS =
  * Allowlist is explicit and must not grow silently:
  * - [AuthController]: permitAll CLI/password-grant login proxy
  *   (`WebAuthFilterConfig`: "$apiPath/auth" is permitAll).
+ * - [ApiKeyTokenController]: permitAll BC API-key token exchange
+ *   (bc-claude/MCP.md phase 2) - the caller authenticates by presenting the
+ *   key itself ([com.beancounter.marketdata.apikey.ApiKeyService.verify]),
+ *   not a user JWT, so it can't sit behind the scope gate. Guarded instead
+ *   by [com.beancounter.marketdata.apikey.TokenRateLimiter].
+ * - [JwksController]: permitAll JWKS publication - JWKS documents are
+ *   public key material by design, same as Auth0's own
+ *   `.well-known/jwks.json`.
  */
 class ControllerAuthorizationTest {
     private val basePackage = "com.beancounter.marketdata"
 
-    private val allowlist = setOf(AuthController::class.java)
+    private val allowlist =
+        setOf(
+            AuthController::class.java,
+            ApiKeyTokenController::class.java,
+            JwksController::class.java
+        )
 
     @Test
     fun `every RestController is scope-gated by PreAuthorize`() {

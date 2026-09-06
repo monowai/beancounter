@@ -115,6 +115,12 @@ class WebAuthFilterConfig {
                 auth.requestMatchers("$actuatorPath/openapi/**").permitAll() // API Docs
                 auth.requestMatchers("$actuatorPath/swagger-ui/**").permitAll() // API Docs
                 auth.requestMatchers("$apiPath/auth").permitAll()
+                // BC API-key token exchange (bc-claude/MCP.md phase 2): authenticates
+                // by the key itself, not a user JWT - can't sit behind the JWT gate.
+                auth.requestMatchers("$apiPath/api-keys/token").permitAll()
+                // JWKS is public key material by design - every trusted issuer
+                // (Auth0, and now svc-data's own bc-issuer) publishes it openly.
+                auth.requestMatchers("$apiPath/.well-known/**").permitAll()
                 auth.requestMatchers("$apiPath/docs/**").permitAll()
                 auth.requestMatchers("$apiPath/swagger-ui/**").permitAll()
                 auth

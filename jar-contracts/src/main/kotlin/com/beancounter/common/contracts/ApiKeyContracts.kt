@@ -39,3 +39,13 @@ data class ApiKeysResponse(
 data class ApiKeyResponse(
     override val data: ApiKeyView
 ) : Payload<ApiKeyView>
+
+/**
+ * Token-exchange request (phase 2 - bc-claude/MCP.md): a raw BC API key,
+ * traded for a short-lived JWT the rest of the stack already trusts. The
+ * response is [com.beancounter.auth.model.OpenIdResponse] - the same shape
+ * the Auth0 login proxy (AuthController) returns.
+ */
+data class ApiKeyTokenRequest(
+    val apiKey: String
+)

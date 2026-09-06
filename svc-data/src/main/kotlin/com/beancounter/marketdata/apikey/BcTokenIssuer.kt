@@ -46,8 +46,10 @@ class BcTokenIssuer(
     @Value($$"${auth.bc-issuer.ttl:PT1H}") private val ttl: Duration = Duration.ofHours(1)
 ) {
     init {
-        check(authConfig.bcIssuerUri.isBlank() || authConfig.bcIssuerUri.endsWith("/")) {
-            "auth.bc-issuer.uri must end with '/' (got: ${authConfig.bcIssuerUri})"
+        // Blank would mint tokens with iss="" that every relying service
+        // (including svc-data itself) rejects - fail startup instead.
+        check(authConfig.bcIssuerUri.isNotBlank() && authConfig.bcIssuerUri.endsWith("/")) {
+            "auth.bc-issuer.uri must be configured and end with '/' (got: '${authConfig.bcIssuerUri}')"
         }
     }
 

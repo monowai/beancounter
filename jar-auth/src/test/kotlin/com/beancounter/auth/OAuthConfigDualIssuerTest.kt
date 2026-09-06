@@ -3,13 +3,18 @@ package com.beancounter.auth
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.crypto.RSAEncrypter
 import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.KeyUse
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
+import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.assertj.core.api.Assertions.assertThat
@@ -162,5 +167,47 @@ class OAuthConfigDualIssuerTest {
 
         assertThatThrownBy { decoder.decode("not-a-jwt") }
             .isInstanceOf(BadJwtException::class.java)
+    }
+
+    @Test
+    fun `rejects an encrypted JWE token instead of leaking a runtime exception`() {
+        val decoder = OAuthConfig().jwtDecoder(authConfig)
+        val jwe =
+            EncryptedJWT(
+                JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A128GCM).build(),
+                JWTClaimsSet.Builder().issuer(authConfig.bcIssuerUri).build()
+            )
+        jwe.encrypt(RSAEncrypter(bcKey.toRSAPublicKey()))
+
+        assertThatThrownBy { decoder.decode(jwe.serialize()) }
+            .isInstanceOf(BadJwtException::class.java)
+    }
+
+    @Test
+    fun `fails fast when the bc issuer uri lacks the trailing slash`() {
+        val original = authConfig.bcIssuerUri
+        try {
+            authConfig.bcIssuerUri = original.trimEnd('/')
+
+            assertThatThrownBy { OAuthConfig().jwtDecoder(authConfig) }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessageContaining("must end with '/'")
+        } finally {
+            authConfig.bcIssuerUri = original
+        }
+    }
+
+    @Test
+    fun `fails fast when both issuers are configured identically`() {
+        val original = authConfig.bcIssuerUri
+        try {
+            authConfig.bcIssuerUri = authConfig.issuer
+
+            assertThatThrownBy { OAuthConfig().jwtDecoder(authConfig) }
+                .isInstanceOf(IllegalStateException::class.java)
+                .hasMessageContaining("must differ")
+        } finally {
+            authConfig.bcIssuerUri = original
+        }
     }
 }

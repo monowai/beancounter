@@ -28,9 +28,16 @@ class TokenRateLimiter(
 
     private val windows = ConcurrentHashMap<String, Window>()
 
+    /** Client windows currently tracked - observable surface for the pruning behaviour. */
+    internal val trackedClients: Int get() = windows.size
+
     /** @throws TooManyRequestsException once [clientId] exceeds [maxRequests] within [window]. */
     fun check(clientId: String) {
         val now = Instant.now()
+        // Prune expired windows on every call so the map stays bounded by
+        // active callers - without this, every distinct IP ever seen would
+        // accumulate forever on an unauthenticated endpoint.
+        windows.entries.removeIf { Duration.between(it.value.start, now) >= window }
         val current =
             windows.compute(clientId) { _, existing ->
                 if (existing == null || Duration.between(existing.start, now) >= window) {

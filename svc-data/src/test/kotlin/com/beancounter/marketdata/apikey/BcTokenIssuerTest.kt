@@ -6,6 +6,7 @@ import com.beancounter.common.model.SystemUser
 import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jwt.SignedJWT
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -76,6 +77,13 @@ internal class BcTokenIssuerTest {
 
         assertThat(first.headers["kid"]).isEqualTo(second.headers["kid"])
         assertThat(first.headers["kid"]).isNotNull()
+    }
+
+    @Test
+    fun `fails fast when the bc issuer uri is blank rather than minting unverifiable tokens`() {
+        assertThatThrownBy { issuer(bcIssuerUri = "") }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("auth.bc-issuer.uri")
     }
 
     @Test

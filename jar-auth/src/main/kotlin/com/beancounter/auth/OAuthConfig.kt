@@ -11,6 +11,7 @@ import com.nimbusds.jose.jwk.source.JWKSourceBuilder
 import com.nimbusds.jose.proc.JWSVerificationKeySelector
 import com.nimbusds.jose.proc.SecurityContext
 import com.nimbusds.jose.util.DefaultResourceRetriever
+import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.slf4j.LoggerFactory
@@ -43,6 +44,18 @@ class OAuthConfig {
 
     @Bean
     fun jwtDecoder(authConfig: AuthConfig): JwtDecoder {
+        if (authConfig.bcIssuerUri.isNotBlank()) {
+            // Fail fast on the two misconfigurations that would otherwise only
+            // surface per-request: a slash-less URI derives a malformed JWKS URL
+            // (string concatenation, not URI resolution), and identical issuers
+            // collapse the routing map to a single entry.
+            check(authConfig.bcIssuerUri.endsWith("/")) {
+                "auth.bc-issuer.uri must end with '/' (got: ${authConfig.bcIssuerUri})"
+            }
+            check(authConfig.bcIssuerUri != authConfig.issuer) {
+                "auth.bc-issuer.uri must differ from the primary issuer (${authConfig.issuer})"
+            }
+        }
         val primaryDecoder = buildNimbusDecoder(authConfig.issuer, authConfig)
         if (authConfig.bcIssuerUri.isBlank()) {
             // No second issuer configured - identical behaviour to before
@@ -187,7 +200,7 @@ class OAuthConfig {
         }
 
         private fun unverifiedIssuer(token: String): String {
-            val claims =
+            val claims: JWTClaimsSet? =
                 try {
                     JWTParser.parse(token).jwtClaimsSet
                 } catch (e: ParseException) {
@@ -195,6 +208,11 @@ class OAuthConfig {
                 } catch (e: IllegalArgumentException) {
                     throw BadJwtException("Malformed JWT", e)
                 }
+            if (claims == null) {
+                // An EncryptedJWT (JWE) parses fine but exposes no claims until
+                // decrypted - Nimbus returns null rather than throwing.
+                throw BadJwtException("JWT claims are not readable")
+            }
             return claims.issuer ?: throw BadJwtException("JWT is missing the iss claim")
         }
     }

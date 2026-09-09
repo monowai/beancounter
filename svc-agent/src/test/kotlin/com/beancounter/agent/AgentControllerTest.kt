@@ -25,6 +25,7 @@ import tools.jackson.databind.ObjectMapper
 private const val EVENT_TOKEN = "token"
 private const val EVENT_DONE = "done"
 private const val EVENT_ERROR = "error"
+private const val EVENT_RESET = "reset"
 private const val OPAQUE_ERROR = "agent-error"
 
 /**
@@ -32,8 +33,29 @@ private const val OPAQUE_ERROR = "agent-error"
  * mirrors what `ChatClient.stream().chatResponse()` emits per LLM token
  * batch in production. Tests prefer this over a Mockito mock so type
  * changes in Spring AI surface as compile errors, not runtime NPEs.
+ *
+ * [finishReason] mirrors the finish-reason chunk a provider emits when a
+ * generation turn ends — e.g. `"TOOL_CALLS"` for a narration turn about to
+ * call tools, `"STOP"` for the final answer.
  */
-private fun textResponse(chunk: String): ChatResponse = ChatResponse(listOf(Generation(AssistantMessage(chunk))))
+private fun textResponse(
+    chunk: String,
+    finishReason: String? = null
+): ChatResponse {
+    val generation =
+        if (finishReason == null) {
+            Generation(AssistantMessage(chunk))
+        } else {
+            Generation(
+                AssistantMessage(chunk),
+                org.springframework.ai.chat.metadata.ChatGenerationMetadata
+                    .builder()
+                    .finishReason(finishReason)
+                    .build()
+            )
+        }
+    return ChatResponse(listOf(generation))
+}
 
 /**
  * Reproduce the production transient-DNS failure shape: a Spring
@@ -347,6 +369,98 @@ class AgentControllerTest {
         assertThat(events[0].data()).isEqualTo("Hello")
         assertThat(events[1].data()).isEqualTo(" world")
         assertThat(events[2].event()).isEqualTo(EVENT_DONE)
+    }
+
+    @Test
+    fun `should emit token event for narration text with no finish reason`() {
+        val events = controller().sseEventsFor("Hello", null)
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("Hello")
+    }
+
+    @Test
+    fun `should append reset event when turn finishes with tool calls`() {
+        val events = controller().sseEventsFor("Let me gather that data...", "TOOL_CALLS")
+
+        assertThat(events).hasSize(2)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("Let me gather that data...")
+        assertThat(events[1].event()).isEqualTo(EVENT_RESET)
+    }
+
+    @Test
+    fun `should append reset event when turn finishes with anthropic tool use`() {
+        // Anthropic (svc-agent's default provider — model.chat: anthropic) sets
+        // finishReason from StopReason.toString(), whose wire value for a
+        // tool-calling turn is "tool_use", not "tool_calls". Without matching
+        // this, the preamble bug survives on the default routing path.
+        val events = controller().sseEventsFor("Let me check that...", "tool_use")
+
+        assertThat(events).hasSize(2)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("Let me check that...")
+        assertThat(events[1].event()).isEqualTo(EVENT_RESET)
+    }
+
+    @Test
+    fun `should emit only reset for empty metadata-only tool-call chunk`() {
+        // Case-insensitive: DeepSeek emits "TOOL_CALLS" but the check must also
+        // match lowercase, e.g. an OpenAI-style finish reason.
+        val events = controller().sseEventsFor("", "tool_calls")
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_RESET)
+    }
+
+    @Test
+    fun `should not emit reset when turn finishes with stop`() {
+        val events = controller().sseEventsFor("Final answer.", "STOP")
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("Final answer.")
+    }
+
+    @Test
+    fun `stream emits reset after a narration turn but not after the final stop turn`() {
+        // Reproduces the reported bug: the model narrates ("I'll gather the
+        // data needed...") before calling tools, then answers for real. The
+        // narration turn's trailing chunk carries finishReason=TOOL_CALLS; the
+        // final answer's carries STOP. Only the former should trigger a
+        // client-side buffer reset.
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.chatResponse())
+            .thenReturn(
+                Flux.just(
+                    textResponse("I'll gather the data needed for this briefing…", finishReason = "TOOL_CALLS"),
+                    textResponse("Final answer.", finishReason = "STOP")
+                )
+            )
+
+        val events =
+            controller(chatClient = client)
+                .stream(AgentQuery("hi"))
+                .collectList()
+                .block()!!
+
+        assertThat(events.map { it.event() })
+            .containsExactly(EVENT_TOKEN, EVENT_RESET, EVENT_TOKEN, EVENT_DONE)
+        assertThat(events[0].data()).isEqualTo("I'll gather the data needed for this briefing…")
+        assertThat(events[2].data()).isEqualTo("Final answer.")
+
+        // Narration chars are still counted — totalChars feeds the
+        // connect-retry guard and telemetry, and must not reset on `reset`.
+        val done = ObjectMapper().readTree(events.last().data())
+        val expectedChars = "I'll gather the data needed for this briefing…".length + "Final answer.".length
+        assertThat(done["chars"].asLong()).isEqualTo(expectedChars.toLong())
     }
 
     @Test

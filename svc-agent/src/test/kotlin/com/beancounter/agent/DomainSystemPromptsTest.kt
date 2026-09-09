@@ -35,4 +35,15 @@ class DomainSystemPromptsTest {
         assertThat(NewsTools.NO_COVERAGE_MESSAGE)
             .contains("Do not announce")
     }
+
+    @Test
+    fun `every domain prompt tells the model to call tools silently`() {
+        // Partial mitigation for the streamed-narration bug: the model still
+        // emits "let me gather..." text ahead of a tool-calls turn on some
+        // providers even with this instruction, so the server-side SSE reset
+        // (AgentController.sseEventsFor) is the robust fix — this bullet just
+        // reduces how often it fires.
+        assertThat(allPrompts)
+            .allSatisfy { prompt -> assertThat(prompt).contains("Call tools silently") }
+    }
 }

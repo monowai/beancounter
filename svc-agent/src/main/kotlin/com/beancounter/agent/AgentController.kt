@@ -102,6 +102,14 @@ class AgentController(
         // a number inside a tool result from reading as a status.
         val LEADING_HTTP_STATUS = Regex("""^\s*(\d{3})(?!\d)""")
         const val CAUSE_CHAIN_DEPTH = 5
+
+        // Finish reasons that mark a turn as narration-before-tool-calls,
+        // lower-cased for case-insensitive matching in sseEventsFor.
+        // DeepSeek / OpenAI-style providers emit "tool_calls"; Anthropic
+        // (svc-agent's default — model.chat: anthropic) sets finishReason
+        // from StopReason.toString(), whose wire value is "tool_use". Do NOT
+        // add "pause_turn" or any other Anthropic stop reason here.
+        val TOOL_TURN_FINISH_REASONS = setOf("tool_calls", "tool_use")
     }
 
     /**
@@ -624,14 +632,20 @@ class AgentController(
     /**
      * SSE events for one `ChatResponse` chunk, in emission order.
      *
-     * A generation turn that ends with finish reason `tool_calls` (any case —
-     * DeepSeek emits `TOOL_CALLS`, OpenAI-style providers may emit lowercase)
-     * is narration the model produced immediately before calling tools (e.g.
+     * A generation turn that ends with a tool-calling finish reason is
+     * narration the model produced immediately before calling tools (e.g.
      * "I'll gather the data needed for this briefing…"). That text already
      * streamed to the client as `token` events, so a `reset` event is
      * appended telling the frontend to discard its accumulated buffer — the
      * real answer starts fresh on the next turn. A turn that ends with `STOP`
      * is the final answer and streams through untouched.
+     *
+     * Matched case-insensitively against [TOOL_TURN_FINISH_REASONS]: DeepSeek
+     * / OpenAI-style providers emit `tool_calls`; Anthropic — svc-agent's
+     * default provider (`model.chat: anthropic`) — sets `finishReason` from
+     * `StopReason.toString()`, whose wire value for a tool-calling turn is
+     * `tool_use`, not `tool_calls`. Both must be recognised or the preamble
+     * bug survives on the default routing path.
      *
      * [text] may be empty (Spring AI's trailing metadata-only chunk carries
      * the finish reason with no text) — in that case only the `reset` event
@@ -643,7 +657,7 @@ class AgentController(
     ): List<ServerSentEvent<String>> =
         buildList {
             if (text.isNotEmpty()) add(ServerSentEvent.builder(text).event("token").build())
-            if (finishReason.equals("tool_calls", ignoreCase = true)) {
+            if (finishReason != null && finishReason.lowercase() in TOOL_TURN_FINISH_REASONS) {
                 add(ServerSentEvent.builder("").event("reset").build())
             }
         }

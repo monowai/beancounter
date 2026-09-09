@@ -391,6 +391,20 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `should append reset event when turn finishes with anthropic tool use`() {
+        // Anthropic (svc-agent's default provider — model.chat: anthropic) sets
+        // finishReason from StopReason.toString(), whose wire value for a
+        // tool-calling turn is "tool_use", not "tool_calls". Without matching
+        // this, the preamble bug survives on the default routing path.
+        val events = controller().sseEventsFor("Let me check that...", "tool_use")
+
+        assertThat(events).hasSize(2)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("Let me check that...")
+        assertThat(events[1].event()).isEqualTo(EVENT_RESET)
+    }
+
+    @Test
     fun `should emit only reset for empty metadata-only tool-call chunk`() {
         // Case-insensitive: DeepSeek emits "TOOL_CALLS" but the check must also
         // match lowercase, e.g. an OpenAI-style finish reason.

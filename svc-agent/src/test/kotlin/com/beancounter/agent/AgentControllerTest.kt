@@ -405,6 +405,19 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `should not emit reset and keep streaming for unknown finish reason`() {
+        // A provider/Spring AI version bump could change the tool-turn wire
+        // value without this code noticing — the safe default is to keep
+        // streaming and not fire a false reset. AgentController.log.warn
+        // covers the observability side (not asserted here — see PR review).
+        val events = controller().sseEventsFor("Some narration.", "banana")
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("Some narration.")
+    }
+
+    @Test
     fun `should emit only reset for empty metadata-only tool-call chunk`() {
         // Case-insensitive: DeepSeek emits "TOOL_CALLS" but the check must also
         // match lowercase, e.g. an OpenAI-style finish reason.

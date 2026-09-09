@@ -110,6 +110,15 @@ class AgentController(
         // from StopReason.toString(), whose wire value is "tool_use". Do NOT
         // add "pause_turn" or any other Anthropic stop reason here.
         val TOOL_TURN_FINISH_REASONS = setOf("tool_calls", "tool_use")
+
+        // Every other finish reason a turn can legitimately end with — the
+        // final answer. DeepSeek/OpenAI: "stop", "length". Anthropic:
+        // "end_turn", "stop_sequence", "max_tokens", "pause_turn". Anything
+        // outside both this set and TOOL_TURN_FINISH_REASONS is unrecognized
+        // (e.g. a provider/Spring AI version bump changing the wire value)
+        // and gets logged rather than silently dropped.
+        val KNOWN_FINAL_FINISH_REASONS =
+            setOf("stop", "end_turn", "stop_sequence", "max_tokens", "length", "pause_turn")
     }
 
     /**
@@ -650,6 +659,13 @@ class AgentController(
      * [text] may be empty (Spring AI's trailing metadata-only chunk carries
      * the finish reason with no text) — in that case only the `reset` event
      * (if any) is emitted.
+     *
+     * A [finishReason] outside both [TOOL_TURN_FINISH_REASONS] and
+     * [KNOWN_FINAL_FINISH_REASONS] is logged rather than silently ignored —
+     * a provider or Spring AI version bump changing the wire value would
+     * otherwise make the reset stop firing with no signal. Behavior is
+     * unchanged either way: no reset for an unrecognized reason. Finish
+     * reasons arrive once per turn, so this can't spam the log.
      */
     internal fun sseEventsFor(
         text: String,
@@ -657,8 +673,20 @@ class AgentController(
     ): List<ServerSentEvent<String>> =
         buildList {
             if (text.isNotEmpty()) add(ServerSentEvent.builder(text).event("token").build())
-            if (finishReason != null && finishReason.lowercase() in TOOL_TURN_FINISH_REASONS) {
-                add(ServerSentEvent.builder("").event("reset").build())
+            val reason = finishReason?.lowercase()
+            when {
+                reason == null -> {
+                    Unit
+                }
+                reason in TOOL_TURN_FINISH_REASONS -> {
+                    add(ServerSentEvent.builder("").event("reset").build())
+                }
+                reason !in KNOWN_FINAL_FINISH_REASONS -> {
+                    log.warn(
+                        "Unrecognized finish reason '{}' — reset event not emitted; check provider wire values",
+                        finishReason
+                    )
+                }
             }
         }
 

@@ -63,6 +63,9 @@ object DomainSystemPrompts {
           coverage is available for X...", "Here's a summary instead").
           A data caveat belongs as a short labelled line under the first
           heading, not above it.
+        - **Call tools silently.** Never emit assistant text in a turn that
+          makes tool calls — no "let me gather…" narration before or between
+          tools. The first words you emit are the first words of the answer.
         - **Don't repeat what's on screen** — add analysis/outliers/
           observations instead of re-listing visible rows.
         - **Conclusions only, no workings.** Do arithmetic (weighted

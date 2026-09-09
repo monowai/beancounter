@@ -474,17 +474,17 @@ class AgentController(
                 .chatResponse()
                 .doOnNext { resp -> capturedUsage.set(resp.metadata.usage) }
                 // Spring AI emits trailing ChatResponse chunks with no Generation
-                // (metadata-only — token usage, finishReason). Skip those instead
-                // of NPE'ing on resp.result.
-                .map { resp ->
-                    resp.result
-                        ?.output
-                        ?.text
-                        .orEmpty()
-                }.filter { it.isNotEmpty() }
-                .map { chunk ->
-                    totalChars.addAndGet(chunk.length.toLong())
-                    ServerSentEvent.builder(chunk).event("token").build()
+                // (metadata-only — token usage, finishReason). resp.result is
+                // null-safe throughout: sseEventsFor tolerates empty text.
+                .concatMap { resp ->
+                    val text =
+                        resp.result
+                            ?.output
+                            ?.text
+                            .orEmpty()
+                    val finishReason = resp.result?.metadata?.finishReason
+                    if (text.isNotEmpty()) totalChars.addAndGet(text.length.toLong())
+                    Flux.fromIterable(sseEventsFor(text, finishReason))
                 }
         val doneEvent =
             Flux.defer {
@@ -620,6 +620,33 @@ class AgentController(
 
     private fun errorEvent(message: String): Flux<ServerSentEvent<String>> =
         Flux.just(ServerSentEvent.builder<String>(message).event("error").build())
+
+    /**
+     * SSE events for one `ChatResponse` chunk, in emission order.
+     *
+     * A generation turn that ends with finish reason `tool_calls` (any case —
+     * DeepSeek emits `TOOL_CALLS`, OpenAI-style providers may emit lowercase)
+     * is narration the model produced immediately before calling tools (e.g.
+     * "I'll gather the data needed for this briefing…"). That text already
+     * streamed to the client as `token` events, so a `reset` event is
+     * appended telling the frontend to discard its accumulated buffer — the
+     * real answer starts fresh on the next turn. A turn that ends with `STOP`
+     * is the final answer and streams through untouched.
+     *
+     * [text] may be empty (Spring AI's trailing metadata-only chunk carries
+     * the finish reason with no text) — in that case only the `reset` event
+     * (if any) is emitted.
+     */
+    internal fun sseEventsFor(
+        text: String,
+        finishReason: String?
+    ): List<ServerSentEvent<String>> =
+        buildList {
+            if (text.isNotEmpty()) add(ServerSentEvent.builder(text).event("token").build())
+            if (finishReason.equals("tool_calls", ignoreCase = true)) {
+                add(ServerSentEvent.builder("").event("reset").build())
+            }
+        }
 
     private fun logLlmInteraction(
         userMessage: String,

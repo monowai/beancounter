@@ -1,5 +1,9 @@
 package com.beancounter.agent
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
@@ -13,6 +17,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.UserMessage
@@ -434,6 +439,27 @@ class AgentControllerTest {
         assertThat(events).hasSize(1)
         assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
         assertThat(events[0].data()).isEqualTo("Final answer.")
+    }
+
+    @Test
+    fun `should return empty list and not warn for blank text and blank finish reason`() {
+        // DeepSeekChatModel maps an absent finish_reason to "" on EVERY streamed
+        // chunk (not once per turn) — a blank reason must be treated the same as
+        // null, or this warns dozens of times a second in production.
+        lateinit var events: List<org.springframework.http.codec.ServerSentEvent<String>>
+        val warnings = captureWarnings { events = controller().sseEventsFor("", "") }
+
+        assertThat(events).isEmpty()
+        assertThat(warnings).isEmpty()
+    }
+
+    @Test
+    fun `should emit exactly one token event for text with a blank finish reason`() {
+        val events = controller().sseEventsFor("hi", "")
+
+        assertThat(events).hasSize(1)
+        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
+        assertThat(events[0].data()).isEqualTo("hi")
     }
 
     @Test
@@ -931,5 +957,18 @@ class AgentControllerTest {
         org.mockito.kotlin
             .verify(request)
             .messages(listOf(UserMessage("earlier question")))
+    }
+
+    /** Mirrors AlphaClassificationEnricherTest's captureWarnings pattern. */
+    private fun captureWarnings(block: () -> Unit): List<String> {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        val logger = LoggerFactory.getLogger(AgentController::class.java) as Logger
+        logger.addAppender(appender)
+        try {
+            block()
+        } finally {
+            logger.detachAppender(appender)
+        }
+        return appender.list.filter { it.level == Level.WARN }.map { it.formattedMessage }
     }
 }

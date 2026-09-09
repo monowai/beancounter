@@ -654,7 +654,11 @@ class AgentController(
      * default provider (`model.chat: anthropic`) — sets `finishReason` from
      * `StopReason.toString()`, whose wire value for a tool-calling turn is
      * `tool_use`, not `tool_calls`. Both must be recognised or the preamble
-     * bug survives on the default routing path.
+     * bug survives on the default routing path. In production this value
+     * normally arrives via [ToolTurnBoundaryAdvisor]'s synthetic element, not
+     * the provider's own chunk: Spring AI's `ToolCallingAdvisor` filters every
+     * tool-call-carrying `ChatResponse` out of the stream before it reaches
+     * this controller, so the real element never gets here to be read.
      *
      * [text] may be empty (Spring AI's trailing metadata-only chunk carries
      * the finish reason with no text) — in that case only the `reset` event
@@ -664,8 +668,11 @@ class AgentController(
      * [KNOWN_FINAL_FINISH_REASONS] is logged rather than silently ignored —
      * a provider or Spring AI version bump changing the wire value would
      * otherwise make the reset stop firing with no signal. Behavior is
-     * unchanged either way: no reset for an unrecognized reason. Finish
-     * reasons arrive once per turn, so this can't spam the log.
+     * unchanged either way: no reset for an unrecognized reason. A blank
+     * (empty-string) reason is treated as absent, not unrecognized — DeepSeek
+     * maps an absent `finish_reason` to `""` on EVERY streamed chunk, so
+     * without this the warn would fire dozens of times per second rather
+     * than only for a genuinely unexpected value.
      */
     internal fun sseEventsFor(
         text: String,
@@ -673,7 +680,7 @@ class AgentController(
     ): List<ServerSentEvent<String>> =
         buildList {
             if (text.isNotEmpty()) add(ServerSentEvent.builder(text).event("token").build())
-            val reason = finishReason?.lowercase()
+            val reason = finishReason?.takeIf { it.isNotBlank() }?.lowercase()
             when {
                 reason == null -> {
                     Unit

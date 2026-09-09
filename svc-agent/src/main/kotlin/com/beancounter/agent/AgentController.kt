@@ -104,12 +104,14 @@ class AgentController(
         const val CAUSE_CHAIN_DEPTH = 5
 
         // Finish reasons that mark a turn as narration-before-tool-calls,
-        // lower-cased for case-insensitive matching in sseEventsFor.
-        // DeepSeek / OpenAI-style providers emit "tool_calls"; Anthropic
-        // (svc-agent's default — model.chat: anthropic) sets finishReason
-        // from StopReason.toString(), whose wire value is "tool_use". Do NOT
-        // add "pause_turn" or any other Anthropic stop reason here.
-        val TOOL_TURN_FINISH_REASONS = setOf("tool_calls", "tool_use")
+        // lower-cased for case-insensitive matching in sseEventsFor. The
+        // production source is ToolTurnBoundaryAdvisor's synthetic element
+        // (via the shared BOUNDARY_FINISH_REASON constant); the provider wire
+        // values ("tool_calls" DeepSeek/OpenAI, "tool_use" from Anthropic's
+        // StopReason.toString()) stay listed in case a Spring AI change ever
+        // lets a real one through. Do NOT add "pause_turn" or any other
+        // Anthropic stop reason here.
+        val TOOL_TURN_FINISH_REASONS = setOf(ToolTurnBoundaryAdvisor.BOUNDARY_FINISH_REASON, "tool_use")
 
         // Every other finish reason a turn can legitimately end with — the
         // final answer. DeepSeek/OpenAI: "stop", "length". Anthropic:

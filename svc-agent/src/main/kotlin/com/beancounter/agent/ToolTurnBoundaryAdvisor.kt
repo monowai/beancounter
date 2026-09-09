@@ -46,13 +46,23 @@ import java.util.concurrent.atomic.AtomicBoolean
  * the tool calls.
  */
 class ToolTurnBoundaryAdvisor : StreamAdvisor {
+    companion object {
+        /**
+         * The finish reason stamped on the synthetic boundary element.
+         * [AgentController.TOOL_TURN_FINISH_REASONS] must contain this value
+         * for the element to become an SSE `reset` event — it references this
+         * constant so the contract has a single source of truth.
+         */
+        const val BOUNDARY_FINISH_REASON = "tool_calls"
+    }
+
     override fun getName(): String = "ToolTurnBoundaryAdvisor"
 
-    // One step after ToolCallingAdvisor.DEFAULT_ORDER so this runs INSIDE the
-    // tool-call loop (re-invoked once per turn via chainCopy) and sees each
-    // turn's raw elements before ToolCallingAdvisor's own outer filter strips
-    // the tool-call-carrying one.
-    override fun getOrder(): Int = ToolCallingAdvisor.DEFAULT_ORDER + 100
+    // Immediately after ToolCallingAdvisor so this runs INSIDE the tool-call
+    // loop (re-invoked once per turn via chainCopy) and sees each turn's raw
+    // elements before ToolCallingAdvisor's own outer filter strips the
+    // tool-call-carrying one.
+    override fun getOrder(): Int = ToolCallingAdvisor.DEFAULT_ORDER + 1
 
     override fun adviseStream(
         chatClientRequest: ChatClientRequest,
@@ -90,7 +100,7 @@ class ToolTurnBoundaryAdvisor : StreamAdvisor {
         val generation =
             Generation(
                 AssistantMessage(""),
-                ChatGenerationMetadata.builder().finishReason("tool_calls").build()
+                ChatGenerationMetadata.builder().finishReason(BOUNDARY_FINISH_REASON).build()
             )
         return ChatClientResponse
             .builder()

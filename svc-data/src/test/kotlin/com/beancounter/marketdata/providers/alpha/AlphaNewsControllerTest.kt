@@ -41,4 +41,16 @@ internal class AlphaNewsControllerTest {
         assertThat(result).isSameAs(expected)
         verify(newsService).getMarketNews(eq(symbols), eq(null))
     }
+
+    @Test
+    fun `getTopicNews splits and trims comma-separated topics before delegating`() {
+        val expected = mapOf<String, Any>("feed" to listOf<Any>(), "count" to 0)
+        val topics = listOf("stock markets", "economy")
+        whenever(newsService.getTopicNews(topics)).thenReturn(expected)
+
+        val result = controller.getTopicNews("stock markets, economy")
+
+        assertThat(result).isSameAs(expected)
+        verify(newsService).getTopicNews(eq(topics))
+    }
 }

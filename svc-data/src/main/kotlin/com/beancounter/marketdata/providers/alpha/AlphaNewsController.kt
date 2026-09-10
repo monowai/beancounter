@@ -58,4 +58,18 @@ class AlphaNewsController(
         @Parameter(description = "Optional topic filter", required = false)
         @RequestParam(required = false) topics: String? = null
     ): Map<String, Any> = newsService.getMarketNews(symbols.split(","), topics)
+
+    @GetMapping("/topic", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "Get broad macro/topic news",
+        description =
+            "Fetches news for provider topic tags (e.g. 'stock markets', 'economy', 'inflation') " +
+                "rather than news pinned to a ticker or index — macro context per-holding news " +
+                "misses. Only the EODHD provider has topic-news coverage; other providers return " +
+                "no coverage."
+    )
+    fun getTopicNews(
+        @Parameter(description = "Comma-separated topic tags", example = "stock markets,economy")
+        @RequestParam topics: String
+    ): Map<String, Any> = newsService.getTopicNews(topics.split(",").map { it.trim() })
 }

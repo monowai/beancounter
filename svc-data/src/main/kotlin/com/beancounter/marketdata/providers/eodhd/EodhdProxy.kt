@@ -95,6 +95,20 @@ class EodhdProxy(
         )
 
     @RateLimiter(name = "eodhd")
+    fun getNewsByTopic(
+        topic: String,
+        limit: Int,
+        from: String,
+        apiKey: String
+    ): List<EodhdNewsArticle> =
+        eodhdGateway.getNewsByTopic(
+            topic,
+            limit,
+            from,
+            apiKey
+        )
+
+    @RateLimiter(name = "eodhd")
     fun getFundamentals(
         symbol: String,
         apiKey: String

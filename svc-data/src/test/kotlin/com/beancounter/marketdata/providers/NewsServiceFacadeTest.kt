@@ -84,6 +84,33 @@ internal class NewsServiceFacadeTest {
         verifyNoInteractions(alpha)
     }
 
+    @Test
+    fun `topic news routes to the active provider`() {
+        val (facade, alpha, eodhd) = facade(provider = "eodhd")
+        val topics = listOf("stock markets", "economy")
+        whenever(eodhd.getTopicNews(topics)).thenReturn(mapOf("feed" to listOf<Any>()))
+
+        facade.getTopicNews(topics)
+
+        verify(eodhd).getTopicNews(eq(topics))
+        verifyNoInteractions(alpha)
+    }
+
+    @Test
+    fun `topic news defaults to AlphaVantage no-coverage signal when provider is alpha`() {
+        val (facade, alpha, eodhd) = facade(provider = "alpha")
+        val topics = listOf("stock markets")
+        // AlphaNewsService doesn't override getTopicNews, so the NewsProvider default applies —
+        // but the mock must still be primed since Mockito stubs return null/defaults otherwise.
+        whenever(alpha.getTopicNews(topics)).thenReturn(emptyMap())
+
+        val result = facade.getTopicNews(topics)
+
+        verify(alpha).getTopicNews(eq(topics))
+        verifyNoInteractions(eodhd)
+        assertThat(result).isEmpty()
+    }
+
     private data class FacadeTriple(
         val facade: NewsServiceFacade,
         val alpha: AlphaNewsService,

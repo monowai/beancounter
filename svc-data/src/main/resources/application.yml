@@ -214,7 +214,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, news.sentiment, eodhd.news.sentiment, market.holidays
+    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, news.sentiment, eodhd.news.sentiment, alpha.treasury.yield, market.holidays
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true
@@ -662,6 +662,16 @@ beancounter:
           # Articles older than this are pruned daily by NewsRetentionSchedule. Combine with
           # `schedule.enabled=true` to actually run the prune; otherwise it's a no-op bean.
           retention-days: 30
+          # Recency window passed as `from` on topic-tag queries (t=<tag>, used by
+          # /news/topic and MacroRefreshSchedule). EODHD's topic results are relevance-sorted,
+          # not date-sorted, and without `from` return months-old items.
+          topic-window-days: 14
+
+      # Public Kalshi trade API — no auth. Used by RateExpectationsService for Fed
+      # rate-decision (KXFEDDECISION) market odds. Default matches Kalshi's production host;
+      # override only for a sandbox/mock endpoint.
+      kalshi:
+        url: https://api.elections.kalshi.com
 
       # OpenFIGI - free, unlimited, Bloomberg-based
       figi:

@@ -12,6 +12,7 @@ class ToolSelectorTest {
     private val positionTools = mock<PositionTools>()
     private val marketTools = mock<MarketTools>()
     private val newsTools = mock<NewsTools>()
+    private val macroTools = mock<MacroTools>()
     private val eventTools = mock<EventTools>()
     private val retireTools = mock<RetireTools>()
     private val rebalanceTools = mock<RebalanceTools>()
@@ -22,21 +23,24 @@ class ToolSelectorTest {
             positionTools,
             marketTools,
             newsTools,
+            macroTools,
             eventTools,
             retireTools,
             rebalanceTools
         )
 
     @Test
-    fun `news sentiment page ships news and market tools`() {
+    fun `news sentiment page ships news, market, and macro tools`() {
         // marketTools is included so the model can call getCurrentPrice
         // when grounding analyst price targets surfaced in news articles.
+        // macroTools pairs with the topic-backed getMarketNews("market")
+        // headlines so the model can quantify the backdrop it's reading about.
         val tools = selector.selectTools(mapOf("page" to "News & Sentiment"))
-        assertThat(tools).containsExactlyInAnyOrder(newsTools, marketTools)
+        assertThat(tools).containsExactlyInAnyOrder(newsTools, marketTools, macroTools)
     }
 
     @Test
-    fun `wealth pages ship portfolio, position, market, news, and event tools`() {
+    fun `wealth pages ship portfolio, position, market, macro, news, and event tools`() {
         // Event tools are part of the wealth bundle so users can ask
         // "how many dividends has GOOG paid?" from holdings/portfolio pages
         // without having to navigate to a corporate-events page first.
@@ -45,6 +49,7 @@ class ToolSelectorTest {
             portfolioTools,
             positionTools,
             marketTools,
+            macroTools,
             eventTools,
             newsTools
         )
@@ -58,6 +63,7 @@ class ToolSelectorTest {
             portfolioTools,
             positionTools,
             marketTools,
+            macroTools,
             retireTools
         )
         assertThat(tools).doesNotContain(rebalanceTools, eventTools, newsTools)
@@ -70,6 +76,7 @@ class ToolSelectorTest {
             portfolioTools,
             positionTools,
             marketTools,
+            macroTools,
             rebalanceTools
         )
         assertThat(tools).doesNotContain(retireTools, eventTools, newsTools)
@@ -82,6 +89,7 @@ class ToolSelectorTest {
             portfolioTools,
             positionTools,
             marketTools,
+            macroTools,
             eventTools,
             newsTools
         )
@@ -98,6 +106,7 @@ class ToolSelectorTest {
             portfolioTools,
             positionTools,
             marketTools,
+            macroTools,
             eventTools,
             newsTools
         )
@@ -111,6 +120,7 @@ class ToolSelectorTest {
             portfolioTools,
             positionTools,
             marketTools,
+            macroTools,
             newsTools,
             eventTools,
             retireTools,

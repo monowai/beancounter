@@ -34,4 +34,13 @@ interface NewsProvider {
         symbols: List<String>,
         topics: String? = null
     ): Map<String, Any> = emptyMap()
+
+    /**
+     * Broad macro/topic news — e.g. "stock markets", "economy", "inflation" — rather than news
+     * pinned to any specific ticker or index. Provider-defined topic vocabulary.
+     *
+     * Default returns an empty map: only providers with topic-news coverage (EODHD) implement it.
+     * AlphaVantage callers get the standard no-coverage signal.
+     */
+    fun getTopicNews(topics: List<String>): Map<String, Any> = emptyMap()
 }

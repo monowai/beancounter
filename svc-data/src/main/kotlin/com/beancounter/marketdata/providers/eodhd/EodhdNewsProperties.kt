@@ -30,5 +30,11 @@ data class EodhdNewsProperties(
      * Articles whose `published` timestamp is older than this many days get pruned by
      * [com.beancounter.marketdata.providers.eodhd.news.NewsRetentionSchedule].
      */
-    val retentionDays: Long = 30
+    val retentionDays: Long = 30,
+    /**
+     * Recency window passed as `from` on topic-tag queries (`t=<tag>`). EODHD's topic results are
+     * relevance-sorted rather than date-sorted, and without `from` return months-old items — this
+     * bounds the window to something a macro briefing actually cares about.
+     */
+    val topicWindowDays: Long = 14
 )

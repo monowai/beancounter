@@ -39,6 +39,8 @@ class NewsServiceFacade(
         topics: String?
     ): Map<String, Any> = activeProvider().getMarketNews(symbols, topics)
 
+    override fun getTopicNews(topics: List<String>): Map<String, Any> = activeProvider().getTopicNews(topics)
+
     private fun activeProvider(): NewsProvider =
         when (provider.lowercase()) {
             "eodhd" -> {

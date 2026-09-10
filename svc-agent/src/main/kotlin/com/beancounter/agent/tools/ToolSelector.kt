@@ -17,13 +17,14 @@ class ToolSelector(
     private val positionTools: PositionTools,
     private val marketTools: MarketTools,
     private val newsTools: NewsTools,
+    private val macroTools: MacroTools,
     private val eventTools: EventTools,
     private val retireTools: RetireTools,
     private val rebalanceTools: RebalanceTools
 ) {
-    /** Wealth baseline — portfolios, positions, markets/FX. */
+    /** Wealth baseline — portfolios, positions, markets/FX, macro backdrop. */
     private val wealthTools: List<Any> by lazy {
-        listOf(portfolioTools, positionTools, marketTools)
+        listOf(portfolioTools, positionTools, marketTools, macroTools)
     }
 
     fun selectTools(context: Map<String, Any>?): Array<Any> {
@@ -38,9 +39,10 @@ class ToolSelector(
             }
             // News & Sentiment — focused lookup, plus marketTools so the
             // model can ground analyst price targets surfaced in news
-            // articles against the current close.
+            // articles against the current close, and macroTools so it can
+            // quantify the backdrop behind the headlines it's reading.
             page.contains("news") && page.contains("sentiment") -> {
-                arrayOf(newsTools, marketTools)
+                arrayOf(newsTools, marketTools, macroTools)
             }
             // Independence — wealth + retirement planning.
             page.contains("independence") ||

@@ -64,6 +64,21 @@ class AlphaVantageNewsClient(
             .body(MAP_TYPE) ?: emptyMap()
     }
 
+    /**
+     * Broad macro/topic news via svc-data's `/news/topic` endpoint. [topics] are provider topic
+     * tags (e.g. "stock markets", "economy") the caller has already chosen — comma-joined, same
+     * shape as [getMarketNews].
+     */
+    fun getTopicNews(topics: List<String>): Map<String, Any> {
+        val params = mapOf("topics" to topics.joinToString(","))
+        return restClient
+            .get()
+            .uri("/news/topic?topics={topics}", params)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(MAP_TYPE) ?: emptyMap()
+    }
+
     companion object {
         private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
     }

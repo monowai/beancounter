@@ -76,6 +76,24 @@ class EodhdNewsService(
     ): Map<String, Any> = newsForSymbols(symbols.map { it.trim().uppercase() }.filter { it.isNotBlank() }, topics)
 
     /**
+     * Broad macro/topic news (`stock markets`, `economy`, `inflation`, …) rather than news pinned
+     * to a ticker or index. Each topic maps to a synthetic key (`TOPIC:STOCK_MARKETS`) that reuses
+     * the exact same DB-backed refresh / cooldown / rank / project pipeline as ticker news — the
+     * key is stored as the article's "ticker" tag via [applyIncoming], so [NewsArticleRepo.findByTickersAfter]
+     * finds it the same way it finds a held symbol.
+     */
+    @Transactional
+    override fun getTopicNews(topics: List<String>): Map<String, Any> {
+        val keys =
+            topics
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .map { topicKey(it) }
+                .distinct()
+        return newsForSymbols(keys, null)
+    }
+
+    /**
      * Shared read path: refresh any stale symbols from upstream, then rank the stored articles and
      * project to the `{feed, count}` shape. Returns an empty map when no symbols resolve or nothing
      * ranks — the no-coverage signal svc-agent's NewsTools expects.
@@ -166,13 +184,17 @@ class EodhdNewsService(
             runBlockingTraced {
                 symbols
                     .map { symbol ->
-                        async(Dispatchers.IO) { fetchGate.withPermit { symbol to fetchUpstream(symbol) } }
+                        async(Dispatchers.IO) { fetchGate.withPermit { symbol to fetchFor(symbol) } }
                     }.awaitAll()
             }
         for ((symbol, outcome) in fetched) {
             persist(symbol, outcome)
         }
     }
+
+    /** Dispatch by key shape: a synthetic `TOPIC:` key fetches by topic tag, anything else by ticker. */
+    private fun fetchFor(key: String): FetchResult =
+        if (key.startsWith(TOPIC_PREFIX)) fetchUpstreamTopic(key) else fetchUpstream(key)
 
     private fun fetchUpstream(symbol: String): FetchResult =
         try {
@@ -191,6 +213,31 @@ class EodhdNewsService(
             log.debug("EODHD news lookup failed for {}: {}", symbol, e.message)
             FetchResult.Failure
         }
+
+    private fun fetchUpstreamTopic(key: String): FetchResult =
+        try {
+            val from = dateUtils.date.minusDays(newsProperties.topicWindowDays).toString()
+            FetchResult.Success(
+                eodhdProxy.getNewsByTopic(
+                    topic = topicTagFor(key),
+                    limit = newsProperties.providerLimit,
+                    from = from,
+                    apiKey = eodhdConfig.apiKey
+                )
+            )
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug("EODHD topic news lookup failed for {}: {}", key, e.message)
+            FetchResult.Failure
+        }
+
+    /** "stock markets" -> "TOPIC:STOCK_MARKETS". Fits the `news_article_ticker.ticker` VARCHAR(32) column. */
+    private fun topicKey(topic: String): String = TOPIC_PREFIX + topic.trim().uppercase().replace(" ", "_")
+
+    /** Inverse of [topicKey]: recovers the EODHD tag EODHD's `t=` query param expects. */
+    private fun topicTagFor(key: String): String = key.removePrefix(TOPIC_PREFIX).lowercase().replace("_", " ")
 
     private fun persist(
         symbol: String,
@@ -411,5 +458,9 @@ class EodhdNewsService(
         private const val BULLISH_THRESHOLD = 0.35
         private const val BEARISH_THRESHOLD = -0.35
         private val TICKER_PATTERN = Regex("[A-Z0-9.-]{1,10}")
+
+        // Synthetic key prefix distinguishing a topic-tag query from a ticker/index symbol in the
+        // shared refresh/rank pipeline. See [topicKey] / [topicTagFor].
+        private const val TOPIC_PREFIX = "TOPIC:"
     }
 }

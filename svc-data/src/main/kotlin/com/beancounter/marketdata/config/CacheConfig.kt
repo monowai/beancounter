@@ -40,6 +40,11 @@ class CacheConfig {
             } + CaffeineCache("alpha.asset.event", Duration.ofMinutes(10), 200) +
                 CaffeineCache("eodhd.asset.event", Duration.ofMinutes(10), 200) +
                 CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100) +
+                // AlphaVantage TREASURY_YIELD — shared by the /macro/indicators endpoint and
+                // MacroRefreshSchedule's warm-up fetch, keyed by maturity (10year/2year). TTL
+                // matches the news-refresh cadence rather than daily-only since intraday requests
+                // shouldn't hammer AV for a series that only moves once a day anyway.
+                CaffeineCache("alpha.treasury.yield", Duration.ofHours(6), 20) +
                 // Auth0 M2M client-credentials tokens carry a 24h TTL. A ConcurrentMapCache never
                 // expires entries, so a pod living longer than that serves a stale token forever -
                 // every setAuthContext() call then throws JwtException. Expire well inside the

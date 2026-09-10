@@ -112,6 +112,90 @@ internal class EodhdNewsServiceTest {
     }
 
     @Test
+    fun `topic news maps a topic to its synthetic TOPIC key and queries EODHD by tag`() {
+        whenever(fetchRepo.findById("TOPIC:STOCK_MARKETS")).thenReturn(Optional.empty())
+        whenever(proxy.getNewsByTopic(eq("stock markets"), any(), any(), eq("demo")))
+            .thenReturn(listOf(eodhArticle(0.6, title = "Markets rally")))
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any()))
+            .thenReturn(listOf(storedArticle(polarity = 0.6, title = "Markets rally", ticker = "TOPIC:STOCK_MARKETS")))
+
+        val result = service.getTopicNews(listOf("stock markets"))
+
+        verify(proxy).getNewsByTopic(eq("stock markets"), eq(10), any(), eq("demo"))
+        val keysCaptor = argumentCaptor<Collection<String>>()
+        verify(articleRepo).findByTickersAfter(keysCaptor.capture(), any())
+        assertThat(keysCaptor.firstValue).containsExactly("TOPIC:STOCK_MARKETS")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.first()["title"]).isEqualTo("Markets rally")
+    }
+
+    @Test
+    fun `topic news passes a from window computed from topicWindowDays`() {
+        whenever(fetchRepo.findById(any())).thenReturn(Optional.empty())
+        whenever(proxy.getNewsByTopic(any(), any(), any(), any())).thenReturn(emptyList())
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getTopicNews(listOf("economy"))
+
+        val fromCaptor = argumentCaptor<String>()
+        verify(proxy).getNewsByTopic(eq("economy"), any(), fromCaptor.capture(), any())
+        assertThat(
+            fromCaptor.firstValue
+        ).isEqualTo(
+            LocalDateTime
+                .now()
+                .toLocalDate()
+                .minusDays(props.topicWindowDays)
+                .toString()
+        )
+    }
+
+    @Test
+    fun `topic news cooldown is honoured per topic key`() {
+        whenever(fetchRepo.findById("TOPIC:ENERGY")).thenReturn(
+            Optional.of(NewsFetch("TOPIC:ENERGY", LocalDateTime.now().minusHours(1), 3))
+        )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getTopicNews(listOf("energy"))
+
+        verify(proxy, never()).getNewsByTopic(any(), any(), any(), any())
+    }
+
+    @Test
+    fun `topic news with no topics returns an empty map without an upstream call`() {
+        val result = service.getTopicNews(emptyList())
+
+        assertThat(result).isEmpty()
+        verify(proxy, never()).getNewsByTopic(any(), any(), any(), any())
+    }
+
+    @Test
+    fun `topic news round-robins ranking across multiple topic keys`() {
+        whenever(fetchRepo.findById(any())).thenReturn(
+            Optional.of(NewsFetch("x", LocalDateTime.now().minusMinutes(30), 5))
+        )
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.9, title = "Markets 1", ageHours = 1, ticker = "TOPIC:STOCK_MARKETS"),
+                storedArticle(polarity = 0.9, title = "Markets 2", ageHours = 2, ticker = "TOPIC:STOCK_MARKETS"),
+                storedArticle(polarity = 0.9, title = "Markets 3", ageHours = 3, ticker = "TOPIC:STOCK_MARKETS"),
+                storedArticle(polarity = 0.9, title = "Markets 4", ageHours = 4, ticker = "TOPIC:STOCK_MARKETS"),
+                storedArticle(polarity = -0.9, title = "Inflation cools", ageHours = 9, ticker = "TOPIC:INFLATION")
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getTopicNews(listOf("stock markets", "inflation"))
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).contains("Inflation cools")
+    }
+
+    @Test
     fun `per-symbol upstream refreshes run concurrently`() {
         // A batch of N stale tickers must fan out to N concurrent EODHD calls, not N serial ones.
         // Each fetch rendezvous at a CyclicBarrier sized to the batch: the barrier only trips once

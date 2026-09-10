@@ -181,10 +181,14 @@ class ChatClientConfiguration {
 
         // No defaultSystem() — every call overrides via SystemPromptSelector
         // for domain-focused token usage. Fallback is DomainSystemPrompts.GENERAL.
+        // ToolTurnBoundaryAdvisor: see build(model) below — this client builds
+        // its own ChatClient rather than going through that helper, so it needs
+        // the same registration.
         return ChatClient
             .builder(chatModel)
             .defaultOptions(anthropicOptions)
             .defaultSystem(DomainSystemPrompts.GENERAL)
+            .defaultAdvisors(ToolTurnBoundaryAdvisor())
             .build()
     }
 
@@ -192,5 +196,11 @@ class ChatClientConfiguration {
         ChatClient
             .builder(model)
             .defaultSystem(DomainSystemPrompts.GENERAL)
+            // ToolTurnBoundaryAdvisor re-marks a tool-calling turn's boundary
+            // after Spring AI's ToolCallingAdvisor filters the real tool-call
+            // element out of the stream — see its KDoc. Every non-Anthropic
+            // client (ollama/openai/deepseek/fastChatClient) goes through this
+            // helper, so registering it once here covers all of them.
+            .defaultAdvisors(ToolTurnBoundaryAdvisor())
             .build()
 }

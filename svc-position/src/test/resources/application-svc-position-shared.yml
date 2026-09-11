@@ -1,4 +1,8 @@
 # svc-position specific configuration
 # Extends: application-contract-base.yml
+#
+# Stub-runner's allocated port, not a fixed one — see application-jar-client-shared.yml
+# for why. 10993 was doubly unsafe here: jar-client's own test config claimed the same
+# number, so the two modules collided whenever their tests overlapped.
 marketdata:
-  url: http://localhost:10993/api
+  url: http://localhost:${spring.cloud.contract.stubrunner.runningstubs.svc-data.port}/api

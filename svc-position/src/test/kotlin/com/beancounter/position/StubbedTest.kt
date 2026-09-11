@@ -16,7 +16,7 @@ import org.springframework.test.context.ActiveProfiles
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-    ids = ["beancounter:svc-data:0.1.1:stubs:10993"]
+    ids = ["beancounter:svc-data:0.1.1:stubs"]
 )
 // Profiles are hard-wired here: a custom `profiles` attribute aliased with
 // @AliasFor does not survive Kotlin annotation compilation reliably (see

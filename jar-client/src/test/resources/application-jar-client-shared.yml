@@ -1,4 +1,10 @@
 # jar-client specific configuration
 # Extends: application-contract-base.yml
+#
+# The port is whatever stub-runner allocated, not a fixed one: two builds in two
+# worktrees (or a parallel `testAll`) would otherwise race for the same socket and
+# one would die with `FatalStartupException: Failed to bind`. Stub-runner publishes
+# this property while creating its BatchStubRunner bean, which a BeanPostProcessor
+# forces ahead of ordinary singletons — so it always resolves before this URL is read.
 marketdata:
-  url: http://localhost:10990/api
+  url: http://localhost:${spring.cloud.contract.stubrunner.runningstubs.svc-data.port}/api

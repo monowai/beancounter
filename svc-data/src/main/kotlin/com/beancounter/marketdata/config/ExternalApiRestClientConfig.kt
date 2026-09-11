@@ -118,6 +118,11 @@ class ExternalApiRestClientConfig {
     ): RestClient = buildRestClient(baseUrl)
 
     @Bean
+    fun kalshiRestClient(
+        @Value($$"${beancounter.market.providers.kalshi.url:https://api.elections.kalshi.com}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
+
+    @Bean
     fun eodhdSearchRestClient(
         @Value($$"${beancounter.market.providers.eodhd.url:https://eodhd.com}") baseUrl: String
     ): RestClient =

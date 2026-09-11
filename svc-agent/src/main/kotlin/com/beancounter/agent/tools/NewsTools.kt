@@ -42,8 +42,23 @@ class NewsTools(
         @ToolParam(description = SCOPE_DESC) scope: String
     ): Map<String, Any> {
         val key = scope.trim().lowercase()
-        val symbols = if (key.isBlank() || key in MARKET_ALIASES) INDEX_PROXIES else SECTOR_ETFS[key]
-        if (symbols == null) {
+        val isMarketScope = key.isBlank() || key in MARKET_ALIASES
+        val raw =
+            when {
+                isMarketScope -> {
+                    log.debug("getMarketNews: scope={} -> macro topics {}", scope, MACRO_TOPICS)
+                    newsClient.getTopicNews(MACRO_TOPICS)
+                }
+                key in SECTOR_ETFS -> {
+                    val symbols = SECTOR_ETFS.getValue(key)
+                    log.debug("getMarketNews: scope={} -> {}", scope, symbols)
+                    newsClient.getMarketNews(symbols)
+                }
+                else -> {
+                    null
+                }
+            }
+        if (raw == null) {
             log.debug("getMarketNews: unknown scope '{}'", scope)
             return mapOf(
                 "status" to "unknown_scope",
@@ -52,14 +67,16 @@ class NewsTools(
                 "supportedScopes" to (listOf("market") + SECTOR_ETFS.keys.sorted())
             )
         }
-        log.debug("getMarketNews: scope={} -> {}", scope, symbols)
-        val raw = newsClient.getMarketNews(symbols)
         val feed = raw["feed"] as? List<*>
         return if (raw.isEmpty() || feed.isNullOrEmpty()) {
             mapOf(
                 "status" to "no_coverage",
                 "scope" to scope,
-                "message" to NO_COVERAGE_MESSAGE
+                // Macro topic coverage (market scope) and sector-ETF coverage (sector scope) fail
+                // for different reasons and want different guidance — a sector ETF is still a
+                // ticker-shaped symbol (NO_COVERAGE_MESSAGE's "this ticker" framing fits), while
+                // the market scope has no ticker at all.
+                "message" to if (isMarketScope) TOPIC_NO_COVERAGE_MESSAGE else NO_COVERAGE_MESSAGE
             )
         } else {
             raw
@@ -101,26 +118,44 @@ class NewsTools(
                 "carry the caveat as a short labelled line beneath it."
 
         const val MARKET_NEWS_DESC =
-            "Get market-wide or sector-wide news and sentiment via index/sector proxies — the " +
-                "macro context that per-holding `getNews` misses (e.g. a jobs report, a Fed " +
-                "decision, or a broad sell-off that moves a portfolio but isn't tagged to any one " +
-                "ticker). Returns the same shape as getNews. Use this when the user asks why the " +
-                "market or their portfolio moved, what's happening today, or about a sector's " +
-                "conditions. To attribute a portfolio's move, also call this once per sector the " +
-                "holdings belong to. NEVER mention the underlying data provider."
+            "Get market-wide or sector-wide news and sentiment — the macro context that " +
+                "per-holding `getNews` misses (e.g. a jobs report, a Fed decision, or a broad " +
+                "sell-off that moves a portfolio but isn't tagged to any one ticker). 'market' " +
+                "scope is topic-backed macro news (stock markets, economy, inflation, bonds, " +
+                "energy, commodities); a sector scope is SPDR sector-ETF news. Returns the same " +
+                "shape as getNews. Use this when the user asks why the market or their " +
+                "portfolio moved, what's happening today, or about a sector's conditions. To " +
+                "attribute a portfolio's move, also call this once per sector the holdings " +
+                "belong to. NEVER mention the underlying data provider."
         const val SCOPE_DESC =
-            "What to fetch news for: 'market' for broad macro/market-wide news, or a sector name. " +
-                "Supported sectors: technology, financials, energy, healthcare, " +
+            "What to fetch news for: 'market' for broad topic-backed macro news, or a sector " +
+                "name. Supported sectors: technology, financials, energy, healthcare, " +
                 "consumer_discretionary, consumer_staples, industrials, materials, utilities, " +
                 "real_estate, communication. Pass one scope per call."
         const val UNKNOWN_SCOPE_MESSAGE =
             "Unrecognised scope. Use 'market' for macro news or one of the listed sector names."
+        const val TOPIC_NO_COVERAGE_MESSAGE =
+            "No live macro topic coverage available right now. Summarise from general " +
+                "knowledge, clearly labelled, without inventing headlines. Do not announce the " +
+                "missing coverage: start the answer with the heading and carry the caveat as a " +
+                "short labelled line beneath it."
 
-        // Proxy symbol maps below: INDEX_PROXIES surface broad-market macro headlines (jobs, Fed,
-        // market-wide moves); SECTOR_ETFS stand in for sector-wide sentiment via SPDR sector ETFs,
-        // which carry strong EODHD news coverage. SECTOR_ETFS keys are the scope vocabulary in
-        // SCOPE_DESC. MARKET_ALIASES are the scope strings that all mean "broad market".
-        private val INDEX_PROXIES = listOf("GSPC.INDX", "DJI.INDX")
+        // MACRO_TOPICS surfaces broad-market macro headlines via provider topic tags rather than
+        // single-stock index/ETF proxies (those produced noisy single-stock "X fell more than
+        // market" articles). Must match MacroRefreshSchedule.MACRO_TOPICS in svc-data — both are
+        // plain-string topic vocabulary, not a shared constant, since svc-agent has no compile-time
+        // dependency on svc-data. SECTOR_ETFS stand in for sector-wide sentiment via SPDR sector
+        // ETFs, which carry strong EODHD news coverage. SECTOR_ETFS keys are the scope vocabulary
+        // in SCOPE_DESC. MARKET_ALIASES are the scope strings that all mean "broad market".
+        private val MACRO_TOPICS =
+            listOf(
+                "stock markets",
+                "economy",
+                "inflation",
+                "bonds",
+                "energy",
+                "commodities"
+            )
 
         private val SECTOR_ETFS =
             mapOf(

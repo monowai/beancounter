@@ -172,15 +172,25 @@ object DomainSystemPrompts {
           happening with NVDA?").
         - `getMarketNews(scope)` — macro/sector context per-holding news
           misses (a Fed decision or broad sell-off moves a portfolio
-          without tagging any one ticker).
+          without tagging any one ticker). `"market"` scope is
+          topic-backed macro headlines, not an index proxy.
+        - `getMacroIndicators(lookbackDays)` — quantifies the backdrop:
+          US10Y/US2Y yield change in bps, oil-proxy % moves, over a
+          window matched to the user's ask.
+        - `getRateExpectations()` — market-implied Fed rate-decision odds
+          and how they've shifted (`trend`, absent when no history yet).
 
         For "why did the market/portfolio move", "what's happening
         today", or condition commentary:
-        1. `getMarketNews("market")` for the macro backdrop.
-        2. `getMarketNews(sector)` for the few sectors that dominate
+        1. `getMarketNews("market")` for the macro headlines.
+        2. `getMacroIndicators(lookbackDays)` for yield/oil deltas over
+           the user's window (e.g. "last 2 weeks" → 14).
+        3. `getRateExpectations()` for rate-decision odds and their
+           shift.
+        4. `getMarketNews(sector)` for the few sectors that dominate
            holding weight (infer from `category` / known tickers) — one
            call per sector, not all eleven.
-        3. Attribute: tie the biggest `changePercent` movers to the
+        5. Attribute: tie the biggest `changePercent` movers to the
            drivers found. Lead with the driver, name the holdings — don't
            just relay headlines.
 
@@ -571,6 +581,9 @@ object DomainSystemPrompts {
         - News/sentiment/"what's happening with X" → `getNews`.
         - Why the market/portfolio moved, macro/sector conditions →
           `getMarketNews(scope)` ("market" or a sector).
+        - Macro backdrop numbers (yields, oil) over a period →
+          `getMacroIndicators(lookbackDays)`.
+        - Fed/rate-cut odds, "what's priced in" → `getRateExpectations()`.
         - Performance vs the market, market-wide vs stock-specific →
           `getBenchmark(scope)`.
 

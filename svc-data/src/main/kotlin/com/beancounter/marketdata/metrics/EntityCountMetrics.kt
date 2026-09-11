@@ -4,10 +4,10 @@ import com.beancounter.marketdata.assets.AccountingTypeRepository
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.PrivateAssetConfigRepository
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
+import com.beancounter.marketdata.news.NewsArticleRepo
+import com.beancounter.marketdata.news.NewsFetchRepo
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
-import com.beancounter.marketdata.providers.eodhd.news.NewsArticleRepo
-import com.beancounter.marketdata.providers.eodhd.news.NewsFetchRepo
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.tax.TaxRateRepository
 import com.beancounter.marketdata.trn.TrnRepository

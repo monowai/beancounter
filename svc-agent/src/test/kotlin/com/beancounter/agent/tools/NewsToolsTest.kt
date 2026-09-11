@@ -14,7 +14,15 @@ import org.mockito.kotlin.verifyNoInteractions
 class NewsToolsTest {
     private companion object {
         const val MARKET = "market"
-        val INDEX_PROXIES = listOf("GSPC.INDX", "DJI.INDX")
+        val MACRO_TOPICS =
+            listOf(
+                "stock markets",
+                "economy",
+                "inflation",
+                "bonds",
+                "energy",
+                "commodities"
+            )
     }
 
     private val sampleResponse: Map<String, Any> =
@@ -100,17 +108,17 @@ class NewsToolsTest {
     }
 
     @Test
-    fun `getMarketNews maps the market scope to broad index proxies`() {
+    fun `getMarketNews maps the market scope to broad macro topic news`() {
         val client =
             mock<AlphaVantageNewsClient> {
-                on { getMarketNews(INDEX_PROXIES, null) } doReturn sampleResponse
+                on { getTopicNews(MACRO_TOPICS) } doReturn sampleResponse
             }
         val tools = NewsTools(client)
 
         val result = tools.getMarketNews(MARKET)
 
         assertThat(result).isSameAs(sampleResponse)
-        verify(client).getMarketNews(INDEX_PROXIES, null)
+        verify(client).getTopicNews(MACRO_TOPICS)
     }
 
     @Test
@@ -143,15 +151,30 @@ class NewsToolsTest {
     }
 
     @Test
-    fun `getMarketNews returns no_coverage when the proxy yields an empty feed`() {
+    fun `getMarketNews returns no_coverage with the topic-specific message when the macro topic feed is empty`() {
         val client =
             mock<AlphaVantageNewsClient> {
-                on { getMarketNews(INDEX_PROXIES, null) } doReturn mapOf("feed" to emptyList<Any>())
+                on { getTopicNews(MACRO_TOPICS) } doReturn mapOf("feed" to emptyList<Any>())
             }
         val tools = NewsTools(client)
 
         val result = tools.getMarketNews(MARKET)
 
         assertThat(result["status"]).isEqualTo("no_coverage")
+        assertThat(result["message"]).isEqualTo(NewsTools.TOPIC_NO_COVERAGE_MESSAGE)
+    }
+
+    @Test
+    fun `getMarketNews returns no_coverage with the ticker-style message when a sector feed is empty`() {
+        val client =
+            mock<AlphaVantageNewsClient> {
+                on { getMarketNews(listOf("XLK.US"), null) } doReturn mapOf("feed" to emptyList<Any>())
+            }
+        val tools = NewsTools(client)
+
+        val result = tools.getMarketNews("Technology")
+
+        assertThat(result["status"]).isEqualTo("no_coverage")
+        assertThat(result["message"]).isEqualTo(NewsTools.NO_COVERAGE_MESSAGE)
     }
 }

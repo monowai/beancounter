@@ -1,0 +1,67 @@
+package com.beancounter.marketdata.news
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+
+/**
+ * Thin-controller tests: [NewsController] only parses request params and delegates to
+ * [NewsServiceFacade]. Pins the `/news/market` symbol split and the delegation contract.
+ */
+internal class NewsControllerTest {
+    private val newsService = mock<NewsServiceFacade>()
+    private val controller = NewsController(newsService)
+
+    @Test
+    fun `getNews delegates tickers, market and topics to the facade`() {
+        val expected = mapOf<String, Any>("feed" to listOf<Any>(), "count" to 0)
+        val ticker = "AAPL"
+        val market = "US"
+        val topics = "earnings"
+        whenever(newsService.getNewsSentiment(ticker, market, topics)).thenReturn(expected)
+
+        val result = controller.getNews(ticker, market, topics)
+
+        assertThat(result).isSameAs(expected)
+        verify(newsService).getNewsSentiment(eq(ticker), eq(market), eq(topics))
+    }
+
+    @Test
+    fun `getMarketNews splits comma-separated proxy symbols before delegating`() {
+        val expected = mapOf<String, Any>("feed" to listOf<Any>(), "count" to 0)
+        val symbols = listOf("GSPC.INDX", "XLK.US")
+        whenever(newsService.getMarketNews(symbols, null)).thenReturn(expected)
+
+        val result = controller.getMarketNews("GSPC.INDX,XLK.US", null)
+
+        assertThat(result).isSameAs(expected)
+        verify(newsService).getMarketNews(eq(symbols), eq(null))
+    }
+
+    @Test
+    fun `getTopicNews splits and trims comma-separated topics before delegating`() {
+        val expected = mapOf<String, Any>("feed" to listOf<Any>(), "count" to 0)
+        val topics = listOf("stock markets", "economy")
+        whenever(newsService.getTopicNews(topics)).thenReturn(expected)
+
+        val result = controller.getTopicNews("stock markets, economy")
+
+        assertThat(result).isSameAs(expected)
+        verify(newsService).getTopicNews(eq(topics))
+    }
+
+    @Test
+    fun `getTopicNews drops blank entries from trailing and double commas`() {
+        val expected = mapOf<String, Any>("feed" to listOf<Any>(), "count" to 0)
+        val topics = listOf("stock markets", "economy")
+        whenever(newsService.getTopicNews(topics)).thenReturn(expected)
+
+        val result = controller.getTopicNews("stock markets,,economy,")
+
+        assertThat(result).isSameAs(expected)
+        verify(newsService).getTopicNews(eq(topics))
+    }
+}

@@ -97,6 +97,32 @@ class AlphaGateway(
             .body<String>()
             ?: ""
 
+    /**
+     * Daily treasury-yield curve point for one maturity.
+     *
+     * GET /query?function=TREASURY_YIELD&interval=daily&maturity={maturity}&apikey={apiKey}
+     *
+     * `maturity` is one of AlphaVantage's maturity codes (`10year`, `2year`, ...). Response is
+     * `{"name":..., "data":[{"date":"2026-09-09","value":"4.83"},...]}`, newest-first; non-trading
+     * days carry `value: "."`.
+     */
+    @Retry(name = "providerHttp")
+    fun getTreasuryYield(
+        interval: String,
+        maturity: String,
+        apiKey: String
+    ): String =
+        restClient
+            .get()
+            .uri(
+                "/query?function=TREASURY_YIELD&interval={interval}&maturity={maturity}&apikey={apiKey}",
+                interval,
+                maturity,
+                apiKey
+            ).retrieve()
+            .body<String>()
+            ?: ""
+
     @Retry(name = "providerHttp")
     fun getNewsSentiment(
         tickers: String,

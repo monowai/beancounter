@@ -48,6 +48,28 @@ class AlphaVantageNewsClientTest {
     }
 
     @Test
+    fun `getTopicNews requests the topic endpoint with comma-joined topics, URL-encoding spaces`() {
+        val (client, server) = clientWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(
+                requestTo(
+                    allOf(
+                        containsString("/news/topic"),
+                        containsString("stock%20markets"),
+                        containsString("economy")
+                    )
+                )
+            ).andExpect(header("Authorization", BEARER))
+            .andRespond(withSuccess(FEED_JSON, MediaType.APPLICATION_JSON))
+
+        val result = client.getTopicNews(listOf("stock markets", "economy"))
+
+        assertThat(result["count"]).isEqualTo(1)
+        server.verify()
+    }
+
+    @Test
     fun `getNewsSentiment passes tickers, market and topics through to the news endpoint`() {
         val (client, server) = clientWithServer()
         server

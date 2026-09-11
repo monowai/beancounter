@@ -175,6 +175,35 @@ class EodhdGateway(
     }
 
     /**
+     * News articles for a broad topic tag rather than a specific symbol — e.g. `stock markets`,
+     * `economy`, `inflation`. Used for macro/sector coverage that isn't tied to any one ticker.
+     *
+     * GET /api/news?api_token={apiKey}&t={topic}&limit={limit}&from={from}&fmt=json
+     *
+     * Topic results are relevance-sorted, NOT date-sorted, and without `from` EODHD returns
+     * months-old items — `from` is required here (unlike [getNews]) so callers always bound the
+     * window.
+     */
+    fun getNewsByTopic(
+        topic: String,
+        limit: Int = 50,
+        from: String,
+        apiKey: String = DEMO_KEY
+    ): List<EodhdNewsArticle> =
+        restClient
+            .get()
+            .uri(
+                "/api/news?api_token={apiKey}&t={topic}&limit={limit}&from={from}&fmt=json",
+                apiKey,
+                topic,
+                limit,
+                from
+            ).retrieve()
+            .body<Array<EodhdNewsArticle>>()
+            ?.toList()
+            ?: emptyList()
+
+    /**
      * Asset search by ticker code or name fragment.
      *
      * GET /api/search/{query}?api_token={apiKey}&fmt=json

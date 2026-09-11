@@ -83,6 +83,26 @@ class MacroIndicatorsServiceTest {
     }
 
     @Test
+    fun `oil lookback picks the price at-or-before target even when a later price is closer`() {
+        // target = latest(day0) - 3 days = day-3. A price 6 days ago precedes the target; a price
+        // 1 day ago comes AFTER it but is closer by absolute distance — the old closest-by-distance
+        // selection picked the 1-day-ago price and got the sign of changePercent wrong.
+        whenever(treasuryYieldService.getYields(any())).thenReturn(emptyList())
+        whenever(eodhdProxy.getHistory(eq("USO.US"), any(), any(), eq("demo"))).thenReturn(
+            listOf(price(0, "100.00"), price(1, "90.00"), price(6, "120.00"))
+        )
+        whenever(eodhdProxy.getHistory(eq("BNO.US"), any(), any(), eq("demo"))).thenReturn(emptyList())
+
+        val result = service.getIndicators(lookbackDays = 3)
+
+        val wti = result.oil.first { it.series == "WTI_PROXY" }
+        assertThat(wti.lookback).isEqualByComparingTo(BigDecimal("120.00"))
+        // (100 - 120) / 120 * 100 = -16.6667: negative, as it should be — the old strategy would
+        // have picked the 90.00 price and produced a spuriously positive +11.11% instead.
+        assertThat(wti.changePercent).isEqualByComparingTo(BigDecimal("-16.6667"))
+    }
+
+    @Test
     fun `an oil leg with no upstream history is omitted, not null`() {
         whenever(treasuryYieldService.getYields(any())).thenReturn(emptyList())
         whenever(eodhdProxy.getHistory(eq("USO.US"), any(), any(), eq("demo"))).thenReturn(emptyList())

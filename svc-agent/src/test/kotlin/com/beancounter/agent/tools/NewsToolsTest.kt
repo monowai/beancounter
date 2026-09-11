@@ -151,7 +151,7 @@ class NewsToolsTest {
     }
 
     @Test
-    fun `getMarketNews returns no_coverage when the macro topic feed is empty`() {
+    fun `getMarketNews returns no_coverage with the topic-specific message when the macro topic feed is empty`() {
         val client =
             mock<AlphaVantageNewsClient> {
                 on { getTopicNews(MACRO_TOPICS) } doReturn mapOf("feed" to emptyList<Any>())
@@ -161,5 +161,20 @@ class NewsToolsTest {
         val result = tools.getMarketNews(MARKET)
 
         assertThat(result["status"]).isEqualTo("no_coverage")
+        assertThat(result["message"]).isEqualTo(NewsTools.TOPIC_NO_COVERAGE_MESSAGE)
+    }
+
+    @Test
+    fun `getMarketNews returns no_coverage with the ticker-style message when a sector feed is empty`() {
+        val client =
+            mock<AlphaVantageNewsClient> {
+                on { getMarketNews(listOf("XLK.US"), null) } doReturn mapOf("feed" to emptyList<Any>())
+            }
+        val tools = NewsTools(client)
+
+        val result = tools.getMarketNews("Technology")
+
+        assertThat(result["status"]).isEqualTo("no_coverage")
+        assertThat(result["message"]).isEqualTo(NewsTools.NO_COVERAGE_MESSAGE)
     }
 }

@@ -45,6 +45,10 @@ class CacheConfig {
                 // matches the news-refresh cadence rather than daily-only since intraday requests
                 // shouldn't hammer AV for a series that only moves once a day anyway.
                 CaffeineCache("alpha.treasury.yield", Duration.ofHours(6), 20) +
+                // Fed rate-decision odds — avoids one Kalshi /markets call per open event on
+                // every /macro/rate-expectations request. Small size: at most one open
+                // KXFEDDECISION event is realistically live at a time.
+                CaffeineCache("macro.rate.expectations", Duration.ofMinutes(10), 5) +
                 // Auth0 M2M client-credentials tokens carry a 24h TTL. A ConcurrentMapCache never
                 // expires entries, so a pod living longer than that serves a stale token forever -
                 // every setAuthContext() call then throws JwtException. Expire well inside the

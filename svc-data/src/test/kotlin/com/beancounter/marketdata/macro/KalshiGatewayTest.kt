@@ -68,6 +68,34 @@ class KalshiGatewayTest {
     }
 
     @Test
+    fun `getEvents falls back to an empty response when the body deserializes to null`() {
+        val (gateway, server) = gatewayWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo(containsString("/trade-api/v2/events")))
+            .andRespond(withSuccess("null", MediaType.APPLICATION_JSON))
+
+        val result = gateway.getEvents("KXFEDDECISION")
+
+        assertThat(result.events).isEmpty()
+        server.verify()
+    }
+
+    @Test
+    fun `getMarkets falls back to an empty response when the body deserializes to null`() {
+        val (gateway, server) = gatewayWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo(containsString("/trade-api/v2/markets")))
+            .andRespond(withSuccess("null", MediaType.APPLICATION_JSON))
+
+        val result = gateway.getMarkets("KXFEDDECISION-26SEP")
+
+        assertThat(result.markets).isEmpty()
+        server.verify()
+    }
+
+    @Test
     fun `unknown fields and null dollar fields do not break parsing`() {
         val (gateway, server) = gatewayWithServer()
         server

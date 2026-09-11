@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.macro
 
 import io.github.resilience4j.retry.annotation.Retry
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -15,6 +16,8 @@ class KalshiGateway(
     @Qualifier("kalshiRestClient")
     private val restClient: RestClient
 ) {
+    private val log = LoggerFactory.getLogger(KalshiGateway::class.java)
+
     /**
      * Open events for a series (e.g. `KXFEDDECISION` — Fed rate-decision markets).
      *
@@ -33,7 +36,13 @@ class KalshiGateway(
                 status
             ).retrieve()
             .body<KalshiEventsResponse>()
-            ?: KalshiEventsResponse()
+            ?: run {
+                // A 200 with a null-deserialized body is contract drift, not an expected "no
+                // events" shape (that's an empty `events` array) — surface it rather than
+                // silently treating it the same as a genuinely empty response.
+                log.warn("Kalshi events response body was null for seriesTicker={}", seriesTicker)
+                KalshiEventsResponse()
+            }
 
     /**
      * Open markets (outcomes) for one event.
@@ -53,5 +62,8 @@ class KalshiGateway(
                 status
             ).retrieve()
             .body<KalshiMarketsResponse>()
-            ?: KalshiMarketsResponse()
+            ?: run {
+                log.warn("Kalshi markets response body was null for eventTicker={}", eventTicker)
+                KalshiMarketsResponse()
+            }
 }

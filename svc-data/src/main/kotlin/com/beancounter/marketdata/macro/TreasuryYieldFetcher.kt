@@ -72,7 +72,7 @@ class TreasuryYieldFetcher(
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
-            log.warn("Failed to parse treasury yield feed: {}", e.message)
+            log.warn("Failed to parse treasury yield feed", e)
             null
         }
 

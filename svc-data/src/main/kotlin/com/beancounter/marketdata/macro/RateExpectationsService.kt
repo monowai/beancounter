@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.macro
 
 import com.beancounter.common.utils.DateUtils
+import jakarta.transaction.Transactional
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -10,10 +12,14 @@ import java.time.OffsetDateTime
 /**
  * Fed rate-decision market odds from the public Kalshi API (`KXFEDDECISION` series).
  *
- * [getRateExpectations] is read-only and provider-fresh (no caching — Kalshi is public, no rate
- * limit shared with anything else BC calls). [snapshot] persists one [MacroObservation] row per
- * outcome so a later call can compute a trend delta; the public Kalshi API exposes no history of
- * its own for a market's odds over time.
+ * [getRateExpectations] is cached for 10 minutes (`macro.rate.expectations`, registered in
+ * `CacheConfig`) — [nearestOpenEvent] costs one Kalshi `/markets` call per open event, and
+ * re-running that on every request is unnecessary N+1 traffic when odds only move gradually.
+ * [snapshot] and [prune] are NOT cached: [snapshot] calls [nearestOpenEvent] directly (never
+ * [getRateExpectations]), so a cache hit never short-circuits the odds actually persisted as a
+ * trend sample; [prune] doesn't touch Kalshi at all. [snapshot] persists one [MacroObservation]
+ * row per outcome so a later call can compute a trend delta; the public Kalshi API exposes no
+ * history of its own for a market's odds over time.
  */
 @Service
 class RateExpectationsService(
@@ -21,6 +27,7 @@ class RateExpectationsService(
     private val macroObservationRepo: MacroObservationRepo,
     private val dateUtils: DateUtils = DateUtils()
 ) {
+    @Cacheable(CACHE_NAME)
     fun getRateExpectations(): RateExpectationsResponse? {
         val candidate = nearestOpenEvent() ?: return null
         val outcomes = candidate.markets.mapNotNull { toOutcome(it) }.sortedByDescending { it.probability }
@@ -49,8 +56,21 @@ class RateExpectationsService(
         val now = LocalDateTime.now(dateUtils.zoneId)
         val series = seriesFor(candidate.event.eventTicker)
         for (outcome in outcomes) {
-            macroObservationRepo.save(MacroObservation(series, outcome.label, outcome.probability, now))
+            macroObservationRepo.save(MacroObservation(series, metricFor(outcome.label), outcome.probability, now))
         }
+    }
+
+    /**
+     * Delete [MacroObservation] rows observed more than [retentionDays] days ago. Bulk JPQL delete
+     * via [MacroObservationRepo.deleteByObservedAtBefore] — never loop-deletes. Called by
+     * [MacroRefreshSchedule]'s prune step, which invokes this on the [RateExpectationsService] bean
+     * (not self-invoked) precisely so `@Transactional` actually applies — self-invocation bypasses
+     * the Spring proxy, and this bulk `@Modifying` query requires an active transaction.
+     */
+    @Transactional
+    fun prune(retentionDays: Long): Int {
+        val cutoff = LocalDateTime.now(dateUtils.zoneId).minusDays(retentionDays)
+        return macroObservationRepo.deleteByObservedAtBefore(cutoff)
     }
 
     /**
@@ -101,7 +121,7 @@ class RateExpectationsService(
             val prior =
                 macroObservationRepo.findFirstBySeriesAndMetricAndObservedAtLessThanEqualOrderByObservedAtDesc(
                     series,
-                    outcome.label,
+                    metricFor(outcome.label),
                     cutoff
                 ) ?: return@mapNotNull null
             RateTrend(
@@ -115,6 +135,14 @@ class RateExpectationsService(
 
     private fun seriesFor(eventTicker: String): String = "$SERIES_PREFIX$eventTicker"
 
+    /**
+     * Defensive truncation of a Kalshi outcome label before it's used as [MacroObservation.metric]
+     * — the column is VARCHAR([MAX_METRIC_LENGTH]). Applied consistently on both the persist path
+     * ([snapshot]) and the lookup path ([buildTrend]) so a hypothetically over-length label still
+     * round-trips to the same stored row.
+     */
+    private fun metricFor(label: String): String = label.take(MAX_METRIC_LENGTH)
+
     private data class CandidateEvent(
         val event: KalshiEvent,
         val markets: List<KalshiMarket>,
@@ -127,5 +155,10 @@ class RateExpectationsService(
         private const val TREND_MIN_AGE_DAYS = 6L
         private const val PROBABILITY_SCALE = 6
         private val TWO = BigDecimal(2)
+
+        // Matches MacroObservation.metric's VARCHAR(255) column (V34 migration).
+        private const val MAX_METRIC_LENGTH = 255
+
+        const val CACHE_NAME = "macro.rate.expectations"
     }
 }

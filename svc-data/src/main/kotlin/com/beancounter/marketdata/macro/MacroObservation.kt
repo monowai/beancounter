@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 data class MacroObservation(
     @Column(nullable = false, length = 64)
     var series: String = "",
-    @Column(nullable = false, length = 64)
+    @Column(nullable = false, length = 255)
     var metric: String = "",
     @Column(nullable = false, precision = 12, scale = 6)
     var value: BigDecimal = BigDecimal.ZERO,

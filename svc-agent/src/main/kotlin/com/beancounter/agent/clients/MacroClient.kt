@@ -31,10 +31,12 @@ class MacroClient(
             .body(MAP_TYPE) ?: emptyMap()
 
     /**
-     * Market-implied Fed rate-decision odds. svc-data's controller return type is nullable and
-     * serializes to an EMPTY response body — not a JSON `null` — when there's no open Fed event
-     * to price. [RestClient] surfaces an empty body as a null return from `.body()`, which this
-     * method passes straight through so callers can treat it as no-coverage.
+     * Market-implied Fed rate-decision odds. svc-data's controller returns HTTP 204 No Content
+     * (no body) when there's no open Fed event to price. `.toEntity()` — rather than `.body()` —
+     * reads the response as a [org.springframework.http.ResponseEntity] whose `.body` is simply
+     * null for a 204/empty response, regardless of any missing/mismatched Content-Type header on
+     * the no-body response, so this never throws for the no-coverage case; callers treat a null
+     * result as no-coverage.
      */
     fun getRateExpectations(): Map<String, Any>? =
         restClient
@@ -42,7 +44,8 @@ class MacroClient(
             .uri("/macro/rate-expectations")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE)
+            .toEntity(MAP_TYPE)
+            .body
 
     companion object {
         private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}

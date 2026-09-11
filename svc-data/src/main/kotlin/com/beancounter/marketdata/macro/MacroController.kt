@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -47,7 +48,11 @@ class MacroController(
         summary = "Get Fed rate-decision market odds",
         description =
             "Implied probabilities for the nearest open Fed-decision (KXFEDDECISION) Kalshi event, " +
-                "with a trend delta against the prior snapshot when one exists."
+                "with a trend delta against the prior snapshot when one exists. Returns 204 No " +
+                "Content when there is no open event to price."
     )
-    fun getRateExpectations(): RateExpectationsResponse? = rateExpectationsService.getRateExpectations()
+    fun getRateExpectations(): ResponseEntity<RateExpectationsResponse> {
+        val result = rateExpectationsService.getRateExpectations()
+        return if (result != null) ResponseEntity.ok(result) else ResponseEntity.noContent().build()
+    }
 }

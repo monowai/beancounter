@@ -12,6 +12,7 @@ import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 
 /**
  * Unit tests for [RateExpectationsService] with [KalshiGateway] and [MacroObservationRepo]
@@ -293,5 +294,40 @@ class RateExpectationsServiceTest {
         service.snapshot()
 
         verify(observationRepo, org.mockito.kotlin.never()).save(any<MacroObservation>())
+    }
+
+    @Test
+    fun `snapshot truncates an over-length outcome label before persisting`() {
+        val closeTime = OffsetDateTime.now().plusDays(10)
+        val longLabel = "x".repeat(300)
+        whenever(gateway.getEvents("KXFEDDECISION")).thenReturn(
+            KalshiEventsResponse(listOf(KalshiEvent("KXFEDDECISION-26SEP", "Fed decision")))
+        )
+        whenever(gateway.getMarkets("KXFEDDECISION-26SEP")).thenReturn(
+            KalshiMarketsResponse(
+                listOf(market("t1", longLabel, closeTime, bid = BigDecimal("0.50"), ask = BigDecimal("0.52")))
+            )
+        )
+
+        service.snapshot()
+
+        val captor = argumentCaptor<MacroObservation>()
+        verify(observationRepo).save(captor.capture())
+        assertThat(captor.firstValue.metric).hasSize(255)
+        assertThat(captor.firstValue.metric).isEqualTo(longLabel.take(255))
+    }
+
+    @Test
+    fun `prune deletes macro observations older than the given retention window`() {
+        whenever(observationRepo.deleteByObservedAtBefore(any())).thenReturn(3)
+
+        val deleted = service.prune(90)
+
+        assertThat(deleted).isEqualTo(3)
+        val captor = argumentCaptor<LocalDateTime>()
+        verify(observationRepo).deleteByObservedAtBefore(captor.capture())
+        val expected = LocalDateTime.now().minusDays(90)
+        val delta = ChronoUnit.SECONDS.between(captor.firstValue, expected)
+        assertThat(delta).isBetween(-5, 5)
     }
 }

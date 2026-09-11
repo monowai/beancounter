@@ -1,6 +1,9 @@
 package com.beancounter.marketdata.macro
 
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
 
 /**
@@ -16,4 +19,15 @@ interface MacroObservationRepo : CrudRepository<MacroObservation, String> {
         metric: String,
         before: LocalDateTime
     ): MacroObservation?
+
+    /**
+     * Retention sweep, called from [RateExpectationsService.prune] (invoked by
+     * [MacroRefreshSchedule]). A single bulk JPQL delete — never loop-deletes row by row — matching
+     * [com.beancounter.marketdata.news.NewsArticleRepo.deleteByPublishedBefore]'s style.
+     */
+    @Modifying
+    @Query("DELETE FROM MacroObservation m WHERE m.observedAt < :threshold")
+    fun deleteByObservedAtBefore(
+        @Param("threshold") threshold: LocalDateTime
+    ): Int
 }

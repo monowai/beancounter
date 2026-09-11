@@ -91,6 +91,25 @@ class TreasuryYieldServiceTest {
     }
 
     @Test
+    fun `lookback picks the price at-or-before target even when a later price is closer`() {
+        // target = latest(day0) - 3 days = day-3. A point 6 days ago precedes the target; a point
+        // 1 day ago comes AFTER it but is closer by absolute distance — the old closest-by-distance
+        // selection picked the 1-day-ago point and got the sign of changeBps wrong.
+        whenever(fetcher.fetch("10year")).thenReturn(
+            listOf(point(0, "4.83"), point(1, "4.90"), point(6, "4.50"))
+        )
+        whenever(fetcher.fetch("2year")).thenReturn(emptyList())
+
+        val result = service.getYields(lookbackDays = 3)
+
+        assertThat(result.first().lookback).isEqualByComparingTo(BigDecimal("4.50"))
+        assertThat(result.first().lookbackDate).isEqualTo(today.minusDays(6))
+        // (4.83 - 4.50) * 100 = 33.00 bps: positive, as it should be — the old strategy would have
+        // picked the 4.90 point (1 day ago) and produced a wrong-signed -7.00 bps instead.
+        assertThat(result.first().changeBps).isEqualByComparingTo(BigDecimal("33.00"))
+    }
+
+    @Test
     fun `a maturity with no upstream data is omitted, not null or thrown`() {
         whenever(fetcher.fetch("10year")).thenReturn(emptyList())
         whenever(fetcher.fetch("2year")).thenReturn(emptyList())

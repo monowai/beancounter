@@ -87,13 +87,16 @@ class EodhdNewsService(
      */
     @Transactional
     override fun getTopicNews(topics: List<String>): Map<String, Any> {
-        val keys =
+        // Map key -> original (untruncated) topic so refreshStaleSymbols can recover the full
+        // EODHD tag even when the key itself was truncated to fit the ticker columns (see
+        // topicKey/topicTagFor). Built via associateBy so a key collision after truncation just
+        // keeps the last topic that produced it, rather than fetching for both.
+        val keyToTopic =
             topics
                 .map { it.trim() }
                 .filter { it.isNotBlank() }
-                .map { topicKey(it) }
-                .distinct()
-        return newsForSymbols(keys, null)
+                .associateBy { topicKey(it) }
+        return newsForSymbols(keyToTopic.keys.toList(), null, keyToTopic)
     }
 
     /**
@@ -103,12 +106,13 @@ class EodhdNewsService(
      */
     private fun newsForSymbols(
         symbols: List<String>,
-        topics: String?
+        topics: String?,
+        topicTags: Map<String, String> = emptyMap()
     ): Map<String, Any> {
         if (symbols.isEmpty()) return emptyMap()
 
         val refreshCutoff = LocalDateTime.now(dateUtils.zoneId).minusHours(newsProperties.refreshAfterHours)
-        refreshStaleSymbols(symbols.filter { shouldRefresh(it, refreshCutoff) })
+        refreshStaleSymbols(symbols.filter { shouldRefresh(it, refreshCutoff) }, topicTags)
 
         val retentionStart = LocalDateTime.now(dateUtils.zoneId).minusDays(newsProperties.retentionDays)
         val stored = newsArticleRepo.findByTickersAfter(symbols, retentionStart)
@@ -181,13 +185,16 @@ class EodhdNewsService(
      * serially here. [runBlockingTraced] keeps the OTel/Sentry span attached across the dispatcher
      * switch (see jar-common CoroutineTracing).
      */
-    private fun refreshStaleSymbols(symbols: List<String>) {
+    private fun refreshStaleSymbols(
+        symbols: List<String>,
+        topicTags: Map<String, String> = emptyMap()
+    ) {
         if (symbols.isEmpty()) return
         val fetched =
             runBlockingTraced {
                 symbols
                     .map { symbol ->
-                        async(Dispatchers.IO) { fetchGate.withPermit { symbol to fetchFor(symbol) } }
+                        async(Dispatchers.IO) { fetchGate.withPermit { symbol to fetchFor(symbol, topicTags) } }
                     }.awaitAll()
             }
         for ((symbol, outcome) in fetched) {
@@ -196,8 +203,10 @@ class EodhdNewsService(
     }
 
     /** Dispatch by key shape: a synthetic `TOPIC:` key fetches by topic tag, anything else by ticker. */
-    private fun fetchFor(key: String): FetchResult =
-        if (key.startsWith(TOPIC_PREFIX)) fetchUpstreamTopic(key) else fetchUpstream(key)
+    private fun fetchFor(
+        key: String,
+        topicTags: Map<String, String> = emptyMap()
+    ): FetchResult = if (key.startsWith(TOPIC_PREFIX)) fetchUpstreamTopic(key, topicTags) else fetchUpstream(key)
 
     private fun fetchUpstream(symbol: String): FetchResult =
         try {
@@ -217,12 +226,15 @@ class EodhdNewsService(
             FetchResult.Failure
         }
 
-    private fun fetchUpstreamTopic(key: String): FetchResult =
+    private fun fetchUpstreamTopic(
+        key: String,
+        topicTags: Map<String, String> = emptyMap()
+    ): FetchResult =
         try {
             val from = dateUtils.date.minusDays(newsProperties.topicWindowDays).toString()
             FetchResult.Success(
                 eodhdProxy.getNewsByTopic(
-                    topic = topicTagFor(key),
+                    topic = topicTagFor(key, topicTags),
                     limit = newsProperties.providerLimit,
                     from = from,
                     apiKey = eodhdConfig.apiKey
@@ -236,11 +248,32 @@ class EodhdNewsService(
             FetchResult.Failure
         }
 
-    /** "stock markets" -> "TOPIC:STOCK_MARKETS". Fits the `news_article_ticker.ticker` VARCHAR(32) column. */
-    private fun topicKey(topic: String): String = TOPIC_PREFIX + topic.trim().uppercase().replace(" ", "_")
+    /**
+     * "stock markets" -> "TOPIC:STOCK_MARKETS". Truncated to [TOPIC_KEY_MAX_SUFFIX] chars so the
+     * result always fits the `news_fetch.ticker` / `news_article_ticker.ticker` VARCHAR(32) columns
+     * regardless of how long an arbitrary `/news/topic` input is. Truncation is lossy — see
+     * [topicTagFor] for why the upstream EODHD call must NOT be derived from this key.
+     */
+    private fun topicKey(topic: String): String =
+        TOPIC_PREFIX +
+            topic
+                .trim()
+                .uppercase()
+                .replace(" ", "_")
+                .take(TOPIC_KEY_MAX_SUFFIX)
 
-    /** Inverse of [topicKey]: recovers the EODHD tag EODHD's `t=` query param expects. */
-    private fun topicTagFor(key: String): String = key.removePrefix(TOPIC_PREFIX).lowercase().replace("_", " ")
+    /**
+     * The EODHD tag for topic key [key]. Prefers the original, untruncated topic carried in
+     * [topicTags] (populated by [getTopicNews] for every key it mints) — [topicKey] truncates to
+     * fit the VARCHAR(32) ticker columns, so reconstructing the tag FROM the (possibly truncated)
+     * key would silently send EODHD a corrupted tag for any topic longer than
+     * [TOPIC_KEY_MAX_SUFFIX] characters. The key-derived fallback only exists for callers that
+     * don't have (or need) the original — it's exact for any key that was never truncated.
+     */
+    private fun topicTagFor(
+        key: String,
+        topicTags: Map<String, String> = emptyMap()
+    ): String = topicTags[key]?.lowercase() ?: key.removePrefix(TOPIC_PREFIX).lowercase().replace("_", " ")
 
     private fun persist(
         symbol: String,
@@ -465,5 +498,9 @@ class EodhdNewsService(
         // Synthetic key prefix distinguishing a topic-tag query from a ticker/index symbol in the
         // shared refresh/rank pipeline. See [topicKey] / [topicTagFor].
         private const val TOPIC_PREFIX = "TOPIC:"
+
+        // news_fetch.ticker / news_article_ticker.ticker are VARCHAR(32). TOPIC_PREFIX is 6 chars,
+        // so the normalized topic suffix gets 32 - 6 = 26.
+        private const val TOPIC_KEY_MAX_SUFFIX = 26
     }
 }

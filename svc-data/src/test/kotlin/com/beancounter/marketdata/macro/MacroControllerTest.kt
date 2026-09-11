@@ -6,6 +6,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.http.HttpStatus
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -55,15 +56,17 @@ internal class MacroControllerTest {
 
         val result = controller.getRateExpectations()
 
-        assertThat(result).isSameAs(expected)
+        assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(result.body).isSameAs(expected)
     }
 
     @Test
-    fun `getRateExpectations returns null when there is no current event`() {
+    fun `getRateExpectations returns 204 No Content when there is no current event`() {
         whenever(rateExpectationsService.getRateExpectations()).thenReturn(null)
 
         val result = controller.getRateExpectations()
 
-        assertThat(result).isNull()
+        assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        assertThat(result.body).isNull()
     }
 }

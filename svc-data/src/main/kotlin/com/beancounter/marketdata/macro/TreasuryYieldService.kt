@@ -4,8 +4,6 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
-import kotlin.math.abs
 
 /**
  * Projects AlphaVantage TREASURY_YIELD data (via [TreasuryYieldFetcher]) into the sparse
@@ -29,12 +27,12 @@ class TreasuryYieldService(
         if (points.isEmpty()) return null
         val sorted = points.sortedByDescending { it.date }
         val latest = sorted.first()
-        val lookbackPoint = nearest(sorted, latest.date.minusDays(lookbackDays.toLong())) ?: return null
+        val lookbackPoint = nearest(sorted, latest.date.minusDays(lookbackDays.toLong()))
         val sevenDay = nearest(sorted, latest.date.minusDays(SEVEN_DAYS))
         val thirtyDay = nearest(sorted, latest.date.minusDays(THIRTY_DAYS))
 
         val chartPoints =
-            listOfNotNull(thirtyDay, sevenDay, lookbackPoint, latest)
+            listOf(thirtyDay, sevenDay, lookbackPoint, latest)
                 .distinctBy { it.date }
                 .sortedBy { it.date }
 
@@ -54,10 +52,23 @@ class TreasuryYieldService(
         )
     }
 
+    /**
+     * The latest point at-or-before [target] — never a point AFTER it, which would put the
+     * "lookback" point on the wrong side of the window and corrupt [YieldSeries.changeBps]'s sign
+     * (e.g. a weekend/holiday gap letting the nearest-by-distance point land after the target).
+     * Falls back to the earliest available point only when nothing precedes [target] at all (e.g. a
+     * maturity whose history doesn't yet reach that far back) — [points] is always non-empty at
+     * every call site ([project] returns early on an empty list), so this never returns null and
+     * callers don't need an `?: return null`/nullable chain for it.
+     */
     private fun nearest(
         points: List<YieldPoint>,
         target: LocalDate
-    ): YieldPoint? = points.minByOrNull { abs(ChronoUnit.DAYS.between(it.date, target)) }
+    ): YieldPoint {
+        require(points.isNotEmpty()) { "nearest requires a non-empty point list" }
+        return points.filter { !it.date.isAfter(target) }.maxByOrNull { it.date }
+            ?: points.sortedBy { it.date }.first()
+    }
 
     companion object {
         const val DEFAULT_LOOKBACK_DAYS = 14

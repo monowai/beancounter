@@ -70,5 +70,5 @@ class NewsController(
     fun getTopicNews(
         @Parameter(description = "Comma-separated topic tags", example = "stock markets,economy")
         @RequestParam topics: String
-    ): Map<String, Any> = newsService.getTopicNews(topics.split(",").map { it.trim() })
+    ): Map<String, Any> = newsService.getTopicNews(topics.split(",").map { it.trim() }.filter { it.isNotEmpty() })
 }

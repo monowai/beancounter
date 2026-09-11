@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
-import java.time.temporal.ChronoUnit
-import kotlin.math.abs
 
 /**
  * Composes the `/macro/indicators` response: treasury yields (via [TreasuryYieldService]) plus
@@ -83,10 +81,19 @@ class MacroIndicatorsService(
             .setScale(CHANGE_SCALE, RoundingMode.HALF_UP)
     }
 
+    /**
+     * The latest price at-or-before [target] — never a price AFTER it, which would put the
+     * "lookback" price on the wrong side of the window and corrupt [changePercent]'s sign (e.g. a
+     * weekend/holiday gap letting the nearest-by-distance point land after the target). Falls back
+     * to the earliest available price only when nothing precedes [target] at all (e.g. a listing
+     * whose history doesn't yet reach that far back).
+     */
     private fun nearest(
         prices: List<EodhdPrice>,
         target: java.time.LocalDate
-    ): EodhdPrice? = prices.minByOrNull { abs(ChronoUnit.DAYS.between(it.date, target)) }
+    ): EodhdPrice? =
+        prices.filter { !it.date.isAfter(target) }.maxByOrNull { it.date }
+            ?: prices.minByOrNull { it.date }
 
     /** Runs [block], logging and swallowing any failure so one bad leg never 500s the endpoint. */
     private fun <T> safely(

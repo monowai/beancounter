@@ -135,6 +135,41 @@ internal class EodhdNewsServiceTest {
     }
 
     @Test
+    fun `a topic longer than 26 chars is truncated to a 32-char key but EODHD still gets the full tag`() {
+        // news_fetch.ticker / news_article_ticker.ticker are VARCHAR(32). TOPIC_PREFIX ("TOPIC:")
+        // is 6 chars, so anything past 26 normalized chars must be truncated in the persisted key
+        // — but the upstream EODHD call must still receive the ORIGINAL, untruncated topic string,
+        // not one reconstructed from the truncated key (which would corrupt it).
+        val longTopic = "financial markets and economic policy analysis"
+        val expectedKey =
+            "TOPIC:" +
+                longTopic
+                    .trim()
+                    .uppercase()
+                    .replace(" ", "_")
+                    .take(26)
+        assertThat(expectedKey).hasSize(32)
+
+        whenever(fetchRepo.findById(expectedKey)).thenReturn(Optional.empty())
+        whenever(proxy.getNewsByTopic(eq(longTopic), any(), any(), eq("demo")))
+            .thenReturn(listOf(eodhArticle(0.6, title = "Policy roundup")))
+        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
+        whenever(articleRepo.findByTickersAfter(any(), any()))
+            .thenReturn(listOf(storedArticle(polarity = 0.6, title = "Policy roundup", ticker = expectedKey)))
+
+        val result = service.getTopicNews(listOf(longTopic))
+
+        verify(proxy).getNewsByTopic(eq(longTopic), any(), any(), eq("demo"))
+        val keysCaptor = argumentCaptor<Collection<String>>()
+        verify(articleRepo).findByTickersAfter(keysCaptor.capture(), any())
+        assertThat(keysCaptor.firstValue).containsExactly(expectedKey)
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.first()["title"]).isEqualTo("Policy roundup")
+    }
+
+    @Test
     fun `topic news passes a from window computed from topicWindowDays`() {
         whenever(fetchRepo.findById(any())).thenReturn(Optional.empty())
         whenever(proxy.getNewsByTopic(any(), any(), any(), any())).thenReturn(emptyList())

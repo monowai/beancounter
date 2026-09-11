@@ -24,10 +24,12 @@ class MacroTools(
         // and would NPE unboxing a null into a primitive Int if this were typed non-null.
         @ToolParam(description = LOOKBACK_DESC, required = false) lookbackDays: Int? = null
     ): Map<String, Any> {
-        val days = lookbackDays ?: DEFAULT_LOOKBACK_DAYS
+        // Clamp so a hallucinated/out-of-range lookbackDays (negative, zero, or absurdly large)
+        // never reaches svc-data as a wide-open date-range query.
+        val days = (lookbackDays ?: DEFAULT_LOOKBACK_DAYS).coerceIn(1, MAX_LOOKBACK_DAYS)
         log.debug("getMacroIndicators called: lookbackDays={}", days)
         val raw = macroClient.getIndicators(days)
-        return if (raw.isEmpty()) {
+        return if (isNoCoverage(raw)) {
             log.debug("getMacroIndicators: no_coverage for lookbackDays={}", days)
             mapOf(
                 "status" to "no_coverage",
@@ -36,6 +38,19 @@ class MacroTools(
         } else {
             raw
         }
+    }
+
+    /**
+     * svc-data's `/macro/indicators` always returns a full response object (never an empty body)
+     * — `raw.isEmpty()` alone can never observe a no-data response. The real no-coverage signal is
+     * both `yields` and `oil` coming back as empty lists (every leg failed upstream); `raw.isEmpty()`
+     * is kept only as a defensive fallback for a genuinely empty/malformed body.
+     */
+    private fun isNoCoverage(raw: Map<String, Any>): Boolean {
+        if (raw.isEmpty()) return true
+        val yields = raw["yields"] as? List<*>
+        val oil = raw["oil"] as? List<*>
+        return yields.isNullOrEmpty() && oil.isNullOrEmpty()
     }
 
     @Tool(description = RATE_EXPECTATIONS_DESC)
@@ -55,6 +70,7 @@ class MacroTools(
 
     companion object {
         const val DEFAULT_LOOKBACK_DAYS = 14
+        const val MAX_LOOKBACK_DAYS = 365
 
         const val INDICATORS_DESC =
             "Get treasury yield levels (US10Y/US2Y) with their change in bps, and oil-proxy " +
@@ -65,9 +81,9 @@ class MacroTools(
                 "qualitative headlines and getRateExpectations for rate-decision odds. NEVER " +
                 "mention the underlying data providers."
         const val LOOKBACK_DESC =
-            "Lookback window in days (default 14). Match the user's stated window: 'last 2 " +
-                "weeks' → 14, 'last month' → 30, 'this year'/YTD → days since Jan 1. Omit or " +
-                "pass null to use the default."
+            "Lookback window in days (default 14, clamped to 1-365). Match the user's stated " +
+                "window: 'last 2 weeks' → 14, 'last month' → 30, 'this year'/YTD → days since " +
+                "Jan 1. Omit or pass null to use the default."
         const val INDICATORS_NO_COVERAGE_MESSAGE =
             "No macro indicator data available right now. Do not invent yield or oil figures " +
                 "— say the data isn't available and continue with what you do have."

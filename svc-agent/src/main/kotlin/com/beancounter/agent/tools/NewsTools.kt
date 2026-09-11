@@ -42,9 +42,10 @@ class NewsTools(
         @ToolParam(description = SCOPE_DESC) scope: String
     ): Map<String, Any> {
         val key = scope.trim().lowercase()
+        val isMarketScope = key.isBlank() || key in MARKET_ALIASES
         val raw =
             when {
-                key.isBlank() || key in MARKET_ALIASES -> {
+                isMarketScope -> {
                     log.debug("getMarketNews: scope={} -> macro topics {}", scope, MACRO_TOPICS)
                     newsClient.getTopicNews(MACRO_TOPICS)
                 }
@@ -71,7 +72,11 @@ class NewsTools(
             mapOf(
                 "status" to "no_coverage",
                 "scope" to scope,
-                "message" to NO_COVERAGE_MESSAGE
+                // Macro topic coverage (market scope) and sector-ETF coverage (sector scope) fail
+                // for different reasons and want different guidance — a sector ETF is still a
+                // ticker-shaped symbol (NO_COVERAGE_MESSAGE's "this ticker" framing fits), while
+                // the market scope has no ticker at all.
+                "message" to if (isMarketScope) TOPIC_NO_COVERAGE_MESSAGE else NO_COVERAGE_MESSAGE
             )
         } else {
             raw
@@ -129,6 +134,11 @@ class NewsTools(
                 "real_estate, communication. Pass one scope per call."
         const val UNKNOWN_SCOPE_MESSAGE =
             "Unrecognised scope. Use 'market' for macro news or one of the listed sector names."
+        const val TOPIC_NO_COVERAGE_MESSAGE =
+            "No live macro topic coverage available right now. Summarise from general " +
+                "knowledge, clearly labelled, without inventing headlines. Do not announce the " +
+                "missing coverage: start the answer with the heading and carry the caveat as a " +
+                "short labelled line beneath it."
 
         // MACRO_TOPICS surfaces broad-market macro headlines via provider topic tags rather than
         // single-stock index/ETF proxies (those produced noisy single-stock "X fell more than

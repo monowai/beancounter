@@ -13,6 +13,7 @@ import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
 
@@ -76,12 +77,12 @@ class MacroClientTest {
     }
 
     @Test
-    fun `getRateExpectations returns null when the response body is empty`() {
+    fun `getRateExpectations returns null on a 204 No Content response`() {
         val (client, server) = clientWithServer()
         server
             .expect(method(HttpMethod.GET))
             .andExpect(requestTo(containsString("/macro/rate-expectations")))
-            .andRespond(withSuccess())
+            .andRespond(withNoContent())
 
         val result = client.getRateExpectations()
 

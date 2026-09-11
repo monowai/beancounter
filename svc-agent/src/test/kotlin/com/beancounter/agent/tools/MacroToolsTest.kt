@@ -70,6 +70,76 @@ class MacroToolsTest {
     }
 
     @Test
+    fun `getMacroIndicators returns no_coverage when yields and oil are both empty lists`() {
+        // /macro/indicators always returns a full object — an empty raw map never actually
+        // happens in practice. The real no-coverage signal is both legs coming back empty.
+        val client =
+            mock<MacroClient> {
+                on { getIndicators(14) } doReturn
+                    mapOf(
+                        "asOf" to "2026-09-11",
+                        "lookbackDays" to 14,
+                        "yields" to emptyList<Any>(),
+                        "oil" to emptyList<Any>()
+                    )
+            }
+        val tools = MacroTools(client)
+
+        val result = tools.getMacroIndicators()
+
+        assertThat(result["status"]).isEqualTo("no_coverage")
+        assertThat(result["message"]).isNotNull()
+    }
+
+    @Test
+    fun `getMacroIndicators passes through when only one of yields or oil has data`() {
+        val partial =
+            mapOf(
+                "asOf" to "2026-09-11",
+                "lookbackDays" to 14,
+                "yields" to listOf(mapOf("series" to "US10Y", "changeBps" to 12)),
+                "oil" to emptyList<Any>()
+            )
+        val client =
+            mock<MacroClient> {
+                on { getIndicators(14) } doReturn partial
+            }
+        val tools = MacroTools(client)
+
+        val result = tools.getMacroIndicators()
+
+        assertThat(result).isSameAs(partial)
+    }
+
+    @Test
+    fun `getMacroIndicators clamps a negative lookbackDays up to the minimum of 1`() {
+        val client =
+            mock<MacroClient> {
+                on { getIndicators(1) } doReturn indicatorsResponse
+            }
+        val tools = MacroTools(client)
+
+        val result = tools.getMacroIndicators(-5)
+
+        assertThat(result).isSameAs(indicatorsResponse)
+        verify(client).getIndicators(1)
+    }
+
+    @Test
+    fun `getMacroIndicators clamps an oversized lookbackDays down to the maximum of 365`() {
+        val client =
+            mock<MacroClient> {
+                on { getIndicators(365) } doReturn indicatorsResponse
+            }
+        val tools = MacroTools(client)
+
+        val result = tools.getMacroIndicators(9999)
+
+        assertThat(result).isSameAs(indicatorsResponse)
+        verify(client).getIndicators(365)
+    }
+
+    @Test
     fun `getRateExpectations delegates to the client and passes the payload through untouched`() {
         val client =
             mock<MacroClient> {

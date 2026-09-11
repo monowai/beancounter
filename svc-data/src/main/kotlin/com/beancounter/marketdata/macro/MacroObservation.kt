@@ -26,8 +26,10 @@ data class MacroObservation(
     var metric: String = "",
     @Column(nullable = false, precision = 12, scale = 6)
     var value: BigDecimal = BigDecimal.ZERO,
+    // MIN is a JPA no-arg-constructor placeholder, never read — callers always pass a
+    // dateUtils-zoned timestamp (ZoneLeakGuardTest forbids default-zone now() here).
     @Column(name = "observed_at", nullable = false)
-    var observedAt: LocalDateTime = LocalDateTime.now()
+    var observedAt: LocalDateTime = LocalDateTime.MIN
 ) {
     @Id
     val id: String = KeyGenUtils().id

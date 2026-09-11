@@ -1,5 +1,7 @@
-package com.beancounter.marketdata.providers.alpha
+package com.beancounter.marketdata.news.alpha
 
+import com.beancounter.marketdata.providers.alpha.AlphaConfig
+import com.beancounter.marketdata.providers.alpha.AlphaGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

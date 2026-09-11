@@ -6,6 +6,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
+import com.beancounter.marketdata.news.alpha.NewsProperties
 import com.beancounter.marketdata.providers.DataProviderConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties

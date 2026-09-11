@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers.eodhd.news
+package com.beancounter.marketdata.news
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable

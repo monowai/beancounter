@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers.eodhd
+package com.beancounter.marketdata.news.eodhd
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
@@ -28,7 +28,7 @@ data class EodhdNewsProperties(
     val refreshAfterHours: Long = 6,
     /**
      * Articles whose `published` timestamp is older than this many days get pruned by
-     * [com.beancounter.marketdata.providers.eodhd.news.NewsRetentionSchedule].
+     * [com.beancounter.marketdata.news.NewsRetentionSchedule].
      */
     val retentionDays: Long = 30,
     /**

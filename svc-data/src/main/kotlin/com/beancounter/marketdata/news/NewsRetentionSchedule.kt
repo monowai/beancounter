@@ -1,7 +1,7 @@
-package com.beancounter.marketdata.providers.eodhd.news
+package com.beancounter.marketdata.news
 
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.providers.eodhd.EodhdNewsProperties
+import com.beancounter.marketdata.news.eodhd.EodhdNewsProperties
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

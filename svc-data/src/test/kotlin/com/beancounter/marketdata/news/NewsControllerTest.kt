@@ -1,6 +1,5 @@
-package com.beancounter.marketdata.providers.alpha
+package com.beancounter.marketdata.news
 
-import com.beancounter.marketdata.providers.NewsServiceFacade
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
@@ -9,12 +8,12 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /**
- * Thin-controller tests: [AlphaNewsController] only parses request params and delegates to
+ * Thin-controller tests: [NewsController] only parses request params and delegates to
  * [NewsServiceFacade]. Pins the `/news/market` symbol split and the delegation contract.
  */
-internal class AlphaNewsControllerTest {
+internal class NewsControllerTest {
     private val newsService = mock<NewsServiceFacade>()
-    private val controller = AlphaNewsController(newsService)
+    private val controller = NewsController(newsService)
 
     @Test
     fun `getNews delegates tickers, market and topics to the facade`() {

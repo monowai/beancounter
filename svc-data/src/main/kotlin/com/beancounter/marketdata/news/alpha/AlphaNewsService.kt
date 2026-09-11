@@ -1,7 +1,9 @@
-package com.beancounter.marketdata.providers.alpha
+package com.beancounter.marketdata.news.alpha
 
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.providers.NewsProvider
+import com.beancounter.marketdata.news.NewsProvider
+import com.beancounter.marketdata.providers.alpha.AlphaConfig
+import com.beancounter.marketdata.providers.alpha.AlphaGateway
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable

@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.macro
 
-import com.beancounter.marketdata.providers.NewsServiceFacade
+import com.beancounter.marketdata.news.NewsServiceFacade
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
  * facade as plain strings.
  *
  * Gated on `schedule.enabled=true`, same pattern as
- * [com.beancounter.marketdata.providers.eodhd.news.NewsRetentionSchedule]. Each of the three
+ * [com.beancounter.marketdata.news.NewsRetentionSchedule]. Each of the three
  * steps is wrapped independently so one upstream outage doesn't skip the other two.
  */
 @Service

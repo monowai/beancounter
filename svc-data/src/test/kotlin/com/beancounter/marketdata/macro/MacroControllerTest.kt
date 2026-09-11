@@ -12,7 +12,7 @@ import java.time.OffsetDateTime
 
 /**
  * Thin-controller tests: [MacroController] only parses request params and delegates.
- * Mirrors [com.beancounter.marketdata.providers.alpha.AlphaNewsControllerTest] — mocked
+ * Mirrors [com.beancounter.marketdata.news.NewsControllerTest] — mocked
  * services, direct construction, no MockMvc.
  */
 internal class MacroControllerTest {

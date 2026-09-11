@@ -1,17 +1,19 @@
-package com.beancounter.marketdata.providers.eodhd
+package com.beancounter.marketdata.news.eodhd
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.news.NewsArticle
+import com.beancounter.marketdata.news.NewsArticleRepo
+import com.beancounter.marketdata.news.NewsArticleTicker
+import com.beancounter.marketdata.news.NewsFetch
+import com.beancounter.marketdata.news.NewsFetchRepo
+import com.beancounter.marketdata.providers.eodhd.EodhdConfig
+import com.beancounter.marketdata.providers.eodhd.EodhdProxy
 import com.beancounter.marketdata.providers.eodhd.model.EodhdArticleSentiment
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
-import com.beancounter.marketdata.providers.eodhd.news.NewsArticle
-import com.beancounter.marketdata.providers.eodhd.news.NewsArticleRepo
-import com.beancounter.marketdata.providers.eodhd.news.NewsArticleTicker
-import com.beancounter.marketdata.providers.eodhd.news.NewsFetch
-import com.beancounter.marketdata.providers.eodhd.news.NewsFetchRepo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

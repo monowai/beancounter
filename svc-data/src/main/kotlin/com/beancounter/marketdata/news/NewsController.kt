@@ -1,7 +1,6 @@
-package com.beancounter.marketdata.providers.alpha
+package com.beancounter.marketdata.news
 
 import com.beancounter.auth.model.AuthConstants
-import com.beancounter.marketdata.providers.NewsServiceFacade
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
     "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
 @Tag(name = "News", description = "Financial news and sentiment analysis")
-class AlphaNewsController(
+class NewsController(
     private val newsService: NewsServiceFacade
 ) {
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])

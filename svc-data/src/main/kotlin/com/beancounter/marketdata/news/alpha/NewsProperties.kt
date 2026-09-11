@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers.alpha
+package com.beancounter.marketdata.news.alpha
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

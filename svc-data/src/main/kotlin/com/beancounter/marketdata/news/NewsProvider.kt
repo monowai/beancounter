@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers
+package com.beancounter.marketdata.news
 
 /**
  * Provider-agnostic news interface. Each implementation projects its vendor's response into the

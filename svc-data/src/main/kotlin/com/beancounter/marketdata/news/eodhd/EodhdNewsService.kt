@@ -1,16 +1,19 @@
-package com.beancounter.marketdata.providers.eodhd
+package com.beancounter.marketdata.news.eodhd
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
-import com.beancounter.marketdata.providers.NewsProvider
+import com.beancounter.marketdata.news.NewsArticle
+import com.beancounter.marketdata.news.NewsArticleRepo
+import com.beancounter.marketdata.news.NewsArticleTicker
+import com.beancounter.marketdata.news.NewsFetch
+import com.beancounter.marketdata.news.NewsFetchRepo
+import com.beancounter.marketdata.news.NewsProvider
+import com.beancounter.marketdata.providers.eodhd.EodhdConfig
+import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
+import com.beancounter.marketdata.providers.eodhd.EodhdProxy
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
-import com.beancounter.marketdata.providers.eodhd.news.NewsArticle
-import com.beancounter.marketdata.providers.eodhd.news.NewsArticleRepo
-import com.beancounter.marketdata.providers.eodhd.news.NewsArticleTicker
-import com.beancounter.marketdata.providers.eodhd.news.NewsFetch
-import com.beancounter.marketdata.providers.eodhd.news.NewsFetchRepo
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -32,7 +35,7 @@ import kotlin.math.abs
  * DB-backed EODHD news adapter. The read path always returns from the [NewsArticle] table; the
  * write path only re-hits EODHD when the per-ticker entry in [NewsFetch] is older than
  * `eodhd.news.refresh-after-hours` (default 6h). Articles persist for `retention-days` (default 30)
- * and the daily [com.beancounter.marketdata.providers.eodhd.news.NewsRetentionSchedule] prunes
+ * and the daily [com.beancounter.marketdata.news.NewsRetentionSchedule] prunes
  * anything older.
  *
  * The projection back to the caller keeps the AV-compatible `{feed, count}` shape so

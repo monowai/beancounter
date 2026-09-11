@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.Cacheable
 /**
  * Verify that [TreasuryYieldFetcher.fetch] is configured for caching, keyed by maturity so the
  * `/macro/indicators` endpoint and [MacroRefreshSchedule]'s warm-up fetch share one entry per
- * maturity. Mirrors [com.beancounter.marketdata.providers.alpha.AlphaNewsCacheTest].
+ * maturity. Mirrors [com.beancounter.marketdata.news.alpha.AlphaNewsCacheTest].
  */
 class TreasuryYieldCacheTest {
     @Test

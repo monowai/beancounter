@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.macro
 
-import com.beancounter.marketdata.providers.NewsServiceFacade
+import com.beancounter.marketdata.news.NewsServiceFacade
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -11,7 +11,7 @@ import org.mockito.kotlin.whenever
 /**
  * Pure-unit coverage for [MacroRefreshSchedule]. Confirms `refresh()` fires all three warm-up
  * steps and that each is wrapped independently — one step's failure must never stop the others.
- * Mirrors [com.beancounter.marketdata.providers.eodhd.news.NewsRetentionScheduleTest].
+ * Mirrors [com.beancounter.marketdata.news.NewsRetentionScheduleTest].
  *
  * [MacroRefreshSchedule] depends only on [NewsServiceFacade]'s public `NewsProvider` surface, not
  * any EODHD-specific class — the topic-news feature may move into its own service later without

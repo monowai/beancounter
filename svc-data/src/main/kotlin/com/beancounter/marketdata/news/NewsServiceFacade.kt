@@ -1,7 +1,7 @@
-package com.beancounter.marketdata.providers
+package com.beancounter.marketdata.news
 
-import com.beancounter.marketdata.providers.alpha.AlphaNewsService
-import com.beancounter.marketdata.providers.eodhd.EodhdNewsService
+import com.beancounter.marketdata.news.alpha.AlphaNewsService
+import com.beancounter.marketdata.news.eodhd.EodhdNewsService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -17,6 +17,14 @@ import org.springframework.stereotype.Service
  * the news endpoint at full coverage so operators on the free EOD plan can flip the flag to gain
  * news without paying for AV premium. Rule-of-three doesn't apply yet — only two providers — so
  * dispatch is a simple flag, not a registered-bean map.
+ *
+ * Extraction seams, should `com.beancounter.marketdata.news` become its own service: (a)
+ * [com.beancounter.marketdata.news.eodhd.EodhdNewsService]'s call into `AssetFinder` for
+ * priceSymbol resolution would become an assets-API call; (b) the Alpha/EODHD gateways this
+ * package's providers wrap are shared with price/event flows, so a standalone news service would
+ * carry its own thin gateway clients rather than take the shared ones; (c) `marketdata.macro`
+ * consumes news only through this facade's public [NewsProvider] surface, so it would keep working
+ * unchanged against a remote news service behind the same interface.
  */
 @Service
 class NewsServiceFacade(

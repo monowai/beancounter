@@ -1,6 +1,6 @@
-package com.beancounter.marketdata.providers.eodhd.news
+package com.beancounter.marketdata.news
 
-import com.beancounter.marketdata.providers.eodhd.EodhdNewsProperties
+import com.beancounter.marketdata.news.eodhd.EodhdNewsProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor

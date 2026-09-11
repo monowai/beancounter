@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers.eodhd.news
+package com.beancounter.marketdata.news
 
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

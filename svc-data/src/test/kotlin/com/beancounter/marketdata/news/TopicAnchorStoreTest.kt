@@ -59,4 +59,38 @@ internal class TopicAnchorStoreTest {
 
         verify(embedder, times(1)).embed(any())
     }
+
+    /**
+     * A failed round must not be memoized. [HttpNewsEmbedder] degrades to `emptyList()` on any
+     * transport error, so caching that would let one transient bc-embed outage disable derived-topic
+     * tagging for the whole process lifetime — recoverable only by restarting the pod.
+     */
+    @Test
+    fun `retries anchor embedding after a failed round instead of caching the failure`() {
+        val embedder = mock<NewsEmbedder>()
+        whenever(embedder.embed(any()))
+            .thenReturn(emptyList())
+            .thenReturn(TopicAnchors.PHRASES.values.map { floatArrayOf(1f, 0f) })
+        val store = TopicAnchorStore(embedder)
+
+        assertThat(store.matchingTopics(floatArrayOf(1f, 0f), threshold = 0.55)).isEmpty()
+
+        assertThat(store.matchingTopics(floatArrayOf(1f, 0f), threshold = 0.55))
+            .containsExactlyInAnyOrderElementsOf(TopicAnchors.PHRASES.keys)
+        verify(embedder, times(2)).embed(any())
+    }
+
+    /**
+     * A short round is worse than no round: `zip` truncates silently, binding the first N anchor
+     * vectors onto the wrong topics. Same positional-misalignment guard `EodhdNewsService`'s
+     * `computeEmbeddings` already applies to article batches.
+     */
+    @Test
+    fun `discards a short vector round rather than misaligning anchors`() {
+        val embedder = mock<NewsEmbedder>()
+        whenever(embedder.embed(any())).thenReturn(listOf(floatArrayOf(1f, 0f)))
+        val store = TopicAnchorStore(embedder)
+
+        assertThat(store.matchingTopics(floatArrayOf(1f, 0f), threshold = 0.55)).isEmpty()
+    }
 }

@@ -25,5 +25,6 @@ class ExternalApiRestClientConfigTest {
         // A pooled HttpComponents-backed client builds without error for each provider URL.
         assertThat(config.eodhdRestClient("http://localhost:0")).isNotNull
         assertThat(config.alphaVantageRestClient("http://localhost:0")).isNotNull
+        assertThat(config.newsEmbeddingRestClient("http://localhost:0")).isNotNull
     }
 }

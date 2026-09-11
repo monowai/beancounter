@@ -45,7 +45,7 @@ import java.math.BigDecimal
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-    ids = ["beancounter:svc-data:0.1.1:stubs:10990"]
+    ids = ["beancounter:svc-data:0.1.1:stubs"]
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])

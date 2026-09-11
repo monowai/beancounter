@@ -96,9 +96,11 @@ subprojects {
         forkEvery = 100L
         maxHeapSize = "1g"
         // svc-data tests have crept toward 8m on CircleCI's executor and tipped over on
-        // main #32be9384 (build-and-test job 17895). Bump headroom; revisit if any
+        // main #32be9384 (build-and-test job 17895). Tipped again at 15m on a cache-cold
+        // run of feat/macro-news-coverage (pipeline 3804, job 21009) after the macro/news
+        // suites grew — the task ran clean in ~4m locally. Bump headroom; revisit if any
         // single test is genuinely runaway, but the existing suite is just slow.
-        timeout.set(Duration.ofMinutes(15))
+        timeout.set(Duration.ofMinutes(20))
 
         // Test logging
         testLogging {

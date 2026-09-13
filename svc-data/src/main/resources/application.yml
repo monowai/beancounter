@@ -601,6 +601,22 @@ beancounter:
     # `/news` endpoint surface — price/event routing is unchanged.
     news:
       provider: alpha
+      # News embeddings: rank-time near-duplicate clustering + ingest-time derived-topic tagging
+      # (NewsEmbedder / EodhdNewsService). DEFAULT-OFF: the model runs out-of-process as a
+      # standalone bc-embed deployment (HuggingFace Text Embeddings Inference), not yet shipped —
+      # enabling this before bc-embed exists just means every /embed call fails and degrades to
+      # "no embeddings this round" (see HttpNewsEmbedder).
+      embedding:
+        enabled: false
+        # bc-embed base URL, e.g. http://bc-embed. Empty until bc-embed is deployed.
+        url: ""
+        modelId: all-minilm-l6-v2
+        # Cosine similarity at/above which two articles are treated as near-duplicates at rank time.
+        similarityThreshold: 0.90
+        # Cosine similarity at/above which an article is tagged with a derived topic anchor.
+        topicThreshold: 0.55
+        # Articles per /embed request to bc-embed.
+        batchSize: 32
     providers:
       alpha:
         url: https://www.alphavantage.co

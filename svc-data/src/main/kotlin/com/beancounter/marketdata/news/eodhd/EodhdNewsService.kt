@@ -4,12 +4,17 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.news.EmbeddingCodec
 import com.beancounter.marketdata.news.NewsArticle
 import com.beancounter.marketdata.news.NewsArticleRepo
 import com.beancounter.marketdata.news.NewsArticleTicker
+import com.beancounter.marketdata.news.NewsEmbedder
+import com.beancounter.marketdata.news.NewsEmbeddingProperties
 import com.beancounter.marketdata.news.NewsFetch
 import com.beancounter.marketdata.news.NewsFetchRepo
 import com.beancounter.marketdata.news.NewsProvider
+import com.beancounter.marketdata.news.TopicAnchorStore
+import com.beancounter.marketdata.news.VectorMath
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
 import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
 import com.beancounter.marketdata.providers.eodhd.EodhdProxy
@@ -50,6 +55,9 @@ class EodhdNewsService(
     private val newsArticleRepo: NewsArticleRepo,
     private val newsFetchRepo: NewsFetchRepo,
     private val assetFinder: AssetFinder,
+    private val newsEmbedder: NewsEmbedder,
+    private val embeddingProperties: NewsEmbeddingProperties,
+    private val topicAnchorStore: TopicAnchorStore,
     private val dateUtils: DateUtils = DateUtils()
 ) : NewsProvider {
     private val log = LoggerFactory.getLogger(EodhdNewsService::class.java)
@@ -146,12 +154,16 @@ class EodhdNewsService(
         val eligible = stored.filter { topics.isNullOrBlank() || matchesTopic(it, topics) }
         if (eligible.isEmpty()) return emptyList()
 
+        // Dedup inside each symbol's slice, never across the union. Template spam is near-identical
+        // across tickers ("X fell more than the market"), so clustering globally would let one
+        // holding's copy suppress another's — and a symbol whose only article is the suppressed one
+        // drops out of the briefing entirely. Per-symbol clustering still kills the flood within a
+        // symbol, which is what actually consumed the budget.
         val perSymbol =
             symbols.map { symbol ->
-                eligible
-                    .filter { article -> article.tickerLinks.any { it.ticker == symbol } }
-                    .sortedWith(NEWEST_FIRST)
-                    .take(newsProperties.maxArticlesPerSymbol)
+                suppressNearDuplicates(
+                    eligible.filter { article -> article.tickerLinks.any { it.ticker == symbol } }
+                ).take(newsProperties.maxArticlesPerSymbol)
             }
 
         // Keyed by id so an article tagged to several requested holdings is only counted once.
@@ -164,6 +176,60 @@ class EodhdNewsService(
         }
         return picked.values.sortedWith(NEWEST_FIRST).take(newsProperties.maxArticles)
     }
+
+    /**
+     * Greedy near-duplicate suppression so template-spam articles ("X fell more than the market"
+     * ×N from different wire services) can't flood one symbol's slice. Runs purely off
+     * already-persisted [NewsArticle.embedding] vectors — independent of whether [newsEmbedder] is
+     * currently active, so a vector computed while the feature was on still dedups correctly after
+     * it's switched back off. Zero-cost, and a behavioral no-op, when nothing in [candidates]
+     * carries an embedding yet (today's default, and every window before this feature shipped).
+     *
+     * Returns newest-first, so the representative kept for a duplicate group is always the newest
+     * article and the caller's per-symbol `take` is a recency cut. Articles without a stored
+     * embedding are always kept — there's nothing to compare them against, so silently dropping one
+     * on a false-suspicion basis would be strictly worse than the pre-dedup behavior.
+     *
+     * Only vectors from the same [NewsArticle.embeddingModel] are compared. A model change
+     * invalidates stored vectors but doesn't clear them — old and new rows coexist until each is
+     * re-embedded — and comparing across models is meaningless even at equal width (and rejected
+     * outright by [VectorMath.dot] when the widths differ).
+     *
+     * O(n^2) against the kept-representative set — fine at a symbol's slice of the retention
+     * window (tens of articles).
+     */
+    private fun suppressNearDuplicates(candidates: List<NewsArticle>): List<NewsArticle> {
+        val ordered = candidates.sortedWith(NEWEST_FIRST)
+        if (ordered.none { it.embedding != null }) return ordered
+
+        val kept = mutableListOf<Representative>()
+        val result = mutableListOf<NewsArticle>()
+        for (article in ordered) {
+            val vector = article.embedding?.let { EmbeddingCodec.decode(it) }
+            if (vector == null) {
+                result.add(article)
+                continue
+            }
+            val isDuplicate =
+                kept.any { representative ->
+                    representative.model == article.embeddingModel &&
+                        representative.vector.size == vector.size &&
+                        VectorMath.dot(vector, representative.vector) >=
+                        embeddingProperties.similarityThreshold
+                }
+            if (!isDuplicate) {
+                kept.add(Representative(article.embeddingModel, vector))
+                result.add(article)
+            }
+        }
+        return result
+    }
+
+    /** A kept cluster head: its vector plus the model that produced it (never compared across models). */
+    private class Representative(
+        val model: String?,
+        val vector: FloatArray
+    )
 
     private fun shouldRefresh(
         symbol: String,
@@ -311,11 +377,103 @@ class EodhdNewsService(
         symbol: String,
         fresh: List<EodhdNewsArticle>
     ) {
+        val prepared = computeEmbeddings(fresh)
         for (incoming in fresh) {
-            val externalId = incoming.link.ifBlank { "${incoming.date}|${incoming.title}" }
-            saveOrMerge(symbol, externalId, incoming)
+            val externalId = externalIdOf(incoming)
+            saveOrMerge(symbol, externalId, incoming, prepared.embeddings[externalId], prepared.existing[externalId])
         }
     }
+
+    /** EODHD's link is the dedup key; a blank one falls back to the date+title pair. */
+    private fun externalIdOf(incoming: EodhdNewsArticle): String =
+        incoming.link.ifBlank { "${incoming.date}|${incoming.title}" }
+
+    /**
+     * Batch-embeds the [fresh] articles that actually need a (re)computed vector, skipping any
+     * whose stored row already carries an embedding for the current [NewsEmbedder.modelId] with
+     * an unchanged title — EODHD republishes the same article on every poll, so without this every
+     * refresh would re-embed its whole feed. A no-op entirely when [newsEmbedder] is inactive (the
+     * default), so the noop path never touches the repo for this.
+     *
+     * The rows loaded here for the currency check are carried out in [Prepared.existing] and handed
+     * to [saveOrMerge], which would otherwise re-query every `external_id` a second time — 2N
+     * lookups per embed-enabled refresh instead of N.
+     *
+     * Runs before the (still serial, calling-thread) persist loop in [upsertAll]. The embed call
+     * is network I/O against `bc-embed`, but it only produces plain [FloatArray] values here — no
+     * entity or Hibernate session is touched off-thread.
+     */
+    private fun computeEmbeddings(fresh: List<EodhdNewsArticle>): Prepared {
+        if (!newsEmbedder.active || fresh.isEmpty()) return Prepared()
+
+        val candidates =
+            fresh.map { incoming ->
+                val externalId = externalIdOf(incoming)
+                Candidate(externalId, incoming, newsArticleRepo.findByExternalId(externalId).orElse(null))
+            }
+        val existing = candidates.mapNotNull { c -> c.existing?.let { c.externalId to it } }.toMap()
+        val toEmbed = candidates.filterNot { isEmbeddingCurrent(it.existing, it.incoming.title) }
+        if (toEmbed.isEmpty()) return Prepared(existing = existing)
+
+        val texts = toEmbed.map { embeddingText(it.incoming, it.existing?.summary) }
+        val vectors = newsEmbedder.embed(texts)
+        if (vectors.size != texts.size) {
+            // Partial-batch failure (or a provider that doesn't honour request order/size).
+            // Discarding the whole round is deliberate — a positional zip here would silently pair
+            // the wrong vector with the wrong article, which is worse than skipping embedding
+            // until the next refresh.
+            log.warn(
+                "news_embedding: {} returned {} vector(s) for {} text(s) — skipping this batch",
+                newsEmbedder.modelId,
+                vectors.size,
+                texts.size
+            )
+            return Prepared(existing = existing)
+        }
+
+        return Prepared(
+            embeddings =
+                toEmbed
+                    .zip(vectors) { candidate, vector ->
+                        candidate.externalId to ArticleEmbedding(vector, newsEmbedder.modelId)
+                    }.toMap(),
+            existing = existing
+        )
+    }
+
+    /** Per-refresh ingest scratch: fresh vectors by externalId, plus the rows already loaded for them. */
+    private class Prepared(
+        val embeddings: Map<String, ArticleEmbedding> = emptyMap(),
+        val existing: Map<String, NewsArticle> = emptyMap()
+    )
+
+    private fun isEmbeddingCurrent(
+        existing: NewsArticle?,
+        incomingTitle: String
+    ): Boolean =
+        existing != null &&
+            existing.embedding != null &&
+            existing.embeddingModel == newsEmbedder.modelId &&
+            existing.title == incomingTitle
+
+    private fun embeddingText(
+        incoming: EodhdNewsArticle,
+        existingSummary: String?
+    ): String {
+        val tail = existingSummary?.takeIf { it.isNotBlank() } ?: incoming.content
+        return "${incoming.title}. $tail".take(EMBEDDING_TEXT_MAX_CHARS)
+    }
+
+    private data class Candidate(
+        val externalId: String,
+        val incoming: EodhdNewsArticle,
+        val existing: NewsArticle?
+    )
+
+    private class ArticleEmbedding(
+        val vector: FloatArray,
+        val model: String
+    )
 
     /**
      * Defensive upsert: read-then-save can race when two concurrent refreshes for overlapping
@@ -327,9 +485,12 @@ class EodhdNewsService(
     private fun saveOrMerge(
         symbol: String,
         externalId: String,
-        incoming: EodhdNewsArticle
+        incoming: EodhdNewsArticle,
+        embedding: ArticleEmbedding?,
+        preloaded: NewsArticle?
     ) {
-        val existing = newsArticleRepo.findByExternalId(externalId).orElse(null)
+        // Reuses the row computeEmbeddings already loaded, when it loaded one.
+        val existing = preloaded ?: newsArticleRepo.findByExternalId(externalId).orElse(null)
         val article =
             existing ?: NewsArticle(
                 externalId = externalId,
@@ -337,12 +498,12 @@ class EodhdNewsService(
                 published = LocalDateTime.now(dateUtils.zoneId),
                 fetchedAt = LocalDateTime.now(dateUtils.zoneId)
             )
-        applyIncoming(article, externalId, symbol, incoming)
+        applyIncoming(article, externalId, symbol, incoming, embedding)
         try {
             newsArticleRepo.save(article)
         } catch (e: DataIntegrityViolationException) {
             val winner = newsArticleRepo.findByExternalId(externalId).orElseThrow { e }
-            applyIncoming(winner, externalId, symbol, incoming)
+            applyIncoming(winner, externalId, symbol, incoming, embedding)
             newsArticleRepo.save(winner)
         }
     }
@@ -351,8 +512,13 @@ class EodhdNewsService(
         article: NewsArticle,
         externalId: String,
         symbol: String,
-        incoming: EodhdNewsArticle
+        incoming: EodhdNewsArticle,
+        embedding: ArticleEmbedding?
     ) {
+        // Captured before the overwrite below — decides whether a vector carried over from a
+        // previous round still describes this article (see the embedding block at the end).
+        val textChanged = article.title != incoming.title || article.content != incoming.content
+
         article.externalId = externalId
         article.published = parsePublished(incoming.date)
         article.title = incoming.title
@@ -377,6 +543,27 @@ class EodhdNewsService(
         val existingTickers = article.tickerLinks.map { it.ticker }.toSet()
         for (t in symbolSet - existingTickers) {
             article.tickerLinks.add(NewsArticleTicker(ticker = t))
+        }
+
+        // Only present when computeEmbeddings() actually (re)computed a vector this round — a
+        // skip-recompute hit (title + model unchanged) leaves the article's existing
+        // embedding/embeddingModel/derivedTopics untouched.
+        if (embedding != null) {
+            article.embedding = EmbeddingCodec.encode(embedding.vector)
+            article.embeddingModel = embedding.model
+            article.derivedTopics.clear()
+            article.derivedTopics.addAll(
+                topicAnchorStore.matchingTopics(embedding.vector, embeddingProperties.topicThreshold)
+            )
+        } else if (textChanged && article.embedding != null) {
+            // Text moved on but no fresh vector was produced — the embedder is inactive, or its
+            // batch was discarded. The stored vector and derived topics describe the superseded
+            // text, so keeping them would dedup and topic-tag this article against a body it no
+            // longer has. Clearing costs one refresh cycle of dedup coverage; the next
+            // embed-enabled round recomputes (isEmbeddingCurrent sees a null embedding).
+            article.embedding = null
+            article.embeddingModel = null
+            article.derivedTopics.clear()
         }
     }
 
@@ -447,7 +634,10 @@ class EodhdNewsService(
         topic: String
     ): Boolean {
         val needle = topic.trim().uppercase()
-        return article.tags.any { it.uppercase() == needle }
+        // EODHD's own tags first (exact vendor match), then BC's anchor-derived topics — closes
+        // the coverage gap when EODHD ships no tags for an article at all.
+        return article.tags.any { it.uppercase() == needle } ||
+            article.derivedTopics.any { it.uppercase() == needle }
     }
 
     private fun project(article: NewsArticle): Map<String, Any> {
@@ -491,6 +681,10 @@ class EodhdNewsService(
                 .thenBy { it.externalId }
 
         private const val SUMMARY_CHARS = 400
+
+        // Cap on the "title. summary-or-content" text sent to the embedder per article — the
+        // model truncates internally anyway, and this keeps the request payload small.
+        private const val EMBEDDING_TEXT_MAX_CHARS = 512
         private const val BULLISH_THRESHOLD = 0.35
         private const val BEARISH_THRESHOLD = -0.35
         private val TICKER_PATTERN = Regex("[A-Z0-9.-]{1,10}")

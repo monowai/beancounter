@@ -5,6 +5,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.news.NewsEmbeddingProperties
 import com.beancounter.marketdata.news.eodhd.EodhdNewsProperties
 import com.beancounter.marketdata.news.eodhd.EodhdNewsService
 import com.beancounter.marketdata.providers.DataProviderConfig
@@ -22,7 +23,11 @@ import java.time.LocalDate
  * unchanged. Operators enable specific markets by setting `beancounter.market.providers.eodhd.markets`.
  */
 @Configuration
-@EnableConfigurationProperties(EodhdNewsProperties::class)
+// NewsEmbeddingProperties is registered here (not conditionally) because EodhdNewsService needs
+// its thresholds unconditionally — rank-time dedup clustering runs off already-persisted vectors
+// even when the embedder itself is currently inactive. See NewsEmbeddingConfig for the
+// conditional HttpNewsEmbedder bean.
+@EnableConfigurationProperties(EodhdNewsProperties::class, NewsEmbeddingProperties::class)
 @Import(
     EodhdPriceService::class,
     EodhdProxy::class,

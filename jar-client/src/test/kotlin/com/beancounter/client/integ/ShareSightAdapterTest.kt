@@ -30,7 +30,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 @ActiveProfiles("jar-client-shared", "contract-base")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-    ids = ["beancounter:svc-data:0.1.1:stubs:10990"]
+    ids = ["beancounter:svc-data:0.1.1:stubs"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

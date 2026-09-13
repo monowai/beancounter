@@ -5,11 +5,16 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.news.EmbeddingCodec
 import com.beancounter.marketdata.news.NewsArticle
 import com.beancounter.marketdata.news.NewsArticleRepo
 import com.beancounter.marketdata.news.NewsArticleTicker
+import com.beancounter.marketdata.news.NewsEmbedder
+import com.beancounter.marketdata.news.NewsEmbeddingProperties
 import com.beancounter.marketdata.news.NewsFetch
 import com.beancounter.marketdata.news.NewsFetchRepo
+import com.beancounter.marketdata.news.NoopNewsEmbedder
+import com.beancounter.marketdata.news.TopicAnchorStore
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
 import com.beancounter.marketdata.providers.eodhd.EodhdProxy
 import com.beancounter.marketdata.providers.eodhd.model.EodhdArticleSentiment
@@ -19,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -63,7 +69,24 @@ internal class EodhdNewsServiceTest {
             ReflectionTestUtils.setField(it, "markets", "")
         }
     private val assetFinder = mock<AssetFinder>()
-    private val service = EodhdNewsService(proxy, config, props, articleRepo, fetchRepo, assetFinder)
+
+    // Noop by default so every pre-existing spec below is an implicit "feature off" pin: zero
+    // behavior change from before this class gained embeddings.
+    private val embeddingProps = NewsEmbeddingProperties()
+    private val embedder: NewsEmbedder = NoopNewsEmbedder()
+    private val topicAnchorStore = TopicAnchorStore(embedder)
+    private val service =
+        EodhdNewsService(
+            proxy,
+            config,
+            props,
+            articleRepo,
+            fetchRepo,
+            assetFinder,
+            embedder,
+            embeddingProps,
+            topicAnchorStore
+        )
 
     @Test
     fun `cache-miss triggers a refresh against EODHD for US tickers`() {
@@ -650,7 +673,10 @@ internal class EodhdNewsServiceTest {
         tags: Set<String> = emptySet(),
         summary: String? = null,
         ageHours: Long = 1,
-        ticker: String = "AAPL.US"
+        ticker: String = "AAPL.US",
+        embedding: FloatArray? = null,
+        embeddingModel: String? = null,
+        derivedTopics: Set<String> = emptySet()
     ): NewsArticle =
         NewsArticle(
             externalId = "ext-${title.hashCode()}",
@@ -664,8 +690,400 @@ internal class EodhdNewsServiceTest {
             summary = summary,
             polarity = BigDecimal(polarity),
             tags = tags.toMutableSet(),
-            tickerLinks = mutableSetOf()
+            tickerLinks = mutableSetOf(),
+            embedding = embedding?.let { EmbeddingCodec.encode(it) },
+            embeddingModel = embeddingModel,
+            derivedTopics = derivedTopics.toMutableSet()
         ).also {
             it.tickerLinks.add(NewsArticleTicker(ticker = ticker))
         }
+
+    // --- Near-duplicate suppression at rank time ---------------------------------------------
+
+    @Test
+    fun `dedup clustering drops a near-identical article and keeps the newest as representative`() {
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 2))
+        )
+        val vector = floatArrayOf(1f, 0f)
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.5, title = "Newest spam", ageHours = 1, embedding = vector),
+                storedArticle(polarity = 0.5, title = "Older spam", ageHours = 5, embedding = vector)
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).containsExactly("Newest spam")
+    }
+
+    @Test
+    fun `dedup clustering keeps articles whose embeddings are not similar`() {
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 2))
+        )
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.5, title = "Earnings", ageHours = 1, embedding = floatArrayOf(1f, 0f)),
+                storedArticle(polarity = 0.5, title = "Macro", ageHours = 2, embedding = floatArrayOf(0f, 1f))
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).containsExactlyInAnyOrder("Earnings", "Macro")
+    }
+
+    @Test
+    fun `dedup clustering always keeps an article with no stored embedding`() {
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 3))
+        )
+        val vector = floatArrayOf(1f, 0f)
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.5, title = "No vector yet", ageHours = 1, embedding = null),
+                storedArticle(polarity = 0.5, title = "Representative", ageHours = 2, embedding = vector),
+                storedArticle(polarity = 0.5, title = "Duplicate", ageHours = 3, embedding = vector)
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).containsExactlyInAnyOrder("No vector yet", "Representative")
+    }
+
+    @Test
+    fun `dedup clustering boundary is inclusive at the exact similarity threshold`() {
+        // A dedicated instance with a clean-fraction threshold (0.5) — 0.90's decimal literal
+        // isn't exactly representable in float32, so pinning the ">=" boundary needs a threshold
+        // whose Double value survives a float32 dot-product round-trip bit-for-bit.
+        val customEmbedder = NoopNewsEmbedder()
+        val customService =
+            EodhdNewsService(
+                proxy,
+                config,
+                props,
+                articleRepo,
+                fetchRepo,
+                assetFinder,
+                customEmbedder,
+                NewsEmbeddingProperties(similarityThreshold = 0.5),
+                TopicAnchorStore(customEmbedder)
+            )
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 3))
+        )
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.5, title = "Representative", ageHours = 1, embedding = floatArrayOf(1f, 0f)),
+                // dot((1,0), (0.5, 0.8660254)) == 0.5 exactly — AT the threshold, must be dropped.
+                storedArticle(
+                    polarity = 0.5,
+                    title = "At threshold",
+                    ageHours = 2,
+                    embedding = floatArrayOf(0.5f, 0.8660254f)
+                ),
+                // dot((1,0), (0.49, ...)) == 0.49 — just under the threshold, must be kept. Compared
+                // only against "Representative": "At threshold" was dropped, never became a kept
+                // representative.
+                storedArticle(
+                    polarity = 0.5,
+                    title = "Below threshold",
+                    ageHours = 3,
+                    embedding = floatArrayOf(0.49f, 0.87177978f)
+                )
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = customService.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).containsExactlyInAnyOrder("Representative", "Below threshold")
+    }
+
+    @Test
+    fun `dedup runs per symbol so a holding never loses its only article to another ticker's duplicate`() {
+        // Template spam ("X fell more than the market") is near-identical across tickers. Clustering
+        // over the union would let AAPL's copy suppress XYZ's, and XYZ — whose only article that is —
+        // drops out of the briefing entirely. Coverage per requested symbol wins over cross-symbol
+        // tidiness: the per-symbol budget already caps how much any one holding can contribute.
+        whenever(fetchRepo.findById(any())).thenReturn(
+            Optional.of(NewsFetch("x", LocalDateTime.now().minusMinutes(30), 2))
+        )
+        val templateVector = floatArrayOf(1f, 0f)
+        val stored =
+            listOf(
+                storedArticle(
+                    polarity = 0.5,
+                    title = "Apple fell more than the market",
+                    ageHours = 1,
+                    embedding = templateVector
+                ),
+                storedArticle(
+                    polarity = 0.5,
+                    title = "Xyz fell more than the market",
+                    ageHours = 5,
+                    ticker = "XYZ.US",
+                    embedding = templateVector
+                )
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL,XYZ")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] })
+            .containsExactlyInAnyOrder("Apple fell more than the market", "Xyz fell more than the market")
+    }
+
+    @Test
+    fun `dedup never compares vectors computed by different embedding models`() {
+        // A model change leaves stale vectors behind until each row is re-embedded. Dimensions can
+        // differ (384 vs 768), and a truncated dot product isn't a cosine similarity — it invents
+        // near-duplicates. Rows are only clustered against representatives of the same model.
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 2))
+        )
+        val stored =
+            listOf(
+                storedArticle(
+                    polarity = 0.5,
+                    title = "New model",
+                    ageHours = 1,
+                    embedding = floatArrayOf(1f, 0f, 0f),
+                    embeddingModel = "model-v2"
+                ),
+                storedArticle(
+                    polarity = 0.5,
+                    title = "Old model",
+                    ageHours = 5,
+                    embedding = floatArrayOf(1f, 0f),
+                    embeddingModel = "model-v1"
+                )
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed.map { it["title"] }).containsExactlyInAnyOrder("New model", "Old model")
+    }
+
+    // --- Ingest-time embedding skip/recompute -------------------------------------------------
+
+    @Test
+    fun `ingest skips re-embedding when the stored embedding is current for title and model`() {
+        val activeEmbedder = mock<NewsEmbedder>()
+        whenever(activeEmbedder.active).thenReturn(true)
+        whenever(activeEmbedder.modelId).thenReturn("test-model")
+        val localService =
+            EodhdNewsService(
+                proxy,
+                config,
+                props,
+                articleRepo,
+                fetchRepo,
+                assetFinder,
+                activeEmbedder,
+                embeddingProps,
+                TopicAnchorStore(activeEmbedder)
+            )
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val link = "https://example.com/news/unchanged"
+        val incoming = eodhArticle(0.6, title = "Apple beats", link = link)
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(incoming))
+        val existing =
+            NewsArticle(
+                externalId = link,
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
+                title = "Apple beats",
+                embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
+                embeddingModel = "test-model"
+            )
+        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        localService.getNewsSentiment("AAPL")
+
+        verify(activeEmbedder, never()).embed(any())
+    }
+
+    @Test
+    fun `ingest re-embeds when the title changed since the stored embedding`() {
+        val activeEmbedder = mock<NewsEmbedder>()
+        whenever(activeEmbedder.active).thenReturn(true)
+        whenever(activeEmbedder.modelId).thenReturn("test-model")
+        whenever(activeEmbedder.embed(any())).thenReturn(listOf(floatArrayOf(1f, 0f)))
+        val localService =
+            EodhdNewsService(
+                proxy,
+                config,
+                props,
+                articleRepo,
+                fetchRepo,
+                assetFinder,
+                activeEmbedder,
+                embeddingProps,
+                TopicAnchorStore(activeEmbedder)
+            )
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val link = "https://example.com/news/changed"
+        val incoming = eodhArticle(0.6, title = "Apple beats — updated", link = link)
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(incoming))
+        val existing =
+            NewsArticle(
+                externalId = link,
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
+                title = "Apple beats",
+                embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
+                embeddingModel = "test-model"
+            )
+        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        localService.getNewsSentiment("AAPL")
+
+        verify(activeEmbedder, atLeastOnce()).embed(any())
+        val captor = argumentCaptor<NewsArticle>()
+        verify(articleRepo, atLeastOnce()).save(captor.capture())
+        assertThat(captor.lastValue.embeddingModel).isEqualTo("test-model")
+    }
+
+    @Test
+    fun `a stored vector is dropped when the text changes and no fresh vector was produced`() {
+        // Embedder inactive (or its batch was discarded): the row's title/content move on, but the
+        // persisted vector and derived topics still describe the superseded text. Keeping them
+        // would dedup and topic-tag this article against a body it no longer has — clear instead,
+        // the next embed-enabled refresh recomputes.
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val link = "https://example.com/news/revised"
+        val incoming = eodhArticle(0.6, title = "Apple beats — revised", link = link)
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(incoming))
+        val existing =
+            NewsArticle(
+                externalId = link,
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
+                title = "Apple beats",
+                embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
+                embeddingModel = "test-model",
+                derivedTopics = mutableSetOf("EARNINGS")
+            )
+        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getNewsSentiment("AAPL")
+
+        val captor = argumentCaptor<NewsArticle>()
+        verify(articleRepo).save(captor.capture())
+        assertThat(captor.firstValue.embedding).isNull()
+        assertThat(captor.firstValue.embeddingModel).isNull()
+        assertThat(captor.firstValue.derivedTopics).isEmpty()
+    }
+
+    @Test
+    fun `an unchanged article keeps its stored vector when no fresh one was produced`() {
+        // The clear above must be scoped to a genuine text change — a re-poll of the same article
+        // (EODHD republishes its whole feed every refresh) must not throw away a good vector.
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val link = "https://example.com/news/unchanged-text"
+        val incoming = eodhArticle(0.6, title = "Apple beats", content = "body", link = link)
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(incoming))
+        val existing =
+            NewsArticle(
+                externalId = link,
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
+                title = "Apple beats",
+                content = "body",
+                embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
+                embeddingModel = "test-model",
+                derivedTopics = mutableSetOf("EARNINGS")
+            )
+        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        service.getNewsSentiment("AAPL")
+
+        val captor = argumentCaptor<NewsArticle>()
+        verify(articleRepo).save(captor.capture())
+        assertThat(captor.firstValue.embedding).isNotNull()
+        assertThat(captor.firstValue.embeddingModel).isEqualTo("test-model")
+        assertThat(captor.firstValue.derivedTopics).containsExactly("EARNINGS")
+    }
+
+    @Test
+    fun `an embed-enabled refresh reads each article row once`() {
+        // The currency check has to load the row anyway; saveOrMerge reuses that instance instead
+        // of issuing a second findByExternalId per article.
+        val activeEmbedder = mock<NewsEmbedder>()
+        whenever(activeEmbedder.active).thenReturn(true)
+        whenever(activeEmbedder.modelId).thenReturn("test-model")
+        val localService =
+            EodhdNewsService(
+                proxy,
+                config,
+                props,
+                articleRepo,
+                fetchRepo,
+                assetFinder,
+                activeEmbedder,
+                embeddingProps,
+                TopicAnchorStore(activeEmbedder)
+            )
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
+        val link = "https://example.com/news/once"
+        whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any()))
+            .thenReturn(listOf(eodhArticle(0.6, title = "Apple beats", link = link)))
+        val existing =
+            NewsArticle(
+                externalId = link,
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
+                title = "Apple beats",
+                embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
+                embeddingModel = "test-model"
+            )
+        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
+
+        localService.getNewsSentiment("AAPL")
+
+        verify(articleRepo, times(1)).findByExternalId(eq(link))
+    }
+
+    // --- Derived-topic filtering ---------------------------------------------------------------
+
+    @Test
+    fun `topic filter also matches derived topics when EODHD tags are absent`() {
+        whenever(fetchRepo.findById("AAPL.US")).thenReturn(
+            Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 2))
+        )
+        val stored =
+            listOf(
+                storedArticle(polarity = 0.9, title = "Derived match", derivedTopics = setOf("inflation")),
+                storedArticle(polarity = 0.8, title = "No match", tags = setOf("MARKETS"))
+            )
+        whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(stored)
+
+        val result = service.getNewsSentiment("AAPL", topics = "inflation")
+
+        @Suppress("UNCHECKED_CAST")
+        val feed = result["feed"] as List<Map<String, Any>>
+        assertThat(feed).hasSize(1)
+        assertThat(feed.first()["title"]).isEqualTo("Derived match")
+    }
 }

@@ -122,6 +122,14 @@ class ExternalApiRestClientConfig {
         @Value($$"${beancounter.market.providers.kalshi.url:https://api.elections.kalshi.com}") baseUrl: String
     ): RestClient = buildRestClient(baseUrl)
 
+    // Base URL empty by default — harmless: building a RestClient doesn't open a connection, and
+    // this bean is only ever called by HttpNewsEmbedder, which only exists when
+    // beancounter.market.news.embedding.enabled=true (see NewsEmbeddingConfig).
+    @Bean
+    fun newsEmbeddingRestClient(
+        @Value($$"${beancounter.market.news.embedding.url:}") baseUrl: String
+    ): RestClient = buildRestClient(baseUrl)
+
     @Bean
     fun eodhdSearchRestClient(
         @Value($$"${beancounter.market.providers.eodhd.url:https://eodhd.com}") baseUrl: String

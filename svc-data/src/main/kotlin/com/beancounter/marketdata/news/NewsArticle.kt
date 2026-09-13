@@ -106,4 +106,20 @@ data class NewsArticle(
 ) {
     @Id
     val id: String = KeyGenUtils().id
+
+    /**
+     * Identity is the row's [id], not its contents. The data-class defaults derived equality from
+     * every constructor property, which stopped being sound once [embedding] arrived: `ByteArray`
+     * compares by reference, so a row re-read from the DB would never equal the instance it was
+     * written from, and `toString` printed `[B@1f2a3b` instead of anything readable. Content
+     * equality was never the useful question for a persisted article anyway — [externalId] is the
+     * dedup key and [id] the primary key.
+     */
+    override fun equals(other: Any?): Boolean = this === other || (other is NewsArticle && other.id == id)
+
+    override fun hashCode(): Int = id.hashCode()
+
+    override fun toString(): String =
+        "NewsArticle(id=$id, externalId=$externalId, published=$published, title=$title, " +
+            "source=$source, embeddingModel=$embeddingModel, embeddingBytes=${embedding?.size ?: 0})"
 }

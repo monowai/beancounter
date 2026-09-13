@@ -13,10 +13,15 @@ import org.springframework.web.client.RestClient
  * `beancounter.market.news.embedding.enabled=true` — see [NewsEmbeddingConfig]; [NoopNewsEmbedder]
  * is the only [NewsEmbedder] bean otherwise.
  *
- * TEI contract: `POST {url}/embed` with `{"inputs": ["text", ...]}` — the response is a JSON
- * array of float arrays in request order. Requests are chunked at [NewsEmbeddingProperties.batchSize].
+ * TEI contract: `POST /embed` with `{"inputs": ["text", ...]}` — the response is a JSON array of
+ * float arrays in request order. Requests are chunked at [NewsEmbeddingProperties.batchSize].
  * Vectors are normalized to unit length here (never trusting server-side config) so callers can
  * treat a dot product as cosine similarity.
+ *
+ * The endpoint is the injected [restClient]'s base URL and nothing else — that client is built from
+ * `beancounter.market.news.embedding.url` in `ExternalApiRestClientConfig`, the same single property
+ * behind [NewsEmbeddingProperties.url]. This class only reads that property to name the deployment
+ * in a failure log; it never composes a URL from it.
  *
  * Failures degrade gracefully — any transport or parse error is logged (with the throwable) and
  * produces an empty result rather than an exception.

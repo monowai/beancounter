@@ -10,6 +10,9 @@
 ALTER TABLE news_article ADD COLUMN embedding BYTEA;
 ALTER TABLE news_article ADD COLUMN embedding_model VARCHAR(64);
 
+-- No index on `topic`: the only read is EodhdNewsService.matchesTopic, which filters in memory over
+-- articles already loaded by ticker (findByTickersAfter). A topic index would be pure ingest-time
+-- write overhead today — add one with the migration that introduces a DB-side topic query.
 CREATE TABLE IF NOT EXISTS news_article_topic (
     article_id VARCHAR(36) NOT NULL,
     topic      VARCHAR(64) NOT NULL,
@@ -17,5 +20,3 @@ CREATE TABLE IF NOT EXISTS news_article_topic (
     CONSTRAINT fk_natp_article FOREIGN KEY (article_id)
         REFERENCES news_article (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_natp_topic ON news_article_topic (topic);

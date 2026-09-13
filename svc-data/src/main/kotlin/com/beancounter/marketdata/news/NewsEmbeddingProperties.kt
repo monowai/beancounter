@@ -15,7 +15,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class NewsEmbeddingProperties(
     /** Master switch. Off by default — see class KDoc. */
     val enabled: Boolean = false,
-    /** Base URL of the bc-embed (TEI) deployment, e.g. `http://bc-embed`. Empty until deployed. */
+    /**
+     * Base URL of the bc-embed (TEI) deployment, e.g. `http://bc-embed`. Empty until deployed.
+     *
+     * Single source of the endpoint: `ExternalApiRestClientConfig.newsEmbeddingRestClient` reads the
+     * same property to build the client [HttpNewsEmbedder] posts a relative `/embed` to. The embedder
+     * reads it here only to name the deployment in a failure log.
+     */
     val url: String = "",
     /** Stamped on [NewsArticle.embeddingModel] — a model change invalidates every stored vector. */
     val modelId: String = "all-minilm-l6-v2",

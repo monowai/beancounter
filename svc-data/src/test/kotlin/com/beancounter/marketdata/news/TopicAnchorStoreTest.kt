@@ -93,4 +93,18 @@ internal class TopicAnchorStoreTest {
 
         assertThat(store.matchingTopics(floatArrayOf(1f, 0f), threshold = 0.55)).isEmpty()
     }
+
+    /**
+     * Anchors cached before bc-embed changed model/dimension can't be compared against a
+     * differently-sized article vector — [VectorMath.dot] rejects the mismatch rather than
+     * truncating. The store skips those anchors instead of failing the ingest that called it.
+     */
+    @Test
+    fun `skips anchors whose dimension differs from the article vector`() {
+        val embedder = mock<NewsEmbedder>()
+        whenever(embedder.embed(any())).thenReturn(TopicAnchors.PHRASES.values.map { floatArrayOf(1f, 0f) })
+        val store = TopicAnchorStore(embedder)
+
+        assertThat(store.matchingTopics(floatArrayOf(1f, 0f, 0f), threshold = 0.55)).isEmpty()
+    }
 }

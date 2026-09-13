@@ -29,16 +29,35 @@ class TopicAnchorStore(
     @Volatile
     private var anchors: List<Pair<String, FloatArray>>? = null
 
-    /** Topics whose anchor phrase cosine-matches [vector] at or above [threshold]. */
+    /**
+     * Topics whose anchor phrase cosine-matches [vector] at or above [threshold].
+     *
+     * Anchors of a different dimension are skipped, not compared — that only happens when bc-embed
+     * changed model (and therefore vector width) after this store cached its round, and
+     * [VectorMath.dot] refuses to truncate. Tagging is a best-effort enrichment on the ingest path,
+     * so a mismatch degrades to "no derived topics this round" (logged) rather than failing the
+     * whole news refresh.
+     */
     fun matchingTopics(
         vector: FloatArray,
         threshold: Double
-    ): Set<String> =
-        anchors()
+    ): Set<String> {
+        val all = anchors()
+        val comparable = all.filter { (_, anchorVector) -> anchorVector.size == vector.size }
+        if (comparable.size != all.size) {
+            log.warn(
+                "news_embedding: {} of {} anchor(s) skipped — article vector is {}-dim",
+                all.size - comparable.size,
+                all.size,
+                vector.size
+            )
+        }
+        return comparable
             .asSequence()
             .filter { (_, anchorVector) -> VectorMath.dot(vector, anchorVector) >= threshold }
             .map { it.first }
             .toSet()
+    }
 
     private fun anchors(): List<Pair<String, FloatArray>> {
         anchors?.let { return it }

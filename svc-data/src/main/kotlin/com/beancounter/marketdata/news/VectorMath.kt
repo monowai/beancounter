@@ -17,14 +17,23 @@ object VectorMath {
         return FloatArray(vector.size) { i -> (vector[i] / norm).toFloat() }
     }
 
-    /** Dot product of two vectors — equivalent to cosine similarity when both are unit length. */
+    /**
+     * Dot product of two vectors — equivalent to cosine similarity when both are unit length.
+     *
+     * Rejects a dimension mismatch rather than truncating to the shorter vector: a 384-dim vector
+     * scored against the leading 384 dimensions of a 768-dim one yields a number that isn't a
+     * cosine similarity but reads like one (typically high enough to look like a near-duplicate).
+     * Mismatches are only reachable when a model change leaves stale vectors behind, and the
+     * callers that can see that — [com.beancounter.marketdata.news.eodhd.EodhdNewsService]'s
+     * dedup clustering and [TopicAnchorStore] — decide for themselves what it means.
+     */
     fun dot(
         a: FloatArray,
         b: FloatArray
     ): Double {
+        require(a.size == b.size) { "Embedding dimension mismatch: ${a.size} vs ${b.size}" }
         var sum = 0.0
-        val n = minOf(a.size, b.size)
-        for (i in 0 until n) sum += a[i].toDouble() * b[i].toDouble()
+        for (i in a.indices) sum += a[i].toDouble() * b[i].toDouble()
         return sum
     }
 }

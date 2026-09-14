@@ -19,7 +19,13 @@ import org.springframework.stereotype.Service
  */
 @Service
 class RetireTools(
-    private val retireServiceClient: RetireServiceClient
+    private val retireServiceClient: RetireServiceClient,
+    /**
+     * Shrinks the compute tools' year-by-year payloads before they enter the
+     * conversation — see [ProjectionCompactor] for the measured failure that
+     * made this necessary.
+     */
+    private val compactor: ProjectionCompactor
 ) {
     @Tool(description = SETTINGS_DESC)
     fun getIndependenceSettings(): Map<String, Any?> = retireServiceClient.getIndependenceSettings()
@@ -67,7 +73,7 @@ class RetireTools(
             description = "Optional ISO currency to convert results into; omit for plan's native currency.",
             required = false
         ) displayCurrency: String? = null
-    ): Map<String, Any> = retireServiceClient.runProjection(planId, displayCurrency)
+    ): Map<String, Any> = compact(retireServiceClient.runProjection(planId, displayCurrency))
 
     @Tool(description = SCENARIOS_DESC)
     fun runRetirementScenarios(
@@ -76,7 +82,7 @@ class RetireTools(
             description = "Optional ISO currency to convert results into; omit for plan's native currency.",
             required = false
         ) displayCurrency: String? = null
-    ): Map<String, Any> = retireServiceClient.runScenarios(planId, displayCurrency)
+    ): Map<String, Any> = compact(retireServiceClient.runScenarios(planId, displayCurrency))
 
     @Tool(description = MONTE_CARLO_DESC)
     fun runRetirementMonteCarlo(
@@ -97,7 +103,7 @@ class RetireTools(
             description = "Optional ISO currency to convert results into; omit for plan's native currency.",
             required = false
         ) displayCurrency: String? = null
-    ): Map<String, Any> = retireServiceClient.runMonteCarlo(planId, iterations ?: 1000, displayCurrency)
+    ): Map<String, Any> = compact(retireServiceClient.runMonteCarlo(planId, iterations ?: 1000, displayCurrency))
 
     @Tool(description = COMPOSITE_PROJECTION_DESC)
     fun runCompositeRetirementProjection(
@@ -112,7 +118,7 @@ class RetireTools(
                 "ISO currency the combined projection should be reported in " +
                     "(e.g. 'USD', 'SGD'). Required."
         ) displayCurrency: String
-    ): Map<String, Any> = retireServiceClient.runCompositeProjection(phases, displayCurrency)
+    ): Map<String, Any> = compact(retireServiceClient.runCompositeProjection(phases, displayCurrency))
 
     @Tool(description = COMPOSITE_SCENARIOS_DESC)
     fun runCompositeRetirementScenarios(
@@ -122,7 +128,7 @@ class RetireTools(
                     "null on the final phase."
         ) phases: List<CompositePhaseInput>,
         @ToolParam(description = "ISO currency to report the scenarios in.") displayCurrency: String
-    ): Map<String, Any> = retireServiceClient.runCompositeScenarios(phases, displayCurrency)
+    ): Map<String, Any> = compact(retireServiceClient.runCompositeScenarios(phases, displayCurrency))
 
     @Tool(description = COMPOSITE_MONTE_CARLO_DESC)
     fun runCompositeRetirementMonteCarlo(
@@ -140,7 +146,20 @@ class RetireTools(
                     "null to use the default.",
             required = false
         ) iterations: Int? = null
-    ): Map<String, Any> = retireServiceClient.runCompositeMonteCarlo(phases, displayCurrency, iterations ?: 1000)
+    ): Map<String, Any> =
+        compact(
+            retireServiceClient.runCompositeMonteCarlo(phases, displayCurrency, iterations ?: 1000)
+        )
+
+    /**
+     * Shrink a compute-tool payload for the conversation. The cast is confined
+     * here: [ProjectionCompactor] is honest that a JSON payload can hold nulls,
+     * while Spring AI's tool signatures are `Map<String, Any>` — and a null
+     * value must stay null rather than be dropped, since "never depletes" and
+     * "no depletion age reported" are different answers.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun compact(raw: Map<String, Any>): Map<String, Any> = compactor.compact(raw) as Map<String, Any>
 
     companion object {
         const val SETTINGS_DESC =

@@ -60,6 +60,11 @@ dependencies {
         exclude(group = "org.apache.commons", module = "commons-lang3")
         exclude(group = "org.apache.commons", module = "commons-text")
     }
+    testImplementation(platform(libs.otel.core.bom))
+    // In-memory span exporter: the only way to prove LlmMetrics' attributes
+    // reach an exported span rather than a noop one (they were reaching
+    // neither in production — see LlmMetricsTest).
+    testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation(libs.mockito.kotlin)

@@ -80,15 +80,18 @@ internal class ProjectionCompactorTest {
     }
 
     @Test
-    fun `keeps a column that is non-zero in any sampled row`() {
-        val rows = years(20).mapIndexed { i, row -> if (i == 5) row + ("lumpSumPayout" to BigDecimal(250)) else row }
+    fun `keeps a column that is non-zero in any row, including one sampling dropped`() {
+        // Emptiness is a property of the data, not of the sample. Row 1 of 40 is
+        // not among the 12 rows sampling keeps, so judging on the sample alone
+        // would drop `lumpSumPayout` and then report it under `emptyCols` —
+        // telling the reader they have no lump sum when they have one.
+        val rows = years(40).mapIndexed { i, row -> if (i == 1) row + ("lumpSumPayout" to BigDecimal(250)) else row }
 
         val compact = compactor.compact(mapOf("yearlyProjections" to rows))
 
         val table = compact["yearlyProjections"] as Map<*, *>
-        // Only defensible if the value survives sampling — row 5 is retained by
-        // the even-spacing rule for a 20-row input.
         assertThat(table["cols"] as List<*>).contains("lumpSumPayout")
+        assertThat(table["emptyCols"] as List<*>).doesNotContain("lumpSumPayout")
     }
 
     @Test

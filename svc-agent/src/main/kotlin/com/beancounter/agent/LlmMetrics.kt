@@ -108,7 +108,13 @@ class LlmMetrics(
         // this runs on a Reactor thread whose ambient context is empty, and an
         // unparented span reaches Sentry as its own orphan transaction rather
         // than as part of the request that produced it.
-        if (parent.spanContext.isValid) builder.setParent(Context.current().with(parent))
+        //
+        // `isRecording` and not `spanContext.isValid`: an ended span keeps a
+        // valid SpanContext forever, so validity alone would happily attach a
+        // child to a closed parent — which exporters may drop, recreating the
+        // silent loss this class exists to end. A late call simply goes
+        // unparented instead; telemetry with no parent still beats no telemetry.
+        if (parent.isRecording) builder.setParent(Context.current().with(parent))
         val span = builder.startSpan()
         try {
             if (!modelId.isNullOrBlank()) {

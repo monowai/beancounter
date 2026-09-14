@@ -116,6 +116,7 @@ class AgentController(
         const val PAYMENT_REQUIRED = 402
         const val TOO_MANY_REQUESTS = 429
         const val INTERNAL_ERROR = 500
+        const val UNPROCESSABLE_CONTENT = 422
         const val GATEWAY_TIMEOUT = 504
 
         // Only a status at the very start of the message is trusted — that is
@@ -488,6 +489,14 @@ class AgentController(
             PROVIDER_QUOTA -> PAYMENT_REQUIRED
             PROVIDER_RATE -> TOO_MANY_REQUESTS
             PROVIDER_TIMEOUT -> GATEWAY_TIMEOUT
+            // Not a server fault: the request was well-formed, the provider
+            // call succeeded, and the model finished — it just produced no
+            // answer, usually because tool results filled its context window.
+            // 500 would read as "bc-agent broke" and page on a condition only
+            // a narrower question can fix. The streaming path reports the same
+            // codes over a 200 SSE stream; the code, not the status, is the
+            // contract both transports share.
+            ANSWER_TRUNCATED, EMPTY_ANSWER -> UNPROCESSABLE_CONTENT
             else -> INTERNAL_ERROR
         }
 

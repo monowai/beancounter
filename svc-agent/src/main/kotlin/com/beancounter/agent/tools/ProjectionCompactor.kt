@@ -63,16 +63,21 @@ class ProjectionCompactor {
     private fun tabulate(rows: List<Map<*, *>>): Map<String, Any?> {
         val sampled = sample(rows)
         val allCols = rows.flatMap { row -> row.keys.map { it.toString() } }.distinct()
-        val emptyCols = allCols.filter { col -> sampled.all { row -> isEmpty(row[col]) } }
-        // Everything empty means the sample says nothing at all; keep the raw
+        // Emptiness is judged across EVERY row, not just the sampled ones. A
+        // column whose only non-zero years were sampled out would otherwise be
+        // dropped and then reported under `emptyCols` — telling the reader they
+        // have no rental income when the data says they do.
+        val emptyCols = allCols.filter { col -> rows.all { row -> isEmpty(row[col]) } }
+        val remaining = allCols - emptyCols.toSet()
+        // Everything empty means the table says nothing at all; keep the raw
         // columns rather than emitting a table with no columns in it.
-        val cols = (allCols - emptyCols.toSet()).ifEmpty { allCols }
+        val cols = remaining.ifEmpty { allCols }
 
         return buildMap {
             put("cols", cols)
             put("rows", sampled.map { row -> cols.map { col -> compactValue(row[col]) } })
             if (sampled.size < rows.size) put("sampledFrom", rows.size)
-            if (cols !== allCols && emptyCols.isNotEmpty()) put("emptyCols", emptyCols)
+            if (remaining.isNotEmpty() && emptyCols.isNotEmpty()) put("emptyCols", emptyCols)
         }
     }
 

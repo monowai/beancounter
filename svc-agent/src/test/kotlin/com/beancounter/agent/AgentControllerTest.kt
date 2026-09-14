@@ -579,6 +579,10 @@ class AgentControllerTest {
 
         assertThat(response.body?.error).isEqualTo("answer-truncated")
         assertThat(response.body?.response).isNotBlank()
+        // 422, not 500: the request was well-formed and the call succeeded —
+        // the model simply produced nothing. A 500 reads as a server fault and
+        // would page us for a condition only the question can fix.
+        assertThat(response.statusCode.value()).isEqualTo(422)
     }
 
     /** Drive `stream()` over a canned chunk sequence — the mock dance in one place. */

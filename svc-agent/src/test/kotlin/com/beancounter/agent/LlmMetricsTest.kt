@@ -212,6 +212,31 @@ class LlmMetricsTest {
         assertThat(emitted.parentSpanId).isEqualTo(requestSpan.spanContext.spanId)
     }
 
+    @Test
+    fun `telemetry still lands when the request span has already ended`() {
+        // The done lambda fires late; if the request span has closed by then,
+        // parenting onto it risks the child being dropped — which is the same
+        // silent loss this class was changed to end. An ended parent is skipped
+        // and the span is emitted regardless: unparented telemetry beats none.
+        val exporter = InMemorySpanExporter.create()
+        val tracer = tracerFor(exporter)
+        val endedRequestSpan = tracer.spanBuilder("POST /agent/query/stream").startSpan()
+        endedRequestSpan.end()
+
+        LlmMetrics(tracer).capture(
+            modelId = "deepseek-v4-flash",
+            usage = DefaultUsage(10, 5, 15),
+            elapsedMs = 12,
+            toolCount = 5,
+            mode = LlmMetrics.Mode.STREAM,
+            span = endedRequestSpan
+        )
+
+        val emitted = exporter.finishedSpanItems.single { it.name == LlmMetrics.SPAN_NAME }
+        assertThat(emitted.attributes.asMap().mapKeys { it.key.key }["llm.total_tokens"]).isEqualTo(15L)
+        assertThat(emitted.parentSpanId).isNotEqualTo(endedRequestSpan.spanContext.spanId)
+    }
+
     private fun tracerFor(exporter: InMemorySpanExporter): io.opentelemetry.api.trace.Tracer =
         io.opentelemetry.sdk.trace.SdkTracerProvider
             .builder()

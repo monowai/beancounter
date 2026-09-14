@@ -503,6 +503,101 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `stream reports truncation when the turn hits the token cap without answering`() {
+        // Observed on kauri: an Independence question filled the context window
+        // with tool results (prompt_tokens=116608), so the model spent its
+        // remaining output budget on tool calls and reasoning and finished on
+        // `length` with response_chars=0. The stream then closed cleanly with
+        // no token event at all and bc-view rendered an empty assistant bubble
+        // — a silent failure the reader can neither understand nor act on.
+        val events = streamOf(textResponse("", finishReason = "length"))
+
+        assertThat(events.map { it.event() }).containsExactly(EVENT_ERROR, EVENT_DONE)
+        assertThat(events[0].data()).isEqualTo("answer-truncated")
+    }
+
+    @Test
+    fun `stream reports an empty answer when the turn stops without producing text`() {
+        val events = streamOf(textResponse("", finishReason = "STOP"))
+
+        assertThat(events.map { it.event() }).containsExactly(EVENT_ERROR, EVENT_DONE)
+        assertThat(events[0].data()).isEqualTo("empty-answer")
+    }
+
+    @Test
+    fun `stream reports an empty answer when the model emits nothing at all`() {
+        // Metadata-only chunks carry no Generation, so there is no finish
+        // reason to classify on — still a blank bubble without this guard.
+        val events = streamOf(ChatResponse(emptyList()))
+
+        assertThat(events.map { it.event() }).containsExactly(EVENT_ERROR, EVENT_DONE)
+        assertThat(events[0].data()).isEqualTo("empty-answer")
+    }
+
+    @Test
+    fun `stream stays silent about emptiness when the model did answer`() {
+        // The guard keys off the whole stream's char count, not the last
+        // chunk's: a normal answer whose trailing chunk is metadata-only must
+        // not be reported as empty.
+        val events =
+            streamOf(
+                textResponse("Final answer."),
+                textResponse("", finishReason = "STOP")
+            )
+
+        assertThat(events.map { it.event() }).containsExactly(EVENT_TOKEN, EVENT_DONE)
+    }
+
+    @Test
+    fun `stream reports truncation off a tool-turn narration that never reaches an answer`() {
+        // Narration counts as content for the retry guard but not as an answer:
+        // the model spoke, called tools, and then hit the cap. The user still
+        // has no answer, so this must not pass as a successful turn.
+        val events =
+            streamOf(
+                textResponse("Let me gather that…", finishReason = "TOOL_CALLS"),
+                textResponse("", finishReason = "length")
+            )
+
+        assertThat(events.map { it.event() })
+            .containsExactly(EVENT_TOKEN, EVENT_RESET, EVENT_ERROR, EVENT_DONE)
+        assertThat(events[2].data()).isEqualTo("answer-truncated")
+    }
+
+    @Test
+    fun `query reports an empty answer rather than returning a blank response`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val callResponse = mock<ChatClient.CallResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.chatResponse()).thenReturn(textResponse("", finishReason = "length"))
+
+        val response = controller(chatClient = client).query(AgentQuery("hi"))
+
+        assertThat(response.body?.error).isEqualTo("answer-truncated")
+        assertThat(response.body?.response).isNotBlank()
+    }
+
+    /** Drive `stream()` over a canned chunk sequence — the mock dance in one place. */
+    private fun streamOf(vararg chunks: ChatResponse): List<org.springframework.http.codec.ServerSentEvent<String>> {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val streamResponse = mock<ChatClient.StreamResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.stream()).thenReturn(streamResponse)
+        whenever(streamResponse.chatResponse()).thenReturn(Flux.just(*chunks))
+        return controller(chatClient = client)
+            .stream(AgentQuery("hi"))
+            .collectList()
+            .block()!!
+    }
+
+    @Test
     fun `done payload omits model when ollama profile is active`() {
         // On ollama / openai profiles the per-call Anthropic model override is
         // skipped and the configured ChatClient picks the model. Reporting

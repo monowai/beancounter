@@ -2,6 +2,7 @@ package com.beancounter.agent
 
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -97,6 +98,12 @@ class LlmMetricsTest {
         whenever(span.setAttribute(any<AttributeKey<String>>(), any<String>())).thenReturn(span)
         whenever(span.setAttribute(any<String>(), any<String>())).thenReturn(span)
         whenever(span.setAttribute(any<String>(), any<Long>())).thenReturn(span)
+        // A bare mock has no SpanContext; give it the invalid one a real
+        // never-started span would carry, so parenting is skipped.
+        whenever(span.spanContext).thenReturn(
+            io.opentelemetry.api.trace.SpanContext
+                .getInvalid()
+        )
 
         val metrics = LlmMetrics()
         metrics.capture(
@@ -118,10 +125,113 @@ class LlmMetricsTest {
     }
 
     @Test
+    fun `capture exports a span carrying the token counts`() {
+        // The production failure this pins: over 7 days kauri recorded 45
+        // `POST /agent/query/stream` transactions and not one span carrying
+        // `agent.mode` or `llm.total_tokens` — every attribute write landed on
+        // a span that was never exported, so token usage existed only in a
+        // DEBUG log line. Writing to an ambient span is not verifiable; owning
+        // the span is.
+        val exporter = InMemorySpanExporter.create()
+        val metrics = LlmMetrics(tracerFor(exporter))
+
+        metrics.capture(
+            modelId = "deepseek-v4-flash",
+            usage = DefaultUsage(116608, 8601, 125209),
+            elapsedMs = 47142,
+            toolCount = 5,
+            mode = LlmMetrics.Mode.STREAM
+        )
+
+        val spans = exporter.finishedSpanItems
+        assertThat(spans).hasSize(1)
+        val attributes =
+            spans
+                .first()
+                .attributes
+                .asMap()
+                .mapKeys { it.key.key }
+        // gen_ai.* is what Sentry's GenAI views read; llm.* is the name BC's
+        // own queries already use. Both, so neither surface goes blind.
+        assertThat(attributes["gen_ai.usage.input_tokens"]).isEqualTo(116608L)
+        assertThat(attributes["gen_ai.usage.output_tokens"]).isEqualTo(8601L)
+        assertThat(attributes["gen_ai.usage.total_tokens"]).isEqualTo(125209L)
+        assertThat(attributes["llm.total_tokens"]).isEqualTo(125209L)
+        assertThat(attributes["agent.model"]).isEqualTo("deepseek-v4-flash")
+        assertThat(attributes["agent.mode"]).isEqualTo("stream")
+        assertThat(attributes["agent.tools"]).isEqualTo(5L)
+        assertThat(attributes["agent.elapsed_ms"]).isEqualTo(47142L)
+    }
+
+    @Test
+    fun `capture exports a span even when the provider reported no usage`() {
+        // An answerless turn is exactly when someone goes looking, so the call
+        // has to leave a trace whether or not tokens came back with it.
+        val exporter = InMemorySpanExporter.create()
+
+        LlmMetrics(tracerFor(exporter)).capture(
+            modelId = "deepseek-v4-flash",
+            usage = null,
+            elapsedMs = 900,
+            toolCount = 5,
+            mode = LlmMetrics.Mode.CALL
+        )
+
+        val spans = exporter.finishedSpanItems
+        assertThat(spans).hasSize(1)
+        val attributes =
+            spans
+                .first()
+                .attributes
+                .asMap()
+                .mapKeys { it.key.key }
+        assertThat(attributes["agent.mode"]).isEqualTo("call")
+        assertThat(attributes).doesNotContainKey("llm.total_tokens")
+    }
+
+    @Test
+    fun `the emitted span hangs off the request span it was given`() {
+        // The controller pins `Span.current()` at request time precisely because
+        // the done lambda runs on a Reactor thread with no ambient context. Use
+        // it as the parent, or the telemetry lands as an orphan transaction
+        // instead of under the request that produced it.
+        val exporter = InMemorySpanExporter.create()
+        val tracer = tracerFor(exporter)
+        val requestSpan = tracer.spanBuilder("POST /agent/query/stream").startSpan()
+
+        LlmMetrics(tracer).capture(
+            modelId = "deepseek-v4-flash",
+            usage = DefaultUsage(10, 5, 15),
+            elapsedMs = 12,
+            toolCount = 5,
+            mode = LlmMetrics.Mode.STREAM,
+            span = requestSpan
+        )
+
+        val emitted = exporter.finishedSpanItems.single { it.name == LlmMetrics.SPAN_NAME }
+        assertThat(emitted.parentSpanId).isEqualTo(requestSpan.spanContext.spanId)
+    }
+
+    private fun tracerFor(exporter: InMemorySpanExporter): io.opentelemetry.api.trace.Tracer =
+        io.opentelemetry.sdk.trace.SdkTracerProvider
+            .builder()
+            .addSpanProcessor(
+                io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
+                    .create(exporter)
+            ).build()
+            .get("test")
+
+    @Test
     fun `capture skips model attribute when modelId is null`() {
         val span = mock<Span>()
         whenever(span.setAttribute(any<String>(), any<String>())).thenReturn(span)
         whenever(span.setAttribute(any<String>(), any<Long>())).thenReturn(span)
+        // A bare mock has no SpanContext; give it the invalid one a real
+        // never-started span would carry, so parenting is skipped.
+        whenever(span.spanContext).thenReturn(
+            io.opentelemetry.api.trace.SpanContext
+                .getInvalid()
+        )
 
         LlmMetrics().capture(
             modelId = null,

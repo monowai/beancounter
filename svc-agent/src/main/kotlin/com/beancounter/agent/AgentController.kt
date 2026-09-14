@@ -91,6 +91,27 @@ class AgentController(
         const val PROVIDER_TIMEOUT = "provider-timeout"
         const val AGENT_ERROR = "agent-error"
 
+        /**
+         * The turn ended on a token cap with nothing to show for it — on the
+         * Independence domain this is the context window filling with tool
+         * results (a full year-by-year projection runs to tens of thousands of
+         * tokens), leaving no output budget for the answer itself.
+         */
+        const val ANSWER_TRUNCATED = "answer-truncated"
+
+        /** The turn ended normally but produced no answer text. */
+        const val EMPTY_ANSWER = "empty-answer"
+
+        // Finish reasons that mean "stopped because it ran out of room", as
+        // opposed to "finished what it had to say". DeepSeek/OpenAI say
+        // "length"; Anthropic says "max_tokens".
+        val TRUNCATION_FINISH_REASONS = setOf("length", "max_tokens")
+
+        // Leading chars of the user's question kept in a log line — enough to
+        // identify the request in kauri's logs without shipping the whole
+        // question (which can carry page context the user typed).
+        const val QUERY_LOG_CHARS = 120
+
         const val BAD_REQUEST = 400
         const val PAYMENT_REQUIRED = 402
         const val TOO_MANY_REQUESTS = 429
@@ -253,10 +274,34 @@ class AgentController(
                 } ?: promptSpec.call()
 
             val chatResponse = callResponse.chatResponse()
-            val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: "(empty response)"
+            val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: ""
             val elapsedMs = System.currentTimeMillis() - startMs
 
             logLlmInteraction(userMessage, tools, chatResponse, content, elapsedMs, modelId)
+
+            // Same hole the streaming path had: a turn can succeed at the HTTP
+            // level and still say nothing (typically after the context window
+            // filled with tool results). Answering with a blank body left every
+            // caller rendering an empty response and no reason for it.
+            if (content.isBlank()) {
+                val code = emptyAnswerCode(chatResponse?.result?.metadata?.finishReason)
+                log.warn(
+                    "Agent query produced no answer: code={}, model={}, query=\"{}\"",
+                    code,
+                    modelId,
+                    safeQuery.take(QUERY_LOG_CHARS)
+                )
+                return ResponseEntity
+                    .status(statusFor(code))
+                    .body(
+                        AgentResponse(
+                            query = safeQuery,
+                            response = messageFor(code),
+                            timestamp = Instant.now().toString(),
+                            error = code
+                        )
+                    )
+            }
 
             ResponseEntity.ok(
                 AgentResponse(
@@ -464,6 +509,13 @@ class AgentController(
             PROVIDER_TIMEOUT -> {
                 "The AI provider took too long to respond. Please try again."
             }
+            ANSWER_TRUNCATED -> {
+                "The question needed more data than the AI can hold at once, so it ran out of room " +
+                    "before answering. Try asking about one plan, phase or holding at a time."
+            }
+            EMPTY_ANSWER -> {
+                "The AI finished without producing an answer. Please try again, or rephrase the question."
+            }
             else -> {
                 "The agent failed to process the request."
             }
@@ -482,6 +534,16 @@ class AgentController(
                 .current()
 
         val totalChars = AtomicLong(0)
+        // Chars of *answer* — narration before a tool turn doesn't count, since
+        // the reader is left with nothing when the turn that follows it never
+        // produces text. Zeroed at every tool-turn boundary, which is why this
+        // can't just be `totalChars` (that one guards connect-retry and has to
+        // count every char ever streamed).
+        val answerChars = AtomicLong(0)
+        // Last non-blank finish reason seen, for classifying an answerless
+        // stream: `length`/`max_tokens` mean truncation, anything else means
+        // the model simply said nothing.
+        val lastFinishReason = AtomicReference<String?>(null)
         // Spring AI's chatResponse() Flux surfaces ChatResponse per chunk; the
         // final emission carries usage tokens. Capture it so doneEvent can
         // ship token measurements to Sentry alongside char count + elapsed.
@@ -502,7 +564,17 @@ class AgentController(
                             ?.text
                             .orEmpty()
                     val finishReason = resp.result?.metadata?.finishReason
-                    if (text.isNotEmpty()) totalChars.addAndGet(text.length.toLong())
+                    if (text.isNotEmpty()) {
+                        totalChars.addAndGet(text.length.toLong())
+                        answerChars.addAndGet(text.length.toLong())
+                    }
+                    val reason = finishReason?.takeIf { it.isNotBlank() }?.lowercase()
+                    if (reason != null) {
+                        lastFinishReason.set(reason)
+                        // Whatever was said before the tool call was narration,
+                        // not the answer — the answer is what comes after.
+                        if (reason in TOOL_TURN_FINISH_REASONS) answerChars.set(0)
+                    }
                     Flux.fromIterable(sseEventsFor(text, finishReason))
                 }
         val doneEvent =
@@ -532,8 +604,38 @@ class AgentController(
                     // wrapper, so classifyError still maps it accurately.
                     .onRetryExhaustedThrow { _, signal -> signal.failure() }
             )
-        return retriedTokens.concatWith(doneEvent)
+        // A stream that ends without an answer is a failure the client can't
+        // otherwise see: HTTP was 200, no exception was thrown, and the `done`
+        // envelope carries metadata only — so the UI would render an empty
+        // assistant bubble and say nothing about why. Classified and emitted
+        // as a normal error event, using the same codes both transports share.
+        val emptyAnswerEvent =
+            Flux.defer {
+                if (answerChars.get() > 0L) {
+                    Flux.empty()
+                } else {
+                    val code = emptyAnswerCode(lastFinishReason.get())
+                    log.warn(
+                        "Agent stream produced no answer: code={}, finish_reason={}, model={}, query=\"{}\"",
+                        code,
+                        lastFinishReason.get(),
+                        modelId,
+                        safeQuery.take(QUERY_LOG_CHARS)
+                    )
+                    errorEvent(code)
+                }
+            }
+        return retriedTokens.concatWith(emptyAnswerEvent).concatWith(doneEvent)
     }
+
+    /**
+     * Why a turn ended with no answer text. `length`/`max_tokens` mean the
+     * model ran out of room — on the heavy domains that is the context window
+     * being consumed by tool results, which is actionable (ask something
+     * narrower) in a way that a bare "something went wrong" is not.
+     */
+    private fun emptyAnswerCode(finishReason: String?): String =
+        if (finishReason?.lowercase() in TRUNCATION_FINISH_REASONS) ANSWER_TRUNCATED else EMPTY_ANSWER
 
     /**
      * True when the failure is a transient network/connectivity error worth
@@ -614,7 +716,7 @@ class AgentController(
                 usage?.completionTokens ?: 0,
                 usage?.totalTokens ?: 0,
                 elapsedMs,
-                safeQuery.take(120)
+                safeQuery.take(QUERY_LOG_CHARS)
             )
         }
         // Build via Jackson rather than string interpolation so a future

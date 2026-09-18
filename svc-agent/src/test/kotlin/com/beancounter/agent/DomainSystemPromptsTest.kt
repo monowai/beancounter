@@ -37,6 +37,28 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `wealth prompt treats xirr on young positions as annualisation noise`() {
+        // A five-ETF bond sleeve opened 1-11 weeks earlier was narrated as
+        // "XIRR -1.45% explained by a 28bp front-end move": the annualised
+        // figure was ~-0.3% cumulative. The existing "opened days ago" rule
+        // did not cover positions weeks old.
+        assertThat(DomainSystemPrompts.WEALTH)
+            .contains("annualisation noise")
+            .contains("6 months")
+    }
+
+    @Test
+    fun `wealth prompt classifies the book and gives bond books a yield yardstick`() {
+        // getBenchmark only has equity scopes; a fixed-income book must be
+        // measured against yield moves and judged for diversification within
+        // its mandate, not against an all-asset ideal.
+        assertThat(DomainSystemPrompts.WEALTH)
+            .contains("Classify the book")
+            .contains("fixed-income")
+            .contains("within the mandate")
+    }
+
+    @Test
     fun `every domain prompt tells the model to call tools silently`() {
         // Partial mitigation for the streamed-narration bug: the model still
         // emits "let me gather..." text ahead of a tool-calls turn on some

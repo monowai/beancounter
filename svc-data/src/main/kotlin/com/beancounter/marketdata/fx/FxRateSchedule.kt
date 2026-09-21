@@ -3,6 +3,7 @@ package com.beancounter.marketdata.fx
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import io.sentry.spring7.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +37,7 @@ class FxRateSchedule(
     private val fxProviderService: FxProviderService,
     private val fxRateRepository: FxRateRepository,
     private val dateUtils: DateUtils,
+    private val conflictTolerantWriter: ConflictTolerantWriter,
     // Number of prior calendar days to also fetch alongside today. Total
     // dates per run = backfillDays + 1. Default 3 → today + 3 prior = 4 dates.
     @Value("\${beancounter.fx.schedule.backfill-days:3}")
@@ -82,7 +84,10 @@ class FxRateSchedule(
             }
             val rates = fxProviderService.getRates(date.toString(), providerId = null)
             if (rates.isNotEmpty()) {
-                fxRateRepository.saveAll(rates)
+                // Can race the request-path insert in FxRateService.getRates for the same
+                // date (both see the date uncached) - route through the same conflict-
+                // tolerant writer so the loser skips rows the winner already committed.
+                conflictTolerantWriter.saveAll(fxRateRepository, rates)
                 cacheInvalidationProducer?.sendFxEvent(date)
                 hits++
                 log.info("Pre-warmed FX rates for {}: {} rates", date, rates.size)

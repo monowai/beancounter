@@ -9,9 +9,9 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
-import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -53,7 +53,19 @@ class PriceServiceTest {
         cashUtils = mock(CashUtils::class.java)
         eventProducer = mock(EventProducer::class.java)
         cacheInvalidationProducer = mock(CacheInvalidationProducer::class.java)
-        priceService = PriceService(marketDataRepo, cashUtils, assetFinder, mock(EntityManager::class.java))
+        // Delegate straight through to marketDataRepo.saveAll so existing stubs/verifies
+        // on the mock repo keep working unchanged — the writer's transactional retry
+        // behaviour is covered separately by ConflictTolerantWriterTest.
+        val conflictTolerantWriter =
+            mock(ConflictTolerantWriter::class.java) { invocation ->
+                @Suppress("UNCHECKED_CAST")
+                val repo = invocation.getArgument<MarketDataRepo>(0)
+
+                @Suppress("UNCHECKED_CAST")
+                val rows = invocation.getArgument<List<MarketData>>(1)
+                repo.saveAll(rows).toList()
+            }
+        priceService = PriceService(marketDataRepo, cashUtils, assetFinder, conflictTolerantWriter)
         priceService.setEventWriter(eventProducer)
         priceService.setCacheInvalidationProducer(cacheInvalidationProducer)
         `when`(assetFinder.find(asset.id)).thenReturn(asset)

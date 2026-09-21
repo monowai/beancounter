@@ -13,9 +13,9 @@ import com.beancounter.common.utils.TestEnvironmentUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
-import jakarta.persistence.EntityManager
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +33,7 @@ class PriceService(
     private val marketDataRepo: MarketDataRepo,
     private val cashUtils: CashUtils,
     private val assetFinder: AssetFinder,
-    private val entityManager: EntityManager
+    private val conflictTolerantWriter: ConflictTolerantWriter
 ) {
     private val log = LoggerFactory.getLogger(PriceService::class.java)
     private var eventProducer: EventProducer? = null
@@ -150,15 +150,19 @@ class PriceService(
      * IMPORTANT: Prices with close <= 0 are rejected as invalid data from the provider.
      * A zero or negative price indicates a provider issue and should never be stored.
      *
-     * Caller contract: the chunked persist clears the whole persistence context
-     * (see [persistInChunks]), so do NOT invoke this inside an enclosing
-     * transaction whose managed entities you keep using afterwards — they would
-     * be silently detached. Every current caller lets this method own its
-     * transaction; keep it that way. The returned rows are the
-     * application-constructed inputs (plain in-memory references, safe after
-     * commit), never Hibernate-managed instances.
+     * No longer @Transactional: [buildCreateSet]'s dedup read and [persistInChunks]'s
+     * write can never be atomic against a concurrent writer doing the same thing for
+     * the same asset — the natural key is (source, asset_id, priceDate), not the
+     * generated `id`, so a second caller's INSERT for a row this call already wrote
+     * doesn't collide until flush. Wrapping the whole method in one transaction only
+     * widened that window and held an extra connection for its length. Instead each
+     * chunk is written through [ConflictTolerantWriter], which persists in its own
+     * REQUIRES_NEW transaction and, on a unique-constraint conflict, retries row by
+     * row and skips only the rows a concurrent writer already committed. The
+     * returned rows are always the application-constructed inputs (plain in-memory
+     * references), never Hibernate-managed instances — safe to use after this
+     * method returns regardless of what the writer actually persisted.
      */
-    @Transactional
     fun handle(priceResponse: PriceResponse): Iterable<MarketData> {
         val eligible = priceResponse.data.filter { !cashUtils.isCash(it.asset) && isValidPrice(it) }
 
@@ -185,10 +189,10 @@ class PriceService(
             persistInChunks(createSet)
             val dates = createSet.map { it.priceDate }.distinct()
             dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
-            // Return the application-constructed rows, not saveAll's managed
-            // copies — those are detached by the per-chunk clear() and would
-            // hand any future caller entities whose associations can't be
-            // trusted after the transaction ends. createSet holds the same
+            // Return the application-constructed rows. Each chunk was written in
+            // ConflictTolerantWriter's own REQUIRES_NEW transaction, which has
+            // already ended, so any managed instance from it would be detached
+            // with associations that can't be trusted. createSet holds the same
             // data with plain in-memory references throughout.
             createSet
         }
@@ -229,18 +233,18 @@ class PriceService(
     }
 
     /**
-     * Persists in bounded-size chunks, flushing and clearing the persistence
-     * context after each one. Without this a large backfill (a year ≈ 260
-     * rows, a storm of concurrent backfills far more) keeps every managed
-     * `MarketData` entity — plus Hibernate's dirty-check snapshots — alive in
-     * one session for the whole call, which is what pushed bc-data over a
-     * 512m heap during the #1096 incident.
+     * Persists in bounded-size chunks via [ConflictTolerantWriter]. Each chunk is
+     * saved and flushed in its own short-lived REQUIRES_NEW transaction, so — as
+     * before #1096 — no managed `MarketData` entity or Hibernate dirty-check
+     * snapshot from one chunk stays alive for the rest of a large backfill (a year
+     * ≈ 260 rows, a storm of concurrent backfills far more). The writer additionally
+     * retries a chunk row by row and skips only the rows that collide with a
+     * concurrent writer's already-committed insert on the (source, asset_id,
+     * priceDate) unique constraint, instead of failing the whole call.
      */
     private fun persistInChunks(createSet: List<MarketData>) {
         createSet.chunked(SAVE_CHUNK_SIZE).forEach { chunk ->
-            marketDataRepo.saveAll(chunk)
-            entityManager.flush()
-            entityManager.clear()
+            conflictTolerantWriter.saveAll(marketDataRepo, chunk)
         }
     }
 

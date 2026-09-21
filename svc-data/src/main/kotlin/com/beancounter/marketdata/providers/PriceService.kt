@@ -189,10 +189,10 @@ class PriceService(
             persistInChunks(createSet)
             val dates = createSet.map { it.priceDate }.distinct()
             dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
-            // Return the application-constructed rows, not saveAll's managed
-            // copies — those are detached by the per-chunk clear() and would
-            // hand any future caller entities whose associations can't be
-            // trusted after the transaction ends. createSet holds the same
+            // Return the application-constructed rows. Each chunk was written in
+            // ConflictTolerantWriter's own REQUIRES_NEW transaction, which has
+            // already ended, so any managed instance from it would be detached
+            // with associations that can't be trusted. createSet holds the same
             // data with plain in-memory references throughout.
             createSet
         }

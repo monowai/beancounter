@@ -9,19 +9,27 @@ import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
+import jakarta.persistence.PersistenceException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.hibernate.exception.ConstraintViolationException
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataAccessResourceFailureException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
+import java.sql.SQLException
+import java.sql.SQLIntegrityConstraintViolationException
 import java.time.LocalDate
 
 /**
@@ -202,5 +210,110 @@ class ConflictTolerantWriterTest {
         assertThatThrownBy { writer.saveAll(repo, listOf(row)) }
             .isInstanceOf(DataAccessResourceFailureException::class.java)
             .hasMessageContaining("connection pool exhausted")
+    }
+
+    @Test
+    fun `should propagate a NOT NULL violation instead of dropping the row`() {
+        val repo = mock<JpaRepository<MarketData, String>>()
+        whenever(repo.saveAllAndFlush(any<List<MarketData>>()))
+            .thenThrow(
+                DataIntegrityViolationException(
+                    "not null",
+                    ConstraintViolationException(
+                        "not null",
+                        SQLException("not null", "23502"),
+                        "insert ...",
+                        ConstraintViolationException.ConstraintKind.NOT_NULL,
+                        "close"
+                    )
+                )
+            )
+        val row =
+            MarketData(
+                asset =
+                    Asset(
+                        code = "CTW-NN",
+                        market = NASDAQ,
+                        marketCode = NASDAQ.code
+                    ),
+                priceDate = LocalDate.of(2026, 5, 1),
+                close = BigDecimal.TEN
+            )
+
+        assertThatThrownBy { writer.saveAll(repo, listOf(row)) }
+            .isInstanceOf(DataIntegrityViolationException::class.java)
+
+        verify(
+            repo,
+            never()
+        ).saveAndFlush(any())
+    }
+
+    @Test
+    fun `should propagate a FOREIGN KEY violation instead of dropping the row`() {
+        val repo = mock<JpaRepository<MarketData, String>>()
+        whenever(repo.saveAllAndFlush(any<List<MarketData>>()))
+            .thenThrow(
+                DataIntegrityViolationException(
+                    "foreign key",
+                    ConstraintViolationException(
+                        "foreign key",
+                        SQLException("foreign key", "23503"),
+                        "insert ...",
+                        ConstraintViolationException.ConstraintKind.FOREIGN_KEY,
+                        "fk_market_data_asset"
+                    )
+                )
+            )
+        val row =
+            MarketData(
+                asset =
+                    Asset(
+                        code = "CTW-FK",
+                        market = NASDAQ,
+                        marketCode = NASDAQ.code
+                    ),
+                priceDate = LocalDate.of(2026, 5, 2),
+                close = BigDecimal.TEN
+            )
+
+        assertThatThrownBy { writer.saveAll(repo, listOf(row)) }
+            .isInstanceOf(DataIntegrityViolationException::class.java)
+
+        verify(
+            repo,
+            never()
+        ).saveAndFlush(any())
+    }
+
+    @Test
+    fun `should retry when a unique violation surfaces without Hibernate's wrapper`() {
+        val repo = mock<JpaRepository<MarketData, String>>()
+        val row =
+            MarketData(
+                asset =
+                    Asset(
+                        code = "CTW-BARE",
+                        market = NASDAQ,
+                        marketCode = NASDAQ.code
+                    ),
+                priceDate = LocalDate.of(2026, 5, 3),
+                close = BigDecimal.TEN
+            )
+        whenever(repo.saveAllAndFlush(any<List<MarketData>>()))
+            .thenThrow(
+                PersistenceException(
+                    SQLIntegrityConstraintViolationException("dup", "23505")
+                )
+            )
+        whenever(repo.saveAndFlush(any<MarketData>())).thenReturn(row)
+
+        val written = writer.saveAll(repo, listOf(row))
+
+        assertThat(written).containsExactly(row)
+        verify(
+            repo,
+            times(1)
+        ).saveAndFlush(row)
     }
 }

@@ -2,12 +2,12 @@ package com.beancounter.marketdata.persistence
 
 import org.hibernate.exception.ConstraintViolationException
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.TransactionTemplate
+import java.sql.SQLException
 
 /**
  * Saves rows that carry a deterministic or natural-key unique constraint without
@@ -44,13 +44,11 @@ class ConflictTolerantWriter(
         return try {
             txn.execute { repo.saveAllAndFlush(rows) }
             rows
-        } catch (e: DataIntegrityViolationException) {
-            retryRowByRow(repo, rows, e.message)
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: RuntimeException
         ) {
-            if (isConstraintViolation(e)) {
+            if (isUniqueViolation(e)) {
                 retryRowByRow(repo, rows, e.message)
             } else {
                 throw e
@@ -77,14 +75,11 @@ class ConflictTolerantWriter(
     ): T? =
         try {
             txn.execute { repo.saveAndFlush(row) }
-        } catch (e: DataIntegrityViolationException) {
-            log.info("Skipping row that conflicted with a concurrent writer: {}", e.message)
-            null
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: RuntimeException
         ) {
-            if (isConstraintViolation(e)) {
+            if (isUniqueViolation(e)) {
                 log.info("Skipping row that conflicted with a concurrent writer: {}", e.message)
                 null
             } else {
@@ -93,16 +88,28 @@ class ConflictTolerantWriter(
         }
 
     /**
-     * Under H2 (tests) the constraint failure can surface as a raw
-     * [ConstraintViolationException] / [jakarta.persistence.PersistenceException]
-     * instead of Spring's translated [DataIntegrityViolationException]. Only treat
-     * it as a benign conflict when a Hibernate [ConstraintViolationException] is
-     * somewhere in the cause chain — anything else propagates.
+     * Only a unique-constraint violation is a benign concurrent-writer conflict; every
+     * other constraint failure (NOT NULL, foreign-key, check) or unrelated data-access
+     * error (e.g. a dropped connection) is a real bug and must propagate.
+     *
+     * Walks the cause chain looking for either:
+     *  - a Hibernate [ConstraintViolationException] whose
+     *    [ConstraintViolationException.getKind] is
+     *    [ConstraintViolationException.ConstraintKind.UNIQUE], or
+     *  - a [SQLException] whose `sqlState` is `23505` (SQLSTATE `unique_violation`,
+     *    shared by Postgres and H2) — covers the case where Hibernate's own wrapper
+     *    is absent, e.g. a raw [jakarta.persistence.PersistenceException] wrapping a
+     *    [java.sql.SQLIntegrityConstraintViolationException].
      */
-    private fun isConstraintViolation(e: Throwable): Boolean {
+    private fun isUniqueViolation(e: Throwable): Boolean {
         var cause: Throwable? = e
         while (cause != null) {
-            if (cause is ConstraintViolationException) return true
+            if (cause is ConstraintViolationException) {
+                return cause.kind == ConstraintViolationException.ConstraintKind.UNIQUE
+            }
+            if (cause is SQLException && cause.sqlState == "23505") {
+                return true
+            }
             cause = cause.cause
         }
         return false

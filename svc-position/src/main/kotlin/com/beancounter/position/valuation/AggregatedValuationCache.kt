@@ -69,6 +69,16 @@ data class ValuationCacheKey(
  * Bounded to [MAX_ENTRIES] so subject churn (many distinct callers within
  * one TTL window) can't grow this unbounded - eviction is Caffeine's
  * default size-based policy (approximated LRU), independent of TTL expiry.
+ *
+ * READ-ONLY CONTRACT: the [PositionResponse] returned on a hit is the exact
+ * same instance previously cached, shared with every other caller that hit
+ * (or, via single-flight, is concurrently awaiting) the same key. [get]
+ * performs no defensive copy, so a caller that mutates the returned
+ * `Positions` (e.g. `response.data.asAt = ...`, adding a position, calling
+ * `setTotal`) would silently corrupt the cached entry for every other
+ * caller sharing it. Today's three callers - `PositionController.aggregated`,
+ * `.allocation` and `.sectorExposure` - only ever read the response; if a
+ * future caller needs to mutate it, it must copy first.
  */
 class AggregatedValuationCache(
     ttlSeconds: Long,

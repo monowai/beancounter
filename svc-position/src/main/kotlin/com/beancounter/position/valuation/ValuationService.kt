@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
@@ -144,6 +145,11 @@ class ValuationService
             return if (value) value(positions) else PositionResponse(positions)
         }
 
+        /**
+         * On a cache hit this returns a [PositionResponse] instance shared with
+         * every other caller of that key - see [AggregatedValuationCache]'s
+         * read-only contract; callers must not mutate it.
+         */
         override fun getAggregatedPositions(
             portfolios: Collection<Portfolio>,
             valuationDate: String,
@@ -179,7 +185,7 @@ class ValuationService
                     value = value,
                     targetCurrencyCode = targetCurrencyCode
                 )
-            } catch (e: Exception) {
+            } catch (e: UnauthorizedException) {
                 log.debug("Valuation cache bypassed: unable to resolve caller subject ({})", e.javaClass.simpleName)
                 null
             }

@@ -103,6 +103,12 @@ class ValuationServiceTest {
             ).thenReturn(BulkClassificationResponse())
 
         Mockito.lenient().`when`(tokenService.bearerToken).thenReturn("")
+        // Default caller subject for the valuation cache key. Narrowing buildCacheKey's
+        // catch to UnauthorizedException (see ValuationService) means an unstubbed mock
+        // returning null here would now surface as an uncaught NPE at ValuationCacheKey's
+        // constructor boundary instead of being swallowed as a cache bypass. Tests that
+        // care about a specific subject (cache wiring tests) override this per-test.
+        Mockito.lenient().`when`(tokenService.subject).thenReturn("test-subject")
         Mockito
             .lenient()
             .`when`(fxRateService.getRates(any(), any()))

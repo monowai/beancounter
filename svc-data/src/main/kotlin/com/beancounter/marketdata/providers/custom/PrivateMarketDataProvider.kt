@@ -25,14 +25,16 @@ class PrivateMarketDataProvider(
     val marketDataRepo: MarketDataRepo,
     val dateUtils: DateUtils
 ) : MarketDataPriceProvider {
-    private fun getMarketData(
+    // ACCOUNT and POLICY (retirement fund) assets are treated like cash - always price = 1
+    private fun isCashLike(asset: Asset): Boolean =
+        asset.assetCategory.id == AssetCategory.ACCOUNT || asset.assetCategory.id == AssetCategory.POLICY
+
+    private fun resolvePrice(
         asset: Asset,
+        closest: MarketData?,
         defaultPrice: BigDecimal
     ): MarketData {
-        // ACCOUNT and POLICY (retirement fund) assets are treated like cash - always price = 1
-        if (asset.assetCategory.id == AssetCategory.ACCOUNT ||
-            asset.assetCategory.id == AssetCategory.POLICY
-        ) {
+        if (isCashLike(asset)) {
             return MarketData(
                 asset,
                 priceDate,
@@ -40,15 +42,10 @@ class PrivateMarketDataProvider(
             )
         }
 
-        val closest =
-            marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
-                asset,
-                priceDate
-            )
-        return if (closest.isPresent) {
+        return if (closest != null) {
             getMarketData(
                 asset,
-                closest.get()
+                closest
             )
         } else {
             MarketData(
@@ -69,15 +66,32 @@ class PrivateMarketDataProvider(
             priceDate = priceDate
         )
 
-    override fun getMarketData(priceRequest: PriceRequest): List<MarketData> =
-        priceRequest.assets.mapNotNull { (_, _, resolvedAsset) ->
-            resolvedAsset?.let {
-                getMarketData(
-                    it,
-                    priceRequest.closePrice
-                )
+    /**
+     * DATA-6G: this provider runs on every `POST /api/prices` call that includes a
+     * PRIVATE-market asset (real estate, art, accounts, policies) - not just the
+     * market-closed fallback the sibling fix in `MarketDataPriceProcessor` covers.
+     * It used to issue one `findTop1By...LessThanEqual` query per asset needing a
+     * carried-forward price; the lookup for the whole request is now a single
+     * batched query.
+     */
+    override fun getMarketData(priceRequest: PriceRequest): List<MarketData> {
+        val assets = priceRequest.assets.mapNotNull { it.resolvedAsset }
+        if (assets.isEmpty()) return emptyList()
+
+        val lookupAssets = assets.filterNot(::isCashLike)
+        val closestByAssetId =
+            if (lookupAssets.isEmpty()) {
+                emptyMap()
+            } else {
+                marketDataRepo
+                    .findLatestByAssetInAndPriceDateLessThanEqual(lookupAssets, priceDate)
+                    .associateBy { it.asset.id }
             }
+
+        return assets.map { asset ->
+            resolvePrice(asset, closestByAssetId[asset.id], priceRequest.closePrice)
         }
+    }
 
     override fun getId(): String = ID
 

@@ -42,7 +42,7 @@ class ConflictTolerantWriter(
     ): List<T> {
         if (rows.isEmpty()) return rows
         return try {
-            txn.execute { repo.saveAllAndFlush(rows) }
+            txn.executeWithoutResult { repo.saveAllAndFlush(rows) }
             rows
         } catch (
             @Suppress("TooGenericExceptionCaught")
@@ -74,7 +74,10 @@ class ConflictTolerantWriter(
         row: T
     ): T? =
         try {
-            txn.execute { repo.saveAndFlush(row) }
+            // Return the caller's own instance, exactly as the fast path does - never
+            // the merged/managed copy saveAndFlush hands back for an assigned-id row.
+            txn.executeWithoutResult { repo.saveAndFlush(row) }
+            row
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: RuntimeException

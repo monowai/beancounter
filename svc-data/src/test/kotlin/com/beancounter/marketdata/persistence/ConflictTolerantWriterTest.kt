@@ -135,7 +135,7 @@ class ConflictTolerantWriterTest {
         val written = writer.saveAll(marketDataRepo, listOf(duplicateOfExisting, freshRow))
 
         assertThat(written).hasSize(1)
-        assertThat(written.first().priceDate).isEqualTo(freshRow.priceDate)
+        assertThat(written.first()).isSameAs(freshRow)
 
         val stored =
             marketDataRepo.findByAssetIdAndPriceDateBetween(

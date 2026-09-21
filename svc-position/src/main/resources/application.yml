@@ -86,7 +86,10 @@ beancounter:
     # When false, zero-quantity positions are excluded from price requests
     includeZeroQuantity: false
     # Short-TTL single-flight cache in front of getAggregatedPositions; 0 disables (bypass) the cache entirely.
-    cache-ttl-seconds: 10
+    # No trn-write hook invalidates this cache (nothing in svc-data calls svc-position on a trade - only
+    # /revalue and the scheduled task do), so this TTL is the ONLY bound on how stale a holding can be
+    # after a booked trade.
+    cache-ttl-seconds: 5
 auth:
   uri: "http://your-auth0-endpoint/"
   audience: "auth0-audience"

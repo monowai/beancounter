@@ -110,6 +110,15 @@ class AggregatedValuationCacheTest {
     }
 
     @Test
+    fun `should bound cache size regardless of subject churn`() {
+        val cache = AggregatedValuationCache(ttlSeconds = 10)
+
+        assertThat(cache.maximumSize())
+            .describedAs("cache must be bounded so many distinct callers can't grow it unbounded")
+            .isEqualTo(500L)
+    }
+
+    @Test
     fun `should bypass cache when ttl is zero`() {
         val cache = AggregatedValuationCache(ttlSeconds = 0)
         val key = testKey()

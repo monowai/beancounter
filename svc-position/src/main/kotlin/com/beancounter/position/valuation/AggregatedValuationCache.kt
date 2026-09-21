@@ -13,10 +13,18 @@ import java.time.Duration
  * purposes. Includes the caller's JWT subject so two different users
  * requesting the same portfolio ids never share a cached response -
  * cross-user leakage here would be a data breach, not a stale read.
+ *
+ * [contextPortfolioId] is `portfolios.first().id` - the synthesised
+ * aggregate's context portfolio (owner/id, and currency when
+ * `targetCurrencyCode` is unset) is derived from whichever portfolio is
+ * first in the caller's list, so a different ordering of the SAME id set
+ * must be treated as a different key rather than collapsed onto whichever
+ * ordering happened to load first.
  */
 data class ValuationCacheKey(
     val subject: String,
     val portfolioIds: List<String>,
+    val contextPortfolioId: String,
     val valuationDate: String,
     val value: Boolean,
     val targetCurrencyCode: String?
@@ -32,6 +40,7 @@ data class ValuationCacheKey(
             ValuationCacheKey(
                 subject = subject,
                 portfolioIds = portfolios.map { it.id }.distinct().sorted(),
+                contextPortfolioId = portfolios.first().id,
                 valuationDate = valuationDate,
                 value = value,
                 targetCurrencyCode = targetCurrencyCode?.uppercase()
@@ -56,6 +65,10 @@ data class ValuationCacheKey(
  * No Spring `@Cacheable`: it gives no single-flight guarantee (each
  * concurrent miss recomputes independently - a thundering herd, not a
  * collapse) and no clean per-call bypass knob, both required here.
+ *
+ * Bounded to [MAX_ENTRIES] so subject churn (many distinct callers within
+ * one TTL window) can't grow this unbounded - eviction is Caffeine's
+ * default size-based policy (approximated LRU), independent of TTL expiry.
  */
 class AggregatedValuationCache(
     ttlSeconds: Long,
@@ -67,10 +80,22 @@ class AggregatedValuationCache(
                 .newBuilder()
                 .ticker(ticker)
                 .expireAfterWrite(Duration.ofSeconds(ttlSeconds))
+                .maximumSize(MAX_ENTRIES)
                 .build()
         } else {
             null
         }
+
+    /**
+     * Exposes the configured maximum size for tests; null when the cache is
+     * bypassed (ttl=0).
+     */
+    internal fun maximumSize(): Long? =
+        cache
+            ?.policy()
+            ?.eviction()
+            ?.orElse(null)
+            ?.maximum
 
     /**
      * Returns the cached response for [key], computing it via [loader] on a
@@ -102,5 +127,6 @@ class AggregatedValuationCache(
 
     companion object {
         private val log = LoggerFactory.getLogger(AggregatedValuationCache::class.java)
+        private const val MAX_ENTRIES = 500L
     }
 }

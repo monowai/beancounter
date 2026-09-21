@@ -263,6 +263,28 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions loads twice when the same portfolio ids are passed in a different order`() {
+        // Given - same subject and same SET of portfolio ids, but a different
+        // first portfolio. portfolios.first() drives the aggregate's context
+        // (owner/id, and currency when targetCurrencyCode is null - see
+        // ValuationService.getAggregatedPositions), so a different ordering
+        // of the same id set must not be served from the other ordering's
+        // cached response.
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When - targetCurrencyCode is null, so the context portfolio matters
+        valuationService.getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(listOf(portfolio2, portfolio), DateUtils.TODAY, value = false)
+
+        // Then - both calls load fresh (two full loads, not a cache hit)
+        verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
+        verify(trnService, times(2)).query(portfolio2, DateUtils.TODAY)
+    }
+
+    @Test
     fun `getAggregatedPositions bypasses cache when ttl is zero`() {
         // Given - a service configured with cache-ttl-seconds=0
         val bypassService =

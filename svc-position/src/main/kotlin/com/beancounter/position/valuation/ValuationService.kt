@@ -58,8 +58,8 @@ class ValuationService
         private val tokenService: TokenService,
         private val dateUtils: DateUtils,
         private val earmarkService: EarmarkService,
-        @Value("\${beancounter.valuation.cache-ttl-seconds:10}")
-        private val cacheTtlSeconds: Long = 10
+        @Value("\${beancounter.valuation.cache-ttl-seconds:5}")
+        private val cacheTtlSeconds: Long = 5
     ) : Valuation {
         private val log = LoggerFactory.getLogger(ValuationService::class.java)
         private val averageCost = AverageCost()

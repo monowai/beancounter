@@ -5,6 +5,7 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -25,6 +26,7 @@ class FxRateScheduleTest {
     private val fxProviderService = mock<FxProviderService>()
     private val fxRateRepository = mock<FxRateRepository>()
     private val cacheInvalidationProducer = mock<CacheInvalidationProducer>()
+    private val conflictTolerantWriter = mock<ConflictTolerantWriter>()
     private val dateUtils = DateUtils()
 
     private val usd = Currency("USD")
@@ -41,13 +43,21 @@ class FxRateScheduleTest {
             )
         )
 
-    private fun newSchedule(backfillDays: Int) =
-        FxRateSchedule(
+    private fun newSchedule(backfillDays: Int): FxRateSchedule {
+        // Delegate straight through to fxRateRepository.saveAll so existing
+        // stubs/verifies on the mock repo keep working unchanged — the writer's
+        // transactional retry behaviour is covered by ConflictTolerantWriterTest.
+        whenever(conflictTolerantWriter.saveAll<FxRate>(any(), any())).thenAnswer { invocation ->
+            fxRateRepository.saveAll(invocation.getArgument<List<FxRate>>(1)).toList()
+        }
+        return FxRateSchedule(
             fxProviderService = fxProviderService,
             fxRateRepository = fxRateRepository,
             dateUtils = dateUtils,
+            conflictTolerantWriter = conflictTolerantWriter,
             backfillDays = backfillDays
         ).apply { setCacheInvalidationProducer(cacheInvalidationProducer) }
+    }
 
     @Test
     fun `fetches today plus backfill range and saves uncached dates`() {

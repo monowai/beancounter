@@ -2,16 +2,20 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
 import java.time.LocalDate
 import java.util.Optional
 
 /**
- * MarketData CRUD repo.
+ * MarketData CRUD repo. Extends JpaRepository (rather than plain CrudRepository)
+ * so [com.beancounter.marketdata.persistence.ConflictTolerantWriter] can use
+ * `saveAllAndFlush`/`saveAndFlush` to surface a concurrent-insert conflict on
+ * the (source, asset_id, priceDate) unique constraint inside its own
+ * transaction instead of at some later, unrelated flush.
  */
-interface MarketDataRepo : CrudRepository<MarketData, String> {
+interface MarketDataRepo : JpaRepository<MarketData, String> {
     fun findByAssetIdAndPriceDate(
         assetId: String,
         date: LocalDate?

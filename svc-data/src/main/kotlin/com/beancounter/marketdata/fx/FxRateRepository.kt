@@ -2,15 +2,18 @@ package com.beancounter.marketdata.fx
 
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.CrudRepository
 import java.time.LocalDate
 
 /**
  * Repository interface for accessing FX Rate data.
- * Extends CrudRepository to provide CRUD operations for FxRate entities.
+ * Extends JpaRepository (rather than plain CrudRepository) so
+ * [com.beancounter.marketdata.persistence.ConflictTolerantWriter] can use
+ * `saveAllAndFlush`/`saveAndFlush` to surface a concurrent-insert conflict
+ * inside its own transaction instead of at some later, unrelated flush.
  */
-interface FxRateRepository : CrudRepository<FxRate, String> {
+interface FxRateRepository : JpaRepository<FxRate, String> {
     /**
      * Finds any cached FX rates for a date (regardless of provider).
      * Used for normal valuations - uses whatever rate we have cached.

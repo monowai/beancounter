@@ -11,6 +11,7 @@ import com.beancounter.marketdata.currency.CurrencyConfig
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,7 +39,8 @@ class BulkFxRateServiceTest {
                 currencyService = currencyService,
                 marketService = marketService,
                 marketUtils = PreviousClosePriceDate(DateUtils()),
-                fxRateRepository = fxRateRepository
+                fxRateRepository = fxRateRepository,
+                conflictTolerantWriter = mock(ConflictTolerantWriter::class.java)
             )
     }
 

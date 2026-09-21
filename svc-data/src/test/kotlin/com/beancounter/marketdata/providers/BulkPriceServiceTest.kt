@@ -7,7 +7,7 @@ import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.PRIVATE_MARKET
 import com.beancounter.marketdata.assets.AssetFinder
-import jakarta.persistence.EntityManager
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,7 +35,7 @@ class BulkPriceServiceTest {
     @BeforeEach
     fun setUp() {
         marketDataRepo = mock(MarketDataRepo::class.java)
-        priceService = PriceService(marketDataRepo, CashUtils(), assetFinder, mock(EntityManager::class.java))
+        priceService = PriceService(marketDataRepo, CashUtils(), assetFinder, mock(ConflictTolerantWriter::class.java))
     }
 
     @Test

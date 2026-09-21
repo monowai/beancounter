@@ -15,6 +15,7 @@ import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,7 +35,8 @@ class FxRateService(
     private val currencyService: CurrencyService,
     private val marketService: MarketService,
     val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
-    val fxRateRepository: FxRateRepository
+    val fxRateRepository: FxRateRepository,
+    private val conflictTolerantWriter: ConflictTolerantWriter
 ) : FxService {
     private val log = LoggerFactory.getLogger(FxRateService::class.java)
     private val dateUtils = DateUtils()
@@ -111,7 +113,12 @@ class FxRateService(
             )
             rates = fxProviderService.getRates(dateString, fxRequest.provider).toMutableList()
             if (rates.isNotEmpty()) {
-                fxRateRepository.saveAll(rates)
+                // A concurrent request for the same date can race this insert (both see
+                // no cached rate, both fetch from the provider, both try to write the
+                // same deterministic FxRate.id). The writer isolates the attempt in its
+                // own transaction and skips only the rows a concurrent winner already
+                // committed - the in-memory `rates` below are the same values either way.
+                conflictTolerantWriter.saveAll(fxRateRepository, rates)
                 cacheInvalidationProducer?.sendFxEvent(dateToFind)
                 // Add in the base rate of 1 for USD
                 rates.add(baseCurrencyFxRate(fxRequest.provider))

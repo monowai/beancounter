@@ -191,6 +191,44 @@ class ConflictTolerantWriterTest {
     }
 
     @Test
+    fun `should retry when Hibernate cannot classify the constraint but SQLSTATE says unique`() {
+        val repo = mock<JpaRepository<MarketData, String>>()
+        val row =
+            MarketData(
+                asset =
+                    Asset(
+                        code = "CTW-OTHER",
+                        market = NASDAQ,
+                        marketCode = NASDAQ.code
+                    ),
+                priceDate = LocalDate.of(2026, 5, 4),
+                close = BigDecimal.TEN
+            )
+        whenever(repo.saveAllAndFlush(any<List<MarketData>>()))
+            .thenThrow(
+                DataIntegrityViolationException(
+                    "dup",
+                    ConstraintViolationException(
+                        "dup",
+                        SQLException("dup", "23505"),
+                        "insert into market_data ...",
+                        ConstraintViolationException.ConstraintKind.OTHER,
+                        null
+                    )
+                )
+            )
+        whenever(repo.saveAndFlush(any<MarketData>())).thenReturn(row)
+
+        val written = writer.saveAll(repo, listOf(row))
+
+        assertThat(written).containsExactly(row)
+        verify(
+            repo,
+            times(1)
+        ).saveAndFlush(row)
+    }
+
+    @Test
     fun `should propagate non-constraint failures`() {
         val repo = mock<JpaRepository<MarketData, String>>()
         whenever(repo.saveAllAndFlush(any<List<MarketData>>()))

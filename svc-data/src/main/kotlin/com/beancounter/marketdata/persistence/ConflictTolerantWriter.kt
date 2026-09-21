@@ -62,7 +62,7 @@ class ConflictTolerantWriter(
         batchFailureMessage: String?
     ): List<T> {
         log.info(
-            "Concurrent insert detected, retrying {} row(s) individually: {}",
+            "Unique-constraint conflict detected, retrying {} row(s) individually: {}",
             rows.size,
             batchFailureMessage
         )
@@ -83,7 +83,7 @@ class ConflictTolerantWriter(
             e: RuntimeException
         ) {
             if (isUniqueViolation(e)) {
-                log.info("Skipping row that conflicted with a concurrent writer: {}", e.message)
+                log.info("Skipping row that already exists (unique-constraint conflict): {}", e.message)
                 null
             } else {
                 throw e
@@ -107,9 +107,13 @@ class ConflictTolerantWriter(
     private fun isUniqueViolation(e: Throwable): Boolean {
         var cause: Throwable? = e
         while (cause != null) {
-            if (cause is ConstraintViolationException) {
-                return cause.kind == ConstraintViolationException.ConstraintKind.UNIQUE
+            if (cause is ConstraintViolationException &&
+                cause.kind == ConstraintViolationException.ConstraintKind.UNIQUE
+            ) {
+                return true
             }
+            // A non-UNIQUE (or unclassified) kind is not a verdict: keep walking so
+            // the SQLSTATE fallback below can still recognise the violation.
             if (cause is SQLException && cause.sqlState == "23505") {
                 return true
             }

@@ -45,6 +45,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
@@ -229,6 +230,64 @@ class ValuationServiceTest {
 
         // Then
         assertThat(result.data.positions).isEmpty()
+    }
+
+    @Test
+    fun `getAggregatedPositions collapses repeated identical calls via the cache`() {
+        // Given - a resolvable caller subject (the cache key requires the JWT subject)
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When - two back-to-back identical aggregated valuation requests
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+
+        // Then - the second call is served from the cache; trnService is hit once
+        verify(trnService, times(1)).query(portfolio, DateUtils.TODAY)
+    }
+
+    @Test
+    fun `getAggregatedPositions does not share cached results across different callers`() {
+        // Given - two different JWT subjects requesting the SAME portfolios/date
+        whenever(tokenService.subject).thenReturn("user-1", "user-2")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+
+        // Then - different subjects with identical portfolio ids must both miss
+        verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
+    }
+
+    @Test
+    fun `getAggregatedPositions bypasses cache when ttl is zero`() {
+        // Given - a service configured with cache-ttl-seconds=0
+        val bypassService =
+            ValuationService(
+                positionValuationService,
+                trnService,
+                positionService,
+                marketValueUpdateProducer,
+                classificationClient,
+                fxRateService,
+                tokenService,
+                dateUtils,
+                earmarkService,
+                cacheTtlSeconds = 0
+            )
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When - two back-to-back identical requests
+        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+
+        // Then - both calls load fresh; nothing is cached
+        verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
     }
 
     @Test

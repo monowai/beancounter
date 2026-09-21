@@ -31,6 +31,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -56,10 +57,17 @@ class ValuationService
         private val fxRateService: FxService,
         private val tokenService: TokenService,
         private val dateUtils: DateUtils,
-        private val earmarkService: EarmarkService
+        private val earmarkService: EarmarkService,
+        @Value("\${beancounter.valuation.cache-ttl-seconds:10}")
+        private val cacheTtlSeconds: Long = 10
     ) : Valuation {
         private val log = LoggerFactory.getLogger(ValuationService::class.java)
         private val averageCost = AverageCost()
+
+        // Short-TTL, single-flight cache in front of getAggregatedPositions - see
+        // AggregatedValuationCache for the evidence and rationale. cache-ttl-seconds=0
+        // disables it entirely (every call loads fresh).
+        private val aggregatedValuationCache = AggregatedValuationCache(cacheTtlSeconds)
 
         override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
             val trnResponse = trnService.query(trnQuery) // Adhoc query
@@ -145,7 +153,43 @@ class ValuationService
             if (portfolios.isEmpty()) {
                 return PositionResponse()
             }
+            val cacheKey = buildCacheKey(portfolios, valuationDate, value, targetCurrencyCode)
+            return aggregatedValuationCache.get(cacheKey) {
+                computeAggregatedPositions(portfolios, valuationDate, value, targetCurrencyCode)
+            }
+        }
 
+        /**
+         * Resolves the caller's JWT subject and builds the cache key for this
+         * call. Returns null (cache bypass, never a cross-user risk) when the
+         * subject can't be resolved - e.g. no authenticated SecurityContext -
+         * rather than caching under a placeholder identity.
+         */
+        private fun buildCacheKey(
+            portfolios: Collection<Portfolio>,
+            valuationDate: String,
+            value: Boolean,
+            targetCurrencyCode: String?
+        ): ValuationCacheKey? =
+            try {
+                ValuationCacheKey.of(
+                    subject = tokenService.subject,
+                    portfolios = portfolios,
+                    valuationDate = valuationDate,
+                    value = value,
+                    targetCurrencyCode = targetCurrencyCode
+                )
+            } catch (e: Exception) {
+                log.debug("Valuation cache bypassed: unable to resolve caller subject ({})", e.javaClass.simpleName)
+                null
+            }
+
+        private fun computeAggregatedPositions(
+            portfolios: Collection<Portfolio>,
+            valuationDate: String,
+            value: Boolean,
+            targetCurrencyCode: String?
+        ): PositionResponse {
             // Capture the security context to propagate to coroutines
             val securityContext = SecurityContextHolder.getContext()
 

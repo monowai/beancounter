@@ -1,0 +1,17 @@
+-- Index market_data for per-asset latest-price lookups.
+--
+-- MarketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual (POST /api/prices, the
+-- critical path of every valuation) runs a correlated MAX(priceDate) subquery per asset.
+-- On a restore of kauri's market_data (338,941 rows) the only existing indexes are the
+-- pkey and the unique constraint on (source, asset_id, price_date) - twice, under two
+-- names, from Hibernate ddl-auto drift. That unique index has `source` leading, so it
+-- can't be used for a per-asset lookup: EXPLAIN ANALYZE on the Hibernate-shaped SQL for
+-- 8 assets showed a parallel seq scan per asset, 370ms total. A probe (asset_id,
+-- price_date DESC) index on that restore turned that into an index-only scan, 0.002ms
+-- per asset / 25ms for the same 8-asset query.
+--
+-- findByAssetInAndPriceDate (exact-date lookup) benefits from the same index.
+--
+-- IF NOT EXISTS + DESC on the trailing column runs unchanged on H2 (tests, MODE=MySQL)
+-- and Postgres (prod) - see MarketDataIndexMigrationTest.
+CREATE INDEX IF NOT EXISTS idx_market_data_asset_price ON market_data (asset_id, price_date DESC);

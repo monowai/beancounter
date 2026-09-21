@@ -45,6 +45,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
@@ -102,6 +103,12 @@ class ValuationServiceTest {
             ).thenReturn(BulkClassificationResponse())
 
         Mockito.lenient().`when`(tokenService.bearerToken).thenReturn("")
+        // Default caller subject for the valuation cache key. Narrowing buildCacheKey's
+        // catch to UnauthorizedException (see ValuationService) means an unstubbed mock
+        // returning null here would now surface as an uncaught NPE at ValuationCacheKey's
+        // constructor boundary instead of being swallowed as a cache bypass. Tests that
+        // care about a specific subject (cache wiring tests) override this per-test.
+        Mockito.lenient().`when`(tokenService.subject).thenReturn("test-subject")
         Mockito
             .lenient()
             .`when`(fxRateService.getRates(any(), any()))
@@ -229,6 +236,86 @@ class ValuationServiceTest {
 
         // Then
         assertThat(result.data.positions).isEmpty()
+    }
+
+    @Test
+    fun `getAggregatedPositions collapses repeated identical calls via the cache`() {
+        // Given - a resolvable caller subject (the cache key requires the JWT subject)
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When - two back-to-back identical aggregated valuation requests
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+
+        // Then - the second call is served from the cache; trnService is hit once
+        verify(trnService, times(1)).query(portfolio, DateUtils.TODAY)
+    }
+
+    @Test
+    fun `getAggregatedPositions does not share cached results across different callers`() {
+        // Given - two different JWT subjects requesting the SAME portfolios/date
+        whenever(tokenService.subject).thenReturn("user-1", "user-2")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+
+        // Then - different subjects with identical portfolio ids must both miss
+        verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
+    }
+
+    @Test
+    fun `getAggregatedPositions loads twice when the same portfolio ids are passed in a different order`() {
+        // Given - same subject and same SET of portfolio ids, but a different
+        // first portfolio. portfolios.first() drives the aggregate's context
+        // (owner/id, and currency when targetCurrencyCode is null - see
+        // ValuationService.getAggregatedPositions), so a different ordering
+        // of the same id set must not be served from the other ordering's
+        // cached response.
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When - targetCurrencyCode is null, so the context portfolio matters
+        valuationService.getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(listOf(portfolio2, portfolio), DateUtils.TODAY, value = false)
+
+        // Then - both calls load fresh (two full loads, not a cache hit)
+        verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
+        verify(trnService, times(2)).query(portfolio2, DateUtils.TODAY)
+    }
+
+    @Test
+    fun `getAggregatedPositions bypasses cache when ttl is zero`() {
+        // Given - a service configured with cache-ttl-seconds=0
+        val bypassService =
+            ValuationService(
+                positionValuationService,
+                trnService,
+                positionService,
+                marketValueUpdateProducer,
+                classificationClient,
+                fxRateService,
+                tokenService,
+                dateUtils,
+                earmarkService,
+                cacheTtlSeconds = 0
+            )
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        // When - two back-to-back identical requests
+        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+
+        // Then - both calls load fresh; nothing is cached
+        verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
     }
 
     @Test

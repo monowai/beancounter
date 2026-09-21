@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.spring.cloud.stream)
     implementation(libs.spring.cloud.stream.binder.rabbit)
     implementation("org.apache.commons:commons-math3:3.6.1")
+    // Single-flight short-TTL cache in front of aggregated valuations (ValuationService).
+    implementation("com.github.ben-manes.caffeine:caffeine")
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.postgresql)
     implementation(libs.flyway.core)

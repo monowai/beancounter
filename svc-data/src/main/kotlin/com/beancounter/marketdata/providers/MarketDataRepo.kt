@@ -119,6 +119,34 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
     ): List<MarketData>
 
     /**
+     * Batched latest-on-or-before lookup for a set of assets (DATA-6G). For each asset in
+     * [assets], returns its row with the greatest `priceDate <= date` — i.e. the same answer
+     * [findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc] gives per asset, but in
+     * one query for the whole set. Lets
+     * [com.beancounter.marketdata.providers.PriceService.getLatestMarketData] replace a
+     * findTop1-per-asset fallback loop (POST /api/prices on a market-closed day) with a
+     * single round trip.
+     *
+     * Implemented as a correlated MAX subquery rather than `DISTINCT ON` / a window function
+     * so it runs unchanged on H2 (tests) and Postgres (prod). When more than one source has a
+     * row for an asset on its own latest date, every tied row is returned — the caller picks
+     * one per asset id, which matches the existing "any provider's close is acceptable for
+     * previous-close resolution" tie policy used elsewhere in this repo.
+     */
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset a " +
+            "WHERE a IN :assets AND md.priceDate <= :date " +
+            "AND md.priceDate = (" +
+            "SELECT MAX(md2.priceDate) FROM MarketData md2 " +
+            "WHERE md2.asset = a AND md2.priceDate <= :date" +
+            ")"
+    )
+    fun findLatestByAssetInAndPriceDateLessThanEqual(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("date") date: LocalDate
+    ): List<MarketData>
+
+    /**
      * Find stored prices that represent corporate events (dividend or split).
      */
     @Query(

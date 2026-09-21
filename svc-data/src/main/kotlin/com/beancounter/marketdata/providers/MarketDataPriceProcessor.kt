@@ -203,10 +203,12 @@ class MarketDataPriceProcessor(
         }
 
         // API provider returned no valid prices - market may be closed (holiday)
-        // Fall back to most recent available prices
+        // Fall back to most recent available prices. Batched into a single query
+        // (DATA-6G) instead of one lookup per asset.
+        val latestByAssetId = priceService.getLatestMarketData(remainingAssets, priceDate)
         val fallbackPrices =
             remainingAssets.mapNotNull { asset ->
-                priceService.getLatestMarketData(asset, priceDate)?.copy(asset = asset)
+                latestByAssetId[asset.id]?.copy(asset = asset)
             }
 
         if (fallbackPrices.isNotEmpty()) {

@@ -10,6 +10,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import java.math.BigDecimal
@@ -77,9 +79,10 @@ class MarketDataPriceProcessorTest {
         `when`(mockProvider.getMarketData(any()))
             .thenReturn(emptyList())
 
-        // Fallback: most recent price before holiday
-        `when`(priceService.getLatestMarketData(asset, holidayDate))
-            .thenReturn(lastTradingDayPrice)
+        // Fallback: most recent price before holiday, resolved for all remaining
+        // assets in a single batched call
+        `when`(priceService.getLatestMarketData(listOf(asset), holidayDate))
+            .thenReturn(mapOf(asset.id to lastTradingDayPrice))
 
         `when`(providerUtils.getInputs(any<List<Asset>>()))
             .thenReturn(listOf(priceAsset))
@@ -187,9 +190,10 @@ class MarketDataPriceProcessorTest {
         `when`(mockProvider.getMarketData(any()))
             .thenReturn(listOf(invalidPrice))
 
-        // Fallback: most recent valid price before holiday
-        `when`(priceService.getLatestMarketData(asset, holidayDate))
-            .thenReturn(lastTradingDayPrice)
+        // Fallback: most recent valid price before holiday, resolved for all remaining
+        // assets in a single batched call
+        `when`(priceService.getLatestMarketData(listOf(asset), holidayDate))
+            .thenReturn(mapOf(asset.id to lastTradingDayPrice))
 
         `when`(providerUtils.getInputs(any<List<Asset>>()))
             .thenReturn(listOf(priceAsset))
@@ -240,5 +244,55 @@ class MarketDataPriceProcessorTest {
         // Then: Should return the cached price from DB
         assertThat(response.data).hasSize(1)
         assertThat(response.data.first().close).isEqualByComparingTo(BigDecimal("152.00"))
+    }
+
+    @Test
+    fun `should resolve holiday fallback for multiple assets in a single batched call (DATA-6G)`() {
+        // Given: three assets, all falling back on a holiday - the N+1 Sentry flagged
+        // (issue DATA-6G) was one getLatestMarketData call per remaining asset here.
+        val holidayDate = LocalDate.of(2024, 12, 25)
+        val lastTradingDay = LocalDate.of(2024, 12, 24)
+
+        val assetB = Asset(code = "MSFT", id = "msft-id", market = NASDAQ)
+        val assetC = Asset(code = "GOOG", id = "goog-id", market = NASDAQ)
+        val remainingAssets = listOf(asset, assetB, assetC)
+        val priceAssets = remainingAssets.map { PriceAsset(it) }
+
+        val priceRequest =
+            PriceRequest(
+                date = holidayDate.toString(),
+                assets = priceAssets,
+                currentMode = true
+            )
+
+        val fallbackByAssetId =
+            remainingAssets.associate { a ->
+                a.id to MarketData(asset = a, priceDate = lastTradingDay, close = BigDecimal("100.00"))
+            }
+
+        `when`(providerUtils.splitProviders(priceRequest.assets))
+            .thenReturn(mutableMapOf(mockProvider to remainingAssets.toMutableList()))
+        `when`(mockProvider.getId()).thenReturn(AlphaPriceService.ID)
+        `when`(mockProvider.isApiSupported()).thenReturn(true)
+        `when`(utilityService.getMarketDate(mockProvider, asset, priceRequest))
+            .thenReturn(holidayDate)
+        `when`(priceService.getMarketData(any<Collection<Asset>>(), any()))
+            .thenReturn(emptyList())
+        `when`(mockProvider.getMarketData(any())).thenReturn(emptyList())
+        `when`(providerUtils.getInputs(any<List<Asset>>())).thenReturn(priceAssets)
+
+        // Fallback resolved for the whole remaining set in one call
+        `when`(priceService.getLatestMarketData(remainingAssets, holidayDate))
+            .thenReturn(fallbackByAssetId)
+
+        // When: Requesting prices for the closed market day
+        val response = processor.getPriceResponse(priceRequest)
+
+        // Then: All three assets get their fallback price, and the batched lookup was
+        // invoked exactly once for the whole set - not once per asset.
+        assertThat(response.data).hasSize(3)
+        assertThat(response.data.map { it.close })
+            .allMatch { it.compareTo(BigDecimal("100.00")) == 0 }
+        verify(priceService, times(1)).getLatestMarketData(remainingAssets, holidayDate)
     }
 }

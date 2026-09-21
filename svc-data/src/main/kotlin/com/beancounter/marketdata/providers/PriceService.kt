@@ -754,17 +754,25 @@ class PriceService(
     }
 
     /**
-     * Get the most recent market data for an asset on or before the given date.
-     * Used as a fallback when the market was closed on the requested date.
+     * Get the most recent market data for each of [assets] on or before [date], keyed by
+     * asset id. Used as a fallback when the market was closed on the requested date.
+     *
+     * Single batched query (DATA-6G) via
+     * [MarketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual] instead of one
+     * findTop1By...LessThanEqual query per asset — a POST /api/prices request for N assets
+     * on a market-closed day used to issue N such queries, flagged by Sentry as an N+1
+     * (issue DATA-6G, 18 repetitions for an 18-asset request).
      */
     @Transactional
     fun getLatestMarketData(
-        asset: Asset,
+        assets: Collection<Asset>,
         date: LocalDate
-    ): MarketData? =
-        marketDataRepo
-            .findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(asset, date)
-            .orElse(null)
+    ): Map<String, MarketData> {
+        if (assets.isEmpty()) return emptyMap()
+        return marketDataRepo
+            .findLatestByAssetInAndPriceDateLessThanEqual(assets, date)
+            .associateBy { it.asset.id }
+    }
 
     /**
      * SAFEGUARD: Count market data records for an asset on a specific date

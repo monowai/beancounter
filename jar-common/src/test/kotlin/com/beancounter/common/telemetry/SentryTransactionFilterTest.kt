@@ -93,6 +93,51 @@ class SentryTransactionFilterTest {
     }
 
     @Test
+    fun `should drop unlabeled transactions`() {
+        val transaction = mock(SentryTransaction::class.java)
+        val contexts = mock(Contexts::class.java)
+        `when`(transaction.contexts).thenReturn(contexts)
+        `when`(contexts["otel"]).thenReturn(null)
+        `when`(transaction.transaction).thenReturn("<unlabeled transaction>")
+
+        val result = filter.filterTransaction(transaction)
+
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun `should drop jwks fetches`() {
+        val viaUrlFull = mock(SentryTransaction::class.java)
+        val urlFullContexts = mock(Contexts::class.java)
+        `when`(viaUrlFull.contexts).thenReturn(urlFullContexts)
+        `when`(urlFullContexts["otel"]).thenReturn(
+            mapOf(
+                "attributes" to
+                    mapOf("url.full" to "http://beancounter.eu.auth0.com/.well-known/jwks.json")
+            )
+        )
+
+        val viaHttpTarget = createMockTransaction("/.well-known/jwks.json")
+
+        assertThat(filter.filterTransaction(viaUrlFull)).isNull()
+        assertThat(filter.filterTransaction(viaHttpTarget)).isNull()
+    }
+
+    @Test
+    fun `should keep named API transactions without http attributes`() {
+        val transaction = mock(SentryTransaction::class.java)
+        val contexts = mock(Contexts::class.java)
+        `when`(transaction.contexts).thenReturn(contexts)
+        `when`(contexts["otel"]).thenReturn(null)
+        `when`(transaction.transaction).thenReturn("GET /api/fx")
+
+        val result = filter.filterTransaction(transaction)
+
+        assertThat(result).isNotNull
+        assertThat(result).isSameAs(transaction)
+    }
+
+    @Test
     fun `should strip Transaction commit child spans but keep the rest`() {
         val spans =
             mutableListOf(

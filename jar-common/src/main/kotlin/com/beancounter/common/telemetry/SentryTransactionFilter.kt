@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component
  * - Actuator health/metrics endpoints
  * - Swagger/OpenAPI documentation
  * - Static resources (favicon, CSS, JS, images)
+ * - Unlabeled zero-duration DB root spans emitted by the sentry-opentelemetry-agent with no parent, pure quota burn
+ * - Outbound Auth0 JWKS fetches, background library work that always reports as internal_error noise
  */
 @Component
 @ConditionalOnProperty(
@@ -44,7 +46,11 @@ class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
             Regex("/api-docs"),
             Regex("/swagger-ui.*"),
             Regex("/swagger-resources"),
-            Regex("/openapi")
+            Regex("/openapi"),
+            // Unlabeled DB root spans (no parent, no diagnostic value)
+            Regex("^<unlabeled transaction>$"),
+            // Outbound Auth0 JWKS fetches (self-healing background library work)
+            Regex("/\\.well-known/jwks\\.json")
         )
 
     override fun execute(

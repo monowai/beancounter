@@ -46,7 +46,7 @@ subprojects {
         exclude(group = "commons-logging", module = "commons-logging")
         resolutionStrategy.eachDependency {
             if (requested.group == "io.sentry") {
-                useVersion("8.40.0")
+                useVersion(libs.versions.sentry.get())
                 because("Align all Sentry dependencies to avoid mixed versions warning")
             }
         }
@@ -56,8 +56,6 @@ subprojects {
         // entry can be removed.
         resolutionStrategy {
             force(
-                // CVE-2025-48924 — uncontrolled recursion / DoS
-                "org.apache.commons:commons-lang3:3.20.0",
                 // CVE-2025-48734 — unsafe reflection (test/contract tooling)
                 "commons-beanutils:commons-beanutils:1.11.0"
             )

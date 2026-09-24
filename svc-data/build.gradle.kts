@@ -63,7 +63,7 @@ dependencies {
     runtimeOnly(libs.flyway.postgresql)
     implementation(libs.spring.cloud.stream)
     implementation(libs.spring.cloud.stream.binder.rabbit)
-    implementation("com.opencsv:opencsv:5.11.1")
+    implementation("com.opencsv:opencsv:5.12.0")
 
     compileOnly(libs.spring.boot.configuration.processor)
     contractTestImplementation("org.springframework.cloud:spring-cloud-starter-contract-verifier")

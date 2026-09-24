@@ -135,7 +135,8 @@
         ],
         "labels": [
             "security"
-        ]
+        ],
+        "minimumReleaseAge": null
     },
     "dependencyDashboardAutoclose": false,
     "lockFileMaintenance": {

@@ -239,4 +239,42 @@ class ResponseScrubberTest {
         assertThat(scrubbed.rows).hasSize(1)
         assertThat(scrubbed.rows.single()[codeIdx]).isEqualTo("OPEN")
     }
+
+    @Test
+    fun `closed positions are returned with a closed column only when requested`() {
+        // Default payload stays open-only and column-stable. When the user
+        // names a sold holding, the tool re-calls with includeClosed=true and
+        // the LLM needs the closed flag to tell the two apart.
+        val openAsset = Asset(code = "OPEN", market = nasdaq, category = "Equity")
+        val openPosition = Position(openAsset, portfolio)
+        openPosition.quantityValues.purchased = BigDecimal("10")
+
+        val closedAsset = Asset(code = "OLD", market = nasdaq, category = "Equity")
+        val closedPosition = Position(closedAsset, portfolio)
+
+        val positions =
+            Positions(portfolio).apply {
+                add(openPosition)
+                add(closedPosition)
+            }
+        val response = PositionResponse(positions)
+
+        val openOnly = scrubber.scrub(response)
+        assertThat(openOnly.cols).doesNotContain("closed")
+        assertThat(openOnly.rows).hasSize(1)
+
+        val withClosed = scrubber.scrub(response, includeClosed = true)
+        val codeIdx = withClosed.cols.indexOf("assetCode")
+        val closedIdx = withClosed.cols.indexOf("closed")
+        assertThat(closedIdx).isEqualTo(withClosed.cols.size - 1)
+        assertThat(withClosed.rows).hasSize(2)
+        assertThat(withClosed.rows.map { it[codeIdx] }).containsExactlyInAnyOrder("OPEN", "OLD")
+        assertThat(withClosed.rows.single { it[codeIdx] == "OLD" }[closedIdx]).isEqualTo(true)
+        assertThat(withClosed.rows.single { it[codeIdx] == "OPEN" }[closedIdx]).isEqualTo(false)
+        withClosed.rows.forEach { assertThat(it).hasSize(withClosed.cols.size) }
+
+        val aggregated = scrubber.scrubAggregated(response, includeClosed = true)
+        assertThat(aggregated.cols).doesNotContain("weight").contains("closed")
+        assertThat(aggregated.rows).hasSize(2)
+    }
 }

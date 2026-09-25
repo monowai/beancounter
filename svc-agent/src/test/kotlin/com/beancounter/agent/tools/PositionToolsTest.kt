@@ -128,4 +128,29 @@ class PositionToolsTest {
         assertThat(result.rows).hasSize(1)
         verify(client).getAggregatedPositions(listOf("A", "B"), "today", true)
     }
+
+    @Test
+    fun `closed positions are excluded unless the tool is asked for them`() {
+        val closedAsset = Asset(code = "SOLD", market = nasdaq, category = "Equity")
+        val positions = samplePositions().apply { add(Position(closedAsset, portfolio)) }
+        val client =
+            mock<PositionClient> {
+                on { getPositionsByCode("TEST", "today", true) } doReturn PositionResponse(positions)
+                on { getPositionsById("pf-1", "today", true) } doReturn PositionResponse(positions)
+                on { getAggregatedPositions(listOf("TEST"), "today") } doReturn PositionResponse(positions)
+            }
+        val tools = PositionTools(client, scrubber, dateUtils)
+
+        assertThat(tools.getPositions("TEST").rows).hasSize(1)
+        assertThat(tools.getPositions("TEST").cols).doesNotContain("closed")
+        assertThat(tools.getPositionsByPortfolioId("pf-1").rows).hasSize(1)
+        assertThat(tools.getAggregatedPositions("TEST").rows).hasSize(1)
+
+        val codeIdx = ScrubbedPositionResponse.COLS.indexOf("assetCode")
+        val byCode = tools.getPositions("TEST", includeClosed = true)
+        assertThat(byCode.cols).contains("closed")
+        assertThat(byCode.rows.map { it[codeIdx] }).containsExactlyInAnyOrder("AAPL", "SOLD")
+        assertThat(tools.getPositionsByPortfolioId("pf-1", includeClosed = true).rows).hasSize(2)
+        assertThat(tools.getAggregatedPositions("TEST", includeClosed = true).rows).hasSize(2)
+    }
 }

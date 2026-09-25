@@ -39,9 +39,13 @@ class PositionTools(
     @Tool(description = POSITIONS_DESC)
     fun getPositions(
         @ToolParam(description = "Portfolio code as the user types it, e.g. 'TYLER'") portfolioCode: String,
-        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY
+        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY,
+        @ToolParam(description = INCLUDE_CLOSED_DESC) includeClosed: Boolean = false
     ): ScrubbedPositionResponse =
-        scrubber.scrub(positionClient.getPositionsByCode(portfolioCode, normaliseAsAt(asAt), includeValues = true))
+        scrubber.scrub(
+            positionClient.getPositionsByCode(portfolioCode, normaliseAsAt(asAt), includeValues = true),
+            includeClosed = includeClosed
+        )
 
     @Tool(description = POSITIONS_BY_ID_DESC)
     fun getPositionsByPortfolioId(
@@ -51,9 +55,13 @@ class PositionTools(
                     "Required for managed/shared portfolios where the user is not the owner. " +
                     "Use this when the page context provides `portfolioId` instead of `portfolioCode`."
         ) portfolioId: String,
-        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY
+        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY,
+        @ToolParam(description = INCLUDE_CLOSED_DESC) includeClosed: Boolean = false
     ): ScrubbedPositionResponse =
-        scrubber.scrub(positionClient.getPositionsById(portfolioId, normaliseAsAt(asAt), includeValues = true))
+        scrubber.scrub(
+            positionClient.getPositionsById(portfolioId, normaliseAsAt(asAt), includeValues = true),
+            includeClosed = includeClosed
+        )
 
     @Tool(description = POSITIONS_AGGREGATED_DESC)
     fun getAggregatedPositions(
@@ -66,7 +74,8 @@ class PositionTools(
                     "portfolios — treat it as a single combined dataset and do NOT narrate " +
                     "per-portfolio breakdowns; the `weight` column is intentionally absent."
         ) portfolioCodes: String,
-        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY
+        @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY,
+        @ToolParam(description = INCLUDE_CLOSED_DESC) includeClosed: Boolean = false
     ): ScrubbedPositionResponse {
         val codes =
             portfolioCodes
@@ -74,11 +83,20 @@ class PositionTools(
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
         return scrubber.scrubAggregated(
-            positionClient.getAggregatedPositions(codes, normaliseAsAt(asAt), includeValues = true)
+            positionClient.getAggregatedPositions(codes, normaliseAsAt(asAt), includeValues = true),
+            includeClosed = includeClosed
         )
     }
 
     companion object {
+        const val INCLUDE_CLOSED_DESC =
+            "Default false: only open holdings are returned. Pass true ONLY when the user " +
+                "explicitly asks about closed, sold, exited or historical holdings, or names " +
+                "a holding that is missing from the open rows (re-call with true before " +
+                "telling them they don't hold it). When true, a trailing `closed` boolean " +
+                "column is appended — say which holdings are closed, and never count a " +
+                "closed row towards current exposure, weight or allocation."
+
         const val ASAT_DESC =
             "Valuation date. Pass 'today' for the current valuation — never today's calendar " +
                 "date, which values against the previous close. Use an explicit YYYY-MM-DD only " +
@@ -105,9 +123,9 @@ class PositionTools(
                 "for detecting dormant holdings); " +
                 "`lastDividend` (ISO date of the most recent dividend, or null " +
                 "if the holding has never paid a dividend). " +
-                "Closed (zero-quantity) positions are filtered out before " +
-                "the response is built, so every row represents an open " +
-                "holding — there is no `closed` column to inspect. " +
+                "Closed (zero-quantity) positions are filtered out by default, " +
+                "so every row represents an open holding and there is no " +
+                "`closed` column unless `includeClosed=true` was passed. " +
                 "The response also carries `portfolioCode`, `portfolioName`, " +
                 "`baseCurrency`, `asAt`, `mixedCurrencies`, and `overallIrr`. " +
                 "Show ratios as percentages when discussing performance. " +

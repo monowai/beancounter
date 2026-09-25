@@ -33,8 +33,9 @@ data class ScrubbedPortfolio(
  * applies on every chat turn.
  *
  * Closed (zero-quantity) positions are filtered out before this DTO is
- * built, so every row represents an open position. The legacy `closed`
- * column has been dropped accordingly.
+ * built unless the caller asks for them (`includeClosed`), in which case a
+ * trailing `closed` boolean column is appended so the LLM can tell a sold
+ * holding from an open one. The default payload never carries that column.
  *
  * Column meanings (decimals throughout for ratios):
  *   assetCode, assetName, market   — public identifiers
@@ -80,6 +81,9 @@ data class ScrubbedPositionResponse(
         // The remaining columns match COLS in order so prompts can describe
         // the schema once and reference both views.
         val COLS_AGGREGATED: List<String> = COLS.filterNot { it == "weight" }
+
+        /** Appended to whichever column set is in use when closed rows are requested. */
+        const val CLOSED_COL = "closed"
     }
 }
 
@@ -99,29 +103,47 @@ class ResponseScrubber {
 
     fun scrub(response: PortfoliosResponse): List<ScrubbedPortfolio> = response.data.map(::scrub)
 
-    fun scrub(response: PositionResponse): ScrubbedPositionResponse = scrubInternal(response, includeWeight = true)
+    /**
+     * @param includeClosed keep zero-quantity rows and append a `closed` column.
+     *   Off by default: closed holdings only belong in an answer when the user
+     *   asked about them or named one.
+     */
+    fun scrub(
+        response: PositionResponse,
+        includeClosed: Boolean = false
+    ): ScrubbedPositionResponse = scrubInternal(response, includeWeight = true, includeClosed = includeClosed)
 
     /**
      * Aggregated-portfolio variant. Drops the `weight` column from both
      * `cols` and every row — see [ScrubbedPositionResponse.COLS_AGGREGATED]
      * for the rationale.
      */
-    fun scrubAggregated(response: PositionResponse): ScrubbedPositionResponse =
-        scrubInternal(response, includeWeight = false)
+    fun scrubAggregated(
+        response: PositionResponse,
+        includeClosed: Boolean = false
+    ): ScrubbedPositionResponse = scrubInternal(response, includeWeight = false, includeClosed = includeClosed)
 
     private fun scrubInternal(
         response: PositionResponse,
-        includeWeight: Boolean
+        includeWeight: Boolean,
+        includeClosed: Boolean
     ): ScrubbedPositionResponse {
         val positions = response.data
         // Drop closed (zero-quantity) rows server-side so the LLM never sees
-        // them. Earlier the system prompt asked the LLM to filter silently;
-        // it kept surfacing them in commentary anyway. Excluding here is
-        // both cheaper (smaller payload) and behaviourally reliable.
-        val openRows =
+        // them by default. Earlier the system prompt asked the LLM to filter
+        // silently; it kept surfacing them in commentary anyway. Excluding
+        // here is both cheaper (smaller payload) and behaviourally reliable.
+        // The LLM opts in per call when the user asks about a sold holding.
+        val rows =
             positions.positions.values
-                .filter { it.quantityValues.getTotal().signum() != 0 }
-                .map { scrubPositionRow(it, includeWeight) }
+                .filter { includeClosed || !it.isClosed() }
+                .map { scrubPositionRow(it, includeWeight, includeClosed) }
+        val baseCols =
+            if (includeWeight) {
+                ScrubbedPositionResponse.COLS
+            } else {
+                ScrubbedPositionResponse.COLS_AGGREGATED
+            }
         return ScrubbedPositionResponse(
             portfolioCode = positions.portfolio.code,
             portfolioName = positions.portfolio.name,
@@ -132,19 +154,17 @@ class ResponseScrubber {
                 positions.totals[Position.In.PORTFOLIO]
                     ?.irr
                     ?.toNullableDouble(),
-            cols =
-                if (includeWeight) {
-                    ScrubbedPositionResponse.COLS
-                } else {
-                    ScrubbedPositionResponse.COLS_AGGREGATED
-                },
-            rows = openRows
+            cols = if (includeClosed) baseCols + ScrubbedPositionResponse.CLOSED_COL else baseCols,
+            rows = rows
         )
     }
 
+    private fun Position.isClosed(): Boolean = quantityValues.getTotal().signum() == 0
+
     private fun scrubPositionRow(
         position: Position,
-        includeWeight: Boolean = true
+        includeWeight: Boolean,
+        includeClosed: Boolean
     ): List<Any?> {
         val portfolioBucket = position.moneyValues[Position.In.PORTFOLIO]
         val price = portfolioBucket?.priceData
@@ -171,7 +191,8 @@ class ResponseScrubber {
                 position.dateValues.last?.toString(),
                 position.dateValues.lastDividend?.toString()
             )
-        return base + weightCol + tail
+        val closedCol: List<Any?> = if (includeClosed) listOf(position.isClosed()) else emptyList()
+        return base + weightCol + tail + closedCol
     }
 }
 

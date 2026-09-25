@@ -232,13 +232,18 @@ object DomainSystemPrompts {
 
         ### Closed positions
 
-        Closed (zero-quantity) positions are pre-filtered — every `rows`
+        Position tools return open holdings only by default — every `rows`
         entry is an open holding. Don't infer, list, count, or comment on
         closed holdings; absence ≠ sold.
 
-        Exception: the user explicitly asks about closed/sold/historical
-        holdings — say plainly that positions data covers open holdings
-        only and closed history isn't available here.
+        Exception — pass `includeClosed=true` when:
+        - the user explicitly asks about closed/sold/exited/historical
+          holdings, or
+        - the user names a holding that is not in the open rows: re-call
+          with `includeClosed=true` before saying they don't hold it.
+        With it set, a trailing `closed` boolean column is appended. Say
+        which holdings are closed, and never count a closed row towards
+        current exposure, weight or allocation.
         """.trimIndent()
 
     /**
@@ -278,9 +283,9 @@ object DomainSystemPrompts {
 
         ### Closed positions
 
-        Include closed positions (`closed = true`) for historical trades
-        or past dividends. Exclude by default for current holdings/
-        exposure.
+        Pass `includeClosed=true` to the position tools for historical
+        trades or past dividends (rows then carry a `closed` flag).
+        Leave it off for current holdings/exposure.
         """.trimIndent()
 
     /**
@@ -605,7 +610,8 @@ object DomainSystemPrompts {
         - Performance vs the market, market-wide vs stock-specific →
           `getBenchmark(scope)`.
 
-        Closed positions (quantity = 0) are excluded by default unless the
-        user explicitly asks about historical/sold/closed holdings.
+        Closed positions (quantity = 0) are excluded by default. Pass
+        `includeClosed=true` only when the user asks about historical/
+        sold/closed holdings or names a holding missing from the open rows.
         """.trimIndent()
 }

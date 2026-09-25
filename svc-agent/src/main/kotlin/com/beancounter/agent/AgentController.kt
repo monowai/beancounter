@@ -83,6 +83,12 @@ class AgentController(
         // prompt regardless of what the client sends.
         const val MAX_HISTORY_TURNS = 6
 
+        // DeepSeek output caps. In thinking mode `max_tokens` covers
+        // reasoning_content plus the answer, so a thinking turn needs the
+        // deep-tier headroom; the non-thinking fast client keeps the small cap.
+        const val FAST_MAX_TOKENS = 4096
+        const val THINKING_MAX_TOKENS = 16384
+
         // Stable client-facing failure codes. bc-view keys its copy off these
         // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
         const val NO_LLM = "no-llm"
@@ -189,10 +195,18 @@ class AgentController(
      * Anthropic surface it also explicitly enables thinking with a 4k budget
      * (Claude 4 has thinking on by default; setting it explicitly documents
      * intent and lets the budget be tuned).
+     *
+     * `think` (the interactive Chat FAB) routes to DeepSeek's thinking client,
+     * where `max_tokens` caps reasoning_content *and* the answer together —
+     * DeepSeek's own default in thinking mode is 64k. Under the fast-tier 4k
+     * cap a v4-flash turn on kauri spent the whole budget reasoning about a
+     * 27k-token prompt and finished on `length` with no answer at all, so a
+     * thinking turn gets the same headroom as the deep tier.
      */
     internal fun buildOptions(
         modelId: String,
-        deepThink: Boolean
+        deepThink: Boolean,
+        think: Boolean = false
     ): org.springframework.ai.chat.prompt.ChatOptions.Builder<*>? =
         when {
             anthropicActive -> {
@@ -200,7 +214,7 @@ class AgentController(
                 anthropicCacheOptions?.let(b::cacheOptions)
                 if (deepThink) {
                     b
-                        .maxTokens(16384)
+                        .maxTokens(THINKING_MAX_TOKENS)
                         // Spring AI 2.0: the two-arg thinking(type, budget) is
                         // gone; thinkingEnabled(budgetTokens) is the explicit
                         // enable + budget call (4k budget preserved).
@@ -212,7 +226,7 @@ class AgentController(
                 org.springframework.ai.deepseek.DeepSeekChatOptions
                     .builder()
                     .model(modelId)
-                    .maxTokens(if (deepThink) 16384 else 4096)
+                    .maxTokens(if (deepThink || think) THINKING_MAX_TOKENS else FAST_MAX_TOKENS)
             }
             else -> {
                 null
@@ -270,7 +284,7 @@ class AgentController(
             // options — Anthropic cache config must be re-applied here, or
             // every request silently loses prompt caching. See buildOptions.
             val callResponse =
-                buildOptions(modelId, request.deepThink)?.let { opts ->
+                buildOptions(modelId, request.deepThink, request.think)?.let { opts ->
                     promptSpec.options(opts).call()
                 } ?: promptSpec.call()
 
@@ -683,7 +697,7 @@ class AgentController(
                 .messages(historyMessages(request))
                 .user(buildUserMessage(request))
                 .tools(*tools)
-        return buildOptions(modelId, request.deepThink)?.let { opts ->
+        return buildOptions(modelId, request.deepThink, request.think)?.let { opts ->
             promptSpec.options(opts).stream()
         } ?: promptSpec.stream()
     }

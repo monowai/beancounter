@@ -922,6 +922,35 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `buildOptions on deepseek profile with think raises maxTokens so reasoning cannot starve the answer`() {
+        // kauri 2026-09-25: a Chat FAB question on v4-flash (thinking on) spent
+        // the whole 4096 output budget on reasoning_content and finished on
+        // `length` with zero answer text — prompt was only 27k of a 1M window.
+        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+        val ctrl =
+            AgentController(
+                null,
+                null, // fastChatClient
+                null,
+                stubChecker(),
+                toolSelector,
+                systemPromptSelector,
+                chatModelSelector,
+                env,
+                ObjectMapper(),
+                LlmMetrics(),
+                permissiveAuthorizer
+            )
+        val opts =
+            (
+                ctrl.buildOptions("deepseek-v4-flash", deepThink = false, think = true)
+                    as org.springframework.ai.deepseek.DeepSeekChatOptions.Builder
+            ).build()
+        assertThat(opts.model).isEqualTo("deepseek-v4-flash")
+        assertThat(opts.maxTokens).isEqualTo(16384)
+    }
+
+    @Test
     fun `buildOptions on anthropic default with deepThink enables thinking`() {
         // Empty active profiles → anthropicActive = true (real Anthropic surface).
         val ctrl = controller()

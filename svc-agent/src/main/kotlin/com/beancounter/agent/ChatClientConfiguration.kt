@@ -1,6 +1,7 @@
 package com.beancounter.agent
 
-import com.beancounter.agent.clients.DeepSeekNonThinking
+import com.beancounter.agent.clients.BodyRewrite
+import com.beancounter.agent.clients.DeepSeekThinking
 import io.micrometer.observation.ObservationRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.ai.anthropic.AnthropicCacheOptions
@@ -63,36 +64,55 @@ class ChatClientConfiguration {
     }
 
     /**
-     * DeepSeek native ChatClient. Uses Spring AI's first-class DeepSeek module
-     * (spring-ai-starter-model-deepseek) rather than the OpenAI-compat surface,
-     * so DeepSeekAssistantMessage.getReasoningContent() is available and
-     * multi-turn tool calls correctly strip reasoning_content from echoed
-     * messages (DeepSeek 400s otherwise).
+     * DeepSeek native ChatClient (thinking mode) for the interactive Chat FAB.
+     * Uses Spring AI's first-class DeepSeek module rather than the OpenAI-compat
+     * surface, so DeepSeekAssistantMessage.getReasoningContent() is available
+     * and multi-turn tool calls correctly echo reasoning_content (DeepSeek 400s
+     * otherwise).
+     *
+     * Hand-built rather than the autoconfigured model so every request carries
+     * `reasoning_effort: low` — see [DeepSeekThinking.lowEffort]. Full-effort
+     * thinking starved the answer of output budget on kauri (beancounter#1128);
+     * a deep-think turn still sets `high` per call.
      */
     @Bean("chatClient")
     @Profile("deepseek")
-    fun deepSeekChatClient(chatModel: DeepSeekChatModel): ChatClient {
-        log.info("Building DeepSeek ChatClient ({})", chatModel.javaClass.simpleName)
-        return build(chatModel)
+    fun deepSeekChatClient(
+        @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
+        @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
+        @Value($$"${spring.ai.deepseek.chat.options.model:deepseek-flash}") model: String,
+        @Value($$"${spring.ai.deepseek.chat.options.temperature:0.2}") temperature: Double,
+        @Value($$"${spring.ai.deepseek.chat.options.max-tokens:4096}") maxTokens: Int,
+        objectMapper: ObjectMapper,
+        toolCallingManager: ToolCallingManager,
+        observationRegistry: ObservationRegistry
+    ): ChatClient {
+        log.info("Building DeepSeek thinking ChatClient (low reasoning effort) for the Chat FAB")
+        return build(
+            deepSeekModel(
+                DeepSeekConnection(apiKey, baseUrl, model, temperature, maxTokens),
+                objectMapper,
+                toolCallingManager,
+                observationRegistry,
+                DeepSeekThinking::lowEffort
+            )
+        )
     }
 
     /**
      * Non-thinking ("fast") DeepSeek ChatClient for pre-canned prompts.
      *
-     * DeepSeek v4-flash defaults to thinking mode (big latency + reasoning-token
-     * cost). Spring AI 2.0 exposes no option to disable it, so this builds a
-     * second DeepSeek model whose RestClient (sync) + WebClient (streaming) inject
-     * `thinking: {type: disabled}` into the request body — see [DeepSeekNonThinking].
-     * The default [deepSeekChatClient] keeps thinking on for the interactive Chat
-     * FAB; [com.beancounter.agent.AgentController] routes per request via the
-     * `think` flag.
+     * DeepSeek Flash defaults to thinking mode (big latency + reasoning-token
+     * cost). Its requests carry `thinking: {type: disabled}` — see
+     * [DeepSeekThinking.disableThinking]. [com.beancounter.agent.AgentController]
+     * routes per request via the `think` flag.
      */
     @Bean("fastChatClient")
     @Profile("deepseek")
     fun fastDeepSeekChatClient(
         @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
         @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
-        @Value($$"${spring.ai.deepseek.chat.options.model:deepseek-v4-flash}") model: String,
+        @Value($$"${spring.ai.deepseek.chat.options.model:deepseek-flash}") model: String,
         @Value($$"${spring.ai.deepseek.chat.options.temperature:0.2}") temperature: Double,
         @Value($$"${spring.ai.deepseek.chat.options.max-tokens:4096}") maxTokens: Int,
         objectMapper: ObjectMapper,
@@ -100,32 +120,61 @@ class ChatClientConfiguration {
         observationRegistry: ObservationRegistry
     ): ChatClient {
         log.info("Building DeepSeek non-thinking (fast) ChatClient for pre-canned prompts")
-        val fastApi =
+        return build(
+            deepSeekModel(
+                DeepSeekConnection(apiKey, baseUrl, model, temperature, maxTokens),
+                objectMapper,
+                toolCallingManager,
+                observationRegistry,
+                DeepSeekThinking::disableThinking
+            )
+        )
+    }
+
+    /** DeepSeek endpoint and default chat options shared by both clients. */
+    private data class DeepSeekConnection(
+        val apiKey: String,
+        val baseUrl: String,
+        val model: String,
+        val temperature: Double,
+        val maxTokens: Int
+    )
+
+    /**
+     * A DeepSeek model whose RestClient (sync) and WebClient (streaming) apply
+     * [bodyRewrite] to every outgoing chat-completion request.
+     */
+    private fun deepSeekModel(
+        connection: DeepSeekConnection,
+        objectMapper: ObjectMapper,
+        toolCallingManager: ToolCallingManager,
+        observationRegistry: ObservationRegistry,
+        bodyRewrite: BodyRewrite
+    ): DeepSeekChatModel {
+        val api =
             DeepSeekApi
                 .builder()
-                .apiKey(apiKey)
-                .baseUrl(baseUrl)
+                .apiKey(connection.apiKey)
+                .baseUrl(connection.baseUrl)
                 .restClientBuilder(
-                    RestClient.builder().requestInterceptor(DeepSeekNonThinking.interceptor(objectMapper))
+                    RestClient.builder().requestInterceptor(DeepSeekThinking.interceptor(objectMapper, bodyRewrite))
                 ).webClientBuilder(
-                    WebClient.builder().clientConnector(DeepSeekNonThinking.connector(objectMapper))
+                    WebClient.builder().clientConnector(DeepSeekThinking.connector(objectMapper, bodyRewrite))
                 ).build()
         val options =
             DeepSeekChatOptions
                 .builder()
-                .model(model)
-                .temperature(temperature)
-                .maxTokens(maxTokens)
+                .model(connection.model)
+                .temperature(connection.temperature)
+                .maxTokens(connection.maxTokens)
                 .build()
-        val fastModel =
-            DeepSeekChatModel
-                .builder()
-                .deepSeekApi(fastApi)
-                .options(options)
-                .toolCallingManager(toolCallingManager)
-                .observationRegistry(observationRegistry)
-                .build()
-        return build(fastModel)
+        return DeepSeekChatModel
+            .builder()
+            .deepSeekApi(api)
+            .options(options)
+            .toolCallingManager(toolCallingManager)
+            .observationRegistry(observationRegistry)
+            .build()
     }
 
     /**

@@ -887,10 +887,10 @@ class AgentControllerTest {
                 permissiveAuthorizer
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
-        val opts = ctrl.buildOptions("deepseek-v4-flash", deepThink = false)?.build()
+        val opts = ctrl.buildOptions("deepseek-flash", deepThink = false)?.build()
         assertThat(opts).isInstanceOf(org.springframework.ai.deepseek.DeepSeekChatOptions::class.java)
         val dsOpts = opts as org.springframework.ai.deepseek.DeepSeekChatOptions
-        assertThat(dsOpts.model).isEqualTo("deepseek-v4-flash")
+        assertThat(dsOpts.model).isEqualTo("deepseek-flash")
         assertThat(dsOpts.maxTokens).isEqualTo(4096)
     }
 
@@ -943,11 +943,41 @@ class AgentControllerTest {
             )
         val opts =
             (
-                ctrl.buildOptions("deepseek-v4-flash", deepThink = false, think = true)
+                ctrl.buildOptions("deepseek-flash", deepThink = false, think = true)
                     as org.springframework.ai.deepseek.DeepSeekChatOptions.Builder
             ).build()
-        assertThat(opts.model).isEqualTo("deepseek-v4-flash")
+        assertThat(opts.model).isEqualTo("deepseek-flash")
         assertThat(opts.maxTokens).isEqualTo(16384)
+        // No effort here: the thinking client's body hook defaults it to `low`
+        // (Spring AI's ReasoningEffort enum has no LOW) — beancounter#1128.
+        assertThat(opts.reasoningEffort).isNull()
+    }
+
+    @Test
+    fun `buildOptions on deepseek profile with think and deepThink keeps high reasoning effort`() {
+        // The Chat FAB defaults to low effort; an explicit deep-think turn must not.
+        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+        val ctrl =
+            AgentController(
+                null,
+                null, // fastChatClient
+                null,
+                stubChecker(),
+                toolSelector,
+                systemPromptSelector,
+                chatModelSelector,
+                env,
+                ObjectMapper(),
+                LlmMetrics(),
+                permissiveAuthorizer
+            )
+        val opts =
+            (
+                ctrl.buildOptions("deepseek-v4-pro", deepThink = true, think = true)
+                    as org.springframework.ai.deepseek.DeepSeekChatOptions.Builder
+            ).build()
+        assertThat(opts.reasoningEffort)
+            .isEqualTo(org.springframework.ai.deepseek.api.DeepSeekApi.ChatCompletionRequest.ReasoningEffort.HIGH)
     }
 
     @Test

@@ -1,6 +1,6 @@
 # DeepSeek via Anthropic-compatible API.
 #
-# DeepSeek's V4 family (`deepseek-v4-pro`, `deepseek-v4-flash`) emits
+# DeepSeek's V4 family (`deepseek-v4-pro`, `deepseek-flash`) emits
 # `thinking` blocks. The OpenAI-compat path (application-deepseek.yaml)
 # strips those blocks, and DeepSeek then rejects the next tool-roundtrip
 # request with:
@@ -39,6 +39,6 @@ spring:
 # DeepSeek only ships two models — collapse all three tiers onto them.
 agent:
   models:
-    fast: "${DEEPSEEK_MODEL_FAST:deepseek-v4-flash}"
+    fast: "${DEEPSEEK_MODEL_FAST:deepseek-flash}"
     smart: "${DEEPSEEK_MODEL_SMART:deepseek-v4-pro}"
     deep: "${DEEPSEEK_MODEL_DEEP:deepseek-v4-pro}"

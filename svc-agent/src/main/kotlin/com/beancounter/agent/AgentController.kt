@@ -202,6 +202,11 @@ class AgentController(
      * cap a v4-flash turn on kauri spent the whole budget reasoning about a
      * 27k-token prompt and finished on `length` with no answer at all, so a
      * thinking turn gets the same headroom as the deep tier.
+     *
+     * The thinking client defaults every request to `reasoning_effort: low`
+     * (beancounter#1128); a `think` + `deepThink` turn pins `high` here so the
+     * deep tier keeps full effort. Effort is never set without `think` — any
+     * value re-enables thinking on the fast client.
      */
     internal fun buildOptions(
         modelId: String,
@@ -223,10 +228,13 @@ class AgentController(
                 b
             }
             deepseekActive -> {
-                org.springframework.ai.deepseek.DeepSeekChatOptions
-                    .builder()
-                    .model(modelId)
-                    .maxTokens(if (deepThink || think) THINKING_MAX_TOKENS else FAST_MAX_TOKENS)
+                val b =
+                    org.springframework.ai.deepseek.DeepSeekChatOptions
+                        .builder()
+                        .model(modelId)
+                        .maxTokens(if (deepThink || think) THINKING_MAX_TOKENS else FAST_MAX_TOKENS)
+                if (deepThink && think) b.reasoningEffortHigh()
+                b
             }
             else -> {
                 null

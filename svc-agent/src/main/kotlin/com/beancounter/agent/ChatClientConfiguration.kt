@@ -94,7 +94,7 @@ class ChatClientConfiguration {
                 objectMapper,
                 toolCallingManager,
                 observationRegistry,
-                DeepSeekThinking::lowEffort
+                bodyRewrite = DeepSeekThinking::lowEffort
             )
         )
     }
@@ -103,8 +103,8 @@ class ChatClientConfiguration {
      * Non-thinking ("fast") DeepSeek ChatClient for pre-canned prompts.
      *
      * DeepSeek Flash defaults to thinking mode (big latency + reasoning-token
-     * cost). Its requests carry `thinking: {type: disabled}` — see
-     * [DeepSeekThinking.disableThinking]. [com.beancounter.agent.AgentController]
+     * cost). Its default options disable thinking, so every request carries
+     * `thinking: {type: disabled}`. [com.beancounter.agent.AgentController]
      * routes per request via the `think` flag.
      */
     @Bean("fastChatClient")
@@ -126,7 +126,7 @@ class ChatClientConfiguration {
                 objectMapper,
                 toolCallingManager,
                 observationRegistry,
-                DeepSeekThinking::disableThinking
+                disableThinking = true
             )
         )
     }
@@ -141,37 +141,42 @@ class ChatClientConfiguration {
     )
 
     /**
-     * A DeepSeek model whose RestClient (sync) and WebClient (streaming) apply
-     * [bodyRewrite] to every outgoing chat-completion request.
+     * A DeepSeek model. When [bodyRewrite] is set, its RestClient (sync) and
+     * WebClient (streaming) apply it to every outgoing chat-completion request.
+     * [disableThinking] turns DeepSeek thinking mode off in the default options.
      */
     private fun deepSeekModel(
         connection: DeepSeekConnection,
         objectMapper: ObjectMapper,
         toolCallingManager: ToolCallingManager,
         observationRegistry: ObservationRegistry,
-        bodyRewrite: BodyRewrite
+        bodyRewrite: BodyRewrite? = null,
+        disableThinking: Boolean = false
     ): DeepSeekChatModel {
-        val api =
+        val apiBuilder =
             DeepSeekApi
                 .builder()
                 .apiKey(connection.apiKey)
                 .baseUrl(connection.baseUrl)
+        if (bodyRewrite != null) {
+            apiBuilder
                 .restClientBuilder(
                     RestClient.builder().requestInterceptor(DeepSeekThinking.interceptor(objectMapper, bodyRewrite))
                 ).webClientBuilder(
                     WebClient.builder().clientConnector(DeepSeekThinking.connector(objectMapper, bodyRewrite))
-                ).build()
+                )
+        }
         val options =
             DeepSeekChatOptions
                 .builder()
                 .model(connection.model)
                 .temperature(connection.temperature)
                 .maxTokens(connection.maxTokens)
-                .build()
+        if (disableThinking) options.disableThinking()
         return DeepSeekChatModel
             .builder()
-            .deepSeekApi(api)
-            .options(options)
+            .deepSeekApi(apiBuilder.build())
+            .options(options.build())
             .toolCallingManager(toolCallingManager)
             .observationRegistry(observationRegistry)
             .build()

@@ -14,6 +14,13 @@ sentry:
     - "basic\\.ack"
     - "bc-perf-invalidate-.*"
 
+beancounter:
+  sentry:
+    # Chat traces must land even when bc-view's parent trace was not sampled —
+    # they carry the per-request token telemetry (beancounter#1129). Prefix
+    # match: covers /agent/query and /agent/query/stream.
+    always-sample-paths: /agent/query
+
 
 marketdata:
   url: "http://localhost:9510/api"

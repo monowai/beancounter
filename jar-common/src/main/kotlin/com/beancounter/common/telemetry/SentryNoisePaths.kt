@@ -18,25 +18,12 @@ object SentryNoisePaths {
     val patterns: List<Regex> =
         listOf(
             // Actuator / management endpoints (any context path)
-            Regex("/actuator"),
-            Regex("/health"),
-            Regex("/ready"),
-            Regex("/live"),
-            Regex("/ping"),
-            Regex("/metrics"),
-            Regex("/info"),
-            Regex("/prometheus"),
+            segment("actuator", "health", "ready", "live", "ping", "metrics", "info", "prometheus"),
             // Static resources
-            Regex("/favicon\\.ico"),
-            Regex("/webjars.*"),
-            Regex("/css.*"),
-            Regex("/js"),
-            Regex("/images"),
+            Regex("/favicon\\.ico$"),
+            segment("webjars", "css", "js", "images"),
             // API documentation
-            Regex("/api-docs"),
-            Regex("/swagger-ui.*"),
-            Regex("/swagger-resources"),
-            Regex("/openapi"),
+            segment("api-docs", "swagger-ui", "swagger-resources", "openapi"),
             // Unlabeled DB root spans (no parent, no diagnostic value)
             Regex("^<unlabeled transaction>$"),
             // Outbound Auth0 JWKS fetches (self-healing background library work)
@@ -44,4 +31,11 @@ object SentryNoisePaths {
         )
 
     fun isNoise(target: String): Boolean = patterns.any { it.containsMatchIn(target) }
+
+    /**
+     * Match `/name` only as a whole path segment — followed by `/`, an extension
+     * `.`, or the end — so `/health` never swallows `/healthcheck`, `/info`
+     * never swallows `/api/information`, and `/js` never swallows `/json`.
+     */
+    private fun segment(vararg names: String): Regex = Regex("/(${names.joinToString("|")})(/|\\.|$)")
 }

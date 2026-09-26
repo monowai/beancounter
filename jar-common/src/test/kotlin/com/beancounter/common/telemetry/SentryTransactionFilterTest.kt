@@ -54,7 +54,11 @@ class SentryTransactionFilterTest {
             "/api/positions/123",
             "/api/assets",
             "/api/transactions",
-            "/api/events"
+            "/api/events",
+            "/api/healthcheck",
+            "/api/information",
+            "/api/json",
+            "/api/shipping"
         ]
     )
     fun `should not filter API endpoints`(path: String) {

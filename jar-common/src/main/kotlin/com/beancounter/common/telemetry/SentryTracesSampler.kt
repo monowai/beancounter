@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
  *    fully recorded, then thrown away by [SentryTransactionFilter]. Deciding at
  *    sample time saves that work and the client-report churn.
  * 2. **Always sample the paths in `beancounter.sentry.always-sample-paths`**
- *    (comma-separated prefixes), even when the caller's trace was *not* sampled.
+ *    (comma-separated path prefixes, matched on segment boundaries), even when the caller's trace was *not* sampled.
  *    A trace started by bc-view carries its sampling decision downstream, and
  *    the Java SDK honours a parent's `sampled=false` regardless of this
  *    service's own rate — so at bc-view's rate almost no bc-agent chat trace
@@ -48,7 +48,7 @@ class SentryTracesSampler(
         val target = target(samplingContext)
         return when {
             SentryNoisePaths.isNoise(target) -> NEVER
-            alwaysSample.any(target::startsWith) -> ALWAYS
+            alwaysSample.any { target == it || target.startsWith("$it/") } -> ALWAYS
             else -> null
         }
     }

@@ -20,6 +20,9 @@ class SentryTracesSamplerTest {
             "/actuator/health/livenessState",
             "/actuator/health/readinessState",
             "/actuator/prometheus",
+            "/agent/health",
+            "/v3/api-docs.yaml",
+            "/swagger-ui.html",
             "/favicon.ico"
         ]
     )
@@ -53,9 +56,25 @@ class SentryTracesSamplerTest {
         assertThat(sampler.sample(context("/api/portfolios"))).isNull()
     }
 
-    @Test
-    fun `should not treat a path that merely contains a configured prefix as always-sample`() {
-        assertThat(sampler.sample(context("/api/agent/query"))).isNull()
+    @ParameterizedTest
+    @ValueSource(strings = ["/api/agent/query", "/agent/queryhistory", "/agent/query-log"])
+    fun `should not treat a path that merely contains a configured prefix as always-sample`(path: String) {
+        assertThat(sampler.sample(context(path, parentSampled = false))).isNull()
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "/api/healthcheck",
+            "/api/information",
+            "/api/shipping",
+            "/api/json",
+            "/api/liveness-report",
+            "/api/readyset"
+        ]
+    )
+    fun `should not mistake a path that merely contains a noise word for noise`(path: String) {
+        assertThat(sampler.sample(context(path))).isNull()
     }
 
     @Test

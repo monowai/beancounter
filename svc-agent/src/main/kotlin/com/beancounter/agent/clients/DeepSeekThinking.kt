@@ -22,37 +22,24 @@ typealias BodyRewrite = (ByteArray, ObjectMapper) -> ByteArray
 
 /**
  * Shapes DeepSeek thinking mode by rewriting the outgoing chat-completion
- * request body, for the two cases Spring AI 2.0.1 cannot express:
+ * request body, for the case Spring AI 2.0.1 cannot express:
+ * [lowEffort] — `"reasoning_effort": "low"` for the thinking (Chat FAB)
+ * client. DeepSeek accepts none/low/high/max, but Spring AI's
+ * `ReasoningEffort` enum only has HIGH and MAX (beancounter#1128).
  *
- * - [disableThinking] — `"thinking": {"type": "disabled"}` for the "fast"
- *   client. DeepSeek Flash defaults to thinking mode, which adds large latency
- *   and reasoning-token cost to pre-canned prompts.
- * - [lowEffort] — `"reasoning_effort": "low"` for the thinking (Chat FAB)
- *   client. DeepSeek accepts none/low/high/max, but Spring AI's
- *   `ReasoningEffort` enum only has HIGH and MAX (beancounter#1128).
+ * The fast client disables thinking natively through
+ * `DeepSeekChatOptions.disableThinking()` (beancounter#1134), so it needs no
+ * rewrite.
  *
- * Each rewrite goes on a **dedicated** DeepSeek client, applied the same way to
+ * The rewrite goes on a **dedicated** DeepSeek client, applied the same way to
  * the sync (RestClient, [interceptor]) and streaming (WebClient, [connector])
  * transports.
  */
 object DeepSeekThinking {
     private val log = LoggerFactory.getLogger(DeepSeekThinking::class.java)
 
-    const val THINKING = "thinking"
-    const val TYPE = "type"
-    const val DISABLED = "disabled"
     const val REASONING_EFFORT = "reasoning_effort"
     const val LOW = "low"
-
-    /** Return [body] with `thinking: {type: disabled}` added (or overwritten). */
-    fun disableThinking(
-        body: ByteArray,
-        mapper: ObjectMapper
-    ): ByteArray =
-        rewrite(body, mapper, "disableThinking") { root ->
-            root.set(THINKING, mapper.createObjectNode().put(TYPE, DISABLED))
-            true
-        }
 
     /**
      * Return [body] with `reasoning_effort: low` unless the request already

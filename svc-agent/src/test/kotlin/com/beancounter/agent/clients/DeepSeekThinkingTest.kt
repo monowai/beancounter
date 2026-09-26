@@ -8,31 +8,9 @@ class DeepSeekThinkingTest {
     private val mapper = JsonMapper.builder().build()
 
     @Test
-    fun `injects thinking disabled into the request body`() {
-        val body = """{"model":"deepseek-flash","messages":[],"stream":true}""".toByteArray()
-
-        val result = mapper.readTree(DeepSeekThinking.disableThinking(body, mapper))
-
-        assertThat(result.get("thinking").get("type").asString()).isEqualTo("disabled")
-        // Original fields preserved.
-        assertThat(result.get("model").asString()).isEqualTo("deepseek-flash")
-        assertThat(result.get("stream").asBoolean()).isTrue()
-    }
-
-    @Test
-    fun `overwrites an existing thinking flag`() {
-        val body = """{"model":"x","thinking":{"type":"enabled"}}""".toByteArray()
-
-        val result = mapper.readTree(DeepSeekThinking.disableThinking(body, mapper))
-
-        assertThat(result.get("thinking").get("type").asString()).isEqualTo("disabled")
-    }
-
-    @Test
     fun `returns the original body unchanged when it is not JSON`() {
         val body = "not json".toByteArray()
 
-        assertThat(DeepSeekThinking.disableThinking(body, mapper)).isEqualTo(body)
         assertThat(DeepSeekThinking.lowEffort(body, mapper)).isEqualTo(body)
     }
 

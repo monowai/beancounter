@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.deepseek.DeepSeekChatOptions
 import org.springframework.ai.model.tool.ToolCallingManager
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -86,6 +87,42 @@ class DeepSeekClientsWireTest {
         assertThat(client(thinking = false).prompt("hi").call().content()).isEqualTo("ok")
 
         val sent = bodies.single()
+        assertThat(sent.get("thinking").get("type").asString()).isEqualTo("disabled")
+        assertThat(sent.has("reasoning_effort")).isFalse()
+    }
+
+    @Test
+    fun `fast client stays non-thinking when a call sets its own options`() {
+        // AgentController.buildOptions passes per-call DeepSeek options on every turn.
+        val options = DeepSeekChatOptions.builder().model("deepseek-flash").maxTokens(4096)
+
+        assertThat(
+            client(thinking = false)
+                .prompt("hi")
+                .options(options)
+                .call()
+                .content()
+        ).isEqualTo("ok")
+
+        val sent = bodies.single()
+        assertThat(sent.get("thinking").get("type").asString()).isEqualTo("disabled")
+        assertThat(sent.has("reasoning_effort")).isFalse()
+    }
+
+    @Test
+    fun `fast client stays non-thinking when streaming`() {
+        val options = DeepSeekChatOptions.builder().model("deepseek-flash").maxTokens(4096)
+
+        client(thinking = false)
+            .prompt("hi")
+            .options(options)
+            .stream()
+            .content()
+            .onErrorComplete()
+            .blockLast()
+
+        val sent = bodies.single()
+        assertThat(sent.get("stream").asBoolean()).isTrue()
         assertThat(sent.get("thinking").get("type").asString()).isEqualTo("disabled")
         assertThat(sent.has("reasoning_effort")).isFalse()
     }

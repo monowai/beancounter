@@ -12,12 +12,9 @@ import org.springframework.stereotype.Component
  * This bean is automatically registered by Spring Boot's Sentry auto-configuration
  * when it implements SentryOptions.BeforeSendTransactionCallback.
  *
- * Filtered endpoints include:
- * - Actuator health/metrics endpoints
- * - Swagger/OpenAPI documentation
- * - Static resources (favicon, CSS, JS, images)
- * - Unlabeled zero-duration DB root spans emitted by the sentry-opentelemetry-agent with no parent, pure quota burn
- * - Outbound Auth0 JWKS fetches, background library work that always reports as internal_error noise
+ * Drops the targets in [SentryNoisePaths] at send time. Most never get this far —
+ * [SentryTracesSampler] refuses them at sample time — but roots the OTel sampler
+ * did not see (e.g. `<unlabeled transaction>`) still land here.
  */
 @Component
 @ConditionalOnProperty(
@@ -25,34 +22,6 @@ import org.springframework.stereotype.Component
     havingValue = "true"
 )
 class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
-    private val filterPatterns =
-        listOf(
-            // Actuator / management endpoints (any context path)
-            Regex("/actuator"),
-            Regex("/health"),
-            Regex("/ready"),
-            Regex("/live"),
-            Regex("/ping"),
-            Regex("/metrics"),
-            Regex("/info"),
-            Regex("/prometheus"),
-            // Static resources
-            Regex("/favicon\\.ico"),
-            Regex("/webjars.*"),
-            Regex("/css.*"),
-            Regex("/js"),
-            Regex("/images"),
-            // API documentation
-            Regex("/api-docs"),
-            Regex("/swagger-ui.*"),
-            Regex("/swagger-resources"),
-            Regex("/openapi"),
-            // Unlabeled DB root spans (no parent, no diagnostic value)
-            Regex("^<unlabeled transaction>$"),
-            // Outbound Auth0 JWKS fetches (self-healing background library work)
-            Regex("/\\.well-known/jwks\\.json")
-        )
-
     override fun execute(
         transaction: SentryTransaction,
         hint: Hint
@@ -105,7 +74,7 @@ class SentryTransactionFilter : SentryOptions.BeforeSendTransactionCallback {
         }
     }
 
-    private fun shouldFilter(httpTarget: String): Boolean = filterPatterns.any { it.containsMatchIn(httpTarget) }
+    private fun shouldFilter(httpTarget: String): Boolean = SentryNoisePaths.isNoise(httpTarget)
 
     private companion object {
         val NOISY_SPAN_OPS = setOf("Transaction.commit")

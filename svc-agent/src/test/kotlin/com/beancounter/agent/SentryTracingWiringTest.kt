@@ -3,6 +3,9 @@ package com.beancounter.agent
 import io.micrometer.observation.Observation
 import io.micrometer.observation.ObservationRegistry
 import io.micrometer.tracing.Tracer
+import io.sentry.SamplingContext
+import io.sentry.SentryOptions
+import io.sentry.TransactionContext
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Test
@@ -55,5 +58,15 @@ class SentryTracingWiringTest {
                 .createNotStarted("gen_ai.client.operation", observationRegistry)
                 .observe { /* handler opens + closes a span scope */ }
         }.doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `chat requests are sampled even when the bc-view parent trace was not`() {
+        val sampler = context.getBean(SentryOptions.TracesSamplerCallback::class.java)
+        val unsampledParent = TransactionContext("POST", "http.server").apply { setParentSampled(false) }
+        val samplingContext =
+            SamplingContext(unsampledParent, null, 0.5, mapOf("url.path" to "/agent/query/stream"))
+
+        assertThat(sampler.sample(samplingContext)).isEqualTo(1.0)
     }
 }

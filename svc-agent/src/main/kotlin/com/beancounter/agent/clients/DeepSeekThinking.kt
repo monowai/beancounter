@@ -49,8 +49,9 @@ object DeepSeekThinking {
         body: ByteArray,
         mapper: ObjectMapper
     ): ByteArray =
-        rewrite(body, mapper) { root ->
+        rewrite(body, mapper, "disableThinking") { root ->
             root.set(THINKING, mapper.createObjectNode().put(TYPE, DISABLED))
+            true
         }
 
     /**
@@ -61,30 +62,36 @@ object DeepSeekThinking {
         body: ByteArray,
         mapper: ObjectMapper
     ): ByteArray =
-        rewrite(body, mapper) { root ->
-            if (!root.has(REASONING_EFFORT)) root.put(REASONING_EFFORT, LOW)
+        rewrite(body, mapper, "lowEffort") { root ->
+            if (root.has(REASONING_EFFORT)) {
+                false
+            } else {
+                root.put(REASONING_EFFORT, LOW)
+                true
+            }
         }
 
     /**
-     * Apply [change] to the parsed body. On any parse failure the original body
-     * is returned unchanged — never fail a request over request-shaping.
+     * Apply [change] to the parsed body; it returns whether it modified the
+     * tree. The original [body] instance comes back when nothing changed or on
+     * any parse failure — never fail a request over request-shaping.
      */
     @Suppress("TooGenericExceptionCaught")
     private fun rewrite(
         body: ByteArray,
         mapper: ObjectMapper,
-        change: (ObjectNode) -> Unit
+        operation: String,
+        change: (ObjectNode) -> Boolean
     ): ByteArray =
         try {
             val root = mapper.readTree(body)
-            if (root is ObjectNode) {
-                change(root)
+            if (root is ObjectNode && change(root)) {
                 mapper.writeValueAsBytes(root)
             } else {
                 body
             }
         } catch (e: Exception) {
-            log.warn("Could not rewrite DeepSeek request body, sending original: {}", e.message)
+            log.warn("DeepSeek {} could not rewrite the request body, sending original: {}", operation, e.message)
             body
         }
 
@@ -120,7 +127,9 @@ object DeepSeekThinking {
                                 joined.read(bytes)
                                 DataBufferUtils.release(joined)
                                 val mutated = bodyRewrite(bytes, mapper)
-                                headers.contentLength = mutated.size.toLong()
+                                if (mutated !== bytes) {
+                                    headers.contentLength = mutated.size.toLong()
+                                }
                                 super.writeWith(Mono.just(bufferFactory().wrap(mutated)))
                             }
                     }

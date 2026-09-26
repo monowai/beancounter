@@ -55,4 +55,12 @@ class DeepSeekThinkingTest {
 
         assertThat(result.get("reasoning_effort").asString()).isEqualTo("high")
     }
+
+    @Test
+    fun `returns the original body instance when nothing changes`() {
+        // Callers skip the content-length reset on an unchanged body.
+        val body = """{"model":"deepseek-v4-pro","reasoning_effort":"high"}""".toByteArray()
+
+        assertThat(DeepSeekThinking.lowEffort(body, mapper)).isSameAs(body)
+    }
 }

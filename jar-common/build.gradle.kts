@@ -76,6 +76,8 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.guava)
     testImplementation("org.springframework:spring-web")
+    testImplementation("org.springframework:spring-webmvc")
+    testImplementation("org.springframework.security:spring-security-core")
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     testImplementation(libs.jackson.kotlin) {

@@ -3,16 +3,19 @@ package com.beancounter.common.exception
 import io.sentry.Sentry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.web.ErrorResponse
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClientException
+import org.springframework.web.util.DisconnectedClientHelper
 import java.net.ConnectException
 
 /**
@@ -20,7 +23,7 @@ import java.net.ConnectException
  */
 @ControllerAdvice
 class GlobalExceptionHandler(
-    @param:Value("\${sentry.enabled:false}") val sentryEnabled: Boolean = false
+    @param:Value($$"${sentry.enabled:false}") val sentryEnabled: Boolean = false
 ) {
     @ExceptionHandler(UnauthorizedException::class)
     @ResponseBody
@@ -84,7 +87,7 @@ class GlobalExceptionHandler(
     )
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    fun handleBusinessException(e: BusinessException): ProblemDetail =
+    fun handleBusinessException(e: RuntimeException): ProblemDetail =
         ProblemDetail.forStatusAndDetail(
             HttpStatus.BAD_REQUEST,
             e.message ?: errorMessage
@@ -107,6 +110,34 @@ class GlobalExceptionHandler(
             HttpStatus.CONFLICT,
             e.message ?: "Data integrity violation"
         )
+
+    /**
+     * Last resort for anything no handler above maps, so an unexpected 500 is still logged and
+     * sent to Sentry. Exceptions Spring already maps are rethrown untouched: rethrowing the same
+     * exception tells the resolver chain this advice did not handle it, so framework 4xx,
+     * `@ResponseStatus` exceptions and the security filter chain keep their status. A client that
+     * hung up is not a server fault, so it is not reported either.
+     */
+    @ExceptionHandler(Throwable::class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    fun handleUnexpected(e: Throwable): ProblemDetail {
+        if (isMappedElsewhere(e)) {
+            throw e
+        }
+        return handleSystemException(e)
+    }
+
+    private fun isMappedElsewhere(e: Throwable): Boolean =
+        e is ErrorResponse ||
+            AnnotatedElementUtils.hasAnnotation(e.javaClass, ResponseStatus::class.java) ||
+            isSecurityException(e) ||
+            DisconnectedClientHelper.isClientDisconnectedException(e)
+
+    // Matched by name: jar-common does not depend on Spring Security.
+    private fun isSecurityException(e: Throwable): Boolean =
+        generateSequence<Class<*>>(e.javaClass) { it.superclass }
+            .any { it.name.startsWith("org.springframework.security.") }
 
     companion object {
         private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)

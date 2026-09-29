@@ -56,6 +56,14 @@ interface MarketDataPriceProvider {
     fun shipsAdjustedClose(): Boolean = false
 
     /**
+     * Latest quote for [asset] — live or delayed, whatever the provider's plan allows.
+     * Display-only: never persisted, so it can't pollute the end-of-day history that
+     * valuations and performance read. `null` when the provider has no quote surface
+     * or no quote right now; callers fall back to the stored close.
+     */
+    fun getQuote(asset: Asset): MarketData? = null
+
+    /**
      * Search the provider for assets matching `keyword`. Providers that have no search surface
      * (cash, custom, morningstar) return the empty default; price providers wired to a real
      * search endpoint (EODHD, AlphaVantage, MarketStack) override.

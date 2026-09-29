@@ -17,6 +17,9 @@ import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientException
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.Instant
 import java.time.LocalDate
 
 /**
@@ -220,6 +223,50 @@ class EodhdPriceService(
     override fun shipsAdjustedClose(): Boolean = true
 
     /**
+     * Live (delayed) quote from `/api/real-time`. Any failure — plan without live access
+     * (403), unknown ticker, or "NA" values outside trading history — yields `null` so the
+     * caller falls back to the stored close.
+     */
+    override fun getQuote(asset: Asset): MarketData? {
+        val symbol = eodhdConfig.getPriceCode(asset)
+        val quote =
+            try {
+                eodhdProxy.getRealTime(symbol, eodhdConfig.apiKey)
+            } catch (e: RestClientException) {
+                log.debug("EODHD live quote unavailable for {}: {}", symbol, e.message)
+                null
+            } ?: return null
+        val close = quote.close.asDecimal() ?: return null
+        if (close.signum() <= 0) return null
+        val timestamp = quote.timestamp.asDecimal()?.toLong() ?: return null
+        val previousClose = quote.previousClose.asDecimal() ?: BigDecimal.ZERO
+        return MarketData(
+            asset = asset,
+            priceDate =
+                Instant
+                    .ofEpochSecond(timestamp)
+                    .atZone(asset.market.timezone.toZoneId())
+                    .toLocalDate(),
+            close = close,
+            open = quote.open.asDecimal() ?: BigDecimal.ZERO,
+            high = quote.high.asDecimal() ?: BigDecimal.ZERO,
+            low = quote.low.asDecimal() ?: BigDecimal.ZERO,
+            previousClose = previousClose,
+            change = quote.change.asDecimal() ?: BigDecimal.ZERO,
+            // EODHD's change_p is a percentage; MarketData.changePercent is a fraction.
+            changePercent =
+                quote.changePercent
+                    .asDecimal()
+                    ?.divide(HUNDRED, 6, RoundingMode.HALF_UP)
+                    ?: BigDecimal.ZERO,
+            volume = quote.volume.asDecimal()?.toInt() ?: 0,
+            source = ID
+        )
+    }
+
+    private fun Any?.asDecimal(): BigDecimal? = this?.toString()?.toBigDecimalOrNull()
+
+    /**
      * Search EODHD `/api/search/{query}` for matches. Gated on the EODHD markets allowlist —
      * an unconfigured deployment returns empty so [AssetSearchService] falls back to the legacy
      * FIGI / AlphaVantage chain. `market` is informational only at this layer (EODHD searches
@@ -332,6 +379,7 @@ class EodhdPriceService(
 
     companion object {
         const val ID = "EODHD"
+        private val HUNDRED = BigDecimal(100)
         private const val EODHD_ALIAS = "eodhd"
     }
 }

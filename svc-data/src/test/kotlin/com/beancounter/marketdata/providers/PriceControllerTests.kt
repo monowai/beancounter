@@ -145,6 +145,31 @@ internal class PriceControllerTests
         }
 
         @Test
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
+        fun `quote falls back to the stored close when the provider has no live quote`() {
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+
+            val json =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .get("/prices/{assetId}/quote", asset.id)
+                            .with(
+                                SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                            ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString
+            val (data) = objectMapper.readValue(json, PriceResponse::class.java)
+
+            assertThat(data).hasSize(1)
+            assertThat(data.first().close).isEqualByComparingTo(mockPrice)
+        }
+
+        @Test
         fun is_ContextLoaded() {
             assertThat(mockMvc).isNotNull
         }

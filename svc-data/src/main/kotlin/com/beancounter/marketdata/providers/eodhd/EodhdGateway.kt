@@ -5,6 +5,7 @@ import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
 import com.beancounter.marketdata.providers.eodhd.model.EodhdFundamentals
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
+import com.beancounter.marketdata.providers.eodhd.model.EodhdQuote
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSplit
 import org.springframework.beans.factory.annotation.Qualifier
@@ -52,6 +53,24 @@ class EodhdGateway(
             .body<Array<EodhdPrice>>()
             ?.toList()
             ?: emptyList()
+
+    /**
+     * Live (delayed) quote for one symbol.
+     *
+     * GET /api/real-time/{symbol}?api_token={apiKey}&fmt=json
+     */
+    fun getRealTime(
+        symbol: String,
+        apiKey: String = DEMO_KEY
+    ): EodhdQuote? =
+        restClient
+            .get()
+            .uri(
+                "/api/real-time/{symbol}?api_token={apiKey}&fmt=json",
+                symbol,
+                apiKey
+            ).retrieve()
+            .body<EodhdQuote>()
 
     /**
      * Bulk last-day EOD prices for multiple symbols on a single exchange.

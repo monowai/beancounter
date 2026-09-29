@@ -36,6 +36,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * EODHD provider tests using WireMock.
@@ -391,6 +392,68 @@ internal class EodhdApiTest {
         assertThat(warnings.filter { it.contains("EODHD error for ") })
             .describedAs("no per-symbol warnings")
             .isEmpty()
+    }
+
+    @Test
+    fun `quote returns the delayed live price with provider change`() {
+        stubRealTime(
+            "AAPL.US",
+            200,
+            """
+            {"code":"AAPL.US","timestamp":1727640000,"gmtoffset":0,"open":229.52,
+             "high":229.65,"low":223.74,"close":227.79,"volume":37000000,
+             "previousClose":227.52,"change":0.27,"change_p":0.1187}
+            """.trimIndent()
+        )
+
+        val quote = eodhdPriceService.getQuote(AAPL)
+
+        assertThat(quote).isNotNull
+        assertThat(quote!!.source).isEqualTo(ID)
+        assertThat(quote.close).isEqualByComparingTo(BigDecimal("227.79"))
+        assertThat(quote.previousClose).isEqualByComparingTo(BigDecimal("227.52"))
+        assertThat(quote.change).isEqualByComparingTo(BigDecimal("0.27"))
+        // EODHD's change_p is a percentage; BC stores change as a fraction.
+        assertThat(quote.changePercent).isEqualByComparingTo(BigDecimal("0.001187"))
+        // 1727640000 = 2024-09-29 20:00 UTC = 16:00 US/Eastern.
+        assertThat(quote.priceDate).isEqualTo(LocalDate.of(2024, 9, 29))
+    }
+
+    @Test
+    fun `quote is null when the plan has no live data entitlement`() {
+        stubRealTime("AAPL.US", 403, """{"message":"Forbidden"}""")
+
+        assertThat(eodhdPriceService.getQuote(AAPL)).isNull()
+    }
+
+    @Test
+    fun `quote is null when EODHD has no live price for the symbol`() {
+        stubRealTime(
+            "AAPL.US",
+            200,
+            """
+            {"code":"AAPL.US","timestamp":"NA","gmtoffset":0,"open":"NA","high":"NA",
+             "low":"NA","close":"NA","volume":"NA","previousClose":"NA","change":"NA","change_p":"NA"}
+            """.trimIndent()
+        )
+
+        assertThat(eodhdPriceService.getQuote(AAPL)).isNull()
+    }
+
+    private fun stubRealTime(
+        symbol: String,
+        status: Int,
+        body: String
+    ) {
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/real-time/$symbol"))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(body)
+                        .withStatus(status)
+                )
+        )
     }
 
     private fun stubEod(

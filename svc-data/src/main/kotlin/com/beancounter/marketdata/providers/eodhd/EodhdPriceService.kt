@@ -13,6 +13,7 @@ import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInsta
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import com.beancounter.marketdata.providers.logApiKeyStatus
+import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -224,8 +225,8 @@ class EodhdPriceService(
 
     /**
      * Live (delayed) quote from `/api/real-time`. Any failure — plan without live access
-     * (403), unknown ticker, or "NA" values outside trading history — yields `null` so the
-     * caller falls back to the stored close.
+     * (403), unknown ticker, rate limit, or "NA" values outside trading history — yields
+     * `null` so the caller falls back to the stored close.
      */
     override fun getQuote(asset: Asset): MarketData? {
         val symbol = eodhdConfig.getPriceCode(asset)
@@ -234,6 +235,9 @@ class EodhdPriceService(
                 eodhdProxy.getRealTime(symbol, eodhdConfig.apiKey)
             } catch (e: RestClientException) {
                 log.debug("EODHD live quote unavailable for {}: {}", symbol, e.message)
+                null
+            } catch (_: RequestNotPermitted) {
+                log.debug("EODHD live quote rate-limited for {}", symbol)
                 null
             } ?: return null
         val close = quote.close.asDecimal() ?: return null
@@ -259,7 +263,13 @@ class EodhdPriceService(
                     .asDecimal()
                     ?.divide(HUNDRED, 6, RoundingMode.HALF_UP)
                     ?: BigDecimal.ZERO,
-            volume = quote.volume.asDecimal()?.toInt() ?: 0,
+            // MarketData.volume is Int; clamp as EodhdAdapter does rather than wrap.
+            volume =
+                quote.volume
+                    .asDecimal()
+                    ?.toLong()
+                    ?.coerceIn(0L, Int.MAX_VALUE.toLong())
+                    ?.toInt() ?: 0,
             source = ID
         )
     }

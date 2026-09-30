@@ -63,10 +63,15 @@ class MarketDataService(
      * Latest quote for display: the provider's live/delayed price when it has one, else the
      * stored close. Quotes are not persisted.
      */
+    @Transactional(readOnly = true)
     fun getQuoteResponse(assetId: String): PriceResponse {
         val asset = getAsset(assetId)
         val quote = mdFactory.getMarketDataProvider(asset.market).getQuote(asset)
-        return if (quote != null) PriceResponse(listOf(quote)) else getPriceResponse(assetId)
+        return if (quote != null) {
+            PriceResponse(listOf(quote))
+        } else {
+            getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
+        }
     }
 
     @Transactional(readOnly = true)

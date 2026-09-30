@@ -5,6 +5,7 @@ import com.beancounter.marketdata.providers.eodhd.model.EodhdDividend
 import com.beancounter.marketdata.providers.eodhd.model.EodhdFundamentals
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
+import com.beancounter.marketdata.providers.eodhd.model.EodhdQuote
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSplit
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
@@ -31,6 +32,12 @@ class EodhdProxy(
             date,
             apiKey
         )
+
+    @RateLimiter(name = "eodhd")
+    fun getRealTime(
+        symbol: String,
+        apiKey: String
+    ): EodhdQuote? = eodhdGateway.getRealTime(symbol, apiKey)
 
     @RateLimiter(name = "eodhd")
     fun getBulkPrices(

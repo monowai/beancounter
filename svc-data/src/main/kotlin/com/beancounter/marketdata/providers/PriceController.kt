@@ -169,6 +169,23 @@ class PriceController(
      * @param assetId Internal BC Asset identifier
      * @return Market Data information for the requested asset
      */
+    @GetMapping(value = ["/{assetId}/quote"])
+    @Operation(
+        summary = "Get the latest quote for an asset",
+        description = """
+            Live or delayed price from the market provider, whatever its plan supports
+            (EODHD: 15-20 minutes delayed). Falls back to the stored close when the provider
+            has no quote. Quotes are display-only and never stored.
+        """
+    )
+    fun getQuote(
+        @Parameter(
+            description = "Internal asset identifier",
+            example = "asset-123"
+        )
+        @PathVariable("assetId") id: String
+    ): PriceResponse = marketDataService.getQuoteResponse(id)
+
     @GetMapping(value = ["/{assetId}/events"])
     @Operation(
         summary = "Get corporate events for asset",

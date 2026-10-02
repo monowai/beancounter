@@ -163,6 +163,10 @@ class AgentControllerTest {
             ObjectMapper(),
             LlmMetrics(),
             scopeAuthorizer,
+            // Stateless requests only here; conversation recording is covered
+            // against a real store in AgentConversationTest.
+            mock(),
+            mock(),
             clock
         )
 
@@ -884,7 +888,9 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock()
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
         val opts = ctrl.buildOptions("deepseek-flash", deepThink = false)?.build()
@@ -909,7 +915,9 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock()
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
@@ -939,7 +947,9 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock()
             )
         val opts =
             (
@@ -969,7 +979,9 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock()
             )
         val opts =
             (
@@ -1025,7 +1037,9 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock()
             )
         assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
     }

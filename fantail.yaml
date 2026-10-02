@@ -82,3 +82,5 @@ services:
       REBALANCE_URL: "${svc:svc-rebalance.url}/api"
     reload:
       gradle: ":svc-agent"
+    requires:
+      - tcp: localhost:5432        # postgres (db: agent)

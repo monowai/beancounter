@@ -25,7 +25,6 @@ class ConversationService(
         const val TITLE_MAX_CHARS = 60
         const val ROLE_USER = "user"
         const val ROLE_ASSISTANT = "assistant"
-        private val WHITESPACE = Regex("\\s+")
     }
 
     fun create(ownerId: String): Conversation {
@@ -68,7 +67,7 @@ class ConversationService(
         deepThink: Boolean
     ): ConversationMessage {
         val conversation = owned(ownerId, id)
-        if (conversation.title.isBlank()) conversation.title = titleFrom(content)
+        if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(content)
         return append(conversation, ROLE_USER, content, deepThink, null)
     }
 
@@ -96,6 +95,28 @@ class ConversationService(
             .filter { it.error == null && it.content.isNotEmpty() }
             .takeLast(maxTurns)
             .map { ChatTurn(it.role, it.content) }
+    }
+
+    @Transactional(readOnly = true)
+    fun titleOf(
+        ownerId: String,
+        id: String
+    ): String = owned(ownerId, id).title
+
+    /**
+     * Swap in a model-written [generated] title, but only while the title is
+     * still the [provisional] one — a rename by the user wins.
+     */
+    fun applyGeneratedTitle(
+        ownerId: String,
+        id: String,
+        provisional: String,
+        generated: String
+    ): Boolean {
+        val conversation = owned(ownerId, id)
+        if (conversation.title != provisional) return false
+        conversation.title = generated.take(TITLE_MAX_CHARS)
+        return true
     }
 
     fun rename(
@@ -153,11 +174,6 @@ class ConversationService(
                 createdAt = now
             )
         )
-    }
-
-    private fun titleFrom(content: String): String {
-        val flat = content.trim().replace(WHITESPACE, " ")
-        return if (flat.length <= TITLE_MAX_CHARS) flat else flat.take(TITLE_MAX_CHARS - 1).trimEnd() + "…"
     }
 }
 

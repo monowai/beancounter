@@ -11,6 +11,12 @@ import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
 import com.beancounter.common.exception.NotFoundException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.job
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -60,6 +66,20 @@ class AgentConversationTest {
     private val owner = mock<ConversationOwner> { on { id() } doReturn me }
     private val request = mock<ChatClient.ChatClientRequestSpec>(defaultAnswer = org.mockito.Answers.RETURNS_SELF)
     private val client = mock<ChatClient> { on { prompt() } doReturn request }
+    private val titleScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private fun awaitTitles() =
+        runBlocking {
+            titleScope.coroutineContext.job.children
+                .toList()
+                .joinAll()
+        }
+
+    private fun titles(reply: String) {
+        val call = mock<ChatClient.CallResponseSpec>()
+        whenever(request.call()).thenReturn(call)
+        whenever(call.content()).thenReturn(reply)
+    }
 
     @BeforeEach
     fun reset() {
@@ -81,7 +101,8 @@ class AgentConversationTest {
             LlmMetrics(),
             mock<AgentScopeAuthorizer>(),
             service,
-            owner
+            owner,
+            ConversationTitler(null, client, service, titleScope)
         )
 
     private fun chunk(
@@ -192,5 +213,42 @@ class AgentConversationTest {
             "user" to "How am I doing?",
             "assistant" to "Up 2%."
         )
+    }
+
+    @Test
+    fun `stream should give a new conversation a generated title after its first answer`() {
+        val id = service.create(me).id
+        streams(chunk("A pooled fund that tracks an index.", "stop"))
+        titles("\"Index Fund Basics.\"")
+
+        controller().stream(AgentQuery("In one sentence, what is an index fund?", conversationId = id)).blockLast()
+        awaitTitles()
+
+        assertThat(service.titleOf(me, id)).isEqualTo("Index Fund Basics")
+    }
+
+    @Test
+    fun `stream should keep the provisional title when title generation fails`() {
+        val id = service.create(me).id
+        streams(chunk("A pooled fund that tracks an index.", "stop"))
+        whenever(request.call()).thenThrow(RuntimeException("429 - Too Many Requests"))
+
+        controller().stream(AgentQuery("In one sentence, what is an index fund?", conversationId = id)).blockLast()
+        awaitTitles()
+
+        assertThat(service.titleOf(me, id)).isEqualTo("Index fund")
+    }
+
+    @Test
+    fun `stream should not retitle a conversation that already has an answer`() {
+        val id = conversationWith("What is VOO?" to "An S&P 500 ETF.")
+        service.rename(me, id, "VOO")
+        streams(chunk("Yes.", "stop"))
+        titles("Something Else")
+
+        controller().stream(AgentQuery("Is it diversified?", conversationId = id)).blockLast()
+        awaitTitles()
+
+        assertThat(service.titleOf(me, id)).isEqualTo("VOO")
     }
 }

@@ -167,6 +167,7 @@ class AgentControllerTest {
             // against a real store in AgentConversationTest.
             mock(),
             mock(),
+            mock(),
             clock
         )
 
@@ -890,6 +891,7 @@ class AgentControllerTest {
                 LlmMetrics(),
                 permissiveAuthorizer,
                 mock(),
+                mock(),
                 mock()
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
@@ -916,6 +918,7 @@ class AgentControllerTest {
                 ObjectMapper(),
                 LlmMetrics(),
                 permissiveAuthorizer,
+                mock(),
                 mock(),
                 mock()
             )
@@ -949,6 +952,7 @@ class AgentControllerTest {
                 LlmMetrics(),
                 permissiveAuthorizer,
                 mock(),
+                mock(),
                 mock()
             )
         val opts =
@@ -980,6 +984,7 @@ class AgentControllerTest {
                 ObjectMapper(),
                 LlmMetrics(),
                 permissiveAuthorizer,
+                mock(),
                 mock(),
                 mock()
             )
@@ -1038,6 +1043,7 @@ class AgentControllerTest {
                 ObjectMapper(),
                 LlmMetrics(),
                 permissiveAuthorizer,
+                mock(),
                 mock(),
                 mock()
             )

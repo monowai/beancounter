@@ -4,6 +4,7 @@ import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationRecorder
 import com.beancounter.agent.conversation.ConversationService
+import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
@@ -73,6 +74,7 @@ class AgentController(
     private val scopeAuthorizer: AgentScopeAuthorizer,
     private val conversations: ConversationService,
     private val conversationOwner: ConversationOwner,
+    private val conversationTitler: ConversationTitler,
     // UTC clock for stamping the current date onto each user message. Defaulted so Spring wires it
     // without a Clock bean; overridden in tests for a fixed date.
     private val clock: Clock = Clock.systemUTC()
@@ -183,7 +185,18 @@ class AgentController(
         val ownerId = conversationOwner.id()
         val stored = conversations.history(ownerId, conversationId, MAX_HISTORY_TURNS)
         conversations.appendUser(ownerId, conversationId, request.query, request.deepThink)
-        return request.copy(history = stored) to ConversationRecorder(conversations, ownerId, conversationId)
+        val recorder =
+            ConversationRecorder(
+                service = conversations,
+                titler = conversationTitler,
+                ownerId = ownerId,
+                conversationId = conversationId,
+                awaitingTitle = stored.none { it.role == ConversationService.ROLE_ASSISTANT },
+                provisionalTitle = conversations.titleOf(ownerId, conversationId),
+                questions =
+                    stored.filter { it.role == ConversationService.ROLE_USER }.map { it.content } + request.query
+            )
+        return request.copy(history = stored) to recorder
     }
 
     /**

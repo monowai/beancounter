@@ -80,7 +80,7 @@ class ConversationControllerTest {
             .perform(get("/agent/conversations").with(jwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.length()").value(1))
-            .andExpect(jsonPath("$.data[0].title").value("What is my runway?"))
+            .andExpect(jsonPath("$.data[0].title").value("Runway"))
     }
 
     @Test

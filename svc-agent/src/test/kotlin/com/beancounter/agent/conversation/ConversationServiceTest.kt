@@ -94,21 +94,47 @@ class ConversationServiceTest {
     }
 
     @Test
-    fun `should title a conversation from its first user message`() {
+    fun `should title a conversation provisionally from its first user message`() {
         val id = service.create(owner).id
-        service.appendUser(
-            owner,
-            id,
-            "  What   is my\nretirement runway if I stop working next year and markets fall?",
-            false
-        )
-        service.appendUser(owner, id, "And the year after?", false)
+        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
+        service.appendUser(owner, id, "And bonds?", false)
 
-        val title = service.get(owner, id).title
+        assertThat(service.titleOf(owner, id)).isEqualTo("Index fund")
+    }
 
-        assertThat(title).startsWith("What is my retirement runway")
-        assertThat(title).hasSizeLessThanOrEqualTo(ConversationService.TITLE_MAX_CHARS)
-        assertThat(title).doesNotContain("And the year after")
+    @Test
+    fun `should replace a provisional title with a generated one`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
+
+        val applied =
+            service.applyGeneratedTitle(
+                owner,
+                id,
+                provisional = "Index fund",
+                generated = "Index Fund Basics"
+            )
+
+        assertThat(applied).isTrue()
+        assertThat(service.titleOf(owner, id)).isEqualTo("Index Fund Basics")
+    }
+
+    @Test
+    fun `should never overwrite a title the user chose`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
+        service.rename(owner, id, "My notes")
+
+        val applied =
+            service.applyGeneratedTitle(
+                owner,
+                id,
+                provisional = "Index fund",
+                generated = "Index Fund Basics"
+            )
+
+        assertThat(applied).isFalse()
+        assertThat(service.titleOf(owner, id)).isEqualTo("My notes")
     }
 
     @Test

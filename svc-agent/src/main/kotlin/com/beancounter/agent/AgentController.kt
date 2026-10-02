@@ -152,6 +152,16 @@ class AgentController(
     }
 
     /**
+     * The domain prompt for the request's page, plus [DomainSystemPrompts.FOLLOW_UP]
+     * when the caller sent history — so a question about an earlier answer is
+     * answered rather than met with a regenerated brief.
+     */
+    internal fun systemPromptFor(request: AgentQuery): String {
+        val domain = systemPromptSelector.selectFor(request.context)
+        return if (request.history.isNullOrEmpty()) domain else "$domain\n\n${DomainSystemPrompts.FOLLOW_UP}"
+    }
+
+    /**
      * Map caller-supplied conversation history onto Spring AI [Message]s,
      * truncated to the trailing [MAX_HISTORY_TURNS]. Plain text only — this
      * replays the model's own prior *rendered* answers as ordinary assistant
@@ -278,7 +288,7 @@ class AgentController(
         return try {
             val userMessage = buildUserMessage(request)
             val tools = toolSelector.selectTools(request.context)
-            val systemPrompt = systemPromptSelector.selectFor(request.context)
+            val systemPrompt = systemPromptFor(request)
             val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
             val startMs = System.currentTimeMillis()
             val promptSpec =
@@ -701,7 +711,7 @@ class AgentController(
         val promptSpec =
             clientFor(request)
                 .prompt()
-                .system(systemPromptSelector.selectFor(request.context))
+                .system(systemPromptFor(request))
                 .messages(historyMessages(request))
                 .user(buildUserMessage(request))
                 .tools(*tools)

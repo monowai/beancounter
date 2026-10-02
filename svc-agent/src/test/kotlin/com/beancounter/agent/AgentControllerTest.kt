@@ -1031,6 +1031,33 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `system prompt is the domain prompt alone on a first turn`() {
+        assertThat(controller().systemPromptFor(AgentQuery("hi"))).isEqualTo("test-system-prompt")
+        assertThat(controller().systemPromptFor(AgentQuery("hi", history = emptyList())))
+            .isEqualTo("test-system-prompt")
+    }
+
+    @Test
+    fun `system prompt carries the follow-up directive when history is present`() {
+        // Asset Review and News prompts prescribe a full brief ("always call getNews first", fixed
+        // sections). A follow-up on that brief must answer the question, not regenerate the brief.
+        val followUp =
+            AgentQuery(
+                "how exposed is it to China?",
+                history =
+                    listOf(
+                        ChatTurn("user", "Produce an Asset Review for AAPL"),
+                        ChatTurn("assistant", "## AAPL — Bullish ...")
+                    )
+            )
+
+        val prompt = controller().systemPromptFor(followUp)
+
+        assertThat(prompt).startsWith("test-system-prompt")
+        assertThat(prompt).endsWith(DomainSystemPrompts.FOLLOW_UP)
+    }
+
+    @Test
     fun `historyMessages returns empty list when history is null`() {
         assertThat(controller().historyMessages(AgentQuery("hi"))).isEmpty()
     }

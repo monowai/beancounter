@@ -614,4 +614,23 @@ object DomainSystemPrompts {
         `includeClosed=true` only when the user asks about historical/
         sold/closed holdings or names a holding missing from the open rows.
         """.trimIndent()
+
+    /**
+     * Appended to the domain prompt when the request carries conversation
+     * history. Asset Review, News & Sentiment and the portfolio briefing
+     * prescribe a full workflow and output shape for the opening turn; a
+     * question asked about that answer must not trigger the whole brief again.
+     */
+    val FOLLOW_UP =
+        """
+        ## Follow-up turn
+
+        The conversation history holds your earlier answer.
+        - Answer the latest question directly and briefly.
+        - Reuse facts from the earlier answer; call a tool only for data
+          that answer lacks.
+        - Do not regenerate the full brief, report or its section layout
+          unless the user asks for it. The domain workflow and output rules
+          above apply to the opening turn.
+        """.trimIndent()
 }

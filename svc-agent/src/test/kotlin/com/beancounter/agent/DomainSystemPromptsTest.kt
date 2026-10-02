@@ -31,6 +31,13 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `follow-up directive answers the question instead of regenerating the brief`() {
+        assertThat(DomainSystemPrompts.FOLLOW_UP)
+            .contains("Answer the latest question directly")
+            .contains("Do not regenerate")
+    }
+
+    @Test
     fun `no-coverage tool message tells the model not to narrate the fallback`() {
         assertThat(NewsTools.NO_COVERAGE_MESSAGE)
             .contains("Do not announce")

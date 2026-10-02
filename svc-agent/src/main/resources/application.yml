@@ -145,6 +145,22 @@ spring:
         jwt:
           issuer-uri: ${auth.uri}
           audience: ${auth.audience}
+  # Conversation history store. In-memory H2 by default (tests, a bare
+  # bootRun); application-local.yaml and kauri point it at the `agent`
+  # Postgres database and enable Flyway.
+  datasource:
+    url: jdbc:h2:mem:agent;DB_CLOSE_DELAY=-1
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        physical_naming_strategy: com.beancounter.common.config.QuotedSnakeCaseNamingStrategy
+  flyway:
+    enabled: false
+    baseline-on-migrate: true
+    locations: classpath:db/migration
   ai:
     # Dummy OpenAI + Ollama config to prevent autoconfiguration errors
     # (mirrors the pattern in application-ollama.yaml / application-openai.yaml)
@@ -175,6 +191,10 @@ agent:
     fast: "${ANTHROPIC_MODEL_FAST:claude-haiku-4-5-20251001}"
     smart: "${ANTHROPIC_MODEL_SMART:claude-sonnet-4-6}"
     deep: "${ANTHROPIC_MODEL_DEEP:claude-opus-4-7}"
+  conversations:
+    # Conversations idle longer than this are purged by ConversationRetention.
+    retention-days: 90
+    purge-cron: "0 15 3 * * *"
 
 # Security Configuration - uses same auth.* properties as all other services
 # Helm sets AUTH_URI and AUTH_AUDIENCE via spring.auth template

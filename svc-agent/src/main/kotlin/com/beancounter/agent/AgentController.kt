@@ -1,6 +1,11 @@
 package com.beancounter.agent
 
 import com.beancounter.agent.config.AgentScopeAuthorizer
+import com.beancounter.agent.conversation.ConversationOwner
+import com.beancounter.agent.conversation.ConversationRecorder
+import com.beancounter.agent.conversation.ConversationService
+import com.beancounter.agent.conversation.ConversationTitler
+import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
@@ -28,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.HtmlUtils
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.util.retry.Retry
 import tools.jackson.databind.ObjectMapper
 import java.net.ConnectException
@@ -65,6 +72,9 @@ class AgentController(
     private val objectMapper: ObjectMapper,
     private val llmMetrics: LlmMetrics,
     private val scopeAuthorizer: AgentScopeAuthorizer,
+    private val conversations: ConversationService,
+    private val conversationOwner: ConversationOwner,
+    private val conversationTitler: ConversationTitler,
     // UTC clock for stamping the current date onto each user message. Defaulted so Spring wires it
     // without a Clock bean; overridden in tests for a fixed date.
     private val clock: Clock = Clock.systemUTC()
@@ -160,6 +170,60 @@ class AgentController(
         val domain = systemPromptSelector.selectFor(request.context)
         return if (request.history.isNullOrEmpty()) domain else "$domain\n\n${DomainSystemPrompts.FOLLOW_UP}"
     }
+
+    /**
+     * Resolve the request's effective history and where its turn is recorded.
+     * A request naming a conversation replays that conversation's stored turns
+     * — client-sent history is ignored, so a caller cannot put words in the
+     * assistant's mouth — and records this question to it now. Any other
+     * request is stateless. Runs on the request thread: the owner lookup needs
+     * the caller's token, and a conversation the caller doesn't own surfaces
+     * as a 404 rather than a stream error.
+     */
+    private fun openTurn(request: AgentQuery): Pair<AgentQuery, TurnRecorder> {
+        val conversationId = request.conversationId ?: return request to TurnRecorder.NONE
+        val ownerId = conversationOwner.id()
+        val stored = conversations.history(ownerId, conversationId, MAX_HISTORY_TURNS)
+        conversations.appendUser(ownerId, conversationId, request.query, request.deepThink)
+        val recorder =
+            ConversationRecorder(
+                service = conversations,
+                titler = conversationTitler,
+                ownerId = ownerId,
+                conversationId = conversationId,
+                awaitingTitle = stored.none { it.role == ConversationService.ROLE_ASSISTANT },
+                provisionalTitle = conversations.titleOf(ownerId, conversationId),
+                questions =
+                    stored.filter { it.role == ConversationService.ROLE_USER }.map { it.content } + request.query
+            )
+        return request.copy(history = stored) to recorder
+    }
+
+    /**
+     * Record a blocking-path turn. Like [record], a failure to save is logged,
+     * never allowed to cost the user the answer.
+     */
+    private fun recordQuietly(action: () -> Unit) {
+        try {
+            action()
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.error("Failed to record conversation turn: {}", e.message, e)
+        }
+    }
+
+    /**
+     * Record off the Reactor event loop (JPA blocks). A failure to save is
+     * logged, never allowed to cost the user the answer they are reading.
+     */
+    private fun record(action: () -> Unit): Mono<Void> =
+        Mono
+            .fromRunnable<Void>(action)
+            .subscribeOn(Schedulers.boundedElastic())
+            .doOnError { e -> log.error("Failed to record conversation turn: {}", e.message, e) }
+            .onErrorComplete()
 
     /**
      * Map caller-supplied conversation history onto Spring AI [Message]s,
@@ -285,24 +349,25 @@ class AgentController(
                 )
         }
 
+        val (turn, recorder) = openTurn(request)
         return try {
-            val userMessage = buildUserMessage(request)
-            val tools = toolSelector.selectTools(request.context)
-            val systemPrompt = systemPromptFor(request)
-            val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
+            val userMessage = buildUserMessage(turn)
+            val tools = toolSelector.selectTools(turn.context)
+            val systemPrompt = systemPromptFor(turn)
+            val modelId = chatModelSelector.selectFor(turn.context, turn.deepThink)
             val startMs = System.currentTimeMillis()
             val promptSpec =
-                clientFor(request)
+                clientFor(turn)
                     .prompt()
                     .system(systemPrompt)
-                    .messages(historyMessages(request))
+                    .messages(historyMessages(turn))
                     .user(userMessage)
                     .tools(*tools)
             // Per-call options REPLACE (not merge) the ChatClient's default
             // options — Anthropic cache config must be re-applied here, or
             // every request silently loses prompt caching. See buildOptions.
             val callResponse =
-                buildOptions(modelId, request.deepThink, request.think)?.let { opts ->
+                buildOptions(modelId, turn.deepThink, turn.think)?.let { opts ->
                     promptSpec.options(opts).call()
                 } ?: promptSpec.call()
 
@@ -324,6 +389,7 @@ class AgentController(
                     modelId,
                     safeQuery.take(QUERY_LOG_CHARS)
                 )
+                recordQuietly { recorder.failed(code) }
                 return ResponseEntity
                     .status(statusFor(code))
                     .body(
@@ -336,6 +402,7 @@ class AgentController(
                     )
             }
 
+            recordQuietly { recorder.answered(content) }
             ResponseEntity.ok(
                 AgentResponse(
                     query = safeQuery,
@@ -355,6 +422,7 @@ class AgentController(
         ) {
             val errorCode = classifyError(e)
             log.error("Agent query failed ({}): {}", errorCode, e.message, e)
+            recordQuietly { recorder.failed(errorCode) }
             ResponseEntity
                 .status(statusFor(errorCode))
                 .body(
@@ -401,6 +469,7 @@ class AgentController(
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
         if (chatClient == null) return errorEvent(NO_LLM)
+        val (turn, recorder) = openTurn(request)
         // Wrap the pipeline in Flux.defer so setup-time exceptions (selector
         // failures, options builder failures) become Flux errors and reach
         // onErrorResume rather than escaping out of the controller as a 500.
@@ -411,7 +480,7 @@ class AgentController(
         // caller's JWT — without it, TokenService.jwt would throw
         // "Not authorised" on every tool call.
         return Flux
-            .defer { runStream(request) }
+            .defer { runStream(turn, recorder) }
             .onErrorResume { e ->
                 // Never return e.message — leaks internals. Log full detail
                 // server-side; client gets a stable, classified code so the
@@ -419,7 +488,8 @@ class AgentController(
                 // "agent-error" when the failure is something the user can
                 // act on (e.g. provider quota, rate limit).
                 log.error("Agent stream failed: {}", e.message, e)
-                errorEvent(classifyError(e))
+                val code = classifyError(e)
+                record { recorder.failed(code) }.thenMany(errorEvent(code))
             }.contextCapture()
     }
 
@@ -562,7 +632,10 @@ class AgentController(
             }
         }
 
-    private fun runStream(request: AgentQuery): Flux<ServerSentEvent<String>> {
+    private fun runStream(
+        request: AgentQuery,
+        recorder: TurnRecorder
+    ): Flux<ServerSentEvent<String>> {
         val safeQuery = HtmlUtils.htmlEscape(request.query)
         val tools = toolSelector.selectTools(request.context)
         val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
@@ -575,12 +648,13 @@ class AgentController(
                 .current()
 
         val totalChars = AtomicLong(0)
-        // Chars of *answer* — narration before a tool turn doesn't count, since
-        // the reader is left with nothing when the turn that follows it never
-        // produces text. Zeroed at every tool-turn boundary, which is why this
-        // can't just be `totalChars` (that one guards connect-retry and has to
-        // count every char ever streamed).
-        val answerChars = AtomicLong(0)
+        // The *answer* — narration before a tool turn doesn't count, since the
+        // reader is left with nothing when the turn that follows it never
+        // produces text. Cleared at every tool-turn boundary, which is why this
+        // can't stand in for `totalChars` (that one guards connect-retry and
+        // has to count every char ever streamed). It is also what a
+        // conversation records as the assistant's reply.
+        val answer = StringBuilder()
         // Last non-blank finish reason seen, for classifying an answerless
         // stream: `length`/`max_tokens` mean truncation, anything else means
         // the model simply said nothing.
@@ -607,14 +681,14 @@ class AgentController(
                     val finishReason = resp.result?.metadata?.finishReason
                     if (text.isNotEmpty()) {
                         totalChars.addAndGet(text.length.toLong())
-                        answerChars.addAndGet(text.length.toLong())
+                        answer.append(text)
                     }
                     val reason = finishReason?.takeIf { it.isNotBlank() }?.lowercase()
                     if (reason != null) {
                         lastFinishReason.set(reason)
                         // Whatever was said before the tool call was narration,
                         // not the answer — the answer is what comes after.
-                        if (reason in TOOL_TURN_FINISH_REASONS) answerChars.set(0)
+                        if (reason in TOOL_TURN_FINISH_REASONS) answer.setLength(0)
                     }
                     Flux.fromIterable(sseEventsFor(text, finishReason))
                 }
@@ -652,8 +726,9 @@ class AgentController(
         // as a normal error event, using the same codes both transports share.
         val emptyAnswerEvent =
             Flux.defer {
-                if (answerChars.get() > 0L) {
-                    Flux.empty()
+                if (answer.isNotEmpty()) {
+                    val content = answer.toString()
+                    record { recorder.answered(content) }.thenMany(Flux.empty())
                 } else {
                     val code = emptyAnswerCode(lastFinishReason.get())
                     log.warn(
@@ -663,7 +738,7 @@ class AgentController(
                         modelId,
                         safeQuery.take(QUERY_LOG_CHARS)
                     )
-                    errorEvent(code)
+                    record { recorder.failed(code) }.thenMany(errorEvent(code))
                 }
             }
         return retriedTokens.concatWith(emptyAnswerEvent).concatWith(doneEvent)
@@ -929,7 +1004,13 @@ data class AgentQuery(
      * this request only — no server-side persistence. Truncated server-side
      * to the trailing few turns regardless of length.
      */
-    val history: List<ChatTurn>? = null
+    val history: List<ChatTurn>? = null,
+    /**
+     * The saved conversation this turn belongs to (`POST /agent/conversations`
+     * mints one). When set, the server replays that conversation's stored
+     * turns in place of [history] and records this question and its answer.
+     */
+    val conversationId: String? = null
 )
 
 /**

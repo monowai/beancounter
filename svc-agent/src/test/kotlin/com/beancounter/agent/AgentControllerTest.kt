@@ -163,6 +163,11 @@ class AgentControllerTest {
             ObjectMapper(),
             LlmMetrics(),
             scopeAuthorizer,
+            // Stateless requests only here; conversation recording is covered
+            // against a real store in AgentConversationTest.
+            mock(),
+            mock(),
+            mock(),
             clock
         )
 
@@ -247,6 +252,50 @@ class AgentControllerTest {
         assertThat(response.statusCode.value()).isEqualTo(200)
         assertThat(response.body?.response).isEqualTo("hi from the model")
         assertThat(response.body?.error).isNull()
+    }
+
+    @Test
+    fun `query still answers when saving the answer to its conversation fails`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val callResponse = mock<ChatClient.CallResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.chatResponse()).thenReturn(null)
+        whenever(callResponse.content()).thenReturn("Up 2%.")
+        val conversations =
+            mock<com.beancounter.agent.conversation.ConversationService> {
+                on { history(any(), any(), any()) } doReturn emptyList()
+                on { titleOf(any(), any()) } doReturn "Portfolio"
+                on { appendAssistant(any(), any(), any(), anyOrNull()) } doAnswer {
+                    throw IllegalStateException("agent database unavailable")
+                }
+            }
+        val owner = mock<com.beancounter.agent.conversation.ConversationOwner> { on { id() } doReturn "me" }
+        val ctrl =
+            AgentController(
+                client,
+                null,
+                null,
+                stubChecker(),
+                toolSelector,
+                systemPromptSelector,
+                chatModelSelector,
+                environment,
+                ObjectMapper(),
+                LlmMetrics(),
+                permissiveAuthorizer,
+                conversations,
+                owner,
+                mock()
+            )
+
+        val response = ctrl.query(AgentQuery("How am I doing?", conversationId = "c1"))
+
+        assertThat(response.statusCode.value()).isEqualTo(200)
+        assertThat(response.body?.response).isEqualTo("Up 2%.")
     }
 
     @Test
@@ -884,7 +933,10 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock(),
+                mock()
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
         val opts = ctrl.buildOptions("deepseek-flash", deepThink = false)?.build()
@@ -909,7 +961,10 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock(),
+                mock()
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
@@ -939,7 +994,10 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock(),
+                mock()
             )
         val opts =
             (
@@ -969,7 +1027,10 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock(),
+                mock()
             )
         val opts =
             (
@@ -1025,7 +1086,10 @@ class AgentControllerTest {
                 env,
                 ObjectMapper(),
                 LlmMetrics(),
-                permissiveAuthorizer
+                permissiveAuthorizer,
+                mock(),
+                mock(),
+                mock()
             )
         assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
     }

@@ -1,10 +1,12 @@
 package com.beancounter.agent.conversation
 
+import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
@@ -88,7 +90,12 @@ class ConversationTitler(
 @Configuration
 class ConversationTitleScopeConfig {
     /** A failed title must not cancel others; titles are a few small calls a day. */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineName("conversation-title"))
+
     @Bean("conversationTitleScope")
-    fun conversationTitleScope(): CoroutineScope =
-        CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineName("conversation-title"))
+    fun conversationTitleScope(): CoroutineScope = scope
+
+    /** Don't let a title call outlive the application context. */
+    @PreDestroy
+    fun shutdown() = scope.cancel()
 }

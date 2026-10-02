@@ -255,6 +255,50 @@ class AgentControllerTest {
     }
 
     @Test
+    fun `query still answers when saving the answer to its conversation fails`() {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val callResponse = mock<ChatClient.CallResponseSpec>()
+        val client = mock<ChatClient> { on { prompt() } doReturn request }
+        whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.chatResponse()).thenReturn(null)
+        whenever(callResponse.content()).thenReturn("Up 2%.")
+        val conversations =
+            mock<com.beancounter.agent.conversation.ConversationService> {
+                on { history(any(), any(), any()) } doReturn emptyList()
+                on { titleOf(any(), any()) } doReturn "Portfolio"
+                on { appendAssistant(any(), any(), any(), anyOrNull()) } doAnswer {
+                    throw IllegalStateException("agent database unavailable")
+                }
+            }
+        val owner = mock<com.beancounter.agent.conversation.ConversationOwner> { on { id() } doReturn "me" }
+        val ctrl =
+            AgentController(
+                client,
+                null,
+                null,
+                stubChecker(),
+                toolSelector,
+                systemPromptSelector,
+                chatModelSelector,
+                environment,
+                ObjectMapper(),
+                LlmMetrics(),
+                permissiveAuthorizer,
+                conversations,
+                owner,
+                mock()
+            )
+
+        val response = ctrl.query(AgentQuery("How am I doing?", conversationId = "c1"))
+
+        assertThat(response.statusCode.value()).isEqualTo(200)
+        assertThat(response.body?.response).isEqualTo("Up 2%.")
+    }
+
+    @Test
     fun `query returns 500 when the chatClient throws`() {
         val client = mock<ChatClient>()
         whenever(client.prompt()).thenThrow(IllegalStateException("model exploded"))

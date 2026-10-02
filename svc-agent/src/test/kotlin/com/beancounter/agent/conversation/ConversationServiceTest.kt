@@ -218,6 +218,24 @@ class ConversationServiceTest {
     }
 
     @Test
+    fun `should reject a blank title`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "q", false)
+
+        assertThatThrownBy { service.rename(owner, id, "   ") }.isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `should store a generated title without surrounding space`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
+
+        service.applyGeneratedTitle(owner, id, provisional = "Index fund", generated = "  Index Fund Basics  ")
+
+        assertThat(service.titleOf(owner, id)).isEqualTo("Index Fund Basics")
+    }
+
+    @Test
     fun `should delete a conversation and its messages`() {
         val id = service.create(owner).id
         service.appendUser(owner, id, "q", false)

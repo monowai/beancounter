@@ -200,6 +200,21 @@ class AgentController(
     }
 
     /**
+     * Record a blocking-path turn. Like [record], a failure to save is logged,
+     * never allowed to cost the user the answer.
+     */
+    private fun recordQuietly(action: () -> Unit) {
+        try {
+            action()
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.error("Failed to record conversation turn: {}", e.message, e)
+        }
+    }
+
+    /**
      * Record off the Reactor event loop (JPA blocks). A failure to save is
      * logged, never allowed to cost the user the answer they are reading.
      */
@@ -374,7 +389,7 @@ class AgentController(
                     modelId,
                     safeQuery.take(QUERY_LOG_CHARS)
                 )
-                recorder.failed(code)
+                recordQuietly { recorder.failed(code) }
                 return ResponseEntity
                     .status(statusFor(code))
                     .body(
@@ -387,7 +402,7 @@ class AgentController(
                     )
             }
 
-            recorder.answered(content)
+            recordQuietly { recorder.answered(content) }
             ResponseEntity.ok(
                 AgentResponse(
                     query = safeQuery,
@@ -407,7 +422,7 @@ class AgentController(
         ) {
             val errorCode = classifyError(e)
             log.error("Agent query failed ({}): {}", errorCode, e.message, e)
-            recorder.failed(errorCode)
+            recordQuietly { recorder.failed(errorCode) }
             ResponseEntity
                 .status(statusFor(errorCode))
                 .body(

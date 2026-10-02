@@ -66,7 +66,7 @@ class ConversationService(
         content: String,
         deepThink: Boolean
     ): ConversationMessage {
-        val conversation = owned(ownerId, id)
+        val conversation = locked(ownerId, id)
         if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(content)
         return append(conversation, ROLE_USER, content, deepThink, null)
     }
@@ -76,7 +76,7 @@ class ConversationService(
         id: String,
         content: String,
         error: String?
-    ): ConversationMessage = append(owned(ownerId, id), ROLE_ASSISTANT, content, false, error)
+    ): ConversationMessage = append(locked(ownerId, id), ROLE_ASSISTANT, content, false, error)
 
     /**
      * Prior turns to replay to the model, oldest first: the trailing [maxTurns]
@@ -112,46 +112,54 @@ class ConversationService(
         id: String,
         provisional: String,
         generated: String
-    ): Boolean {
-        val conversation = owned(ownerId, id)
-        if (conversation.title != provisional) return false
-        conversation.title = generated.take(TITLE_MAX_CHARS)
-        return true
-    }
+    ): Boolean = conversations.replaceTitle(id, ownerId, provisional, clip(generated)) == 1
 
     fun rename(
         ownerId: String,
         id: String,
         title: String
     ) {
-        owned(ownerId, id).title = title.trim().take(TITLE_MAX_CHARS)
+        require(title.isNotBlank()) { "A conversation title cannot be blank" }
+        owned(ownerId, id).title = clip(title)
     }
 
     fun delete(
         ownerId: String,
         id: String
     ) {
-        deleteIds(listOf(owned(ownerId, id).id))
+        owned(ownerId, id)
+        messages.deleteOfConversation(id)
+        conversations.deleteOne(id)
     }
 
     /** Remove every conversation [ownerId] has — the offboarding path. */
-    fun deleteAll(ownerId: String): Int = deleteIds(conversations.findIdsByOwnerId(ownerId))
+    fun deleteAll(ownerId: String): Int {
+        messages.deleteOfOwner(ownerId)
+        return conversations.deleteByOwner(ownerId)
+    }
 
     /** Remove conversations with no turn in the last [idle]. */
-    fun purgeIdleLongerThan(idle: Duration): Int =
-        deleteIds(conversations.findIdsIdleSince(clock.instant().minus(idle)))
-
-    private fun deleteIds(ids: List<String>): Int {
-        if (ids.isEmpty()) return 0
-        messages.deleteByConversationIds(ids)
-        return conversations.deleteByIds(ids)
+    fun purgeIdleLongerThan(idle: Duration): Int {
+        val cutoff = clock.instant().minus(idle)
+        messages.deleteOfIdleSince(cutoff)
+        return conversations.deleteIdleSince(cutoff)
     }
+
+    private fun clip(title: String): String = title.trim().take(TITLE_MAX_CHARS).trimEnd()
 
     private fun owned(
         ownerId: String,
         id: String
     ): Conversation =
         conversations.findByIdAndOwnerId(id, ownerId)
+            ?: throw NotFoundException("Conversation not found: $id")
+
+    /** [owned], row-locked so appends to one conversation number their turns in turn. */
+    private fun locked(
+        ownerId: String,
+        id: String
+    ): Conversation =
+        conversations.lockOwned(id, ownerId)
             ?: throw NotFoundException("Conversation not found: $id")
 
     private fun append(

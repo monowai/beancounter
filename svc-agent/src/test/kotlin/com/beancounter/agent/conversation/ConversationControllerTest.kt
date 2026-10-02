@@ -119,6 +119,19 @@ class ConversationControllerTest {
     }
 
     @Test
+    fun `should refuse a blank title`() {
+        val id = seeded(me, "q")
+
+        mockMvc
+            .perform(
+                patch("/agent/conversations/$id")
+                    .with(jwt())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"title":"   "}""")
+            ).andExpect(status().isBadRequest)
+    }
+
+    @Test
     fun `should delete a conversation`() {
         val id = seeded(me, "q")
 

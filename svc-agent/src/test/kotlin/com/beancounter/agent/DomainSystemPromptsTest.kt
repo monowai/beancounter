@@ -25,6 +25,16 @@ class DomainSystemPromptsTest {
         )
 
     @Test
+    fun `asset review sends own-holding questions to getHolding instead of refusing`() {
+        // An Asset Review answered "I can't — no portfolio selected" when asked about a sold
+        // holding in a named portfolio, although the tools to look it up were wired.
+        assertThat(DomainSystemPrompts.ASSET_REVIEW)
+            .contains("getHolding")
+            .contains("listPortfolios")
+            .doesNotContain("Stay at the ticker level")
+    }
+
+    @Test
     fun `every domain prompt forbids a lead-in preamble`() {
         assertThat(allPrompts)
             .allSatisfy { prompt -> assertThat(prompt).contains("No preamble") }

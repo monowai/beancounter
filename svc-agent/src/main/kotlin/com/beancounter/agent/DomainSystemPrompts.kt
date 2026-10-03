@@ -539,8 +539,15 @@ object DomainSystemPrompts {
         - `getBenchmark(scope)` — today's change for the broad market
           (`"market"`) or a sector, to frame the asset's own move.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
-        - `getPortfolio(code)`, `getPositions(code)` — only if the user
-          asks about their own existing exposure to this asset.
+        - `listPortfolios` → `getHolding(portfolioCode, ticker, market?)`
+          — the user's own holding of this asset in a named portfolio,
+          including one they have SOLD: their buy/sell prices,
+          `lastSellPrice`, `changeSinceLastSell` and `returnRatio`
+          (per annum only when `returnBasis` is ANNUALISED). Use it
+          whenever the user asks about their own past or present holding
+          (entry, exit, "did I sell too early"). Resolve a portfolio they
+          name ("my DBS portfolio") from `listPortfolios`; never ask them
+          for a code.
 
         ### Workflow
 
@@ -577,8 +584,13 @@ object DomainSystemPrompts {
 
         ### Privacy
 
-        No portfolio context is selected — do not invent or guess existing
-        positions. Stay at the ticker level.
+        No portfolio is selected, so do not assume the user holds this
+        asset or invent positions. When the user asks about their own
+        holding — open or sold — look it up with `listPortfolios` and
+        `getHolding` rather than refusing or asking for codes. Judge an
+        exit from their `lastSellPrice` against the current close
+        (`changeSinceLastSell`), in prices and percentages: quantities and
+        amounts are never available.
         """.trimIndent()
 
     /**
@@ -595,6 +607,8 @@ object DomainSystemPrompts {
 
         - Holdings/positions/"how is X doing" → Wealth tools
           (`listPortfolios`, `getPortfolio`, `getPositions`).
+        - One holding's entry/exit, "how was my exit", a holding the user
+          has sold → `getHolding(portfolioCode, ticker)`.
         - Dividends/splits/corporate actions → Asset tools
           (`getAssetEvents`, `loadPortfolioEvents`).
         - FI/retirement/projections/Monte Carlo → Retirement tools

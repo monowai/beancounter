@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 class ToolSelector(
     private val portfolioTools: PortfolioTools,
     private val positionTools: PositionTools,
+    private val holdingTools: HoldingTools,
     private val marketTools: MarketTools,
     private val newsTools: NewsTools,
     private val macroTools: MacroTools,
@@ -22,9 +23,9 @@ class ToolSelector(
     private val retireTools: RetireTools,
     private val rebalanceTools: RebalanceTools
 ) {
-    /** Wealth baseline — portfolios, positions, markets/FX, macro backdrop. */
+    /** Wealth baseline — portfolios, positions (and one holding, open or sold), markets/FX, macro backdrop. */
     private val wealthTools: List<Any> by lazy {
-        listOf(portfolioTools, positionTools, marketTools, macroTools)
+        listOf(portfolioTools, positionTools, holdingTools, marketTools, macroTools)
     }
 
     fun selectTools(context: Map<String, Any>?): Array<Any> {

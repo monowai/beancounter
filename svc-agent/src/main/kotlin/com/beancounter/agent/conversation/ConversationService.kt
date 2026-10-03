@@ -23,6 +23,7 @@ class ConversationService(
 ) {
     companion object {
         const val TITLE_MAX_CHARS = 60
+        const val LABEL_MAX_CHARS = 200
         const val ROLE_USER = "user"
         const val ROLE_ASSISTANT = "assistant"
     }
@@ -69,7 +70,8 @@ class ConversationService(
     ): ConversationMessage {
         val conversation = locked(ownerId, id)
         if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(label ?: content)
-        return append(conversation, ROLE_USER, content, deepThink, null, label)
+        // Caller-supplied display text: clip to the column rather than fail the turn.
+        return append(conversation, ROLE_USER, content, deepThink, null, label?.take(LABEL_MAX_CHARS))
     }
 
     fun appendAssistant(

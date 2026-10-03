@@ -184,7 +184,8 @@ class AgentController(
         val conversationId = request.conversationId ?: return request to TurnRecorder.NONE
         val ownerId = conversationOwner.id()
         val stored = conversations.history(ownerId, conversationId, MAX_HISTORY_TURNS)
-        conversations.appendUser(ownerId, conversationId, request.query, request.deepThink)
+        conversations.appendUser(ownerId, conversationId, request.query, request.deepThink, request.label)
+        // Titles see a canned prompt's label, which names the subject without its instructions.
         val recorder =
             ConversationRecorder(
                 service = conversations,
@@ -194,7 +195,8 @@ class AgentController(
                 awaitingTitle = stored.none { it.role == ConversationService.ROLE_ASSISTANT },
                 provisionalTitle = conversations.titleOf(ownerId, conversationId),
                 questions =
-                    stored.filter { it.role == ConversationService.ROLE_USER }.map { it.content } + request.query
+                    stored.filter { it.role == ConversationService.ROLE_USER }.map { it.content } +
+                        (request.label ?: request.query)
             )
         return request.copy(history = stored) to recorder
     }
@@ -1010,7 +1012,12 @@ data class AgentQuery(
      * mints one). When set, the server replays that conversation's stored
      * turns in place of [history] and records this question and its answer.
      */
-    val conversationId: String? = null
+    val conversationId: String? = null,
+    /**
+     * Display text for a canned prompt (a Quick Analysis), stored beside the
+     * question so a reloaded conversation shows it instead of the prompt.
+     */
+    val label: String? = null
 )
 
 /**

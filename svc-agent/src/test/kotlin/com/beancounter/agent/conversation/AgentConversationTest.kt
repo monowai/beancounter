@@ -251,4 +251,23 @@ class AgentConversationTest {
 
         assertThat(service.titleOf(me, id)).isEqualTo("VOO")
     }
+
+    @Test
+    fun `stream should store an analysis prompt with its display label`() {
+        val id = service.create(me).id
+        streams(chunk("NATO looks Bullish.", "stop"))
+
+        controller()
+            .stream(
+                AgentQuery(
+                    "Summarise recent news and sentiment for NATO...",
+                    conversationId = id,
+                    label = "News & Sentiment — NATO"
+                )
+            ).blockLast()
+
+        val question = service.get(me, id).messages.first()
+        assertThat(question.content).isEqualTo("Summarise recent news and sentiment for NATO...")
+        assertThat(question.label).isEqualTo("News & Sentiment — NATO")
+    }
 }

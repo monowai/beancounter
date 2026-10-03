@@ -103,6 +103,18 @@ class ConversationServiceTest {
     }
 
     @Test
+    fun `should keep a display label beside the question and title the conversation from it`() {
+        val id = service.create(owner).id
+        val canned = "Summarise recent news and sentiment for NATO on LSE. Respond in markdown with sections..."
+        service.appendUser(owner, id, canned, false, label = "News & Sentiment — NATO")
+
+        val first = service.get(owner, id).messages.first()
+        assertThat(first.content).isEqualTo(canned)
+        assertThat(first.label).isEqualTo("News & Sentiment — NATO")
+        assertThat(service.titleOf(owner, id)).isEqualTo("News Sentiment NATO")
+    }
+
+    @Test
     fun `should replace a provisional title with a generated one`() {
         val id = service.create(owner).id
         service.appendUser(owner, id, "In one sentence, what is an index fund?", false)

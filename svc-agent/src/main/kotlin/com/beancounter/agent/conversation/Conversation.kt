@@ -49,6 +49,9 @@ class ConversationMessage(
     val deepThink: Boolean = false,
     @Column(length = 64)
     val error: String? = null,
+    /** Shown in place of [content] for a canned prompt, e.g. "News & Sentiment — NATO". */
+    @Column(length = 200)
+    val label: String? = null,
     @Column(nullable = false)
     val createdAt: Instant
 )

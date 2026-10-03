@@ -55,7 +55,7 @@ class ConversationService(
             updatedAt = conversation.updatedAt,
             messages =
                 messages.findByConversationIdOrderBySeq(id).map {
-                    ConversationTurn(it.id, it.role, it.content, it.createdAt, it.error, it.deepThink)
+                    ConversationTurn(it.id, it.role, it.content, it.createdAt, it.error, it.deepThink, it.label)
                 }
         )
     }
@@ -64,11 +64,12 @@ class ConversationService(
         ownerId: String,
         id: String,
         content: String,
-        deepThink: Boolean
+        deepThink: Boolean,
+        label: String? = null
     ): ConversationMessage {
         val conversation = locked(ownerId, id)
-        if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(content)
-        return append(conversation, ROLE_USER, content, deepThink, null)
+        if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(label ?: content)
+        return append(conversation, ROLE_USER, content, deepThink, null, label)
     }
 
     fun appendAssistant(
@@ -76,7 +77,7 @@ class ConversationService(
         id: String,
         content: String,
         error: String?
-    ): ConversationMessage = append(locked(ownerId, id), ROLE_ASSISTANT, content, false, error)
+    ): ConversationMessage = append(locked(ownerId, id), ROLE_ASSISTANT, content, false, error, null)
 
     /**
      * Prior turns to replay to the model, oldest first: the trailing [maxTurns]
@@ -167,7 +168,8 @@ class ConversationService(
         role: String,
         content: String,
         deepThink: Boolean,
-        error: String?
+        error: String?,
+        label: String?
     ): ConversationMessage {
         val now = clock.instant()
         conversation.updatedAt = now
@@ -179,6 +181,7 @@ class ConversationService(
                 content = content,
                 deepThink = deepThink,
                 error = error,
+                label = label,
                 createdAt = now
             )
         )
@@ -198,7 +201,8 @@ data class ConversationTurn(
     val content: String,
     val timestamp: Instant,
     val error: String?,
-    val deepThink: Boolean
+    val deepThink: Boolean,
+    val label: String?
 )
 
 data class ConversationDetail(

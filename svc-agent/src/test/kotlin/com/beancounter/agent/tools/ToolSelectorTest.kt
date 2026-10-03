@@ -10,6 +10,7 @@ import org.mockito.kotlin.mock
 class ToolSelectorTest {
     private val portfolioTools = mock<PortfolioTools>()
     private val positionTools = mock<PositionTools>()
+    private val holdingTools = mock<HoldingTools>()
     private val marketTools = mock<MarketTools>()
     private val newsTools = mock<NewsTools>()
     private val macroTools = mock<MacroTools>()
@@ -21,6 +22,7 @@ class ToolSelectorTest {
         ToolSelector(
             portfolioTools,
             positionTools,
+            holdingTools,
             marketTools,
             newsTools,
             macroTools,
@@ -40,6 +42,12 @@ class ToolSelectorTest {
     }
 
     @Test
+    fun `asset review can look up the user's own holding of the asset, open or sold`() {
+        val tools = selector.selectTools(mapOf("page" to "Asset Review"))
+        assertThat(tools).contains(portfolioTools, positionTools, holdingTools)
+    }
+
+    @Test
     fun `wealth pages ship portfolio, position, market, macro, news, and event tools`() {
         // Event tools are part of the wealth bundle so users can ask
         // "how many dividends has GOOG paid?" from holdings/portfolio pages
@@ -48,6 +56,7 @@ class ToolSelectorTest {
         assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
+            holdingTools,
             marketTools,
             macroTools,
             eventTools,
@@ -62,6 +71,7 @@ class ToolSelectorTest {
         assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
+            holdingTools,
             marketTools,
             macroTools,
             retireTools
@@ -75,6 +85,7 @@ class ToolSelectorTest {
         assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
+            holdingTools,
             marketTools,
             macroTools,
             rebalanceTools
@@ -88,6 +99,7 @@ class ToolSelectorTest {
         assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
+            holdingTools,
             marketTools,
             macroTools,
             eventTools,
@@ -105,6 +117,7 @@ class ToolSelectorTest {
         assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
+            holdingTools,
             marketTools,
             macroTools,
             eventTools,
@@ -119,6 +132,7 @@ class ToolSelectorTest {
         assertThat(tools).containsExactlyInAnyOrder(
             portfolioTools,
             positionTools,
+            holdingTools,
             marketTools,
             macroTools,
             newsTools,

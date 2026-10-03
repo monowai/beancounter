@@ -66,7 +66,17 @@ class HoldingToolsTest {
         portfolioId = portfolio.id
     )
 
-    private fun tools(vararg held: Position): HoldingTools {
+    private val defaultTrades =
+        listOf(
+            trade(TrnType.BUY, "2025-01-10", "41.20"),
+            trade(TrnType.BUY, "2025-06-02", "48.00"),
+            trade(TrnType.SELL, "2026-05-01", "70.00")
+        )
+
+    private fun tools(
+        vararg held: Position,
+        trades: List<TrnDto> = defaultTrades
+    ): HoldingTools {
         val positionClient =
             mock<PositionClient> {
                 on { getPositionsByCode("DBS", "today", true) } doReturn
@@ -74,17 +84,7 @@ class HoldingToolsTest {
             }
         val trnClient =
             mock<TrnClient> {
-                on { getTrades("pf-dbs", "ring-us") } doReturn
-                    TrnResponse(
-                        TrnPayload(
-                            trns =
-                                listOf(
-                                    trade(TrnType.BUY, "2025-01-10", "41.20"),
-                                    trade(TrnType.BUY, "2025-06-02", "48.00"),
-                                    trade(TrnType.SELL, "2026-05-01", "70.00")
-                                )
-                        )
-                    )
+                on { getTrades("pf-dbs", "ring-us") } doReturn TrnResponse(TrnPayload(trns = trades))
             }
         return HoldingTools(positionClient, trnClient)
     }
@@ -113,6 +113,30 @@ class HoldingToolsTest {
         val recent = closedRing().apply { dateValues.opened = LocalDate.parse("2026-02-01") }
 
         assertThat(tools(recent).getHolding("DBS", "RING").returnBasis).isEqualTo(ReturnBasis.SIMPLE)
+    }
+
+    @Test
+    fun `should measure the holding period to the sale, not a later dividend`() {
+        // Sold 2026-01-05, 360 days after opening; a dividend paid after the sale moves
+        // `last` past the one-year mark but the return is still a simple one.
+        val soldInside =
+            closedRing().apply {
+                dateValues.opened = LocalDate.parse("2025-01-10")
+                dateValues.closed = LocalDate.parse("2026-01-05")
+                dateValues.last = LocalDate.parse("2026-02-20")
+            }
+
+        assertThat(tools(soldInside).getHolding("DBS", "RING").returnBasis).isEqualTo(ReturnBasis.SIMPLE)
+    }
+
+    @Test
+    fun `should leave the change since sale empty for a zero-priced sale`() {
+        val gifted = listOf(trade(TrnType.BUY, "2025-01-10", "41.20"), trade(TrnType.SELL, "2026-05-01", "0"))
+
+        val holding = tools(closedRing(), trades = gifted).getHolding("DBS", "RING")
+
+        assertThat(holding.lastSellPrice).isEqualTo(0.0)
+        assertThat(holding.changeSinceLastSell).isNull()
     }
 
     @Test

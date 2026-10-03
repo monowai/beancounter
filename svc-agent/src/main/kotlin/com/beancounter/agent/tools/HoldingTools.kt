@@ -91,7 +91,10 @@ class HoldingTools(
         val lastSell = trades.lastOrNull { it.trnType == TrnType.SELL }
         val closed = position.quantityValues.getTotal().signum() == 0
         val opened = position.dateValues.opened
-        val heldUntil = if (closed) position.dateValues.last ?: dateUtils.date else dateUtils.date
+        // A closed position can still receive a dividend after the sale, which moves `last`;
+        // `closed` is the date the quantity reached zero.
+        val heldUntil =
+            if (closed) position.dateValues.closed ?: position.dateValues.last ?: dateUtils.date else dateUtils.date
         return ScrubbedHolding(
             portfolioCode = portfolioCode,
             assetCode = asset.code,
@@ -113,14 +116,19 @@ class HoldingTools(
                     }
                 },
             currentPrice = close?.toDouble(),
-            currentPriceDate = close?.let { trade.priceData.priceDate.toString() },
+            currentPriceDate = close?.let { trade?.priceData?.priceDate?.toString() },
             lastSellDate = lastSell?.tradeDate?.toString(),
             lastSellPrice = lastSell?.price?.toDouble(),
             changeSinceLastSell =
-                lastSell?.price?.let { sold ->
+                lastSell?.price?.takeIf { it.signum() > 0 }?.let { sold ->
                     close?.subtract(sold)?.divide(sold, RATIO_SCALE, RoundingMode.HALF_UP)?.toDouble()
                 },
-            trades = trades.map { HoldingTrade(it.tradeDate.toString(), it.trnType.name, it.price!!.toDouble()) }
+            trades =
+                trades.mapNotNull { trn ->
+                    trn.price?.let { price ->
+                        HoldingTrade(trn.tradeDate.toString(), trn.trnType.name, price.toDouble())
+                    }
+                }
         )
     }
 }

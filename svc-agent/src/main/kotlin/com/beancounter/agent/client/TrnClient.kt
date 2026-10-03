@@ -2,6 +2,7 @@ package com.beancounter.agent.client
 
 import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.exception.BusinessException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
@@ -28,5 +29,6 @@ class TrnClient(
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
             .body<TrnResponse>()
-            ?: TrnResponse()
+            // An empty answer is a failure, not "no trades" — that would read as never traded.
+            ?: throw BusinessException("No trades response for asset $assetId in portfolio $portfolioId")
 }

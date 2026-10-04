@@ -23,7 +23,9 @@ import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.CashAccumulator
 import com.beancounter.position.accumulation.DepositBehaviour
 import com.beancounter.position.accumulation.ReduceBehaviour
+import com.beancounter.position.accumulation.SellBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
+import com.beancounter.position.accumulation.WithdrawalBehaviour
 import com.beancounter.position.cache.NoOpPerformanceCacheService
 import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
@@ -47,6 +49,9 @@ import java.time.LocalDate
  * transfers). TWR treats each as an external flow at the units' market value on the
  * trade date, so moving units between portfolios is neither return nor loss. Runs a
  * real [Accumulator] so quantities come from actual position state.
+ *
+ * A BUY or SELL with no cash asset settles outside the portfolio: the money never
+ * passes through its cash, so the trade amount is an external flow too.
  */
 @ExtendWith(MockitoExtension::class)
 class PerformanceInKindTransferTest {
@@ -88,7 +93,9 @@ class PerformanceInKindTransferTest {
                     listOf(
                         BuyBehaviour(currencyResolver),
                         ReduceBehaviour(currencyResolver),
-                        DepositBehaviour(cashAccumulator)
+                        SellBehaviour(currencyResolver),
+                        DepositBehaviour(cashAccumulator),
+                        WithdrawalBehaviour(cashAccumulator)
                     )
                 )
             )
@@ -164,6 +171,47 @@ class PerformanceInKindTransferTest {
         assertThat(last.netContributions).isEqualByComparingTo("200")
     }
 
+    @Test
+    fun `should treat a buy settled outside the portfolio as money in`() {
+        givenTrns(
+            deposit(today.minusMonths(6), "1000"),
+            trade(TrnType.BUY, today.minusMonths(3), quantity = "10", price = "20")
+        )
+        givenPrices { "20" }
+
+        val last =
+            performanceService
+                .calculate(portfolio, 12)
+                .data.series
+                .last()
+
+        assertThat(last.marketValue).isEqualByComparingTo("1200")
+        assertThat(last.cumulativeReturn).isEqualByComparingTo("0")
+        assertThat(last.netContributions).isEqualByComparingTo("1200")
+    }
+
+    @Test
+    fun `should keep the realised gain when sale proceeds settle outside the portfolio`() {
+        val sold = today.minusMonths(2)
+        givenTrns(
+            deposit(today.minusMonths(6), "1000"),
+            trade(TrnType.BUY, today.minusMonths(5), quantity = "10", price = "20", settledInPortfolio = true),
+            // Bought at 20, sold at 30: a 100 gain on 1000. The 300 proceeds leave the portfolio.
+            trade(TrnType.SELL, sold, quantity = "10", price = "30")
+        )
+        givenPrices { date -> if (date.isBefore(sold)) "20" else "30" }
+
+        val last =
+            performanceService
+                .calculate(portfolio, 12)
+                .data.series
+                .last()
+
+        assertThat(last.marketValue).isEqualByComparingTo("800")
+        assertThat(last.cumulativeReturn.toDouble()).isCloseTo(0.1, Offset.offset(0.0001))
+        assertThat(last.netContributions).isEqualByComparingTo("700")
+    }
+
     private fun givenTrns(vararg trns: Trn) {
         whenever(trnService.query(any<Portfolio>(), eq(DateUtils.TODAY)))
             .thenReturn(TrnResponse(trns.sortedBy { it.tradeDate }))
@@ -211,4 +259,28 @@ class PerformanceInKindTransferTest {
         tradeCurrency = USD,
         portfolio = portfolio
     )
+
+    private fun trade(
+        trnType: TrnType,
+        date: LocalDate,
+        quantity: String,
+        price: String,
+        settledInPortfolio: Boolean = false
+    ): Trn {
+        val amount = BigDecimal(quantity).multiply(BigDecimal(price))
+        return Trn(
+            trnType = trnType,
+            asset = fund,
+            tradeDate = date,
+            quantity = BigDecimal(quantity),
+            price = BigDecimal(price),
+            tradeAmount = amount,
+            cashAsset = if (settledInPortfolio) usdCashBalance else null,
+            cashCurrency = USD,
+            cashAmount = if (trnType == TrnType.BUY) amount.negate() else amount,
+            tradeCurrency = USD,
+            tradeCashRate = BigDecimal.ONE,
+            portfolio = portfolio
+        )
+    }
 }

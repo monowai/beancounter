@@ -378,7 +378,7 @@ class PerformanceService(
             // not income earned by the assets TWR measures.
             if (trn.trnType == TrnType.DIVI && !isExcluded(trn.asset)) {
                 cumulativeDividends =
-                    cumulativeDividends.add(convertDividendToPortfolioCurrency(trn, portfolio))
+                    cumulativeDividends.add(tradeAmountInPortfolioCurrency(trn, portfolio))
             }
             trnIndex++
         }
@@ -401,6 +401,9 @@ class PerformanceService(
      *   flow is the units' market value on the trade date, priced as the snapshot
      *   prices them, so the transfer itself is neither return nor loss. The trn's own
      *   price is often the original cost carried over and is not used.
+     * - A trade or dividend with no cash asset settles outside the portfolio: a buy is
+     *   funded from outside and sale proceeds or a dividend leave at once. The trade
+     *   amount is the flow, so a realised gain stays in the return when its proceeds go.
      */
     private fun accumulateFlow(
         trn: Trn,
@@ -415,6 +418,7 @@ class PerformanceService(
             isExternalCashFlow(trn.trnType) -> convertCashFlowToPortfolioCurrency(trn, portfolio)
             basisBefore != null -> balanceBasis(trn, positions, portfolio)?.subtract(basisBefore)
             isExcludedCashLeg(trn) -> cashLegInPortfolioCurrency(trn, portfolio)
+            isSettledOutside(trn) -> settledOutsideFlow(trn, portfolio)
             unitsBefore != null -> inKindValue(trn, positions, unitsBefore, portfolio, prices)
             else -> null
         }
@@ -475,6 +479,26 @@ class PerformanceService(
         }
     }
 
+    /**
+     * A cash-impacting trade in an included asset that names no cash asset: the
+     * accumulator moves no cash for it, so the money passed outside the portfolio.
+     */
+    private fun isSettledOutside(trn: Trn): Boolean =
+        trn.cashAsset == null &&
+            TrnType.isCashImpacted(trn.trnType) &&
+            !isExternalCashFlow(trn.trnType) &&
+            !cashUtils.isCash(trn.asset) &&
+            !isExcluded(trn.asset)
+
+    /** Money in for a buy, money out for sale proceeds or a dividend, in portfolio currency. */
+    private fun settledOutsideFlow(
+        trn: Trn,
+        portfolio: Portfolio
+    ): BigDecimal {
+        val amount = tradeAmountInPortfolioCurrency(trn, portfolio)
+        return if (TrnType.isCashCredited(trn.trnType)) amount.negate() else amount
+    }
+
     private fun isExcludedCashLeg(trn: Trn): Boolean =
         isExcluded(trn.asset) && trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType)
 
@@ -504,6 +528,7 @@ class PerformanceService(
         isExternalCashFlow(trn.trnType) ||
             (trn.trnType == TrnType.BALANCE && !isExcluded(trn.asset)) ||
             isExcludedCashLeg(trn) ||
+            isSettledOutside(trn) ||
             isInKindTransfer(trn)
 
     /**
@@ -514,7 +539,7 @@ class PerformanceService(
     private fun isExcluded(asset: Asset): Boolean =
         asset.market.code == PRIVATE_MARKET && !cashUtils.isCash(asset) && !asset.includeInPerformance
 
-    private fun convertDividendToPortfolioCurrency(
+    private fun tradeAmountInPortfolioCurrency(
         trn: Trn,
         portfolio: Portfolio
     ): BigDecimal {

@@ -130,9 +130,10 @@ See [CONTRACT_TEST_ARCHITECTURE.md](CONTRACT_TEST_ARCHITECTURE.md) for detailed 
 
 ## CI/CD
 
-The project uses CircleCI with optimized build pipelines:
+GitHub Actions builds the project on GitHub-hosted `ubuntu-24.04-arm` runners:
 
-- **build-and-test**: Single `./gradlew build` (stub ordering handled by Gradle)
-- **package-***: Creates Docker images (main branch only)
+- **build**: a single `./gradlew build --parallel` on every PR and push (Gradle handles stub ordering)
+- **package**: arm64 Docker images for the five services, tagged with the run number and `latest` (`main` and `deploy/**` only)
+- **publish-jars**, **coverage** (Codacy, Codecov) and **security-scan** (Snyk, `main` only)
 
-See [.circleci/config.yml](.circleci/config.yml) for configuration details.
+bc-deploy reads the run number of this workflow as each chart's `appVersion`. See [.github/workflows/build.yml](.github/workflows/build.yml).

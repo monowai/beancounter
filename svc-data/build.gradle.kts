@@ -174,7 +174,7 @@ springBoot {
     buildInfo {
         properties {
             additional.set(mapOf(
-                "ci.buildNumber" to (System.getenv("CIRCLE_BUILD_NUM") ?: "local")
+                "ci.buildNumber" to (System.getenv("GITHUB_RUN_NUMBER") ?: "local")
             ))
         }
     }

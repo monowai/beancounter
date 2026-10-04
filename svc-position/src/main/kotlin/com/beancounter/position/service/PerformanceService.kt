@@ -339,7 +339,7 @@ class PerformanceService(
     )
 
     /** One pass's pre-fetched prices and FX rates, keyed by ISO date. */
-    private class PassPrices(
+    private data class PassPrices(
         val priceCache: Map<String, Collection<MarketData>>,
         val fxCache: Map<String, FxPairResults>,
         val latestPriceIndex: Map<String, MarketData>
@@ -412,47 +412,76 @@ class PerformanceService(
         prices: PassPrices
     ): BigDecimal? {
         val basisBefore = balanceBasis(trn, positions, portfolio)
-        val unitsBefore = inKindUnits(trn, positions)
+        val inKindBefore = inKindState(trn, positions, portfolio, prices)
         accumulator.accumulate(trn, positions)
         return when {
             isExternalCashFlow(trn.trnType) -> convertCashFlowToPortfolioCurrency(trn, portfolio)
             basisBefore != null -> balanceBasis(trn, positions, portfolio)?.subtract(basisBefore)
             isExcludedCashLeg(trn) -> cashLegInPortfolioCurrency(trn, portfolio)
             isSettledOutside(trn) -> settledOutsideFlow(trn, portfolio)
-            unitsBefore != null -> inKindValue(trn, positions, unitsBefore, portfolio, prices)
+            inKindBefore != null -> inKindValue(trn, positions, inKindBefore, portfolio, prices)
             else -> null
         }
     }
 
-    /** Units held before an in-specie ADD or REDUCE of an included asset; null for any other trn. */
-    private fun inKindUnits(
+    /** A position's units and per-unit value on a trn's trade date, in portfolio currency. */
+    private data class InKindState(
+        val units: BigDecimal,
+        val unitValue: BigDecimal?
+    )
+
+    /** The position as an in-specie ADD or REDUCE of an included asset finds it; null for any other trn. */
+    private fun inKindState(
         trn: Trn,
-        positions: Positions
-    ): BigDecimal? {
+        positions: Positions,
+        portfolio: Portfolio,
+        prices: PassPrices
+    ): InKindState? {
         if (!isInKindTransfer(trn)) return null
-        return positions.getOrCreate(trn).quantityValues.getTotal()
+        val position = positions.getOrCreate(trn)
+        val dateStr = trn.tradeDate.toString()
+        return InKindState(
+            position.quantityValues.getTotal(),
+            unitValue(
+                position,
+                dateStr,
+                portfolio,
+                priceMapFor(dateStr, prices),
+                findNearestFxRates(dateStr, prices.fxCache),
+                prices
+            )
+        )
     }
 
     private fun isInKindTransfer(trn: Trn): Boolean =
         (trn.trnType == TrnType.ADD || trn.trnType == TrnType.REDUCE) && !isExcluded(trn.asset)
 
-    /** Market value, in portfolio currency, of the units an in-specie trn moved. */
+    /**
+     * Market value, in portfolio currency, of the units an in-specie trn moved. An asset
+     * with no market price is carried at average cost, which a first ADD only sets and
+     * a REDUCE to zero clears, so the value is read after the trn and, failing that,
+     * [before] it.
+     */
     private fun inKindValue(
         trn: Trn,
         positions: Positions,
-        unitsBefore: BigDecimal,
+        before: InKindState,
         portfolio: Portfolio,
         prices: PassPrices
     ): BigDecimal? {
-        val position = positions.getOrCreate(trn)
-        val dateStr = trn.tradeDate.toString()
-        val priceMap = priceMapFor(dateStr, prices)
-        val unitValue =
-            unitValue(position, dateStr, portfolio, priceMap, findNearestFxRates(dateStr, prices.fxCache), prices)
-                ?: return null
-        return position.quantityValues
-            .getTotal()
-            .subtract(unitsBefore)
+        val after = inKindState(trn, positions, portfolio, prices) ?: return null
+        val unitValue = after.unitValue ?: before.unitValue
+        if (unitValue == null) {
+            log.warn(
+                "No price or cost basis for in-specie {} of {} on {}; left out of TWR flows",
+                trn.trnType,
+                trn.asset.code,
+                trn.tradeDate
+            )
+            return null
+        }
+        return after.units
+            .subtract(before.units)
             .multiply(unitValue)
             .setScale(2, RoundingMode.HALF_UP)
     }

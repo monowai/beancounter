@@ -172,6 +172,28 @@ class PerformanceInKindTransferTest {
     }
 
     @Test
+    fun `should value an in-specie reduce of an unpriced asset at the cost it was carried at`() {
+        // No market price: the snapshot carries the units at average cost. Reducing to
+        // zero clears that cost, so the flow must use the value held before the reduce.
+        givenTrns(
+            deposit(today.minusMonths(6), "1000"),
+            inKind(TrnType.ADD, today.minusMonths(4), quantity = "10", price = "20"),
+            inKind(TrnType.REDUCE, today.minusMonths(2), quantity = "10", price = "0")
+        )
+        lenient().`when`(priceService.getBulkPrices(any(), any())).thenReturn(BulkPriceResponse(emptyMap()))
+
+        val last =
+            performanceService
+                .calculate(portfolio, 12)
+                .data.series
+                .last()
+
+        assertThat(last.marketValue).isEqualByComparingTo("1000")
+        assertThat(last.cumulativeReturn).isEqualByComparingTo("0")
+        assertThat(last.netContributions).isEqualByComparingTo("1000")
+    }
+
+    @Test
     fun `should treat a buy settled outside the portfolio as money in`() {
         givenTrns(
             deposit(today.minusMonths(6), "1000"),

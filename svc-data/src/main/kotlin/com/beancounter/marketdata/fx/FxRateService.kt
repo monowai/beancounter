@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.FxRateCalculator
 import com.beancounter.common.utils.PreviousClosePriceDate
@@ -197,41 +198,29 @@ class FxRateService(
             }
 
         val result = mutableMapOf<String, FxPairResults>()
-        var lastKnownRates: Map<String, FxRate>? = null
-        // Pre-seed lastKnownRates from anything in the lookback window so the first
-        // requested date can use it even if it falls on a weekend/holiday.
-        val priorRates =
-            ratesByDate
-                .filterKeys { it.isBefore(datesToResolve.firstOrNull() ?: windowStart) }
-                .toSortedMap()
-        priorRates.values.lastOrNull()?.let { latest ->
-            val mapped = latest.associateBy { it.to.code }.toMutableMap()
-            if (baseRate != null) mapped.putIfAbsent(baseCurrency.code, baseRate)
-            lastKnownRates = mapped
-        }
+        val storedDates = ratesByDate.keys.sorted()
 
         for (date in datesToResolve) {
-            val ratesForDate = ratesByDate[date]
-            val mappedRates =
-                if (ratesForDate != null) {
-                    val mapped = ratesForDate.associateBy { it.to.code }.toMutableMap()
-                    if (baseRate != null) mapped.putIfAbsent(baseCurrency.code, baseRate)
-                    lastKnownRates = mapped
-                    mapped
-                } else {
-                    // Fall back to nearest prior date
-                    lastKnownRates ?: continue
-                }
+            // Exact date, else the nearest stored date on or before it inside the loaded window
+            val sourceDate = storedDates.lastOrNull { !it.isAfter(date) } ?: continue
+            val mappedRates = ratesByDate.getValue(sourceDate).associateBy { it.to.code }.toMutableMap()
+            if (baseRate != null) mappedRates.putIfAbsent(baseCurrency.code, baseRate)
 
-            try {
-                result[date.toString()] =
-                    FxRateCalculator.compute(
-                        date.toString(),
-                        request.pairs,
-                        mappedRates
-                    )
-            } catch (e: IllegalArgumentException) {
-                log.warn("Missing FX rate data for {} on {}: {}", request.pairs, date, e.message)
+            // Compute per pair so one unsupported currency doesn't drop the others
+            val missing = mutableListOf<IsoCurrencyPair>()
+            val rates = mutableMapOf<IsoCurrencyPair, FxRate>()
+            for (pair in request.pairs) {
+                try {
+                    rates += FxRateCalculator.compute(date.toString(), listOf(pair), mappedRates).rates
+                } catch (_: IllegalArgumentException) {
+                    missing.add(pair)
+                }
+            }
+            if (missing.isNotEmpty()) {
+                log.warn("Missing FX rate data for {} on {}", missing, date)
+            }
+            if (rates.isNotEmpty()) {
+                result[date.toString()] = FxPairResults(rates)
             }
         }
 

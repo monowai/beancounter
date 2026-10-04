@@ -1,0 +1,255 @@
+# Build, test and publish beancounter on GitHub-hosted runners (replaced CircleCI).
+#
+# beancounter is public, so GitHub's standard hosted runners are free and
+# unlimited. ubuntu-24.04-arm gives 4 vCPU and 16 GB on arm64, the architecture
+# of kauri and the laptop, so images build natively for arm64 only.
+#
+# bc-deploy reads this workflow's run_number as the image tag and appVersion
+# (scripts/deploy.sh get_github_version). CircleCI pushed tags 1-3859 first, so
+# the low run numbers overwrite those old tags.
+#
+# Keep this on GitHub's runners, never the kauri self-hosted runner. The
+# repository is public, so any fork PR would run code on a VM with a route to
+# the LAN (network/GH_RUNNER.md, GitHub's self-hosted runner guidance).
+#
+# Every action is pinned to a commit SHA: pushes hold GH_TOKEN, a PAT that
+# can write packages, and a re-pointed tag would run with it.
+name: Build
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**/*.md']
+  push:
+    branches: [main, 'deploy/**']
+    paths-ignore: ['**/*.md']
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  # Same JVM limits as the old CircleCI executor.
+  _JAVA_OPTIONS: "-Xms512m -Xmx1536m"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build and test
+        env:
+          # The Sentry Gradle plugin uploads source bundles when CI is true. Only
+          # a push carries SENTRY_AUTH_TOKEN; a PR, and above all a fork PR, does not.
+          CI: ${{ github.event_name != 'pull_request' && secrets.SENTRY_AUTH_TOKEN != '' }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: ./gradlew build --parallel
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-reports
+          path: '*/build/reports/tests/'
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        if: env.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
+        with:
+          token: ${{ env.CODECOV_TOKEN }}
+          files: '*/build/reports/jacoco/test/jacocoTestReport.xml'
+          fail_ci_if_error: false
+
+      - name: Upload coverage reports
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coverage-reports
+          path: '*/build/reports/jacoco/test/jacocoTestReport.xml'
+          retention-days: 1
+
+      - name: Upload service jars
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: service-jars
+          path: |
+            svc-*/build/libs/svc-*.jar
+            !svc-*/build/libs/*-plain.jar
+          if-no-files-found: error
+          retention-days: 1
+
+  package:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { module: svc-data, image: bc-data }
+          - { module: svc-position, image: bc-position }
+          - { module: svc-event, image: bc-event }
+          - { module: svc-agent, image: bc-agent }
+          - { module: svc-admin, image: bc-admin }
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Download service jars
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: service-jars
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+      # GH_TOKEN, not GITHUB_TOKEN: most bc-* packages are not linked to this
+      # repository, so the workflow token cannot push to them.
+      - name: Log in to Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: Build and push ${{ matrix.image }}
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: ${{ matrix.module }}
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/monowai/${{ matrix.image }}:latest
+            ${{ env.REGISTRY }}/monowai/${{ matrix.image }}:${{ github.run_number }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            VERSION=${{ github.run_number }}
+
+  publish-jars:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        with:
+          cache-read-only: true
+
+      # jar-contracts, jar-common, jar-auth and jar-client, consumed by
+      # svc-retire and svc-rebalance from GitHub Packages.
+      - name: Publish jars to GitHub Packages
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GH_GCR: ${{ secrets.GH_TOKEN }}
+        run: ./gradlew publishJars
+
+  coverage:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    env:
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
+    steps:
+      - name: Download coverage reports
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: coverage-reports
+
+      - name: List coverage reports
+        id: reports
+        run: echo "files=$(find . -name 'jacocoTestReport.xml' | paste -sd, -)" >> "$GITHUB_OUTPUT"
+
+      - name: Report coverage to Codacy
+        if: env.CODACY_PROJECT_TOKEN != '' && steps.reports.outputs.files != ''
+        continue-on-error: true
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1
+        with:
+          project-token: ${{ env.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ${{ steps.reports.outputs.files }}
+          language: Kotlin
+
+  # main only, as on CircleCI: deploy/** branches ship code that is already on
+  # main or about to be, and Snyk monitors the main dependency graph.
+  security-scan:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        if: env.SNYK_TOKEN != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up JDK 25
+        if: env.SNYK_TOKEN != ''
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        if: env.SNYK_TOKEN != ''
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
+        with:
+          cache-read-only: true
+
+      - name: Set up Snyk
+        if: env.SNYK_TOKEN != ''
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1
+
+      # Report and monitor only, as on CircleCI: neither findings nor a failed
+      # upload to Snyk fail the build.
+      - name: Snyk test
+        if: env.SNYK_TOKEN != ''
+        continue-on-error: true
+        run: snyk test --all-sub-projects --configuration-matching='^runtimeClasspath$' --severity-threshold=low
+
+      - name: Snyk monitor
+        if: env.SNYK_TOKEN != ''
+        continue-on-error: true
+        run: snyk monitor --all-sub-projects --configuration-matching='^runtimeClasspath$'

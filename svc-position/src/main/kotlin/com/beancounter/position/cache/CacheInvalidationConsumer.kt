@@ -51,7 +51,9 @@ class CacheInvalidationConsumer(
                     // don't try to filter by portfolio here (svc-position
                     // doesn't have the asset→portfolio map); a broad sweep
                     // across all portfolios is correct and rare.
-                    CacheChangeType.PRICE_HISTORY -> {
+                    // An asset's performance settings changed (include-in-performance
+                    // flag, contribution config). Same broad sweep as PRICE_HISTORY.
+                    CacheChangeType.PRICE_HISTORY, CacheChangeType.ASSET -> {
                         cacheService.invalidateFromDate(event.fromDate)
                     }
                 }

@@ -65,6 +65,22 @@ class CacheInvalidationProducer(
         )
     }
 
+    /**
+     * Emitted when an asset setting that feeds performance changes — the
+     * include-in-performance flag or the private-asset contribution config. svc-position
+     * has no asset-to-portfolio map, so [LocalDate.EPOCH] asks it to sweep every cached
+     * snapshot that could hold [assetId].
+     */
+    fun sendAssetEvent(assetId: String) {
+        send(
+            CacheInvalidationEvent(
+                changeType = CacheChangeType.ASSET,
+                assetId = assetId,
+                fromDate = LocalDate.EPOCH
+            )
+        )
+    }
+
     private fun send(event: CacheInvalidationEvent) {
         if (!streamEnabled) return
         try {

@@ -61,6 +61,12 @@ data class Asset(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var expectedReturnRate: Double? = null,
     /**
+     * Opts a PRIVATE-market asset into time-weighted performance. Off by default: PRIVATE
+     * valuations move on appraisal or snapshot cycles, not market prices, so svc-position
+     * leaves them out of TWR unless this is set. Ignored for every other market.
+     */
+    var includeInPerformance: Boolean = false,
+    /**
      * Date this asset's sector/industry classification (or, for ETFs, its sector exposures) was
      * last *attempted*. Drives resume-aware classification refresh — see
      * `ClassificationRefreshService`. Serialized to bc-view so the sector-weightings UI can

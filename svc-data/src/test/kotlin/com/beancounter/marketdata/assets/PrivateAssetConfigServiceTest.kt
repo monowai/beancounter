@@ -9,6 +9,7 @@ import com.beancounter.common.model.PortfolioShare
 import com.beancounter.common.model.ShareAccessLevel
 import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.portfolio.PortfolioShareRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
@@ -31,6 +33,7 @@ class PrivateAssetConfigServiceTest {
     private lateinit var systemUserService: SystemUserService
     private lateinit var trnRepository: TrnRepository
     private lateinit var portfolioShareRepository: PortfolioShareRepository
+    private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
     private lateinit var configService: PrivateAssetConfigService
 
     private val userId = "user-123"
@@ -45,6 +48,7 @@ class PrivateAssetConfigServiceTest {
         systemUserService = mock()
         trnRepository = mock()
         portfolioShareRepository = mock()
+        cacheInvalidationProducer = mock()
         configService =
             PrivateAssetConfigService(
                 configRepository,
@@ -56,7 +60,8 @@ class PrivateAssetConfigServiceTest {
                     systemUserService,
                     trnRepository,
                     portfolioShareRepository
-                )
+                ),
+                cacheInvalidationProducer
             )
     }
 
@@ -411,6 +416,40 @@ class PrivateAssetConfigServiceTest {
         configService.deleteConfig(assetId)
 
         verify(configRepository).deleteById(assetId)
+    }
+
+    @Test
+    fun `should publish asset cache invalidation when config is saved`() {
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(createTestAsset()))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.empty())
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        configService.saveConfig(assetId, PrivateAssetConfigRequest(monthlyContribution = BigDecimal("500")))
+
+        verify(cacheInvalidationProducer).sendAssetEvent(assetId)
+    }
+
+    @Test
+    fun `should not publish asset cache invalidation when save is rejected for non-owner`() {
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(createTestAsset(ownerId = "someone-else")))
+
+        assertThatThrownBy { configService.saveConfig(assetId, PrivateAssetConfigRequest()) }
+            .isInstanceOf(BusinessException::class.java)
+
+        verify(cacheInvalidationProducer, never()).sendAssetEvent(any())
+    }
+
+    @Test
+    fun `should publish asset cache invalidation when config is deleted`() {
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(createTestAsset()))
+        whenever(configRepository.existsById(assetId)).thenReturn(true)
+
+        configService.deleteConfig(assetId)
+
+        verify(cacheInvalidationProducer).sendAssetEvent(assetId)
     }
 
     @Test

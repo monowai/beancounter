@@ -34,6 +34,20 @@ internal class CacheInvalidationProducerTest {
     }
 
     @Test
+    fun `should emit ASSET event sweeping from epoch for the asset`() {
+        whenever(streamBridge.send(eq(BINDING), any<CacheInvalidationEvent>())).thenReturn(true)
+
+        producer.sendAssetEvent("asset-1")
+
+        val captor = argumentCaptor<CacheInvalidationEvent>()
+        verify(streamBridge).send(eq(BINDING), captor.capture())
+        assertThat(captor.firstValue.changeType).isEqualTo(CacheChangeType.ASSET)
+        assertThat(captor.firstValue.assetId).isEqualTo("asset-1")
+        assertThat(captor.firstValue.portfolioId).isNull()
+        assertThat(captor.firstValue.fromDate).isEqualTo(LocalDate.EPOCH)
+    }
+
+    @Test
     fun `sendTransactionEvent emits TRANSACTION event with portfolio and date`() {
         whenever(streamBridge.send(eq(BINDING), any<CacheInvalidationEvent>())).thenReturn(true)
 
@@ -52,6 +66,7 @@ internal class CacheInvalidationProducerTest {
         producer.sendPriceEvent(LocalDate.now())
         producer.sendFxEvent(LocalDate.now())
         producer.sendPriceHistoryEvent("asset-1", LocalDate.now())
+        producer.sendAssetEvent("asset-1")
 
         verify(streamBridge, never()).send(eq(BINDING), any<CacheInvalidationEvent>())
     }

@@ -71,6 +71,7 @@ data class TrnPayload(
                 status = dto.status,
                 modelId = dto.modelId,
                 subAccounts = dto.subAccounts,
+                contribution = dto.contribution,
                 createdBy = dto.createdBy
             )
         }

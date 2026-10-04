@@ -84,6 +84,21 @@ class CacheInvalidationConsumerTest {
     }
 
     @Test
+    fun `should sweep every portfolio when an asset's performance settings change`() {
+        val handler = CacheInvalidationConsumer(cacheService).performanceCacheInvalidation()
+
+        handler.accept(
+            CacheInvalidationEvent(
+                changeType = CacheChangeType.ASSET,
+                assetId = "pension-1",
+                fromDate = LocalDate.EPOCH
+            )
+        )
+
+        verify(cacheService).invalidateFromDate(LocalDate.EPOCH)
+    }
+
+    @Test
     fun `PRICE event schedules a debounced revaluation when trigger is wired`() {
         val consumer = CacheInvalidationConsumer(cacheService)
         consumer.setRevaluationTrigger(revaluationTrigger)

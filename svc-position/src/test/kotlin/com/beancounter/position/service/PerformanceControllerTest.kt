@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
@@ -94,6 +96,20 @@ class PerformanceControllerTest {
         assertThat(result.data.currency.code).isEqualTo("USD")
         assertThat(result.data.series).hasSize(1)
         assertThat(result.data.series[0].growthOf1000).isEqualByComparingTo(BigDecimal("1000"))
+    }
+
+    @Test
+    fun `should resolve a portfolio code without an id lookup first`() {
+        // The wealth page sends codes for every portfolio. An id-first lookup cost one
+        // 404 round trip per portfolio before falling back to the code.
+        whenever(portfolioServiceClient.getPortfolioByCode("TEST")).thenReturn(portfolio)
+        whenever(
+            performanceService.calculate(portfolio, 12)
+        ).thenReturn(PerformanceResponse(PerformanceData(currency = USD)))
+
+        controller.getPerformance("TEST", 12)
+
+        verify(portfolioServiceClient, never()).getPortfolioById(any())
     }
 
     @Test

@@ -460,6 +460,7 @@ class PriceService(
     ): Map<String, List<MarketData>> {
         if (assets.isEmpty() || dates.isEmpty()) return emptyMap()
 
+        val started = System.nanoTime()
         val minDate = dates.min()
         val maxDate = dates.max()
         val window =
@@ -491,7 +492,24 @@ class PriceService(
             }
             result[date.toString()] = mdList
         }
+        logBulkTiming(assets.size, dates.size, window.size, started)
         return result
+    }
+
+    // Split adjustment can call the event provider per asset, so a cold bulk read is slow
+    // with nothing else logged. WARN when slow so the next stall shows in the pod log.
+    private fun logBulkTiming(
+        assets: Int,
+        dates: Int,
+        rows: Int,
+        started: Long
+    ) {
+        val elapsedMs = (System.nanoTime() - started) / NANOS_PER_MILLI
+        if (elapsedMs >= SLOW_BULK_MS) {
+            log.warn("Slow bulk prices: {}ms for {} assets x {} dates ({} rows)", elapsedMs, assets, dates, rows)
+        } else {
+            log.debug("Bulk prices: {}ms for {} assets x {} dates ({} rows)", elapsedMs, assets, dates, rows)
+        }
     }
 
     /**
@@ -521,17 +539,18 @@ class PriceService(
 
     /**
      * Apply [SplitAdjuster] to a chronological [MarketData] series and write the
-     * adjusted OHLC back into the returned rows. Mirrors what [getPriceHistory]
-     * does for the `/prices/{id}/history` endpoint so the bulk read path that
-     * feeds `svc-position` performance charts sees the same rebased basis.
+     * adjusted OHLC back into the returned rows, so the bulk read path that feeds
+     * `svc-position` performance charts sees a rebased basis.
+     *
+     * Splits come only from the `split` column on the stored rows, never from the
+     * event provider: the bulk read is DB-only. Asking the provider per asset made a
+     * cold wealth page fire two EODHD calls per asset inside this transaction and
+     * stall past svc-position's 60s read timeout (kauri, 2026-10-03). A split the
+     * database never stamped stays unadjusted here until `repairSplits` stamps it.
      */
     private fun adjustSeriesForSplits(series: List<MarketData>): List<MarketData> {
         if (series.size < 2) return series
-        val asset = series.first().asset
-        val from = series.first().priceDate
-        val to = series.last().priceDate
-        val splitEvents = collectSplitEvents(asset, from, to)
-        val adjusted = SplitAdjuster.adjust(series.map(PricePoint::from), splitEvents, adjustedSources)
+        val adjusted = SplitAdjuster.adjust(series.map(PricePoint::from), adjustedSources = adjustedSources)
         if (adjusted === series) return series
         return series.zip(adjusted).map { (md, point) ->
             if (point.close.compareTo(md.close) == 0 &&
@@ -799,6 +818,8 @@ class PriceService(
         // nearest-prior fallback has something to resolve to. 10 days is plenty
         // for any developed market.
         private const val FALLBACK_LOOKBACK_DAYS = 10L
+        private const val SLOW_BULK_MS = 5_000L
+        private const val NANOS_PER_MILLI = 1_000_000L
 
         // Batch size for the chunked saveAll() in persistInChunks. Flushing and
         // clearing the persistence context between chunks keeps the largest

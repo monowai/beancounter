@@ -185,7 +185,8 @@ class AssetSerialization {
             "currency",
             "owner",
             "expectedReturnRate",
-            "priceSymbol"
+            "priceSymbol",
+            "includeInPerformance"
         )
     }
 }

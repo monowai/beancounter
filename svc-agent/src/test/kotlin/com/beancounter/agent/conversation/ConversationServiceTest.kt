@@ -115,6 +115,21 @@ class ConversationServiceTest {
     }
 
     @Test
+    fun `should clip an over-long label rather than fail the turn`() {
+        val id = service.create(owner).id
+
+        service.appendUser(owner, id, "prompt", false, label = "L".repeat(500))
+
+        assertThat(
+            service
+                .get(owner, id)
+                .messages
+                .first()
+                .label
+        ).hasSize(ConversationService.LABEL_MAX_CHARS)
+    }
+
+    @Test
     fun `should replace a provisional title with a generated one`() {
         val id = service.create(owner).id
         service.appendUser(owner, id, "In one sentence, what is an index fund?", false)

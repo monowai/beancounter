@@ -204,6 +204,15 @@ class JpaPerformanceCacheServiceTest {
         assertThat(cacheService.findAllSnapshots("other-portfolio")).hasSize(1)
     }
 
+    @Test
+    fun `storeSnapshots keeps the cached series when given nothing to store`() {
+        cacheService.storeSnapshots(portfolioId, listOf(snapshot(date1, "500.00"), snapshot(date2, "600.00")))
+
+        cacheService.storeSnapshots(portfolioId, emptyList())
+
+        assertThat(cacheService.findAllSnapshots(portfolioId).map { it.valuationDate }).containsExactly(date1, date2)
+    }
+
     private fun snapshot(
         date: LocalDate,
         marketValue: String

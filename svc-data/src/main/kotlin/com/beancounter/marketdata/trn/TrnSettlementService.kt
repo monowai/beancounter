@@ -6,6 +6,7 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashAutoSettleService
@@ -14,6 +15,7 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 
 /**
  * Single source of truth for the settle / unsettle state transition and its cash
@@ -172,6 +174,15 @@ class TrnSettlementService(
                 ex.message
             )
             return null
+        }
+        // Forward-dated trns ingest with no rate, so cashAmount was stored as zero.
+        // Now that the rate is resolved, derive it before the cash legs are emitted.
+        if (TrnType.isCashImpacted(trn.trnType) &&
+            trn.cashAsset != null &&
+            trn.cashAmount.compareTo(BigDecimal.ZERO) == 0 &&
+            trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0
+        ) {
+            trn.cashAmount = CashTrnServices.cashImpact(trn.trnType, trn.tradeAmount, trn.tradeCashRate)
         }
         trn.status = TrnStatus.SETTLED
         trnRepository.save(trn)

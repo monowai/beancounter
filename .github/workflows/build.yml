@@ -202,7 +202,7 @@ jobs:
         run: echo "files=$(find . -name 'jacocoTestReport.xml' | paste -sd, -)" >> "$GITHUB_OUTPUT"
 
       - name: Report coverage to Codacy
-        if: env.CODACY_PROJECT_TOKEN != ''
+        if: env.CODACY_PROJECT_TOKEN != '' && steps.reports.outputs.files != ''
         continue-on-error: true
         uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1
         with:

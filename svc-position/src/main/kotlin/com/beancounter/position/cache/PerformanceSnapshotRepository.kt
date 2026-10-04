@@ -30,6 +30,16 @@ interface PerformanceSnapshotRepository : JpaRepository<PerformanceSnapshotEntit
     )
 
     @Modifying
+    @Query(
+        "DELETE FROM PerformanceSnapshotEntity e " +
+            "WHERE e.portfolioId = :portfolioId AND e.valuationDate NOT IN :dates"
+    )
+    fun deleteByPortfolioIdAndValuationDateNotIn(
+        portfolioId: String,
+        dates: Collection<LocalDate>
+    )
+
+    @Modifying
     fun deleteByValuationDate(date: LocalDate)
 
     @Modifying

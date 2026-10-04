@@ -187,4 +187,31 @@ class JpaPerformanceCacheServiceTest {
         assertThat(result[0].externalCashFlow).isEqualByComparingTo(BigDecimal("10.00"))
         assertThat(result[0].cumulativeDividends).isEqualByComparingTo(BigDecimal("1.00"))
     }
+
+    @Test
+    fun `storeSnapshots replaces the portfolio series so no earlier pass survives`() {
+        // A recompute is one self-consistent series. Rows from an earlier pass on
+        // other dates (another window's date grid, or older TWR rules) must not
+        // survive, or the cached series jumps between the two passes' values.
+        cacheService.storeSnapshots(portfolioId, listOf(snapshot(date1, "500.00"), snapshot(date2, "600.00")))
+        cacheService.storeSnapshots("other-portfolio", listOf(snapshot(date1, "900.00")))
+
+        cacheService.storeSnapshots(portfolioId, listOf(snapshot(date2, "300.00"), snapshot(date3, "310.00")))
+
+        val series = cacheService.findAllSnapshots(portfolioId)
+        assertThat(series.map { it.valuationDate }).containsExactly(date2, date3)
+        assertThat(series[0].marketValue).isEqualByComparingTo(BigDecimal("300.00"))
+        assertThat(cacheService.findAllSnapshots("other-portfolio")).hasSize(1)
+    }
+
+    private fun snapshot(
+        date: LocalDate,
+        marketValue: String
+    ) = CachedSnapshot(
+        valuationDate = date,
+        marketValue = BigDecimal(marketValue),
+        externalCashFlow = BigDecimal.ZERO,
+        netContributions = BigDecimal.ZERO,
+        cumulativeDividends = BigDecimal.ZERO
+    )
 }

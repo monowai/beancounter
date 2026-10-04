@@ -45,6 +45,10 @@ class JpaPerformanceCacheService(
         // GET /{code}/performance requests both missed the cache and tried to
         // write the same row (POSITION-2Q in Sentry).
         val datesToStore = snapshots.map { it.valuationDate }
+        // The snapshots are one recompute's series and replace the cache. Rows on
+        // other dates come from an earlier pass (another window's date grid, or
+        // older TWR rules) and would make the cached series jump between passes.
+        repository.deleteByPortfolioIdAndValuationDateNotIn(portfolioId, datesToStore)
         val existingByDate =
             repository
                 .findByPortfolioIdAndValuationDateIn(portfolioId, datesToStore)

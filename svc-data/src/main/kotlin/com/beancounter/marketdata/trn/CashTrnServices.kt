@@ -34,20 +34,27 @@ class CashTrnServices(
             if (trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
                 return trnInput.cashAmount // Cash amount has been set by the caller
             }
-            val rate = trnInput.tradeCashRate
-            if (creditsCash.contains(trnInput.trnType)) {
-                return MathUtils.divide(
-                    tradeAmount.abs(),
-                    rate
-                )
-            } else if (debitsCash.contains(trnInput.trnType)) {
-                return MathUtils.divide(
-                    BigDecimal.ZERO.minus(tradeAmount.abs()),
-                    rate
-                )
-            }
+            return cashImpact(trnInput.trnType, tradeAmount, trnInput.tradeCashRate)
         }
         return BigDecimal.ZERO
+    }
+
+    companion object {
+        /**
+         * Cash effect of a trade amount at the given trade-to-cash rate: positive for
+         * types that credit cash, negative for types that debit it, zero otherwise
+         * (including an unset rate).
+         */
+        fun cashImpact(
+            trnType: TrnType,
+            tradeAmount: BigDecimal,
+            tradeCashRate: BigDecimal
+        ): BigDecimal =
+            when {
+                trnType in creditsCash -> MathUtils.divide(tradeAmount.abs(), tradeCashRate)
+                trnType in debitsCash -> MathUtils.divide(tradeAmount.abs().negate(), tradeCashRate)
+                else -> BigDecimal.ZERO
+            }
     }
 
     /**

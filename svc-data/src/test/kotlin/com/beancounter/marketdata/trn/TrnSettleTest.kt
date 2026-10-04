@@ -9,6 +9,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.assertj.core.api.Assertions.assertThat
@@ -108,6 +109,50 @@ class TrnSettleTest {
         assertThat(dueTrn.status).isEqualTo(TrnStatus.SETTLED)
         verify(fxTransactions).setRates(eq(portfolio), eq(dueTrn))
         verify(trnRepository).save(dueTrn)
+    }
+
+    @Test
+    fun `should set the cash amount when settling a dividend ingested without FX rates`() {
+        val divi = proposed("trn-divi", today).apply { cashAsset = usdCashBalance }
+        whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-divi"))
+            .thenReturn(Optional.of(divi))
+        resolveRateOnSetRates(BigDecimal.ONE)
+        val legAmounts = mutableListOf<BigDecimal>()
+        whenever(cashAutoSettleService.emitCompensatingTransfer(any())).thenAnswer {
+            legAmounts.add(it.getArgument<Trn>(0).cashAmount)
+            com.beancounter.marketdata.cash
+                .AutoSettleResult()
+        }
+
+        trnSettlementService.settleTransactions("pf-1", listOf("trn-divi"))
+
+        assertThat(divi.status).isEqualTo(TrnStatus.SETTLED)
+        assertThat(divi.cashAmount).isEqualByComparingTo(BigDecimal("50.00"))
+        assertThat(legAmounts).hasSize(1)
+        assertThat(legAmounts.single()).isEqualByComparingTo(BigDecimal("50.00"))
+    }
+
+    @Test
+    fun `should leave a non-zero cash amount unchanged when settling`() {
+        val divi =
+            proposed("trn-divi", today).apply {
+                cashAsset = usdCashBalance
+                cashAmount = BigDecimal("42.00")
+            }
+        whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-divi"))
+            .thenReturn(Optional.of(divi))
+        resolveRateOnSetRates(BigDecimal.ONE)
+
+        trnSettlementService.settleTransactions("pf-1", listOf("trn-divi"))
+
+        assertThat(divi.cashAmount).isEqualByComparingTo(BigDecimal("42.00"))
+    }
+
+    private fun resolveRateOnSetRates(rate: BigDecimal) {
+        whenever(fxTransactions.setRates(any<Portfolio>(), any<Trn>())).thenAnswer {
+            it.getArgument<Trn>(1).tradeCashRate = rate
+            Unit
+        }
     }
 
     private fun proposed(

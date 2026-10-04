@@ -44,6 +44,8 @@ class JpaPerformanceCacheService(
         // duplicate-key violations on uk_portfolio_date when two concurrent
         // GET /{code}/performance requests both missed the cache and tried to
         // write the same row (POSITION-2Q in Sentry).
+        // Nothing to store is not a series: an empty NOT IN would delete every row.
+        if (snapshots.isEmpty()) return
         val datesToStore = snapshots.map { it.valuationDate }
         // The snapshots are one recompute's series and replace the cache. Rows on
         // other dates come from an earlier pass (another window's date grid, or

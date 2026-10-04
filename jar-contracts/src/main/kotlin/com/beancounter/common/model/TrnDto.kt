@@ -46,6 +46,8 @@ data class TrnDto(
     val status: TrnStatus = TrnStatus.SETTLED,
     val modelId: String? = null,
     val subAccounts: Map<String, BigDecimal>? = null,
+    // Read-time BALANCE contribution stamped by svc-data; see Trn.contribution.
+    val contribution: BigDecimal? = null,
     val createdBy: SystemUser? = null
 ) {
     companion object {
@@ -77,6 +79,7 @@ data class TrnDto(
                 status = trn.status,
                 modelId = trn.modelId,
                 subAccounts = trn.subAccounts,
+                contribution = trn.contribution,
                 createdBy = trn.createdBy
             )
     }

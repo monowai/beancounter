@@ -360,7 +360,8 @@ class PerformanceServiceTest {
                 code = "HOUSE",
                 id = "house-id",
                 name = "Property",
-                market = privateMarket
+                market = privateMarket,
+                includeInPerformance = true
             )
         val buyDate = LocalDate.now().minusYears(2)
         val buyTrn =

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.messaging.MessagingException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.LocalDate
 
 @Service
@@ -62,6 +64,33 @@ class CacheInvalidationProducer(
                 assetId = assetId,
                 fromDate = fromDate
             )
+        )
+    }
+
+    /**
+     * Emitted when an asset setting that feeds performance changes — the
+     * include-in-performance flag or the private-asset contribution config. svc-position
+     * has no asset-to-portfolio map, so [LocalDate.EPOCH] asks it to sweep every cached
+     * snapshot that could hold [assetId].
+     *
+     * Sent after the caller's transaction commits. Sent earlier, a performance request
+     * in the gap would re-cache the old setting, and no later event would clear it.
+     */
+    fun sendAssetEvent(assetId: String) {
+        val event =
+            CacheInvalidationEvent(
+                changeType = CacheChangeType.ASSET,
+                assetId = assetId,
+                fromDate = LocalDate.EPOCH
+            )
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            send(event)
+            return
+        }
+        TransactionSynchronizationManager.registerSynchronization(
+            object : TransactionSynchronization {
+                override fun afterCommit() = send(event)
+            }
         )
     }
 

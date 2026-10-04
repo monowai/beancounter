@@ -13,7 +13,12 @@ enum class CacheChangeType {
     // whichever held the asset during the backfilled range — broader
     // invalidation is acceptable here since the event is rare and we
     // want guaranteed correctness on the next request).
-    PRICE_HISTORY
+    PRICE_HISTORY,
+
+    // An asset setting that changes how svc-position values it for performance (the
+    // include-in-performance flag, or the private-asset contribution config). Every
+    // portfolio holding `assetId` is stale from its first trade, so `fromDate` is EPOCH.
+    ASSET
 }
 
 data class CacheInvalidationEvent(

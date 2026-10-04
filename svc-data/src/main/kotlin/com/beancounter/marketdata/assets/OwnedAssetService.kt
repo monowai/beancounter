@@ -5,6 +5,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
@@ -23,7 +24,8 @@ class OwnedAssetService(
     private val assetCategoryConfig: AssetCategoryConfig,
     private val accountingTypeService: AccountingTypeService,
     private val currencyService: CurrencyService,
-    private val assetCascadeDeleter: AssetCascadeDeleter
+    private val assetCascadeDeleter: AssetCascadeDeleter,
+    private val cacheInvalidationProducer: CacheInvalidationProducer
 ) {
     /**
      * Find all assets owned by the current user with a specific category.
@@ -129,9 +131,17 @@ class OwnedAssetService(
         }
         // Update expected return rate for retirement projections
         assetInput.expectedReturnRate?.let { asset.expectedReturnRate = it }
+        val performanceChanged =
+            assetInput.includeInPerformance != null &&
+                assetInput.includeInPerformance != asset.includeInPerformance
+        assetInput.includeInPerformance?.let { asset.includeInPerformance = it }
         // saveAndFlush — AssetEntityListener (@PostUpdate) needs an immediate
         // flush to rehydrate transient fields on the managed instance.
-        return assetRepository.saveAndFlush(asset)
+        val saved = assetRepository.saveAndFlush(asset)
+        if (performanceChanged) {
+            cacheInvalidationProducer.sendAssetEvent(saved.id)
+        }
+        return saved
     }
 
     /**

@@ -13,6 +13,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.messaging.MessagingException
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.LocalDate
 
 internal class CacheInvalidationProducerTest {
@@ -34,6 +35,38 @@ internal class CacheInvalidationProducerTest {
     }
 
     @Test
+    fun `should emit ASSET event sweeping from epoch for the asset`() {
+        whenever(streamBridge.send(eq(BINDING), any<CacheInvalidationEvent>())).thenReturn(true)
+
+        producer.sendAssetEvent("asset-1")
+
+        val captor = argumentCaptor<CacheInvalidationEvent>()
+        verify(streamBridge).send(eq(BINDING), captor.capture())
+        assertThat(captor.firstValue.changeType).isEqualTo(CacheChangeType.ASSET)
+        assertThat(captor.firstValue.assetId).isEqualTo("asset-1")
+        assertThat(captor.firstValue.portfolioId).isNull()
+        assertThat(captor.firstValue.fromDate).isEqualTo(LocalDate.EPOCH)
+    }
+
+    @Test
+    fun `should hold an ASSET event until the surrounding transaction commits`() {
+        // svc-position must not see the event while the changed flag or config is
+        // still uncommitted, or a request in that gap re-caches the old value.
+        whenever(streamBridge.send(eq(BINDING), any<CacheInvalidationEvent>())).thenReturn(true)
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            producer.sendAssetEvent("pension-1")
+            verify(streamBridge, never()).send(eq(BINDING), any<CacheInvalidationEvent>())
+
+            TransactionSynchronizationManager.getSynchronizations().forEach { it.afterCommit() }
+
+            verify(streamBridge).send(eq(BINDING), any<CacheInvalidationEvent>())
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
+    }
+
+    @Test
     fun `sendTransactionEvent emits TRANSACTION event with portfolio and date`() {
         whenever(streamBridge.send(eq(BINDING), any<CacheInvalidationEvent>())).thenReturn(true)
 
@@ -52,6 +85,7 @@ internal class CacheInvalidationProducerTest {
         producer.sendPriceEvent(LocalDate.now())
         producer.sendFxEvent(LocalDate.now())
         producer.sendPriceHistoryEvent("asset-1", LocalDate.now())
+        producer.sendAssetEvent("asset-1")
 
         verify(streamBridge, never()).send(eq(BINDING), any<CacheInvalidationEvent>())
     }

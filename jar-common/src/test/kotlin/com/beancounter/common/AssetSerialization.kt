@@ -185,7 +185,17 @@ class AssetSerialization {
             "currency",
             "owner",
             "expectedReturnRate",
-            "priceSymbol"
+            "priceSymbol",
+            "includeInPerformance"
         )
+    }
+
+    @Test
+    fun `should carry includeInPerformance from AssetInput into Asset of`() {
+        val input = AssetInput(market = "PRIVATE", code = "PENSION", includeInPerformance = true)
+
+        val asset = Asset.of(input, Market("PRIVATE"))
+
+        assertThat(asset.includeInPerformance).isTrue()
     }
 }

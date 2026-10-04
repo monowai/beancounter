@@ -4,6 +4,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
@@ -25,6 +26,7 @@ class PrivateAssetConfigService(
     private val systemUserService: SystemUserService,
     private val trnRepository: TrnRepository,
     private val accessControl: AssetAccessControl,
+    private val cacheInvalidationProducer: CacheInvalidationProducer,
     private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -111,6 +113,9 @@ class PrivateAssetConfigService(
 
         val saved = configRepository.save(config)
         logSavedConfig(assetId, saved)
+        // Contribution config feeds BALANCE contributions stamped onto trns at read time,
+        // which svc-position's TWR consumes — its cached snapshots are now stale.
+        cacheInvalidationProducer.sendAssetEvent(assetId)
         return PrivateAssetConfigResponse(saved)
     }
 
@@ -383,6 +388,7 @@ class PrivateAssetConfigService(
         }
         configRepository.deleteById(assetId)
         log.info("Deleted config for asset: $assetId")
+        cacheInvalidationProducer.sendAssetEvent(assetId)
     }
 
     /**

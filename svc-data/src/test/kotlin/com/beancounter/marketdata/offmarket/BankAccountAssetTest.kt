@@ -4,6 +4,7 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.Registration
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.TrnRequest
@@ -16,30 +17,43 @@ import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.OwnedAssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.utils.ASSET_ROOT
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.module.kotlin.readValue
 import java.math.BigDecimal
 
 /**
@@ -61,6 +75,15 @@ class BankAccountAssetTest {
 
     @MockitoBean
     private lateinit var fxTransactions: FxTransactions
+
+    @MockitoBean
+    private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
+
+    @Autowired
+    private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var assetRepository: AssetRepository
 
     @Autowired
     private lateinit var assetService: AssetService
@@ -317,6 +340,87 @@ class BankAccountAssetTest {
         assertThat(updated)
             .hasFieldOrPropertyWithValue("name", "Updated Name")
             .hasFieldOrPropertyWithValue("accountingType.currency.code", NZD.code)
+    }
+
+    private fun patchMyAsset(
+        sysUser: SystemUser,
+        assetId: String,
+        update: AssetInput
+    ): AssetResponse {
+        val result =
+            mockMvc
+                .perform(
+                    patch("$ASSET_ROOT/me/{assetId}", assetId)
+                        .with(jwt().jwt(mockAuthConfig.getUserToken(sysUser)))
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(update))
+                        .contentType(APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+        return objectMapper.readValue<AssetResponse>(result.response.contentAsString)
+    }
+
+    private fun createOwnedAccount(
+        sysUser: SystemUser,
+        code: String
+    ) = assetService
+        .handle(AssetRequest(mapOf(code to AssetInput.toAccount(USD, code, "Perf $code", sysUser.id))))
+        .data[code]!!
+
+    private fun includeInPerformance(
+        code: String,
+        include: Boolean?
+    ) = AssetInput(
+        market = "PRIVATE",
+        code = code,
+        category = AssetCategory.ACCOUNT,
+        includeInPerformance = include
+    )
+
+    @Test
+    fun `should persist includeInPerformance via PATCH and invalidate the asset's performance cache`() {
+        val sysUser = SystemUser(id = "perf-flag-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+        val asset = createOwnedAccount(sysUser, "PERF-ON")
+        assertThat(asset.includeInPerformance).isFalse()
+
+        val response = patchMyAsset(sysUser, asset.id, includeInPerformance("PERF-ON", true))
+
+        assertThat(response.data.includeInPerformance).isTrue()
+        assertThat(assetRepository.findById(asset.id).orElseThrow().includeInPerformance).isTrue()
+        verify(cacheInvalidationProducer).sendAssetEvent(asset.id)
+    }
+
+    @Test
+    fun `should not invalidate the performance cache when includeInPerformance is unchanged or omitted`() {
+        val sysUser = SystemUser(id = "perf-flag-same-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+        val asset = createOwnedAccount(sysUser, "PERF-SAME")
+
+        patchMyAsset(sysUser, asset.id, includeInPerformance("PERF-SAME", false))
+        val omitted = patchMyAsset(sysUser, asset.id, includeInPerformance("PERF-SAME", null))
+
+        assertThat(omitted.data.includeInPerformance).isFalse()
+        verify(cacheInvalidationProducer, never()).sendAssetEvent(any())
+    }
+
+    @Test
+    fun `should keep includeInPerformance when a later PATCH omits it`() {
+        val sysUser = SystemUser(id = "perf-flag-keep-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+        val asset = createOwnedAccount(sysUser, "PERF-KEEP")
+        patchMyAsset(sysUser, asset.id, includeInPerformance("PERF-KEEP", true))
+
+        val renamed =
+            patchMyAsset(
+                sysUser,
+                asset.id,
+                includeInPerformance("PERF-KEEP", null).copy(name = "Renamed")
+            )
+
+        assertThat(renamed.data.name).isEqualTo("Renamed")
+        assertThat(renamed.data.includeInPerformance).isTrue()
+        verify(cacheInvalidationProducer).sendAssetEvent(asset.id)
     }
 
     @Test

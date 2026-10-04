@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.PerformanceData
 import com.beancounter.common.contracts.PerformanceDataPoint
 import com.beancounter.common.contracts.PerformanceResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.Constants.Companion.USD
@@ -22,6 +23,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
@@ -94,6 +97,29 @@ class PerformanceControllerTest {
         assertThat(result.data.currency.code).isEqualTo("USD")
         assertThat(result.data.series).hasSize(1)
         assertThat(result.data.series[0].growthOf1000).isEqualByComparingTo(BigDecimal("1000"))
+    }
+
+    @Test
+    fun `should not fall back to an id lookup when the code lookup fails for another reason`() {
+        // Only a 404 means "not a code". Anything else is a real failure to surface.
+        whenever(portfolioServiceClient.getPortfolioByCode("TEST")).thenThrow(IllegalStateException("svc-data down"))
+
+        assertThatThrownBy { controller.getPerformance("TEST", 12) }.isInstanceOf(IllegalStateException::class.java)
+        verify(portfolioServiceClient, never()).getPortfolioById(any())
+    }
+
+    @Test
+    fun `should resolve a portfolio code without an id lookup first`() {
+        // The wealth page sends codes for every portfolio. An id-first lookup cost one
+        // 404 round trip per portfolio before falling back to the code.
+        whenever(portfolioServiceClient.getPortfolioByCode("TEST")).thenReturn(portfolio)
+        whenever(
+            performanceService.calculate(portfolio, 12)
+        ).thenReturn(PerformanceResponse(PerformanceData(currency = USD)))
+
+        controller.getPerformance("TEST", 12)
+
+        verify(portfolioServiceClient, never()).getPortfolioById(any())
     }
 
     @Test
@@ -258,6 +284,9 @@ class PerformanceControllerTest {
         // `findByCode(code, owner)` is owner-scoped and would 404, while
         // `find(id)` applies `canView` and succeeds for shared portfolios.
         val managedId = "managed-pf-uuid"
+        whenever(
+            portfolioServiceClient.getPortfolioByCode(managedId)
+        ).thenThrow(NotFoundException("Portfolio not found: $managedId"))
         whenever(portfolioServiceClient.getPortfolioById(managedId)).thenReturn(portfolio)
         val expectedResponse =
             PerformanceResponse(

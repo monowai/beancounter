@@ -106,4 +106,30 @@ class TrnPayloadTest {
             ]
         assertThat(firstAsset?.code).isEqualTo(assetA.code)
     }
+
+    @Test
+    fun `should carry a BALANCE contribution and the asset performance flag across the wire`() {
+        val pension = AssetUtils.getTestAsset(Constants.NYSE, "PENSION").apply { includeInPerformance = true }
+        val balance =
+            Trn(
+                id = "b1",
+                trnType = TrnType.BALANCE,
+                asset = pension,
+                portfolio = portfolio,
+                quantity = BigDecimal("11200"),
+                tradeAmount = BigDecimal("11200"),
+                contribution = BigDecimal("1000")
+            )
+        val json = BcJson.objectMapper.writeValueAsString(TrnResponse(listOf(balance)))
+
+        val trn =
+            BcJson.objectMapper
+                .readValue<TrnResponse>(json)
+                .data
+                .toTrns()
+                .single()
+
+        assertThat(trn.contribution).isEqualByComparingTo("1000")
+        assertThat(trn.asset.includeInPerformance).isTrue()
+    }
 }

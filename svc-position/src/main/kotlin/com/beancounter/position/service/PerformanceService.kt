@@ -16,6 +16,7 @@ import com.beancounter.common.contracts.PerformanceData
 import com.beancounter.common.contracts.PerformanceDataPoint
 import com.beancounter.common.contracts.PerformanceResponse
 import com.beancounter.common.contracts.PriceAsset
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
@@ -25,6 +26,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
@@ -32,13 +34,20 @@ import com.beancounter.position.cache.CachedSnapshot
 import com.beancounter.position.cache.PerformanceCacheService
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.irr.ValuationSnapshot
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.dao.DataAccessException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 
 /**
@@ -71,6 +80,17 @@ class PerformanceService(
     fun calculate(
         portfolio: Portfolio,
         months: Int = 12
+    ): PerformanceResponse = calculate(portfolio, months, historyAssetIds = null)
+
+    /**
+     * [historyAssetIds] collects the assets to nudge for price history instead of
+     * nudging here, so [aggregate] can send one request for every portfolio. Null
+     * nudges at once.
+     */
+    private fun calculate(
+        portfolio: Portfolio,
+        months: Int,
+        historyAssetIds: MutableSet<String>?
     ): PerformanceResponse {
         val endDate = dateUtils.date
         val startDate = endDate.minusMonths(months.toLong())
@@ -136,7 +156,11 @@ class PerformanceService(
         // assets we're about to value. This lets long-window growth / wealth
         // charts converge to a complete series across requests without
         // blocking the current calculation on a multi-year provider call.
-        ensureAssetHistory(allAssets, startDate, token)
+        val assetIds = allAssets.mapNotNull { it.resolvedAsset?.id ?: it.assetId.takeIf { id -> id.isNotEmpty() } }
+        when (historyAssetIds) {
+            null -> ensureAssetHistory(assetIds, startDate, token)
+            else -> historyAssetIds.addAll(assetIds)
+        }
 
         // Pre-fetch all prices and FX rates in exactly 2 bulk calls
         val priceCache = prefetchPrices(allAssets, valuationDates, token)
@@ -160,7 +184,7 @@ class PerformanceService(
     private fun collectAssets(transactions: List<Trn>): List<PriceAsset> =
         transactions
             .map { it.asset }
-            .filter { !cashUtils.isCash(it) }
+            .filter { !cashUtils.isCash(it) && !isExcluded(it) }
             .distinctBy { it.id }
             .map { PriceAsset(it) }
 
@@ -188,18 +212,10 @@ class PerformanceService(
     }
 
     private fun ensureAssetHistory(
-        assets: List<PriceAsset>,
+        assetIds: Collection<String>,
         startDate: LocalDate,
         token: String
     ) {
-        if (assets.isEmpty()) return
-        val assetIds =
-            assets
-                .mapNotNull {
-                    it.resolvedAsset?.id ?: it.assetId.takeIf { id ->
-                        id.isNotEmpty()
-                    }
-                }.distinct()
         if (assetIds.isEmpty()) return
         // Truly fire-and-forget: dispatch the HTTP call onto a dedicated executor so
         // the request thread doesn't wait on the round-trip to svc-data. svc-data
@@ -208,7 +224,7 @@ class PerformanceService(
         nudgeExecutor.execute {
             try {
                 priceService.ensureHistory(
-                    EnsureHistoryRequest(assetIds = assetIds, fromDate = startDate),
+                    EnsureHistoryRequest(assetIds = assetIds.distinct(), fromDate = startDate),
                     token
                 )
             } catch (
@@ -261,7 +277,7 @@ class PerformanceService(
     ): List<LocalDate> {
         val cashFlowDates =
             transactions
-                .filter { isExternalCashFlow(it.trnType) }
+                .filter { isFlowEvent(it) }
                 .filter { !it.tradeDate.isBefore(startDate) && !it.tradeDate.isAfter(endDate) }
                 .map { it.tradeDate }
 
@@ -358,17 +374,18 @@ class PerformanceService(
 
         while (trnIndex < transactions.size && !transactions[trnIndex].tradeDate.isAfter(valDate)) {
             val trn = transactions[trnIndex]
-            accumulator.accumulate(trn, positions)
+            val amount = accumulateFlow(trn, positions, portfolio)
 
-            if (isExternalCashFlow(trn.trnType)) {
-                val amount = convertCashFlowToPortfolioCurrency(trn, portfolio)
+            if (amount != null) {
                 netContributions = netContributions.add(amount)
                 if (trn.tradeDate == valDate) {
                     cashFlowOnDate = cashFlowOnDate.add(amount)
                 }
             }
 
-            if (trn.trnType == TrnType.DIVI) {
+            // An excluded asset's dividend is money in from outside TWR (a flow above),
+            // not income earned by the assets TWR measures.
+            if (trn.trnType == TrnType.DIVI && !isExcluded(trn.asset)) {
                 cumulativeDividends =
                     cumulativeDividends.add(convertDividendToPortfolioCurrency(trn, portfolio))
             }
@@ -377,6 +394,93 @@ class PerformanceService(
 
         return DateAccumulation(trnIndex, netContributions, cumulativeDividends, cashFlowOnDate)
     }
+
+    /**
+     * Accumulates [trn] into [positions] and returns the external flow it carries
+     * across the TWR boundary, in portfolio currency, or null when it carries none.
+     *
+     * - DEPOSIT, WITHDRAWAL and the other [isExternalCashFlow] types are flows.
+     * - A BALANCE on an included asset restates the balance. The rise in its basis is
+     *   fresh principal, so it is a flow. For a non-cash asset that basis is the cost
+     *   [com.beancounter.position.accumulation.BalanceBehaviour] keeps, which grows only
+     *   by the contribution. What is left over is return.
+     * - The cash leg of a trade in an [isExcluded] asset moves money between cash
+     *   inside TWR and an asset outside it, so it is a flow too.
+     */
+    private fun accumulateFlow(
+        trn: Trn,
+        positions: Positions,
+        portfolio: Portfolio
+    ): BigDecimal? {
+        val basisBefore = balanceBasis(trn, positions, portfolio)
+        accumulator.accumulate(trn, positions)
+        return when {
+            isExternalCashFlow(trn.trnType) -> convertCashFlowToPortfolioCurrency(trn, portfolio)
+            basisBefore != null -> balanceBasis(trn, positions, portfolio)?.subtract(basisBefore)
+            isExcludedCashLeg(trn) -> cashLegInPortfolioCurrency(trn, portfolio)
+            else -> null
+        }
+    }
+
+    /**
+     * The basis a BALANCE on an included asset restates, in portfolio currency: the
+     * balance itself for cash, the cost basis otherwise. Null for any other trn.
+     */
+    private fun balanceBasis(
+        trn: Trn,
+        positions: Positions,
+        portfolio: Portfolio
+    ): BigDecimal? {
+        if (trn.trnType != TrnType.BALANCE || isExcluded(trn.asset)) return null
+        val position = positions.getOrCreate(trn)
+        if (!cashUtils.isCash(trn.asset)) {
+            return position.moneyValues[Position.In.PORTFOLIO]?.costBasis ?: BigDecimal.ZERO
+        }
+        val balance = position.quantityValues.getTotal()
+        return if (trn.tradeCurrency.code == portfolio.currency.code) {
+            balance
+        } else {
+            balance.multiply(trn.tradePortfolioRate).setScale(2, RoundingMode.HALF_UP)
+        }
+    }
+
+    private fun isExcludedCashLeg(trn: Trn): Boolean =
+        isExcluded(trn.asset) && trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType)
+
+    /**
+     * Converts a trade's signed cash leg (cash currency) to portfolio currency
+     * through the trade's stored rates: cash -> trade via tradeCashRate, then
+     * trade -> portfolio via tradePortfolioRate.
+     */
+    private fun cashLegInPortfolioCurrency(
+        trn: Trn,
+        portfolio: Portfolio
+    ): BigDecimal {
+        val cashCode = (trn.cashCurrency ?: trn.tradeCurrency).code
+        if (cashCode == portfolio.currency.code) return trn.cashAmount
+        val inTrade =
+            if (cashCode == trn.tradeCurrency.code || trn.tradeCashRate.signum() == 0) {
+                trn.cashAmount
+            } else {
+                trn.cashAmount.divide(trn.tradeCashRate, CASH_LEG_SCALE, RoundingMode.HALF_UP)
+            }
+        val inPortfolio =
+            if (trn.tradeCurrency.code == portfolio.currency.code) inTrade else inTrade.multiply(trn.tradePortfolioRate)
+        return inPortfolio.setScale(2, RoundingMode.HALF_UP)
+    }
+
+    private fun isFlowEvent(trn: Trn): Boolean =
+        isExternalCashFlow(trn.trnType) ||
+            (trn.trnType == TrnType.BALANCE && !isExcluded(trn.asset)) ||
+            isExcludedCashLeg(trn)
+
+    /**
+     * PRIVATE-market assets stay out of TWR unless [Asset.includeInPerformance]
+     * is set: their valuations move on appraisal or snapshot cycles, not market prices.
+     * Cash-like PRIVATE assets (bank accounts) are cash and always stay in.
+     */
+    private fun isExcluded(asset: Asset): Boolean =
+        asset.market.code == PRIVATE_MARKET && !cashUtils.isCash(asset) && !asset.includeInPerformance
 
     private fun convertDividendToPortfolioCurrency(
         trn: Trn,
@@ -437,7 +541,7 @@ class PerformanceService(
         val nonCashPositions =
             positions.positions.values
                 .filter { it.quantityValues.getTotal().signum() != 0 }
-                .filter { !cashUtils.isCash(it.asset) }
+                .filter { !cashUtils.isCash(it.asset) && !isExcluded(it.asset) }
 
         val cashPositions =
             positions.positions.values
@@ -730,9 +834,42 @@ class PerformanceService(
         if (portfolios.isEmpty()) {
             return AggregatedPerformanceResponse(AggregatedPerformanceData(displayCurrency))
         }
-        val perPortfolio = portfolios.map { p -> p to calculate(p, months).data }
+        val perPortfolio = calculateAll(portfolios, months)
         val fxRates = fetchDisplayCurrencyRates(perPortfolio, displayCurrency)
         return composeAggregate(perPortfolio, displayCurrency, fxRates)
+    }
+
+    /**
+     * Calculates each portfolio, [AGGREGATE_CONCURRENCY] at a time, then nudges price
+     * history once for the assets of every portfolio that missed the cache. One at a
+     * time, a cold 18-portfolio wealth page ran over 100s on kauri and hit the 60s
+     * bulk-price read timeout.
+     */
+    private fun calculateAll(
+        portfolios: List<Portfolio>,
+        months: Int
+    ): List<Pair<Portfolio, PerformanceData>> {
+        val securityContext = SecurityContextHolder.getContext()
+        val historyAssetIds = ConcurrentHashMap.newKeySet<String>()
+        val permits = Semaphore(AGGREGATE_CONCURRENCY)
+        val perPortfolio =
+            runBlockingTraced(Dispatchers.IO) {
+                portfolios
+                    .map { portfolio ->
+                        async {
+                            permits.withPermit {
+                                SecurityContextHolder.setContext(securityContext)
+                                try {
+                                    portfolio to calculate(portfolio, months, historyAssetIds).data
+                                } finally {
+                                    SecurityContextHolder.clearContext()
+                                }
+                            }
+                        }
+                    }.awaitAll()
+            }
+        ensureAssetHistory(historyAssetIds, dateUtils.date.minusMonths(months.toLong()), tokenService.bearerToken)
+        return perPortfolio
     }
 
     private fun fetchDisplayCurrencyRates(
@@ -1002,6 +1139,12 @@ class PerformanceService(
         // Matches PrivateMarketDataProvider.ID in svc-data: single latest-price
         // row, no daily history.
         private const val PRIVATE_MARKET = "PRIVATE"
+
+        private const val CASH_LEG_SCALE = 10
+
+        // Portfolios calculated at once by [aggregate]. Each cold calculation makes bulk
+        // price and FX calls to bc-data, whose 512m heap is the constraint.
+        private const val AGGREGATE_CONCURRENCY = 4
 
         /**
          * External cash flows are money entering or leaving the portfolio from outside.

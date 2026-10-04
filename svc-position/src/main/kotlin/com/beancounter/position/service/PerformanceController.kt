@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.AggregatedPerformanceRequest
 import com.beancounter.common.contracts.AggregatedPerformanceResponse
 import com.beancounter.common.contracts.PerformanceResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.cache.PerformanceCacheService
 import io.swagger.v3.oas.annotations.Operation
@@ -51,13 +52,16 @@ class PerformanceController(
      * and 404s when the caller is the manager rather than the owner.
      * `getPortfolioById` goes through `find(id)` on svc-data which applies
      * the `canView` access check, so both owner and shared-with-me cases
-     * succeed. By-id first; fall back to by-code so existing callers that
-     * still send codes continue to work.
+     * succeed. By-code first, because the wealth page sends a code for every
+     * portfolio and an id-first lookup cost one 404 round trip each; then
+     * by-id for managed portfolios (#872).
      */
     private fun resolvePortfolio(idOrCode: String): Portfolio =
-        runCatching { portfolioServiceClient.getPortfolioById(idOrCode) }
-            .getOrNull()
-            ?: portfolioServiceClient.getPortfolioByCode(idOrCode)
+        try {
+            portfolioServiceClient.getPortfolioByCode(idOrCode)
+        } catch (_: NotFoundException) {
+            portfolioServiceClient.getPortfolioById(idOrCode)
+        }
 
     @GetMapping("/{code}/performance")
     @Operation(

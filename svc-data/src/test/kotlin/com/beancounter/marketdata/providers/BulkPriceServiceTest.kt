@@ -15,6 +15,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -138,6 +139,29 @@ class BulkPriceServiceTest {
             .isEqualByComparingTo(BigDecimal("125.00"))
         assertThat(result["2020-09-01"]!![0].close)
             .isEqualByComparingTo(BigDecimal("130.00"))
+    }
+
+    @Test
+    fun `should rebase bulk prices from stored split rows without calling the event provider`() {
+        // The bulk read is DB-only. Asking the provider for split events per asset made a
+        // cold wealth page fire two EODHD calls per asset inside this transaction and
+        // stall past svc-position's 60s read timeout (kauri, 2026-10-03).
+        val eventServiceFacade = mock(EventServiceFacade::class.java)
+        priceService.setEventServiceFacade(eventServiceFacade)
+        val preSplit = LocalDate.of(2020, 8, 28)
+        val exDate = LocalDate.of(2020, 8, 31)
+        val pre = MarketData(asset = AAPL, priceDate = preSplit, close = BigDecimal("500.00"))
+        val ex =
+            MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal("125.00")).apply {
+                split = BigDecimal("4")
+            }
+        whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(listOf(AAPL)), any(), any()))
+            .thenReturn(listOf(pre, ex))
+
+        val result = priceService.getBulkMarketData(listOf(AAPL), listOf(preSplit, exDate))
+
+        assertThat(result["2020-08-28"]!![0].close).isEqualByComparingTo(BigDecimal("125.00"))
+        verifyNoInteractions(eventServiceFacade)
     }
 
     @Test

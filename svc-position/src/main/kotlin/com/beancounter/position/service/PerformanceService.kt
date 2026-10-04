@@ -304,32 +304,17 @@ class PerformanceService(
         val snapshots = mutableListOf<ValuationSnapshot>()
         val netContributionsList = mutableListOf<BigDecimal>()
         val cumulativeDividendsList = mutableListOf<BigDecimal>()
-        var trnIndex = 0
-        var netContributions = BigDecimal.ZERO
-        var cumulativeDividends = BigDecimal.ZERO
+        var acc = DateAccumulation(0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
         // Computed once per pass (not per date) — PRIVATE-market assets only
         // ever get one price row (see valuePositionsFromCache), so every other
         // valuation date needs this fallback.
-        val latestPriceIndex = buildLatestPriceIndex(priceCache)
+        val prices = PassPrices(priceCache, fxCache, buildLatestPriceIndex(priceCache))
 
         for (valDate in valuationDates) {
             // Accumulate transactions up to and including this date
-            val acc =
-                accumulateUpTo(
-                    valDate,
-                    transactions,
-                    positions,
-                    portfolio,
-                    trnIndex,
-                    netContributions,
-                    cumulativeDividends
-                )
-            trnIndex = acc.trnIndex
-            netContributions = acc.netContributions
-            cumulativeDividends = acc.cumulativeDividends
+            acc = accumulateUpTo(valDate, transactions, positions, portfolio, acc, prices)
 
-            val marketValue =
-                valuePositionsFromCache(positions, valDate, portfolio, priceCache, fxCache, latestPriceIndex)
+            val marketValue = valuePositionsFromCache(positions, valDate, portfolio, prices)
 
             snapshots.add(
                 ValuationSnapshot(
@@ -338,8 +323,8 @@ class PerformanceService(
                     externalCashFlow = acc.cashFlowOnDate
                 )
             )
-            netContributionsList.add(netContributions)
-            cumulativeDividendsList.add(cumulativeDividends)
+            netContributionsList.add(acc.netContributions)
+            cumulativeDividendsList.add(acc.cumulativeDividends)
         }
 
         return Triple(snapshots, netContributionsList, cumulativeDividendsList)
@@ -353,28 +338,34 @@ class PerformanceService(
         val cashFlowOnDate: BigDecimal
     )
 
+    /** One pass's pre-fetched prices and FX rates, keyed by ISO date. */
+    private class PassPrices(
+        val priceCache: Map<String, Collection<MarketData>>,
+        val fxCache: Map<String, FxPairResults>,
+        val latestPriceIndex: Map<String, MarketData>
+    )
+
     /**
      * Accumulates transactions into [positions] up to and including [valDate],
-     * advancing from [startIndex] and folding contributions/dividends onto the
-     * running totals. Mutates [positions]; returns the updated scalar totals.
+     * advancing from the [prior] date's trn index and folding contributions/dividends
+     * onto its running totals. Mutates [positions]; returns the updated scalar totals.
      */
     private fun accumulateUpTo(
         valDate: LocalDate,
         transactions: List<Trn>,
         positions: Positions,
         portfolio: Portfolio,
-        startIndex: Int,
-        startNetContributions: BigDecimal,
-        startCumulativeDividends: BigDecimal
+        prior: DateAccumulation,
+        prices: PassPrices
     ): DateAccumulation {
-        var trnIndex = startIndex
-        var netContributions = startNetContributions
-        var cumulativeDividends = startCumulativeDividends
+        var trnIndex = prior.trnIndex
+        var netContributions = prior.netContributions
+        var cumulativeDividends = prior.cumulativeDividends
         var cashFlowOnDate = BigDecimal.ZERO
 
         while (trnIndex < transactions.size && !transactions[trnIndex].tradeDate.isAfter(valDate)) {
             val trn = transactions[trnIndex]
-            val amount = accumulateFlow(trn, positions, portfolio)
+            val amount = accumulateFlow(trn, positions, portfolio, prices)
 
             if (amount != null) {
                 netContributions = netContributions.add(amount)
@@ -406,20 +397,60 @@ class PerformanceService(
      *   by the contribution. What is left over is return.
      * - The cash leg of a trade in an [isExcluded] asset moves money between cash
      *   inside TWR and an asset outside it, so it is a flow too.
+     * - ADD and REDUCE move units in or out without cash (an in-specie transfer). The
+     *   flow is the units' market value on the trade date, priced as the snapshot
+     *   prices them, so the transfer itself is neither return nor loss. The trn's own
+     *   price is often the original cost carried over and is not used.
      */
     private fun accumulateFlow(
         trn: Trn,
         positions: Positions,
-        portfolio: Portfolio
+        portfolio: Portfolio,
+        prices: PassPrices
     ): BigDecimal? {
         val basisBefore = balanceBasis(trn, positions, portfolio)
+        val unitsBefore = inKindUnits(trn, positions)
         accumulator.accumulate(trn, positions)
         return when {
             isExternalCashFlow(trn.trnType) -> convertCashFlowToPortfolioCurrency(trn, portfolio)
             basisBefore != null -> balanceBasis(trn, positions, portfolio)?.subtract(basisBefore)
             isExcludedCashLeg(trn) -> cashLegInPortfolioCurrency(trn, portfolio)
+            unitsBefore != null -> inKindValue(trn, positions, unitsBefore, portfolio, prices)
             else -> null
         }
+    }
+
+    /** Units held before an in-specie ADD or REDUCE of an included asset; null for any other trn. */
+    private fun inKindUnits(
+        trn: Trn,
+        positions: Positions
+    ): BigDecimal? {
+        if (!isInKindTransfer(trn)) return null
+        return positions.getOrCreate(trn).quantityValues.getTotal()
+    }
+
+    private fun isInKindTransfer(trn: Trn): Boolean =
+        (trn.trnType == TrnType.ADD || trn.trnType == TrnType.REDUCE) && !isExcluded(trn.asset)
+
+    /** Market value, in portfolio currency, of the units an in-specie trn moved. */
+    private fun inKindValue(
+        trn: Trn,
+        positions: Positions,
+        unitsBefore: BigDecimal,
+        portfolio: Portfolio,
+        prices: PassPrices
+    ): BigDecimal? {
+        val position = positions.getOrCreate(trn)
+        val dateStr = trn.tradeDate.toString()
+        val priceMap = priceMapFor(dateStr, prices)
+        val unitValue =
+            unitValue(position, dateStr, portfolio, priceMap, findNearestFxRates(dateStr, prices.fxCache), prices)
+                ?: return null
+        return position.quantityValues
+            .getTotal()
+            .subtract(unitsBefore)
+            .multiply(unitValue)
+            .setScale(2, RoundingMode.HALF_UP)
     }
 
     /**
@@ -472,7 +503,8 @@ class PerformanceService(
     private fun isFlowEvent(trn: Trn): Boolean =
         isExternalCashFlow(trn.trnType) ||
             (trn.trnType == TrnType.BALANCE && !isExcluded(trn.asset)) ||
-            isExcludedCashLeg(trn)
+            isExcludedCashLeg(trn) ||
+            isInKindTransfer(trn)
 
     /**
      * PRIVATE-market assets stay out of TWR unless [Asset.includeInPerformance]
@@ -523,107 +555,100 @@ class PerformanceService(
      * reference currency, using pre-fetched price and FX caches.
      *
      * For each position with non-zero quantity:
-     *   marketValue = quantity * price * fx_rate(trade->portfolio_currency)
+     *   marketValue = quantity * [unitValue]
      *
-     * Cash positions use quantity as their value (no price lookup needed).
+     * Excluded PRIVATE assets are left out; see [isExcluded].
      */
     private fun valuePositionsFromCache(
         positions: Positions,
         date: LocalDate,
         portfolio: Portfolio,
-        priceCache: Map<String, Collection<MarketData>>,
-        fxCache: Map<String, FxPairResults>,
-        latestPriceIndex: Map<String, MarketData>
+        prices: PassPrices
     ): BigDecimal {
         val dateStr = date.toString()
-        val fxRates = findNearestFxRates(dateStr, fxCache)
-
-        val nonCashPositions =
-            positions.positions.values
-                .filter { it.quantityValues.getTotal().signum() != 0 }
-                .filter { !cashUtils.isCash(it.asset) && !isExcluded(it.asset) }
-
-        val cashPositions =
-            positions.positions.values
-                .filter { it.quantityValues.getTotal().signum() != 0 }
-                .filter { cashUtils.isCash(it.asset) }
+        val fxRates = findNearestFxRates(dateStr, prices.fxCache)
+        val priceMap = priceMapFor(dateStr, prices)
 
         var totalMv = BigDecimal.ZERO
-
-        // Add cash position values (quantity = value in trade currency, convert to portfolio currency)
-        for (pos in cashPositions) {
-            val tradeCcy = pos.moneyValues[Position.In.TRADE]?.currency ?: pos.asset.market.currency
-            if (tradeCcy.code == portfolio.currency.code) {
-                totalMv = totalMv.add(pos.quantityValues.getTotal())
-            } else {
-                val fxPair = IsoCurrencyPair(tradeCcy.code, portfolio.currency.code)
-                val rate = fxRates?.rates?.get(fxPair)?.rate
-                if (rate == null) {
-                    log.warn("Missing FX rate for cash position {} on {}, defaulting to 1.0", fxPair, dateStr)
-                }
-                totalMv = totalMv.add(pos.quantityValues.getTotal().multiply(rate ?: BigDecimal.ONE))
-            }
+        for (pos in positions.positions.values) {
+            if (pos.quantityValues.getTotal().signum() == 0 || isExcluded(pos.asset)) continue
+            val unitValue = unitValue(pos, dateStr, portfolio, priceMap, fxRates, prices) ?: continue
+            val positionMv = pos.quantityValues.getTotal().multiply(unitValue)
+            totalMv =
+                totalMv.add(
+                    if (cashUtils.isCash(pos.asset)) positionMv else positionMv.setScale(2, RoundingMode.HALF_UP)
+                )
         }
-
-        if (nonCashPositions.isEmpty()) return totalMv
-
-        // Look up prices from pre-fetched cache
-        val pricesForDate = priceCache[dateStr] ?: emptyList()
-        val priceMap = pricesForDate.associateBy { "${it.asset.market.code}:${it.asset.code}" }
-
-        for (pos in nonCashPositions) {
-            val key = "${pos.asset.market.code}:${pos.asset.code}"
-            val marketData = priceMap[key]
-            val price =
-                if (marketData != null) {
-                    marketData.close
-                } else if (pos.asset.market.code == PRIVATE_MARKET && latestPriceIndex[key] != null) {
-                    // PRIVATE assets only ever get one price row (stamped today by
-                    // PrivateMarketDataProvider) — use it in preference to purchase
-                    // cost for every other valuation date.
-                    val latest = latestPriceIndex.getValue(key)
-                    log.debug(
-                        "No price for PRIVATE asset {} on {}, using latest known price {} from {}",
-                        key,
-                        dateStr,
-                        latest.close,
-                        latest.priceDate
-                    )
-                    latest.close
-                } else {
-                    // Fall back to average cost when no market price is available
-                    val avgCost = pos.moneyValues[Position.In.TRADE]?.averageCost ?: BigDecimal.ZERO
-                    if (avgCost.signum() == 0) {
-                        log.warn("No price or cost basis for {} on {}, skipping", key, dateStr)
-                        continue
-                    }
-                    log.debug("No market price for {} on {}, using cost price {}", key, dateStr, avgCost)
-                    avgCost
-                }
-
-            val tradeCcy = pos.moneyValues[Position.In.TRADE]?.currency ?: pos.asset.market.currency
-            val rate =
-                if (tradeCcy.code == portfolio.currency.code) {
-                    BigDecimal.ONE
-                } else {
-                    val fxPair = IsoCurrencyPair(tradeCcy.code, portfolio.currency.code)
-                    val fxRate = fxRates?.rates?.get(fxPair)?.rate
-                    if (fxRate == null) {
-                        log.warn("Missing FX rate for position {} on {}, defaulting to 1.0", fxPair, dateStr)
-                    }
-                    fxRate ?: BigDecimal.ONE
-                }
-
-            val positionMv =
-                pos.quantityValues
-                    .getTotal()
-                    .multiply(price)
-                    .multiply(rate)
-                    .setScale(2, RoundingMode.HALF_UP)
-            totalMv = totalMv.add(positionMv)
-        }
-
         return totalMv
+    }
+
+    private fun priceMapFor(
+        dateStr: String,
+        prices: PassPrices
+    ): Map<String, MarketData> =
+        (prices.priceCache[dateStr] ?: emptyList()).associateBy { "${it.asset.market.code}:${it.asset.code}" }
+
+    /**
+     * Value of one unit of [pos] on [dateStr] in portfolio currency: price * fx(trade -> portfolio).
+     * A cash unit is worth one of its currency, so needs no price. Null when a non-cash asset
+     * has neither a price nor a cost basis to fall back on.
+     */
+    private fun unitValue(
+        pos: Position,
+        dateStr: String,
+        portfolio: Portfolio,
+        priceMap: Map<String, MarketData>,
+        fxRates: FxPairResults?,
+        prices: PassPrices
+    ): BigDecimal? {
+        val isCash = cashUtils.isCash(pos.asset)
+        val price = if (isCash) BigDecimal.ONE else unitPrice(pos, dateStr, priceMap, prices) ?: return null
+        val tradeCcy = pos.moneyValues[Position.In.TRADE]?.currency ?: pos.asset.market.currency
+        if (tradeCcy.code == portfolio.currency.code) return price
+        val fxPair = IsoCurrencyPair(tradeCcy.code, portfolio.currency.code)
+        val rate = fxRates?.rates?.get(fxPair)?.rate
+        if (rate == null) {
+            log.warn(
+                "Missing FX rate for {} {} on {}, defaulting to 1.0",
+                if (isCash) "cash position" else "position",
+                fxPair,
+                dateStr
+            )
+        }
+        return price.multiply(rate ?: BigDecimal.ONE)
+    }
+
+    /** Close on [dateStr], else a PRIVATE asset's latest known price, else average cost. */
+    private fun unitPrice(
+        pos: Position,
+        dateStr: String,
+        priceMap: Map<String, MarketData>,
+        prices: PassPrices
+    ): BigDecimal? {
+        val key = "${pos.asset.market.code}:${pos.asset.code}"
+        priceMap[key]?.let { return it.close }
+        val latest = prices.latestPriceIndex[key]
+        if (pos.asset.market.code == PRIVATE_MARKET && latest != null) {
+            // PRIVATE assets only ever get one price row (stamped today by
+            // PrivateMarketDataProvider) — use it in preference to purchase
+            // cost for every other valuation date.
+            log.debug(
+                "No price for PRIVATE asset {} on {}, using latest known price {} from {}",
+                key,
+                dateStr,
+                latest.close,
+                latest.priceDate
+            )
+            return latest.close
+        }
+        // Fall back to average cost when no market price is available
+        val avgCost = pos.moneyValues[Position.In.TRADE]?.averageCost ?: BigDecimal.ZERO
+        if (avgCost.signum() == 0) {
+            log.warn("No price or cost basis for {} on {}, skipping", key, dateStr)
+            return null
+        }
+        log.debug("No market price for {} on {}, using cost price {}", key, dateStr, avgCost)
+        return avgCost
     }
 
     /**

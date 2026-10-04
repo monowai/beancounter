@@ -157,12 +157,9 @@ class PerformanceService(
         // charts converge to a complete series across requests without
         // blocking the current calculation on a multi-year provider call.
         val assetIds = allAssets.mapNotNull { it.resolvedAsset?.id ?: it.assetId.takeIf { id -> id.isNotEmpty() } }
-        if (historyAssetIds ==
-            null
-        ) {
-            ensureAssetHistory(assetIds, startDate, token)
-        } else {
-            historyAssetIds.addAll(assetIds)
+        when (historyAssetIds) {
+            null -> ensureAssetHistory(assetIds, startDate, token)
+            else -> historyAssetIds.addAll(assetIds)
         }
 
         // Pre-fetch all prices and FX rates in exactly 2 bulk calls
@@ -386,7 +383,9 @@ class PerformanceService(
                 }
             }
 
-            if (trn.trnType == TrnType.DIVI) {
+            // An excluded asset's dividend is money in from outside TWR (a flow above),
+            // not income earned by the assets TWR measures.
+            if (trn.trnType == TrnType.DIVI && !isExcluded(trn.asset)) {
                 cumulativeDividends =
                     cumulativeDividends.add(convertDividendToPortfolioCurrency(trn, portfolio))
             }

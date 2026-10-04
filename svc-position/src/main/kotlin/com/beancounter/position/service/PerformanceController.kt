@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.AggregatedPerformanceRequest
 import com.beancounter.common.contracts.AggregatedPerformanceResponse
 import com.beancounter.common.contracts.PerformanceResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.cache.PerformanceCacheService
 import io.swagger.v3.oas.annotations.Operation
@@ -56,9 +57,11 @@ class PerformanceController(
      * by-id for managed portfolios (#872).
      */
     private fun resolvePortfolio(idOrCode: String): Portfolio =
-        runCatching { portfolioServiceClient.getPortfolioByCode(idOrCode) }
-            .getOrNull()
-            ?: portfolioServiceClient.getPortfolioById(idOrCode)
+        try {
+            portfolioServiceClient.getPortfolioByCode(idOrCode)
+        } catch (_: NotFoundException) {
+            portfolioServiceClient.getPortfolioById(idOrCode)
+        }
 
     @GetMapping("/{code}/performance")
     @Operation(

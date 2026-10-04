@@ -93,7 +93,8 @@ data class Asset(
                 priceSymbol = input.code,
                 category = input.category,
                 status = status,
-                expectedReturnRate = input.expectedReturnRate
+                expectedReturnRate = input.expectedReturnRate,
+                includeInPerformance = input.includeInPerformance ?: false
             )
     }
 

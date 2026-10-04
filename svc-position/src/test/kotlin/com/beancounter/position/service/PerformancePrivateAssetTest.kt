@@ -23,6 +23,7 @@ import com.beancounter.position.accumulation.BalanceBehaviour
 import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.CashAccumulator
 import com.beancounter.position.accumulation.DepositBehaviour
+import com.beancounter.position.accumulation.DividendBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
 import com.beancounter.position.accumulation.WithdrawalBehaviour
 import com.beancounter.position.cache.NoOpPerformanceCacheService
@@ -93,7 +94,8 @@ class PerformancePrivateAssetTest {
                         BuyBehaviour(currencyResolver),
                         DepositBehaviour(cashAccumulator),
                         WithdrawalBehaviour(cashAccumulator),
-                        BalanceBehaviour(currencyResolver)
+                        BalanceBehaviour(currencyResolver),
+                        DividendBehaviour(currencyResolver)
                     )
                 )
             )
@@ -128,6 +130,23 @@ class PerformancePrivateAssetTest {
         assertThat(last.marketValue).isEqualByComparingTo("600")
         assertThat(last.cumulativeReturn).isEqualByComparingTo("0")
         assertThat(last.netContributions).isEqualByComparingTo("600")
+    }
+
+    @Test
+    fun `should treat a dividend from an excluded asset as money in, not TWR dividends`() {
+        val unlisted = privateAsset("UNLISTED", category = "Equity")
+        givenTrns(
+            deposit(today.minusMonths(6), "1000"),
+            buy(unlisted, today.minusMonths(3), "400"),
+            dividend(unlisted, today.minusMonths(1), "50")
+        )
+
+        val result = performanceService.calculate(portfolio, 12)
+
+        val last = result.data.series.last()
+        assertThat(last.marketValue).isEqualByComparingTo("650")
+        assertThat(last.cumulativeReturn).isEqualByComparingTo("0")
+        assertThat(last.cumulativeDividends).isEqualByComparingTo("0")
     }
 
     @Test
@@ -277,6 +296,24 @@ class PerformancePrivateAssetTest {
         cashAsset = usdCashBalance,
         cashCurrency = USD,
         cashAmount = BigDecimal(amount).negate(),
+        tradeCurrency = USD,
+        tradeCashRate = BigDecimal.ONE,
+        portfolio = portfolio
+    )
+
+    private fun dividend(
+        asset: Asset,
+        date: LocalDate,
+        amount: String
+    ) = Trn(
+        trnType = TrnType.DIVI,
+        asset = asset,
+        tradeDate = date,
+        quantity = BigDecimal.ZERO,
+        tradeAmount = BigDecimal(amount),
+        cashAsset = usdCashBalance,
+        cashCurrency = USD,
+        cashAmount = BigDecimal(amount),
         tradeCurrency = USD,
         tradeCashRate = BigDecimal.ONE,
         portfolio = portfolio

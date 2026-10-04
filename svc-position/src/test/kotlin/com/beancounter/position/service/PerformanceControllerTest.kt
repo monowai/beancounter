@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.PerformanceData
 import com.beancounter.common.contracts.PerformanceDataPoint
 import com.beancounter.common.contracts.PerformanceResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.Constants.Companion.USD
@@ -96,6 +97,15 @@ class PerformanceControllerTest {
         assertThat(result.data.currency.code).isEqualTo("USD")
         assertThat(result.data.series).hasSize(1)
         assertThat(result.data.series[0].growthOf1000).isEqualByComparingTo(BigDecimal("1000"))
+    }
+
+    @Test
+    fun `should not fall back to an id lookup when the code lookup fails for another reason`() {
+        // Only a 404 means "not a code". Anything else is a real failure to surface.
+        whenever(portfolioServiceClient.getPortfolioByCode("TEST")).thenThrow(IllegalStateException("svc-data down"))
+
+        assertThatThrownBy { controller.getPerformance("TEST", 12) }.isInstanceOf(IllegalStateException::class.java)
+        verify(portfolioServiceClient, never()).getPortfolioById(any())
     }
 
     @Test
@@ -274,6 +284,9 @@ class PerformanceControllerTest {
         // `findByCode(code, owner)` is owner-scoped and would 404, while
         // `find(id)` applies `canView` and succeeds for shared portfolios.
         val managedId = "managed-pf-uuid"
+        whenever(
+            portfolioServiceClient.getPortfolioByCode(managedId)
+        ).thenThrow(NotFoundException("Portfolio not found: $managedId"))
         whenever(portfolioServiceClient.getPortfolioById(managedId)).thenReturn(portfolio)
         val expectedResponse =
             PerformanceResponse(

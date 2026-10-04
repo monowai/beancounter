@@ -12,8 +12,12 @@
 # repository is public, so any fork PR would run code on a VM with a route to
 # the LAN (network/GH_RUNNER.md, GitHub's self-hosted runner guidance).
 #
-# Every action is pinned to a commit SHA: pushes hold GH_TOKEN, a PAT that
+# Every action is pinned to a commit SHA: push jobs hold a GITHUB_TOKEN that
 # can write packages, and a re-pointed tag would run with it.
+#
+# Publishing uses the per-run GITHUB_TOKEN, never a long-lived PAT. Each
+# ghcr.io/monowai/bc-* package grants this repository Write under Package
+# settings -> Manage Actions access; the jars publish to this repository.
 name: Build
 
 on:
@@ -132,14 +136,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
-      # GH_TOKEN, not GITHUB_TOKEN: most bc-* packages are not linked to this
-      # repository, so the workflow token cannot push to them.
       - name: Log in to Container Registry
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
@@ -159,6 +161,9 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -179,8 +184,8 @@ jobs:
       # svc-retire and svc-rebalance from GitHub Packages.
       - name: Publish jars to GitHub Packages
         env:
-          GITHUB_ACTOR: ${{ github.repository_owner }}
-          GH_GCR: ${{ secrets.GH_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GH_GCR: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew publishJars
 
   coverage:

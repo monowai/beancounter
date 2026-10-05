@@ -22,7 +22,7 @@ import tools.jackson.module.kotlin.readValue
  * as a simple data class rather than importing svc-retire's CompositePhase
  * directly so svc-agent has no compile-time dependency on the sibling repo.
  *
- * - [planId]    Retirement plan id (use listRetirementPlans to discover)
+ * - [planId]    Phase id (a Plan's `phases` from listIndependencePlans, or listRetirementPlans)
  * - [fromAge]   Age at which this phase becomes active (inclusive)
  * - [toAge]     Age at which this phase ends; null means "until death / last phase"
  */
@@ -54,17 +54,12 @@ class RetireServiceClient(
     private val dateUtils: DateUtils = DateUtils()
 ) {
     /**
-     * `GET /settings` — the user's stored independence settings, including
-     * year of birth, target retirement age, life expectancy, and the
-     * persisted composite configuration (phases, excluded plans, display
-     * currency).
+     * `GET /settings` — the user's demographics: year and month of birth,
+     * target independence age and life expectancy. Facts about the person,
+     * shared by every Plan; the phase timeline is per Plan — see
+     * [listIndependencePlans].
      *
-     * The upstream endpoint returns `compositePhases` and
-     * `compositeExcludedPlanIds` as **JSON-encoded strings** (that's how they
-     * sit in the DB). We parse them here so the tool hands the LLM a clean
-     * structured object — otherwise the model would have to decode nested
-     * JSON, which it often gets wrong. We also compute `currentAge` from
-     * `yearOfBirth` so the agent doesn't have to do date math.
+     * We compute `currentAge` here so the agent doesn't have to do date math.
      */
     fun getIndependenceSettings(): Map<String, Any?> {
         val raw =
@@ -91,21 +86,62 @@ class RetireServiceClient(
             result["currentAge"] = age
         }
 
-        // Parse compositePhases JSON → List<Map> so the LLM sees structure
-        (raw["compositePhases"] as? String)?.takeIf { it.isNotBlank() }?.let { json ->
-            runCatching { objectMapper.readValue<List<Map<String, Any?>>>(json) }
-                .onSuccess { result["compositePhases"] = it }
-                .onFailure { log.warn("Failed to parse compositePhases JSON: {}", it.message) }
-        }
-
-        // Parse compositeExcludedPlanIds JSON → List<String>
-        (raw["compositeExcludedPlanIds"] as? String)?.takeIf { it.isNotBlank() }?.let { json ->
-            runCatching { objectMapper.readValue<List<String>>(json) }
-                .onSuccess { result["compositeExcludedPlanIds"] = it }
-                .onFailure { log.warn("Failed to parse compositeExcludedPlanIds JSON: {}", it.message) }
-        }
-
         return result
+    }
+
+    /**
+     * `GET /independence-plans` — the user's Plans. svc-retire calls each an
+     * `IndependencePlan`: a whole journey whose `phases` stitch phase plans
+     * (the `/plans` resources) into one timeline.
+     *
+     * Upstream stores `phases` and `excludedPlanIds` as **JSON-encoded
+     * strings**. They are decoded here so the tool hands the LLM a structured
+     * timeline it can pass straight to the composite endpoints — the model
+     * decodes nested JSON unreliably. A Plan with no stored or no decodable
+     * timeline reports empty lists.
+     *
+     * The wealth definition and owner ids are dropped: the model cannot act on
+     * them and every token of tool output is billed on every later turn.
+     */
+    fun listIndependencePlans(): Map<String, Any?> {
+        val raw =
+            restClient
+                .get()
+                .uri("/independence-plans")
+                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+                .retrieve()
+                .body(MAP_ANY_TYPE)
+                ?: throw BusinessException("Failed to retrieve independence plans")
+
+        val plans =
+            (raw["data"] as? List<*>)
+                .orEmpty()
+                .filterIsInstance<Map<String, Any?>>()
+                .map { plan ->
+                    plan - PLAN_FIELDS_HIDDEN_FROM_MODEL +
+                        mapOf(
+                            "phases" to decodeList<Map<String, Any?>>(plan, "phases"),
+                            "excludedPlanIds" to decodeList<String>(plan, "excludedPlanIds")
+                        )
+                }
+        return mapOf("data" to plans)
+    }
+
+    /** Decode a JSON-array-in-a-string field; absent, blank or malformed reads as empty. */
+    private inline fun <reified T> decodeList(
+        plan: Map<String, Any?>,
+        field: String
+    ): List<T> {
+        val json = (plan[field] as? String)?.takeIf { it.isNotBlank() } ?: return emptyList()
+        return runCatching { objectMapper.readValue<List<T>>(json) }
+            .onFailure {
+                log.warn(
+                    "Failed to parse {} JSON on independence plan {}: {}",
+                    field,
+                    plan["id"],
+                    it.message
+                )
+            }.getOrDefault(emptyList())
     }
 
     /** `GET /plans` — all retirement plans owned by the current user. */
@@ -329,5 +365,16 @@ class RetireServiceClient(
         private val objectMapper = BcJson.objectMapper
         private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
         private val MAP_ANY_TYPE = object : ParameterizedTypeReference<Map<String, Any?>>() {}
+
+        /** Wealth definition and ownership — nothing the model reasons about. */
+        private val PLAN_FIELDS_HIDDEN_FROM_MODEL =
+            setOf(
+                "excludedPortfolioIds",
+                "liquidatedPortfolioIds",
+                "liquidationCostsPercent",
+                "manualAssets",
+                "ownerId",
+                "systemUserId"
+            )
     }
 }

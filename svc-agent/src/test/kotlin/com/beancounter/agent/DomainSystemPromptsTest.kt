@@ -85,4 +85,41 @@ class DomainSystemPromptsTest {
         assertThat(allPrompts)
             .allSatisfy { prompt -> assertThat(prompt).contains("Call tools silently") }
     }
+
+    @Test
+    fun `independence prompt answers for the whole Plan by default`() {
+        // The model used to pick one phase and present its numbers as the user's
+        // retirement. "My plan" is the aggregate: every phase, via the composite tools.
+        assertThat(DomainSystemPrompts.INDEPENDENCE)
+            .contains("Default to the Plan")
+            .contains("listIndependencePlans")
+            .contains("independencePlanId")
+            .contains("never present one phase's numbers as the Plan's")
+            .doesNotContain("default to the SINGLE plan")
+    }
+
+    @Test
+    fun `independence prompt goes phase-level only on phase context or a named phase`() {
+        assertThat(DomainSystemPrompts.INDEPENDENCE)
+            .contains("Go phase-level ONLY when")
+            .contains("page context carries `phaseId`")
+            .contains("names a")
+    }
+
+    @Test
+    fun `independence prompt reads the timeline from the Plan, not from settings`() {
+        // svc-retire dropped the composite columns from /settings; the stored
+        // timeline is each Plan's `phases`.
+        assertThat(DomainSystemPrompts.INDEPENDENCE)
+            .contains("Pass the Plan's stored `phases` unchanged")
+            .doesNotContain("compositePhases")
+            .doesNotContain("compositeDisplayCurrency")
+            .doesNotContain("compositeExcludedPlanIds")
+            .doesNotContain("compositeNarrative")
+    }
+
+    @Test
+    fun `general prompt routes retirement questions through the Plan`() {
+        assertThat(DomainSystemPrompts.GENERAL).contains("listIndependencePlans")
+    }
 }

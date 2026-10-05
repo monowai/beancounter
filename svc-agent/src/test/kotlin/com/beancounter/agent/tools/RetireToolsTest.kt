@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.springframework.ai.tool.annotation.Tool
 import java.math.BigDecimal
 
 /**
@@ -73,5 +74,47 @@ internal class RetireToolsTest {
         whenever(client.getPlan("plan-1")) doReturn plan
 
         assertThat(tools.getRetirementPlan("plan-1")).isEqualTo(plan)
+    }
+
+    @Test
+    fun `independence plans are listed straight from the client`() {
+        val plans =
+            mapOf<String, Any?>(
+                "data" to
+                    listOf(
+                        mapOf(
+                            "id" to "journey-1",
+                            "isPrimary" to true,
+                            "phases" to listOf(mapOf("planId" to "phase-1", "fromAge" to 55, "toAge" to null))
+                        )
+                    )
+            )
+        whenever(client.listIndependencePlans()) doReturn plans
+
+        assertThat(tools.listIndependencePlans()).isEqualTo(plans)
+    }
+
+    @Test
+    fun `listIndependencePlans is exposed to the model as a tool that explains the timeline`() {
+        val tool = RetireTools::class.java.getMethod("listIndependencePlans").getAnnotation(Tool::class.java)
+
+        assertThat(tool.description)
+            .contains("phases", "planId", "isPrimary", "displayCurrency", "runCompositeRetirement")
+    }
+
+    @Test
+    fun `settings description promises demographics only`() {
+        // svc-retire moved the composite timeline off /settings onto each Plan; a
+        // description that still advertises it sends the model looking for fields
+        // that never arrive.
+        assertThat(RetireTools.SETTINGS_DESC)
+            .contains("currentAge", "targetIndependenceAge", "lifeExpectancy")
+            .doesNotContainIgnoringCase("composite")
+    }
+
+    @Test
+    fun `phase tools say they operate on a phase of an independence Plan`() {
+        assertThat(listOf(RetireTools.LIST_DESC, RetireTools.GET_PLAN_DESC))
+            .allSatisfy { desc -> assertThat(desc).contains("phase").contains("independence Plan") }
     }
 }

@@ -97,8 +97,9 @@ class RetireServiceClient(
      * Upstream stores `phases` and `excludedPlanIds` as **JSON-encoded
      * strings**. They are decoded here so the tool hands the LLM a structured
      * timeline it can pass straight to the composite endpoints — the model
-     * decodes nested JSON unreliably. A Plan with no stored or no decodable
-     * timeline reports empty lists.
+     * decodes nested JSON unreliably. A Plan with no stored timeline reports
+     * empty lists; one whose stored timeline will not decode is also marked
+     * `phasesUnreadable`, so the model does not tell the user it is unset.
      *
      * The wealth definition and owner ids are dropped: the model cannot act on
      * them and every token of tool output is billed on every later turn.
@@ -118,21 +119,27 @@ class RetireServiceClient(
                 .orEmpty()
                 .filterIsInstance<Map<String, Any?>>()
                 .map { plan ->
+                    val phases = decodeList<Map<String, Any?>>(plan, "phases")
+                    val excluded = decodeList<String>(plan, "excludedPlanIds")
+                    val unreadable =
+                        if (phases.isFailure) mapOf("phasesUnreadable" to true) else emptyMap()
                     plan - PLAN_FIELDS_HIDDEN_FROM_MODEL +
                         mapOf(
-                            "phases" to decodeList<Map<String, Any?>>(plan, "phases"),
-                            "excludedPlanIds" to decodeList<String>(plan, "excludedPlanIds")
-                        )
+                            "phases" to phases.getOrDefault(emptyList()),
+                            "excludedPlanIds" to excluded.getOrDefault(emptyList())
+                        ) + unreadable
                 }
         return mapOf("data" to plans)
     }
 
-    /** Decode a JSON-array-in-a-string field; absent, blank or malformed reads as empty. */
+    /** Decode a JSON-array-in-a-string field; absent or blank is an empty success, malformed a failure. */
     private inline fun <reified T> decodeList(
         plan: Map<String, Any?>,
         field: String
-    ): List<T> {
-        val json = (plan[field] as? String)?.takeIf { it.isNotBlank() } ?: return emptyList()
+    ): Result<List<T>> {
+        val json =
+            (plan[field] as? String)?.takeIf { it.isNotBlank() }
+                ?: return Result.success(emptyList())
         return runCatching { objectMapper.readValue<List<T>>(json) }
             .onFailure {
                 log.warn(
@@ -141,7 +148,7 @@ class RetireServiceClient(
                     plan["id"],
                     it.message
                 )
-            }.getOrDefault(emptyList())
+            }
     }
 
     /** `GET /plans` — all retirement plans owned by the current user. */

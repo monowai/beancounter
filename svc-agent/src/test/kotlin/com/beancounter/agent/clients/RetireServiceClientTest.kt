@@ -111,7 +111,7 @@ class RetireServiceClientTest {
     }
 
     @Test
-    fun `independence plan with an undecodable timeline reports it empty rather than failing`() {
+    fun `independence plan with an undecodable timeline is marked unreadable, not unset`() {
         val (client, server) = clientWithServer()
         server.respondTo(
             "/independence-plans",
@@ -121,6 +121,20 @@ class RetireServiceClientTest {
         val plan = plansOf(client.listIndependencePlans()).first()
 
         assertThat(plan["phases"]).isEqualTo(emptyList<Any>())
+        assertThat(plan).containsEntry("phasesUnreadable", true)
+    }
+
+    @Test
+    fun `independence plan with no stored timeline is not marked unreadable`() {
+        val (client, server) = clientWithServer()
+        server.respondTo(
+            "/independence-plans",
+            """{"data":[{"id":"journey-4","name":"Fresh","isPrimary":false,"phases":null}]}"""
+        )
+
+        val plan = plansOf(client.listIndependencePlans()).first()
+
+        assertThat(plan).doesNotContainKey("phasesUnreadable")
     }
 
     @Test

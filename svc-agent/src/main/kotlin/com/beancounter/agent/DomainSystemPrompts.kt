@@ -393,7 +393,8 @@ object DomainSystemPrompts {
         `phases`: `listRetirementPlans`, keep phases whose
         `independencePlanId` is this Plan; exactly one → the single-phase
         tools ARE the Plan answer; several → say the timeline is not set
-        up and point to the Phases tab.
+        up and point to the Phases tab. `phasesUnreadable: true` → the
+        stored timeline failed to load: say so, never call it unset.
 
         ### Workflow
 

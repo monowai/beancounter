@@ -188,19 +188,20 @@ class RetireTools(
                 "runCompositeRetirementProjection / Scenarios / MonteCarlo. " +
                 "`isPrimary` marks the user's default Plan; `displayCurrency` is the " +
                 "currency for composite runs; `excludedPlanIds` are phases parked " +
-                "out of the timeline. Also returns the Plan's name and its " +
+                "out of the timeline. `phasesUnreadable: true` means a stored timeline " +
+                "failed to load — it is NOT unset. Also returns the Plan's name and its " +
                 "return, inflation, fee and tax assumption rates."
         const val LIST_DESC =
             "List every phase (stored as a 'retirement plan') the current user owns, " +
                 "across all their independence Plans. Returns each phase's id, name, " +
-                "country, narrative, expenses currency, assumptions and " +
+                "country, narrative, `expensesCurrency`, assumptions and " +
                 "`independencePlanId` — the independence Plan it belongs to. Use it " +
                 "to resolve a phase by name or to read phase details; the phase " +
                 "ORDER and ages come from listIndependencePlans."
         const val GET_PLAN_DESC =
             "Fetch a single phase of an independence Plan by its phase id (planId). " +
                 "Returns the phase's name, country, narrative, monthly expenses and " +
-                "currency, return / inflation / fee assumptions, asset allocation, " +
+                "`expensesCurrency`, return / inflation / fee assumptions, asset allocation, " +
                 "pension and working income, and `independencePlanId`."
         const val EXPENSES_DESC =
             "Fetch one phase of an independence Plan (by phase id) with its expense breakdown " +

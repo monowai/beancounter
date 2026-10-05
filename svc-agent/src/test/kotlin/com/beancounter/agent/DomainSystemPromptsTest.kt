@@ -122,4 +122,9 @@ class DomainSystemPromptsTest {
     fun `general prompt routes retirement questions through the Plan`() {
         assertThat(DomainSystemPrompts.GENERAL).contains("listIndependencePlans")
     }
+
+    @Test
+    fun `independence prompt reports an unreadable timeline instead of calling it unset`() {
+        assertThat(DomainSystemPrompts.INDEPENDENCE).contains("phasesUnreadable")
+    }
 }

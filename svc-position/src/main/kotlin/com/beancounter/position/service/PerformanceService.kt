@@ -726,11 +726,14 @@ class PerformanceService(
         trn: Trn,
         portfolio: Portfolio
     ): BigDecimal {
+        // A DEPOSIT, WITHDRAWAL or DEDUCTION moves the cash balance by its quantity
+        // (see DepositBehaviour), so the flow is that quantity too. Taking it from
+        // cashAmount let the two drift apart, and the difference read as return.
         val rawAmount =
-            if (trn.cashAmount.signum() != 0) {
-                trn.cashAmount
-            } else {
-                trn.tradeAmount
+            when {
+                TrnType.isCash(trn.trnType) && trn.quantity.signum() != 0 -> trn.quantity
+                trn.cashAmount.signum() != 0 -> trn.cashAmount
+                else -> trn.tradeAmount
             }
         // Normalize sign: deposits/income positive, withdrawals/expenses negative.
         // cashAmount sign is inconsistent across import sources, so enforce here.

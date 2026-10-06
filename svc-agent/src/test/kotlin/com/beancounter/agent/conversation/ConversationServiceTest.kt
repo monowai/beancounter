@@ -315,4 +315,18 @@ class ConversationServiceTest {
         inFlight.end(id)
         assertThat(service.get(owner, id).pending).isFalse()
     }
+
+    @Test
+    fun `get should stay pending until the last overlapping turn ends`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "How is my portfolio?", false)
+
+        inFlight.begin(id)
+        inFlight.begin(id)
+        inFlight.end(id)
+        assertThat(service.get(owner, id).pending).isTrue()
+
+        inFlight.end(id)
+        assertThat(service.get(owner, id).pending).isFalse()
+    }
 }

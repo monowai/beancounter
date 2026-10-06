@@ -215,6 +215,14 @@ data class ConversationDetail(
     val createdAt: Instant,
     val updatedAt: Instant,
     val messages: List<ConversationTurn>,
-    /** True while the latest question is still being answered — see [InFlightTurns]. */
+    /**
+     * True while the latest question is still being answered — see [InFlightTurns].
+     *
+     * Read separately from [messages] (a DB query vs the in-memory registry), so a
+     * reader can transiently see `pending == true` with the answer already present
+     * in [messages]. The flag clears only after the answer row is written, never
+     * before, so the reverse — `pending == false` with the answer still being
+     * written — cannot happen. A best-effort hint: a client that sees it polls again.
+     */
     val pending: Boolean
 )

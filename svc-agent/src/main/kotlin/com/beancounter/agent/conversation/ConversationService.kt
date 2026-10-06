@@ -19,6 +19,7 @@ import java.time.Instant
 class ConversationService(
     private val conversations: ConversationRepository,
     private val messages: ConversationMessageRepository,
+    private val inFlight: InFlightTurns,
     private val clock: Clock
 ) {
     companion object {
@@ -57,7 +58,8 @@ class ConversationService(
             messages =
                 messages.findByConversationIdOrderBySeq(id).map {
                     ConversationTurn(it.id, it.role, it.content, it.createdAt, it.error, it.deepThink, it.label)
-                }
+                },
+            pending = inFlight.isPending(id)
         )
     }
 
@@ -212,5 +214,7 @@ data class ConversationDetail(
     val title: String,
     val createdAt: Instant,
     val updatedAt: Instant,
-    val messages: List<ConversationTurn>
+    val messages: List<ConversationTurn>,
+    /** True while the latest question is still being answered — see [InFlightTurns]. */
+    val pending: Boolean
 )

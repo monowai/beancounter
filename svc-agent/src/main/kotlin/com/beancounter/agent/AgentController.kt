@@ -466,7 +466,9 @@ class AgentController(
      * nor the end-of-stream recording. So for a conversation the pipeline is
      * made hot and connected on the request thread, which the subscriber's
      * cancel cannot disconnect; [InFlightTurns] marks the conversation as
-     * being answered until the pipeline itself ends. A stateless request has
+     * being answered — set before the question is written, so no reader ever
+     * sees it unanswered and unclaimed — until the pipeline itself ends. A
+     * turn refused by [openTurn] clears the mark again. A stateless request has
      * no history to complete and stays cold: dropping it stops the LLM call.
      */
     @PostMapping("/query/stream", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
@@ -485,9 +487,23 @@ class AgentController(
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
         if (chatClient == null) return errorEvent(NO_LLM)
-        val (turn, recorder) = openTurn(request)
-        val conversationId = turn.conversationId ?: return answerPipeline(turn, recorder)
+        val conversationId = request.conversationId
+        if (conversationId == null) {
+            val (turn, recorder) = openTurn(request)
+            return answerPipeline(turn, recorder)
+        }
+        // Pending before the question is committed: openTurn writes the user
+        // row in its own transaction, and a GET landing between that commit
+        // and this mark would show an unanswered question nobody is answering.
+        // A refused turn (not owned, owner lookup failed) leaves no residue.
         inFlightTurns.begin(conversationId)
+        val (turn, recorder) =
+            try {
+                openTurn(request)
+            } catch (e: Exception) {
+                inFlightTurns.end(conversationId)
+                throw e
+            }
         // doFinally sits inside the hot boundary, so it fires when the
         // pipeline itself completes or fails — after the record{} write that
         // ends it — and never on the subscriber's cancel. replay() keeps the

@@ -17,6 +17,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
+import org.aopalliance.intercept.MethodInterceptor
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.awaitility.Awaitility.await
@@ -35,6 +36,7 @@ import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.model.Generation
+import org.springframework.aop.framework.ProxyFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.ComponentScan
@@ -96,7 +98,7 @@ class AgentConversationTest {
         service.deleteAll("someone-else")
     }
 
-    private fun controller(): AgentController =
+    private fun controller(conversations: ConversationService = service): AgentController =
         AgentController(
             client,
             null,
@@ -109,9 +111,9 @@ class AgentConversationTest {
             ObjectMapper(),
             LlmMetrics(),
             mock<AgentScopeAuthorizer>(),
-            service,
+            conversations,
             owner,
-            ConversationTitler(null, client, service, titleScope),
+            ConversationTitler(null, client, conversations, titleScope),
             inFlight
         )
 
@@ -275,6 +277,42 @@ class AgentConversationTest {
         assertThatThrownBy { controller().stream(AgentQuery("q", conversationId = theirs)) }
             .isInstanceOf(NotFoundException::class.java)
         assertThat(service.get("someone-else", theirs).messages).isEmpty()
+    }
+
+    @Test
+    fun `stream should not leave a conversation pending when the caller does not own it`() {
+        val theirs = service.create("someone-else").id
+
+        assertThatThrownBy { controller().stream(AgentQuery("q", conversationId = theirs)) }
+            .isInstanceOf(NotFoundException::class.java)
+
+        assertThat(inFlight.isPending(theirs)).isFalse()
+    }
+
+    @Test
+    fun `stream should mark the conversation pending before the question is written`() {
+        val id = service.create(me).id
+        slowModel(chunk("Hi "))
+        // A GET that lands between the question's commit and the pending mark
+        // would show an unanswered question nobody is answering; so observe
+        // the flag at the moment the question is written.
+        val pendingWhenWritten = mutableListOf<Boolean>()
+        val observed =
+            ProxyFactory(service)
+                .apply {
+                    isProxyTargetClass = true
+                    addAdvice(
+                        MethodInterceptor { call ->
+                            if (call.method.name == "appendUser") pendingWhenWritten.add(inFlight.isPending(id))
+                            call.proceed()
+                        }
+                    )
+                }.proxy as ConversationService
+
+        controller(observed).stream(AgentQuery("q", conversationId = id)).next().block(Duration.ofSeconds(5))
+
+        assertThat(pendingWhenWritten).containsExactly(true)
+        assertThat(service.get(me, id).messages.map { it.role }).containsExactly("user")
     }
 
     @Test

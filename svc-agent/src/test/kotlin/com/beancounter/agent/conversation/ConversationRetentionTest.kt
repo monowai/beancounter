@@ -13,7 +13,7 @@ import java.time.Duration
     includeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [ConversationService::class, ConversationRetention::class]
+            classes = [ConversationService::class, ConversationRetention::class, InFlightTurns::class]
         )
     ],
     properties = ["agent.conversations.retention-days=90", "agent.conversations.purge-cron=-"]

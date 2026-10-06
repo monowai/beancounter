@@ -20,7 +20,10 @@ import java.util.concurrent.TimeUnit
  */
 @DataJpaTest(
     includeFilters = [
-        ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [ConversationService::class])
+        ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = [ConversationService::class, InFlightTurns::class]
+        )
     ],
     properties = [
         "spring.test.database.replace=none",

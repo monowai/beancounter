@@ -5,6 +5,7 @@ import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationRecorder
 import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationTitler
+import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
@@ -75,6 +76,7 @@ class AgentController(
     private val conversations: ConversationService,
     private val conversationOwner: ConversationOwner,
     private val conversationTitler: ConversationTitler,
+    private val inFlightTurns: InFlightTurns,
     // UTC clock for stamping the current date onto each user message. Defaulted so Spring wires it
     // without a Clock bean; overridden in tests for a fixed date.
     private val clock: Clock = Clock.systemUTC()
@@ -454,6 +456,20 @@ class AgentController(
      *                    ChatClient picks the model and we don't surface it.
      *   - `event: error` `data: <opaque-code>` — terminal; payload is a stable
      *                    code (e.g. `"agent-error"`), never the raw exception.
+     *
+     * A turn in a conversation outlives its subscriber. The question is
+     * already in history by the time the stream starts ([openTurn]), and the
+     * answer is written only when the pipeline ends — so a client that drops
+     * mid-answer (a phone that sleeps during a 40s Independence turn) would
+     * otherwise leave an orphan question: the MVC emitter cancels a cold Flux,
+     * the LLM call aborts, and cancellation reaches neither `onErrorResume`
+     * nor the end-of-stream recording. So for a conversation the pipeline is
+     * made hot and connected on the request thread, which the subscriber's
+     * cancel cannot disconnect; [InFlightTurns] marks the conversation as
+     * being answered — set before the question is written, so no reader ever
+     * sees it unanswered and unclaimed — until the pipeline itself ends. A
+     * turn refused by [openTurn] clears the mark again. A stateless request has
+     * no history to complete and stays cold: dropping it stops the LLM call.
      */
     @PostMapping("/query/stream", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     @Operation(
@@ -471,17 +487,54 @@ class AgentController(
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
         if (chatClient == null) return errorEvent(NO_LLM)
-        val (turn, recorder) = openTurn(request)
-        // Wrap the pipeline in Flux.defer so setup-time exceptions (selector
-        // failures, options builder failures) become Flux errors and reach
-        // onErrorResume rather than escaping out of the controller as a 500.
-        //
-        // .contextCapture() snapshots the request thread's ThreadLocals
-        // (incl. SecurityContext via SecurityContextPropagationConfig) so
-        // tool callbacks invoked on Reactor scheduler threads still see the
-        // caller's JWT — without it, TokenService.jwt would throw
-        // "Not authorised" on every tool call.
-        return Flux
+        val conversationId = request.conversationId
+        if (conversationId == null) {
+            val (turn, recorder) = openTurn(request)
+            return answerPipeline(turn, recorder)
+        }
+        // Pending before the question is committed: openTurn writes the user
+        // row in its own transaction, and a GET landing between that commit
+        // and this mark would show an unanswered question nobody is answering.
+        // A refused turn (not owned, owner lookup failed) leaves no residue.
+        inFlightTurns.begin(conversationId)
+        val (turn, recorder) =
+            try {
+                openTurn(request)
+            } catch (e: Exception) {
+                inFlightTurns.end(conversationId)
+                throw e
+            }
+        // doFinally sits inside the hot boundary, so it fires when the
+        // pipeline itself completes or fails — after the record{} write that
+        // ends it — and never on the subscriber's cancel. replay() keeps the
+        // tokens emitted before the MVC emitter subscribes (it attaches after
+        // this method returns); autoConnect(0) subscribes right here, on the
+        // request thread, so contextCapture still snapshots the caller's
+        // SecurityContext, and unlike refCount it never disconnects when the
+        // downstream count drops to zero.
+        return answerPipeline(turn, recorder)
+            .doFinally { inFlightTurns.end(conversationId) }
+            .replay()
+            .autoConnect(0)
+    }
+
+    /**
+     * The cold generation pipeline for one turn. Wrapped in Flux.defer so
+     * setup-time exceptions (selector failures, options builder failures)
+     * become Flux errors and reach onErrorResume rather than escaping out of
+     * the controller as a 500.
+     *
+     * .contextCapture() snapshots the subscribing thread's ThreadLocals
+     * (incl. SecurityContext via SecurityContextPropagationConfig) so tool
+     * callbacks invoked on Reactor scheduler threads still see the caller's
+     * JWT — without it, TokenService.jwt would throw "Not authorised" on
+     * every tool call.
+     */
+    private fun answerPipeline(
+        turn: AgentQuery,
+        recorder: TurnRecorder
+    ): Flux<ServerSentEvent<String>> =
+        Flux
             .defer { runStream(turn, recorder) }
             .onErrorResume { e ->
                 // Never return e.message — leaks internals. Log full detail
@@ -493,7 +546,6 @@ class AgentController(
                 val code = classifyError(e)
                 record { recorder.failed(code) }.thenMany(errorEvent(code))
             }.contextCapture()
-    }
 
     /**
      * Map an upstream exception into a stable, opaque error code, used by both

@@ -44,7 +44,7 @@ class SteppingClock(
     includeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [ConversationService::class]
+            classes = [ConversationService::class, InFlightTurns::class]
         )
     ],
     properties = [
@@ -70,6 +70,9 @@ class ConversationServiceTest {
 
     @Autowired
     private lateinit var clock: SteppingClock
+
+    @Autowired
+    private lateinit var inFlight: InFlightTurns
 
     private val owner = "owner-a"
     private val stranger = "owner-b"
@@ -299,5 +302,31 @@ class ConversationServiceTest {
         assertThat(purged).isEqualTo(1)
         assertThat(service.list(owner, 0, 20).map { it.id }).containsExactly(fresh)
         assertThatThrownBy { service.get(owner, stale) }.isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `get should report pending only while a turn is in flight`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "How is my portfolio?", false)
+
+        inFlight.begin(id)
+        assertThat(service.get(owner, id).pending).isTrue()
+
+        inFlight.end(id)
+        assertThat(service.get(owner, id).pending).isFalse()
+    }
+
+    @Test
+    fun `get should stay pending until the last overlapping turn ends`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "How is my portfolio?", false)
+
+        inFlight.begin(id)
+        inFlight.begin(id)
+        inFlight.end(id)
+        assertThat(service.get(owner, id).pending).isTrue()
+
+        inFlight.end(id)
+        assertThat(service.get(owner, id).pending).isFalse()
     }
 }

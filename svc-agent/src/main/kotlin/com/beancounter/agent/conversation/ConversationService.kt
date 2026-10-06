@@ -19,6 +19,7 @@ import java.time.Instant
 class ConversationService(
     private val conversations: ConversationRepository,
     private val messages: ConversationMessageRepository,
+    private val inFlight: InFlightTurns,
     private val clock: Clock
 ) {
     companion object {
@@ -57,7 +58,8 @@ class ConversationService(
             messages =
                 messages.findByConversationIdOrderBySeq(id).map {
                     ConversationTurn(it.id, it.role, it.content, it.createdAt, it.error, it.deepThink, it.label)
-                }
+                },
+            pending = inFlight.isPending(id)
         )
     }
 
@@ -212,5 +214,15 @@ data class ConversationDetail(
     val title: String,
     val createdAt: Instant,
     val updatedAt: Instant,
-    val messages: List<ConversationTurn>
+    val messages: List<ConversationTurn>,
+    /**
+     * True while the latest question is still being answered — see [InFlightTurns].
+     *
+     * Read separately from [messages] (a DB query vs the in-memory registry), so a
+     * reader can transiently see `pending == true` with the answer already present
+     * in [messages]. The flag clears only after the answer row is written, never
+     * before, so the reverse — `pending == false` with the answer still being
+     * written — cannot happen. A best-effort hint: a client that sees it polls again.
+     */
+    val pending: Boolean
 )

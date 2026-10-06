@@ -17,8 +17,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
+import org.aopalliance.intercept.MethodInterceptor
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -34,6 +36,7 @@ import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.model.Generation
+import org.springframework.aop.framework.ProxyFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.ComponentScan
@@ -43,7 +46,9 @@ import org.springframework.mock.env.MockEnvironment
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Sinks
 import tools.jackson.databind.ObjectMapper
+import java.time.Duration
 
 /**
  * A query that names a conversation reads its history from the store and
@@ -52,7 +57,10 @@ import tools.jackson.databind.ObjectMapper
  */
 @DataJpaTest(
     includeFilters = [
-        ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [ConversationService::class])
+        ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = [ConversationService::class, InFlightTurns::class]
+        )
     ]
 )
 @Import(ConversationServiceTest.ClockConfig::class)
@@ -61,6 +69,9 @@ import tools.jackson.databind.ObjectMapper
 class AgentConversationTest {
     @Autowired
     private lateinit var service: ConversationService
+
+    @Autowired
+    private lateinit var inFlight: InFlightTurns
 
     private val me = "owner-me"
     private val owner = mock<ConversationOwner> { on { id() } doReturn me }
@@ -87,7 +98,7 @@ class AgentConversationTest {
         service.deleteAll("someone-else")
     }
 
-    private fun controller(): AgentController =
+    private fun controller(conversations: ConversationService = service): AgentController =
         AgentController(
             client,
             null,
@@ -100,9 +111,10 @@ class AgentConversationTest {
             ObjectMapper(),
             LlmMetrics(),
             mock<AgentScopeAuthorizer>(),
-            service,
+            conversations,
             owner,
-            ConversationTitler(null, client, service, titleScope)
+            ConversationTitler(null, client, conversations, titleScope),
+            inFlight
         )
 
     private fun chunk(
@@ -113,10 +125,36 @@ class AgentConversationTest {
         return ChatResponse(listOf(Generation(AssistantMessage(text), metadata)))
     }
 
-    private fun streams(vararg chunks: ChatResponse) {
+    private fun streams(vararg chunks: ChatResponse) = streams(Flux.just(*chunks))
+
+    private fun streams(responses: Flux<ChatResponse>) {
         val spec = mock<ChatClient.StreamResponseSpec>()
         whenever(request.stream()).thenReturn(spec)
-        whenever(spec.chatResponse()).thenReturn(Flux.just(*chunks))
+        whenever(spec.chatResponse()).thenReturn(responses)
+    }
+
+    /**
+     * A model that answers at the test's pace: one chunk already buffered so
+     * the subscriber sees a first token, the rest emitted after it has gone.
+     */
+    private fun slowModel(firstChunk: ChatResponse): Sinks.Many<ChatResponse> {
+        val sink = Sinks.many().unicast().onBackpressureBuffer<ChatResponse>()
+        sink.tryEmitNext(firstChunk)
+        streams(sink.asFlux())
+        return sink
+    }
+
+    /** Subscribe like a browser, read one event, then drop the connection. */
+    private fun disconnectAfterFirstEvent(query: AgentQuery) {
+        controller().stream(query).next().block(Duration.ofSeconds(5))
+    }
+
+    private fun awaitTurn(
+        id: String,
+        settled: (ConversationDetail) -> Boolean
+    ): ConversationDetail {
+        await().atMost(Duration.ofSeconds(5)).until { settled(service.get(me, id)) }
+        return service.get(me, id)
     }
 
     private fun conversationWith(vararg turns: Pair<String, String>): String {
@@ -183,12 +221,98 @@ class AgentConversationTest {
     }
 
     @Test
+    fun `stream should finish and save the answer after the client disconnects`() {
+        val id = service.create(me).id
+        val model = slowModel(chunk("You are up "))
+
+        disconnectAfterFirstEvent(AgentQuery("How am I doing?", conversationId = id))
+
+        val midway = service.get(me, id)
+        assertThat(midway.pending).isTrue()
+        assertThat(midway.messages.map { it.role to it.content }).containsExactly("user" to "How am I doing?")
+
+        model.tryEmitNext(chunk("2%.", "stop"))
+        model.tryEmitComplete()
+
+        val settled = awaitTurn(id) { it.messages.size == 2 }
+        assertThat(settled.messages.map { it.role to it.content }).containsExactly(
+            "user" to "How am I doing?",
+            "assistant" to "You are up 2%."
+        )
+        assertThat(settled.pending).isFalse()
+    }
+
+    @Test
+    fun `stream should record the failure after the client disconnects`() {
+        val id = service.create(me).id
+        val model = slowModel(chunk("Let me see"))
+
+        disconnectAfterFirstEvent(AgentQuery("How am I doing?", conversationId = id))
+        assertThat(service.get(me, id).pending).isTrue()
+
+        model.tryEmitError(RuntimeException("429 - Too Many Requests"))
+
+        val settled = awaitTurn(id) { it.messages.size == 2 }
+        val last = settled.messages.last()
+        assertThat(last.role).isEqualTo("assistant")
+        assertThat(last.error).isEqualTo("provider-rate")
+        assertThat(last.content).isEmpty()
+        assertThat(settled.pending).isFalse()
+    }
+
+    @Test
+    fun `stream without a conversation should stop when the client disconnects`() {
+        val model = slowModel(chunk("Hi "))
+
+        disconnectAfterFirstEvent(AgentQuery("hello"))
+
+        assertThat(model.currentSubscriberCount()).isZero()
+        assertThat(service.list(me, 0, 20)).isEmpty()
+    }
+
+    @Test
     fun `stream should refuse a conversation the caller does not own`() {
         val theirs = service.create("someone-else").id
 
         assertThatThrownBy { controller().stream(AgentQuery("q", conversationId = theirs)) }
             .isInstanceOf(NotFoundException::class.java)
         assertThat(service.get("someone-else", theirs).messages).isEmpty()
+    }
+
+    @Test
+    fun `stream should not leave a conversation pending when the caller does not own it`() {
+        val theirs = service.create("someone-else").id
+
+        assertThatThrownBy { controller().stream(AgentQuery("q", conversationId = theirs)) }
+            .isInstanceOf(NotFoundException::class.java)
+
+        assertThat(inFlight.isPending(theirs)).isFalse()
+    }
+
+    @Test
+    fun `stream should mark the conversation pending before the question is written`() {
+        val id = service.create(me).id
+        slowModel(chunk("Hi "))
+        // A GET that lands between the question's commit and the pending mark
+        // would show an unanswered question nobody is answering; so observe
+        // the flag at the moment the question is written.
+        val pendingWhenWritten = mutableListOf<Boolean>()
+        val observed =
+            ProxyFactory(service)
+                .apply {
+                    isProxyTargetClass = true
+                    addAdvice(
+                        MethodInterceptor { call ->
+                            if (call.method.name == "appendUser") pendingWhenWritten.add(inFlight.isPending(id))
+                            call.proceed()
+                        }
+                    )
+                }.proxy as ConversationService
+
+        controller(observed).stream(AgentQuery("q", conversationId = id)).next().block(Duration.ofSeconds(5))
+
+        assertThat(pendingWhenWritten).containsExactly(true)
+        assertThat(service.get(me, id).messages.map { it.role }).containsExactly("user")
     }
 
     @Test

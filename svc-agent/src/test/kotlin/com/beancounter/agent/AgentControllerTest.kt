@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import com.beancounter.agent.config.AgentScopeAuthorizer
+import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
@@ -168,6 +169,7 @@ class AgentControllerTest {
             mock(),
             mock(),
             mock(),
+            InFlightTurns(),
             clock
         )
 
@@ -289,7 +291,8 @@ class AgentControllerTest {
                 permissiveAuthorizer,
                 conversations,
                 owner,
-                mock()
+                mock(),
+                InFlightTurns()
             )
 
         val response = ctrl.query(AgentQuery("How am I doing?", conversationId = "c1"))
@@ -936,7 +939,8 @@ class AgentControllerTest {
                 permissiveAuthorizer,
                 mock(),
                 mock(),
-                mock()
+                mock(),
+                InFlightTurns()
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
         val opts = ctrl.buildOptions("deepseek-flash", deepThink = false)?.build()
@@ -964,7 +968,8 @@ class AgentControllerTest {
                 permissiveAuthorizer,
                 mock(),
                 mock(),
-                mock()
+                mock(),
+                InFlightTurns()
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
@@ -997,7 +1002,8 @@ class AgentControllerTest {
                 permissiveAuthorizer,
                 mock(),
                 mock(),
-                mock()
+                mock(),
+                InFlightTurns()
             )
         val opts =
             (
@@ -1030,7 +1036,8 @@ class AgentControllerTest {
                 permissiveAuthorizer,
                 mock(),
                 mock(),
-                mock()
+                mock(),
+                InFlightTurns()
             )
         val opts =
             (
@@ -1089,7 +1096,8 @@ class AgentControllerTest {
                 permissiveAuthorizer,
                 mock(),
                 mock(),
-                mock()
+                mock(),
+                InFlightTurns()
             )
         assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
     }

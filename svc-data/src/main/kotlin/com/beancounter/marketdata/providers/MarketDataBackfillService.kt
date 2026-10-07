@@ -25,7 +25,8 @@ import java.time.LocalDate
  *    performance charts work even when a newer portfolio caused the first
  *    backfill at a later anchor.
  * 2. **Skip when covered** — if the DB already has price rows spanning
- *    `[fromDate, today]`, do not call the external provider at all. EODHD
+ *    `[fromDate, today]` with no internal hole wider than
+ *    [PriceSeriesGaps.MAX_CALENDAR_GAP_DAYS], do not call the external provider at all. EODHD
  *    charges per call, not per row, so a redundant call is one wasted
  *    quota unit per asset. Existing rows from any provider (incl. legacy
  *    ALPHA) count as coverage; provider lineage is not preserved.
@@ -72,9 +73,9 @@ class MarketDataBackfillService(
     ) {
         val today = dateUtils.date
         val anchored = anchorFromDate(asset.id, fromDate, today)
-        val priorDbMin = marketDataRepo.findEarliestPriceDateByAssetId(asset.id)
-        val priorDbMax = marketDataRepo.findLatestPriceDateByAssetId(asset.id)
-        if (isCovered(priorDbMin, priorDbMax, anchored, today)) {
+        val storedDates = marketDataRepo.findPriceDatesByAssetIdBetween(asset.id, anchored, today)
+        val fetchFrom = uncoveredFrom(storedDates, anchored, today)
+        if (fetchFrom == null) {
             log.debug(
                 "Backfill skipped — DB already covers [{}, today] for asset {}",
                 anchored,
@@ -84,7 +85,7 @@ class MarketDataBackfillService(
         }
         val byFactory = providerUtils.splitProviders(providerUtils.getInputs(listOf(asset)))
         for (marketDataProvider in byFactory.keys) {
-            val response = marketDataProvider.backFill(asset, anchored)
+            val response = marketDataProvider.backFill(asset, fetchFrom)
             // Some providers (Alpha Vantage) ignore fromDate and return their
             // FULL history — up to 25y for a long-listed asset. Trimming here,
             // provider-agnostically, keeps PriceService.handle from batching
@@ -134,21 +135,25 @@ class MarketDataBackfillService(
     }
 
     /**
-     * True when the DB has price rows spanning `[fromDate, today - 1d]`. We allow
-     * a one-day tail because today's price is filled by the live-price path, not
-     * the historic backfill, so insisting on `dbMax == today` would re-fetch the
-     * whole range every evening for no benefit.
+     * The date to ask the provider for, or null when the stored series already covers
+     * `[fromDate, today - 1d]` with no internal hole. We allow a one-day tail because
+     * today's price is filled by the live-price path, not the historic backfill, so
+     * insisting on `last == today` would re-fetch every evening for no benefit.
+     *
+     * Fetching starts at the first uncovered point — the anchor, the last row before
+     * the first hole, or the stale tail — rather than always at the anchor, so a
+     * stale benchmark does not re-pull years of rows `PriceService.handle` discards.
      */
-    private fun isCovered(
-        dbMin: LocalDate?,
-        dbMax: LocalDate?,
+    private fun uncoveredFrom(
+        storedDates: List<LocalDate>,
         fromDate: LocalDate,
         today: LocalDate
-    ): Boolean {
-        if (dbMin == null || dbMax == null) return false
-        val coversStart = !dbMin.isAfter(fromDate)
-        val coversEnd = !dbMax.isBefore(today.minusDays(1))
-        return coversStart && coversEnd
+    ): LocalDate? {
+        if (storedDates.isEmpty()) return fromDate
+        if (storedDates.first().isAfter(fromDate)) return fromDate
+        PriceSeriesGaps.firstGapStart(storedDates)?.let { return it }
+        val last = storedDates.last()
+        return if (last.isBefore(today.minusDays(1))) last else null
     }
 
     private fun getAsset(assetId: String): Asset = assetFinder.find(assetId)

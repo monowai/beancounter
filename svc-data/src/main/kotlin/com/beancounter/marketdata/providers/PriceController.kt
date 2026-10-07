@@ -372,13 +372,15 @@ class PriceController(
         }
 
         // We have something to render. If the cached range falls short of what
-        // was asked for — at either end — schedule an async backfill so the next
-        // request can return the extended history without paying provider
-        // latency now.
-        val earliest = initial.prices.minByOrNull { it.priceDate }?.priceDate
-        val latest = initial.prices.maxByOrNull { it.priceDate }?.priceDate
+        // was asked for — at either end, or with a hole in the middle — schedule
+        // an async backfill so the next request can return the complete history
+        // without paying provider latency now.
+        val dates = initial.prices.map { it.priceDate }
+        val earliest = dates.minOrNull()
+        val latest = dates.maxOrNull()
         val shortAtStart = earliest != null && earliest > targetFrom.plusDays(BACKFILL_RETRY_BUFFER_DAYS)
-        if (shortAtStart || staleTail(latest, toDate)) {
+        val hasHole = PriceSeriesGaps.firstGapStart(dates) != null
+        if (shortAtStart || hasHole || staleTail(latest, toDate)) {
             priceBackfillCoordinator.scheduleBackfill(assetId, targetFrom)
         }
         return initial

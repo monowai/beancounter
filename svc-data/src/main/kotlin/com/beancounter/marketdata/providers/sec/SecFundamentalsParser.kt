@@ -18,8 +18,8 @@ import java.time.LocalDate
  * is null rather than silently borrowed from an older year. `Revenues` falls back to
  * `RevenueFromContractWithCustomerExcludingAssessedTax` - ASC 606 filers often report only the
  * latter. Shares come from the `dei` instant tag's latest `end`, any form, and must be a whole
- * number that fits a Long. A malformed entry (non-numeric `val`, unparseable `end`) is skipped;
- * only a document with no fiscal-year 10-K entry at all yields null.
+ * number that fits a Long. A malformed entry (non-numeric `val`, unparseable `end`, missing or
+ * non-positive `fy`) is skipped; only a document with no fiscal-year 10-K entry at all yields null.
  */
 @Component
 class SecFundamentalsParser(
@@ -82,13 +82,15 @@ class SecFundamentalsParser(
     private fun toEntry(node: JsonNode): Entry? {
         val value = node.path("val")
         val end = runCatching { LocalDate.parse(node.path("end").asString()) }.getOrNull()
-        if (!value.isNumber || end == null) {
+        // path("fy").asInt() answers 0 for a missing field, which would be reported as FY0.
+        val fiscalYear = node.path("fy")
+        if (!value.isNumber || end == null || !fiscalYear.isIntegralNumber || fiscalYear.asInt() <= 0) {
             return null
         }
         return Entry(
             end = end,
             filed = node.path("filed").asString(),
-            fiscalYear = node.path("fy").asInt(),
+            fiscalYear = fiscalYear.asInt(),
             period = node.path("fp").asString(),
             form = node.path("form").asString(),
             value = BigDecimal(value.asString())

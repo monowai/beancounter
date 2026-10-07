@@ -16,6 +16,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -110,10 +112,21 @@ internal class SecClassificationEnricherTest {
         val asset = persistedAsset("AAPL")
 
         val first = enricher.enrichClassification(asset)
+        // A newer 10-K lands between runs: the snapshot must move to it, on the same row.
+        whenever(secProxy.getCompanyFacts("0000320193")).thenReturn(
+            fixture("companyfacts-AAPL.json")
+                .replace("\"end\":\"2025-09-27\",\"val\":7.46", "\"end\":\"2026-09-26\",\"val\":8.10")
+                .replace(
+                    "\"frame\":\"CY2025\"},{\"start\":\"2025-06-29\"",
+                    "\"frame\":\"CY2026\"},{\"start\":\"2025-06-29\""
+                )
+        )
         val second = enricher.enrichClassification(asset)
 
         assertThat(listOf(first, second)).containsOnly(EnrichmentResult.ENRICHED)
-        assertThat(fundamentalsRepository.findById(asset.id)).isPresent
+        assertThat(fundamentalsRepository.findAll().filter { it.assetId == asset.id }).hasSize(1)
+        assertThat(fundamentalsRepository.findById(asset.id).orElseThrow().epsDiluted)
+            .isEqualByComparingTo(BigDecimal("8.10"))
         assertThat(classificationRepository.findByAssetId(asset.id)).hasSize(2)
     }
 
@@ -130,10 +143,13 @@ internal class SecClassificationEnricherTest {
 
     @Test
     fun `should report NO_DATA for an ETF since the SEC carries no sector weights`() {
-        val etf = transientAsset("VTI", category = "ETF")
+        // A ticker the SEC index DOES list, so only the fund guard can produce NO_DATA here.
+        val etf = transientAsset("AAPL", category = "ETF")
 
         assertThat(enricher.enrichClassification(etf)).isEqualTo(EnrichmentResult.NO_DATA)
+        assertThat(classificationRepository.findByAssetId(etf.id)).isEmpty()
         assertThat(fundamentalsRepository.findById(etf.id)).isEmpty
+        verify(secProxy, never()).getSubmissions(any())
     }
 
     @Test

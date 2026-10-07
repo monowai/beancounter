@@ -53,7 +53,10 @@ class CacheConfig {
                 // expires entries, so a pod living longer than that serves a stale token forever -
                 // every setAuthContext() call then throws JwtException. Expire well inside the
                 // token's TTL so LoginService always re-authenticates before that happens.
-                CaffeineCache("auth.m2m", Duration.ofHours(12), 2)
+                CaffeineCache("auth.m2m", Duration.ofHours(12), 2) +
+                // SEC company_tickers.json (~10k rows) parsed once into a ticker->CIK map. The
+                // index changes rarely; a day is plenty and a single entry is all it ever holds.
+                CaffeineCache("sec.tickers", Duration.ofHours(24), 1)
         // Note: EODHD news is no longer cached in-memory — it persists to `news_article` and is
         // served from there. See EodhdNewsService + V19 migration.
 

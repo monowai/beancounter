@@ -8,6 +8,7 @@ import org.apache.hc.core5.util.Timeout
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpHeaders
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestClient
 import java.security.Security
@@ -79,13 +80,17 @@ class ExternalApiRestClientConfig {
     private fun buildRestClient(
         baseUrl: String,
         connectTimeoutMs: Long = CONNECT_TIMEOUT_MS,
-        readTimeoutMs: Long = READ_TIMEOUT_MS
-    ): RestClient =
-        RestClient
-            .builder()
-            .baseUrl(baseUrl)
-            .requestFactory(pooledRequestFactory(connectTimeoutMs, readTimeoutMs))
-            .build()
+        readTimeoutMs: Long = READ_TIMEOUT_MS,
+        defaultHeaders: Map<String, String> = emptyMap()
+    ): RestClient {
+        val builder =
+            RestClient
+                .builder()
+                .baseUrl(baseUrl)
+                .requestFactory(pooledRequestFactory(connectTimeoutMs, readTimeoutMs))
+        defaultHeaders.forEach { (name, value) -> builder.defaultHeader(name, value) }
+        return builder.build()
+    }
 
     @Bean
     fun alphaVantageRestClient(
@@ -134,6 +139,23 @@ class ExternalApiRestClientConfig {
     fun newsEmbeddingRestClient(
         @Value($$"${beancounter.market.news.embedding.url:}") baseUrl: String
     ): RestClient = buildRestClient(baseUrl)
+
+    // SEC EDGAR fair-use policy: a descriptive User-Agent is mandatory (anonymous requests are
+    // blocked outright) and the ceiling is 10 req/s - see the `sec` rate limiter instance.
+    // Two hosts: data.sec.gov serves the per-company JSON APIs, www.sec.gov the ticker index.
+    @Bean
+    fun secRestClient(
+        @Value($$"${beancounter.market.providers.sec.url:https://data.sec.gov}") baseUrl: String,
+        @Value($$"${beancounter.market.providers.sec.user-agent:beancounter (https://github.com/monowai/beancounter)}")
+        userAgent: String
+    ): RestClient = buildRestClient(baseUrl, defaultHeaders = mapOf(HttpHeaders.USER_AGENT to userAgent))
+
+    @Bean
+    fun secTickersRestClient(
+        @Value($$"${beancounter.market.providers.sec.tickers-url:https://www.sec.gov}") baseUrl: String,
+        @Value($$"${beancounter.market.providers.sec.user-agent:beancounter (https://github.com/monowai/beancounter)}")
+        userAgent: String
+    ): RestClient = buildRestClient(baseUrl, defaultHeaders = mapOf(HttpHeaders.USER_AGENT to userAgent))
 
     @Bean
     fun eodhdSearchRestClient(

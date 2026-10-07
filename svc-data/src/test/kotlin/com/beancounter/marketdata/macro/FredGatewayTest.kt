@@ -9,6 +9,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
+import java.time.LocalDate
 
 /**
  * Drives [FredGateway] against a [MockRestServiceServer] so the keyless `fredgraph.csv` URI is
@@ -22,14 +23,14 @@ class FredGatewayTest {
     }
 
     @Test
-    fun `getSeriesCsv requests the fredgraph csv for the series id`() {
+    fun `getSeriesCsv requests the fredgraph csv for the series id from the start date`() {
         val (gateway, server) = gatewayWithServer()
         server
             .expect(method(HttpMethod.GET))
-            .andExpect(requestTo("$BASE_URL/graph/fredgraph.csv?id=DGS10"))
+            .andExpect(requestTo("$BASE_URL/graph/fredgraph.csv?id=DGS10&cosd=2025-09-02"))
             .andRespond(withSuccess(CSV, MediaType.TEXT_PLAIN))
 
-        val body = gateway.getSeriesCsv("DGS10")
+        val body = gateway.getSeriesCsv("DGS10", LocalDate.of(2025, 9, 2))
 
         assertThat(body).isEqualTo(CSV)
         server.verify()
@@ -40,10 +41,10 @@ class FredGatewayTest {
         val (gateway, server) = gatewayWithServer()
         server
             .expect(method(HttpMethod.GET))
-            .andExpect(requestTo("$BASE_URL/graph/fredgraph.csv?id=DGS2"))
+            .andExpect(requestTo("$BASE_URL/graph/fredgraph.csv?id=DGS2&cosd=2025-09-02"))
             .andRespond(withSuccess())
 
-        assertThat(gateway.getSeriesCsv("DGS2")).isEmpty()
+        assertThat(gateway.getSeriesCsv("DGS2", LocalDate.of(2025, 9, 2))).isEmpty()
         server.verify()
     }
 

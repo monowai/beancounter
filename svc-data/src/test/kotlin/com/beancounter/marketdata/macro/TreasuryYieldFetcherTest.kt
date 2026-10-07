@@ -1,11 +1,17 @@
 package com.beancounter.marketdata.macro
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -14,19 +20,23 @@ import java.time.LocalDate
  * [TreasuryYieldService] and [MacroRefreshSchedule].
  */
 class TreasuryYieldFetcherTest {
+    private val today = LocalDate.of(2026, 10, 7)
+
     private fun fetcherReturning(csv: String): Pair<TreasuryYieldFetcher, FredGateway> {
         val gateway = mock<FredGateway>()
-        whenever(gateway.getSeriesCsv(any())).thenReturn(csv)
-        return TreasuryYieldFetcher(gateway) to gateway
+        whenever(gateway.getSeriesCsv(any(), any())).thenReturn(csv)
+        val dateUtils = mock<DateUtils>()
+        whenever(dateUtils.date).thenReturn(today)
+        return TreasuryYieldFetcher(gateway, dateUtils) to gateway
     }
 
     @Test
-    fun `fetch requests the given FRED series id`() {
+    fun `fetch requests the given FRED series id bounded to the lookback window`() {
         val (fetcher, gateway) = fetcherReturning("observation_date,DGS10\n")
 
         fetcher.fetch("DGS10")
 
-        verify(gateway).getSeriesCsv("DGS10")
+        verify(gateway).getSeriesCsv("DGS10", today.minusDays(TreasuryYieldFetcher.WINDOW_DAYS))
     }
 
     @Test
@@ -68,6 +78,25 @@ class TreasuryYieldFetcherTest {
         val (fetcher, _) = fetcherReturning("<html>rate limited</html>\nnot,a,date\n2026-13-45,4.1\n2026-09-09,abc")
 
         assertThat(fetcher.fetch("DGS2")).isEmpty()
+    }
+
+    @Test
+    fun `non-blank body with no parseable rows is logged as a warning`() {
+        val (fetcher, _) = fetcherReturning("<html>rate limited</html>")
+        val logger = LoggerFactory.getLogger(TreasuryYieldFetcher::class.java) as Logger
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(appender)
+        try {
+            fetcher.fetch("DGS2")
+        } finally {
+            logger.detachAppender(appender)
+        }
+
+        assertThat(appender.list)
+            .anySatisfy {
+                assertThat(it.level).isEqualTo(Level.WARN)
+                assertThat(it.formattedMessage).contains("DGS2").contains("no parseable rows")
+            }
     }
 
     @Test

@@ -277,6 +277,13 @@ resilience4j:
         limitRefreshPeriod: 60ms
         timeoutDuration: 120s
         eventConsumerBufferSize: 200
+      # SEC EDGAR fair-use ceiling is 10 req/s; 1 per 150ms keeps well inside it.
+      sec:
+        registerHealthIndicator: false
+        limitForPeriod: 1
+        limitRefreshPeriod: 150ms
+        timeoutDuration: 60s
+        eventConsumerBufferSize: 100
       fxRates:
         registerHealthIndicator: false
         limitForPeriod: 10
@@ -697,6 +704,13 @@ beancounter:
       # FRED (St Louis Fed) fredgraph.csv — keyless, public domain; treasury yield series DGS10/DGS2.
       fred:
         url: https://fred.stlouisfed.org
+      # SEC EDGAR - keyless, public domain. Sector/industry (SIC) and XBRL fundamentals for
+      # US-listed equities via SecClassificationEnricher; opt in with
+      # `classification: sec,alpha`. Fair use: descriptive User-Agent required, <=10 req/s.
+      sec:
+        url: https://data.sec.gov
+        tickers-url: https://www.sec.gov
+        user-agent: "beancounter (https://github.com/monowai/beancounter)"
 
       # OpenFIGI - free, unlimited, Bloomberg-based
       figi:

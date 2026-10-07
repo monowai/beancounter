@@ -23,5 +23,7 @@ data class ClassificationStandard(
         const val PROVIDER_ALPHA = "ALPHAVANTAGE"
         const val EODHD = "EODHD"
         const val PROVIDER_EODHD = "EODHD"
+        const val SEC = "SEC"
+        const val PROVIDER_SEC = "SEC"
     }
 }

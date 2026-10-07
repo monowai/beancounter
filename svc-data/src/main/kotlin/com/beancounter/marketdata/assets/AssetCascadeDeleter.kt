@@ -3,6 +3,7 @@ package com.beancounter.marketdata.assets
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.classification.AssetClassificationRepository
 import com.beancounter.marketdata.classification.AssetExposureRepository
+import com.beancounter.marketdata.classification.AssetFundamentalsRepository
 import com.beancounter.marketdata.classification.AssetHoldingRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.trn.TrnRepository
@@ -18,6 +19,7 @@ class AssetCascadeDeleter(
     private val marketDataRepo: MarketDataRepo,
     private val assetClassificationRepository: AssetClassificationRepository,
     private val assetExposureRepository: AssetExposureRepository,
+    private val assetFundamentalsRepository: AssetFundamentalsRepository,
     private val assetHoldingRepository: AssetHoldingRepository,
     private val privateAssetConfigRepository: PrivateAssetConfigRepository,
     private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository
@@ -31,6 +33,7 @@ class AssetCascadeDeleter(
         marketDataRepo.deleteByAssetId(assetId)
         assetClassificationRepository.deleteByAssetId(assetId)
         assetExposureRepository.deleteByAssetId(assetId)
+        assetFundamentalsRepository.deleteById(assetId)
         assetHoldingRepository.deleteByAssetId(assetId)
         brokerSettlementAccountRepository.deleteByAccountId(assetId)
         privateAssetConfigRepository.deleteById(assetId)

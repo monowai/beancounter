@@ -138,8 +138,13 @@ class ClassificationService(
             return existing
         }
 
-        // Remove existing classification at this level
-        existing?.let { classificationRepository.delete(it) }
+        // Remove existing classification at this level. Flush the delete before the insert:
+        // Hibernate's action queue orders inserts ahead of deletes at commit, so without it a
+        // re-classification of the same (asset, standard, level) hits the unique index.
+        if (existing != null) {
+            classificationRepository.delete(existing)
+            entityManager.flush()
+        }
 
         // Use a managed reference to ensure proper FK handling
         val managedAsset = entityManager.getReference(Asset::class.java, asset.id)
@@ -265,6 +270,17 @@ class ClassificationService(
             name = "EODHD Sector Classification",
             version = "1.0",
             provider = ClassificationStandard.PROVIDER_EODHD
+        )
+
+    /**
+     * Get the SEC EDGAR classification standard (SIC-derived sector, SIC description industry).
+     */
+    fun getSecStandard(): ClassificationStandard =
+        getOrCreateStandard(
+            key = ClassificationStandard.SEC,
+            name = "SEC SIC Classification",
+            version = "1.0",
+            provider = ClassificationStandard.PROVIDER_SEC
         )
 
     /**

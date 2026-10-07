@@ -40,7 +40,10 @@ class SicSectorMapperTest {
         "4512, Industrials",
         "1531, Industrials",
         "8600, Industrials",
-        "8412, Industrials"
+        "8412, Industrials",
+        "7412, Industrials",
+        "7700, Consumer Discretionary",
+        "9100, Industrials"
     )
     fun `should map a SIC code onto a canonical sector`(
         sic: String,
@@ -59,11 +62,17 @@ class SicSectorMapperTest {
 
     @Test
     fun `should return null for unknown, blank or non-numeric SIC codes`() {
-        assertThat(mapper.toSector("9995")).isNull()
         assertThat(mapper.toSector("0000")).isNull()
         assertThat(mapper.toSector("")).isNull()
         assertThat(mapper.toSector("ABCD")).isNull()
         assertThat(mapper.toSector(null)).isNull()
+    }
+
+    @Test
+    fun `should resolve every SIC code from 0100 to 9999 so no coverage gap can reopen`() {
+        val unmapped = (100..9999).filter { mapper.toSector(it.toString().padStart(4, '0')) == null }
+
+        assertThat(unmapped).isEmpty()
     }
 
     @Test

@@ -50,6 +50,6 @@ data class AssetClassification(
     companion object {
         const val SOURCE_ALPHA_OVERVIEW = "ALPHA_OVERVIEW"
         const val SOURCE_EODHD = "EODHD"
-        const val SOURCE_SEC = "SEC"
+        const val SOURCE_SEC = ClassificationStandard.PROVIDER_SEC
     }
 }

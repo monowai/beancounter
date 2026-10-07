@@ -25,6 +25,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cache.CacheManager
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -63,6 +64,9 @@ internal class SecClassificationEnricherTest {
     @Autowired
     private lateinit var fundamentalsRepository: AssetFundamentalsRepository
 
+    @Autowired
+    private lateinit var cacheManager: CacheManager
+
     private val nasdaq = Market("NASDAQ")
 
     private fun fixture(name: String) = ClassPathResource("mock/sec/$name").file.readText()
@@ -80,6 +84,7 @@ internal class SecClassificationEnricherTest {
 
     @BeforeEach
     fun stubSec() {
+        cacheManager.getCache("sec.tickers")?.clear()
         whenever(secProxy.getCompanyTickers()).thenReturn(fixture("company_tickers.json"))
         whenever(secProxy.getSubmissions("0000320193")).thenReturn(fixture("submissions-AAPL.json"))
         whenever(secProxy.getCompanyFacts("0000320193")).thenReturn(fixture("companyfacts-AAPL.json"))
@@ -163,6 +168,25 @@ internal class SecClassificationEnricherTest {
 
         assertThat(enricher.enrichClassification(unknown)).isEqualTo(EnrichmentResult.NO_DATA)
         assertThat(classificationRepository.findByAssetId(unknown.id)).isEmpty()
+    }
+
+    @Test
+    fun `should answer canEnrich false without throwing when the SEC index cannot be fetched`() {
+        whenever(secProxy.getCompanyTickers()).thenThrow(
+            HttpClientErrorException.create(HttpStatus.FORBIDDEN, "Forbidden", HttpHeaders(), ByteArray(0), null)
+        )
+
+        assertThat(enricher.canEnrich(transientAsset("AAPL"))).isFalse()
+    }
+
+    @Test
+    fun `should not fetch companyfacts for an asset whose SIC has no sector mapping`() {
+        whenever(secProxy.getSubmissions("0000320193")).thenReturn(
+            """{"cik":"0000320193","sic":"0000","sicDescription":"Unmapped","name":"X"}"""
+        )
+
+        assertThat(enricher.enrichClassification(transientAsset("AAPL"))).isEqualTo(EnrichmentResult.NO_DATA)
+        verify(secProxy, never()).getCompanyFacts(any())
     }
 
     @Test

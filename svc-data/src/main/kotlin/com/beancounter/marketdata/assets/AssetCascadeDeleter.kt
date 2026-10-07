@@ -33,7 +33,7 @@ class AssetCascadeDeleter(
         marketDataRepo.deleteByAssetId(assetId)
         assetClassificationRepository.deleteByAssetId(assetId)
         assetExposureRepository.deleteByAssetId(assetId)
-        assetFundamentalsRepository.deleteById(assetId)
+        assetFundamentalsRepository.deleteByAssetId(assetId)
         assetHoldingRepository.deleteByAssetId(assetId)
         brokerSettlementAccountRepository.deleteByAccountId(assetId)
         privateAssetConfigRepository.deleteById(assetId)

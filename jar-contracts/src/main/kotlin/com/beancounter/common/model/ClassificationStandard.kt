@@ -23,7 +23,9 @@ data class ClassificationStandard(
         const val PROVIDER_ALPHA = "ALPHAVANTAGE"
         const val EODHD = "EODHD"
         const val PROVIDER_EODHD = "EODHD"
-        const val SEC = "SEC"
+
+        /** Single definition of the SEC discriminator; the other model constants reference it. */
         const val PROVIDER_SEC = "SEC"
+        const val SEC = PROVIDER_SEC
     }
 }

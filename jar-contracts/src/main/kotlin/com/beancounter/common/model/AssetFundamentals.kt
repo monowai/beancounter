@@ -24,6 +24,11 @@ data class AssetFundamentals(
     val source: String = SOURCE_SEC,
     /** Period end of the fiscal year the measures describe. */
     val fiscalYearEnd: LocalDate,
+    /**
+     * The filer's own fiscal-year label (XBRL `fy`), kept beside [fiscalYearEnd] deliberately:
+     * for a non-calendar fiscal year the two differ (a January 2026 year end is commonly
+     * labelled FY2025), and the label is what the filer's reports and the SEC frames use.
+     */
     val fiscalYear: Int,
     @Column(precision = 19, scale = 4)
     val epsDiluted: BigDecimal? = null,
@@ -38,6 +43,6 @@ data class AssetFundamentals(
     val asOf: LocalDate
 ) {
     companion object {
-        const val SOURCE_SEC = "SEC"
+        const val SOURCE_SEC = ClassificationStandard.PROVIDER_SEC
     }
 }

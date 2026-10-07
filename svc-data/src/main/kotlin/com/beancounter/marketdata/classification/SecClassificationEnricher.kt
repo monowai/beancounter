@@ -49,7 +49,24 @@ class SecClassificationEnricher(
     private val log = LoggerFactory.getLogger(SecClassificationEnricher::class.java)
 
     override fun canEnrich(asset: Asset): Boolean =
-        isEquity(asset) && asset.market.code.uppercase() in SEC_MARKETS && tickerResolver.resolve(asset) != null
+        isEquity(asset) && asset.market.code.uppercase() in SEC_MARKETS && isListed(asset)
+
+    /**
+     * The first lookup after a cold start downloads the SEC index, which can be throttled or
+     * fail like any other call. `canEnrich` is a question, not an action: a failure here is
+     * answered "no" (with a WARN naming the asset) so a chain moves on and the asset is left
+     * unstamped for the next run, rather than the whole refresh dying on a predicate.
+     */
+    private fun isListed(asset: Asset): Boolean =
+        runCatching { tickerResolver.resolve(asset) != null }
+            .onFailure {
+                log.warn(
+                    "SEC index unavailable while checking {}:{} - {}",
+                    asset.market.code,
+                    asset.code,
+                    it.message
+                )
+            }.getOrDefault(false)
 
     override fun isEtf(asset: Asset): Boolean = ClassificationEnricher.categoryIsEtf(asset)
 
@@ -67,7 +84,10 @@ class SecClassificationEnricher(
         }
         return try {
             val result = classify(asset, cik)
-            snapshotFundamentals(asset, cik)
+            // Only an asset we actually classified earns the second (rate-limited) call.
+            if (result == EnrichmentResult.ENRICHED) {
+                snapshotFundamentals(asset, cik)
+            }
             result
         } catch (e: RequestNotPermitted) {
             log.warn("SEC rate limiter declined {}:{} - {}", asset.market.code, asset.code, e.message)

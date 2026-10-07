@@ -19,7 +19,7 @@ class SecTickerDirectory(
     private val secProxy: SecProxy,
     private val objectMapper: ObjectMapper = BcJson.objectMapper
 ) {
-    @Cacheable("sec.tickers")
+    @Cacheable("sec.tickers", sync = true)
     fun tickerToCik(): Map<String, String> =
         objectMapper
             .readTree(secProxy.getCompanyTickers())

@@ -11,8 +11,9 @@ import org.springframework.stereotype.Component
  * straddles Industrials and Information Technology, 8731 "commercial research" is where most
  * biotech files, 6798 REITs sit inside the finance division. The table resolves each range to
  * the sector most of its registrants would land in under GICS; more specific ranges are listed
- * before the division they carve out of and the first match wins. Unknown, blank or
- * non-numeric codes map to null so the caller reports NO_DATA rather than guessing.
+ * before the division they carve out of and the first match wins. Every code from 0100 to 9999
+ * resolves (the divisions are contiguous, so a gap would only ever be an omission here); blank
+ * or non-numeric codes map to null so the caller reports NO_DATA rather than guessing.
  */
 @Component
 class SicSectorMapper {
@@ -47,7 +48,7 @@ class SicSectorMapper {
                 1200..1399 to ENERGY, // coal, oil & gas extraction
                 1400..1499 to MATERIALS, // non-metallic minerals
                 // Division C - construction
-                1500..1799 to INDUSTRIALS,
+                1500..1999 to INDUSTRIALS, // 1800s unassigned in SIC 1987
                 // Division D - manufacturing
                 2000..2199 to CONSUMER_STAPLES, // food, beverages, tobacco
                 2200..2399 to CONSUMER_DISCRETIONARY, // textiles, apparel
@@ -90,20 +91,23 @@ class SicSectorMapper {
                 // Division H - finance, insurance, real estate
                 6500..6599 to REAL_ESTATE,
                 6798..6798 to REAL_ESTATE, // REITs
-                6000..6799 to FINANCIALS,
+                6000..6999 to FINANCIALS, // 6800s unassigned in SIC 1987
                 // Division I - services
                 7000..7299 to CONSUMER_DISCRETIONARY, // hotels, personal services
                 7310..7319 to COMMUNICATION_SERVICES, // advertising
                 7370..7379 to INFORMATION_TECHNOLOGY, // software, data processing
                 7300..7399 to INDUSTRIALS, // business services
-                7500..7699 to CONSUMER_DISCRETIONARY, // auto and miscellaneous repair
+                7400..7499 to INDUSTRIALS, // unassigned in SIC 1987; sits between business services and repair
+                7500..7799 to CONSUMER_DISCRETIONARY, // auto and miscellaneous repair (7700s unassigned)
                 7800..7999 to COMMUNICATION_SERVICES, // motion pictures, amusement
                 8000..8099 to HEALTH_CARE, // health services
                 8100..8199 to INDUSTRIALS, // legal services
                 8200..8399 to CONSUMER_DISCRETIONARY, // education, social services
                 8400..8699 to INDUSTRIALS, // museums, membership organisations
                 8730..8739 to HEALTH_CARE, // commercial research (where biotech files)
-                8700..8999 to INDUSTRIALS // engineering, management, miscellaneous services
+                8700..8999 to INDUSTRIALS, // engineering, management, miscellaneous services
+                // Division J - public administration; rare for a registrant, bucketed rather than dropped
+                9000..9999 to INDUSTRIALS
             )
     }
 }

@@ -10,7 +10,9 @@ import org.springframework.web.client.body
  * `User-Agent` is a default header on both clients (see `ExternalApiRestClientConfig`).
  *
  * Bodies are returned raw: the payloads are large and loosely shaped (XBRL facts keyed by tag),
- * so the callers parse the slice they need rather than binding the whole document.
+ * so the callers parse the slice they need rather than binding the whole document. SEC always
+ * answers these paths with a JSON document, so an empty body is an error worth naming rather
+ * than an end-of-input parse failure further along.
  */
 @Component
 class SecGateway(
@@ -23,10 +25,9 @@ class SecGateway(
     fun getCompanyTickers(): String =
         tickersRestClient
             .get()
-            .uri("/files/company_tickers.json")
+            .uri(TICKERS_PATH)
             .retrieve()
-            .body<String>()
-            .orEmpty()
+            .bodyOrFail(TICKERS_PATH)
 
     /** GET https://data.sec.gov/submissions/CIK{cik10}.json - registrant profile incl. SIC. */
     fun getSubmissions(cik10: String): String =
@@ -34,8 +35,7 @@ class SecGateway(
             .get()
             .uri("/submissions/CIK{cik}.json", cik10)
             .retrieve()
-            .body<String>()
-            .orEmpty()
+            .bodyOrFail("/submissions/CIK$cik10.json")
 
     /** GET https://data.sec.gov/api/xbrl/companyfacts/CIK{cik10}.json - all XBRL facts. */
     fun getCompanyFacts(cik10: String): String =
@@ -43,6 +43,15 @@ class SecGateway(
             .get()
             .uri("/api/xbrl/companyfacts/CIK{cik}.json", cik10)
             .retrieve()
-            .body<String>()
-            .orEmpty()
+            .bodyOrFail("/api/xbrl/companyfacts/CIK$cik10.json")
+
+    private fun RestClient.ResponseSpec.bodyOrFail(path: String): String {
+        val body = body<String>()
+        require(!body.isNullOrBlank()) { "SEC returned an empty body for $path" }
+        return body
+    }
+
+    companion object {
+        private const val TICKERS_PATH = "/files/company_tickers.json"
+    }
 }

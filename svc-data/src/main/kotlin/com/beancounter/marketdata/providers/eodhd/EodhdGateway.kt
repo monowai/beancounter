@@ -153,6 +153,8 @@ class EodhdGateway(
      *
      * Returns the raw JSON body — a map keyed by symbol, each an array of
      * `{date, count, normalized}` points, with symbols EODHD has no coverage for simply absent.
+     * An empty body is an error, not "no coverage": EODHD answers `{}` for that, so a blank
+     * response means the request did not get a real answer and the batch must count as failed.
      * Parsed by [com.beancounter.marketdata.news.eodhd.EodhdSentimentParser], which tolerates the
      * per-point shape drift a typed DTO would reject outright.
      */
@@ -170,7 +172,7 @@ class EodhdGateway(
                 apiKey
             ).retrieve()
             .body<String>()
-            ?: "{}"
+            ?: error("EODHD sentiments returned an empty body for $symbols")
 
     /**
      * Full split history for a symbol.

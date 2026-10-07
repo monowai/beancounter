@@ -101,6 +101,16 @@ internal class EodhdSentimentParserTest {
     }
 
     @Test
+    fun `points with a negative count are dropped but zero is kept`() {
+        val json =
+            """{"AAPL.US":[{"date":"2026-10-06","count":-1,"normalized":0.5},
+                           {"date":"2026-10-05","count":0,"normalized":0.5}]}"""
+
+        assertThat(EodhdSentimentParser.parse(json).getValue("AAPL.US"))
+            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-05"), 0, BigDecimal("0.5000")))
+    }
+
+    @Test
     fun `points with a missing date are dropped`() {
         val json = """{"AAPL.US":[{"count":2,"normalized":0.5},{"date":"2026-10-04","count":4,"normalized":0.5}]}"""
 

@@ -84,8 +84,9 @@ object EodhdSentimentParser {
                 return null
             }
         val count = node.path("count")
-        if (!count.isIntegralNumber || !count.canConvertToInt()) {
-            log.warn("Dropping sentiment point for {} with non-integral count: {}", symbol, node)
+        // Zero is legitimate — EODHD reports days with no articles — but a negative count is not.
+        if (!count.isIntegralNumber || !count.canConvertToInt() || count.asInt() < 0) {
+            log.warn("Dropping sentiment point for {} with non-integral or negative count: {}", symbol, node)
             return null
         }
         return SentimentPoint(

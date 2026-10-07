@@ -190,6 +190,17 @@ internal class NewsSentimentServiceTest {
     }
 
     @Test
+    fun `refresh counts an empty provider body as a failed batch with no rows`() {
+        whenever(eodhdProxy.getSentiments(eq("SNTA.US"), any(), any())).thenReturn("")
+
+        val result = service.refresh()
+
+        assertThat(result.failedBatches).isEqualTo(1)
+        assertThat(repo.findByAssetIdInAndPriceDateGreaterThanEqualOrderByPriceDateAsc(listOf(coveredId), epoch))
+            .isEmpty()
+    }
+
+    @Test
     fun `refresh requests from latest stored date minus two days when history exists`() {
         val latest = dateUtils.date.minusDays(5)
         repo.save(

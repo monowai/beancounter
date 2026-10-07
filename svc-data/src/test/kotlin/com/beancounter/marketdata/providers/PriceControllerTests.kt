@@ -694,6 +694,57 @@ internal class PriceControllerTests
             username = "test-user",
             roles = [AuthConstants.USER]
         )
+        fun is_AsyncBackfillScheduledWhenSeriesHasInternalGap() {
+            // Both edges are covered but the middle is missing: the row after the
+            // hole shows a "daily" change that really spans the hole. Schedule the
+            // fill so the hole closes and the change is recomputed.
+            val today = LocalDate.now()
+            val from = today.minusMonths(6)
+            val to = today
+            val holeStart = today.minusDays(40)
+            val cached =
+                listOf(
+                    MarketData(asset, close = BigDecimal("10.00"), priceDate = from),
+                    MarketData(asset, close = BigDecimal("10.50"), priceDate = holeStart),
+                    MarketData(asset, close = BigDecimal("11.00"), priceDate = today.minusDays(1))
+                )
+            `when`(assetFinder.find(asset.id)).thenReturn(asset)
+            `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(cached)
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/prices/{assetId}/history", asset.id)
+                        .param("from", from.toString())
+                        .param("to", to.toString())
+                        .with(
+                            SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                        ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+
+            org.mockito.Mockito
+                .verify(priceBackfillCoordinator)
+                .scheduleBackfill(eq(asset.id), eq(from))
+            org.mockito.Mockito
+                .verify(marketDataService, org.mockito.Mockito.never())
+                .backFill(eq(asset.id), any())
+        }
+
+        private fun dailySeries(
+            from: LocalDate,
+            to: LocalDate
+        ): List<MarketData> =
+            generateSequence(from) { it.plusDays(1) }
+                .takeWhile { !it.isAfter(to) }
+                .map { MarketData(asset, close = BigDecimal("10.00"), priceDate = it) }
+                .toList()
+
+        @Test
+        @Tag("wiremock")
+        @WithMockUser(
+            username = "test-user",
+            roles = [AuthConstants.USER]
+        )
         fun is_NoBackfillWhenTailIsOnlyWeekendStale() {
             // Friday's close read on Monday is not a gap. Without a tolerance the
             // chart would schedule a provider call on every open for every asset,
@@ -702,10 +753,7 @@ internal class PriceControllerTests
             val from = today.minusMonths(6)
             val to = today
             val cached =
-                listOf(
-                    MarketData(asset, close = BigDecimal("10.00"), priceDate = from),
-                    MarketData(asset, close = BigDecimal("11.00"), priceDate = today.minusDays(3))
-                )
+                dailySeries(from, today.minusDays(3))
             `when`(assetFinder.find(asset.id)).thenReturn(asset)
             `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(cached)
 
@@ -804,11 +852,9 @@ internal class PriceControllerTests
             val today = LocalDate.now()
             val from = today.minusMonths(12)
             val to = today
+            // Dense series: a two-point fixture would now read as one long hole.
             val history =
-                listOf(
-                    MarketData(asset, close = BigDecimal("9.00"), priceDate = from.minusDays(30)),
-                    MarketData(asset, close = BigDecimal("10.00"), priceDate = today)
-                )
+                dailySeries(from.minusDays(30), today)
             `when`(assetFinder.find(asset.id)).thenReturn(asset)
             `when`(marketDataRepo.findPriceHistory(asset.id, from, to)).thenReturn(history)
 

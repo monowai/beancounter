@@ -171,11 +171,13 @@ class PriceService(
         // pre-existing rows once up front yields identical per-row dedup /
         // previousClose answers to the old per-row query approach, at two
         // queries per asset instead of two queries per row.
-        val createSet =
+        val batches =
             eligible
                 .groupBy { it.asset.id }
                 .values
-                .flatMap { rows -> buildCreateSet(rows) }
+                .map { rows -> buildCreateSet(rows) }
+        val createSet = batches.flatMap { it.created }
+        val relinked = batches.flatMap { it.relinked }
 
         priceResponse.data
             .filter { !cashUtils.isCash(it.asset) && isCorporateEvent(it) }
@@ -187,6 +189,9 @@ class PriceService(
             createSet
         } else {
             persistInChunks(createSet)
+            if (relinked.isNotEmpty()) {
+                marketDataRepo.saveAll(relinked)
+            }
             val dates = createSet.map { it.priceDate }.distinct()
             dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
             // Return the application-constructed rows. Each chunk was written in
@@ -199,10 +204,27 @@ class PriceService(
     }
 
     /**
+     * One asset's batch: the rows to insert, plus the stored rows whose
+     * `previousClose` must be relinked because a new row now sits between them
+     * and their former predecessor.
+     */
+    private data class AssetBatch(
+        val created: List<MarketData>,
+        val relinked: List<MarketData>
+    )
+
+    /**
      * Dedup + enrich one asset's rows against its pre-existing stored state,
      * loaded once for the whole group instead of per row.
+     *
+     * New rows are enriched in date order and each one joins the lookup as it is
+     * enriched, so a multi-row batch from a provider that ships no previousClose
+     * (EOD history) chains through itself rather than every row pointing at the
+     * last row stored before the batch. A stored row whose predecessor is now a
+     * new row — the row after a filled hole, inside or just past the batch window
+     * — is relinked so its change no longer spans the hole.
      */
-    private fun buildCreateSet(rows: List<MarketData>): List<MarketData> {
+    private fun buildCreateSet(rows: List<MarketData>): AssetBatch {
         val asset = rows.first().asset
         val minDate = rows.minOf { it.priceDate }
         val maxDate = rows.maxOf { it.priceDate }
@@ -212,6 +234,10 @@ class PriceService(
         val priorRow =
             marketDataRepo
                 .findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(asset, minDate)
+                .orElse(null)
+        val successorRow =
+            marketDataRepo
+                .findTop1ByAssetAndPriceDateGreaterThanOrderByPriceDateAsc(asset, maxDate)
                 .orElse(null)
 
         // Keyed on priceDate alone while the table's uniqueness is
@@ -224,12 +250,31 @@ class PriceService(
         val byDate = TreeMap<LocalDate, MarketData>()
         storedInRange.forEach { byDate[it.priceDate] = it }
         priorRow?.let { byDate[it.priceDate] = it }
+        val storedDates = byDate.keys.toSet()
 
-        return rows
-            .filter { it.priceDate !in existingDates }
-            .map { marketData ->
-                enrichWithPreviousClose(marketData, byDate.lowerEntry(marketData.priceDate)?.value)
-            }
+        val created =
+            rows
+                .filter { it.priceDate !in existingDates }
+                .sortedBy { it.priceDate }
+                .map { marketData ->
+                    val enriched = enrichWithPreviousClose(marketData, byDate.lowerEntry(marketData.priceDate)?.value)
+                    byDate[enriched.priceDate] = enriched
+                    enriched
+                }
+        if (created.isEmpty()) {
+            return AssetBatch(created, emptyList())
+        }
+
+        val relinked =
+            (storedInRange + listOfNotNull(successorRow))
+                .filter { stored ->
+                    val predecessor = byDate.lowerEntry(stored.priceDate)?.value
+                    predecessor != null && predecessor.priceDate !in storedDates
+                }.map { stored ->
+                    stored.previousClose = BigDecimal.ZERO
+                    enrichWithPreviousClose(stored, byDate.lowerEntry(stored.priceDate)?.value)
+                }
+        return AssetBatch(created, relinked)
     }
 
     /**

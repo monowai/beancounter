@@ -87,6 +87,28 @@ interface MarketDataRepo : JpaRepository<MarketData, String> {
         @Param("assetId") assetId: String
     ): LocalDate?
 
+    /**
+     * Every stored price date for one asset inside [from, to], ascending. Dates only —
+     * a 10y series is ~2,600 values, cheap enough for the backfill coverage check to
+     * see internal holes that MIN/MAX cannot (see [PriceSeriesGaps]).
+     */
+    @Query(
+        "SELECT md.priceDate FROM MarketData md " +
+            "WHERE md.asset.id = :assetId AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.priceDate ASC"
+    )
+    fun findPriceDatesByAssetIdBetween(
+        @Param("assetId") assetId: String,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<LocalDate>
+
+    /** First stored row strictly after [priceDate]: the successor a gap fill must relink. */
+    fun findTop1ByAssetAndPriceDateGreaterThanOrderByPriceDateAsc(
+        asset: Asset,
+        priceDate: LocalDate
+    ): Optional<MarketData>
+
     @Query("SELECT MAX(md.priceDate) FROM MarketData md WHERE md.asset.id = :assetId")
     fun findLatestPriceDateByAssetId(
         @Param("assetId") assetId: String

@@ -69,6 +69,10 @@ class NewsSentimentService(
             assetFinder
                 .findActiveAssetsForPricing()
                 .filter { eodhdConfig.supportsMarketCode(eodhdConfig.markets, it.marketCode) }
+        if (assets.isEmpty()) {
+            log.info("Sentiment refresh: no active assets on an EODHD-enabled market")
+            return SentimentRefreshResult(assets = 0, calls = 0, rows = 0)
+        }
         val today = dateUtils.date
         val latest = repo.findLatestPriceDates(assets.map { it.id }).associate { it.assetId to it.priceDate }
         val (known, fresh) = assets.partition { latest.containsKey(it.id) }

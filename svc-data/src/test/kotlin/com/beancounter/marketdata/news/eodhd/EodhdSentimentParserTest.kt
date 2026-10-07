@@ -27,7 +27,7 @@ internal class EodhdSentimentParserTest {
         assertThat(parsed.getValue("AAPL.US"))
             .containsExactly(
                 SentimentPoint(LocalDate.parse("2026-10-06"), 27, BigDecimal("0.8937")),
-                SentimentPoint(LocalDate.parse("2026-10-05"), 25, BigDecimal("0.807"))
+                SentimentPoint(LocalDate.parse("2026-10-05"), 25, BigDecimal("0.8070"))
             )
         assertThat(parsed.getValue("TSCO.LSE")).hasSize(1)
     }
@@ -46,7 +46,7 @@ internal class EodhdSentimentParserTest {
         val parsed = EodhdSentimentParser.parse(json)
 
         assertThat(parsed.getValue("AAPL.US"))
-            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-05"), 25, BigDecimal("0.807")))
+            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-05"), 25, BigDecimal("0.8070")))
     }
 
     @Test
@@ -59,7 +59,7 @@ internal class EodhdSentimentParserTest {
         val parsed = EodhdSentimentParser.parse(json)
 
         assertThat(parsed.getValue("AAPL.US"))
-            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-04"), 4, BigDecimal("0.5")))
+            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-04"), 4, BigDecimal("0.5000")))
     }
 
     @Test
@@ -77,11 +77,35 @@ internal class EodhdSentimentParserTest {
     }
 
     @Test
+    fun `normalized is rounded to the four-decimal column scale`() {
+        val json = """{"AAPL.US":[{"date":"2026-10-06","count":27,"normalized":0.89371}]}"""
+
+        assertThat(
+            EodhdSentimentParser
+                .parse(json)
+                .getValue("AAPL.US")
+                .single()
+                .normalized
+        ).isEqualTo(BigDecimal("0.8937"))
+    }
+
+    @Test
+    fun `points with a fractional or oversized count are dropped`() {
+        val json =
+            """{"AAPL.US":[{"date":"2026-10-06","count":27.6,"normalized":0.5},
+                           {"date":"2026-10-05","count":4294967296,"normalized":0.5},
+                           {"date":"2026-10-04","count":4,"normalized":0.5}]}"""
+
+        assertThat(EodhdSentimentParser.parse(json).getValue("AAPL.US"))
+            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-04"), 4, BigDecimal("0.5000")))
+    }
+
+    @Test
     fun `points with a missing date are dropped`() {
         val json = """{"AAPL.US":[{"count":2,"normalized":0.5},{"date":"2026-10-04","count":4,"normalized":0.5}]}"""
 
         assertThat(EodhdSentimentParser.parse(json).getValue("AAPL.US"))
-            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-04"), 4, BigDecimal("0.5")))
+            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-04"), 4, BigDecimal("0.5000")))
     }
 
     @Test

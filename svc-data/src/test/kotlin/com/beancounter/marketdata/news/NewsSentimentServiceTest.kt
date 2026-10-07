@@ -8,6 +8,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
+import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.news.eodhd.EodhdNewsProperties
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
 import com.beancounter.marketdata.providers.eodhd.EodhdProxy
@@ -18,6 +19,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.util.ReflectionTestUtils
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -68,6 +71,9 @@ internal class NewsSentimentServiceTest {
     @Autowired
     private lateinit var dateUtils: DateUtils
 
+    @Autowired
+    private lateinit var marketService: MarketService
+
     private lateinit var service: NewsSentimentService
 
     private val nasdaq = Market("NASDAQ")
@@ -97,9 +103,11 @@ internal class NewsSentimentServiceTest {
         whenever(eodhdProxy.getSentiments(any(), any(), any())).thenReturn("{}")
     }
 
+    // Five decimals on purpose: the column is NUMERIC(6,4), so the parser must round before the
+    // stored-vs-incoming comparison or every run rewrites every row.
     private fun stubCovered(
         count: Int = 27,
-        normalized: String = "0.8937"
+        normalized: String = "0.89371"
     ) {
         whenever(eodhdProxy.getSentiments(eq("SNTA.US"), any(), any()))
             .thenReturn(
@@ -286,6 +294,22 @@ internal class NewsSentimentServiceTest {
                 .findByAssetIdInAndPriceDateGreaterThanEqualOrderByPriceDateAsc(listOf(coveredId), epoch)
                 .associate { it.priceDate to it.fetchedAt }
         assertThat(after).isEqualTo(before)
+    }
+
+    @Test
+    fun `refresh with no EODHD-enabled market makes no provider call`() {
+        val noMarkets =
+            EodhdConfig(marketService).also {
+                ReflectionTestUtils.setField(it, "apiKey", "demo")
+                ReflectionTestUtils.setField(it, "markets", "")
+            }
+        val idle =
+            NewsSentimentService(eodhdProxy, noMarkets, assetFinder, repo, EodhdNewsProperties(), dateUtils)
+
+        val result = idle.refresh()
+
+        assertThat(result).isEqualTo(SentimentRefreshResult(assets = 0, calls = 0, rows = 0))
+        verify(eodhdProxy, never()).getSentiments(any(), any(), any())
     }
 
     @Test

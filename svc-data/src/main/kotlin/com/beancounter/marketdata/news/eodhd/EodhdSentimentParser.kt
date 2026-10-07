@@ -5,13 +5,16 @@ import tools.jackson.core.JacksonException
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import java.util.Locale
 
 /**
  * One day of aggregated sentiment as served by `GET /news/sentiment` and parsed from EODHD.
- * [normalized] is EODHD's score in `[-1, 1]`; [count] the number of articles behind it.
+ * [normalized] is EODHD's score in `[-1, 1]`, already at the `NUMERIC(6,4)` column scale so a
+ * value read back from the DB compares equal to a freshly parsed one; [count] the number of
+ * articles behind it.
  */
 data class SentimentPoint(
     val date: LocalDate,
@@ -81,13 +84,24 @@ object EodhdSentimentParser {
                 return null
             }
         val count = node.path("count")
-        if (!count.isNumber) {
-            log.warn("Dropping sentiment point for {} with non-numeric count: {}", symbol, node)
+        if (!count.isIntegralNumber || !count.canConvertToInt()) {
+            log.warn("Dropping sentiment point for {} with non-integral count: {}", symbol, node)
             return null
         }
-        return SentimentPoint(date, count.asInt(), normalized.decimalValue())
+        return SentimentPoint(
+            date,
+            count.asInt(),
+            normalized.decimalValue().setScale(NORMALIZED_SCALE, RoundingMode.HALF_UP)
+        )
     }
 
     /** Characters of a rejected body carried in the exception so a batch failure log is diagnosable. */
     private const val PAYLOAD_EXCERPT = 120
+
+    /**
+     * Scale of `news_sentiment_daily.normalized` (`NUMERIC(6,4)`). Rounding at parse time keeps the
+     * stored-vs-incoming comparison in the upsert honest — otherwise a 5-decimal float from EODHD
+     * never equals the 4-decimal column value and every row is rewritten on every run.
+     */
+    private const val NORMALIZED_SCALE = 4
 }

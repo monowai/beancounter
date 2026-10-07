@@ -25,9 +25,12 @@ class NewsSentimentSchedule(
 ) {
     @Scheduled(cron = "0 30 3 * * *", zone = "#{@scheduleZone}")
     fun refresh() {
-        runCatching { newsSentimentService.refresh() }
-            .onSuccess { log.info("Scheduled sentiment refresh complete: {}", it) }
-            .onFailure { log.warn("Scheduled sentiment refresh failed", it) }
+        // Exception, not Throwable: an Error or interrupt must still reach the scheduler.
+        try {
+            log.info("Scheduled sentiment refresh complete: {}", newsSentimentService.refresh())
+        } catch (e: Exception) {
+            log.warn("Scheduled sentiment refresh failed", e)
+        }
     }
 
     companion object {

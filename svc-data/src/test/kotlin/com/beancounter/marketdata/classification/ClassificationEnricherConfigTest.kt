@@ -4,6 +4,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -28,6 +29,18 @@ class ClassificationEnricherConfigTest {
     @Test
     fun `should select Alpha alone for the default single value`() {
         assertThat(config.classificationEnricher(alpha, eodhd, sec, "alpha")).isSameAs(alpha)
+    }
+
+    @Test
+    fun `should default to Alpha when the property is blank`() {
+        assertThat(config.classificationEnricher(alpha, eodhd, sec, " ")).isSameAs(alpha)
+    }
+
+    @Test
+    fun `should fail fast on an unknown provider key rather than silently fall back to Alpha`() {
+        assertThatThrownBy { config.classificationEnricher(alpha, eodhd, sec, "sec,secx") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("secx")
     }
 
     @Test

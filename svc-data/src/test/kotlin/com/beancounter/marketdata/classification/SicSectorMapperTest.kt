@@ -38,7 +38,9 @@ class SicSectorMapperTest {
         "2810, Materials",
         "3720, Industrials",
         "4512, Industrials",
-        "1531, Industrials"
+        "1531, Industrials",
+        "8600, Industrials",
+        "8412, Industrials"
     )
     fun `should map a SIC code onto a canonical sector`(
         sic: String,

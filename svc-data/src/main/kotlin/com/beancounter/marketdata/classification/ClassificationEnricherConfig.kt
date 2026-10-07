@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Primary
  * order given: each asset goes to the first provider that can enrich it, so `sec,alpha` sends
  * US equities to the keyless SEC and everything else (ETFs, non-US listings) to AlphaVantage.
  *
+ * An unknown key fails the context at startup rather than silently falling back - a typo such as
+ * `secx` must not quietly become AlphaVantage. An unset or blank value is the default.
+ *
  * Defaults to `alpha`, so production behaviour is unchanged until an operator opts in (for
  * `eodhd` that additionally needs a fundamentals-capable key on
  * `beancounter.market.providers.eodhd.key`). Consumers inject [ClassificationEnricher] and
@@ -37,7 +40,8 @@ class ClassificationEnricherConfig {
                     when (key) {
                         "eodhd" -> eodhd
                         "sec" -> sec
-                        else -> alpha
+                        "alpha" -> alpha
+                        else -> throw IllegalArgumentException("Unknown classification provider: $key")
                     }
                 }.distinct()
         return when (selected.size) {

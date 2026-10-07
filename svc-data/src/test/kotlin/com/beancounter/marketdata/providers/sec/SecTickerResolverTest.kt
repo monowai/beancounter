@@ -51,4 +51,17 @@ class SecTickerResolverTest {
     fun `should return null for a ticker the SEC does not list`() {
         assertThat(resolver.resolve(asset("ZZZZ"))).isNull()
     }
+
+    @Test
+    fun `should drop an index row whose CIK is blank instead of minting a zero CIK`() {
+        val proxy: SecProxy = mock()
+        whenever(proxy.getCompanyTickers()).thenReturn(
+            """{"0":{"cik_str":"","ticker":"NOCIK","title":"No CIK"},"1":{"cik_str":320193,"ticker":"AAPL","title":"Apple"}}"""
+        )
+
+        val directory = SecTickerDirectory(proxy).tickerToCik()
+
+        assertThat(directory).doesNotContainKey("NOCIK").containsEntry("AAPL", "0000320193")
+        assertThat(directory.values).doesNotContain("0000000000")
+    }
 }

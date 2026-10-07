@@ -24,11 +24,17 @@ class SecTickerDirectory(
         objectMapper
             .readTree(secProxy.getCompanyTickers())
             .properties()
-            .map { (_, row) -> row.path("ticker").asString().uppercase() to toCik10(row.path("cik_str").asString()) }
-            .filter { (ticker, cik) -> ticker.isNotBlank() && cik.isNotBlank() }
-            .toMap()
-
-    private fun toCik10(raw: String): String = raw.trim().padStart(CIK_LENGTH, '0')
+            .mapNotNull { (_, row) ->
+                val ticker =
+                    row
+                        .path("ticker")
+                        .asString()
+                        .trim()
+                        .uppercase()
+                val rawCik = row.path("cik_str").asString().trim()
+                // Filter on the raw value: padding a blank would mint the bogus CIK 0000000000.
+                if (ticker.isBlank() || rawCik.isBlank()) null else ticker to rawCik.padStart(CIK_LENGTH, '0')
+            }.toMap()
 
     companion object {
         const val CIK_LENGTH = 10

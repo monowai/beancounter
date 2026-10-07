@@ -9,6 +9,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.sec.SecFundamentalsParser
 import com.beancounter.marketdata.providers.sec.SecProxy
 import com.beancounter.marketdata.providers.sec.SecTickerResolver
+import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -26,11 +27,13 @@ import tools.jackson.databind.ObjectMapper
  * - Fundamentals: one [AssetFundamentals] snapshot per asset from `/api/xbrl/companyfacts`,
  *   upserted in the same pass.
  *
- * ETFs are out of scope ([canEnrich] is false, [enrichClassification] reports NO_DATA): the SEC
- * holds no sector weights, so a chain of `sec,alpha` leaves funds to the next enricher. Stored
- * under the dedicated SEC [com.beancounter.common.model.ClassificationStandard], like the other
- * providers. HTTP 429 and 403 (SEC's throttle response) map to RATE_LIMITED so the asset is
- * retried first on the next run; any other HTTP or parse failure is FAILED.
+ * [canEnrich] accepts only what this enricher can actually answer: an equity on a US exchange
+ * whose ticker is in the SEC company index (the index is cached, so the lookup is cheap). ETFs
+ * and unlisted tickers are declined rather than answered NO_DATA, so a chain of `sec,alpha`
+ * hands them to the next enricher instead of parking them. Stored under the dedicated SEC
+ * [com.beancounter.common.model.ClassificationStandard], like the other providers. HTTP 429 and
+ * 403 (SEC's throttle response) and our own `sec` limiter tripping map to RATE_LIMITED so the
+ * asset is retried first on the next run; any other HTTP or parse failure is FAILED.
  */
 @Service
 class SecClassificationEnricher(
@@ -45,7 +48,8 @@ class SecClassificationEnricher(
 ) : ClassificationEnricher {
     private val log = LoggerFactory.getLogger(SecClassificationEnricher::class.java)
 
-    override fun canEnrich(asset: Asset): Boolean = isEquity(asset) && asset.market.code.uppercase() in SEC_MARKETS
+    override fun canEnrich(asset: Asset): Boolean =
+        isEquity(asset) && asset.market.code.uppercase() in SEC_MARKETS && tickerResolver.resolve(asset) != null
 
     override fun isEtf(asset: Asset): Boolean = ClassificationEnricher.categoryIsEtf(asset)
 
@@ -65,6 +69,9 @@ class SecClassificationEnricher(
             val result = classify(asset, cik)
             snapshotFundamentals(asset, cik)
             result
+        } catch (e: RequestNotPermitted) {
+            log.warn("SEC rate limiter declined {}:{} - {}", asset.market.code, asset.code, e.message)
+            EnrichmentResult.RATE_LIMITED
         } catch (e: HttpStatusCodeException) {
             if (e.statusCode in THROTTLE_STATUSES) {
                 log.warn(

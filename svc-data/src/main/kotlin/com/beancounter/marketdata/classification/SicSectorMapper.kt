@@ -101,6 +101,7 @@ class SicSectorMapper {
                 8000..8099 to HEALTH_CARE, // health services
                 8100..8199 to INDUSTRIALS, // legal services
                 8200..8399 to CONSUMER_DISCRETIONARY, // education, social services
+                8400..8699 to INDUSTRIALS, // museums, membership organisations
                 8730..8739 to HEALTH_CARE, // commercial research (where biotech files)
                 8700..8999 to INDUSTRIALS // engineering, management, miscellaneous services
             )

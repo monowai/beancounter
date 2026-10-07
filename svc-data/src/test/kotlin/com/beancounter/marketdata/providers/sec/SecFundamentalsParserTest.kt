@@ -142,6 +142,62 @@ class SecFundamentalsParserTest {
     }
 
     @Test
+    fun `should not borrow a metric from an older fiscal year than the anchor`() {
+        val json =
+            facts(
+                mapOf(
+                    "Revenues" to tag("USD", entry(end = "2025-09-27", value = "500", fy = 2025)),
+                    "EarningsPerShareDiluted" to
+                        tag("USD/shares", entry(end = "2024-09-28", value = "6.08", fy = 2024, filed = "2024-11-01"))
+                )
+            )
+
+        val snapshot = parser.parse(json)
+
+        assertThat(snapshot!!.fiscalYear).isEqualTo(2025)
+        assertThat(snapshot.fiscalYearEnd).isEqualTo(LocalDate.of(2025, 9, 27))
+        assertThat(snapshot.revenue).isEqualByComparingTo(BigDecimal("500"))
+        assertThat(snapshot.epsDiluted).isNull()
+    }
+
+    @Test
+    fun `should null shares outstanding that are fractional or exceed a Long`() {
+        fun withShares(value: String) =
+            facts(
+                usGaap = mapOf("NetIncomeLoss" to tag("USD", entry(end = "2025-09-27", value = "1"))),
+                dei =
+                    mapOf(
+                        "EntityCommonStockSharesOutstanding" to
+                            tag(
+                                "shares",
+                                """{"end":"2025-10-17","val":$value,"fy":2025,"fp":"FY","form":"10-K","filed":"2025-10-31"}"""
+                            )
+                    )
+            )
+
+        assertThat(parser.parse(withShares("14773123000.5"))!!.sharesOutstanding).isNull()
+        assertThat(parser.parse(withShares("99999999999999999999"))!!.sharesOutstanding).isNull()
+        assertThat(parser.parse(withShares("14773123000"))!!.sharesOutstanding).isEqualTo(14773123000L)
+    }
+
+    @Test
+    fun `should skip an entry with an unparseable period end rather than fail`() {
+        val json =
+            facts(
+                mapOf(
+                    "NetIncomeLoss" to
+                        tag(
+                            "USD",
+                            entry(end = "not-a-date", value = "999"),
+                            entry(end = "2025-09-27", value = "1")
+                        )
+                )
+            )
+
+        assertThat(parser.parse(json)!!.netIncome).isEqualByComparingTo(BigDecimal("1"))
+    }
+
+    @Test
     fun `should return null when no fiscal-year 10-K entry exists at all`() {
         val json =
             facts(

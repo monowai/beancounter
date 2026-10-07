@@ -12,10 +12,14 @@ import com.beancounter.common.model.Status
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.sec.SecProxy
+import io.github.resilience4j.ratelimiter.RateLimiter
+import io.github.resilience4j.ratelimiter.RateLimiterConfig
+import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -131,8 +135,9 @@ internal class SecClassificationEnricherTest {
     }
 
     @Test
-    fun `should only offer to enrich equities on US exchanges`() {
+    fun `should only offer to enrich equities on US exchanges that the SEC index lists`() {
         assertThat(enricher.canEnrich(transientAsset("AAPL"))).isTrue()
+        assertThat(enricher.canEnrich(transientAsset("ZZZZ"))).isFalse()
         assertThat(enricher.canEnrich(transientAsset("VTI", category = "ETF"))).isFalse()
         assertThat(
             enricher.canEnrich(
@@ -158,6 +163,26 @@ internal class SecClassificationEnricherTest {
 
         assertThat(enricher.enrichClassification(unknown)).isEqualTo(EnrichmentResult.NO_DATA)
         assertThat(classificationRepository.findByAssetId(unknown.id)).isEmpty()
+    }
+
+    @Test
+    fun `should let an unlisted US equity fall through to the next enricher in a chain`() {
+        val alpha: AlphaClassificationEnricher = mock()
+        val unlisted = transientAsset("ZZZZ")
+        whenever(alpha.canEnrich(unlisted)).thenReturn(true)
+        whenever(alpha.enrichClassification(unlisted)).thenReturn(EnrichmentResult.ENRICHED)
+        val chain = ChainedClassificationEnricher(listOf(enricher, alpha))
+
+        assertThat(chain.enrichClassification(unlisted)).isEqualTo(EnrichmentResult.ENRICHED)
+        verify(secProxy, never()).getSubmissions(any())
+    }
+
+    @Test
+    fun `should report RATE_LIMITED when our own sec limiter declines the call`() {
+        val limiter = RateLimiter.of("sec", RateLimiterConfig.ofDefaults())
+        whenever(secProxy.getSubmissions(any())).thenThrow(RequestNotPermitted.createRequestNotPermitted(limiter))
+
+        assertThat(enricher.enrichClassification(transientAsset("AAPL"))).isEqualTo(EnrichmentResult.RATE_LIMITED)
     }
 
     @Test

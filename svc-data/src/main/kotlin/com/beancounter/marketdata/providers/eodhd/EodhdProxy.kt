@@ -78,6 +78,18 @@ class EodhdProxy(
         )
 
     @RateLimiter(name = "eodhd")
+    fun getSentiments(
+        symbols: String,
+        from: String,
+        apiKey: String
+    ): String =
+        eodhdGateway.getSentiments(
+            symbols,
+            from,
+            apiKey
+        )
+
+    @RateLimiter(name = "eodhd")
     fun getSplits(
         symbol: String,
         apiKey: String

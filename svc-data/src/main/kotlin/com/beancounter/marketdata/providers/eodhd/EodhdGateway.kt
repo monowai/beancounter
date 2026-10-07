@@ -77,8 +77,12 @@ class EodhdGateway(
      *
      * GET /api/eod-bulk-last-day/{exchange}?symbols={csv}&date={date}&api_token={apiKey}&fmt=json
      *
-     * `symbols` is a comma-separated list of raw codes (the EXCHANGE in the path is the default
-     * suffix). One HTTP round-trip replaces N per-symbol [getPrice] calls for the scheduled
+     * `symbols` MUST be a comma-separated list of fully-qualified `CODE.EXCHANGE` tickers. The
+     * `{exchange}` path segment is NOT a default suffix: EODHD resolves a bare code against the US
+     * exchange regardless of the path (verified 2026-10-07 — `/eod-bulk-last-day/LSE?symbols=TSCO`
+     * returned the US listing and `/AU?symbols=BHP` the US ADR). `ProviderArguments` keys already
+     * carry the suffix because they come from [EodhdConfig.getPriceCode], so callers pass them
+     * through verbatim. One HTTP round-trip replaces N per-symbol [getPrice] calls for the scheduled
      * portfolio-valuation fan-out; per-symbol quota is identical (1 API call per ticker) but
      * wall-clock collapses from N × ~1s to 1 × ~1s.
      */
@@ -141,6 +145,32 @@ class EodhdGateway(
             .body<Array<EodhdDividend>>()
             ?.toList()
             ?: emptyList()
+
+    /**
+     * Daily aggregated news sentiment for up to N fully-qualified `CODE.EXCHANGE` symbols.
+     *
+     * GET /api/sentiments?s={symbols}&from={from}&api_token={apiKey}&fmt=json
+     *
+     * Returns the raw JSON body — a map keyed by symbol, each an array of
+     * `{date, count, normalized}` points, with symbols EODHD has no coverage for simply absent.
+     * Parsed by [com.beancounter.marketdata.news.eodhd.EodhdSentimentParser], which tolerates the
+     * per-point shape drift a typed DTO would reject outright.
+     */
+    fun getSentiments(
+        symbols: String,
+        from: String,
+        apiKey: String = DEMO_KEY
+    ): String =
+        restClient
+            .get()
+            .uri(
+                "/api/sentiments?s={symbols}&from={from}&api_token={apiKey}&fmt=json",
+                symbols,
+                from,
+                apiKey
+            ).retrieve()
+            .body<String>()
+            ?: "{}"
 
     /**
      * Full split history for a symbol.

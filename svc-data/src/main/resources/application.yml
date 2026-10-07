@@ -682,6 +682,11 @@ beancounter:
           # /news/topic and MacroRefreshSchedule). EODHD's topic results are relevance-sorted,
           # not date-sorted, and without `from` return months-old items.
           topic-window-days: 14
+          # Symbols per /api/sentiments call in NewsSentimentService.refresh (daily, 03:30).
+          sentiment-batch-size: 20
+          # Days of sentiment history fetched the first time an asset is seen; later runs re-read
+          # only a 2-day trailing overlap from the latest stored day.
+          sentiment-initial-days: 30
 
       # Public Kalshi trade API — no auth. Used by RateExpectationsService for Fed
       # rate-decision (KXFEDDECISION) market odds. Default matches Kalshi's production host;

@@ -198,6 +198,22 @@ class SecFundamentalsParserTest {
     }
 
     @Test
+    fun `should skip an entry without a positive fiscal-year label rather than report FY0`() {
+        val noFy = """{"end":"2025-09-27","val":9,"fp":"FY","form":"10-K","filed":"2025-10-31"}"""
+        val zeroFy = """{"end":"2025-09-27","val":8,"fy":0,"fp":"FY","form":"10-K","filed":"2025-10-31"}"""
+
+        assertThat(parser.parse(facts(mapOf("NetIncomeLoss" to tag("USD", noFy, zeroFy))))).isNull()
+
+        val withValid =
+            facts(
+                mapOf("NetIncomeLoss" to tag("USD", noFy, entry(end = "2024-09-28", value = "1", fy = 2024)))
+            )
+        val snapshot = parser.parse(withValid)
+        assertThat(snapshot!!.fiscalYear).isEqualTo(2024)
+        assertThat(snapshot.netIncome).isEqualByComparingTo(BigDecimal("1"))
+    }
+
+    @Test
     fun `should return null when no fiscal-year 10-K entry exists at all`() {
         val json =
             facts(

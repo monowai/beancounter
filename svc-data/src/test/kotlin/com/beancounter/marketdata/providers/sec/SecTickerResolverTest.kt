@@ -53,6 +53,18 @@ class SecTickerResolverTest {
     }
 
     @Test
+    fun `should keep the first row when two rows normalise to the same ticker`() {
+        val proxy: SecProxy = mock()
+        whenever(proxy.getCompanyTickers()).thenReturn(
+            """{"0":{"cik_str":320193,"ticker":"AAPL","title":"Apple"},"1":{"cik_str":999,"ticker":" aapl ","title":"Dup"}}"""
+        )
+
+        val directory = SecTickerDirectory(proxy).tickerToCik()
+
+        assertThat(directory).hasSize(1).containsEntry("AAPL", "0000320193")
+    }
+
+    @Test
     fun `should drop an index row whose CIK is blank instead of minting a zero CIK`() {
         val proxy: SecProxy = mock()
         whenever(proxy.getCompanyTickers()).thenReturn(

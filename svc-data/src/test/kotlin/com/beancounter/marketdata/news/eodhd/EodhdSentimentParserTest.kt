@@ -50,6 +50,33 @@ internal class EodhdSentimentParserTest {
     }
 
     @Test
+    fun `points with a missing or non-numeric count are dropped`() {
+        val json =
+            """{"AAPL.US":[{"date":"2026-10-06","normalized":0.5},
+                           {"date":"2026-10-05","count":"many","normalized":0.5},
+                           {"date":"2026-10-04","count":4,"normalized":0.5}]}"""
+
+        val parsed = EodhdSentimentParser.parse(json)
+
+        assertThat(parsed.getValue("AAPL.US"))
+            .containsExactly(SentimentPoint(LocalDate.parse("2026-10-04"), 4, BigDecimal("0.5")))
+    }
+
+    @Test
+    fun `symbol keys are normalised to upper case`() {
+        val json = """{"aapl.us":[{"date":"2026-10-06","count":1,"normalized":0.5}]}"""
+
+        assertThat(EodhdSentimentParser.parse(json)).containsOnlyKeys("AAPL.US")
+    }
+
+    @Test
+    fun `malformed body message carries a payload excerpt`() {
+        assertThatThrownBy { EodhdSentimentParser.parse("[1,2,3]") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("[1,2,3]")
+    }
+
+    @Test
     fun `points with an unparseable date are dropped`() {
         val json = """{"AAPL.US":[{"date":"yesterday","count":27,"normalized":0.5}]}"""
 

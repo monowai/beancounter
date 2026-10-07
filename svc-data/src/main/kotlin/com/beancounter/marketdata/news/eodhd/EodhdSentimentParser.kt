@@ -1,7 +1,5 @@
 package com.beancounter.marketdata.news.eodhd
 
-import com.beancounter.common.utils.DateUtils
-import com.fasterxml.jackson.annotation.JsonFormat
 import org.slf4j.LoggerFactory
 import tools.jackson.core.JacksonException
 import tools.jackson.databind.JsonNode
@@ -15,7 +13,6 @@ import java.time.format.DateTimeParseException
  * [normalized] is EODHD's score in `[-1, 1]`; [count] the number of articles behind it.
  */
 data class SentimentPoint(
-    @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     val date: LocalDate,
     val count: Int,
     val normalized: BigDecimal
@@ -29,7 +26,8 @@ data class SentimentPoint(
  * ```
  *
  * The map only carries symbols EODHD has coverage for — a requested ticker with no articles is
- * simply absent, which is not an error. Individual malformed points (non-numeric `normalized`,
+ * simply absent, which is not an error. Keys are upper-cased so a caller can match them against
+ * its own `CODE.EXCHANGE` tickers regardless of how EODHD echoes the symbol. Individual malformed points (non-numeric `normalized`,
  * unparseable `date`) are dropped with a WARN so one bad element never costs the whole batch;
  * a body that is not a JSON object at all throws [IllegalArgumentException] so the caller can
  * count the batch as failed.
@@ -45,8 +43,8 @@ object EodhdSentimentParser {
             } catch (e: JacksonException) {
                 throw IllegalArgumentException("Unparseable sentiment payload", e)
             }
-        require(root.isObject) { "Sentiment payload is not a JSON object" }
-        return root.properties().associate { (symbol, node) -> symbol to points(symbol, node) }
+        require(root.isObject) { "Sentiment payload is not a JSON object: ${json.take(PAYLOAD_EXCERPT)}" }
+        return root.properties().associate { (symbol, node) -> symbol.uppercase() to points(symbol, node) }
     }
 
     private fun points(
@@ -76,6 +74,14 @@ object EodhdSentimentParser {
                 log.warn("Dropping sentiment point for {} with unparseable date: {}", symbol, e.message)
                 return null
             }
-        return SentimentPoint(date, node.path("count").asInt(), normalized.decimalValue())
+        val count = node.path("count")
+        if (!count.isNumber) {
+            log.warn("Dropping sentiment point for {} with non-numeric count: {}", symbol, node)
+            return null
+        }
+        return SentimentPoint(date, count.asInt(), normalized.decimalValue())
     }
+
+    /** Characters of a rejected body carried in the exception so a batch failure log is diagnosable. */
+    private const val PAYLOAD_EXCERPT = 120
 }

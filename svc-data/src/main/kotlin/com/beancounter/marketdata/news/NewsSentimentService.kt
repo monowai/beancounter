@@ -53,8 +53,10 @@ class NewsSentimentService(
         var rows = 0
         var failed = 0
         assets.chunked(newsProperties.sentimentBatchSize).forEach { batch ->
-            val bySymbol = batch.groupBy { eodhdConfig.getPriceCode(it) }
-            val from = batch.minOf { fromDate(it.id, today) }
+            // Keyed upper-case to match EodhdSentimentParser's keys however EODHD echoes the symbol.
+            val bySymbol = batch.groupBy { eodhdConfig.getPriceCode(it).uppercase() }
+            val latest = repo.findLatestPriceDates(batch.map { it.id }).associate { it.assetId to it.priceDate }
+            val from = batch.minOf { fromDate(it.id, latest, today) }
             val symbols = bySymbol.keys.joinToString(",")
             calls++
             val parsed =
@@ -88,13 +90,14 @@ class NewsSentimentService(
 
     private fun fromDate(
         assetId: String,
+        latest: Map<String, LocalDate>,
         today: LocalDate
     ): LocalDate {
-        val latest = repo.findTopByAssetIdOrderByPriceDateDesc(assetId)
-        return if (latest == null) {
+        val latestDate = latest[assetId]
+        return if (latestDate == null) {
             today.minusDays(newsProperties.sentimentInitialDays)
         } else {
-            latest.priceDate.minusDays(OVERLAP_DAYS)
+            latestDate.minusDays(OVERLAP_DAYS)
         }
     }
 
@@ -111,8 +114,13 @@ class NewsSentimentService(
                 .toMutableMap()
         val fetchedAt = LocalDateTime.now(dateUtils.zoneId)
         val toSave = linkedSetOf<NewsSentimentDaily>()
+        // Symbols EODHD did not answer for never appear; ones we did not ask for are skipped but
+        // logged, because a silent mismatch here would read as "no coverage" rather than a routing bug.
+        val unmatched = parsed.keys - bySymbol.keys
+        if (unmatched.isNotEmpty()) {
+            log.warn("Sentiment batch returned symbols matching no requested asset: {}", unmatched)
+        }
         parsed.forEach { (symbol, points) ->
-            // Symbols we did not ask for are ignored; symbols EODHD did not answer for never appear.
             bySymbol[symbol].orEmpty().forEach { asset ->
                 points.filter { it.date >= from }.forEach { point ->
                     val row =

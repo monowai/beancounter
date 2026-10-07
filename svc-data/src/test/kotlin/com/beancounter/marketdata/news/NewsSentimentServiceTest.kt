@@ -135,6 +135,19 @@ internal class NewsSentimentServiceTest {
     }
 
     @Test
+    fun `refresh persists rows when EODHD echoes the symbol in a different case`() {
+        whenever(eodhdProxy.getSentiments(eq("SNTA.US"), any(), any()))
+            .thenReturn("""{"snta.us":[{"date":"2026-10-06","count":9,"normalized":0.25}]}""")
+
+        service.refresh()
+
+        val rows = repo.findByAssetIdInAndPriceDateGreaterThanEqualOrderByPriceDateAsc(listOf(coveredId), epoch)
+        assertThat(rows).hasSize(1)
+        assertThat(rows.single().articleCount).isEqualTo(9)
+        assertThat(rows.single().symbol).isEqualTo("SNTA.US")
+    }
+
+    @Test
     fun `refresh overwrites same-day counts on re-run instead of duplicating`() {
         stubCovered(count = 27)
         service.refresh()

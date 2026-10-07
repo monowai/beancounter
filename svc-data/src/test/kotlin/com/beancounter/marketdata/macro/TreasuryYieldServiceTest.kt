@@ -26,7 +26,7 @@ class TreasuryYieldServiceTest {
 
     @Test
     fun `projects latest, lookback and changeBps for each maturity`() {
-        whenever(fetcher.fetch("10year")).thenReturn(
+        whenever(fetcher.fetch("DGS10")).thenReturn(
             listOf(
                 point(0, "4.83"),
                 point(14, "4.58"),
@@ -34,7 +34,7 @@ class TreasuryYieldServiceTest {
                 point(30, "4.40")
             )
         )
-        whenever(fetcher.fetch("2year")).thenReturn(emptyList())
+        whenever(fetcher.fetch("DGS2")).thenReturn(emptyList())
 
         val result = service.getYields(lookbackDays = 14)
 
@@ -51,7 +51,7 @@ class TreasuryYieldServiceTest {
 
     @Test
     fun `sparse points cover latest, lookback, 7d and 30d and are sorted ascending by date`() {
-        whenever(fetcher.fetch("10year")).thenReturn(
+        whenever(fetcher.fetch("DGS10")).thenReturn(
             listOf(
                 point(0, "4.83"),
                 point(7, "4.70"),
@@ -59,7 +59,7 @@ class TreasuryYieldServiceTest {
                 point(30, "4.40")
             )
         )
-        whenever(fetcher.fetch("2year")).thenReturn(emptyList())
+        whenever(fetcher.fetch("DGS2")).thenReturn(emptyList())
 
         val result = service.getYields(lookbackDays = 14)
 
@@ -76,13 +76,13 @@ class TreasuryYieldServiceTest {
     @Test
     fun `nearest point is picked when the exact lookback day is missing`() {
         // No point exactly 14 days back — nearest available (13 days back) is used instead.
-        whenever(fetcher.fetch("10year")).thenReturn(
+        whenever(fetcher.fetch("DGS10")).thenReturn(
             listOf(
                 point(0, "4.83"),
                 point(13, "4.60")
             )
         )
-        whenever(fetcher.fetch("2year")).thenReturn(emptyList())
+        whenever(fetcher.fetch("DGS2")).thenReturn(emptyList())
 
         val result = service.getYields(lookbackDays = 14)
 
@@ -95,10 +95,10 @@ class TreasuryYieldServiceTest {
         // target = latest(day0) - 3 days = day-3. A point 6 days ago precedes the target; a point
         // 1 day ago comes AFTER it but is closer by absolute distance — the old closest-by-distance
         // selection picked the 1-day-ago point and got the sign of changeBps wrong.
-        whenever(fetcher.fetch("10year")).thenReturn(
+        whenever(fetcher.fetch("DGS10")).thenReturn(
             listOf(point(0, "4.83"), point(1, "4.90"), point(6, "4.50"))
         )
-        whenever(fetcher.fetch("2year")).thenReturn(emptyList())
+        whenever(fetcher.fetch("DGS2")).thenReturn(emptyList())
 
         val result = service.getYields(lookbackDays = 3)
 
@@ -111,8 +111,8 @@ class TreasuryYieldServiceTest {
 
     @Test
     fun `a maturity with no upstream data is omitted, not null or thrown`() {
-        whenever(fetcher.fetch("10year")).thenReturn(emptyList())
-        whenever(fetcher.fetch("2year")).thenReturn(emptyList())
+        whenever(fetcher.fetch("DGS10")).thenReturn(emptyList())
+        whenever(fetcher.fetch("DGS2")).thenReturn(emptyList())
 
         val result = service.getYields(lookbackDays = 14)
 
@@ -121,8 +121,8 @@ class TreasuryYieldServiceTest {
 
     @Test
     fun `both maturities present are each projected independently`() {
-        whenever(fetcher.fetch("10year")).thenReturn(listOf(point(0, "4.83"), point(14, "4.58")))
-        whenever(fetcher.fetch("2year")).thenReturn(listOf(point(0, "3.60"), point(14, "3.90")))
+        whenever(fetcher.fetch("DGS10")).thenReturn(listOf(point(0, "4.83"), point(14, "4.58")))
+        whenever(fetcher.fetch("DGS2")).thenReturn(listOf(point(0, "3.60"), point(14, "3.90")))
 
         val result = service.getYields(lookbackDays = 14)
 

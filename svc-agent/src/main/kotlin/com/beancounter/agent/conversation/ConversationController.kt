@@ -1,5 +1,7 @@
 package com.beancounter.agent.conversation
 
+import com.beancounter.agent.conversation.ConversationService.Companion.ROLE_ASSISTANT
+import com.beancounter.agent.conversation.ConversationService.Companion.ROLE_USER
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -17,27 +19,72 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * The caller's saved agent conversations. Turns are written by the query
  * endpoints when a request carries a `conversationId`; this surface lists,
- * reads, renames and deletes them.
+ * reads, renames and deletes them. A client can also create one already
+ * holding an exchange that happened statelessly (a Quick Analysis the user
+ * then followed up on) by posting seed turns; the seeded answer earns the
+ * same generated title a live first answer would.
  */
 @RestController
 @RequestMapping("/agent/conversations")
 @Tag(name = "Conversations", description = "Saved agent chat history")
 class ConversationController(
     private val service: ConversationService,
-    private val owner: ConversationOwner
+    private val owner: ConversationOwner,
+    private val titler: ConversationTitler
 ) {
     private companion object {
         const val MAX_PAGE_SIZE = 100
+        const val MAX_SEED_TURNS = 50
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Start an empty conversation; it is listed once it holds a turn")
-    fun create(): ConversationSummaryResponse {
-        val conversation = service.create(owner.id())
+    @Operation(
+        summary =
+            "Start a conversation, empty or seeded with prior turns (max 50); it is listed once it holds a turn"
+    )
+    fun create(
+        @RequestBody(required = false) request: CreateConversationRequest?
+    ): ConversationSummaryResponse {
+        val turns = request?.turns.orEmpty()
+        validate(turns)
+        val ownerId = owner.id()
+        val conversation = service.create(ownerId)
+        if (turns.isNotEmpty()) seed(ownerId, conversation.id, turns)
         return ConversationSummaryResponse(
-            ConversationSummary(conversation.id, conversation.title, conversation.createdAt, conversation.updatedAt)
+            ConversationSummary(
+                conversation.id,
+                if (turns.isEmpty()) conversation.title else service.titleOf(ownerId, conversation.id),
+                conversation.createdAt,
+                conversation.updatedAt
+            )
         )
+    }
+
+    private fun validate(turns: List<SeedTurn>) {
+        require(turns.size <= MAX_SEED_TURNS) { "A conversation can be seeded with at most $MAX_SEED_TURNS turns" }
+        turns.forEach {
+            require(it.role == ROLE_USER || it.role == ROLE_ASSISTANT) { "Seed turn role must be user or assistant" }
+            require(it.content.isNotBlank()) { "Seed turn content cannot be blank" }
+        }
+    }
+
+    /** Store [turns] in order, then title the conversation as a live first answer would. */
+    private fun seed(
+        ownerId: String,
+        id: String,
+        turns: List<SeedTurn>
+    ) {
+        turns.forEach {
+            if (it.role == ROLE_USER) {
+                service.appendUser(ownerId, id, it.content, it.deepThink, it.label)
+            } else {
+                service.appendAssistant(ownerId, id, it.content, null)
+            }
+        }
+        val answer = turns.lastOrNull { it.role == ROLE_ASSISTANT } ?: return
+        val questions = turns.filter { it.role == ROLE_USER }.map { it.label ?: it.content }
+        titler.suggest(ownerId, id, service.titleOf(ownerId, id), questions, answer.content)
     }
 
     @GetMapping
@@ -76,6 +123,18 @@ class ConversationController(
     @Operation(summary = "Delete all of the caller's conversations (offboarding)")
     fun deleteAll(): DeletedConversationsResponse = DeletedConversationsResponse(service.deleteAll(owner.id()))
 }
+
+/** One turn to seed; [label] and [deepThink] only apply to a user turn. */
+data class SeedTurn(
+    val role: String,
+    val content: String,
+    val label: String? = null,
+    val deepThink: Boolean = false
+)
+
+data class CreateConversationRequest(
+    val turns: List<SeedTurn> = emptyList()
+)
 
 data class RenameConversationRequest(
     val title: String

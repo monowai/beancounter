@@ -24,6 +24,9 @@ object PriceSeriesGaps {
      * The last stored date before the first hole wider than [MAX_CALENDAR_GAP_DAYS],
      * or null when the series has no such hole. Backfilling from that date refills
      * the hole; the dedup in `PriceService.handle` drops the one row that exists.
+     *
+     * Sorts its input: the repository query is ordered, but the history controller
+     * passes dates taken from a split-adjusted series, and the cost is trivial.
      */
     fun firstGapStart(dates: List<LocalDate>): LocalDate? {
         val sorted = dates.sorted()

@@ -88,12 +88,13 @@ interface MarketDataRepo : JpaRepository<MarketData, String> {
     ): LocalDate?
 
     /**
-     * Every stored price date for one asset inside [from, to], ascending. Dates only —
-     * a 10y series is ~2,600 values, cheap enough for the backfill coverage check to
-     * see internal holes that MIN/MAX cannot (see [PriceSeriesGaps]).
+     * Every distinct stored price date for one asset inside [from, to], ascending. Dates
+     * only — a 10y series is ~2,600 values, cheap enough for the backfill coverage check
+     * to see internal holes that MIN/MAX cannot (see [PriceSeriesGaps]). DISTINCT because
+     * uniqueness is `(source, asset_id, priceDate)`: two providers can hold one date.
      */
     @Query(
-        "SELECT md.priceDate FROM MarketData md " +
+        "SELECT DISTINCT md.priceDate FROM MarketData md " +
             "WHERE md.asset.id = :assetId AND md.priceDate BETWEEN :from AND :to " +
             "ORDER BY md.priceDate ASC"
     )

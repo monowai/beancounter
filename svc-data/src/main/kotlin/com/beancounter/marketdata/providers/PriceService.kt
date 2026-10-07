@@ -189,9 +189,7 @@ class PriceService(
             createSet
         } else {
             persistInChunks(createSet)
-            if (relinked.isNotEmpty()) {
-                marketDataRepo.saveAll(relinked)
-            }
+            persistInChunks(relinked)
             val dates = createSet.map { it.priceDate }.distinct()
             dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
             // Return the application-constructed rows. Each chunk was written in

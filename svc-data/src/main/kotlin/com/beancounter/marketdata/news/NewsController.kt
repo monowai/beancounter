@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -24,7 +25,8 @@ import org.springframework.web.bind.annotation.RestController
 )
 @Tag(name = "News", description = "Financial news and sentiment analysis")
 class NewsController(
-    private val newsService: NewsServiceFacade
+    private val newsService: NewsServiceFacade,
+    private val newsSentimentService: NewsSentimentService
 ) {
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -71,4 +73,40 @@ class NewsController(
         @Parameter(description = "Comma-separated topic tags", example = "stock markets,economy")
         @RequestParam topics: String
     ): Map<String, Any> = newsService.getTopicNews(topics.split(",").map { it.trim() }.filter { it.isNotEmpty() })
+
+    @GetMapping("/sentiment", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "Get daily aggregated news sentiment per asset",
+        description =
+            "Returns the stored EODHD daily sentiment series ({date, count, normalized in [-1, 1]}) " +
+                "keyed by asset id for the trailing window. Served from the local cache refreshed " +
+                "nightly — never hits the provider. Assets with no coverage are absent from the map."
+    )
+    fun getSentiment(
+        @Parameter(description = "Comma-separated BC asset ids")
+        @RequestParam assetIds: String,
+        @Parameter(
+            description =
+                "Trailing window in days. Default 30; values above 365 are clamped to 365 and values " +
+                    "below 1 to 1 rather than rejected."
+        )
+        @RequestParam(defaultValue = "30") days: Int
+    ): Map<String, Any> {
+        val ids = assetIds.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        return mapOf("data" to newsSentimentService.get(ids, days.coerceIn(1, MAX_SENTIMENT_DAYS)))
+    }
+
+    @PostMapping("/sentiment/refresh", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
+    @Operation(
+        summary = "Refresh daily news sentiment from EODHD",
+        description =
+            "Runs the same fan-out as the nightly NewsSentimentSchedule: every active asset on an " +
+                "EODHD-enabled market, batched per call, upserting (asset, date) rows."
+    )
+    fun refreshSentiment(): Map<String, Any> = mapOf("data" to newsSentimentService.refresh())
+
+    companion object {
+        const val MAX_SENTIMENT_DAYS = 365
+    }
 }

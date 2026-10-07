@@ -36,5 +36,17 @@ data class EodhdNewsProperties(
      * relevance-sorted rather than date-sorted, and without `from` return months-old items — this
      * bounds the window to something a macro briefing actually cares about.
      */
-    val topicWindowDays: Long = 14
+    val topicWindowDays: Long = 14,
+    /**
+     * Symbols per `/api/sentiments` call made by
+     * [com.beancounter.marketdata.news.NewsSentimentService.refresh]. EODHD accepts a
+     * comma-separated `s=` list; 20 keeps the URL short and bounds the blast radius of one failed
+     * batch.
+     */
+    val sentimentBatchSize: Int = 20,
+    /**
+     * Days of history requested the first time an asset is seen by the sentiment refresh. Later
+     * runs only re-read a short trailing overlap from the latest stored day.
+     */
+    val sentimentInitialDays: Long = 30
 )

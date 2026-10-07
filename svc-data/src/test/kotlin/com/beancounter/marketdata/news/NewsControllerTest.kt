@@ -13,7 +13,8 @@ import org.mockito.kotlin.whenever
  */
 internal class NewsControllerTest {
     private val newsService = mock<NewsServiceFacade>()
-    private val controller = NewsController(newsService)
+    private val newsSentimentService = mock<NewsSentimentService>()
+    private val controller = NewsController(newsService, newsSentimentService)
 
     @Test
     fun `getNews delegates tickers, market and topics to the facade`() {

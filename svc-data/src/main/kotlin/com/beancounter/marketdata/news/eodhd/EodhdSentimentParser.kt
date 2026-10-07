@@ -7,6 +7,7 @@ import tools.jackson.databind.json.JsonMapper
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.util.Locale
 
 /**
  * One day of aggregated sentiment as served by `GET /news/sentiment` and parsed from EODHD.
@@ -44,7 +45,7 @@ object EodhdSentimentParser {
                 throw IllegalArgumentException("Unparseable sentiment payload", e)
             }
         require(root.isObject) { "Sentiment payload is not a JSON object: ${json.take(PAYLOAD_EXCERPT)}" }
-        return root.properties().associate { (symbol, node) -> symbol.uppercase() to points(symbol, node) }
+        return root.properties().associate { (symbol, node) -> symbol.uppercase(Locale.ROOT) to points(symbol, node) }
     }
 
     private fun points(
@@ -67,11 +68,16 @@ object EodhdSentimentParser {
             log.warn("Dropping sentiment point for {} with non-numeric normalized: {}", symbol, node)
             return null
         }
+        val dateNode = node.path("date")
+        if (!dateNode.isString) {
+            log.warn("Dropping sentiment point for {} with missing date: {}", symbol, node)
+            return null
+        }
         val date =
             try {
-                LocalDate.parse(node.path("date").asString())
+                LocalDate.parse(dateNode.asString())
             } catch (e: DateTimeParseException) {
-                log.warn("Dropping sentiment point for {} with unparseable date: {}", symbol, e.message)
+                log.warn("Dropping sentiment point for {} with malformed date: {}", symbol, e.message)
                 return null
             }
         val count = node.path("count")

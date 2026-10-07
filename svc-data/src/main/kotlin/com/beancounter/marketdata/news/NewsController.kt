@@ -85,7 +85,11 @@ class NewsController(
     fun getSentiment(
         @Parameter(description = "Comma-separated BC asset ids")
         @RequestParam assetIds: String,
-        @Parameter(description = "Trailing window in days (default 30, max 365)")
+        @Parameter(
+            description =
+                "Trailing window in days. Default 30; values above 365 are clamped to 365 and values " +
+                    "below 1 to 1 rather than rejected."
+        )
         @RequestParam(defaultValue = "30") days: Int
     ): Map<String, Any> {
         val ids = assetIds.split(",").map { it.trim() }.filter { it.isNotEmpty() }

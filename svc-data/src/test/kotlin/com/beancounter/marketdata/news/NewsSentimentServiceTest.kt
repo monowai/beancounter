@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -27,6 +28,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 /**
  * [NewsSentimentService] against real H2 state. Only the EODHD HTTP seam ([EodhdProxy]) is mocked;
@@ -205,6 +209,83 @@ internal class NewsSentimentServiceTest {
         val from = argumentCaptor<String>()
         verify(eodhdProxy).getSentiments(eq("SNTA.US"), from.capture(), any())
         assertThat(from.firstValue).isEqualTo(dateUtils.date.minusDays(30).toString())
+    }
+
+    @Test
+    fun `refresh is single-flight and a concurrent call returns skipped`() {
+        val firstCallStarted = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        whenever(eodhdProxy.getSentiments(any(), any(), any())).thenAnswer {
+            firstCallStarted.countDown()
+            release.await(5, TimeUnit.SECONDS)
+            "{}"
+        }
+        val worker = thread { service.refresh() }
+        assertThat(firstCallStarted.await(5, TimeUnit.SECONDS)).isTrue()
+
+        val concurrent = service.refresh()
+
+        release.countDown()
+        worker.join(10_000)
+        assertThat(concurrent.skipped).isTrue()
+        assertThat(concurrent.calls).isZero()
+        assertThat(service.refresh().skipped).isFalse()
+    }
+
+    @Test
+    fun `refresh batches new assets apart from assets with history`() {
+        val latest = dateUtils.date.minusDays(5)
+        val known = (1..20).map { "snt-known-$it" }
+        known.forEachIndexed { index, id ->
+            assetRepository.save(
+                Asset(code = "SNTK$index", id = id, name = id, market = nasdaq, status = Status.Active)
+            )
+        }
+        (known + coveredId).forEach { id ->
+            repo.save(
+                NewsSentimentDaily(id, latest, "$id.US", 1, BigDecimal("0.1"), LocalDateTime.now(dateUtils.zoneId))
+            )
+        }
+        val wide =
+            NewsSentimentService(
+                eodhdProxy,
+                eodhdConfig,
+                assetFinder,
+                repo,
+                EodhdNewsProperties(sentimentBatchSize = 25, sentimentInitialDays = 30),
+                dateUtils
+            )
+
+        wide.refresh()
+
+        val symbols = argumentCaptor<String>()
+        val from = argumentCaptor<String>()
+        verify(eodhdProxy, atLeastOnce()).getSentiments(symbols.capture(), from.capture(), any())
+        val calls = symbols.allValues.zip(from.allValues)
+        val knownCall = calls.single { it.first.contains("SNTA.US") }
+        assertThat(knownCall.first).doesNotContain("SNTB.US")
+        assertThat(knownCall.second).isEqualTo(latest.minusDays(2).toString())
+        val freshCall = calls.single { it.first.contains("SNTB.US") }
+        assertThat(freshCall.second).isEqualTo(dateUtils.date.minusDays(30).toString())
+    }
+
+    @Test
+    fun `refresh leaves unchanged rows untouched on an identical re-run`() {
+        stubCovered()
+        service.refresh()
+        val before =
+            repo
+                .findByAssetIdInAndPriceDateGreaterThanEqualOrderByPriceDateAsc(listOf(coveredId), epoch)
+                .associate { it.priceDate to it.fetchedAt }
+
+        val second = service.refresh()
+
+        assertThat(second.rows).isZero()
+        val after =
+            repo
+                .findByAssetIdInAndPriceDateGreaterThanEqualOrderByPriceDateAsc(listOf(coveredId), epoch)
+                .associate { it.priceDate to it.fetchedAt }
+        assertThat(after).isEqualTo(before)
     }
 
     @Test

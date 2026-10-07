@@ -6,7 +6,7 @@ import java.math.RoundingMode
 import java.time.LocalDate
 
 /**
- * Projects AlphaVantage TREASURY_YIELD data (via [TreasuryYieldFetcher]) into the sparse
+ * Projects FRED daily treasury-yield series (via [TreasuryYieldFetcher]) into the sparse
  * chart-ready shape `/macro/indicators` returns.
  *
  * Maturities are fetched independently and a maturity with no upstream data is simply omitted
@@ -17,7 +17,7 @@ class TreasuryYieldService(
     private val fetcher: TreasuryYieldFetcher
 ) {
     fun getYields(lookbackDays: Int = DEFAULT_LOOKBACK_DAYS): List<YieldSeries> =
-        MATURITIES.mapNotNull { (series, maturity) -> project(series, fetcher.fetch(maturity), lookbackDays) }
+        MATURITIES.mapNotNull { (series, seriesId) -> project(series, fetcher.fetch(seriesId), lookbackDays) }
 
     private fun project(
         series: String,
@@ -76,11 +76,11 @@ class TreasuryYieldService(
         private const val THIRTY_DAYS = 30L
         private val BPS_MULTIPLIER = BigDecimal(100)
 
-        // AlphaVantage TREASURY_YIELD maturity codes -> BC series labels.
+        // BC series labels -> FRED series ids (constant-maturity treasury yields).
         private val MATURITIES =
             listOf(
-                "US10Y" to "10year",
-                "US2Y" to "2year"
+                "US10Y" to "DGS10",
+                "US2Y" to "DGS2"
             )
     }
 }

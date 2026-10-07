@@ -214,7 +214,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, news.sentiment, eodhd.news.sentiment, alpha.treasury.yield, market.holidays
+    cache-names: system.user, asset.prices, asset.search, asset.mstack.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, eodhd.asset.event, news.sentiment, eodhd.news.sentiment, macro.treasury.yield, market.holidays
   flyway:
     enabled: false  # Disabled by default for H2 tests; enable in profile for PostgreSQL
     baseline-on-migrate: true
@@ -688,6 +688,10 @@ beancounter:
       # override only for a sandbox/mock endpoint.
       kalshi:
         url: https://api.elections.kalshi.com
+
+      # FRED (St Louis Fed) fredgraph.csv — keyless, public domain; treasury yield series DGS10/DGS2.
+      fred:
+        url: https://fred.stlouisfed.org
 
       # OpenFIGI - free, unlimited, Bloomberg-based
       figi:

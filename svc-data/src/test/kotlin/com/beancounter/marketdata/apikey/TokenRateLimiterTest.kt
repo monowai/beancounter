@@ -85,6 +85,13 @@ internal class TokenRateLimiterTest {
     }
 
     @Test
+    fun `should fail fast with a clear message when trusted proxies regex is invalid`() {
+        assertThatThrownBy { TokenRateLimiter(trustedProxies = "(") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("trusted-proxies")
+    }
+
+    @Test
     fun `should fall back to remote address without forwarded header`() {
         val request = MockHttpServletRequest()
         request.remoteAddr = "10.0.0.1"

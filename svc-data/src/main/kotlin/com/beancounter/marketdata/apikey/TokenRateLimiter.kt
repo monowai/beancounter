@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.regex.PatternSyntaxException
 
 /**
  * Fixed-window, in-memory rate limiter for the (unauthenticated) token
@@ -62,7 +63,17 @@ class TokenRateLimiter(
         }
     }
 
-    private val trustedProxy = Regex(trustedProxies)
+    // Compiled once; a malformed operator value must fail bean construction
+    // with a message naming the property, not a bare PatternSyntaxException.
+    private val trustedProxy =
+        try {
+            Regex(trustedProxies)
+        } catch (e: PatternSyntaxException) {
+            throw IllegalArgumentException(
+                "Invalid auth.bc-issuer.rate-limit.trusted-proxies regex: $trustedProxies",
+                e
+            )
+        }
 
     /**
      * Rate-limit key for [request].

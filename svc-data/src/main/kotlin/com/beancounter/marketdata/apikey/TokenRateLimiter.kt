@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.apikey
 
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -8,9 +9,10 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Fixed-window, in-memory rate limiter for the (unauthenticated) token
- * exchange endpoint, keyed by caller IP - the only signal available before
- * [ApiKeyService.verify] has run. Single-JVM only: a multi-instance
- * deployment would need a shared store, out of scope for phase 2.
+ * exchange endpoint, keyed by client address ([clientKey]) - the only
+ * signal available before [ApiKeyService.verify] has run. Single-JVM only:
+ * a multi-instance deployment would need a shared store, out of scope for
+ * phase 2.
  *
  * `maxRequests`/`window` are constructor params (not read once into a
  * `val` from `@Value` defaults only) so tests can tighten the window
@@ -49,5 +51,25 @@ class TokenRateLimiter(
         if (current != null && current.count > maxRequests) {
             throw TooManyRequestsException("Rate limit exceeded for token exchange")
         }
+    }
+
+    companion object {
+        const val FORWARDED_FOR_HEADER = "X-Forwarded-For"
+
+        /**
+         * Rate-limit key for [request]: the leftmost non-blank address in
+         * `X-Forwarded-For` when present, else the socket's `remoteAddr`.
+         * Behind a reverse proxy or the mobile BFF every caller shares one
+         * `remoteAddr`, so keying on it alone collapses all clients into a
+         * single window (#1173).
+         */
+        fun clientKey(request: HttpServletRequest): String =
+            request
+                .getHeader(FORWARDED_FOR_HEADER)
+                .orEmpty()
+                .split(',')
+                .map(String::trim)
+                .firstOrNull(String::isNotBlank)
+                ?: request.remoteAddr
     }
 }

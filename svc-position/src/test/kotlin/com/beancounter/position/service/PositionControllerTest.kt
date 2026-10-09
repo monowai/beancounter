@@ -2,8 +2,11 @@ package com.beancounter.position.service
 
 import com.beancounter.client.FxService
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.contracts.NetWorth
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
@@ -11,6 +14,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.utils.TestHelpers
 import com.beancounter.position.valuation.Valuation
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,6 +24,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -56,6 +61,9 @@ class PositionControllerTest {
     @Mock
     private lateinit var brokerPositionService: BrokerPositionService
 
+    @Mock
+    private lateinit var netWorthService: NetWorthService
+
     private lateinit var positionController: PositionController
 
     private lateinit var testPortfolio: Portfolio
@@ -72,7 +80,8 @@ class PositionControllerTest {
                 allocationService,
                 sectorExposureService,
                 fxService,
-                brokerPositionService
+                brokerPositionService,
+                netWorthService
             )
         positionController.setValuationService(valuationService)
     }
@@ -451,5 +460,45 @@ class PositionControllerTest {
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
         verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull())
         assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+    }
+
+    @Test
+    fun `should return 400 when currency is missing`() {
+        // BusinessException maps to HTTP 400 via GlobalExceptionHandler.
+        assertThatThrownBy {
+            positionController.netWorth(asAt = "2024-01-15", codes = null, ids = null, currency = " ")
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("currency")
+
+        verify(netWorthService, never()).calculate(any(), any(), any())
+    }
+
+    @Test
+    fun `should calculate net worth for resolved portfolios in the requested currency`() {
+        val expected = NetWorth(asAt = "2024-01-15", currency = "SGD")
+        whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
+        whenever(netWorthService.calculate(any(), eq("2024-01-15"), eq("SGD"))).thenReturn(expected)
+
+        val result =
+            positionController.netWorth(asAt = "2024-01-15", codes = null, ids = "test-portfolio", currency = "SGD")
+
+        assertThat(result.data).isEqualTo(expected)
+        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
+        verify(netWorthService).calculate(captor.capture(), eq("2024-01-15"), eq("SGD"))
+        assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+    }
+
+    @Test
+    fun `should return 404 when none of the requested portfolio ids resolve`() {
+        // NotFoundException maps to HTTP 404 via GlobalExceptionHandler.
+        whenever(portfolioServiceClient.getPortfolioById("not-visible"))
+            .thenThrow(BusinessException("Unable to find portfolio not-visible"))
+
+        assertThatThrownBy {
+            positionController.netWorth(asAt = "2024-01-15", codes = null, ids = "not-visible", currency = "SGD")
+        }.isInstanceOf(NotFoundException::class.java)
+            .hasMessageContaining("None of the requested portfolios are visible")
+
+        verify(netWorthService, never()).calculate(any(), any(), any())
     }
 }

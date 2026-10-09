@@ -1,6 +1,7 @@
 package com.beancounter.position.composite
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
@@ -35,6 +36,23 @@ class AssetConfigClient(
                 }
                 throw ex
             } ?: throw NotFoundException("Asset config not found: $assetId")
+        return response.data
+    }
+
+    /**
+     * Every private-asset config visible to the caller. Used by the net-worth
+     * rollup to find composite (sub-account) balances that have no parent
+     * position in any portfolio.
+     */
+    fun findAll(): List<PrivateAssetConfigDto> {
+        val response =
+            restClient
+                .get()
+                .uri("/assets/config")
+                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+                .retrieve()
+                .body<PrivateAssetConfigsResponseDto>()
+                ?: throw BusinessException("svc-data returned no body for /assets/config")
         return response.data
     }
 }

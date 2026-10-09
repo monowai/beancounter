@@ -4,9 +4,13 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.FxService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.AllocationResponse
+import com.beancounter.common.contracts.NetWorthResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.SectorExposureResponse
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.valuation.Valuation
 import io.swagger.v3.oas.annotations.Operation
@@ -51,7 +55,8 @@ class PositionController(
     private val allocationService: AllocationService,
     private val sectorExposureService: SectorExposureService,
     private val fxService: FxService,
-    private val brokerPositionService: BrokerPositionService
+    private val brokerPositionService: BrokerPositionService,
+    private val netWorthService: NetWorthService
 ) {
     private lateinit var valuationService: Valuation
 
@@ -363,40 +368,126 @@ class PositionController(
             value = "currency",
             required = false
         ) targetCurrency: String?
-    ): PositionResponse {
-        val selectedPortfolios: Collection<com.beancounter.common.model.Portfolio> =
-            if (!ids.isNullOrBlank()) {
-                // Mirror /allocation's per-id fetch (see PR #906). Codes can
-                // collide across users; ids disambiguate.
-                ids
-                    .split(",")
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
-                    .mapNotNull { id ->
-                        try {
-                            portfolioServiceClient.getPortfolioById(id)
-                        } catch (e: com.beancounter.common.exception.BusinessException) {
-                            log.debug("Skipping portfolio {} (not visible to caller): {}", id, e.message)
-                            null
-                        }
-                    }
-            } else {
-                val allPortfolios = portfolioServiceClient.portfolios.data
-                if (codes.isNullOrBlank()) {
-                    allPortfolios
-                } else {
-                    val codeSet = codes.split(",").map { it.trim() }.toSet()
-                    allPortfolios.filter { it.code in codeSet }
-                }
-            }
-        val response =
-            valuationService.getAggregatedPositions(
-                selectedPortfolios,
-                asAt,
-                value,
-                targetCurrency
+    ): PositionResponse =
+        valuationService.getAggregatedPositions(
+            resolvePortfolios(ids, codes),
+            asAt,
+            value,
+            targetCurrency
+        )
+
+    @GetMapping(
+        value = ["/net-worth"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get the net worth headline across portfolios",
+        description = """
+            Rolls selected portfolios up into a single Net Worth figure in the
+            requested currency: live aggregated holdings plus standalone
+            composite (CPF / pension) balances that have no parent position,
+            with a liquidity-group breakdown and per-portfolio rows.
+
+            Healthcare reserve (CPF MA style balances) is reported as an
+            informational subset and is NOT added to totalValue.
+
+            Use this instead of re-deriving the headline client-side.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Net worth calculated successfully"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Currency missing or an FX rate could not be resolved"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "None of the requested portfolio ids are visible to the caller"
             )
-        return response
+        ]
+    )
+    fun netWorth(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Comma-separated portfolio codes to include. If empty, all portfolios are included.",
+            example = "PORTFOLIO1,PORTFOLIO2"
+        )
+        @RequestParam(
+            value = "codes",
+            required = false
+        ) codes: String?,
+        @Parameter(
+            description = "Comma-separated portfolio ids to include. Takes precedence over `codes`.",
+            example = "id-1,id-2"
+        )
+        @RequestParam(
+            value = "ids",
+            required = false
+        ) ids: String?,
+        @Parameter(
+            description = "Target display currency for every value in the response. Required.",
+            example = "SGD"
+        )
+        @RequestParam(
+            value = "currency",
+            required = false
+        ) currency: String?
+    ): NetWorthResponse {
+        if (currency.isNullOrBlank()) {
+            throw BusinessException("currency is required")
+        }
+        val portfolios = resolvePortfolios(ids, codes)
+        // A headline figure must not quietly read as zero when every requested id was skipped.
+        if (!ids.isNullOrBlank() && portfolios.isEmpty()) {
+            throw NotFoundException("None of the requested portfolios are visible")
+        }
+        return NetWorthResponse(
+            data = netWorthService.calculate(portfolios, asAt, currency)
+        )
+    }
+
+    /**
+     * Portfolio selection shared by the cross-portfolio endpoints. `ids`
+     * wins over `codes`: each id is fetched through svc-data so visibility
+     * is delegated to its canView (owners, accepted shares, M2M SYSTEM),
+     * and ids the caller cannot see are skipped. Codes filter the caller's
+     * own portfolio list; neither means everything.
+     */
+    private fun resolvePortfolios(
+        ids: String?,
+        codes: String?
+    ): Collection<Portfolio> {
+        if (!ids.isNullOrBlank()) {
+            return ids
+                .split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .mapNotNull { id ->
+                    try {
+                        portfolioServiceClient.getPortfolioById(id)
+                    } catch (e: BusinessException) {
+                        log.debug("Skipping portfolio {} (not visible to caller): {}", id, e.message)
+                        null
+                    }
+                }
+        }
+        val allPortfolios = portfolioServiceClient.portfolios.data
+        if (codes.isNullOrBlank()) {
+            return allPortfolios
+        }
+        val codeSet = codes.split(",").map { it.trim() }.toSet()
+        return allPortfolios.filter { it.code in codeSet }
     }
 
     @GetMapping(
@@ -466,7 +557,7 @@ class PositionController(
         // shares of regular user tokens. Net effect: M2M with valid ids gets
         // the owner's portfolios; user tokens behave identically to before
         // for ids they could already see.
-        val selectedPortfolios: Collection<com.beancounter.common.model.Portfolio> =
+        val selectedPortfolios: Collection<Portfolio> =
             if (ids.isNullOrBlank()) {
                 portfolioServiceClient.portfolios.data
             } else {
@@ -477,7 +568,7 @@ class PositionController(
                     .mapNotNull { id ->
                         try {
                             portfolioServiceClient.getPortfolioById(id)
-                        } catch (e: com.beancounter.common.exception.BusinessException) {
+                        } catch (e: BusinessException) {
                             // Only "not visible / not found" cases are
                             // swallowed. Other failures (network, auth)
                             // propagate so genuine problems aren't silently

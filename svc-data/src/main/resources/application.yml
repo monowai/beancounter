@@ -706,7 +706,9 @@ beancounter:
         url: https://fred.stlouisfed.org
       # SEC EDGAR - keyless, public domain. Sector/industry (SIC) and XBRL fundamentals for
       # US-listed equities via SecClassificationEnricher; opt in with
-      # `classification: sec,alpha`. Fair use: descriptive User-Agent required, <=10 req/s.
+      # `beancounter.classification.providers: sec,alpha` (NOT under this providers map,
+      # which binds as Map<String, Market> - #1176). Fair use: descriptive User-Agent
+      # required, <=10 req/s.
       sec:
         url: https://data.sec.gov
         tickers-url: https://www.sec.gov

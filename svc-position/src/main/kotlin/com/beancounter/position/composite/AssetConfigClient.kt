@@ -1,6 +1,7 @@
 package com.beancounter.position.composite
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
@@ -51,6 +52,7 @@ class AssetConfigClient(
                 .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
                 .retrieve()
                 .body<PrivateAssetConfigsResponseDto>()
-        return response?.data ?: emptyList()
+                ?: throw BusinessException("svc-data returned no body for /assets/config")
+        return response.data
     }
 }

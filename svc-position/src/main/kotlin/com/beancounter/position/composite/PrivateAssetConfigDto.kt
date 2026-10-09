@@ -45,9 +45,11 @@ data class PrivateAssetConfigResponseDto(
 )
 
 /**
- * Wrapper for the GET /assets/config response shape (all configs owned by the caller).
+ * Wrapper for the GET /assets/config response shape (all configs owned by the
+ * caller). `data` is required: a payload without it is contract drift and
+ * must fail deserialisation rather than read as "no configs".
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PrivateAssetConfigsResponseDto(
-    val data: List<PrivateAssetConfigDto> = emptyList()
+    val data: List<PrivateAssetConfigDto>
 )

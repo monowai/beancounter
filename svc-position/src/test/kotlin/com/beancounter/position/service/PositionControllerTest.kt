@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.NetWorth
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
@@ -485,5 +486,19 @@ class PositionControllerTest {
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
         verify(netWorthService).calculate(captor.capture(), eq("2024-01-15"), eq("SGD"))
         assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+    }
+
+    @Test
+    fun `should return 404 when none of the requested portfolio ids resolve`() {
+        // NotFoundException maps to HTTP 404 via GlobalExceptionHandler.
+        whenever(portfolioServiceClient.getPortfolioById("not-visible"))
+            .thenThrow(BusinessException("Unable to find portfolio not-visible"))
+
+        assertThatThrownBy {
+            positionController.netWorth(asAt = "2024-01-15", codes = null, ids = "not-visible", currency = "SGD")
+        }.isInstanceOf(NotFoundException::class.java)
+            .hasMessageContaining("None of the requested portfolios are visible")
+
+        verify(netWorthService, never()).calculate(any(), any(), any())
     }
 }

@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.NetWorthResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.SectorExposureResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
@@ -402,6 +403,10 @@ class PositionController(
             ApiResponse(
                 responseCode = "400",
                 description = "Currency missing or an FX rate could not be resolved"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "None of the requested portfolio ids are visible to the caller"
             )
         ]
     )
@@ -442,8 +447,13 @@ class PositionController(
         if (currency.isNullOrBlank()) {
             throw BusinessException("currency is required")
         }
+        val portfolios = resolvePortfolios(ids, codes)
+        // A headline figure must not quietly read as zero when every requested id was skipped.
+        if (!ids.isNullOrBlank() && portfolios.isEmpty()) {
+            throw NotFoundException("None of the requested portfolios are visible")
+        }
         return NetWorthResponse(
-            data = netWorthService.calculate(resolvePortfolios(ids, codes), asAt, currency)
+            data = netWorthService.calculate(portfolios, asAt, currency)
         )
     }
 

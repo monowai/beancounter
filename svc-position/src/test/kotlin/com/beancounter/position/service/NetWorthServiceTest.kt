@@ -289,7 +289,7 @@ class NetWorthServiceTest {
             )
         val other =
             position(
-                TestHelpers.createTestAsset("idx").apply { reportCategory = AssetCategory.REPORT_INDEX },
+                TestHelpers.createTestAsset("misc").apply { reportCategory = "Collectible" },
                 portfolio,
                 "SGD",
                 marketValue = "250"
@@ -338,6 +338,41 @@ class NetWorthServiceTest {
         val captor = argumentCaptor<FxRequest>()
         verify(fxService).getRates(captor.capture(), eq(token))
         assertThat(captor.firstValue.pairs).containsExactly(IsoCurrencyPair("USD", "SGD"))
+    }
+
+    @Test
+    fun `should group index assets as investment`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1000")
+        val index =
+            position(
+                TestHelpers.createTestAsset("idx").apply { reportCategory = AssetCategory.REPORT_INDEX },
+                portfolio,
+                "SGD",
+                marketValue = "1000"
+            )
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1000", index), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.classificationBreakdown.map { it.classification }).containsExactly("Investment")
+        assertThat(result.classificationBreakdown.first().value).isEqualByComparingTo("1000")
+    }
+
+    @Test
+    fun `should keep total value equal to the sum of its rounded components`() {
+        // money(0.005) + money(0.005) = 0.02, but money(0.005 + 0.005) = 0.01.
+        val portfolio = portfolio("p1", "SGD", marketValue = "0.01")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "0.005"), "SGD")
+        whenever(assetConfigClient.findAll())
+            .thenReturn(listOf(config("cpf", "SGD", SubAccountDto(code = "OA", balance = BigDecimal("0.005")))))
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.holdingsValue).isEqualByComparingTo("0.01")
+        assertThat(result.standaloneCompositeValue).isEqualByComparingTo("0.01")
+        assertThat(result.totalValue).isEqualByComparingTo(result.holdingsValue.add(result.standaloneCompositeValue))
+        assertThat(result.portfolios.single().percentage).isEqualByComparingTo("50.00")
     }
 
     private fun portfolio(

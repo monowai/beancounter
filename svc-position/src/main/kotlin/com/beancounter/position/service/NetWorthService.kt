@@ -74,17 +74,18 @@ class NetWorthService(
             } else {
                 holdingsTotals.marketValue.multiply(rates.getValue(holdingsTotals.currency.code))
             }
-        val standaloneCompositeValue = convert(composite.standalone, rates)
-        val healthcareReserve = convert(composite.reserve, rates)
-        val totalValue = holdingsValue.add(standaloneCompositeValue)
+        val standaloneCompositeValue = money(convert(composite.standalone, rates))
+        val healthcareReserve = money(convert(composite.reserve, rates))
+        // Sum the rounded components so totalValue always reconciles with what is returned.
+        val totalValue = money(holdingsValue).add(standaloneCompositeValue)
 
         return NetWorth(
             asAt = asAt,
             currency = target,
-            totalValue = money(totalValue),
+            totalValue = totalValue,
             holdingsValue = money(holdingsValue),
-            standaloneCompositeValue = money(standaloneCompositeValue),
-            healthcareReserve = money(healthcareReserve),
+            standaloneCompositeValue = standaloneCompositeValue,
+            healthcareReserve = healthcareReserve,
             gainOnDay = money(gainOnDay(positions)),
             portfolioCount = portfolios.size,
             classificationBreakdown = classificationBreakdown(positions),
@@ -233,29 +234,21 @@ class NetWorthService(
 
         /**
          * Liquidity group for a report category. Mirrors bc-view's
-         * mapToLiquidityGroup, keyed on [AssetCategory.REPORT_*] first with
-         * the raw category names it also accepted as fallbacks.
+         * mapToLiquidityGroup. Keyed only on the [AssetCategory.REPORT_*]
+         * constants: svc-data never writes `Asset.reportCategory`, so
+         * `effectiveReportCategory` always comes through
+         * [AssetCategory.toReportCategory], which normalises every configured
+         * category id to one of these constants.
          */
         fun liquidityGroup(category: String): String =
             when (category) {
                 AssetCategory.REPORT_EQUITY,
                 AssetCategory.REPORT_ETF,
                 AssetCategory.REPORT_MUTUAL_FUND,
-                "Exchange Traded Fund" -> GROUP_INVESTMENT
-                AssetCategory.REPORT_CASH,
-                "Bank Account",
-                "Trade" -> GROUP_CASH
-                AssetCategory.REPORT_PROPERTY,
-                "Real Estate",
-                AssetCategory.RE -> GROUP_PROPERTY
-                AssetCategory.REPORT_RETIREMENT_FUND,
-                "Pension",
-                "Insurance",
-                "Defined Contribution",
-                "Superannuation",
-                "Annuity",
-                "Policy",
-                "Policies" -> GROUP_RETIREMENT
+                AssetCategory.REPORT_INDEX -> GROUP_INVESTMENT
+                AssetCategory.REPORT_CASH -> GROUP_CASH
+                AssetCategory.REPORT_PROPERTY -> GROUP_PROPERTY
+                AssetCategory.REPORT_RETIREMENT_FUND -> GROUP_RETIREMENT
                 else -> GROUP_OTHER
             }
     }

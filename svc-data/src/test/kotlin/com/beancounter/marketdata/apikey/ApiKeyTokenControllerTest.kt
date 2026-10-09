@@ -37,6 +37,8 @@ import java.time.temporal.ChronoUnit
 private const val API_KEYS_ROOT = "/me/api-keys"
 private const val TOKEN_ENDPOINT = "/api-keys/token"
 private const val JWKS_ENDPOINT = "/.well-known/jwks.json"
+private const val FORWARDED_FOR = "X-Forwarded-For"
+private const val RATE_LIMIT_MAX = 10
 
 /**
  * Behaviour tests for the API-key -> JWT token-exchange endpoint (phase 2 -
@@ -102,15 +104,32 @@ internal class ApiKeyTokenControllerTest {
     // not defaulted - each test picks its own address.
     private fun exchange(
         apiKey: String,
-        remoteAddr: String
+        remoteAddr: String,
+        forwardedFor: String = ""
     ): ResultActions =
         mockMvc.perform(
             post(TOKEN_ENDPOINT)
                 .with(csrf())
-                .with { request -> request.apply { this.remoteAddr = remoteAddr } }
-                .content(objectMapper.writeValueAsBytes(ApiKeyTokenRequest(apiKey = apiKey)))
+                .with { request ->
+                    request.apply {
+                        this.remoteAddr = remoteAddr
+                        if (forwardedFor.isNotBlank()) addHeader(FORWARDED_FOR, forwardedFor)
+                    }
+                }.content(objectMapper.writeValueAsBytes(ApiKeyTokenRequest(apiKey = apiKey)))
                 .contentType(MediaType.APPLICATION_JSON)
         )
+
+    /** Fills the whole window for one caller; the next call from that caller is 429. */
+    private fun exhaustWindow(
+        apiKey: String,
+        remoteAddr: String,
+        forwardedFor: String = ""
+    ) {
+        repeat(RATE_LIMIT_MAX) {
+            exchange(apiKey, remoteAddr, forwardedFor).andExpect(status().isOk)
+        }
+        exchange(apiKey, remoteAddr, forwardedFor).andExpect(status().isTooManyRequests)
+    }
 
     private fun ownerOf(id: String): SystemUser =
         systemUserRepository.findByEmail("$id@testing.com").orElseThrow {
@@ -227,5 +246,84 @@ internal class ApiKeyTokenControllerTest {
 
         // A different caller IP gets its own window - not globally exhausted.
         exchange(created.apiKey, "10.1.0.8").andExpect(status().isOk)
+    }
+
+    @Test
+    fun `should key rate limit on first forwarded address`() {
+        val token = registeredToken("token-exchange-fwd-distinct")
+        val created = createKey(token)
+
+        // Behind a proxy/BFF every caller shares one remoteAddr - the
+        // forwarded client address must be what separates them.
+        exhaustWindow(created.apiKey, "10.1.0.9", forwardedFor = "203.0.113.1")
+        exchange(created.apiKey, "10.1.0.9", forwardedFor = "203.0.113.2").andExpect(status().isOk)
+    }
+
+    @Test
+    fun `should share rate limit window across requests with the same forwarded address`() {
+        val token = registeredToken("token-exchange-fwd-shared")
+        val created = createKey(token)
+
+        repeat(RATE_LIMIT_MAX) { i ->
+            val proxyAddr = if (i % 2 == 0) "10.1.0.10" else "10.1.0.11"
+            exchange(created.apiKey, proxyAddr, forwardedFor = "203.0.113.3").andExpect(status().isOk)
+        }
+        exchange(created.apiKey, "10.1.0.10", forwardedFor = "203.0.113.3").andExpect(status().isTooManyRequests)
+    }
+
+    @Test
+    fun `should fall back to remote address without forwarded header`() {
+        val token = registeredToken("token-exchange-fwd-fallback")
+        val created = createKey(token)
+
+        exhaustWindow(created.apiKey, "10.1.0.12")
+        exchange(created.apiKey, "10.1.0.13").andExpect(status().isOk)
+    }
+
+    @Test
+    fun `should use leftmost address when forwarded header lists only trusted proxies after it`() {
+        val token = registeredToken("token-exchange-fwd-chain")
+        val created = createKey(token)
+
+        exhaustWindow(created.apiKey, "10.1.0.14", forwardedFor = "203.0.113.9, 10.0.0.1")
+        // Same client through a different proxy chain shares the window...
+        exchange(created.apiKey, "10.1.0.14", forwardedFor = "203.0.113.9, 10.0.0.2")
+            .andExpect(status().isTooManyRequests)
+        // ...while a different leftmost client behind the same proxy does not.
+        exchange(created.apiKey, "10.1.0.14", forwardedFor = "203.0.113.10, 10.0.0.1")
+            .andExpect(status().isOk)
+    }
+
+    @Test
+    fun `should ignore forwarded header when peer is not a trusted proxy`() {
+        val token = registeredToken("token-exchange-untrusted-peer")
+        val created = createKey(token)
+
+        // A direct (untrusted) caller must not be able to mint itself a fresh
+        // window per request by writing its own X-Forwarded-For.
+        exhaustWindow(created.apiKey, "198.51.100.7", forwardedFor = "203.0.113.20")
+        exchange(created.apiKey, "198.51.100.7", forwardedFor = "203.0.113.21").andExpect(status().isTooManyRequests)
+        exchange(created.apiKey, "198.51.100.7").andExpect(status().isTooManyRequests)
+    }
+
+    @Test
+    fun `should use rightmost untrusted address when trusted proxies are appended`() {
+        val token = registeredToken("token-exchange-rightmost")
+        val created = createKey(token)
+
+        // Walking from the right, 10.0.0.1 is trusted and 198.51.100.4 is the
+        // first untrusted hop - the client-claimed 203.0.113.9 is never reached.
+        exhaustWindow(created.apiKey, "10.1.0.15", forwardedFor = "203.0.113.9, 198.51.100.4, 10.0.0.1")
+        exchange(created.apiKey, "10.1.0.15", forwardedFor = "198.51.100.4").andExpect(status().isTooManyRequests)
+    }
+
+    @Test
+    fun `should use leftmost address when every forwarded hop is trusted`() {
+        val token = registeredToken("token-exchange-all-trusted")
+        val created = createKey(token)
+
+        exhaustWindow(created.apiKey, "10.1.0.16", forwardedFor = "10.1.1.1, 10.2.2.2")
+        exchange(created.apiKey, "10.1.0.16", forwardedFor = "10.1.1.1").andExpect(status().isTooManyRequests)
+        exchange(created.apiKey, "10.1.0.16", forwardedFor = "10.2.2.2").andExpect(status().isOk)
     }
 }

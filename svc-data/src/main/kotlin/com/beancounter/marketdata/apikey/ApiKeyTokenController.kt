@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController
  * the key itself ([ApiKeyService.verify]), not a user JWT, so this can't
  * live under `/me` or behind the usual scope gate (see
  * ControllerAuthorizationTest's allowlist). Guarded instead by
- * [TokenRateLimiter], keyed on caller IP.
+ * [TokenRateLimiter], keyed on the forwarded client address (falling back
+ * to the socket address) - see [TokenRateLimiter.clientKey].
  */
 @RestController
 @RequestMapping("/api-keys")
@@ -35,7 +36,7 @@ class ApiKeyTokenController(
         @RequestBody request: ApiKeyTokenRequest,
         servletRequest: HttpServletRequest
     ): OpenIdResponse {
-        tokenRateLimiter.check(servletRequest.remoteAddr)
+        tokenRateLimiter.check(tokenRateLimiter.clientKey(servletRequest))
         val verifiedKey = apiKeyService.verify(request.apiKey)
         val jwt = bcTokenIssuer.mint(verifiedKey)
         return OpenIdResponse(

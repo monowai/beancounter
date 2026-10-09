@@ -14,14 +14,23 @@ import java.util.concurrent.ConcurrentHashMap
  * a multi-instance deployment would need a shared store, out of scope for
  * phase 2.
  *
- * `maxRequests`/`window` are constructor params (not read once into a
- * `val` from `@Value` defaults only) so tests can tighten the window
- * without needing a whole new Spring context.
+ * `maxRequests`/`window`/`trustedProxies` are constructor params (not read
+ * once into a `val` from `@Value` defaults only) so tests can tighten the
+ * window or widen the trust list without needing a whole new Spring context.
+ *
+ * `trustedProxies` is a regex over the whole peer address, the same shape as
+ * Tomcat's `RemoteIpValve.internalProxies`. The default covers loopback,
+ * RFC1918, link-local and IPv6 loopback - i.e. the in-cluster hops (ingress,
+ * the mobile BFF). On kauri the Cloudflare edge addresses must be added to
+ * `auth.bc-issuer.rate-limit.trusted-proxies` or every user behind one edge
+ * node shares a single window (see [clientKey]).
  */
 @Component
 class TokenRateLimiter(
     @Value($$"${auth.bc-issuer.rate-limit.max-requests:10}") private val maxRequests: Int = 10,
-    @Value($$"${auth.bc-issuer.rate-limit.window:PT1M}") private val window: Duration = Duration.ofMinutes(1)
+    @Value($$"${auth.bc-issuer.rate-limit.window:PT1M}") private val window: Duration = Duration.ofMinutes(1),
+    @Value($$"${auth.bc-issuer.rate-limit.trusted-proxies:$$DEFAULT_TRUSTED_PROXIES}")
+    private val trustedProxies: String = DEFAULT_TRUSTED_PROXIES
 ) {
     private data class Window(
         val start: Instant,
@@ -53,23 +62,47 @@ class TokenRateLimiter(
         }
     }
 
-    companion object {
-        const val FORWARDED_FOR_HEADER = "X-Forwarded-For"
+    private val trustedProxy = Regex(trustedProxies)
 
-        /**
-         * Rate-limit key for [request]: the leftmost non-blank address in
-         * `X-Forwarded-For` when present, else the socket's `remoteAddr`.
-         * Behind a reverse proxy or the mobile BFF every caller shares one
-         * `remoteAddr`, so keying on it alone collapses all clients into a
-         * single window (#1173).
-         */
-        fun clientKey(request: HttpServletRequest): String =
+    /**
+     * Rate-limit key for [request].
+     *
+     * The socket peer (`remoteAddr`) is the only address nobody can forge.
+     * If the peer is **not** a trusted proxy, `X-Forwarded-For` is ignored
+     * outright and the peer is the key - a direct caller can never influence
+     * its own bucket by writing the header (#1174 security review).
+     *
+     * If the peer is trusted, walk the header from the **right** (the hop
+     * nearest us) and return the first address that is not itself a trusted
+     * proxy - that is the client as seen by the outermost proxy we trust;
+     * anything to its left was supplied by that client and is untrusted.
+     * If every hop is trusted (or the header is absent) fall back to the
+     * leftmost address, else the peer.
+     *
+     * Behind a reverse proxy or the mobile BFF every caller shares one
+     * `remoteAddr`, so keying on it alone collapses all clients into a
+     * single window (#1173) - the trust list is what lets them be told apart.
+     */
+    fun clientKey(request: HttpServletRequest): String {
+        val peer = request.remoteAddr
+        if (!trustedProxy.matches(peer)) return peer
+        val hops =
             request
                 .getHeader(FORWARDED_FOR_HEADER)
                 .orEmpty()
                 .split(',')
                 .map(String::trim)
-                .firstOrNull(String::isNotBlank)
-                ?: request.remoteAddr
+                .filter(String::isNotBlank)
+        return hops.lastOrNull { !trustedProxy.matches(it) }
+            ?: hops.firstOrNull()
+            ?: peer
+    }
+
+    companion object {
+        const val FORWARDED_FOR_HEADER = "X-Forwarded-For"
+        const val DEFAULT_TRUSTED_PROXIES =
+            """10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|""" +
+                """127\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|""" +
+                """0:0:0:0:0:0:0:1|::1"""
     }
 }

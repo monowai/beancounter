@@ -281,7 +281,7 @@ internal class ApiKeyTokenControllerTest {
     }
 
     @Test
-    fun `should use leftmost address when forwarded header lists proxies`() {
+    fun `should use leftmost address when forwarded header lists only trusted proxies after it`() {
         val token = registeredToken("token-exchange-fwd-chain")
         val created = createKey(token)
 
@@ -292,5 +292,38 @@ internal class ApiKeyTokenControllerTest {
         // ...while a different leftmost client behind the same proxy does not.
         exchange(created.apiKey, "10.1.0.14", forwardedFor = "203.0.113.10, 10.0.0.1")
             .andExpect(status().isOk)
+    }
+
+    @Test
+    fun `should ignore forwarded header when peer is not a trusted proxy`() {
+        val token = registeredToken("token-exchange-untrusted-peer")
+        val created = createKey(token)
+
+        // A direct (untrusted) caller must not be able to mint itself a fresh
+        // window per request by writing its own X-Forwarded-For.
+        exhaustWindow(created.apiKey, "198.51.100.7", forwardedFor = "203.0.113.20")
+        exchange(created.apiKey, "198.51.100.7", forwardedFor = "203.0.113.21").andExpect(status().isTooManyRequests)
+        exchange(created.apiKey, "198.51.100.7").andExpect(status().isTooManyRequests)
+    }
+
+    @Test
+    fun `should use rightmost untrusted address when trusted proxies are appended`() {
+        val token = registeredToken("token-exchange-rightmost")
+        val created = createKey(token)
+
+        // Walking from the right, 10.0.0.1 is trusted and 198.51.100.4 is the
+        // first untrusted hop - the client-claimed 203.0.113.9 is never reached.
+        exhaustWindow(created.apiKey, "10.1.0.15", forwardedFor = "203.0.113.9, 198.51.100.4, 10.0.0.1")
+        exchange(created.apiKey, "10.1.0.15", forwardedFor = "198.51.100.4").andExpect(status().isTooManyRequests)
+    }
+
+    @Test
+    fun `should use leftmost address when every forwarded hop is trusted`() {
+        val token = registeredToken("token-exchange-all-trusted")
+        val created = createKey(token)
+
+        exhaustWindow(created.apiKey, "10.1.0.16", forwardedFor = "10.1.1.1, 10.2.2.2")
+        exchange(created.apiKey, "10.1.0.16", forwardedFor = "10.1.1.1").andExpect(status().isTooManyRequests)
+        exchange(created.apiKey, "10.1.0.16", forwardedFor = "10.2.2.2").andExpect(status().isOk)
     }
 }

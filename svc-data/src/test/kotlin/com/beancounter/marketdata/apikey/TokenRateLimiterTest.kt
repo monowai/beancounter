@@ -38,13 +38,50 @@ internal class TokenRateLimiterTest {
         assertThat(limiter.trackedClients).isEqualTo(1)
     }
 
-    @Test
-    fun `should use leftmost address when forwarded header lists proxies`() {
-        val request = MockHttpServletRequest()
-        request.remoteAddr = "10.0.0.1"
-        request.addHeader("X-Forwarded-For", " 203.0.113.9 , 10.0.0.1")
+    private fun requestFrom(
+        peer: String,
+        forwardedFor: String = ""
+    ): MockHttpServletRequest =
+        MockHttpServletRequest().apply {
+            remoteAddr = peer
+            if (forwardedFor.isNotBlank()) addHeader("X-Forwarded-For", forwardedFor)
+        }
 
-        assertThat(TokenRateLimiter.clientKey(request)).isEqualTo("203.0.113.9")
+    @Test
+    fun `should use leftmost address when forwarded header lists only trusted proxies after it`() {
+        val request = requestFrom("10.0.0.1", " 203.0.113.9 , 10.0.0.1")
+
+        assertThat(TokenRateLimiter().clientKey(request)).isEqualTo("203.0.113.9")
+    }
+
+    @Test
+    fun `should ignore forwarded header when peer is not a trusted proxy`() {
+        val request = requestFrom("198.51.100.7", "203.0.113.9")
+
+        assertThat(TokenRateLimiter().clientKey(request)).isEqualTo("198.51.100.7")
+    }
+
+    @Test
+    fun `should use rightmost untrusted address when trusted proxies are appended`() {
+        val request = requestFrom("127.0.0.1", "203.0.113.9, 198.51.100.4, 10.0.0.1")
+
+        assertThat(TokenRateLimiter().clientKey(request)).isEqualTo("198.51.100.4")
+    }
+
+    @Test
+    fun `should use leftmost address when every forwarded hop is trusted`() {
+        val request = requestFrom("::1", "10.1.1.1, 10.2.2.2")
+
+        assertThat(TokenRateLimiter().clientKey(request)).isEqualTo("10.1.1.1")
+    }
+
+    @Test
+    fun `should honour forwarded header from a peer matched by the configured trusted proxies`() {
+        val edgeTrusted = TokenRateLimiter(trustedProxies = """203\.0\.113\.\d{1,3}""")
+        val request = requestFrom("203.0.113.50", "198.51.100.4, 203.0.113.51")
+
+        assertThat(edgeTrusted.clientKey(request)).isEqualTo("198.51.100.4")
+        assertThat(TokenRateLimiter().clientKey(request)).isEqualTo("203.0.113.50")
     }
 
     @Test
@@ -52,7 +89,7 @@ internal class TokenRateLimiterTest {
         val request = MockHttpServletRequest()
         request.remoteAddr = "10.0.0.1"
 
-        assertThat(TokenRateLimiter.clientKey(request)).isEqualTo("10.0.0.1")
+        assertThat(TokenRateLimiter().clientKey(request)).isEqualTo("10.0.0.1")
     }
 
     @Test
@@ -61,6 +98,6 @@ internal class TokenRateLimiterTest {
         request.remoteAddr = "10.0.0.1"
         request.addHeader("X-Forwarded-For", " , ")
 
-        assertThat(TokenRateLimiter.clientKey(request)).isEqualTo("10.0.0.1")
+        assertThat(TokenRateLimiter().clientKey(request)).isEqualTo("10.0.0.1")
     }
 }

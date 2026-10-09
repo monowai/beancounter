@@ -36,7 +36,7 @@ class ApiKeyTokenController(
         @RequestBody request: ApiKeyTokenRequest,
         servletRequest: HttpServletRequest
     ): OpenIdResponse {
-        tokenRateLimiter.check(TokenRateLimiter.clientKey(servletRequest))
+        tokenRateLimiter.check(tokenRateLimiter.clientKey(servletRequest))
         val verifiedKey = apiKeyService.verify(request.apiKey)
         val jwt = bcTokenIssuer.mint(verifiedKey)
         return OpenIdResponse(

@@ -37,4 +37,20 @@ class AssetConfigClient(
             } ?: throw NotFoundException("Asset config not found: $assetId")
         return response.data
     }
+
+    /**
+     * Every private-asset config visible to the caller. Used by the net-worth
+     * rollup to find composite (sub-account) balances that have no parent
+     * position in any portfolio.
+     */
+    fun findAll(): List<PrivateAssetConfigDto> {
+        val response =
+            restClient
+                .get()
+                .uri("/assets/config")
+                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+                .retrieve()
+                .body<PrivateAssetConfigsResponseDto>()
+        return response?.data ?: emptyList()
+    }
 }

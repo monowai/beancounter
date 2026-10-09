@@ -14,6 +14,8 @@ data class PrivateAssetConfigDto(
     val assetId: String,
     val policyType: String? = null,
     val currency: String? = null,
+    /** Currency the sub-account balances are denominated in (svc-data's rental_currency column). */
+    val rentalCurrency: String? = null,
     val payoutAge: Int? = null,
     val monthlyPayoutAmount: BigDecimal? = null,
     val cpfLifePlan: String? = null,
@@ -40,4 +42,12 @@ data class SubAccountDto(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PrivateAssetConfigResponseDto(
     val data: PrivateAssetConfigDto
+)
+
+/**
+ * Wrapper for the GET /assets/config response shape (all configs owned by the caller).
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PrivateAssetConfigsResponseDto(
+    val data: List<PrivateAssetConfigDto> = emptyList()
 )

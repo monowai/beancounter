@@ -6,7 +6,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 
 /**
- * Selects the active [ClassificationEnricher] from `beancounter.market.providers.classification`.
+ * Selects the active [ClassificationEnricher] from `beancounter.classification.providers`.
+ *
+ * The key sits outside `beancounter.market.providers`: that prefix is bound by `MarketConfig` as
+ * `Map<String, Market>`, so a scalar under it is a startup bind error (#1176).
  *
  * The value is a CSV of provider keys - `alpha`, `eodhd`, `sec`. A single value selects that
  * enricher outright. Several (`sec,alpha`) wrap in a [ChainedClassificationEnricher] in the
@@ -29,7 +32,7 @@ class ClassificationEnricherConfig {
         alpha: AlphaClassificationEnricher,
         eodhd: EodhdClassificationEnricher,
         sec: SecClassificationEnricher,
-        @Value($$"${beancounter.market.providers.classification:alpha}") provider: String
+        @Value($$"${beancounter.classification.providers:alpha}") provider: String
     ): ClassificationEnricher {
         val selected =
             provider

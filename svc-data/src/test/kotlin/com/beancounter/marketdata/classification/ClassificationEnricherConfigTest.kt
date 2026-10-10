@@ -13,7 +13,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /**
- * `beancounter.market.providers.classification` accepts a CSV. One value selects that enricher
+ * `beancounter.classification.providers` accepts a CSV. One value selects that enricher
  * as before; several wrap in [ChainedClassificationEnricher], which hands each asset to the first
  * enricher that can handle it.
  */

@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
@@ -25,8 +26,9 @@ import java.time.LocalDate
  * Tests anchor + skip behaviour. Provider lineage is not preserved — these tests assert
  * the service treats any existing price as coverage, regardless of source.
  *
- * Service uses `LocalDate.now()` internally (matches `defaultBackfillFrom()` pattern), so
- * tests build expected values relative to today rather than fixing a calendar date.
+ * Today is fixed (a Wednesday) through an injected [DateUtils]: edge coverage depends on the
+ * weekday, so a clock-relative `today` made tests red whenever it landed on a weekend or Monday.
+ * Other dates are still built relative to [today].
  */
 class MarketDataBackfillServiceTest {
     private lateinit var providerUtils: ProviderUtils
@@ -38,7 +40,7 @@ class MarketDataBackfillServiceTest {
     private lateinit var provider: MarketDataPriceProvider
     private lateinit var service: MarketDataBackfillService
 
-    private val today: LocalDate get() = LocalDate.now()
+    private val today: LocalDate = LocalDate.of(2026, 10, 7)
     private val asset = Asset(code = "AAPL", id = "aapl-id", market = NASDAQ)
 
     @BeforeEach
@@ -57,17 +59,32 @@ class MarketDataBackfillServiceTest {
             .thenReturn(mutableMapOf(provider to mutableListOf(asset)))
         whenever(provider.backFill(any(), any())).thenReturn(PriceResponse(emptyList()))
 
-        service =
-            MarketDataBackfillService(
-                providerUtils,
-                priceService,
-                assetFinder,
-                marketDataRepo,
-                trnRepository,
-                cacheInvalidationProducer,
-                maxBackfillYears = 10
-            )
+        service = serviceOn(today)
     }
+
+    private fun serviceOn(date: LocalDate): MarketDataBackfillService {
+        val dateUtils: DateUtils = mock()
+        whenever(dateUtils.date).thenReturn(date)
+        return MarketDataBackfillService(
+            providerUtils,
+            priceService,
+            assetFinder,
+            marketDataRepo,
+            trnRepository,
+            cacheInvalidationProducer,
+            maxBackfillYears = 10,
+            dateUtils = dateUtils
+        )
+    }
+
+    private fun weekdays(
+        from: LocalDate,
+        to: LocalDate
+    ): List<LocalDate> =
+        generateSequence(from) { it.plusDays(1) }
+            .takeWhile { !it.isAfter(to) }
+            .filter { it.dayOfWeek.value <= 5 }
+            .toList()
 
     @Test
     fun `anchor widens fromDate when older holdings exist in another portfolio`() {
@@ -288,5 +305,45 @@ class MarketDataBackfillServiceTest {
         service.backFill(asset, start)
 
         verify(provider).backFill(eq(asset), eq(tail))
+    }
+
+    @Test
+    fun `skip provider call when the anchor is a weekend and the series starts the following Monday`() {
+        val sunday = LocalDate.of(2025, 10, 5)
+        val monday = sunday.plusDays(1)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any()))
+            .thenReturn(weekdays(monday, today.minusDays(1)))
+
+        service.backFill(asset, sunday)
+
+        verify(provider, never()).backFill(any(), any())
+    }
+
+    @Test
+    fun `skip provider call on a Monday when the last stored close is Friday`() {
+        val monday = LocalDate.of(2026, 10, 12)
+        val friday = monday.minusDays(3)
+        val start = monday.minusYears(1).plusDays(2) // a Wednesday
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any()))
+            .thenReturn(weekdays(start, friday))
+
+        serviceOn(monday).backFill(asset, start)
+
+        verify(provider, never()).backFill(any(), any())
+    }
+
+    @Test
+    fun `call provider from the anchor when the series starts more than the tolerance after it`() {
+        val start = today.minusYears(1)
+        val firstStored = start.plusDays(PriceSeriesGaps.MAX_CALENDAR_GAP_DAYS + 1)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any()))
+            .thenReturn(weekdays(firstStored, today.minusDays(1)))
+
+        service.backFill(asset, start)
+
+        verify(provider).backFill(eq(asset), eq(start))
     }
 }

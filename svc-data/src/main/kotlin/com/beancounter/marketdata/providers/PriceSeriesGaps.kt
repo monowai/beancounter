@@ -20,6 +20,12 @@ object PriceSeriesGaps {
      */
     const val MAX_CALENDAR_GAP_DAYS = 10L
 
+    /** True when the calendar stretch [from, to] is within [MAX_CALENDAR_GAP_DAYS]. */
+    fun isRoutineGap(
+        from: LocalDate,
+        to: LocalDate
+    ): Boolean = ChronoUnit.DAYS.between(from, to) <= MAX_CALENDAR_GAP_DAYS
+
     /**
      * The last stored date before the first hole wider than [MAX_CALENDAR_GAP_DAYS],
      * or null when the series has no such hole. Backfilling from that date refills
@@ -32,7 +38,7 @@ object PriceSeriesGaps {
         val sorted = dates.sorted()
         return sorted
             .zipWithNext()
-            .firstOrNull { (prior, next) -> ChronoUnit.DAYS.between(prior, next) > MAX_CALENDAR_GAP_DAYS }
+            .firstOrNull { (prior, next) -> !isRoutineGap(prior, next) }
             ?.first
     }
 }

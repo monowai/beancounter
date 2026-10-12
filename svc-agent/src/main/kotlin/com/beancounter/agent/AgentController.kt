@@ -247,7 +247,7 @@ class AgentController(
 
     /** Selected provider: the `agent.provider` property, `deepseek` when absent. */
     private val provider: String
-        get() = environment.getProperty("agent.provider", "deepseek")
+        get() = environment.getProperty(AgentProvider.PROPERTY, AgentProvider.DEFAULT)
 
     /**
      * Anthropic-only feature: the per-call model override uses
@@ -255,10 +255,10 @@ class AgentController(
      * let the configured ChatClient's default model run.
      */
     private val anthropicActive: Boolean
-        get() = provider == "anthropic"
+        get() = provider == AgentProvider.ANTHROPIC
 
     private val deepseekActive: Boolean
-        get() = provider == "deepseek"
+        get() = provider == AgentProvider.DEEPSEEK
 
     /**
      * Build per-call ChatOptions for the active LLM surface.
@@ -346,7 +346,8 @@ class AgentController(
                     AgentResponse(
                         query = safeQuery,
                         response =
-                            "No LLM is configured. Set agent.provider to 'deepseek', 'anthropic', 'openai', or 'ollama'.",
+                            "No LLM is configured. Set ${AgentProvider.PROPERTY} to '${AgentProvider.DEEPSEEK}', " +
+                                "'${AgentProvider.ANTHROPIC}', '${AgentProvider.OPENAI}', or '${AgentProvider.OLLAMA}'.",
                         timestamp = Instant.now().toString(),
                         error = NO_LLM
                     )

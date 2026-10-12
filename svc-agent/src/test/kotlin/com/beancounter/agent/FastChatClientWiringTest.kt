@@ -56,6 +56,14 @@ class DefaultProviderWiringTest {
         assertThat(context.containsBean("fastChatClient")).isTrue()
         assertThat(context.containsBean("anthropicCacheOptions")).isFalse()
     }
+
+    @Autowired
+    private lateinit var tiers: AgentModelTiers
+
+    @Test
+    fun `yml tier defaults match the Kotlin defaults`() {
+        assertThat(tiers).isEqualTo(AgentModelTiers())
+    }
 }
 
 /** `agent.provider=anthropic` selects the Anthropic client and no fast client. */

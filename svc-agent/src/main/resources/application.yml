@@ -180,10 +180,11 @@ spring:
     # tool calls (it 400s otherwise), so thinking mode is safe with tools.
     #
     # The endpoint is any OpenAI-compatible LLM gateway or DeepSeek itself:
-    # AI_GATEWAY_URL / AI_GATEWAY_KEY. DEEPSEEK_API_KEY is accepted as a fallback key.
+    # AI_GATEWAY_URL / AI_GATEWAY_KEY. DEEPSEEK_API_KEY / DEEPSEEK_BASE_URL are accepted as fallbacks.
+    # The singular DEEPSEEK_MODEL is deliberately NOT supported (bc-deploy: never used); override via the AI_MODEL_* tiers.
     deepseek:
       api-key: "${AI_GATEWAY_KEY:${DEEPSEEK_API_KEY:}}"
-      base-url: "${AI_GATEWAY_URL:https://api.deepseek.com}"
+      base-url: "${AI_GATEWAY_URL:${DEEPSEEK_BASE_URL:https://api.deepseek.com}}"
       chat:
         options:
           model: "${AI_MODEL_FAST:${DEEPSEEK_MODEL_FAST:deepseek-flash}}"
@@ -191,7 +192,10 @@ spring:
           max-tokens: 4096
 
     model:
-      chat: deepseek
+      # none: DeepSeek clients are hand-built in ChatClientConfiguration, so Spring AI's
+      # autoconfigured deepSeekChatModel (which throws on a blank key) must not be created.
+      # The application-<provider>.yaml presets set their own value.
+      chat: none
 
 agent:
   # Chat provider: deepseek | anthropic | openai | ollama. The matching

@@ -51,14 +51,14 @@ class ChatClientConfiguration {
     private val log = LoggerFactory.getLogger(ChatClientConfiguration::class.java)
 
     @Bean("chatClient")
-    @ConditionalOnProperty(name = ["agent.provider"], havingValue = "ollama")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.OLLAMA)
     fun ollamaChatClient(chatModel: OllamaChatModel): ChatClient {
         log.info("Building Ollama ChatClient ({})", chatModel.javaClass.simpleName)
         return build(chatModel)
     }
 
     @Bean("chatClient")
-    @ConditionalOnProperty(name = ["agent.provider"], havingValue = "openai")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.OPENAI)
     fun openAiChatClient(chatModel: OpenAiChatModel): ChatClient {
         log.info("Building OpenAI ChatClient ({})", chatModel.javaClass.simpleName)
         return build(chatModel)
@@ -77,7 +77,7 @@ class ChatClientConfiguration {
      * a deep-think turn still sets `high` per call.
      */
     @Bean("chatClient")
-    @ConditionalOnProperty(name = ["agent.provider"], havingValue = "deepseek", matchIfMissing = true)
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
     fun deepSeekChatClient(
         @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
         @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
@@ -109,7 +109,7 @@ class ChatClientConfiguration {
      * routes per request via the `think` flag.
      */
     @Bean("fastChatClient")
-    @ConditionalOnProperty(name = ["agent.provider"], havingValue = "deepseek", matchIfMissing = true)
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
     fun fastDeepSeekChatClient(
         @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
         @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
@@ -199,7 +199,7 @@ class ChatClientConfiguration {
      * the write but worse for ad-hoc traffic spread across an hour.
      */
     @Bean
-    @ConditionalOnProperty(name = ["agent.provider"], havingValue = "anthropic")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.ANTHROPIC)
     fun anthropicCacheOptions(): AnthropicCacheOptions =
         AnthropicCacheOptions
             .builder()
@@ -213,7 +213,7 @@ class ChatClientConfiguration {
      * enabled via [anthropicCacheOptions].
      */
     @Bean("chatClient")
-    @ConditionalOnProperty(name = ["agent.provider"], havingValue = "anthropic")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.ANTHROPIC)
     fun anthropicChatClient(
         chatModel: AnthropicChatModel,
         anthropicCacheOptions: AnthropicCacheOptions

@@ -136,9 +136,11 @@ class MarketDataBackfillService(
 
     /**
      * The date to ask the provider for, or null when the stored series already covers
-     * `[fromDate, today - 1d]` with no internal hole. We allow a one-day tail because
-     * today's price is filled by the live-price path, not the historic backfill, so
-     * insisting on `last == today` would re-fetch every evening for no benefit.
+     * `[fromDate, today]` with no internal hole. Today's price is filled by the live-price
+     * path, not the historic backfill, so the tail need not reach today. Weekends and
+     * holiday weekends at either edge are routine, so the leading stretch (anchor to first
+     * row) and trailing stretch (last row to today) get the same
+     * [PriceSeriesGaps.MAX_CALENDAR_GAP_DAYS] tolerance as internal holes.
      *
      * Fetching starts at the first uncovered point — the anchor, the last row before
      * the first hole, or the stale tail — rather than always at the anchor, so a
@@ -150,10 +152,10 @@ class MarketDataBackfillService(
         today: LocalDate
     ): LocalDate? {
         if (storedDates.isEmpty()) return fromDate
-        if (storedDates.first().isAfter(fromDate)) return fromDate
+        if (!PriceSeriesGaps.isRoutineGap(fromDate, storedDates.first())) return fromDate
         PriceSeriesGaps.firstGapStart(storedDates)?.let { return it }
         val last = storedDates.last()
-        return if (last.isBefore(today.minusDays(1))) last else null
+        return if (PriceSeriesGaps.isRoutineGap(last, today)) null else last
     }
 
     private fun getAsset(assetId: String): Asset = assetFinder.find(assetId)

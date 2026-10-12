@@ -3,21 +3,21 @@ package com.beancounter.agent
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
- * Anthropic model IDs per cost/quality tier.
+ * Model IDs per cost/quality tier (DeepSeek by default).
  *
- * `fast`  — chat, lookups, list/rank queries, news triage. Default Haiku.
+ * `fast`  — chat, lookups, list/rank queries, news triage. Default deepseek-flash.
  * `smart` — analytical multi-step domains (retirement projections, rebalance
- *           plans, deep asset review). Default Sonnet.
+ *           plans, deep asset review). Default deepseek-flash.
  * `deep`  — reserved for queries the LLM itself escalates as ambiguous /
- *           multi-portfolio aggregation. Default Opus. Currently unused by
+ *           multi-portfolio aggregation. Default deepseek-v4-pro. Currently unused by
  *           the page-context selector — wire in when a domain genuinely needs it.
  *
- * Override per environment via env vars: `ANTHROPIC_MODEL_FAST`, `ANTHROPIC_MODEL_SMART`,
- * `ANTHROPIC_MODEL_DEEP` (mapped in application.yml).
+ * Override per environment via `AI_MODEL_FAST` / `AI_MODEL_SMART` / `AI_MODEL_DEEP`
+ * (mapped in application.yml); the `anthropic` profile uses `ANTHROPIC_MODEL_*`.
  */
 @ConfigurationProperties("agent.models")
 data class AgentModelTiers(
-    var fast: String = "claude-haiku-4-5-20251001",
-    var smart: String = "claude-sonnet-4-6",
-    var deep: String = "claude-opus-4-7"
+    var fast: String = "deepseek-flash",
+    var smart: String = "deepseek-flash",
+    var deep: String = "deepseek-v4-pro"
 )

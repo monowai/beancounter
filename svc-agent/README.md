@@ -69,15 +69,22 @@ event:
         url: "http://localhost:9521/actuator/health"
 ```
 
-LLM configuration is profile-scoped:
+LLM provider is selected by the `agent.provider` property
+(`deepseek` | `anthropic` | `openai` | `ollama`; default `deepseek`). Profiles
+of the same name are presets that set it plus the provider's properties:
 
+* default (`deepseek`) — DeepSeek, or any OpenAI-compatible LLM gateway. Set
+  `AI_GATEWAY_URL` / `AI_GATEWAY_KEY` (`DEEPSEEK_API_KEY` is accepted as a
+  fallback key) and tier models via `AI_MODEL_FAST` / `_SMART` / `_DEEP`.
+* `--spring.profiles.active=anthropic` — Claude. Set `ANTHROPIC_API_KEY`.
 * `--spring.profiles.active=ollama` — Ollama (local, free). See
   `application-ollama.yaml`.
 * `--spring.profiles.active=openai` — OpenAI. Set `OPENAI_API_KEY`.
+* `--spring.profiles.active=deepseek-claude` — DeepSeek's Anthropic-compatible
+  endpoint through the Anthropic code path.
 
-If neither profile is active the agent starts with no `ChatClient` bean and
-`/agent/query` returns `503`; `/agent/health` still works and reports
-`llmAvailable: false`.
+With no API key the agent still starts; `/agent/query` returns `503` when no
+`ChatClient` bean exists, and `/agent/health` reports `llmAvailable: false`.
 
 ## Example
 

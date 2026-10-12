@@ -134,7 +134,7 @@ class AgentControllerTest {
 
     // Empty active profiles → controller treats this as the Anthropic default
     // path. Tests that need ollama / openai branching can override.
-    private val environment = MockEnvironment()
+    private val environment = MockEnvironment().withProperty("agent.provider", "anthropic")
 
     // Default to a no-op authorizer so existing tests (that don't set up a
     // SecurityContext) aren't affected by the scope check. The authz contract
@@ -654,12 +654,12 @@ class AgentControllerTest {
     }
 
     @Test
-    fun `done payload omits model when ollama profile is active`() {
+    fun `done payload omits model when ollama provider is active`() {
         // On ollama / openai profiles the per-call Anthropic model override is
         // skipped and the configured ChatClient picks the model. Reporting
         // `chatModelSelector.selectFor(...)` would mislead the client, so the
         // field must be omitted from the done envelope on those profiles.
-        environment.setActiveProfiles("ollama")
+        environment.withProperty("agent.provider", "ollama")
         val request =
             mock<ChatClient.ChatClientRequestSpec>(
                 defaultAnswer = org.mockito.Answers.RETURNS_SELF
@@ -922,8 +922,8 @@ class AgentControllerTest {
     }
 
     @Test
-    fun `buildOptions on deepseek profile returns DeepSeekChatOptions with model + maxTokens`() {
-        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+    fun `buildOptions on deepseek provider returns DeepSeekChatOptions with model + maxTokens`() {
+        val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
             AgentController(
                 null,
@@ -951,8 +951,8 @@ class AgentControllerTest {
     }
 
     @Test
-    fun `buildOptions on deepseek profile with deepThink raises maxTokens to 16k`() {
-        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+    fun `buildOptions on deepseek provider with deepThink raises maxTokens to 16k`() {
+        val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
             AgentController(
                 null,
@@ -982,11 +982,11 @@ class AgentControllerTest {
     }
 
     @Test
-    fun `buildOptions on deepseek profile with think raises maxTokens so reasoning cannot starve the answer`() {
+    fun `buildOptions on deepseek provider with think raises maxTokens so reasoning cannot starve the answer`() {
         // kauri 2026-09-25: a Chat FAB question on v4-flash (thinking on) spent
         // the whole 4096 output budget on reasoning_content and finished on
         // `length` with zero answer text — prompt was only 27k of a 1M window.
-        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+        val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
             AgentController(
                 null,
@@ -1018,9 +1018,9 @@ class AgentControllerTest {
     }
 
     @Test
-    fun `buildOptions on deepseek profile with think and deepThink keeps high reasoning effort`() {
+    fun `buildOptions on deepseek provider with think and deepThink keeps high reasoning effort`() {
         // The Chat FAB defaults to low effort; an explicit deep-think turn must not.
-        val env = MockEnvironment().apply { setActiveProfiles("deepseek") }
+        val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
             AgentController(
                 null,
@@ -1050,7 +1050,7 @@ class AgentControllerTest {
 
     @Test
     fun `buildOptions on anthropic default with deepThink enables thinking`() {
-        // Empty active profiles → anthropicActive = true (real Anthropic surface).
+        // agent.provider=anthropic (set on the shared environment) → real Anthropic surface.
         val ctrl = controller()
         val opts =
             (
@@ -1079,8 +1079,8 @@ class AgentControllerTest {
     }
 
     @Test
-    fun `buildOptions on ollama profile returns null for default model fallback`() {
-        val env = MockEnvironment().apply { setActiveProfiles("ollama") }
+    fun `buildOptions on ollama provider returns null for default model fallback`() {
+        val env = MockEnvironment().withProperty("agent.provider", "ollama")
         val ctrl =
             AgentController(
                 null,

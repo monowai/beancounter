@@ -245,21 +245,20 @@ class AgentController(
             }
             ?: emptyList()
 
+    /** Selected provider: the `agent.provider` property, `deepseek` when absent. */
+    private val provider: String
+        get() = environment.getProperty("agent.provider", "deepseek")
+
     /**
      * Anthropic-only feature: the per-call model override uses
-     * [AnthropicChatOptions]. When the active profile is `ollama` or `openai`,
-     * skip the override and let the configured ChatClient's default model run.
+     * [AnthropicChatOptions]. For any other provider, skip the override and
+     * let the configured ChatClient's default model run.
      */
     private val anthropicActive: Boolean
-        get() {
-            val profiles = environment.activeProfiles.toSet()
-            return "ollama" !in profiles &&
-                "openai" !in profiles &&
-                "deepseek" !in profiles
-        }
+        get() = provider == "anthropic"
 
     private val deepseekActive: Boolean
-        get() = "deepseek" in environment.activeProfiles.toSet()
+        get() = provider == "deepseek"
 
     /**
      * Build per-call ChatOptions for the active LLM surface.
@@ -346,7 +345,8 @@ class AgentController(
                 .body(
                     AgentResponse(
                         query = safeQuery,
-                        response = "No LLM is configured. Set the 'ollama', 'openai', or 'anthropic' Spring profile.",
+                        response =
+                            "No LLM is configured. Set agent.provider to 'deepseek', 'anthropic', 'openai', or 'ollama'.",
                         timestamp = Instant.now().toString(),
                         error = NO_LLM
                     )

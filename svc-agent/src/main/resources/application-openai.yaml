@@ -16,3 +16,6 @@ spring:
       chat: openai
 
 
+
+agent:
+  provider: openai

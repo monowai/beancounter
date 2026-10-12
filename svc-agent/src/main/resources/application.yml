@@ -162,35 +162,57 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
   ai:
-    # Dummy OpenAI + Ollama config to prevent autoconfiguration errors
-    # (mirrors the pattern in application-ollama.yaml / application-openai.yaml)
+    # Dummy OpenAI + Ollama + Anthropic config keeps their autoconfigurations
+    # from failing on missing keys. The provider actually used is chosen by
+    # `agent.provider` below (see ChatClientConfiguration); the application-<provider>.yaml
+    # presets override these dummies for their own provider.
     openai:
       api-key: "dummy-key-to-prevent-errors"
     ollama:
       base-url: "http://undefined:11434"
     anthropic:
-      api-key: "${ANTHROPIC_API_KEY:}"
-      base-url: "${ANTHROPIC_BASE_URL:https://api.anthropic.com}"
+      api-key: "dummy-key-to-prevent-errors"
+    # DeepSeek is the default provider, via Spring AI's native DeepSeek module
+    # (spring-ai-starter-model-deepseek): DeepSeekChatModel + DeepSeekChatOptions,
+    # with chain-of-thought surfaced via DeepSeekAssistantMessage.getReasoningContent().
+    # Spring AI echoes `reasoning_content` back into outgoing assistant messages
+    # (DeepSeekChatModel.createRequest), which DeepSeek requires on multi-turn
+    # tool calls (it 400s otherwise), so thinking mode is safe with tools.
+    #
+    # The endpoint is any OpenAI-compatible LLM gateway or DeepSeek itself:
+    # AI_GATEWAY_URL / AI_GATEWAY_KEY. DEEPSEEK_API_KEY is accepted as a fallback key.
+    deepseek:
+      api-key: "${AI_GATEWAY_KEY:${DEEPSEEK_API_KEY:}}"
+      base-url: "${AI_GATEWAY_URL:https://api.deepseek.com}"
       chat:
         options:
-          # Default / fallback model. Per-domain routing is handled by
-          # ChatModelSelector — see `agent.models.*` below for the active
-          # tier IDs and the page-context that escalates to SMART.
-          model: "${ANTHROPIC_MODEL:claude-haiku-4-5-20251001}"
+          model: "${AI_MODEL_FAST:${DEEPSEEK_MODEL_FAST:deepseek-flash}}"
           temperature: 0.2
           max-tokens: 4096
 
     model:
-      chat: anthropic
+      chat: deepseek
 
-# Per-tier Anthropic model IDs. ChatModelSelector picks one per call based on
-# the page context (Holdings / News / Asset Review / Independence / Rebalance).
-# Override per environment via ANTHROPIC_MODEL_FAST / _SMART / _DEEP.
 agent:
+  # Chat provider: deepseek | anthropic | openai | ollama. The matching
+  # application-<provider>.yaml profile presets this plus the provider properties.
+  provider: deepseek
+  # Per-tier model IDs. ChatModelSelector picks one per call based on the page
+  # context (Holdings / News / Asset Review / Independence / Rebalance).
+  # Override per environment via AI_MODEL_FAST / _SMART / _DEEP.
+  #
+  # Models (DeepSeek API, current as of 2026-09):
+  #   deepseek-flash    - GA general model (V4.1-Flash). Tool calling, 1M context,
+  #                       cheap. Defaults to *thinking* mode: the fast client sends
+  #                       `thinking: disabled`, the Chat FAB client sends
+  #                       `reasoning_effort: low` (see DeepSeekThinking).
+  #   deepseek-v4-pro   - higher-quality tier (~3x cost); the deep tier.
+  #   deepseek-v4-flash - deprecated legacy name, still served by V4.1-Flash.
+  #   deepseek-chat / deepseek-reasoner - discontinued 2026-07-24. Do not configure.
   models:
-    fast: "${ANTHROPIC_MODEL_FAST:claude-haiku-4-5-20251001}"
-    smart: "${ANTHROPIC_MODEL_SMART:claude-sonnet-4-6}"
-    deep: "${ANTHROPIC_MODEL_DEEP:claude-opus-4-7}"
+    fast: "${AI_MODEL_FAST:${DEEPSEEK_MODEL_FAST:deepseek-flash}}"
+    smart: "${AI_MODEL_SMART:${DEEPSEEK_MODEL_SMART:deepseek-flash}}"
+    deep: "${AI_MODEL_DEEP:${DEEPSEEK_MODEL_DEEP:deepseek-v4-pro}}"
   conversations:
     # Conversations idle longer than this are purged by ConversationRetention.
     retention-days: 90

@@ -22,3 +22,6 @@ logging:
   level:
     org.springframework.ai: DEBUG
 
+
+agent:
+  provider: ollama

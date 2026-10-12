@@ -19,28 +19,29 @@ import org.springframework.ai.model.tool.ToolCallingManager
 import org.springframework.ai.ollama.OllamaChatModel
 import org.springframework.ai.openai.OpenAiChatModel
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.web.client.RestClient
 import org.springframework.web.reactive.function.client.WebClient
 import tools.jackson.databind.ObjectMapper
 
 /**
- * Wires a [ChatClient] from whichever [ChatModel] the active Spring profile
- * exposes, and registers all `@Tool`-bearing beans as default tools.
+ * Wires a [ChatClient] from whichever [ChatModel] the `agent.provider`
+ * property selects (`deepseek` | `anthropic` | `openai` | `ollama`), and
+ * registers all `@Tool`-bearing beans as default tools.
  *
- * We intentionally split by profile and inject the concrete subtype rather
- * than the `ChatModel` super-type with `@ConditionalOnBean`: Spring Boot
- * evaluates user-config conditions *before* auto-configuration runs, so a
- * condition looking for an auto-configured `ChatModel` bean will always see
- * nothing and the bean is silently skipped. Profile-qualified beans sidestep
- * that ordering trap — activation is driven by the profile, and the specific
- * subtype guarantees there is no ambiguity when both Ollama and OpenAI
- * starters are on the classpath.
+ * `deepseek` is the default when the property is absent. We split by property
+ * and inject the concrete subtype rather than the `ChatModel` super-type with
+ * `@ConditionalOnBean`: Spring Boot evaluates user-config conditions *before*
+ * auto-configuration runs, so a condition looking for an auto-configured
+ * `ChatModel` bean would always see nothing and the bean would be silently
+ * skipped. Property-qualified beans sidestep that ordering trap, and the
+ * specific subtype guarantees no ambiguity when several provider starters are
+ * on the classpath.
  *
- * If neither profile is active, no `ChatClient` bean is created; the agent
+ * An unrecognised `agent.provider` creates no `ChatClient` bean; the agent
  * starts anyway and /agent/query returns 503 "no-llm".
  */
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -50,14 +51,14 @@ class ChatClientConfiguration {
     private val log = LoggerFactory.getLogger(ChatClientConfiguration::class.java)
 
     @Bean("chatClient")
-    @Profile("ollama")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.OLLAMA)
     fun ollamaChatClient(chatModel: OllamaChatModel): ChatClient {
         log.info("Building Ollama ChatClient ({})", chatModel.javaClass.simpleName)
         return build(chatModel)
     }
 
     @Bean("chatClient")
-    @Profile("openai")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.OPENAI)
     fun openAiChatClient(chatModel: OpenAiChatModel): ChatClient {
         log.info("Building OpenAI ChatClient ({})", chatModel.javaClass.simpleName)
         return build(chatModel)
@@ -76,7 +77,7 @@ class ChatClientConfiguration {
      * a deep-think turn still sets `high` per call.
      */
     @Bean("chatClient")
-    @Profile("deepseek")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
     fun deepSeekChatClient(
         @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
         @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
@@ -108,7 +109,7 @@ class ChatClientConfiguration {
      * routes per request via the `think` flag.
      */
     @Bean("fastChatClient")
-    @Profile("deepseek")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
     fun fastDeepSeekChatClient(
         @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
         @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
@@ -198,7 +199,7 @@ class ChatClientConfiguration {
      * the write but worse for ad-hoc traffic spread across an hour.
      */
     @Bean
-    @Profile("!ollama & !openai & !deepseek")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.ANTHROPIC)
     fun anthropicCacheOptions(): AnthropicCacheOptions =
         AnthropicCacheOptions
             .builder()
@@ -207,22 +208,18 @@ class ChatClientConfiguration {
             .build()
 
     /**
-     * Anthropic is the **default** ChatClient — created whenever neither
-     * `ollama` nor `openai` is in the active profile list. This matches the
-     * agent's `application.yml` defaults (`spring.ai.model.chat: anthropic`)
-     * so a developer running with just the `kauri` (or no) profile gets a
-     * working Claude-backed agent without having to remember to also add
-     * `,anthropic` to `SPRING_PROFILES_ACTIVE`. Activating `ollama` or
-     * `openai` explicitly disables this fallback.
+     * Anthropic ChatClient, selected by `agent.provider=anthropic` (the
+     * `anthropic` and `deepseek-claude` profiles set it). Prompt caching is
+     * enabled via [anthropicCacheOptions].
      */
     @Bean("chatClient")
-    @Profile("!ollama & !openai & !deepseek")
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.ANTHROPIC)
     fun anthropicChatClient(
         chatModel: AnthropicChatModel,
         anthropicCacheOptions: AnthropicCacheOptions
     ): ChatClient {
         log.info(
-            "Building Anthropic ChatClient ({}) with prompt caching enabled (default)",
+            "Building Anthropic ChatClient ({}) with prompt caching enabled",
             chatModel.javaClass.simpleName
         )
 

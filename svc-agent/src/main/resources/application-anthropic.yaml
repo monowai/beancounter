@@ -1,0 +1,34 @@
+# Anthropic preset: Claude via the native Anthropic module, prompt caching on.
+#
+#   SPRING_PROFILES_ACTIVE=anthropic ANTHROPIC_API_KEY=sk-ant-... \
+#     ./gradlew :svc-agent:bootRun
+spring:
+  ai:
+    # Dummy entries keep the other providers' autoconfigurations from failing.
+    openai:
+      api-key: "dummy-key-to-prevent-errors"
+    ollama:
+      base-url: "http://undefined:11434"
+    deepseek:
+      api-key: "dummy-key-to-prevent-errors"
+    anthropic:
+      api-key: "${ANTHROPIC_API_KEY:}"
+      base-url: "${ANTHROPIC_BASE_URL:https://api.anthropic.com}"
+      chat:
+        options:
+          # Default / fallback model. Per-domain routing is handled by
+          # ChatModelSelector using the `agent.models.*` tier ids below.
+          model: "${ANTHROPIC_MODEL:claude-haiku-4-5-20251001}"
+          temperature: 0.2
+          max-tokens: 4096
+
+    model:
+      chat: anthropic
+
+agent:
+  provider: anthropic
+  # Per-tier Claude ids; override via ANTHROPIC_MODEL_FAST / _SMART / _DEEP.
+  models:
+    fast: "${ANTHROPIC_MODEL_FAST:claude-haiku-4-5-20251001}"
+    smart: "${ANTHROPIC_MODEL_SMART:claude-sonnet-4-6}"
+    deep: "${ANTHROPIC_MODEL_DEEP:claude-opus-4-7}"

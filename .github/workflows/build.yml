@@ -179,7 +179,9 @@ jobs:
 
   publish-jars:
     needs: build
-    if: github.event_name != 'pull_request'
+    # main only: a release version is immutable and consumers pin it, so a
+    # deploy/** branch must never mint one.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:
@@ -215,8 +217,10 @@ jobs:
              || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
             echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          if git diff --name-only "$BEFORE" "$AFTER" \
-               | grep -qE '^(jar-[a-z]+/|build\.gradle\.kts|settings\.gradle\.kts|gradle/)'; then
+          # A failed diff must fail the job, not read as "nothing changed".
+          files=$(git diff --name-only "$BEFORE" "$AFTER")
+          if printf '%s\n' "$files" \
+               | grep -qE '^(jar-[a-z]+/|build\.gradle\.kts|settings\.gradle\.kts|gradle\.properties|gradle/)'; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"

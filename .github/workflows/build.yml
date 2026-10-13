@@ -38,8 +38,26 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  # Same JVM limits as the old CircleCI executor.
-  _JAVA_OPTIONS: "-Xms512m -Xmx1536m"
+  # Sized so the build fits a small runner. Measured in a 4 CPU arm64
+  # container: main's settings peak at 5.5 GiB resident and are OOM-killed
+  # under a 5 GiB cap (the self-hosted VM's size); these pass a cold,
+  # uncached build under a hard 4 GiB cap, peaking at 3.8 GiB (3.3 GiB warm).
+  # Peak memory is the sum of the JVMs alive at once, so there are fewer of
+  # them and tests take turns:
+  #   - Gradle daemon 1280m heap (gradle.properties asks for 4g: laptop size).
+  #   - Kotlin compiles inside that daemon, so there is no separate compiler
+  #     daemon (1.4 GiB resident, and it idles through the whole test phase).
+  #   - Two workers.
+  #   - One Test task at a time (testSlots, see build.gradle.kts), so only one
+  #     Spring test JVM exists at any moment.
+  # Costs about three minutes of wall-clock. Passed as flags, not
+  # _JAVA_OPTIONS: that variable is applied after every JVM's own settings,
+  # so it silently rewrote the test-fork heap as well as the daemons'.
+  GRADLE_FLAGS: >-
+    -Dorg.gradle.jvmargs=-Xmx1280m
+    -Dorg.gradle.workers.max=2
+    -Pkotlin.compiler.execution.strategy=in-process
+    -PtestSlots=1
 
 jobs:
   build:
@@ -69,7 +87,10 @@ jobs:
           # a push carries SENTRY_AUTH_TOKEN; a PR, and above all a fork PR, does not.
           CI: ${{ github.event_name != 'pull_request' && secrets.SENTRY_AUTH_TOKEN != '' }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: ./gradlew build --parallel
+        # Word splitting is the point: GRADLE_FLAGS is a list of arguments.
+        run: |
+          # shellcheck disable=SC2086
+          ./gradlew build --parallel $GRADLE_FLAGS
 
       - name: Upload test reports
         if: failure()
@@ -168,6 +189,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0   # the change detector diffs against github.event.before
 
       - name: Set up JDK 25
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
@@ -180,13 +203,38 @@ jobs:
         with:
           cache-read-only: true
 
+      # Only a push that touched the shared jars or the build itself produces a
+      # release. Everything else leaves GitHub Packages alone.
+      - name: Detect shared-jar changes
+        id: scope
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if git diff --name-only "$BEFORE" "$AFTER" \
+               | grep -qE '^(jar-[a-z]+/|build\.gradle\.kts|settings\.gradle\.kts|gradle/)'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No shared-jar change in this push; jars not republished."
+          fi
+
       # jar-contracts, jar-common, jar-auth and jar-client, consumed by
-      # svc-retire and svc-rebalance from GitHub Packages.
+      # svc-retire, svc-rebalance and svc-bff from GitHub Packages. Released,
+      # not SNAPSHOT: version 0.1.<run_number> is immutable there, so a consumer
+      # pins exactly what it was built against and Renovate can bump it.
       - name: Publish jars to GitHub Packages
+        if: steps.scope.outputs.changed == 'true'
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GH_GCR: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew publishJars
+        run: |
+          # shellcheck disable=SC2086
+          ./gradlew publishJars $GRADLE_FLAGS -PjarVersion=0.1.${{ github.run_number }}
 
   coverage:
     needs: build

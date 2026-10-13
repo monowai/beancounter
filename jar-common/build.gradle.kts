@@ -5,7 +5,9 @@ plugins {
     alias(libs.plugins.sentry)
 }
 
-version = "0.1.3-SNAPSHOT"
+// Local builds stay on the SNAPSHOT; CI publishes releases as 0.1.<run_number>
+// (-PjarVersion), which svc-retire, svc-rebalance and svc-bff pin exactly.
+version = providers.gradleProperty("jarVersion").getOrElse("0.1.3-SNAPSHOT")
 
 extra["guavaVersion"] = "33.3.1-jre"
 

@@ -21,6 +21,21 @@ repositories {
 }
 
 val agentModule = "svc-agent"
+
+// Memory budget for small runners. Peak build memory is the sum of the JVMs
+// alive at once: Gradle daemon + Kotlin daemon + one forked test JVM per Test
+// task running in parallel. Under --parallel each module's Test task forks its
+// own JVM (maxParallelForks only limits forks *within* a task), so four modules
+// testing together is four Spring test JVMs. -PtestSlots=N caps how many Test
+// tasks run at once across the whole build; unset means unlimited (local dev).
+abstract class TestSlots : BuildService<BuildServiceParameters.None>
+
+val testSlots =
+    providers.gradleProperty("testSlots").map(String::toInt).orNull?.let { slots ->
+        gradle.sharedServices.registerIfAbsent("testSlots", TestSlots::class) {
+            maxParallelUsages.set(slots)
+        }
+    }
 val githubRepoUrl = "https://github.com/monowai/beancounter"
 
 // Shared configuration for all subprojects
@@ -73,6 +88,7 @@ subprojects {
     // Test configuration with optimizations
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
+        testSlots?.let { usesService(it) }
         // Gradle 9 flipped this default to true. Some modules (e.g. jar-contracts)
         // have no test sources of their own, so don't fail their :test task on
         // zero discovered tests.
@@ -93,6 +109,15 @@ subprojects {
         maxParallelForks = 1
         forkEvery = 100L
         maxHeapSize = "1g"
+        // The fork's footprint is heap plus about as much again outside it:
+        // svc-data's fork measured 2.0 GiB resident on a 1g heap. Serial GC drops
+        // the per-thread GC structures, a smaller thread stack and two malloc
+        // arenas trim native memory, and a 12-context Spring cache (default 32)
+        // stops idle contexts, their pools and their H2 instances piling up.
+        // Together: 2.0 GiB down to 1.6 GiB, same suite.
+        jvmArgs("-XX:+UseSerialGC", "-Xss512k")
+        environment("MALLOC_ARENA_MAX", "2")
+        systemProperty("spring.test.context.cache.maxSize", "12")
         // svc-data tests have crept toward 8m on CircleCI's executor and tipped over on
         // main #32be9384 (build-and-test job 17895). Tipped again at 15m on a cache-cold
         // run of feat/macro-news-coverage (pipeline 3804, job 21009) after the macro/news

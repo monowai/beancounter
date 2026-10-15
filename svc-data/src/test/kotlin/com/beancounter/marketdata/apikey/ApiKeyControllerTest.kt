@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.apikey
 
+import com.beancounter.auth.AuthConfig
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.ApiKeyCreatedResponse
 import com.beancounter.common.contracts.ApiKeyRequest
@@ -53,8 +54,20 @@ internal class ApiKeyControllerTest {
     @Autowired
     private lateinit var systemUserRepository: SystemUserRepository
 
+    @Autowired
+    private lateinit var authConfig: AuthConfig
+
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
+
+    // The same caller, as a JWT exchanged from one of their API keys.
+    private fun keyDerived(token: Jwt): Jwt =
+        Jwt
+            .withTokenValue(token.tokenValue)
+            .headers { it.putAll(token.headers) }
+            .claims { it.putAll(token.claims) }
+            .issuer(authConfig.bcIssuerUri)
+            .build()
 
     private fun registeredToken(id: String): Jwt =
         registerUser(
@@ -175,6 +188,63 @@ internal class ApiKeyControllerTest {
                 .readValue(second.response.contentAsString, ApiKeyResponse::class.java)
                 .data
         assertThat(secondView.revokedAt).isEqualTo(firstView.revokedAt)
+    }
+
+    @Test
+    fun `create refused for a token exchanged from an api key`() {
+        val token = registeredToken("apikey-derived-create")
+
+        mockMvc
+            .perform(
+                post(API_KEYS_ROOT)
+                    .with(jwt().jwt(keyDerived(token)))
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsBytes(ApiKeyRequest(name = "replacement")))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isForbidden)
+
+        val listed =
+            mockMvc
+                .perform(get(API_KEYS_ROOT).with(jwt().jwt(token)))
+                .andExpect(status().isOk)
+                .andReturn()
+        assertThat(objectMapper.readValue(listed.response.contentAsString, ApiKeysResponse::class.java).data)
+            .isEmpty()
+    }
+
+    @Test
+    fun `revoke refused for a token exchanged from an api key`() {
+        val token = registeredToken("apikey-derived-revoke")
+        val created = createKey(token)
+
+        mockMvc
+            .perform(
+                delete("$API_KEYS_ROOT/${created.data.id}")
+                    .with(jwt().jwt(keyDerived(token)))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isForbidden)
+
+        val stored =
+            apiKeyRepository.findById(created.data.id).orElseThrow {
+                IllegalStateException("API key not persisted")
+            }
+        assertThat(stored.revokedAt).isNull()
+    }
+
+    @Test
+    fun `list allowed for a token exchanged from an api key`() {
+        val token = registeredToken("apikey-derived-list")
+        val created = createKey(token)
+
+        val listed =
+            mockMvc
+                .perform(get(API_KEYS_ROOT).with(jwt().jwt(keyDerived(token))))
+                .andExpect(status().isOk)
+                .andReturn()
+        assertThat(objectMapper.readValue(listed.response.contentAsString, ApiKeysResponse::class.java).data)
+            .extracting("id")
+            .containsExactly(created.data.id)
     }
 
     @Test

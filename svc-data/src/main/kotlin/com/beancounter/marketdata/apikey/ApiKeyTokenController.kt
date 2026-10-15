@@ -31,13 +31,18 @@ class ApiKeyTokenController(
     private val tokenRateLimiter: TokenRateLimiter
 ) {
     @PostMapping("/token")
-    @Operation(summary = "Exchange a raw API key for a short-lived JWT")
+    @Operation(summary = "Exchange a raw API key, or a device-key assertion, for a short-lived JWT")
     fun exchange(
         @RequestBody request: ApiKeyTokenRequest,
         servletRequest: HttpServletRequest
     ): OpenIdResponse {
         tokenRateLimiter.check(tokenRateLimiter.clientKey(servletRequest))
-        val verifiedKey = apiKeyService.verify(request.apiKey)
+        val verifiedKey =
+            if (request.assertion.isNotBlank()) {
+                apiKeyService.verifyDevice(request.assertion)
+            } else {
+                apiKeyService.verify(request.apiKey)
+            }
         val jwt = bcTokenIssuer.mint(verifiedKey)
         return OpenIdResponse(
             token = jwt.tokenValue,

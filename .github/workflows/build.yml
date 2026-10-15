@@ -38,26 +38,14 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  # Sized so the build fits a small runner. Measured in a 4 CPU arm64
-  # container: main's settings peak at 5.5 GiB resident and are OOM-killed
-  # under a 5 GiB cap (the self-hosted VM's size); these pass a cold,
-  # uncached build under a hard 4 GiB cap, peaking at 3.8 GiB (3.3 GiB warm).
-  # Peak memory is the sum of the JVMs alive at once, so there are fewer of
-  # them and tests take turns:
-  #   - Gradle daemon 1280m heap (gradle.properties asks for 4g: laptop size).
-  #   - Kotlin compiles inside that daemon, so there is no separate compiler
-  #     daemon (1.4 GiB resident, and it idles through the whole test phase).
-  #   - Two workers.
-  #   - One Test task at a time (testSlots, see build.gradle.kts), so only one
-  #     Spring test JVM exists at any moment.
-  # Costs about three minutes of wall-clock. Passed as flags, not
-  # _JAVA_OPTIONS: that variable is applied after every JVM's own settings,
-  # so it silently rewrote the test-fork heap as well as the daemons'.
-  GRADLE_FLAGS: >-
-    -Dorg.gradle.jvmargs=-Xmx1280m
-    -Dorg.gradle.workers.max=2
-    -Pkotlin.compiler.execution.strategy=in-process
-    -PtestSlots=1
+  # GitHub's hosted arm64 runner (4 vCPU, 16 GiB on a public repo) takes the
+  # build at full parallelism: it peaks at 5.5 GiB. On a runner under 5 GiB,
+  # add these to the gradlew calls (passes a cold build under a 4 GiB cap, at
+  # about five extra minutes):
+  #   -Dorg.gradle.jvmargs=-Xmx1280m -Dorg.gradle.workers.max=2
+  #   -Pkotlin.compiler.execution.strategy=in-process -PtestSlots=1
+  # Pass them as flags, never _JAVA_OPTIONS: that variable is applied after
+  # every JVM's own settings and rewrites the test-fork heap too.
 
 jobs:
   build:
@@ -87,10 +75,7 @@ jobs:
           # a push carries SENTRY_AUTH_TOKEN; a PR, and above all a fork PR, does not.
           CI: ${{ github.event_name != 'pull_request' && secrets.SENTRY_AUTH_TOKEN != '' }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        # Word splitting is the point: GRADLE_FLAGS is a list of arguments.
-        run: |
-          # shellcheck disable=SC2086
-          ./gradlew build --parallel $GRADLE_FLAGS
+        run: ./gradlew build --parallel
 
       - name: Upload test reports
         if: failure()
@@ -236,9 +221,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GH_GCR: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # shellcheck disable=SC2086
-          ./gradlew publishJars $GRADLE_FLAGS -PjarVersion=0.1.${{ github.run_number }}
+        run: ./gradlew publishJars -PjarVersion=0.1.${{ github.run_number }}
 
   coverage:
     needs: build

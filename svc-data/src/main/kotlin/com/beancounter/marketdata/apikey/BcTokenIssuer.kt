@@ -79,12 +79,15 @@ class BcTokenIssuer(
                 .expiresAt(now.plus(ttl))
                 .claim("email", apiKey.owner.email)
                 .claim("scope", apiKey.scopes)
-                .claim("bc:api_key_id", apiKey.id)
+                .claim(API_KEY_ID_CLAIM, apiKey.id)
                 .build()
         return encoder.encode(JwtEncoderParameters.from(header, claims))
     }
 
     companion object {
+        /** Names the API key a minted token was exchanged from. */
+        const val API_KEY_ID_CLAIM = "bc:api_key_id"
+
         private val log = LoggerFactory.getLogger(BcTokenIssuer::class.java)
 
         private fun loadOrGenerateKey(pem: String): RSAKey =

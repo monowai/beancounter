@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.ApiKeyCreatedResponse
 import com.beancounter.common.contracts.ApiKeyRequest
 import com.beancounter.common.contracts.ApiKeyResponse
 import com.beancounter.common.contracts.ApiKeysResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -30,7 +31,9 @@ import org.springframework.web.bind.annotation.RestController
  *
  * Creating and revoking keys needs an account sign-in (an Auth0 token). A
  * token exchanged from an API key may list keys but not change them, so a
- * leaked key cannot mint replacements that outlive its own revocation.
+ * leaked key cannot mint replacements that outlive its own revocation. The
+ * one exception is `DELETE /current`: a key may always retire itself (a
+ * device signing out).
  */
 @RestController
 @RequestMapping("/me/api-keys")
@@ -58,6 +61,12 @@ class ApiKeyController internal constructor(
     @Operation(summary = "List the caller's API keys")
     fun list(): ApiKeysResponse = apiKeyService.list()
 
+    @DeleteMapping("/current")
+    @Operation(summary = "Revoke the API key the calling token was exchanged from")
+    fun revokeCurrent(
+        @AuthenticationPrincipal jwt: Jwt
+    ): ApiKeyResponse = apiKeyService.revoke(currentKeyId(jwt))
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Revoke an API key")
     fun revoke(
@@ -76,7 +85,16 @@ class ApiKeyController internal constructor(
         }
     }
 
+    // Only svc-data's own tokens name the key they were exchanged from.
+    private fun currentKeyId(jwt: Jwt): String {
+        if (jwt.getClaimAsString(ISSUER) != authConfig.bcIssuerUri) {
+            throw BusinessException(NO_CURRENT_KEY)
+        }
+        return jwt.getClaimAsString(BcTokenIssuer.API_KEY_ID_CLAIM) ?: throw BusinessException(NO_CURRENT_KEY)
+    }
+
     private companion object {
         const val ISSUER = "iss"
+        const val NO_CURRENT_KEY = "Only a token exchanged from an API key has a current key"
     }
 }

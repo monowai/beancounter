@@ -61,12 +61,16 @@ internal class ApiKeyControllerTest {
     private lateinit var jwtDecoder: JwtDecoder
 
     // The same caller, as a JWT exchanged from one of their API keys.
-    private fun keyDerived(token: Jwt): Jwt =
+    private fun keyDerived(
+        token: Jwt,
+        keyId: String = "unknown"
+    ): Jwt =
         Jwt
             .withTokenValue(token.tokenValue)
             .headers { it.putAll(token.headers) }
             .claims { it.putAll(token.claims) }
             .issuer(authConfig.bcIssuerUri)
+            .claim("bc:api_key_id", keyId)
             .build()
 
     private fun registeredToken(id: String): Jwt =
@@ -230,6 +234,60 @@ internal class ApiKeyControllerTest {
                 IllegalStateException("API key not persisted")
             }
         assertThat(stored.revokedAt).isNull()
+    }
+
+    @Test
+    fun `a key-derived token can revoke its own key`() {
+        val token = registeredToken("apikey-derived-self")
+        val created = createKey(token)
+        val other = createKey(token, ApiKeyRequest(name = "other"))
+
+        mockMvc
+            .perform(
+                delete("$API_KEYS_ROOT/current")
+                    .with(jwt().jwt(keyDerived(token, created.data.id)))
+                    .with(csrf())
+            ).andExpect(status().isOk)
+
+        assertThat(apiKeyRepository.findById(created.data.id).orElseThrow().revokedAt).isNotNull()
+        assertThat(apiKeyRepository.findById(other.data.id).orElseThrow().revokedAt).isNull()
+    }
+
+    @Test
+    fun `revoking the current key needs a key-derived token`() {
+        val token = registeredToken("apikey-current-auth0")
+        val created = createKey(token)
+
+        mockMvc
+            .perform(
+                delete("$API_KEYS_ROOT/current")
+                    .with(jwt().jwt(token))
+                    .with(csrf())
+            ).andExpect(status().isBadRequest)
+
+        assertThat(apiKeyRepository.findById(created.data.id).orElseThrow().revokedAt).isNull()
+    }
+
+    @Test
+    fun `the key id claim counts only on a key-derived token`() {
+        val token = registeredToken("apikey-current-claim")
+        val created = createKey(token)
+        val auth0WithClaim =
+            Jwt
+                .withTokenValue(token.tokenValue)
+                .headers { it.putAll(token.headers) }
+                .claims { it.putAll(token.claims) }
+                .claim("bc:api_key_id", created.data.id)
+                .build()
+
+        mockMvc
+            .perform(
+                delete("$API_KEYS_ROOT/current")
+                    .with(jwt().jwt(auth0WithClaim))
+                    .with(csrf())
+            ).andExpect(status().isBadRequest)
+
+        assertThat(apiKeyRepository.findById(created.data.id).orElseThrow().revokedAt).isNull()
     }
 
     @Test

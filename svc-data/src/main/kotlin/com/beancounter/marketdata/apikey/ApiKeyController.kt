@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.ApiKeyCreatedResponse
 import com.beancounter.common.contracts.ApiKeyRequest
 import com.beancounter.common.contracts.ApiKeyResponse
 import com.beancounter.common.contracts.ApiKeysResponse
+import com.beancounter.common.contracts.DeviceKeyRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import io.swagger.v3.oas.annotations.Operation
@@ -55,6 +56,16 @@ class ApiKeyController internal constructor(
     ): ApiKeyCreatedResponse {
         requireAccountSignIn(jwt)
         return apiKeyService.create(request)
+    }
+
+    @PostMapping("/device")
+    @Operation(summary = "Register a device-bound key - only its public half is sent or stored")
+    fun registerDevice(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestBody request: DeviceKeyRequest
+    ): ApiKeyResponse {
+        requireAccountSignIn(jwt)
+        return apiKeyService.createDevice(request)
     }
 
     @GetMapping("")

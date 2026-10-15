@@ -39,5 +39,7 @@ data class ApiKey(
     val createdAt: Instant = Instant.now(),
     val expiresAt: Instant? = null,
     var lastUsedAt: Instant? = null,
-    var revokedAt: Instant? = null
+    var revokedAt: Instant? = null,
+    // Base64 SPKI of a device-bound P-256 key; null for a plain API key.
+    val publicKey: String? = null
 )

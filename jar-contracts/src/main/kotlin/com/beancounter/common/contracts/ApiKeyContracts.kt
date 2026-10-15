@@ -41,11 +41,24 @@ data class ApiKeyResponse(
 ) : Payload<ApiKeyView>
 
 /**
- * Token-exchange request (phase 2 - bc-claude/MCP.md): a raw BC API key,
- * traded for a short-lived JWT the rest of the stack already trusts. The
+ * Token-exchange request (phase 2 - bc-claude/MCP.md): a raw BC API key, or
+ * an ES256 [assertion] signed by a registered device key, traded for a
+ * short-lived JWT the rest of the stack already trusts. The
  * response is [com.beancounter.auth.model.OpenIdResponse] - the same shape
  * the Auth0 login proxy (AuthController) returns.
  */
 data class ApiKeyTokenRequest(
-    val apiKey: String
+    val apiKey: String = "",
+    val assertion: String = ""
+)
+
+/**
+ * Registers a device-bound key: [publicKey] is the base64 X.509
+ * SubjectPublicKeyInfo of a P-256 key that never leaves the device's secure
+ * hardware. The device later proves possession with a signed assertion
+ * (see [ApiKeyTokenRequest.assertion]); nothing secret is exchanged.
+ */
+data class DeviceKeyRequest(
+    val name: String,
+    val publicKey: String
 )

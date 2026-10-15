@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.ApiKeyRequest
 import com.beancounter.common.contracts.ApiKeyResponse
 import com.beancounter.common.contracts.ApiKeyView
 import com.beancounter.common.contracts.ApiKeysResponse
+import com.beancounter.common.contracts.DeviceKeyRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.exception.UnauthorizedException
@@ -15,6 +16,7 @@ import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.Base64
 
 /**
  * Business logic for BC-issued API keys (MCP/agent access, phase 1 of
@@ -28,7 +30,8 @@ import java.time.temporal.ChronoUnit
 class ApiKeyService(
     private val apiKeyRepository: ApiKeyRepository,
     private val apiKeyGenerator: ApiKeyGenerator,
-    private val systemUserService: SystemUserService
+    private val systemUserService: SystemUserService,
+    private val deviceAssertions: DeviceAssertions
 ) {
     fun create(request: ApiKeyRequest): ApiKeyCreatedResponse {
         val owner = systemUserService.getOrThrow()
@@ -77,14 +80,61 @@ class ApiKeyService(
     }
 
     /**
-     * Hash-lookup a raw key and validate it. Service-level only - phase 2's
-     * token-exchange endpoint will be the first caller. On success,
-     * [ApiKey.lastUsedAt] is touched so stale keys are visible for audit.
+     * Registers a device-bound key for the caller: only its public half is
+     * stored, and [ApiKey.keyHash] is a hash of that public key, so no raw
+     * secret can ever match it.
+     */
+    fun createDevice(request: DeviceKeyRequest): ApiKeyResponse {
+        val owner = systemUserService.getOrThrow()
+        if (request.name.isBlank()) {
+            throw BusinessException("Device key name is required")
+        }
+        val publicKey = Base64.getEncoder().encodeToString(DeviceAssertions.p256(request.publicKey).encoded)
+        val keyHash = ApiKeyGenerator.hash("$DEVICE_HASH_DOMAIN$publicKey")
+        if (apiKeyRepository.findByKeyHash(keyHash) != null) {
+            throw BusinessException("Device key is already registered")
+        }
+        val saved =
+            apiKeyRepository.save(
+                ApiKey(
+                    owner = owner,
+                    name = request.name,
+                    prefix = "$DEVICE_PREFIX${keyHash.take(DEVICE_PREFIX_HASH_LENGTH)}",
+                    keyHash = keyHash,
+                    scopes = DEFAULT_SCOPES.joinToString(" "),
+                    publicKey = publicKey
+                )
+            )
+        return ApiKeyResponse(saved.toView())
+    }
+
+    /** The device key behind a valid, unspent assertion; the key must still be usable. */
+    fun verifyDevice(assertion: String): ApiKey {
+        val keyId = deviceAssertions.keyId(assertion)
+        val found = apiKeyRepository.findById(keyId).orElseThrow { UnauthorizedException(INVALID_ASSERTION) }
+        val publicKey = found.publicKey ?: throw UnauthorizedException(INVALID_ASSERTION)
+        deviceAssertions.verify(assertion, keyId, publicKey)
+        return usable(found)
+    }
+
+    /**
+     * Hash-lookup a raw key and validate it. On success, [ApiKey.lastUsedAt]
+     * is touched so stale keys are visible for audit.
      */
     fun verify(rawKey: String): ApiKey {
         val found =
             apiKeyRepository.findByKeyHash(ApiKeyGenerator.hash(rawKey))
                 ?: throw UnauthorizedException("Invalid API key")
+        // A device key's hash is computed from its public key, which anyone
+        // may know: presented as a raw key it would match. Device keys only
+        // ever authenticate by a signed assertion.
+        if (found.publicKey != null) {
+            throw UnauthorizedException("Invalid API key")
+        }
+        return usable(found)
+    }
+
+    private fun usable(found: ApiKey): ApiKey {
         if (found.revokedAt != null) {
             throw UnauthorizedException("API key has been revoked")
         }
@@ -150,6 +200,13 @@ class ApiKeyService(
 
     companion object {
         private const val API_KEY_NOT_FOUND = "API key not found"
+        private const val INVALID_ASSERTION = "Invalid device assertion"
+        private const val DEVICE_PREFIX = "bcd_"
+        private const val DEVICE_PREFIX_HASH_LENGTH = 7
+
+        // Keeps a device key's hash apart from any generated key's hash. It is
+        // not a secret: [verify] must still refuse rows with a public key.
+        private const val DEVICE_HASH_DOMAIN = "device-spki:"
 
         // Scopes issuable via API key are capped at the owner's own
         // day-to-day authorities. beancounter:admin and beancounter:system

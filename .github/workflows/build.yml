@@ -44,6 +44,7 @@ env:
   # about five extra minutes):
   #   -Dorg.gradle.jvmargs=-Xmx1280m -Dorg.gradle.workers.max=2
   #   -Pkotlin.compiler.execution.strategy=in-process -PtestSlots=1
+  # (-PtestSlots also turns on the test-fork memory trims in build.gradle.kts.)
   # Pass them as flags, never _JAVA_OPTIONS: that variable is applied after
   # every JVM's own settings and rewrites the test-fork heap too.
 

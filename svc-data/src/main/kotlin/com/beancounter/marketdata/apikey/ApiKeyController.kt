@@ -80,14 +80,17 @@ class ApiKeyController internal constructor(
     // The decoder only trusts Auth0 and svc-data's own issuer, so "not ours"
     // means an Auth0 sign-in.
     private fun requireAccountSignIn(jwt: Jwt) {
-        if (jwt.getClaimAsString(ISSUER) == authConfig.bcIssuerUri) {
+        if (isKeyDerived(jwt)) {
             throw ForbiddenException("API keys can only be managed from an account sign-in")
         }
     }
 
+    // A token svc-data minted from an API key, as opposed to an Auth0 sign-in.
+    private fun isKeyDerived(jwt: Jwt): Boolean = jwt.getClaimAsString(ISSUER) == authConfig.bcIssuerUri
+
     // Only svc-data's own tokens name the key they were exchanged from.
     private fun currentKeyId(jwt: Jwt): String {
-        if (jwt.getClaimAsString(ISSUER) != authConfig.bcIssuerUri) {
+        if (!isKeyDerived(jwt)) {
             throw BusinessException(NO_CURRENT_KEY)
         }
         return jwt.getClaimAsString(BcTokenIssuer.API_KEY_ID_CLAIM) ?: throw BusinessException(NO_CURRENT_KEY)

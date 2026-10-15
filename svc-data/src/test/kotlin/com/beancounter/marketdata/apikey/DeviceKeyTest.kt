@@ -245,6 +245,40 @@ internal class DeviceKeyTest {
     }
 
     @Test
+    fun `a device key cannot be presented as a raw api key`() {
+        val key = newKey()
+        registered(registeredToken("device-as-raw"), key)
+
+        mockMvc
+            .perform(
+                post(TOKEN_ENDPOINT)
+                    .with(csrf())
+                    .with { request -> request.apply { remoteAddr = "10.9.0.9" } }
+                    .content(objectMapper.writeValueAsBytes(ApiKeyTokenRequest(apiKey = "device-spki:${spki(key)}")))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `an assertion without an audience is refused`() {
+        val key = newKey()
+        val id = registered(registeredToken("device-no-aud"), key)
+        val claims =
+            JWTClaimsSet
+                .Builder()
+                .issuer(id)
+                .subject(id)
+                .issueTime(Date())
+                .expirationTime(Date.from(Instant.now().plus(Duration.ofMinutes(2))))
+                .jwtID(UUID.randomUUID().toString())
+                .build()
+        val jwt = SignedJWT(JWSHeader.Builder(JWSAlgorithm.ES256).keyID(id).build(), claims)
+        jwt.sign(ECDSASigner(key))
+
+        exchange(jwt.serialize(), "10.9.0.10").andExpect(status().isUnauthorized)
+    }
+
+    @Test
     fun `an assertion cannot name a plain api key`() {
         val token = registeredToken("device-plain")
         val created =

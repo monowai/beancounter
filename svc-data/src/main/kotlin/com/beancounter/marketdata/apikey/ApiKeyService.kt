@@ -125,6 +125,12 @@ class ApiKeyService(
         val found =
             apiKeyRepository.findByKeyHash(ApiKeyGenerator.hash(rawKey))
                 ?: throw UnauthorizedException("Invalid API key")
+        // A device key's hash is computed from its public key, which anyone
+        // may know: presented as a raw key it would match. Device keys only
+        // ever authenticate by a signed assertion.
+        if (found.publicKey != null) {
+            throw UnauthorizedException("Invalid API key")
+        }
         return usable(found)
     }
 
@@ -198,7 +204,8 @@ class ApiKeyService(
         private const val DEVICE_PREFIX = "bcd_"
         private const val DEVICE_PREFIX_HASH_LENGTH = 7
 
-        // Keeps device-key hashes in a different space from raw-key hashes.
+        // Keeps a device key's hash apart from any generated key's hash. It is
+        // not a secret: [verify] must still refuse rows with a public key.
         private const val DEVICE_HASH_DOMAIN = "device-spki:"
 
         // Scopes issuable via API key are capped at the owner's own

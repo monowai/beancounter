@@ -341,6 +341,23 @@ class NetWorthServiceTest {
     }
 
     @Test
+    fun `should convert each portfolio's gain on day from base currency`() {
+        val sgdPortfolio = portfolio("p-sgd", "SGD", marketValue = "37000", gainOnDay = "-150")
+        val usdPortfolio = portfolio("p-usd", "USD", marketValue = "40000", gainOnDay = "250")
+        val unvalued = portfolio("p-new", "SGD", marketValue = "0")
+        val portfolios = listOf(sgdPortfolio, usdPortfolio, unvalued)
+        stubAggregated(portfolios, positions(sgdPortfolio, "SGD", totalMarketValue = "88200"), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubRates(mapOf(IsoCurrencyPair("USD", "SGD") to "1.28"))
+
+        val rows = netWorthService.calculate(portfolios, asAt, "SGD").portfolios.associateBy { it.id }
+
+        assertThat(rows["p-sgd"]!!.gainOnDay).isEqualByComparingTo("-150.00")
+        assertThat(rows["p-usd"]!!.gainOnDay).isEqualByComparingTo("320.00")
+        assertThat(rows["p-new"]!!.gainOnDay).isEqualByComparingTo("0")
+    }
+
+    @Test
     fun `should group index assets as investment`() {
         val portfolio = portfolio("p1", "SGD", marketValue = "1000")
         val index =
@@ -379,7 +396,8 @@ class NetWorthServiceTest {
         id: String,
         currencyCode: String,
         marketValue: String,
-        irr: String = "0"
+        irr: String = "0",
+        gainOnDay: String? = null
     ): Portfolio =
         Portfolio(
             id = id,
@@ -387,6 +405,7 @@ class NetWorthServiceTest {
             name = "Portfolio $id",
             marketValue = BigDecimal(marketValue),
             irr = BigDecimal(irr),
+            gainOnDay = gainOnDay?.let(::BigDecimal),
             currency = Currency(currencyCode),
             base = Currency(currencyCode),
             owner = Constants.owner

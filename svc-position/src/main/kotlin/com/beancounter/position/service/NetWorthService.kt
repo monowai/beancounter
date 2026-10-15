@@ -195,14 +195,17 @@ class NetWorthService(
         totalValue: BigDecimal
     ): List<NetWorthPortfolio> =
         portfolios.map { portfolio ->
-            val value = portfolio.marketValue.multiply(rates.getValue(portfolio.base.code))
+            val rate = rates.getValue(portfolio.base.code)
+            val value = portfolio.marketValue.multiply(rate)
             NetWorthPortfolio(
                 id = portfolio.id,
                 code = portfolio.code,
                 name = portfolio.name,
                 value = money(value),
                 percentage = percentage(value, totalValue),
-                irr = portfolio.irr
+                irr = portfolio.irr,
+                // Null until the portfolio's first valuation: no change to report.
+                gainOnDay = money((portfolio.gainOnDay ?: BigDecimal.ZERO).multiply(rate))
             )
         }
 

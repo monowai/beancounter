@@ -41,7 +41,9 @@ data class NetWorthPortfolio(
     val name: String,
     val value: BigDecimal,
     val percentage: BigDecimal,
-    val irr: BigDecimal
+    val irr: BigDecimal,
+    /** Change on day at the portfolio's last valuation, in the target currency. */
+    val gainOnDay: BigDecimal = BigDecimal.ZERO
 )
 
 data class NetWorthResponse(

@@ -22,6 +22,8 @@ data class NetWorth(
     /** All MA sub-account balances across composite configs, in [currency]. */
     val healthcareReserve: BigDecimal = BigDecimal.ZERO,
     val gainOnDay: BigDecimal = BigDecimal.ZERO,
+    /** [gainOnDay] against the previous day's net worth, in percentage points. */
+    val gainOnDayPercent: BigDecimal = BigDecimal.ZERO,
     val portfolioCount: Int = 0,
     /** Liquidity-group breakdown of held positions, sorted by value descending. */
     val classificationBreakdown: List<NetWorthClassification> = emptyList(),
@@ -43,7 +45,9 @@ data class NetWorthPortfolio(
     val percentage: BigDecimal,
     val irr: BigDecimal,
     /** Change on day at the portfolio's last valuation, in the target currency. */
-    val gainOnDay: BigDecimal = BigDecimal.ZERO
+    val gainOnDay: BigDecimal = BigDecimal.ZERO,
+    /** [gainOnDay] against the portfolio's previous value, in percentage points. */
+    val gainOnDayPercent: BigDecimal = BigDecimal.ZERO
 )
 
 data class NetWorthResponse(

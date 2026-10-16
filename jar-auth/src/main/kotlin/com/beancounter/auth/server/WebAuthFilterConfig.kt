@@ -42,9 +42,6 @@ import org.springframework.web.cors.CorsConfiguration
 @Service
 @EnableWebSecurity
 class WebAuthFilterConfig {
-    @Value("\${server.servlet.context-path:/api}")
-    private lateinit var apiPath: String
-
     @Value($$"${management.endpoints.web.base-path:/actuator}")
     private lateinit var actuatorPath: String
 
@@ -54,7 +51,7 @@ class WebAuthFilterConfig {
     @Value($$"${cors.origins:Authorization,Cache-Control,Content-Type}")
     private lateinit var headers: List<String>
 
-    @Value("\${cors.exposedHeaders:Authorization}")
+    @Value($$"${cors.exposedHeaders:Authorization}")
     private lateinit var exposedHeaders: List<String>
 
     @Autowired
@@ -114,22 +111,20 @@ class WebAuthFilterConfig {
                 auth.requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
                 auth.requestMatchers("$actuatorPath/openapi/**").permitAll() // API Docs
                 auth.requestMatchers("$actuatorPath/swagger-ui/**").permitAll() // API Docs
-                auth.requestMatchers("$apiPath/auth").permitAll()
+                // Matchers see the path inside the servlet context: a request for
+                // /api/auth arrives as /auth. Prefixing them with the context path
+                // meant none matched, and every request fell through to permitAll.
+                auth.requestMatchers("/auth").permitAll()
                 // BC API-key token exchange (bc-claude/MCP.md phase 2): authenticates
                 // by the key itself, not a user JWT - can't sit behind the JWT gate.
-                auth.requestMatchers("$apiPath/api-keys/token").permitAll()
+                auth.requestMatchers("/api-keys/token").permitAll()
                 // JWKS is public key material by design - every trusted issuer
                 // (Auth0, and now svc-data's own bc-issuer) publishes it openly.
-                auth.requestMatchers("$apiPath/.well-known/**").permitAll()
-                auth.requestMatchers("$apiPath/docs/**").permitAll()
-                auth.requestMatchers("$apiPath/swagger-ui/**").permitAll()
-                auth
-                    .requestMatchers("$apiPath/**")
-                    .hasAnyAuthority(
-                        AuthConstants.SCOPE_USER,
-                        AuthConstants.SCOPE_SYSTEM,
-                        AuthConstants.SCOPE_ADMIN
-                    ) // Deny by default: only known, scoped callers
+                auth.requestMatchers("/.well-known/**").permitAll()
+                auth.requestMatchers("/docs/**").permitAll()
+                auth.requestMatchers("/swagger-ui/**").permitAll()
+                // Boot's error page reports the failure of a request already let through.
+                auth.requestMatchers("/error").permitAll()
                 if (actuatorDefaultUnrestricted()) {
                     auth.requestMatchers("$actuatorPath/**").permitAll()
                 } else {
@@ -140,7 +135,15 @@ class WebAuthFilterConfig {
                         .requestMatchers("$actuatorPath/**")
                         .hasAnyAuthority(AuthConstants.SCOPE_ADMIN, AuthConstants.SCOPE_SYSTEM) // Admin or System users
                 }
-                auth.anyRequest().permitAll() //
+                // Deny by default: only known, scoped callers reach a controller,
+                // so one that forgets @PreAuthorize is not open to anyone.
+                auth
+                    .anyRequest()
+                    .hasAnyAuthority(
+                        AuthConstants.SCOPE_USER,
+                        AuthConstants.SCOPE_SYSTEM,
+                        AuthConstants.SCOPE_ADMIN
+                    )
             }.csrf { csrf ->
                 csrf.disable()
             }.cors { cors ->

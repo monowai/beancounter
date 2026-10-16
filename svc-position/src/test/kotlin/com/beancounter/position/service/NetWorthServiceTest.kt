@@ -81,6 +81,7 @@ class NetWorthServiceTest {
         assertThat(result.standaloneCompositeValue).isEqualByComparingTo("0")
         assertThat(result.healthcareReserve).isEqualByComparingTo("0")
         assertThat(result.gainOnDay).isEqualByComparingTo("0")
+        assertThat(result.gainOnDayPercent).isEqualByComparingTo("0")
         assertThat(result.portfolioCount).isZero()
         assertThat(result.classificationBreakdown).isEmpty()
         assertThat(result.portfolios).isEmpty()
@@ -250,6 +251,23 @@ class NetWorthServiceTest {
     }
 
     @Test
+    fun `should report gain on day as a percentage of the previous day's net worth`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "2050")
+        val priced =
+            position(TestHelpers.createTestAsset("priced"), portfolio, "SGD", marketValue = "2050").apply {
+                moneyValues[Position.In.PORTFOLIO]!!.gainOnDay = BigDecimal("50")
+                moneyValues[Position.In.PORTFOLIO]!!.priceData =
+                    PriceData().apply { changePercent = BigDecimal("0.025") }
+            }
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "2050", priced), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.gainOnDayPercent).isEqualByComparingTo("2.50")
+    }
+
+    @Test
     fun `should group classification breakdown into liquidity groups with percentages`() {
         val portfolio = portfolio("p1", "SGD", marketValue = "4000")
         val equity =
@@ -355,6 +373,24 @@ class NetWorthServiceTest {
         assertThat(rows["p-sgd"]!!.gainOnDay).isEqualByComparingTo("-150.00")
         assertThat(rows["p-usd"]!!.gainOnDay).isEqualByComparingTo("320.00")
         assertThat(rows["p-new"]!!.gainOnDay).isEqualByComparingTo("0")
+    }
+
+    @Test
+    fun `should report each portfolio's gain on day as a percentage of its previous value`() {
+        val sgdPortfolio = portfolio("p-sgd", "SGD", marketValue = "37000", gainOnDay = "-150")
+        val usdPortfolio = portfolio("p-usd", "USD", marketValue = "40000", gainOnDay = "250")
+        val unvalued = portfolio("p-new", "SGD", marketValue = "0")
+        val portfolios = listOf(sgdPortfolio, usdPortfolio, unvalued)
+        stubAggregated(portfolios, positions(sgdPortfolio, "SGD", totalMarketValue = "88200"), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubRates(mapOf(IsoCurrencyPair("USD", "SGD") to "1.28"))
+
+        val rows = netWorthService.calculate(portfolios, asAt, "SGD").portfolios.associateBy { it.id }
+
+        // -150 / (37000 + 150) and 320 / (51200 - 320), in percentage points.
+        assertThat(rows["p-sgd"]!!.gainOnDayPercent).isEqualByComparingTo("-0.40")
+        assertThat(rows["p-usd"]!!.gainOnDayPercent).isEqualByComparingTo("0.63")
+        assertThat(rows["p-new"]!!.gainOnDayPercent).isEqualByComparingTo("0")
     }
 
     @Test

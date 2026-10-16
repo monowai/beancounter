@@ -78,6 +78,7 @@ class NetWorthService(
         val healthcareReserve = money(convert(composite.reserve, rates))
         // Sum the rounded components so totalValue always reconciles with what is returned.
         val totalValue = money(holdingsValue).add(standaloneCompositeValue)
+        val gainOnDay = money(gainOnDay(positions))
 
         return NetWorth(
             asAt = asAt,
@@ -86,7 +87,8 @@ class NetWorthService(
             holdingsValue = money(holdingsValue),
             standaloneCompositeValue = standaloneCompositeValue,
             healthcareReserve = healthcareReserve,
-            gainOnDay = money(gainOnDay(positions)),
+            gainOnDay = gainOnDay,
+            gainOnDayPercent = changePercentage(gainOnDay, totalValue),
             portfolioCount = portfolios.size,
             classificationBreakdown = classificationBreakdown(positions),
             portfolios = portfolioRows(portfolios, rates, totalValue)
@@ -197,6 +199,8 @@ class NetWorthService(
         portfolios.map { portfolio ->
             val rate = rates.getValue(portfolio.base.code)
             val value = portfolio.marketValue.multiply(rate)
+            // Null until the portfolio's first valuation: no change to report.
+            val gainOnDay = money((portfolio.gainOnDay ?: BigDecimal.ZERO).multiply(rate))
             NetWorthPortfolio(
                 id = portfolio.id,
                 code = portfolio.code,
@@ -204,10 +208,16 @@ class NetWorthService(
                 value = money(value),
                 percentage = percentage(value, totalValue),
                 irr = portfolio.irr,
-                // Null until the portfolio's first valuation: no change to report.
-                gainOnDay = money((portfolio.gainOnDay ?: BigDecimal.ZERO).multiply(rate))
+                gainOnDay = gainOnDay,
+                gainOnDayPercent = changePercentage(gainOnDay, money(value))
             )
         }
+
+    /** A day's [change] against the value before it: [current] less the change. */
+    private fun changePercentage(
+        change: BigDecimal,
+        current: BigDecimal
+    ): BigDecimal = percentage(change, current.subtract(change))
 
     private fun percentage(
         value: BigDecimal,

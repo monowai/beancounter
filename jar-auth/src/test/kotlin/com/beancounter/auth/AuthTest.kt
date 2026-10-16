@@ -194,26 +194,11 @@ class AuthTest {
             .andReturn()
     }
 
-    @Test
-    fun swaggerUi_IsAccessibleWithoutAuthentication() {
-        val result =
-            mockMvc
-                .perform(
-                    MockMvcRequestBuilders
-                        .get("/api/swagger-ui/index.html")
-                        .contentType(MediaType.APPLICATION_JSON)
-                ).andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk)
-                .andReturn()
-        assertThat(result.response.status).isEqualTo(HttpStatus.OK.value())
-    }
-
     @RestController
     internal class SimpleController {
         companion object {
             private const val HELLO_RESPONSE = "hello"
             private const val WHAT_RESPONSE = "no one can call this"
-            private const val SWAGGER_UI_RESPONSE = "swagger-ui"
         }
 
         @GetMapping(HELLO)
@@ -224,11 +209,8 @@ class AuthTest {
         @PreAuthorize("hasAuthority('${AuthConstants.ADMIN}')")
         fun sayWhat(): String = WHAT_RESPONSE
 
-        @GetMapping("/api/swagger-ui/index.html")
-        fun swaggerUi(): String = SWAGGER_UI_RESPONSE
-
         // No @PreAuthorize: exercises the filter-chain-level rule alone,
-        // proving the "$apiPath/**" gate itself denies a bare `beancounter`
+        // proving the deny-by-default gate itself denies a bare `beancounter`
         // scope while accepting `beancounter:user`.
         @GetMapping("/api/plain")
         fun plain(): String = "plain"

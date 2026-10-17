@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.watchlist
 
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
@@ -8,7 +9,9 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Watchlist
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceService
 import jakarta.transaction.Transactional
 import org.springframework.dao.DataIntegrityViolationException
@@ -21,7 +24,8 @@ import java.util.Locale
  * Owner-scoped watchlists. A watchlist that is missing or belongs to someone else is
  * reported as not found, so existence is never leaked across users.
  *
- * Read paths attach the latest known close (DB only, no provider call) and compute every
+ * Adding without a price goes through the provider-aware price path. Read paths attach the
+ * latest stored close (DB only; the scheduled refresh keeps it fresh) and compute every
  * change server side. Percentages are fractions at scale 6, matching MarketData.changePercent.
  */
 @Service
@@ -31,6 +35,7 @@ class WatchlistService(
     private val itemRepository: WatchlistItemRepository,
     private val assetFinder: AssetFinder,
     private val priceService: PriceService,
+    private val marketDataService: MarketDataService,
     private val dateUtils: DateUtils
 ) {
     fun list(owner: SystemUser): List<WatchlistSummary> {
@@ -103,11 +108,19 @@ class WatchlistService(
         if (itemRepository.existsByWatchlistIdAndAssetId(watchlist.id, asset.id)) {
             throw DataIntegrityViolationException("Asset ${asset.id} is already on watchlist ${watchlist.code}")
         }
-        val latest = latestPrices(listOf(asset))[asset.id]
-        val addedPrice =
-            request.addedPrice?.let { requirePositive(it, "addedPrice") }
-                ?: latest?.close
-                ?: throw BusinessException("No price is known for asset ${asset.id}; supply addedPrice")
+        val requested = request.addedPrice
+        val latest: MarketData?
+        val addedPrice: BigDecimal
+        if (requested == null) {
+            val fetched =
+                fetchPrice(asset)
+                    ?: throw BusinessException("No price is available for asset ${asset.id}; supply addedPrice")
+            latest = fetched
+            addedPrice = fetched.close
+        } else {
+            latest = latestPrices(listOf(asset))[asset.id]
+            addedPrice = requirePositive(requested, "addedPrice")
+        }
         val item =
             itemRepository.save(
                 WatchlistItem(
@@ -199,6 +212,17 @@ class WatchlistService(
             throw DataIntegrityViolationException("Watchlist code $code already exists")
         }
     }
+
+    /**
+     * Provider-aware price for today: resolves each provider's market date, reads the DB and
+     * fetches-and-stores on a miss. Used only when adding without a caller price, so a
+     * never-priced asset picked from search can still be stamped.
+     */
+    private fun fetchPrice(asset: Asset): MarketData? =
+        marketDataService
+            .getPriceResponse(PriceRequest.of(asset, TODAY))
+            .data
+            .firstOrNull { it.close.signum() > 0 }
 
     /**
      * Latest close on or before today, ignoring rows without a positive close.

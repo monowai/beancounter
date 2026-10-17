@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.watchlist
 
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.SystemUser
@@ -12,11 +13,16 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MarketDataRepo
+import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.cache.CacheManager
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -42,6 +48,16 @@ import java.math.BigDecimal
 class WatchlistControllerTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
+
+    // The add path prices through the provider-aware pipeline; stub the NASDAQ provider so
+    // no test calls out. Closes it "returns" are keyed by asset code.
+    @MockitoBean
+    private lateinit var alphaPriceService: AlphaPriceService
+
+    @Autowired
+    private lateinit var cacheManager: CacheManager
+
+    private val providerCloses = mutableMapOf<String, BigDecimal>()
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -70,6 +86,25 @@ class WatchlistControllerTest {
             RegistrationUtils.registerUser(mockMvc, mockAuthConfig.getUserToken(SystemUser("wl-user-a", "wl-user-a")))
         tokenB =
             RegistrationUtils.registerUser(mockMvc, mockAuthConfig.getUserToken(SystemUser("wl-user-b", "wl-user-b")))
+    }
+
+    @BeforeEach
+    fun stubProvider() {
+        // MdFactory caches provider resolution; clear it so the mock is resolved.
+        cacheManager.getCache("provider")?.clear()
+        whenever(alphaPriceService.getId()).thenReturn(AlphaPriceService.ID)
+        whenever(alphaPriceService.isMarketSupported(any())).thenReturn(true)
+        whenever(alphaPriceService.isApiSupported()).thenReturn(true)
+        whenever(alphaPriceService.getDate(any(), any())).thenReturn(dateUtils.date)
+        whenever(alphaPriceService.getMarketData(any())).thenAnswer { invocation ->
+            val request = invocation.getArgument<PriceRequest>(0)
+            request.assets.mapNotNull { priceAsset ->
+                val resolved = priceAsset.resolvedAsset ?: return@mapNotNull null
+                providerCloses[resolved.code]?.let {
+                    MarketData(asset = resolved, priceDate = dateUtils.date, close = it)
+                }
+            }
+        }
     }
 
     private fun asset(code: String): Asset =
@@ -172,16 +207,30 @@ class WatchlistControllerTest {
     }
 
     @Test
-    fun `should stamp latest close when adding an item without a price`() {
+    fun `should stamp the provider close when adding a never priced asset`() {
         val id = create("WL-STAMP")
         val stock = asset("WLSTAMP")
-        price(stock, "50.25", "50.00")
+        providerCloses[stock.code] = BigDecimal("50.25")
 
         val item = addItem(id, mapOf("assetId" to stock.id)).path("data")
 
         assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("50.25")
+        assertThat(item.path("price").decimalValue()).isEqualByComparingTo("50.25")
+        assertThat(item.path("priceDate").asString()).isEqualTo(dateUtils.date.toString())
+        assertThat(item.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("0")
         assertThat(item.path("addedOn").asString()).isEqualTo(dateUtils.date.toString())
         assertThat(item.path("targetPrice").isNull).isTrue()
+    }
+
+    @Test
+    fun `should stamp the stored close when the provider has no price for the market date`() {
+        val id = create("WL-STORED")
+        val stock = asset("WLSTORED")
+        price(stock, "48.10", "48.00")
+
+        val item = addItem(id, mapOf("assetId" to stock.id)).path("data")
+
+        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("48.10")
     }
 
     @Test

@@ -3,7 +3,9 @@ package com.beancounter.agent.conversation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -173,6 +175,8 @@ class ConversationControllerTest {
             .perform(get("/agent/conversations").with(jwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.length()").value(0))
+        // Never listed, so never worth a title.
+        verify(titler, never()).suggest(any(), any(), any(), any(), any())
     }
 
     @Test

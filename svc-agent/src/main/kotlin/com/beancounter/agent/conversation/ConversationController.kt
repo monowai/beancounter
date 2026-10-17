@@ -41,7 +41,8 @@ class ConversationController(
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary =
-            "Start a conversation, empty or seeded with prior turns (max 50); it is listed once it holds a turn"
+            "Start a conversation, empty or seeded with prior turns (max 50); it is listed once it holds a turn, " +
+                "unless hidden: a hidden conversation is never listed or titled and is read only by id"
     )
     fun create(
         @RequestBody(required = false) request: CreateConversationRequest?

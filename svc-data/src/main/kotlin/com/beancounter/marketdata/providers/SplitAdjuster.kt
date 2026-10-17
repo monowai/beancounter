@@ -94,23 +94,26 @@ object SplitAdjuster {
     }
 
     /**
-     * Cumulative split factor for every split with an ex-date strictly after [after], using
-     * the same event rules as [adjust]. Divide a price observed on [after] by it to put the
-     * price on the latest share basis in [prices].
+     * Cumulative split factor for every split with an ex-date strictly after [after], from a
+     * chronological `(priceDate, split)` series, using the same transition rule as [adjust].
+     * Divide a price observed on [after] by it to put the price on the latest share basis.
+     *
+     * Unlike [adjust], the first row is never read as an event: a window cut from the middle
+     * of history may open on a sticky stamp whose real ex-date lies before it, and there is no
+     * real predecessor to tell the two apart. Callers lead the series with the nearest row
+     * before the window so a genuine ex-date inside it has a predecessor.
      */
     fun factorAfter(
-        prices: List<PricePoint>,
-        after: LocalDate,
-        events: List<SplitEvent> = emptyList()
+        splits: List<Pair<LocalDate, BigDecimal>>,
+        after: LocalDate
     ): BigDecimal =
-        splitEvents(prices, events)
+        transitions(splits, firstRowIsEvent = false)
             .filterKeys { it.isAfter(after) }
             .values
             .fold(BigDecimal.ONE) { factor, eventFactor -> factor.multiply(eventFactor) }
 
     /**
-     * Unified ex-date -> factor map: explicit [events] plus `split` column transitions
-     * (split=1 -> split!=1, so sticky stamps count once). [prices] must be chronological.
+     * Unified ex-date -> factor map: explicit [events] plus `split` column transitions.
      */
     private fun splitEvents(
         prices: List<PricePoint>,
@@ -122,16 +125,32 @@ object SplitAdjuster {
                 merged.putIfAbsent(ev.date, ev.factor)
             }
         }
-        for (i in prices.indices) {
-            val cur = prices[i].split
-            val prev = if (i > 0) prices[i - 1].split else BigDecimal.ONE
+        transitions(prices.map { it.priceDate to it.split }, firstRowIsEvent = true)
+            .forEach { (date, factor) -> merged.putIfAbsent(date, factor) }
+        return merged
+    }
+
+    /**
+     * `split` column transitions (split=1 -> split!=1, so sticky stamps count once) in a
+     * chronological series. [firstRowIsEvent] treats the first row as having a flat
+     * predecessor, which is what [adjust] has always done.
+     */
+    private fun transitions(
+        splits: List<Pair<LocalDate, BigDecimal>>,
+        firstRowIsEvent: Boolean
+    ): Map<LocalDate, BigDecimal> {
+        val found = mutableMapOf<LocalDate, BigDecimal>()
+        for (i in splits.indices) {
+            if (i == 0 && !firstRowIsEvent) continue
+            val (date, cur) = splits[i]
+            val prev = if (i > 0) splits[i - 1].second else BigDecimal.ONE
             val curIsSplit = cur.compareTo(BigDecimal.ONE) != 0 && cur.signum() > 0
             val prevIsFlat = prev.compareTo(BigDecimal.ONE) == 0
             if (curIsSplit && prevIsFlat) {
-                merged.putIfAbsent(prices[i].priceDate, cur)
+                found.putIfAbsent(date, cur)
             }
         }
-        return merged
+        return found
     }
 
     private fun resolvePreviousCloseFactor(

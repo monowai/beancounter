@@ -118,8 +118,10 @@ class WatchlistService(
                     ?: throw BusinessException("No price is available for asset ${asset.id}; supply addedPrice")
             // The fetched row is persisted (and enriched) asynchronously; enrich a copy the
             // same way so this response shows the day change a later GET will read.
+            // Enrichment can rebase an unadjusted ex-date close; stamp that close so the stored
+            // addedPrice and the persisted latest row share a basis.
             latest = priceService.enrichedCopy(fetched)
-            addedPrice = fetched.close
+            addedPrice = latest.close
         } else {
             latest = latestPrices(listOf(asset))[asset.id]
             addedPrice = requirePositive(requested, "addedPrice")
@@ -136,7 +138,7 @@ class WatchlistService(
                     targetOn = targetPrice?.let { dateUtils.date }
                 )
             )
-        return itemView(item, latest)
+        return itemView(item, latest, splitFactors(listOf(item)))
     }
 
     fun updateItem(
@@ -152,8 +154,11 @@ class WatchlistService(
         // Callers send prices on today's share basis. addedPrice stays stored on the addedOn
         // basis, so undo any split since then; a new target is simply dated today.
         request.addedPrice?.let { entered ->
-            val factor = splitFactors(item.asset, listOf(item.addedOn)).getValue(item.addedOn)
-            item.addedPrice = requirePositive(entered, "addedPrice").multiply(factor)
+            val factor = splitFactors(listOf(item)).getValue(item.id).getValue(item.addedOn)
+            item.addedPrice =
+                requirePositive(entered, "addedPrice")
+                    .multiply(factor)
+                    .setScale(PERCENT_SCALE, RoundingMode.HALF_UP)
         }
         request.targetPrice?.let {
             item.targetPrice = requirePositive(it, "targetPrice")
@@ -164,7 +169,7 @@ class WatchlistService(
             item.targetOn = null
         }
         val saved = itemRepository.save(item)
-        return itemView(saved, latestPrices(listOf(saved.asset))[saved.asset.id])
+        return itemView(saved, latestPrices(listOf(saved.asset))[saved.asset.id], splitFactors(listOf(saved)))
     }
 
     fun deleteItem(
@@ -256,16 +261,20 @@ class WatchlistService(
             code = watchlist.code,
             name = watchlist.name,
             createdAt = watchlist.createdAt,
-            items = items.map { itemView(it, prices[it.asset.id]) }
+            items =
+                splitFactors(items).let { factors ->
+                    items.map { itemView(it, prices[it.asset.id], factors) }
+                }
         )
     }
 
     private fun itemView(
         item: WatchlistItem,
-        latest: MarketData?
+        latest: MarketData?,
+        factorsByItem: Map<String, Map<LocalDate, BigDecimal>>
     ): WatchlistItemView {
         val targetOn = item.targetOn
-        val factors = splitFactors(item.asset, listOfNotNull(item.addedOn, targetOn))
+        val factors = factorsByItem.getValue(item.id)
         val addedPrice = rebase(item.addedPrice, factors.getValue(item.addedOn))
         val target = item.targetPrice?.let { rebase(it, factors.getValue(requireNotNull(targetOn))) }
         val price = latest?.close
@@ -289,13 +298,21 @@ class WatchlistService(
 
     /**
      * Stored prices sit on the share basis of the day they were entered, while the latest close
-     * is on today's basis (SPLITS.md: the DB keeps raw OHLC). Factors per entry date come from
-     * the stored split column.
+     * is on today's basis (SPLITS.md: the DB keeps raw OHLC). Factors per item and entry date
+     * come from the stored split column.
      */
-    private fun splitFactors(
-        asset: Asset,
-        dates: List<LocalDate>
-    ): Map<LocalDate, BigDecimal> = priceService.splitFactorsAfter(asset.id, dates, dateUtils.date)
+    private fun splitFactors(items: List<WatchlistItem>): Map<String, Map<LocalDate, BigDecimal>> {
+        // Batched across every asset on the list (DATA-6G: no per-item history reads).
+        val datesByAsset =
+            items
+                .groupBy { it.asset.id }
+                .values
+                .associate { assetItems ->
+                    assetItems.first().asset to assetItems.flatMap { listOfNotNull(it.addedOn, it.targetOn) }
+                }
+        val byAsset = priceService.splitFactorsAfter(datesByAsset, dateUtils.date)
+        return items.associate { it.id to byAsset.getValue(it.asset.id) }
+    }
 
     private fun rebase(
         price: BigDecimal,

@@ -653,24 +653,43 @@ class PriceService(
         )
 
     /**
-     * Cumulative split factor, per date in [dates], for splits with an ex-date after that date
-     * up to [to]. Reads the stored `split` column once (same event rules as [SplitAdjuster], no
-     * provider call). Divide a price observed on a date by its factor to put it on the [to]
-     * share basis. The window starts a little before the earliest date so a sticky split
-     * stamp already in force is not mistaken for a new event.
+     * Cumulative split factors for many assets in two queries. For each asset in [datesByAsset]
+     * and each of its dates, the product of splits with an ex-date after that date up to [to],
+     * read from the stored `split` column (no provider call). Divide a price observed on a date
+     * by its factor to put it on the [to] share basis.
+     *
+     * Each asset's series is its rows from the earliest date to [to], led by its nearest row
+     * before that window, so a split stamp at the window's start is judged against a real
+     * predecessor (see [SplitAdjuster.factorAfter]).
      */
     fun splitFactorsAfter(
-        assetId: String,
-        dates: Collection<LocalDate>,
+        datesByAsset: Map<Asset, Collection<LocalDate>>,
         to: LocalDate
-    ): Map<LocalDate, BigDecimal> {
-        if (dates.isEmpty()) return emptyMap()
-        val history =
+    ): Map<String, Map<LocalDate, BigDecimal>> {
+        val earliest = datesByAsset.values.flatten().minOrNull() ?: return emptyMap()
+        val assetIds = datesByAsset.keys.map { it.id }
+        val window =
             marketDataRepo
-                .findPriceHistory(assetId, dates.min().minusDays(FALLBACK_LOOKBACK_DAYS), to)
-                .map(PricePoint::from)
-        return dates.distinct().associateWith { SplitAdjuster.factorAfter(history, it) }
+                .findSplitHistory(assetIds, earliest, to)
+                .groupBy({ it.assetId }, { it.priceDate to it.split })
+        val predecessors =
+            marketDataRepo
+                .findLatestByAssetInAndPriceDateLessThanEqual(datesByAsset.keys, earliest.minusDays(1))
+                .groupBy({ it.asset.id }, { it.priceDate to it.split })
+        return datesByAsset.entries.associate { (asset, dates) ->
+            val series = splitSeries(predecessors[asset.id].orEmpty() + window[asset.id].orEmpty())
+            asset.id to dates.distinct().associateWith { SplitAdjuster.factorAfter(series, it) }
+        }
     }
+
+    // One chronological (date, split) point per date; several providers can hold a row for
+    // the same date, and any non-1 marker wins.
+    private fun splitSeries(rows: List<Pair<LocalDate, BigDecimal>>): List<Pair<LocalDate, BigDecimal>> =
+        rows
+            .groupBy({ it.first }, { it.second })
+            .map { (date, splits) ->
+                date to (splits.firstOrNull { it.compareTo(BigDecimal.ONE) != 0 } ?: BigDecimal.ONE)
+            }.sortedBy { it.first }
 
     /**
      * A copy of a fetched price, enriched (previousClose, change, changePercent) exactly as

@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS watchlist_item (
     added_on     DATE           NOT NULL,
     target_price NUMERIC(19, 6),
     target_on    DATE,
-    CONSTRAINT uk_watchlist_item_asset UNIQUE (watchlist_id, asset_id)
+    CONSTRAINT uk_watchlist_item_asset UNIQUE (watchlist_id, asset_id),
+    -- A target always carries the date it was entered (its share basis).
+    CONSTRAINT ck_watchlist_item_target_on CHECK (target_price IS NULL OR target_on IS NOT NULL)
 );
 
 CREATE INDEX IF NOT EXISTS idx_watchlist_item_asset ON watchlist_item (asset_id);

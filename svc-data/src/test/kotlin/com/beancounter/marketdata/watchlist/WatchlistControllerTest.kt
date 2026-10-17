@@ -17,12 +17,14 @@ import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.CacheManager
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -58,6 +60,7 @@ class WatchlistControllerTest {
     private lateinit var cacheManager: CacheManager
 
     private val providerCloses = mutableMapOf<String, BigDecimal>()
+    private val providerSplits = mutableMapOf<String, BigDecimal>()
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -104,7 +107,12 @@ class WatchlistControllerTest {
             request.assets.mapNotNull { priceAsset ->
                 val resolved = priceAsset.resolvedAsset ?: return@mapNotNull null
                 providerCloses[resolved.code]?.let {
-                    MarketData(asset = resolved, priceDate = dateUtils.date, close = it)
+                    MarketData(
+                        asset = resolved,
+                        priceDate = dateUtils.date,
+                        close = it,
+                        split = providerSplits[resolved.code] ?: BigDecimal.ONE
+                    )
                 }
             }
         }
@@ -536,6 +544,7 @@ class WatchlistControllerTest {
         val itemId =
             addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100)).path("data").path("id").asString()
         backdate(itemId, 10)
+        stored(stock, 6, "100")
         stored(stock, 5, "25", split = "4")
         stored(stock, 1, "26")
 
@@ -580,6 +589,81 @@ class WatchlistControllerTest {
         ).isEqualByComparingTo(added.path("changeOnDay").decimalValue())
         assertThat(read.path("changeOnDayPercent").decimalValue())
             .isEqualByComparingTo(added.path("changeOnDayPercent").decimalValue())
+    }
+
+    @Test
+    fun `should rebase each item by its own asset splits in a multi item read`() {
+        val id = create("WL-MULTI-SPLIT")
+        val split = asset("WLMULTISPLIT")
+        val flat = asset("WLMULTIFLAT")
+        val splitItem =
+            addItem(id, mapOf("assetId" to split.id, "addedPrice" to 100)).path("data").path("id").asString()
+        val flatItem =
+            addItem(id, mapOf("assetId" to flat.id, "addedPrice" to 50)).path("data").path("id").asString()
+        backdate(splitItem, 10)
+        backdate(flatItem, 10)
+        stored(split, 6, "100")
+        stored(split, 5, "25", split = "4")
+        stored(split, 1, "26")
+        stored(flat, 6, "50")
+        stored(flat, 1, "55")
+
+        val items = detail(id).path("items").associateBy { it.path("id").asString() }
+
+        assertThat(items.getValue(splitItem).path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+        assertThat(
+            items.getValue(splitItem).path("changeSinceAddedPercent").decimalValue()
+        ).isEqualByComparingTo("0.04")
+        assertThat(items.getValue(flatItem).path("addedPrice").decimalValue()).isEqualByComparingTo("50")
+        assertThat(items.getValue(flatItem).path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.1")
+    }
+
+    @Test
+    fun `should detect a split at the start of the window from the row before it`() {
+        val id = create("WL-SPARSE-SPLIT")
+        val stock = asset("WLSPARSE")
+        val itemId =
+            addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100)).path("data").path("id").asString()
+        backdate(itemId, 10)
+        // Sparse history: the last row before the item was added is well before it.
+        stored(stock, 40, "100")
+        stored(stock, 5, "25", split = "4")
+        stored(stock, 1, "26")
+
+        val item = detail(id).path("items").first()
+
+        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+    }
+
+    @Test
+    fun `should stamp the enriched close when the fetched ex-date close is unadjusted`() {
+        val id = create("WL-EXDATE")
+        val stock = asset("WLEXDATE")
+        stored(stock, 1, "100")
+        providerCloses[stock.code] = BigDecimal("100")
+        providerSplits[stock.code] = BigDecimal("4")
+
+        val added = addItem(id, mapOf("assetId" to stock.id)).path("data")
+
+        assertThat(added.path("price").decimalValue()).isEqualByComparingTo("25")
+        assertThat(added.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+        assertThat(watchlistItemRepository.findById(added.path("id").asString()).orElseThrow().addedPrice)
+            .isEqualByComparingTo("25")
+    }
+
+    @Test
+    fun `should refuse a stored target without its entry date`() {
+        val id = create("WL-TARGET-ON")
+        val itemId =
+            addItem(
+                id,
+                mapOf("assetId" to asset("WLTARGETON").id, "addedPrice" to 10)
+            ).path("data").path("id").asString()
+        val item = watchlistItemRepository.findById(itemId).orElseThrow()
+
+        assertThatThrownBy {
+            watchlistItemRepository.save(item.copy(targetPrice = BigDecimal.TEN, targetOn = null))
+        }.isInstanceOf(DataIntegrityViolationException::class.java)
     }
 
     @Test

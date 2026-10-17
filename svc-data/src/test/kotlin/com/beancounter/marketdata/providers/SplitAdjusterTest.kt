@@ -296,4 +296,33 @@ class SplitAdjusterTest {
         assertThat(adjusted[1].close).isEqualByComparingTo(BigDecimal("200"))
         assertThat(adjusted[2].close).isEqualByComparingTo(BigDecimal("205"))
     }
+
+    @Test
+    fun `factorAfter ignores a sticky split stamp on the first row of the window`() {
+        // The window opens mid-history on a row still carrying an older split's sticky stamp.
+        val splits =
+            listOf(
+                date20260402 to bd(4.0),
+                date20260403 to bd(4.0),
+                date20260406 to bd(1.0)
+            )
+
+        assertThat(SplitAdjuster.factorAfter(splits, date20260401)).isEqualByComparingTo("1")
+    }
+
+    @Test
+    fun `factorAfter counts a split that has a flat predecessor once`() {
+        val splits =
+            listOf(
+                date20260401 to bd(1.0),
+                date20260402 to bd(4.0),
+                date20260403 to bd(4.0),
+                date20260406 to bd(1.0),
+                date20260407 to bd(2.0)
+            )
+
+        assertThat(SplitAdjuster.factorAfter(splits, date20260401)).isEqualByComparingTo("8")
+        assertThat(SplitAdjuster.factorAfter(splits, date20260402)).isEqualByComparingTo("2")
+        assertThat(SplitAdjuster.factorAfter(splits, date20260407)).isEqualByComparingTo("1")
+    }
 }

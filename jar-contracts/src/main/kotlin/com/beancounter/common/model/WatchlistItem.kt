@@ -3,6 +3,7 @@ package com.beancounter.common.model
 import com.beancounter.common.utils.KeyGenUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
+import jakarta.persistence.CheckConstraint
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
@@ -25,6 +26,13 @@ import java.time.LocalDate
             name = "uk_watchlist_item_asset",
             columnNames = ["watchlist_id", "asset_id"]
         )
+    ],
+    // A target always carries the date it was entered (its share basis). Mirrors V43.
+    check = [
+        CheckConstraint(
+            name = "ck_watchlist_item_target_on",
+            constraint = "\"target_price\" IS NULL OR \"target_on\" IS NOT NULL"
+        )
     ]
 )
 data class WatchlistItem(
@@ -43,7 +51,7 @@ data class WatchlistItem(
     val addedOn: LocalDate,
     @Column(precision = 19, scale = 6)
     var targetPrice: BigDecimal? = null,
-    // Date the target was entered; null exactly when targetPrice is null.
+    // Date the target was entered; set whenever targetPrice is (ck_watchlist_item_target_on).
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     var targetOn: LocalDate? = null
 )

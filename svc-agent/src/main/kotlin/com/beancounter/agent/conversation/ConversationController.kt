@@ -41,7 +41,8 @@ class ConversationController(
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary =
-            "Start a conversation, empty or seeded with prior turns (max 50); it is listed once it holds a turn"
+            "Start a conversation, empty or seeded with prior turns (max 50); it is listed once it holds a turn, " +
+                "unless hidden: a hidden conversation is never listed or titled and is read only by id"
     )
     fun create(
         @RequestBody(required = false) request: CreateConversationRequest?
@@ -49,8 +50,9 @@ class ConversationController(
         val turns = request?.turns.orEmpty()
         validate(turns)
         val ownerId = owner.id()
-        val conversation = service.create(ownerId)
-        if (turns.isNotEmpty()) seed(ownerId, conversation.id, turns)
+        val hidden = request?.hidden == true
+        val conversation = service.create(ownerId, hidden)
+        if (turns.isNotEmpty()) seed(ownerId, conversation.id, turns, hidden)
         return ConversationSummaryResponse(
             ConversationSummary(
                 conversation.id,
@@ -69,11 +71,12 @@ class ConversationController(
         }
     }
 
-    /** Store [turns] in order, then title the conversation as a live first answer would. */
+    /** Store [turns] in order, then title the conversation as a live first answer would, unless it is [hidden]. */
     private fun seed(
         ownerId: String,
         id: String,
-        turns: List<SeedTurn>
+        turns: List<SeedTurn>,
+        hidden: Boolean
     ) {
         turns.forEach {
             if (it.role == ROLE_USER) {
@@ -82,6 +85,7 @@ class ConversationController(
                 service.appendAssistant(ownerId, id, it.content, null)
             }
         }
+        if (hidden) return
         val answer = turns.lastOrNull { it.role == ROLE_ASSISTANT } ?: return
         val questions = turns.filter { it.role == ROLE_USER }.map { it.label ?: it.content }
         titler.suggest(ownerId, id, service.titleOf(ownerId, id), questions, answer.content)
@@ -133,7 +137,9 @@ data class SeedTurn(
 )
 
 data class CreateConversationRequest(
-    val turns: List<SeedTurn> = emptyList()
+    val turns: List<SeedTurn> = emptyList(),
+    /** Kept out of the list, read only by id: a one-off answer a client fetches once and deletes. */
+    val hidden: Boolean = false
 )
 
 data class RenameConversationRequest(

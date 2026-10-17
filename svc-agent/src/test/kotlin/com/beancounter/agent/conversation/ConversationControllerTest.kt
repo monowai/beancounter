@@ -160,6 +160,22 @@ class ConversationControllerTest {
     }
 
     @Test
+    fun `should create a hidden conversation that the list leaves out`() {
+        mockMvc
+            .perform(
+                seed(
+                    """{"hidden":true,"turns":[{"role":"user","content":"Review VOO"},""" +
+                        """{"role":"assistant","content":"An S&P 500 ETF."}]}"""
+                )
+            ).andExpect(status().isCreated)
+
+        mockMvc
+            .perform(get("/agent/conversations").with(jwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.length()").value(0))
+    }
+
+    @Test
     fun `should list the caller's conversations with titles`() {
         seeded(me, "What is my runway?")
         seeded(other, "Not yours")

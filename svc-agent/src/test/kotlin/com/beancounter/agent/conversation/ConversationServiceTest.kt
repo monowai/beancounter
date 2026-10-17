@@ -184,6 +184,16 @@ class ConversationServiceTest {
     }
 
     @Test
+    fun `should keep a hidden conversation out of the list but return it by id`() {
+        val id = service.create(owner, hidden = true).id
+        service.appendUser(owner, id, "Review VOO", false)
+        service.appendAssistant(owner, id, "An S&P 500 ETF.", null)
+
+        assertThat(service.list(owner, page = 0, size = 20)).isEmpty()
+        assertThat(service.get(owner, id).messages.map { it.content }).containsExactly("Review VOO", "An S&P 500 ETF.")
+    }
+
+    @Test
     fun `should not list a conversation that never received a message`() {
         service.create(owner)
 

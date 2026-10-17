@@ -29,10 +29,20 @@ class ConversationService(
         const val ROLE_ASSISTANT = "assistant"
     }
 
-    fun create(ownerId: String): Conversation {
+    fun create(
+        ownerId: String,
+        hidden: Boolean = false
+    ): Conversation {
         val now = clock.instant()
-        return conversations.save(Conversation(ownerId = ownerId, createdAt = now, updatedAt = now))
+        return conversations.save(Conversation(ownerId = ownerId, createdAt = now, updatedAt = now, hidden = hidden))
     }
+
+    /** Whether the owner's conversation [id] is kept out of the list. */
+    @Transactional(readOnly = true)
+    fun isHidden(
+        ownerId: String,
+        id: String
+    ): Boolean = owned(ownerId, id).hidden
 
     @Transactional(readOnly = true)
     fun list(

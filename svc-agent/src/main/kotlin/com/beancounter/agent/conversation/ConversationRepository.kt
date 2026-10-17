@@ -25,9 +25,9 @@ interface ConversationRepository : JpaRepository<Conversation, String> {
         ownerId: String
     ): Conversation?
 
-    /** The owner's conversations that hold at least one turn, most recently active first. */
+    /** The owner's conversations that hold at least one turn and are not hidden, most recently active first. */
     @Query(
-        "select c from Conversation c where c.ownerId = :ownerId " +
+        "select c from Conversation c where c.ownerId = :ownerId and c.hidden = false " +
             "and exists (select 1 from ConversationMessage m where m.conversationId = c.id) " +
             "order by c.updatedAt desc"
     )

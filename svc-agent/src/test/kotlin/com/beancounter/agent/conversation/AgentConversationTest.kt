@@ -352,6 +352,18 @@ class AgentConversationTest {
     }
 
     @Test
+    fun `stream should not title a hidden conversation, which no list shows`() {
+        val id = service.create(me, hidden = true).id
+        streams(chunk("A pooled fund that tracks an index.", "stop"))
+        titles("\"Index Fund Basics.\"")
+
+        controller().stream(AgentQuery("In one sentence, what is an index fund?", conversationId = id)).blockLast()
+        awaitTitles()
+
+        assertThat(service.titleOf(me, id)).isEqualTo("Index fund")
+    }
+
+    @Test
     fun `stream should keep the provisional title when title generation fails`() {
         val id = service.create(me).id
         streams(chunk("A pooled fund that tracks an index.", "stop"))

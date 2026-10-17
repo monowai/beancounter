@@ -194,7 +194,10 @@ class AgentController(
                 titler = conversationTitler,
                 ownerId = ownerId,
                 conversationId = conversationId,
-                awaitingTitle = stored.none { it.role == ConversationService.ROLE_ASSISTANT },
+                // A hidden conversation is never listed, so a title would be an LLM call for nothing.
+                awaitingTitle =
+                    !conversations.isHidden(ownerId, conversationId) &&
+                        stored.none { it.role == ConversationService.ROLE_ASSISTANT },
                 provisionalTitle = conversations.titleOf(ownerId, conversationId),
                 questions =
                     stored.filter { it.role == ConversationService.ROLE_USER }.map { it.content } +

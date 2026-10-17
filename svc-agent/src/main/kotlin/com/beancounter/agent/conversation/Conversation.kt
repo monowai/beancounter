@@ -10,7 +10,8 @@ import java.time.Instant
 /**
  * One chat between a user and the agent. [ownerId] is the caller's
  * `SystemUser.id`. [updatedAt] moves with every turn, ordering the user's list
- * and driving the retention purge.
+ * and driving the retention purge. A [hidden] conversation is read only by its
+ * id, never listed: a one-off answer kept for a client that lost its stream.
  */
 @Entity
 @Table(name = "conversation")
@@ -24,7 +25,9 @@ class Conversation(
     @Column(nullable = false)
     val createdAt: Instant,
     @Column(nullable = false)
-    var updatedAt: Instant
+    var updatedAt: Instant,
+    @Column(nullable = false)
+    val hidden: Boolean = false
 )
 
 /**

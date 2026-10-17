@@ -22,6 +22,10 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
 import com.beancounter.marketdata.trn.TrnRepository
+import com.beancounter.marketdata.watchlist.AddWatchlistItemRequest
+import com.beancounter.marketdata.watchlist.CreateWatchlistRequest
+import com.beancounter.marketdata.watchlist.WatchlistRepository
+import com.beancounter.marketdata.watchlist.WatchlistService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,6 +77,12 @@ class OffboardingServiceTest {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
+    private lateinit var watchlistService: WatchlistService
+
+    @Autowired
+    private lateinit var watchlistRepository: WatchlistRepository
 
     @Autowired
     private lateinit var systemUserService: Registration
@@ -605,5 +615,79 @@ class OffboardingServiceTest {
         // Data is gone. (getSummary can't be used — a deactivated user no longer
         // resolves via getActiveUser, by design.)
         assertThat(portfolioRepository.findByOwner(after.get())).isEmpty()
+    }
+
+    /**
+     * A user-owned asset sitting on the user's own watchlist. watchlist_item has a NO-ACTION
+     * FK to asset, so every offboarding path that deletes assets must clear the items first.
+     */
+    private fun watchedOwnAsset(
+        user: SystemUser,
+        code: String
+    ): String {
+        val asset =
+            assetService
+                .handle(
+                    AssetRequest(
+                        mapOf(
+                            "test" to
+                                AssetInput.toRealEstate(
+                                    currency = USD,
+                                    code = code,
+                                    name = "Watched $code",
+                                    owner = user.id
+                                )
+                        )
+                    )
+                ).data["test"]!!
+        val owner = systemUserRepository.findById(user.id).orElseThrow()
+        val watchlist = watchlistService.create(owner, CreateWatchlistRequest(code = code, name = code))
+        watchlistService.addItem(
+            owner,
+            watchlist.id,
+            AddWatchlistItemRequest(assetId = asset.id, addedPrice = BigDecimal.TEN)
+        )
+        return watchlist.id
+    }
+
+    @Test
+    fun `should delete watchlists on account deletion`() {
+        val user = SystemUser(id = "offboard-watchlist-user", email = "offboard-watchlist@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        watchedOwnAsset(user, "OFFBOARD-WL-ACCOUNT")
+
+        val result = offboardingService.deleteUserAccount()
+
+        assertThat(result.success).isTrue()
+        assertThat(watchlistRepository.findByOwnerIdOrderByName(user.id)).isEmpty()
+        assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+    }
+
+    @Test
+    fun `should delete assets when a watchlist item references a user asset`() {
+        val user = SystemUser(id = "offboard-wl-assets-user", email = "offboard-wl-assets@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        val watchlistId = watchedOwnAsset(user, "OFFBOARD-WL-ASSETS")
+
+        val result = offboardingService.deleteUserAssets()
+
+        assertThat(result.success).isTrue()
+        assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+        assertThat(watchlistService.get(systemUserRepository.findById(user.id).orElseThrow(), watchlistId).items)
+            .isEmpty()
+    }
+
+    @Test
+    fun `should delete wealth when a watchlist item references a user asset`() {
+        val user = SystemUser(id = "offboard-wl-wealth-user", email = "offboard-wl-wealth@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        val watchlistId = watchedOwnAsset(user, "OFFBOARD-WL-WEALTH")
+
+        val result = offboardingService.deleteUserWealth()
+
+        assertThat(result.success).isTrue()
+        assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
+        assertThat(watchlistService.get(systemUserRepository.findById(user.id).orElseThrow(), watchlistId).items)
+            .isEmpty()
     }
 }

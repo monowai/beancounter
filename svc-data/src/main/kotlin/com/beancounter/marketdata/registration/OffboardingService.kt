@@ -8,6 +8,8 @@ import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.tax.TaxRateRepository
 import com.beancounter.marketdata.trn.TrnRepository
+import com.beancounter.marketdata.watchlist.WatchlistItemRepository
+import com.beancounter.marketdata.watchlist.WatchlistService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,10 +22,10 @@ import org.springframework.stereotype.Service
  * 2. MarketData (via asset)
  * 3. Portfolios
  * 4. Settlement accounts (before assets and brokers)
- * 5. Assets
+ * 5. Watchlist items on those assets, then Assets
  * 6. Brokers (after transactions and assets — trn.broker_id FK)
  * 7. TaxRates
- * 8. UserPreferences
+ * 8. Watchlists, UserPreferences
  * 9. SystemUser
  */
 @Service
@@ -39,7 +41,9 @@ class OffboardingService(
     private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository,
     private val marketDataRepo: MarketDataRepo,
     private val taxRateRepository: TaxRateRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val watchlistItemRepository: WatchlistItemRepository,
+    private val watchlistService: WatchlistService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -92,6 +96,8 @@ class OffboardingService(
         assets.forEach { asset ->
             trnRepository.deleteByAssetId(asset.id)
             marketDataRepo.deleteByAssetId(asset.id)
+            // watchlist_item -> asset is a NO-ACTION FK.
+            watchlistItemRepository.deleteByAssetId(asset.id)
             assetRepository.delete(asset)
             deletedCount++
         }
@@ -168,6 +174,8 @@ class OffboardingService(
         assets.forEach { asset ->
             trnRepository.deleteByAssetId(asset.id)
             marketDataRepo.deleteByAssetId(asset.id)
+            // watchlist_item -> asset is a NO-ACTION FK.
+            watchlistItemRepository.deleteByAssetId(asset.id)
             assetRepository.delete(asset)
             totalDeleted++
         }
@@ -227,6 +235,8 @@ class OffboardingService(
         assets.forEach { asset ->
             trnRepository.deleteByAssetId(asset.id)
             marketDataRepo.deleteByAssetId(asset.id)
+            // watchlist_item -> asset is a NO-ACTION FK.
+            watchlistItemRepository.deleteByAssetId(asset.id)
             assetRepository.delete(asset)
         }
 
@@ -237,12 +247,15 @@ class OffboardingService(
         // 4. Delete tax rates
         taxRateRepository.deleteAllByOwnerId(user.id)
 
-        // 5. Delete user preferences
+        // 5. Delete watchlists and their items
+        watchlistService.deleteByOwner(user.id)
+
+        // 6. Delete user preferences
         userPreferencesRepository.findByOwner(user).ifPresent {
             userPreferencesRepository.delete(it)
         }
 
-        // 6. User row already deactivated above (not deleted) — evict the cache
+        // 7. User row already deactivated above (not deleted) — evict the cache
         //    so the inactive state is re-read on the next request.
         systemUserCache.evictAll()
 

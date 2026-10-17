@@ -51,6 +51,9 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.postgresql)
+    // Boot 4.1 split Flyway auto-configuration into its own module; without it
+    // flyway-core sits on the classpath and no migration ever runs.
+    implementation("org.springframework.boot:spring-boot-flyway")
     implementation(libs.flyway.core)
     runtimeOnly(libs.flyway.postgresql)
     runtimeOnly("com.h2database:h2")

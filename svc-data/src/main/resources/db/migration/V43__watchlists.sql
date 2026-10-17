@@ -1,6 +1,8 @@
--- V42: Watchlists. A user owns many named watchlists (id/code/name, like portfolios); each
+-- V43: Watchlists. A user owns many named watchlists (id/code/name, like portfolios); each
 -- holds assets with no quantity. watchlist_item records the price the asset was added at (in
--- the asset's market currency), the date added and an optional target price.
+-- the asset's market currency), the date added and an optional target price with the date
+-- it was entered. Prices stay on the share basis of the day entered (raw, like market_data);
+-- reads rebase them across later splits.
 --
 -- FK columns are VARCHAR(255) to match the Hibernate-created system_user.id and asset.id.
 -- Deleting a watchlist cascades to its items. The asset FK is NO ACTION: asset deletes
@@ -22,6 +24,7 @@ CREATE TABLE IF NOT EXISTS watchlist_item (
     added_price  NUMERIC(19, 6) NOT NULL,
     added_on     DATE           NOT NULL,
     target_price NUMERIC(19, 6),
+    target_on    DATE,
     CONSTRAINT uk_watchlist_item_asset UNIQUE (watchlist_id, asset_id)
 );
 

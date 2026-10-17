@@ -44,23 +44,7 @@ object SplitAdjuster {
     ): List<PricePoint> {
         if (prices.isEmpty()) return prices
 
-        val merged = mutableMapOf<LocalDate, BigDecimal>()
-
-        for (ev in events) {
-            if (ev.factor.compareTo(BigDecimal.ONE) != 0 && ev.factor.signum() > 0) {
-                merged.putIfAbsent(ev.date, ev.factor)
-            }
-        }
-        for (i in prices.indices) {
-            val cur = prices[i].split
-            val prev = if (i > 0) prices[i - 1].split else BigDecimal.ONE
-            val curIsSplit = cur.compareTo(BigDecimal.ONE) != 0 && cur.signum() > 0
-            val prevIsFlat = prev.compareTo(BigDecimal.ONE) == 0
-            if (curIsSplit && prevIsFlat) {
-                merged.putIfAbsent(prices[i].priceDate, cur)
-            }
-        }
-
+        val merged = splitEvents(prices, events)
         if (merged.isEmpty()) return prices
 
         val sortedEvents = merged.entries.sortedBy { it.key }
@@ -107,6 +91,47 @@ object SplitAdjuster {
                 )
             }
         }
+    }
+
+    /**
+     * Cumulative split factor for every split with an ex-date strictly after [after], using
+     * the same event rules as [adjust]. Divide a price observed on [after] by it to put the
+     * price on the latest share basis in [prices].
+     */
+    fun factorAfter(
+        prices: List<PricePoint>,
+        after: LocalDate,
+        events: List<SplitEvent> = emptyList()
+    ): BigDecimal =
+        splitEvents(prices, events)
+            .filterKeys { it.isAfter(after) }
+            .values
+            .fold(BigDecimal.ONE) { factor, eventFactor -> factor.multiply(eventFactor) }
+
+    /**
+     * Unified ex-date -> factor map: explicit [events] plus `split` column transitions
+     * (split=1 -> split!=1, so sticky stamps count once). [prices] must be chronological.
+     */
+    private fun splitEvents(
+        prices: List<PricePoint>,
+        events: List<SplitEvent>
+    ): Map<LocalDate, BigDecimal> {
+        val merged = mutableMapOf<LocalDate, BigDecimal>()
+        for (ev in events) {
+            if (ev.factor.compareTo(BigDecimal.ONE) != 0 && ev.factor.signum() > 0) {
+                merged.putIfAbsent(ev.date, ev.factor)
+            }
+        }
+        for (i in prices.indices) {
+            val cur = prices[i].split
+            val prev = if (i > 0) prices[i - 1].split else BigDecimal.ONE
+            val curIsSplit = cur.compareTo(BigDecimal.ONE) != 0 && cur.signum() > 0
+            val prevIsFlat = prev.compareTo(BigDecimal.ONE) == 0
+            if (curIsSplit && prevIsFlat) {
+                merged.putIfAbsent(prices[i].priceDate, cur)
+            }
+        }
+        return merged
     }
 
     private fun resolvePreviousCloseFactor(

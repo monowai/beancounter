@@ -15,7 +15,8 @@ import java.time.LocalDate
 
 /**
  * An asset on a [Watchlist], with the price it was added at (in the asset's market currency)
- * and an optional target price.
+ * and an optional target price. Both are stored on the share basis of the day they were
+ * entered ([addedOn], [targetOn]); readers rebase them across later splits.
  */
 @Entity
 @Table(
@@ -41,5 +42,8 @@ data class WatchlistItem(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val addedOn: LocalDate,
     @Column(precision = 19, scale = 6)
-    var targetPrice: BigDecimal? = null
+    var targetPrice: BigDecimal? = null,
+    // Date the target was entered; null exactly when targetPrice is null.
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    var targetOn: LocalDate? = null
 )

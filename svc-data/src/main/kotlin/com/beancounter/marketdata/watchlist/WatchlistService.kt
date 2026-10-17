@@ -18,6 +18,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.Locale
 
 /**
@@ -115,12 +116,15 @@ class WatchlistService(
             val fetched =
                 fetchPrice(asset)
                     ?: throw BusinessException("No price is available for asset ${asset.id}; supply addedPrice")
-            latest = fetched
+            // The fetched row is persisted (and enriched) asynchronously; enrich a copy the
+            // same way so this response shows the day change a later GET will read.
+            latest = priceService.enrichedCopy(fetched)
             addedPrice = fetched.close
         } else {
             latest = latestPrices(listOf(asset))[asset.id]
             addedPrice = requirePositive(requested, "addedPrice")
         }
+        val targetPrice = request.targetPrice?.let { requirePositive(it, "targetPrice") }
         val item =
             itemRepository.save(
                 WatchlistItem(
@@ -128,7 +132,8 @@ class WatchlistService(
                     asset = asset,
                     addedPrice = addedPrice,
                     addedOn = dateUtils.date,
-                    targetPrice = request.targetPrice?.let { requirePositive(it, "targetPrice") }
+                    targetPrice = targetPrice,
+                    targetOn = targetPrice?.let { dateUtils.date }
                 )
             )
         return itemView(item, latest)
@@ -144,10 +149,19 @@ class WatchlistService(
         if (request.clearTarget && request.targetPrice != null) {
             throw BusinessException("Send either targetPrice or clearTarget, not both")
         }
-        request.addedPrice?.let { item.addedPrice = requirePositive(it, "addedPrice") }
-        request.targetPrice?.let { item.targetPrice = requirePositive(it, "targetPrice") }
+        // Callers send prices on today's share basis. addedPrice stays stored on the addedOn
+        // basis, so undo any split since then; a new target is simply dated today.
+        request.addedPrice?.let { entered ->
+            val factor = splitFactors(item.asset, listOf(item.addedOn)).getValue(item.addedOn)
+            item.addedPrice = requirePositive(entered, "addedPrice").multiply(factor)
+        }
+        request.targetPrice?.let {
+            item.targetPrice = requirePositive(it, "targetPrice")
+            item.targetOn = dateUtils.date
+        }
         if (request.clearTarget) {
             item.targetPrice = null
+            item.targetOn = null
         }
         val saved = itemRepository.save(item)
         return itemView(saved, latestPrices(listOf(saved.asset))[saved.asset.id])
@@ -250,13 +264,16 @@ class WatchlistService(
         item: WatchlistItem,
         latest: MarketData?
     ): WatchlistItemView {
+        val targetOn = item.targetOn
+        val factors = splitFactors(item.asset, listOfNotNull(item.addedOn, targetOn))
+        val addedPrice = rebase(item.addedPrice, factors.getValue(item.addedOn))
+        val target = item.targetPrice?.let { rebase(it, factors.getValue(requireNotNull(targetOn))) }
         val price = latest?.close
-        val sinceAdded = price?.subtract(item.addedPrice)
-        val target = item.targetPrice
+        val sinceAdded = price?.subtract(addedPrice)
         return WatchlistItemView(
             id = item.id,
             asset = item.asset,
-            addedPrice = item.addedPrice,
+            addedPrice = addedPrice,
             addedOn = item.addedOn,
             targetPrice = target,
             currency = item.asset.accountingType?.currency ?: item.asset.market.currency,
@@ -265,10 +282,32 @@ class WatchlistService(
             changeOnDay = latest?.change,
             changeOnDayPercent = latest?.changePercent,
             changeSinceAdded = sinceAdded,
-            changeSinceAddedPercent = sinceAdded?.let { fraction(it, item.addedPrice) },
+            changeSinceAddedPercent = sinceAdded?.let { fraction(it, addedPrice) },
             toTarget = if (price == null || target == null) null else fraction(target.subtract(price), price)
         )
     }
+
+    /**
+     * Stored prices sit on the share basis of the day they were entered, while the latest close
+     * is on today's basis (SPLITS.md: the DB keeps raw OHLC). Factors per entry date come from
+     * the stored split column.
+     */
+    private fun splitFactors(
+        asset: Asset,
+        dates: List<LocalDate>
+    ): Map<LocalDate, BigDecimal> = priceService.splitFactorsAfter(asset.id, dates, dateUtils.date)
+
+    private fun rebase(
+        price: BigDecimal,
+        factor: BigDecimal
+    ): BigDecimal =
+        if (factor.compareTo(BigDecimal.ONE) ==
+            0
+        ) {
+            price
+        } else {
+            price.divide(factor, PERCENT_SCALE, RoundingMode.HALF_UP)
+        }
 
     private fun fraction(
         numerator: BigDecimal,
@@ -285,6 +324,9 @@ class WatchlistService(
         if (trimmed.isEmpty()) {
             throw BusinessException("Watchlist $field is required")
         }
+        if (trimmed.length > MAX_TEXT_LENGTH) {
+            throw BusinessException("Watchlist $field must be at most $MAX_TEXT_LENGTH characters")
+        }
         return trimmed
     }
 
@@ -300,5 +342,8 @@ class WatchlistService(
 
     companion object {
         private const val PERCENT_SCALE = 6
+
+        // watchlist.code / watchlist.name are VARCHAR(255).
+        private const val MAX_TEXT_LENGTH = 255
     }
 }

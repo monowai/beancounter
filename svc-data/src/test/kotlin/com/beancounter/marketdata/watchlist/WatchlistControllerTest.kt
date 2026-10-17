@@ -72,6 +72,9 @@ class WatchlistControllerTest {
     private lateinit var assetService: AssetService
 
     @Autowired
+    private lateinit var watchlistItemRepository: WatchlistItemRepository
+
+    @Autowired
     private lateinit var dateUtils: DateUtils
 
     @Autowired
@@ -471,7 +474,127 @@ class WatchlistControllerTest {
         assertThat(detail(id).path("items").size()).isEqualTo(0)
     }
 
+    private fun stored(
+        asset: Asset,
+        daysAgo: Long,
+        close: String,
+        split: String = "1"
+    ) {
+        marketDataRepo.save(
+            MarketData(
+                asset = asset,
+                priceDate = dateUtils.date.minusDays(daysAgo),
+                close = BigDecimal(close),
+                split = BigDecimal(split)
+            )
+        )
+    }
+
+    /** Fixture: an item added (with its target) [daysAgo] days ago. */
+    private fun backdate(
+        itemId: String,
+        daysAgo: Long
+    ) {
+        val item = watchlistItemRepository.findById(itemId).orElseThrow()
+        watchlistItemRepository.save(
+            item.copy(
+                addedOn = dateUtils.date.minusDays(daysAgo),
+                targetOn = item.targetOn?.let { dateUtils.date.minusDays(daysAgo) }
+            )
+        )
+    }
+
+    @Test
+    fun `should rebase added and target prices across a split after addedOn`() {
+        val id = create("WL-SPLIT")
+        val stock = asset("WLSPLIT")
+        val itemId =
+            addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 120))
+                .path("data")
+                .path("id")
+                .asString()
+        backdate(itemId, 10)
+        stored(stock, 6, "100")
+        stored(stock, 5, "25", split = "4")
+        stored(stock, 4, "25.5", split = "4")
+        stored(stock, 1, "26")
+
+        val item = detail(id).path("items").first()
+
+        assertThat(item.path("price").decimalValue()).isEqualByComparingTo("26")
+        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+        assertThat(item.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("1")
+        assertThat(item.path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.04")
+        assertThat(item.path("targetPrice").decimalValue()).isEqualByComparingTo("30")
+        assertThat(item.path("toTarget").decimalValue()).isEqualByComparingTo("0.153846")
+    }
+
+    @Test
+    fun `should read edited prices on todays basis after a split`() {
+        val id = create("WL-SPLIT-EDIT")
+        val stock = asset("WLSPLITEDIT")
+        val itemId =
+            addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100)).path("data").path("id").asString()
+        backdate(itemId, 10)
+        stored(stock, 5, "25", split = "4")
+        stored(stock, 1, "26")
+
+        val edited =
+            call(
+                patch("$ROOT/{id}/items/{itemId}", id, itemId),
+                tokenA,
+                status().isOk,
+                mapOf("addedPrice" to 24, "targetPrice" to 40)
+            ).path("data")
+
+        assertThat(edited.path("addedPrice").decimalValue()).isEqualByComparingTo("24")
+        assertThat(edited.path("targetPrice").decimalValue()).isEqualByComparingTo("40")
+        assertThat(watchlistItemRepository.findById(itemId).orElseThrow().addedPrice)
+            .describedAs("stored on the addedOn share basis")
+            .isEqualByComparingTo("96")
+    }
+
+    @Test
+    fun `should report the day change on add that a later read reports`() {
+        val id = create("WL-DAYCHANGE")
+        val stock = asset("WLDAYCHANGE")
+        stored(stock, 1, "100")
+        providerCloses[stock.code] = BigDecimal("110")
+
+        val added = addItem(id, mapOf("assetId" to stock.id)).path("data")
+
+        assertThat(added.path("changeOnDay").decimalValue()).isEqualByComparingTo("10")
+        assertThat(added.path("changeOnDayPercent").decimalValue()).isEqualByComparingTo("0.1")
+
+        // The fetched price persists asynchronously; wait for the read path to see it.
+        var read = detail(id).path("items").first()
+        repeat(POLL_ATTEMPTS) {
+            if (read.path("priceDate").asString() != dateUtils.date.toString()) {
+                Thread.sleep(POLL_MS)
+                read = detail(id).path("items").first()
+            }
+        }
+        assertThat(read.path("priceDate").asString()).isEqualTo(dateUtils.date.toString())
+        assertThat(
+            read.path("changeOnDay").decimalValue()
+        ).isEqualByComparingTo(added.path("changeOnDay").decimalValue())
+        assertThat(read.path("changeOnDayPercent").decimalValue())
+            .isEqualByComparingTo(added.path("changeOnDayPercent").decimalValue())
+    }
+
+    @Test
+    fun `should return 400 when code or name exceeds 255 characters`() {
+        val tooLong = "X".repeat(256)
+
+        call(post(ROOT), tokenA, status().isBadRequest, mapOf("code" to tooLong, "name" to "ok"))
+        call(post(ROOT), tokenA, status().isBadRequest, mapOf("code" to "WL-LONG", "name" to tooLong))
+        val id = create("WL-LONG-RENAME")
+        call(patch("$ROOT/{id}", id), tokenA, status().isBadRequest, mapOf("name" to tooLong))
+    }
+
     companion object {
+        private const val POLL_ATTEMPTS = 50
+        private const val POLL_MS = 200L
         const val ROOT = "/watchlists"
     }
 }

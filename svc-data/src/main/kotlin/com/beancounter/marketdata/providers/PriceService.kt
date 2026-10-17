@@ -653,6 +653,39 @@ class PriceService(
         )
 
     /**
+     * Cumulative split factor, per date in [dates], for splits with an ex-date after that date
+     * up to [to]. Reads the stored `split` column once (same event rules as [SplitAdjuster], no
+     * provider call). Divide a price observed on a date by its factor to put it on the [to]
+     * share basis. The window starts a little before the earliest date so a sticky split
+     * stamp already in force is not mistaken for a new event.
+     */
+    fun splitFactorsAfter(
+        assetId: String,
+        dates: Collection<LocalDate>,
+        to: LocalDate
+    ): Map<LocalDate, BigDecimal> {
+        if (dates.isEmpty()) return emptyMap()
+        val history =
+            marketDataRepo
+                .findPriceHistory(assetId, dates.min().minusDays(FALLBACK_LOOKBACK_DAYS), to)
+                .map(PricePoint::from)
+        return dates.distinct().associateWith { SplitAdjuster.factorAfter(history, it) }
+    }
+
+    /**
+     * A copy of a fetched price, enriched (previousClose, change, changePercent) exactly as
+     * [handle] enriches it on persist, against the latest stored row before its date. Not
+     * saved; lets a caller show the day change before the async save lands.
+     */
+    fun enrichedCopy(marketData: MarketData): MarketData =
+        enrichWithPreviousClose(
+            marketData.copy(),
+            marketDataRepo
+                .findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(marketData.asset, marketData.priceDate)
+                .orElse(null)
+        )
+
+    /**
      * Get the price history for an asset between two dates.
      * Returns the hydrated asset plus a chronological list of prices
      * (no repeated asset per row).

@@ -41,10 +41,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
- * Watchlists: owned, named lists of assets with no quantity. Exercised end to end through
- * MockMvc against real H2 state.
+ * The caller's watchlist (one per user): assets with no quantity. Exercised end to end through
+ * MockMvc against real H2 state. Users A and B persist across tests, so each test works with
+ * its own assets and finds its items by id.
  */
 @SpringMvcDbTest
 class WatchlistControllerTest {
@@ -64,6 +66,9 @@ class WatchlistControllerTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     private lateinit var assetRepository: AssetRepository
@@ -86,16 +91,10 @@ class WatchlistControllerTest {
     private lateinit var tokenA: Jwt
     private lateinit var tokenB: Jwt
 
-    @Autowired
-    fun setTokens(mockAuthConfig: MockAuthConfig) {
-        tokenA =
-            RegistrationUtils.registerUser(mockMvc, mockAuthConfig.getUserToken(SystemUser("wl-user-a", "wl-user-a")))
-        tokenB =
-            RegistrationUtils.registerUser(mockMvc, mockAuthConfig.getUserToken(SystemUser("wl-user-b", "wl-user-b")))
-    }
-
     @BeforeEach
-    fun stubProvider() {
+    fun setUp() {
+        tokenA = register("wl-user-a")
+        tokenB = register("wl-user-b")
         // MdFactory caches provider resolution; clear it so the mock is resolved.
         cacheManager.getCache("provider")?.clear()
         whenever(alphaPriceService.getId()).thenReturn(AlphaPriceService.ID)
@@ -117,6 +116,9 @@ class WatchlistControllerTest {
             }
         }
     }
+
+    private fun register(user: String): Jwt =
+        RegistrationUtils.registerUser(mockMvc, mockAuthConfig.getUserToken(SystemUser(user, user)))
 
     private fun asset(code: String): Asset =
         assetRepository.save(
@@ -143,7 +145,23 @@ class WatchlistControllerTest {
                 close = closeValue,
                 previousClose = prevValue,
                 change = change,
-                changePercent = change.divide(prevValue, 6, java.math.RoundingMode.HALF_UP)
+                changePercent = change.divide(prevValue, 6, RoundingMode.HALF_UP)
+            )
+        )
+    }
+
+    private fun stored(
+        asset: Asset,
+        daysAgo: Long,
+        close: String,
+        split: String = "1"
+    ) {
+        marketDataRepo.save(
+            MarketData(
+                asset = asset,
+                priceDate = dateUtils.date.minusDays(daysAgo),
+                close = BigDecimal(close),
+                split = BigDecimal(split)
             )
         )
     }
@@ -167,142 +185,133 @@ class WatchlistControllerTest {
         return objectMapper.readTree(content.ifBlank { "{}" })
     }
 
-    private fun create(
-        code: String,
-        token: Jwt = tokenA
-    ): String =
-        call(
-            post(ROOT),
-            token,
-            status().isOk,
-            mapOf("code" to code, "name" to "$code name")
-        ).path("data").path("id").asString()
-
     private fun addItem(
-        watchlistId: String,
         body: Map<String, Any?>,
         token: Jwt = tokenA,
         expect: ResultMatcher = status().isOk
-    ): JsonNode = call(post("$ROOT/{id}/items", watchlistId), token, expect, body)
+    ): JsonNode = call(post(ITEMS), token, expect, body)
 
-    private fun detail(
-        watchlistId: String,
+    private fun addedId(body: Map<String, Any?>): String = addItem(body).path("data").path("id").asString()
+
+    private fun items(token: Jwt = tokenA): List<JsonNode> =
+        call(get(ROOT), token, status().isOk).path("data").path("items").toList()
+
+    private fun item(
+        itemId: String,
         token: Jwt = tokenA
-    ): JsonNode = call(get("$ROOT/{id}", watchlistId), token, status().isOk).path("data")
+    ): JsonNode = items(token).first { it.path("id").asString() == itemId }
 
-    @Test
-    fun `should create and list watchlists with item counts`() {
-        val id = create("WL-LIST")
-        addItem(id, mapOf("assetId" to asset("WLLIST").id, "addedPrice" to 10))
+    private fun itemIds(token: Jwt = tokenA): List<String> = items(token).map { it.path("id").asString() }
 
-        val lists = call(get(ROOT), tokenA, status().isOk).path("data")
-
-        val mine = lists.first { it.path("id").asString() == id }
-        assertThat(mine.path("code").asString()).isEqualTo("WL-LIST")
-        assertThat(mine.path("name").asString()).isEqualTo("WL-LIST name")
-        assertThat(mine.path("itemCount").asInt()).isEqualTo(1)
+    /** Fixture: an item added (with its target) [daysAgo] days ago. */
+    private fun backdate(
+        itemId: String,
+        daysAgo: Long
+    ) {
+        val stored = watchlistItemRepository.findById(itemId).orElseThrow()
+        watchlistItemRepository.save(
+            stored.copy(
+                addedOn = dateUtils.date.minusDays(daysAgo),
+                targetOn = stored.targetOn?.let { dateUtils.date.minusDays(daysAgo) }
+            )
+        )
     }
 
     @Test
-    fun `should return 409 when watchlist code already exists for owner`() {
-        create("WL-DUP")
+    fun `should return an empty watchlist for a user who watches nothing`() {
+        val token = register("wl-user-empty")
 
-        call(post(ROOT), tokenA, status().isConflict, mapOf("code" to "wl-dup", "name" to "again"))
-    }
+        val watchlist = call(get(ROOT), token, status().isOk).path("data")
 
-    @Test
-    fun `should allow the same code for different owners`() {
-        create("WL-SHARED-CODE")
-
-        call(post(ROOT), tokenB, status().isOk, mapOf("code" to "WL-SHARED-CODE", "name" to "B"))
+        assertThat(watchlist.path("items").isArray).isTrue()
+        assertThat(watchlist.path("items").size()).isEqualTo(0)
     }
 
     @Test
     fun `should stamp the provider close when adding a never priced asset`() {
-        val id = create("WL-STAMP")
         val stock = asset("WLSTAMP")
         providerCloses[stock.code] = BigDecimal("50.25")
 
-        val item = addItem(id, mapOf("assetId" to stock.id)).path("data")
+        val added = addItem(mapOf("assetId" to stock.id)).path("data")
 
-        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("50.25")
-        assertThat(item.path("price").decimalValue()).isEqualByComparingTo("50.25")
-        assertThat(item.path("priceDate").asString()).isEqualTo(dateUtils.date.toString())
-        assertThat(item.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("0")
-        assertThat(item.path("addedOn").asString()).isEqualTo(dateUtils.date.toString())
-        assertThat(item.path("targetPrice").isNull).isTrue()
+        assertThat(added.path("addedPrice").decimalValue()).isEqualByComparingTo("50.25")
+        assertThat(added.path("price").decimalValue()).isEqualByComparingTo("50.25")
+        assertThat(added.path("priceDate").asString()).isEqualTo(dateUtils.date.toString())
+        assertThat(added.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("0")
+        assertThat(added.path("addedOn").asString()).isEqualTo(dateUtils.date.toString())
+        assertThat(added.path("targetPrice").isNull).isTrue()
+        assertThat(itemIds()).contains(added.path("id").asString())
     }
 
     @Test
     fun `should stamp the stored close when the provider has no price for the market date`() {
-        val id = create("WL-STORED")
         val stock = asset("WLSTORED")
         price(stock, "48.10", "48.00")
 
-        val item = addItem(id, mapOf("assetId" to stock.id)).path("data")
+        val added = addItem(mapOf("assetId" to stock.id)).path("data")
 
-        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("48.10")
+        assertThat(added.path("addedPrice").decimalValue()).isEqualByComparingTo("48.10")
     }
 
     @Test
     fun `should use caller supplied added price over latest close`() {
-        val id = create("WL-OVERRIDE")
         val stock = asset("WLOVERRIDE")
         price(stock, "50.25", "50.00")
 
-        val item = addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 42)).path("data")
+        val added = addItem(mapOf("assetId" to stock.id, "addedPrice" to 42)).path("data")
 
-        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("42")
+        assertThat(added.path("addedPrice").decimalValue()).isEqualByComparingTo("42")
     }
 
     @Test
     fun `should return 400 when no price exists and none supplied`() {
-        val id = create("WL-NOPRICE")
-
-        val problem = addItem(id, mapOf("assetId" to asset("WLNOPRICE").id), expect = status().isBadRequest)
+        val problem = addItem(mapOf("assetId" to asset("WLNOPRICE").id), expect = status().isBadRequest)
 
         assertThat(problem.path("detail").asString()).contains("addedPrice")
     }
 
     @Test
-    fun `should return 409 when asset already on watchlist`() {
-        val id = create("WL-ITEM-DUP")
+    fun `should return 409 when asset already watched`() {
         val stock = asset("WLITEMDUP")
-        addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 1))
+        addItem(mapOf("assetId" to stock.id, "addedPrice" to 1))
 
-        addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 2), expect = status().isConflict)
+        addItem(mapOf("assetId" to stock.id, "addedPrice" to 2), expect = status().isConflict)
+    }
+
+    @Test
+    fun `should let different users watch the same asset`() {
+        val stock = asset("WLSHARED")
+        addItem(mapOf("assetId" to stock.id, "addedPrice" to 1))
+
+        addItem(mapOf("assetId" to stock.id, "addedPrice" to 2), token = tokenB)
     }
 
     @Test
     fun `should compute changes since added and to target`() {
-        val id = create("WL-CALC")
         val stock = asset("WLCALC")
         price(stock, "120", "100")
-        addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 150))
+        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 150))
 
-        val watchlist = detail(id)
-        val item = watchlist.path("items").first()
+        val read = item(itemId)
 
-        assertThat(watchlist.path("code").asString()).isEqualTo("WL-CALC")
-        assertThat(item.path("asset").path("id").asString()).isEqualTo(stock.id)
-        assertThat(item.path("currency").path("code").asString()).isEqualTo("USD")
-        assertThat(item.path("price").decimalValue()).isEqualByComparingTo("120")
-        assertThat(item.path("priceDate").asString()).isEqualTo(dateUtils.date.minusDays(1).toString())
-        assertThat(item.path("changeOnDay").decimalValue()).isEqualByComparingTo("20")
-        assertThat(item.path("changeOnDayPercent").decimalValue()).isEqualByComparingTo("0.2")
-        assertThat(item.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("20")
-        assertThat(item.path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.2")
-        assertThat(item.path("toTarget").decimalValue()).isEqualByComparingTo("0.25")
+        assertThat(read.path("asset").path("id").asString()).isEqualTo(stock.id)
+        assertThat(read.path("currency").path("code").asString()).isEqualTo("USD")
+        assertThat(read.path("price").decimalValue()).isEqualByComparingTo("120")
+        assertThat(read.path("priceDate").asString()).isEqualTo(dateUtils.date.minusDays(1).toString())
+        assertThat(read.path("changeOnDay").decimalValue()).isEqualByComparingTo("20")
+        assertThat(read.path("changeOnDayPercent").decimalValue()).isEqualByComparingTo("0.2")
+        assertThat(read.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("20")
+        assertThat(read.path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.2")
+        assertThat(read.path("toTarget").decimalValue()).isEqualByComparingTo("0.25")
     }
 
     @Test
     fun `should return null price fields when asset has no price`() {
-        val id = create("WL-UNPRICED")
-        addItem(id, mapOf("assetId" to asset("WLUNPRICED").id, "addedPrice" to 10, "targetPrice" to 12))
+        val itemId = addedId(mapOf("assetId" to asset("WLUNPRICED").id, "addedPrice" to 10, "targetPrice" to 12))
 
-        val item = detail(id).path("items").first()
+        val read = item(itemId)
 
-        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("10")
+        assertThat(read.path("addedPrice").decimalValue()).isEqualByComparingTo("10")
         listOf(
             "price",
             "priceDate",
@@ -312,41 +321,17 @@ class WatchlistControllerTest {
             "changeSinceAddedPercent",
             "toTarget"
         ).forEach { field ->
-            assertThat(item.path(field).isNull).describedAs(field).isTrue()
+            assertThat(read.path(field).isNull).describedAs(field).isTrue()
         }
     }
 
     @Test
-    fun `should rename watchlist`() {
-        val id = create("WL-RENAME")
-
-        call(patch("$ROOT/{id}", id), tokenA, status().isOk, mapOf("name" to "Renamed"))
-
-        val watchlist = detail(id)
-        assertThat(watchlist.path("name").asString()).isEqualTo("Renamed")
-        assertThat(watchlist.path("code").asString()).isEqualTo("WL-RENAME")
-    }
-
-    @Test
-    fun `should return 409 when renaming to a code the owner already uses`() {
-        create("WL-TAKEN")
-        val id = create("WL-MOVER")
-
-        call(patch("$ROOT/{id}", id), tokenA, status().isConflict, mapOf("code" to "WL-TAKEN"))
-    }
-
-    @Test
     fun `should edit item target and clear target`() {
-        val id = create("WL-EDIT")
-        val itemId =
-            addItem(
-                id,
-                mapOf("assetId" to asset("WLEDIT").id, "addedPrice" to 10)
-            ).path("data").path("id").asString()
+        val itemId = addedId(mapOf("assetId" to asset("WLEDIT").id, "addedPrice" to 10))
 
         val edited =
             call(
-                patch("$ROOT/{id}/items/{itemId}", id, itemId),
+                patch(ITEM, itemId),
                 tokenA,
                 status().isOk,
                 mapOf("addedPrice" to 11, "targetPrice" to 15)
@@ -354,109 +339,48 @@ class WatchlistControllerTest {
         assertThat(edited.path("addedPrice").decimalValue()).isEqualByComparingTo("11")
         assertThat(edited.path("targetPrice").decimalValue()).isEqualByComparingTo("15")
 
-        val cleared =
-            call(
-                patch("$ROOT/{id}/items/{itemId}", id, itemId),
-                tokenA,
-                status().isOk,
-                mapOf("clearTarget" to true)
-            ).path("data")
+        val cleared = call(patch(ITEM, itemId), tokenA, status().isOk, mapOf("clearTarget" to true)).path("data")
         assertThat(cleared.path("targetPrice").isNull).isTrue()
         assertThat(cleared.path("addedPrice").decimalValue()).isEqualByComparingTo("11")
     }
 
     @Test
     fun `should return 400 when clearing and setting target together`() {
-        val id = create("WL-AMBIGUOUS")
-        val itemId =
-            addItem(
-                id,
-                mapOf("assetId" to asset("WLAMBIG").id, "addedPrice" to 10)
-            ).path("data").path("id").asString()
+        val itemId = addedId(mapOf("assetId" to asset("WLAMBIG").id, "addedPrice" to 10))
 
-        call(
-            patch("$ROOT/{id}/items/{itemId}", id, itemId),
-            tokenA,
-            status().isBadRequest,
-            mapOf("clearTarget" to true, "targetPrice" to 15)
-        )
+        call(patch(ITEM, itemId), tokenA, status().isBadRequest, mapOf("clearTarget" to true, "targetPrice" to 15))
     }
 
     @Test
     fun `should delete item`() {
-        val id = create("WL-DEL-ITEM")
-        val itemId =
-            addItem(
-                id,
-                mapOf("assetId" to asset("WLDELITEM").id, "addedPrice" to 10)
-            ).path("data").path("id").asString()
+        val itemId = addedId(mapOf("assetId" to asset("WLDELITEM").id, "addedPrice" to 10))
 
-        call(delete("$ROOT/{id}/items/{itemId}", id, itemId), tokenA, status().isOk)
+        val deleted = call(delete(ITEM, itemId), tokenA, status().isOk)
 
-        assertThat(detail(id).path("items").size()).isEqualTo(0)
+        assertThat(deleted.path("deleted").asString()).isEqualTo(itemId)
+        assertThat(itemIds()).doesNotContain(itemId)
     }
 
     @Test
-    fun `should delete watchlist with its items`() {
-        val id = create("WL-DEL")
-        addItem(id, mapOf("assetId" to asset("WLDEL").id, "addedPrice" to 10))
-
-        call(delete("$ROOT/{id}", id), tokenA, status().isOk)
-
-        call(get("$ROOT/{id}", id), tokenA, status().isNotFound)
+    fun `should return 404 when item not found`() {
+        call(delete(ITEM, "no-such-item"), tokenA, status().isNotFound)
     }
 
     @Test
-    fun `should return 404 when watchlist not found`() {
-        call(get("$ROOT/{id}", "no-such-watchlist"), tokenA, status().isNotFound)
-    }
-
-    @Test
-    fun `should return 404 for another users watchlist on every endpoint`() {
-        val id = create("WL-PRIVATE")
-        val stock = asset("WLPRIVATE")
-        val itemId = addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 10)).path("data").path("id").asString()
+    fun `should return 404 for another users item on every endpoint`() {
+        val itemId = addedId(mapOf("assetId" to asset("WLPRIVATE").id, "addedPrice" to 10))
         val notFound = status().isNotFound
 
-        call(get("$ROOT/{id}", id), tokenB, notFound)
-        call(patch("$ROOT/{id}", id), tokenB, notFound, mapOf("name" to "hijack"))
-        call(delete("$ROOT/{id}", id), tokenB, notFound)
-        addItem(id, mapOf("assetId" to asset("WLPRIVATE2").id, "addedPrice" to 1), tokenB, notFound)
-        call(patch("$ROOT/{id}/items/{itemId}", id, itemId), tokenB, notFound, mapOf("targetPrice" to 99))
-        call(delete("$ROOT/{id}/items/{itemId}", id, itemId), tokenB, notFound)
+        call(patch(ITEM, itemId), tokenB, notFound, mapOf("targetPrice" to 99))
+        call(delete(ITEM, itemId), tokenB, notFound)
 
-        val lists = call(get(ROOT), tokenB, status().isOk).path("data")
-        assertThat(lists.map { it.path("id").asString() }).doesNotContain(id)
-        val untouched = detail(id)
-        assertThat(untouched.path("name").asString()).isEqualTo("WL-PRIVATE name")
-        assertThat(untouched.path("items").size()).isEqualTo(1)
-        assertThat(
-            untouched
-                .path("items")
-                .first()
-                .path("targetPrice")
-                .isNull
-        ).isTrue()
-    }
-
-    @Test
-    fun `should return 404 when item belongs to a different watchlist of the same owner`() {
-        val first = create("WL-FIRST")
-        val second = create("WL-SECOND")
-        val itemId =
-            addItem(
-                first,
-                mapOf("assetId" to asset("WLFIRST").id, "addedPrice" to 10)
-            ).path("data").path("id").asString()
-
-        call(delete("$ROOT/{id}/items/{itemId}", second, itemId), tokenA, status().isNotFound)
-
-        assertThat(detail(first).path("items").size()).isEqualTo(1)
+        assertThat(itemIds(tokenB)).doesNotContain(itemId)
+        val untouched = item(itemId)
+        assertThat(untouched.path("targetPrice").isNull).isTrue()
     }
 
     @Test
     fun `should return 404 when adding another users private asset`() {
-        val id = create("WL-FOREIGN-ASSET")
         val foreign =
             assetRepository.save(
                 Asset(
@@ -468,81 +392,43 @@ class WatchlistControllerTest {
                 )
             )
 
-        addItem(id, mapOf("assetId" to foreign.id, "addedPrice" to 1), expect = status().isNotFound)
+        addItem(mapOf("assetId" to foreign.id, "addedPrice" to 1), expect = status().isNotFound)
     }
 
     @Test
     fun `should drop watchlist items when the asset is deleted`() {
-        val id = create("WL-ASSET-GONE")
         val stock = asset("WLASSETGONE")
-        addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 10))
+        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 10))
 
         assetService.deleteAsset(stock.id)
 
-        assertThat(detail(id).path("items").size()).isEqualTo(0)
-    }
-
-    private fun stored(
-        asset: Asset,
-        daysAgo: Long,
-        close: String,
-        split: String = "1"
-    ) {
-        marketDataRepo.save(
-            MarketData(
-                asset = asset,
-                priceDate = dateUtils.date.minusDays(daysAgo),
-                close = BigDecimal(close),
-                split = BigDecimal(split)
-            )
-        )
-    }
-
-    /** Fixture: an item added (with its target) [daysAgo] days ago. */
-    private fun backdate(
-        itemId: String,
-        daysAgo: Long
-    ) {
-        val item = watchlistItemRepository.findById(itemId).orElseThrow()
-        watchlistItemRepository.save(
-            item.copy(
-                addedOn = dateUtils.date.minusDays(daysAgo),
-                targetOn = item.targetOn?.let { dateUtils.date.minusDays(daysAgo) }
-            )
-        )
+        assertThat(itemIds()).doesNotContain(itemId)
     }
 
     @Test
     fun `should rebase added and target prices across a split after addedOn`() {
-        val id = create("WL-SPLIT")
         val stock = asset("WLSPLIT")
-        val itemId =
-            addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 120))
-                .path("data")
-                .path("id")
-                .asString()
+        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 120))
         backdate(itemId, 10)
         stored(stock, 6, "100")
         stored(stock, 5, "25", split = "4")
         stored(stock, 4, "25.5", split = "4")
         stored(stock, 1, "26")
 
-        val item = detail(id).path("items").first()
+        val read = item(itemId)
 
-        assertThat(item.path("price").decimalValue()).isEqualByComparingTo("26")
-        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
-        assertThat(item.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("1")
-        assertThat(item.path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.04")
-        assertThat(item.path("targetPrice").decimalValue()).isEqualByComparingTo("30")
-        assertThat(item.path("toTarget").decimalValue()).isEqualByComparingTo("0.153846")
+        assertThat(read.path("price").decimalValue()).isEqualByComparingTo("26")
+        assertThat(read.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+        assertThat(read.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("1")
+        assertThat(read.path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.04")
+        assertThat(read.path("targetPrice").decimalValue()).isEqualByComparingTo("30")
+        assertThat(read.path("toTarget").decimalValue()).isEqualByComparingTo("0.153846")
     }
 
     @Test
     fun `should read edited prices on todays basis after a split`() {
-        val id = create("WL-SPLIT-EDIT")
         val stock = asset("WLSPLITEDIT")
-        val itemId =
-            addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100)).path("data").path("id").asString()
+        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 100))
         backdate(itemId, 10)
         stored(stock, 6, "100")
         stored(stock, 5, "25", split = "4")
@@ -550,7 +436,7 @@ class WatchlistControllerTest {
 
         val edited =
             call(
-                patch("$ROOT/{id}/items/{itemId}", id, itemId),
+                patch(ITEM, itemId),
                 tokenA,
                 status().isOk,
                 mapOf("addedPrice" to 24, "targetPrice" to 40)
@@ -564,23 +450,83 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should rebase each item by its own asset splits in a multi item read`() {
+        val split = asset("WLMULTISPLIT")
+        val flat = asset("WLMULTIFLAT")
+        val splitItem = addedId(mapOf("assetId" to split.id, "addedPrice" to 100))
+        val flatItem = addedId(mapOf("assetId" to flat.id, "addedPrice" to 50))
+        backdate(splitItem, 10)
+        backdate(flatItem, 10)
+        stored(split, 6, "100")
+        stored(split, 5, "25", split = "4")
+        stored(split, 1, "26")
+        stored(flat, 6, "50")
+        stored(flat, 1, "55")
+
+        val read = items().associateBy { it.path("id").asString() }
+
+        assertThat(read.getValue(splitItem).path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+        assertThat(read.getValue(splitItem).path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.04")
+        assertThat(read.getValue(flatItem).path("addedPrice").decimalValue()).isEqualByComparingTo("50")
+        assertThat(read.getValue(flatItem).path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.1")
+    }
+
+    @Test
+    fun `should detect a split at the start of the window from the row before it`() {
+        val stock = asset("WLSPARSE")
+        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 100))
+        backdate(itemId, 10)
+        // Sparse history: the last row before the item was added is well before it.
+        stored(stock, 40, "100")
+        stored(stock, 5, "25", split = "4")
+        stored(stock, 1, "26")
+
+        assertThat(item(itemId).path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+    }
+
+    @Test
+    fun `should stamp the enriched close when the fetched ex-date close is unadjusted`() {
+        val stock = asset("WLEXDATE")
+        stored(stock, 1, "100")
+        providerCloses[stock.code] = BigDecimal("100")
+        providerSplits[stock.code] = BigDecimal("4")
+
+        val added = addItem(mapOf("assetId" to stock.id)).path("data")
+
+        assertThat(added.path("price").decimalValue()).isEqualByComparingTo("25")
+        assertThat(added.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
+        assertThat(watchlistItemRepository.findById(added.path("id").asString()).orElseThrow().addedPrice)
+            .isEqualByComparingTo("25")
+    }
+
+    @Test
+    fun `should refuse a stored target without its entry date`() {
+        val itemId = addedId(mapOf("assetId" to asset("WLTARGETON").id, "addedPrice" to 10))
+        val stored = watchlistItemRepository.findById(itemId).orElseThrow()
+
+        assertThatThrownBy {
+            watchlistItemRepository.save(stored.copy(targetPrice = BigDecimal.TEN, targetOn = null))
+        }.isInstanceOf(DataIntegrityViolationException::class.java)
+    }
+
+    @Test
     fun `should report the day change on add that a later read reports`() {
-        val id = create("WL-DAYCHANGE")
         val stock = asset("WLDAYCHANGE")
         stored(stock, 1, "100")
         providerCloses[stock.code] = BigDecimal("110")
 
-        val added = addItem(id, mapOf("assetId" to stock.id)).path("data")
+        val added = addItem(mapOf("assetId" to stock.id)).path("data")
+        val itemId = added.path("id").asString()
 
         assertThat(added.path("changeOnDay").decimalValue()).isEqualByComparingTo("10")
         assertThat(added.path("changeOnDayPercent").decimalValue()).isEqualByComparingTo("0.1")
 
         // The fetched price persists asynchronously; wait for the read path to see it.
-        var read = detail(id).path("items").first()
+        var read = item(itemId)
         repeat(POLL_ATTEMPTS) {
             if (read.path("priceDate").asString() != dateUtils.date.toString()) {
                 Thread.sleep(POLL_MS)
-                read = detail(id).path("items").first()
+                read = item(itemId)
             }
         }
         assertThat(read.path("priceDate").asString()).isEqualTo(dateUtils.date.toString())
@@ -591,94 +537,11 @@ class WatchlistControllerTest {
             .isEqualByComparingTo(added.path("changeOnDayPercent").decimalValue())
     }
 
-    @Test
-    fun `should rebase each item by its own asset splits in a multi item read`() {
-        val id = create("WL-MULTI-SPLIT")
-        val split = asset("WLMULTISPLIT")
-        val flat = asset("WLMULTIFLAT")
-        val splitItem =
-            addItem(id, mapOf("assetId" to split.id, "addedPrice" to 100)).path("data").path("id").asString()
-        val flatItem =
-            addItem(id, mapOf("assetId" to flat.id, "addedPrice" to 50)).path("data").path("id").asString()
-        backdate(splitItem, 10)
-        backdate(flatItem, 10)
-        stored(split, 6, "100")
-        stored(split, 5, "25", split = "4")
-        stored(split, 1, "26")
-        stored(flat, 6, "50")
-        stored(flat, 1, "55")
-
-        val items = detail(id).path("items").associateBy { it.path("id").asString() }
-
-        assertThat(items.getValue(splitItem).path("addedPrice").decimalValue()).isEqualByComparingTo("25")
-        assertThat(
-            items.getValue(splitItem).path("changeSinceAddedPercent").decimalValue()
-        ).isEqualByComparingTo("0.04")
-        assertThat(items.getValue(flatItem).path("addedPrice").decimalValue()).isEqualByComparingTo("50")
-        assertThat(items.getValue(flatItem).path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.1")
-    }
-
-    @Test
-    fun `should detect a split at the start of the window from the row before it`() {
-        val id = create("WL-SPARSE-SPLIT")
-        val stock = asset("WLSPARSE")
-        val itemId =
-            addItem(id, mapOf("assetId" to stock.id, "addedPrice" to 100)).path("data").path("id").asString()
-        backdate(itemId, 10)
-        // Sparse history: the last row before the item was added is well before it.
-        stored(stock, 40, "100")
-        stored(stock, 5, "25", split = "4")
-        stored(stock, 1, "26")
-
-        val item = detail(id).path("items").first()
-
-        assertThat(item.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
-    }
-
-    @Test
-    fun `should stamp the enriched close when the fetched ex-date close is unadjusted`() {
-        val id = create("WL-EXDATE")
-        val stock = asset("WLEXDATE")
-        stored(stock, 1, "100")
-        providerCloses[stock.code] = BigDecimal("100")
-        providerSplits[stock.code] = BigDecimal("4")
-
-        val added = addItem(id, mapOf("assetId" to stock.id)).path("data")
-
-        assertThat(added.path("price").decimalValue()).isEqualByComparingTo("25")
-        assertThat(added.path("addedPrice").decimalValue()).isEqualByComparingTo("25")
-        assertThat(watchlistItemRepository.findById(added.path("id").asString()).orElseThrow().addedPrice)
-            .isEqualByComparingTo("25")
-    }
-
-    @Test
-    fun `should refuse a stored target without its entry date`() {
-        val id = create("WL-TARGET-ON")
-        val itemId =
-            addItem(
-                id,
-                mapOf("assetId" to asset("WLTARGETON").id, "addedPrice" to 10)
-            ).path("data").path("id").asString()
-        val item = watchlistItemRepository.findById(itemId).orElseThrow()
-
-        assertThatThrownBy {
-            watchlistItemRepository.save(item.copy(targetPrice = BigDecimal.TEN, targetOn = null))
-        }.isInstanceOf(DataIntegrityViolationException::class.java)
-    }
-
-    @Test
-    fun `should return 400 when code or name exceeds 255 characters`() {
-        val tooLong = "X".repeat(256)
-
-        call(post(ROOT), tokenA, status().isBadRequest, mapOf("code" to tooLong, "name" to "ok"))
-        call(post(ROOT), tokenA, status().isBadRequest, mapOf("code" to "WL-LONG", "name" to tooLong))
-        val id = create("WL-LONG-RENAME")
-        call(patch("$ROOT/{id}", id), tokenA, status().isBadRequest, mapOf("name" to tooLong))
-    }
-
     companion object {
         private const val POLL_ATTEMPTS = 50
         private const val POLL_MS = 200L
-        const val ROOT = "/watchlists"
+        const val ROOT = "/watchlist"
+        const val ITEMS = "$ROOT/items"
+        const val ITEM = "$ROOT/items/{itemId}"
     }
 }

@@ -8,38 +8,26 @@ import org.springframework.data.repository.query.Param
 import java.util.Optional
 
 /**
- * CRUD repo for [WatchlistItem].
+ * CRUD repo for [WatchlistItem]. Every read is owner-scoped.
  */
 interface WatchlistItemRepository : CrudRepository<WatchlistItem, String> {
-    fun findByWatchlistIdOrderByAssetCode(watchlistId: String): List<WatchlistItem>
+    fun findByOwnerIdOrderByAssetCode(ownerId: String): List<WatchlistItem>
 
-    fun findByIdAndWatchlistId(
+    fun findByIdAndOwnerId(
         id: String,
-        watchlistId: String
+        ownerId: String
     ): Optional<WatchlistItem>
 
-    fun existsByWatchlistIdAndAssetId(
-        watchlistId: String,
+    fun existsByOwnerIdAndAssetId(
+        ownerId: String,
         assetId: String
     ): Boolean
 
-    @Query(
-        "select i.watchlist.id as watchlistId, count(i) as itemCount from WatchlistItem i where i.watchlist.owner.id = :ownerId group by i.watchlist.id"
-    )
-    fun countByOwnerId(
-        @Param("ownerId") ownerId: String
-    ): List<WatchlistItemCount>
-
+    /**
+     * Offboarding: bulk, idempotent delete of an owner's watchlist.
+     */
     @Modifying
-    @Query("delete from WatchlistItem i where i.watchlist.id = :watchlistId")
-    fun deleteByWatchlistId(
-        @Param("watchlistId") watchlistId: String
-    ): Int
-
-    @Modifying
-    @Query(
-        "delete from WatchlistItem i where i.watchlist.id in (select w.id from Watchlist w where w.owner.id = :ownerId)"
-    )
+    @Query("delete from WatchlistItem i where i.owner.id = :ownerId")
     fun deleteByOwnerId(
         @Param("ownerId") ownerId: String
     ): Int
@@ -53,12 +41,4 @@ interface WatchlistItemRepository : CrudRepository<WatchlistItem, String> {
     fun deleteByAssetId(
         @Param("assetId") assetId: String
     ): Int
-}
-
-/**
- * Projection: number of items on a watchlist.
- */
-interface WatchlistItemCount {
-    val watchlistId: String
-    val itemCount: Long
 }

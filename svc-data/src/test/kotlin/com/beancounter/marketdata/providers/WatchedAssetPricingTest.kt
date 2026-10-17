@@ -5,7 +5,6 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.model.Watchlist
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
@@ -17,7 +16,6 @@ import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.watchlist.WatchlistItemRepository
-import com.beancounter.marketdata.watchlist.WatchlistRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -57,9 +55,6 @@ class WatchedAssetPricingTest {
     private lateinit var systemUserRepository: SystemUserRepository
 
     @Autowired
-    private lateinit var watchlistRepository: WatchlistRepository
-
-    @Autowired
     private lateinit var watchlistItemRepository: WatchlistItemRepository
 
     @Autowired
@@ -96,13 +91,9 @@ class WatchedAssetPricingTest {
                     status = status
                 )
             )
-        val watchlist =
-            watchlistRepository.save(
-                Watchlist(owner = owner, code = code, name = code, createdAt = dateUtils.date)
-            )
         watchlistItemRepository.save(
             WatchlistItem(
-                watchlist = watchlist,
+                owner = owner,
                 asset = asset,
                 addedPrice = BigDecimal.TEN,
                 addedOn = dateUtils.date

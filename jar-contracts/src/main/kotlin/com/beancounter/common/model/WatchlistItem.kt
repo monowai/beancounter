@@ -15,16 +15,17 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * An asset on a [Watchlist], with the price it was added at (in the asset's market currency)
- * and an optional target price. Both are stored on the share basis of the day they were
- * entered ([addedOn], [targetOn]); readers rebase them across later splits.
+ * An asset on its owner's watchlist. Each [SystemUser] has one watchlist: the items they own.
+ * Records the price it was added at (in the asset's market currency) and an optional target.
+ * Both are stored on the share basis of the day they were entered ([addedOn], [targetOn]);
+ * readers rebase them across later splits.
  */
 @Entity
 @Table(
     uniqueConstraints = [
         UniqueConstraint(
-            name = "uk_watchlist_item_asset",
-            columnNames = ["watchlist_id", "asset_id"]
+            name = "uk_watchlist_item_owner_asset",
+            columnNames = ["owner_id", "asset_id"]
         )
     ],
     // A target always carries the date it was entered (its share basis). Mirrors V43.
@@ -39,9 +40,9 @@ data class WatchlistItem(
     @Id
     val id: String = KeyGenUtils().id,
     @ManyToOne
-    @JoinColumn(name = "watchlist_id", nullable = false)
+    @JoinColumn(name = "owner_id", nullable = false)
     @JsonIgnore
-    val watchlist: Watchlist,
+    val owner: SystemUser,
     @ManyToOne
     @JoinColumn(name = "asset_id", nullable = false)
     val asset: Asset,

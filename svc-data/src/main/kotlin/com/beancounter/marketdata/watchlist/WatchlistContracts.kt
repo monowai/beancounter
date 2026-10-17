@@ -8,23 +8,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * Create a watchlist. Code is upper-cased and must be unique for the owner.
- */
-data class CreateWatchlistRequest(
-    val code: String,
-    val name: String
-)
-
-/**
- * Rename a watchlist. Absent fields are left unchanged.
- */
-data class UpdateWatchlistRequest(
-    val code: String? = null,
-    val name: String? = null
-)
-
-/**
- * Add an asset. When [addedPrice] is absent the latest known close is stamped.
+ * Add an asset. When [addedPrice] is absent the current close is stamped.
  */
 data class AddWatchlistItemRequest(
     val assetId: String,
@@ -43,31 +27,18 @@ data class UpdateWatchlistItemRequest(
 )
 
 /**
- * One row of the caller's watchlists.
- */
-data class WatchlistSummary(
-    val id: String,
-    val code: String,
-    val name: String,
-    val itemCount: Int
-)
-
-/**
- * A watchlist with its items, each carrying the latest price and server-computed changes.
+ * The caller's watchlist: their items, each with the latest price and server-computed changes.
  */
 data class WatchlistView(
-    val id: String,
-    val code: String,
-    val name: String,
-    @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    val createdAt: LocalDate,
     val items: List<WatchlistItemView>
 )
 
 /**
- * An item with its latest price. Amounts are in [currency] (the asset's market currency).
- * Percentages are fractions (0.25 = 25%), matching MarketData.changePercent. Price-derived
- * fields are null when the asset has no price; [toTarget] is also null without a target.
+ * An item with its latest price. Amounts are in [currency] (the asset's market currency) and on
+ * today's share basis: [addedPrice] and [targetPrice] are rebased across splits since they were
+ * entered. Percentages are fractions (0.25 = 25%), matching MarketData.changePercent.
+ * Price-derived fields are null when the asset has no price; [toTarget] is also null without a
+ * target.
  */
 data class WatchlistItemView(
     val id: String,
@@ -88,14 +59,7 @@ data class WatchlistItemView(
 )
 
 /**
- * Response wrapper for the caller's watchlists.
- */
-data class WatchlistsResponse(
-    override val data: List<WatchlistSummary>
-) : Payload<List<WatchlistSummary>>
-
-/**
- * Response wrapper for one watchlist.
+ * Response wrapper for the caller's watchlist.
  */
 data class WatchlistResponse(
     override val data: WatchlistView

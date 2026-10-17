@@ -23,8 +23,7 @@ import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.watchlist.AddWatchlistItemRequest
-import com.beancounter.marketdata.watchlist.CreateWatchlistRequest
-import com.beancounter.marketdata.watchlist.WatchlistRepository
+import com.beancounter.marketdata.watchlist.WatchlistItemRepository
 import com.beancounter.marketdata.watchlist.WatchlistService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -82,7 +81,7 @@ class OffboardingServiceTest {
     private lateinit var watchlistService: WatchlistService
 
     @Autowired
-    private lateinit var watchlistRepository: WatchlistRepository
+    private lateinit var watchlistItemRepository: WatchlistItemRepository
 
     @Autowired
     private lateinit var systemUserService: Registration
@@ -624,7 +623,7 @@ class OffboardingServiceTest {
     private fun watchedOwnAsset(
         user: SystemUser,
         code: String
-    ): String {
+    ) {
         val asset =
             assetService
                 .handle(
@@ -641,17 +640,14 @@ class OffboardingServiceTest {
                     )
                 ).data["test"]!!
         val owner = systemUserRepository.findById(user.id).orElseThrow()
-        val watchlist = watchlistService.create(owner, CreateWatchlistRequest(code = code, name = code))
         watchlistService.addItem(
             owner,
-            watchlist.id,
             AddWatchlistItemRequest(assetId = asset.id, addedPrice = BigDecimal.TEN)
         )
-        return watchlist.id
     }
 
     @Test
-    fun `should delete watchlists on account deletion`() {
+    fun `should delete the watchlist on account deletion`() {
         val user = SystemUser(id = "offboard-watchlist-user", email = "offboard-watchlist@test.com")
         mockAuthConfig.login(user, systemUserService)
         watchedOwnAsset(user, "OFFBOARD-WL-ACCOUNT")
@@ -659,7 +655,7 @@ class OffboardingServiceTest {
         val result = offboardingService.deleteUserAccount()
 
         assertThat(result.success).isTrue()
-        assertThat(watchlistRepository.findByOwnerIdOrderByName(user.id)).isEmpty()
+        assertThat(watchlistItemRepository.findByOwnerIdOrderByAssetCode(user.id)).isEmpty()
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
     }
 
@@ -667,27 +663,25 @@ class OffboardingServiceTest {
     fun `should delete assets when a watchlist item references a user asset`() {
         val user = SystemUser(id = "offboard-wl-assets-user", email = "offboard-wl-assets@test.com")
         mockAuthConfig.login(user, systemUserService)
-        val watchlistId = watchedOwnAsset(user, "OFFBOARD-WL-ASSETS")
+        watchedOwnAsset(user, "OFFBOARD-WL-ASSETS")
 
         val result = offboardingService.deleteUserAssets()
 
         assertThat(result.success).isTrue()
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
-        assertThat(watchlistService.get(systemUserRepository.findById(user.id).orElseThrow(), watchlistId).items)
-            .isEmpty()
+        assertThat(watchlistItemRepository.findByOwnerIdOrderByAssetCode(user.id)).isEmpty()
     }
 
     @Test
     fun `should delete wealth when a watchlist item references a user asset`() {
         val user = SystemUser(id = "offboard-wl-wealth-user", email = "offboard-wl-wealth@test.com")
         mockAuthConfig.login(user, systemUserService)
-        val watchlistId = watchedOwnAsset(user, "OFFBOARD-WL-WEALTH")
+        watchedOwnAsset(user, "OFFBOARD-WL-WEALTH")
 
         val result = offboardingService.deleteUserWealth()
 
         assertThat(result.success).isTrue()
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
-        assertThat(watchlistService.get(systemUserRepository.findById(user.id).orElseThrow(), watchlistId).items)
-            .isEmpty()
+        assertThat(watchlistItemRepository.findByOwnerIdOrderByAssetCode(user.id)).isEmpty()
     }
 }

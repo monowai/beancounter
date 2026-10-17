@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service
  * 5. Asset dependents (AssetCascadeDeleter), then Assets
  * 6. Brokers (after transactions and assets — trn.broker_id FK)
  * 7. TaxRates
- * 8. Watchlists, UserPreferences
+ * 8. Watchlist items, UserPreferences
  * 9. SystemUser
  */
 @Service
@@ -242,7 +242,7 @@ class OffboardingService(
         // 4. Delete tax rates
         taxRateRepository.deleteAllByOwnerId(user.id)
 
-        // 5. Delete watchlists and their items
+        // 5. Delete the watchlist
         watchlistService.deleteByOwner(user.id)
 
         // 6. Delete user preferences

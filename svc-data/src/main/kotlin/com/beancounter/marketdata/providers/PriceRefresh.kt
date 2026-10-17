@@ -56,11 +56,13 @@ class PriceRefresh(
         // Index benchmarks (INDEX market) are unioned in — they have no
         // holdings but dashboards expect them refreshed daily. Configured
         // benchmarks join them: chart overlays divide by tickers (SPY, RSP)
-        // that live on a regular market and that nobody need own.
+        // that live on a regular market and that nobody need own. Watched
+        // assets join too: a watchlist-only asset has no holdings.
         val held = assetFinder.findHeldAssetsForPricing()
+        val watched = assetFinder.findWatchedAssetsForPricing()
         val indices = assetFinder.findActiveIndexAssets()
         val assets =
-            (held + indices + benchmarkAssets())
+            (held + watched + indices + benchmarkAssets())
                 .distinctBy { it.id }
 
         for (asset in assets) {

@@ -7,6 +7,7 @@ import com.beancounter.marketdata.classification.AssetFundamentalsRepository
 import com.beancounter.marketdata.classification.AssetHoldingRepository
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.trn.TrnRepository
+import com.beancounter.marketdata.watchlist.WatchlistItemRepository
 import org.springframework.stereotype.Service
 
 /**
@@ -22,7 +23,8 @@ class AssetCascadeDeleter(
     private val assetFundamentalsRepository: AssetFundamentalsRepository,
     private val assetHoldingRepository: AssetHoldingRepository,
     private val privateAssetConfigRepository: PrivateAssetConfigRepository,
-    private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository
+    private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository,
+    private val watchlistItemRepository: WatchlistItemRepository
 ) {
     /**
      * Delete all dependent data for an asset in FK dependency order.
@@ -36,6 +38,7 @@ class AssetCascadeDeleter(
         assetFundamentalsRepository.deleteByAssetId(assetId)
         assetHoldingRepository.deleteByAssetId(assetId)
         brokerSettlementAccountRepository.deleteByAccountId(assetId)
+        watchlistItemRepository.deleteByAssetId(assetId)
         privateAssetConfigRepository.deleteById(assetId)
     }
 }

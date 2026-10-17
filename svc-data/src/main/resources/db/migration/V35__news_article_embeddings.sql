@@ -7,8 +7,8 @@
 -- EodhdNewsService's ingest seam. The feature is DEFAULT-OFF (NewsEmbeddingProperties) — the
 -- embedding model runs out-of-process as a standalone bc-embed deployment, not yet shipped — so
 -- these columns stay empty in every environment today.
-ALTER TABLE news_article ADD COLUMN embedding BYTEA;
-ALTER TABLE news_article ADD COLUMN embedding_model VARCHAR(64);
+ALTER TABLE news_article ADD COLUMN IF NOT EXISTS embedding BYTEA;
+ALTER TABLE news_article ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(64);
 
 -- No index on `topic`: the only read is EodhdNewsService.matchesTopic, which filters in memory over
 -- articles already loaded by ticker (findByTickersAfter). A topic index would be pure ingest-time

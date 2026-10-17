@@ -4,6 +4,10 @@
 -- so the cascades those migrations declare never reached the database. Recreate each
 -- foreign key with ON DELETE CASCADE. Safe on a fresh database, where V33/V35 already
 -- created the cascade: the constraint is dropped and recreated unchanged.
+--
+-- Scope: only migrations after V29 were skipped. Both databases (kauri, localhost) have V1-V29
+-- in their history, so earlier cascades such as V19's news_article_ticker/tag are in place.
+-- Proven against a schema-only copy of kauri's tables: both FKs go NO ACTION -> CASCADE.
 
 DO $$
 DECLARE

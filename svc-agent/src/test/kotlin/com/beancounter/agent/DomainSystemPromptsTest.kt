@@ -21,7 +21,8 @@ class DomainSystemPromptsTest {
             DomainSystemPrompts.ASSET_REVIEW,
             DomainSystemPrompts.ASSET,
             DomainSystemPrompts.INDEPENDENCE,
-            DomainSystemPrompts.REBALANCE
+            DomainSystemPrompts.REBALANCE,
+            DomainSystemPrompts.WATCHLIST
         )
 
     @Test
@@ -38,6 +39,18 @@ class DomainSystemPromptsTest {
     fun `every domain prompt forbids a lead-in preamble`() {
         assertThat(allPrompts)
             .allSatisfy { prompt -> assertThat(prompt).contains("No preamble") }
+    }
+
+    @Test
+    fun `watchlist prompt reads momentum from the tool and labels fundamentals as general knowledge`() {
+        // There is no fundamentals feed: valuation and earnings views come from the model's
+        // own knowledge and must say so, while momentum is measured, never estimated.
+        assertThat(DomainSystemPrompts.WATCHLIST)
+            .contains("getWatchlist")
+            .contains("Momentum")
+            .contains("Fundamentals")
+            .contains("general knowledge")
+            .contains("Not financial advice")
     }
 
     @Test

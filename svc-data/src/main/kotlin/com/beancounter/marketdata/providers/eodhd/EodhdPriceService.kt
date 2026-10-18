@@ -249,17 +249,19 @@ class EodhdPriceService(
      * failed batch quotes none of its assets; they fall back to the stored close.
      */
     override fun getQuotes(assets: Collection<Asset>): Map<String, MarketData> =
+        // Assets can share a symbol (an explicit priceSymbol); each one gets the quote.
         assets
-            .associateBy { eodhdConfig.getPriceCode(it).uppercase() }
+            .groupBy { eodhdConfig.getPriceCode(it).uppercase() }
             .entries
             .chunked(QUOTE_BATCH)
             .flatMap { batch ->
-                if (batch.size == 1) {
-                    val asset = batch.single().value
-                    return@flatMap listOfNotNull(getQuote(asset)?.let { asset.id to it })
-                }
                 val bySymbol = batch.associate { it.key to it.value }
                 val symbols = bySymbol.keys.toList()
+                if (symbols.size == 1) {
+                    val shared = bySymbol.getValue(symbols.single())
+                    val quote = getQuote(shared.first()) ?: return@flatMap emptyList()
+                    return@flatMap shared.map { it.id to quote.copy(asset = it) }
+                }
                 val quotes =
                     try {
                         eodhdProxy.getRealTimeBatch(
@@ -274,9 +276,13 @@ class EodhdPriceService(
                         log.debug("EODHD live quotes rate-limited for {}", symbols)
                         emptyList()
                     }
-                quotes.mapNotNull { quote ->
-                    val asset = quote.code?.uppercase()?.let(bySymbol::get) ?: return@mapNotNull null
-                    toQuote(asset, quote)?.let { asset.id to it }
+                quotes.flatMap { quote ->
+                    val shared =
+                        quote.code
+                            ?.uppercase()
+                            ?.let(bySymbol::get)
+                            .orEmpty()
+                    shared.mapNotNull { asset -> toQuote(asset, quote)?.let { asset.id to it } }
                 }
             }.toMap()
 

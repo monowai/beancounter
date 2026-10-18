@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
@@ -10,6 +11,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -49,7 +51,7 @@ class LiveQuoteServiceTest {
         }
     private val mdFactory =
         mock<MdFactory> {
-            on { getMarketDataProvider(any<com.beancounter.common.model.Market>()) } doReturn
+            on { getMarketDataProvider(any<Market>()) } doReturn
                 provider
         }
     private val service = LiveQuoteService(mdFactory, clock)
@@ -90,6 +92,14 @@ class LiveQuoteServiceTest {
         service.quotes(listOf(AAPL, MSFT))
 
         verify(provider).getQuotes(argThat { map { it.id } == listOf(MSFT.id) })
+    }
+
+    @Test
+    fun `should treat a failing provider as having no quotes`() {
+        val failing = mock<MarketDataPriceProvider> { on { getQuotes(any()) } doThrow IllegalStateException("down") }
+        val factory = mock<MdFactory> { on { getMarketDataProvider(any<Market>()) } doReturn failing }
+
+        assertThat(LiveQuoteService(factory, clock).quotes(listOf(AAPL))).isEmpty()
     }
 
     @Test

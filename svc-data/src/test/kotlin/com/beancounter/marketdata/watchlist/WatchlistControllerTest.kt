@@ -325,7 +325,12 @@ class WatchlistControllerTest {
                         )
                 }
         }
-        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 150))
+        val added = addItem(mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 150)).path("data")
+        val itemId = added.path("id").asString()
+        // Add and edit responses report the same live price a later read does.
+        assertThat(added.path("price").decimalValue()).isEqualByComparingTo("125")
+        val edited = call(patch(ITEM, itemId), tokenA, status().isOk, mapOf("targetPrice" to 150)).path("data")
+        assertThat(edited.path("price").decimalValue()).isEqualByComparingTo("125")
 
         val read = item(itemId)
 

@@ -38,6 +38,9 @@ class WatchlistService(
     private val liveQuoteService: LiveQuoteService,
     private val dateUtils: DateUtils
 ) {
+    // No transaction: the live-quote call must not hold a connection while the provider answers.
+    // Each read below runs in its own repository transaction and items load their asset eagerly.
+    @Transactional(Transactional.TxType.SUPPORTS)
     fun get(owner: SystemUser): WatchlistView = view(itemRepository.findByOwnerIdOrderByAssetCode(owner.id))
 
     fun addItem(
@@ -62,7 +65,7 @@ class WatchlistService(
             latest = priceService.enrichedCopy(fetched)
             addedPrice = latest.close
         } else {
-            latest = latestPrices(listOf(asset))[asset.id]
+            latest = livePrices(listOf(asset))[asset.id]
             addedPrice = requirePositive(requested, "addedPrice")
         }
         val targetPrice = request.targetPrice?.let { requirePositive(it, "targetPrice") }
@@ -107,7 +110,7 @@ class WatchlistService(
             item.targetOn = null
         }
         val saved = itemRepository.save(item)
-        return itemView(saved, latestPrices(listOf(saved.asset))[saved.asset.id], splitFactors(listOf(saved)))
+        return itemView(saved, livePrices(listOf(saved.asset))[saved.asset.id], splitFactors(listOf(saved)))
     }
 
     fun deleteItem(

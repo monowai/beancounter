@@ -449,6 +449,20 @@ internal class EodhdApiTest {
     }
 
     @Test
+    fun `quotes reach every asset that shares a symbol`() {
+        stubRealTime(
+            "AAPL.US",
+            200,
+            """{"code":"AAPL.US","timestamp":1727640000,"close":227.79,"previousClose":227.52}"""
+        )
+        val twin = AAPL.copy(id = "aapl-twin")
+
+        val quotes = eodhdPriceService.getQuotes(listOf(AAPL, twin))
+
+        assertThat(quotes.keys).containsExactlyInAnyOrder(AAPL.id, twin.id)
+    }
+
+    @Test
     fun `quotes are empty when the batch request fails`() {
         wireMock.stubFor(
             get(urlPathEqualTo("/api/real-time/AAPL.US"))

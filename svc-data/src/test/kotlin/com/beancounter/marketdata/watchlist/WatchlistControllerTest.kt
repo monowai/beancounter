@@ -306,6 +306,59 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should show the provider's live quote over the stored close`() {
+        val stock = asset("WLLIVE")
+        price(stock, "120", "100")
+        whenever(alphaPriceService.getQuotes(any())).thenAnswer { invocation ->
+            invocation
+                .getArgument<Collection<Asset>>(0)
+                .filter { it.code == "WLLIVE" }
+                .associate {
+                    it.id to
+                        MarketData(
+                            asset = it,
+                            priceDate = dateUtils.date,
+                            close = BigDecimal("125"),
+                            previousClose = BigDecimal("120"),
+                            change = BigDecimal("5"),
+                            changePercent = BigDecimal("0.041667")
+                        )
+                }
+        }
+        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 100, "targetPrice" to 150))
+
+        val read = item(itemId)
+
+        assertThat(read.path("price").decimalValue()).isEqualByComparingTo("125")
+        assertThat(read.path("priceDate").asString()).isEqualTo(dateUtils.date.toString())
+        assertThat(read.path("changeOnDay").decimalValue()).isEqualByComparingTo("5")
+        assertThat(read.path("changeOnDayPercent").decimalValue()).isEqualByComparingTo("0.041667")
+        assertThat(read.path("changeSinceAdded").decimalValue()).isEqualByComparingTo("25")
+        assertThat(read.path("changeSinceAddedPercent").decimalValue()).isEqualByComparingTo("0.25")
+        assertThat(read.path("toTarget").decimalValue()).isEqualByComparingTo("0.2")
+    }
+
+    @Test
+    fun `should keep the stored close when the live quote is older`() {
+        val stock = asset("WLSTALE")
+        price(stock, "120", "100")
+        whenever(alphaPriceService.getQuotes(any())).thenAnswer { invocation ->
+            invocation
+                .getArgument<Collection<Asset>>(0)
+                .filter { it.code == "WLSTALE" }
+                .associate {
+                    it.id to MarketData(asset = it, priceDate = dateUtils.date.minusDays(3), close = BigDecimal("90"))
+                }
+        }
+        val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 100))
+
+        val read = item(itemId)
+
+        assertThat(read.path("price").decimalValue()).isEqualByComparingTo("120")
+        assertThat(read.path("priceDate").asString()).isEqualTo(dateUtils.date.minusDays(1).toString())
+    }
+
+    @Test
     fun `should return null price fields when asset has no price`() {
         val itemId = addedId(mapOf("assetId" to asset("WLUNPRICED").id, "addedPrice" to 10, "targetPrice" to 12))
 

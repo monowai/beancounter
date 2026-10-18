@@ -19,6 +19,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
@@ -417,6 +418,44 @@ internal class EodhdApiTest {
         assertThat(quote.changePercent).isEqualByComparingTo(BigDecimal("0.001187"))
         // 1727640000 = 2024-09-29 20:00 UTC = 16:00 US/Eastern.
         assertThat(quote.priceDate).isEqualTo(LocalDate.of(2024, 9, 29))
+    }
+
+    @Test
+    fun `quotes for several assets come from one request`() {
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/real-time/AAPL.US"))
+                .withQueryParam("s", equalTo("MSFT.US"))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            """
+                            [{"code":"AAPL.US","timestamp":1727640000,"close":227.79,"previousClose":227.52,
+                              "change":0.27,"change_p":0.1187},
+                             {"code":"MSFT.US","timestamp":1727640000,"close":"NA","previousClose":"NA",
+                              "change":"NA","change_p":"NA"}]
+                            """.trimIndent()
+                        ).withStatus(200)
+                )
+        )
+
+        val quotes = eodhdPriceService.getQuotes(listOf(AAPL, MSFT))
+
+        // MSFT has no live price, so only AAPL is quoted.
+        assertThat(quotes.keys).containsExactly(AAPL.id)
+        assertThat(quotes.getValue(AAPL.id).close).isEqualByComparingTo(BigDecimal("227.79"))
+        assertThat(quotes.getValue(AAPL.id).changePercent).isEqualByComparingTo(BigDecimal("0.001187"))
+        wireMock.verify(1, getRequestedFor(urlPathMatching("/api/real-time/.*")))
+    }
+
+    @Test
+    fun `quotes are empty when the batch request fails`() {
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/real-time/AAPL.US"))
+                .willReturn(aResponse().withStatus(403).withBody("""{"message":"Forbidden"}"""))
+        )
+
+        assertThat(eodhdPriceService.getQuotes(listOf(AAPL, MSFT))).isEmpty()
     }
 
     @Test

@@ -64,6 +64,13 @@ interface MarketDataPriceProvider {
     fun getQuote(asset: Asset): MarketData? = null
 
     /**
+     * [getQuote] for several assets, keyed by asset id; an asset without a quote is absent.
+     * Providers that can quote many symbols in one request override this.
+     */
+    fun getQuotes(assets: Collection<Asset>): Map<String, MarketData> =
+        assets.mapNotNull { asset -> getQuote(asset)?.let { asset.id to it } }.toMap()
+
+    /**
      * Search the provider for assets matching `keyword`. Providers that have no search surface
      * (cash, custom, morningstar) return the empty default; price providers wired to a real
      * search endpoint (EODHD, AlphaVantage, MarketStack) override.

@@ -8,10 +8,10 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.sec.SecFundamentalsParser
 import com.beancounter.marketdata.providers.sec.SecProxy
+import com.beancounter.marketdata.providers.sec.SecThrottledException
 import com.beancounter.marketdata.providers.sec.SecTickerResolver
 import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpStatusCodeException
@@ -53,20 +53,27 @@ class SecClassificationEnricher(
 
     /**
      * The first lookup after a cold start downloads the SEC index, which can be throttled or
-     * fail like any other call. `canEnrich` is a question, not an action: a failure here is
-     * answered "no" (with a WARN naming the asset) so a chain moves on and the asset is left
-     * unstamped for the next run, rather than the whole refresh dying on a predicate.
+     * fail like any other call. `canEnrich` is a question, not an action, so a failure never
+     * throws. A throttle answers "yes": the asset is SEC's to answer, and [enrichClassification]
+     * then reports RATE_LIMITED, which stops SEC for the run instead of rerouting its assets to
+     * the next enricher. Any other failure answers "no" (with a WARN naming the asset) so a chain
+     * moves on and the asset is left unstamped for the next run.
      */
     private fun isListed(asset: Asset): Boolean =
         runCatching { tickerResolver.resolve(asset) != null }
-            .onFailure {
-                log.warn(
-                    "SEC index unavailable while checking {}:{} - {}",
-                    asset.market.code,
-                    asset.code,
-                    it.message
-                )
-            }.getOrDefault(false)
+            .getOrElse {
+                if (it is SecThrottledException || it is RequestNotPermitted) {
+                    true
+                } else {
+                    log.warn(
+                        "SEC index unavailable while checking {}:{} - {}",
+                        asset.market.code,
+                        asset.code,
+                        it.message
+                    )
+                    false
+                }
+            }
 
     override fun isEtf(asset: Asset): Boolean = ClassificationEnricher.categoryIsEtf(asset)
 
@@ -77,23 +84,31 @@ class SecClassificationEnricher(
             logNoData(asset, "SEC carries no sector weights for funds")
             return EnrichmentResult.NO_DATA
         }
-        val cik = tickerResolver.resolve(asset)
-        if (cik == null) {
-            logNoData(asset, "ticker is not in the SEC company index")
-            return EnrichmentResult.NO_DATA
-        }
         return try {
+            val cik = tickerResolver.resolve(asset)
+            if (cik == null) {
+                logNoData(asset, "ticker is not in the SEC company index")
+                return EnrichmentResult.NO_DATA
+            }
             val result = classify(asset, cik)
             // Only an asset we actually classified earns the second (rate-limited) call.
             if (result == EnrichmentResult.ENRICHED) {
                 snapshotFundamentals(asset, cik)
             }
             result
+        } catch (e: SecThrottledException) {
+            log.warn(
+                "SEC throttled the company index while enriching {}:{} - {}",
+                asset.market.code,
+                asset.code,
+                e.message
+            )
+            EnrichmentResult.RATE_LIMITED
         } catch (e: RequestNotPermitted) {
             log.warn("SEC rate limiter declined {}:{} - {}", asset.market.code, asset.code, e.message)
             EnrichmentResult.RATE_LIMITED
         } catch (e: HttpStatusCodeException) {
-            if (e.statusCode in THROTTLE_STATUSES) {
+            if (e.statusCode in SecTickerResolver.THROTTLE_STATUSES) {
                 log.warn(
                     "SEC throttled ({}) while enriching {}:{}",
                     e.statusCode.value(),
@@ -209,6 +224,5 @@ class SecClassificationEnricher(
 
     companion object {
         val SEC_MARKETS = setOf("US", "NASDAQ", "NYSE", "AMEX")
-        private val THROTTLE_STATUSES = setOf(HttpStatus.TOO_MANY_REQUESTS, HttpStatus.FORBIDDEN)
     }
 }

@@ -707,8 +707,9 @@ beancounter:
       # SEC EDGAR - keyless, public domain. Sector/industry (SIC) and XBRL fundamentals for
       # US-listed equities via SecClassificationEnricher; opt in with
       # `beancounter.classification.providers: sec,alpha` (NOT under this providers map,
-      # which binds as Map<String, Market> - #1176). Fair use: descriptive User-Agent
-      # required, <=10 req/s.
+      # which binds as Map<String, Market> - #1176). Fair use: <=10 req/s, and the
+      # User-Agent must carry a contact email or SEC answers every request 403. Set it per
+      # deployment with BEANCOUNTER_MARKET_PROVIDERS_SEC_USER_AGENT="<name> <email>".
       sec:
         url: https://data.sec.gov
         tickers-url: https://www.sec.gov

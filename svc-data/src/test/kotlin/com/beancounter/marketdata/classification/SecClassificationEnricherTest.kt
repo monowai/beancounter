@@ -12,6 +12,8 @@ import com.beancounter.common.model.Status
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.sec.SecProxy
+import com.beancounter.marketdata.providers.sec.SecTickerDirectory
+import com.beancounter.marketdata.providers.sec.SecTickerResolver
 import io.github.resilience4j.ratelimiter.RateLimiter
 import io.github.resilience4j.ratelimiter.RateLimiterConfig
 import io.github.resilience4j.ratelimiter.RequestNotPermitted
@@ -33,6 +35,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -173,10 +176,33 @@ internal class SecClassificationEnricherTest {
     @Test
     fun `should answer canEnrich false without throwing when the SEC index cannot be fetched`() {
         whenever(secProxy.getCompanyTickers()).thenThrow(
-            HttpClientErrorException.create(HttpStatus.FORBIDDEN, "Forbidden", HttpHeaders(), ByteArray(0), null)
+            HttpServerErrorException.create(HttpStatus.BAD_GATEWAY, "Bad Gateway", HttpHeaders(), ByteArray(0), null)
         )
 
         assertThat(enricher.canEnrich(transientAsset("AAPL"))).isFalse()
+    }
+
+    @Test
+    fun `should keep a US equity while SEC throttles the index so the run stops SEC instead of rerouting`() {
+        // A fresh resolver per test: the throttle cooldown is bean state that would leak into
+        // the shared Spring context.
+        val proxy: SecProxy = mock()
+        whenever(proxy.getCompanyTickers()).thenThrow(
+            HttpClientErrorException.create(HttpStatus.FORBIDDEN, "Forbidden", HttpHeaders(), ByteArray(0), null)
+        )
+        val throttled =
+            SecClassificationEnricher(
+                secProxy = proxy,
+                tickerResolver = SecTickerResolver(SecTickerDirectory(proxy)),
+                sicSectorMapper = mock(),
+                fundamentalsParser = mock(),
+                classificationService = mock(),
+                fundamentalsRepository = mock()
+            )
+        val asset = transientAsset("AAPL")
+
+        assertThat(throttled.canEnrich(asset)).isTrue()
+        assertThat(throttled.enrichClassification(asset)).isEqualTo(EnrichmentResult.RATE_LIMITED)
     }
 
     @Test

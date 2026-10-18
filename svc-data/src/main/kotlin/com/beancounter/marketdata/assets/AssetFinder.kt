@@ -122,6 +122,12 @@ class AssetFinder(
     fun findHeldAssetsForPricing(): List<Asset> = assetRepository.findHeldAssetsForPricing().use { it.toList() }
 
     /**
+     * Find assets on any watchlist that the scheduled price refresh should fetch. Same
+     * filters as [findHeldAssetsForPricing]; watched-only assets have no holdings.
+     */
+    fun findWatchedAssetsForPricing(): List<Asset> = assetRepository.findWatchedAssetsForPricing().use { it.toList() }
+
+    /**
      * Index benchmark assets refreshed on schedule regardless of holdings.
      */
     fun findActiveIndexAssets(): List<Asset> = assetRepository.findActiveIndexAssets()

@@ -80,6 +80,20 @@ interface AssetRepository : JpaRepository<Asset, String> {
     fun findHeldAssetsForPricing(): Stream<Asset>
 
     /**
+     * Find active assets on at least one watchlist, with the same pricing filters as
+     * [findHeldAssetsForPricing] (active, non-empty code, not PRIVATE). A watched-only asset
+     * has no holdings, so without this the scheduled refresh never prices it.
+     */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND a.code IS NOT NULL AND a.code <> '' " +
+            "AND a.marketCode <> 'PRIVATE' " +
+            "AND EXISTS (SELECT 1 FROM WatchlistItem w WHERE w.asset = a)"
+    )
+    fun findWatchedAssetsForPricing(): Stream<Asset>
+
+    /**
      * Find active assets on the synthetic INDEX market. These are reference
      * benchmarks (no holdings) that the scheduled refresh fetches alongside
      * held assets so dashboards always show fresh index quotes.

@@ -5,6 +5,7 @@ import com.beancounter.common.model.MarketData
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
 
@@ -73,6 +74,21 @@ interface MarketDataRepo : JpaRepository<MarketData, String> {
         @Param("from") from: LocalDate,
         @Param("to") to: LocalDate
     ): List<MarketData>
+
+    /**
+     * Only what split detection needs, for many assets in one query: (asset, date, split).
+     */
+    @Query(
+        "SELECT md.asset.id AS assetId, md.priceDate AS priceDate, md.split AS split " +
+            "FROM MarketData md " +
+            "WHERE md.asset.id IN :assetIds AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.asset.id, md.priceDate"
+    )
+    fun findSplitHistory(
+        @Param("assetIds") assetIds: Collection<String>,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<SplitRow>
 
     /**
      * SAFEGUARD: Count market data records for an asset on a specific date
@@ -200,4 +216,13 @@ interface MarketDataRepo : JpaRepository<MarketData, String> {
             "FROM MarketData md GROUP BY md.asset.marketCode ORDER BY COUNT(md) DESC"
     )
     fun countByMarketCode(): List<com.beancounter.marketdata.metrics.MarketCount>
+}
+
+/**
+ * Projection: one stored price row's split marker.
+ */
+interface SplitRow {
+    val assetId: String
+    val priceDate: LocalDate
+    val split: BigDecimal
 }

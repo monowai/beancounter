@@ -1,13 +1,14 @@
 package com.beancounter.marketdata.registration
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.marketdata.assets.AssetCascadeDeleter
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.portfolio.PortfolioRepository
-import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.tax.TaxRateRepository
 import com.beancounter.marketdata.trn.TrnRepository
+import com.beancounter.marketdata.watchlist.WatchlistService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -17,13 +18,13 @@ import org.springframework.stereotype.Service
  *
  * Deletion order respects FK constraints:
  * 1. Transactions (via portfolio and asset)
- * 2. MarketData (via asset)
+ * 2. MarketData and other asset dependents (via AssetCascadeDeleter)
  * 3. Portfolios
  * 4. Settlement accounts (before assets and brokers)
- * 5. Assets
+ * 5. Asset dependents (AssetCascadeDeleter), then Assets
  * 6. Brokers (after transactions and assets — trn.broker_id FK)
  * 7. TaxRates
- * 8. UserPreferences
+ * 8. Watchlist items, UserPreferences
  * 9. SystemUser
  */
 @Service
@@ -37,9 +38,10 @@ class OffboardingService(
     private val trnRepository: TrnRepository,
     private val brokerRepository: BrokerRepository,
     private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository,
-    private val marketDataRepo: MarketDataRepo,
     private val taxRateRepository: TaxRateRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val assetCascadeDeleter: AssetCascadeDeleter,
+    private val watchlistService: WatchlistService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -90,8 +92,9 @@ class OffboardingService(
 
         var deletedCount = 0
         assets.forEach { asset ->
-            trnRepository.deleteByAssetId(asset.id)
-            marketDataRepo.deleteByAssetId(asset.id)
+            // One ordered list of asset dependents (trns, prices, classifications,
+            // watchlist items, ...) shared with the asset delete paths.
+            assetCascadeDeleter.deleteDependents(asset.id)
             assetRepository.delete(asset)
             deletedCount++
         }
@@ -166,8 +169,9 @@ class OffboardingService(
         // 3. Delete assets and their data
         val assets = assetRepository.findBySystemUserId(user.id)
         assets.forEach { asset ->
-            trnRepository.deleteByAssetId(asset.id)
-            marketDataRepo.deleteByAssetId(asset.id)
+            // One ordered list of asset dependents (trns, prices, classifications,
+            // watchlist items, ...) shared with the asset delete paths.
+            assetCascadeDeleter.deleteDependents(asset.id)
             assetRepository.delete(asset)
             totalDeleted++
         }
@@ -225,8 +229,9 @@ class OffboardingService(
         // 3. Delete assets and their data
         val assets = assetRepository.findBySystemUserId(user.id)
         assets.forEach { asset ->
-            trnRepository.deleteByAssetId(asset.id)
-            marketDataRepo.deleteByAssetId(asset.id)
+            // One ordered list of asset dependents (trns, prices, classifications,
+            // watchlist items, ...) shared with the asset delete paths.
+            assetCascadeDeleter.deleteDependents(asset.id)
             assetRepository.delete(asset)
         }
 
@@ -237,12 +242,15 @@ class OffboardingService(
         // 4. Delete tax rates
         taxRateRepository.deleteAllByOwnerId(user.id)
 
-        // 5. Delete user preferences
+        // 5. Delete the watchlist
+        watchlistService.deleteByOwner(user.id)
+
+        // 6. Delete user preferences
         userPreferencesRepository.findByOwner(user).ifPresent {
             userPreferencesRepository.delete(it)
         }
 
-        // 6. User row already deactivated above (not deleted) — evict the cache
+        // 7. User row already deactivated above (not deleted) — evict the cache
         //    so the inactive state is re-read on the next request.
         systemUserCache.evictAll()
 

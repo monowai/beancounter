@@ -1,6 +1,7 @@
 package com.beancounter.agent.client
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.client.RestClientErrorHandler
 import com.beancounter.common.exception.BusinessException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -8,15 +9,18 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent
+import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Reads the caller's watchlist and an asset's price history from svc-data, in the shapes
@@ -24,7 +28,8 @@ import java.math.BigDecimal
  */
 class WatchlistClientTest {
     private val tokenService = mock<TokenService> { on { bearerToken } doReturn "Bearer test" }
-    private val builder = RestClient.builder().baseUrl("http://bc-data/api")
+    private val builder =
+        RestClient.builder().baseUrl("http://bc-data/api").defaultStatusHandler(RestClientErrorHandler())
     private val server = MockRestServiceServer.bindTo(builder).build()
     private val client by lazy { WatchlistClient(builder.build(), tokenService) }
 
@@ -72,7 +77,42 @@ class WatchlistClientTest {
             .containsExactly("2026-10-15" to BigDecimal("522.61"), "2026-10-16" to BigDecimal("529.05"))
     }
 
+    @Test
+    fun `should read an asset's SEC fundamentals snapshot`() {
+        server
+            .expect(requestTo("http://bc-data/api/assets/a1/fundamentals"))
+            .andExpect(method(HttpMethod.GET))
+            .andExpect(header("Authorization", "Bearer test"))
+            .andRespond(withSuccess(FUNDAMENTALS, MediaType.APPLICATION_JSON))
+
+        val fundamentals = client.getFundamentals("a1")
+
+        assertThat(fundamentals).isNotNull
+        assertThat(fundamentals!!.fiscalYear).isEqualTo(2026)
+        assertThat(fundamentals.fiscalYearEnd).isEqualTo(LocalDate.parse("2026-06-30"))
+        assertThat(fundamentals.epsDiluted).isEqualByComparingTo("13.64")
+        assertThat(fundamentals.revenue).isEqualByComparingTo("281724000000")
+        assertThat(fundamentals.dividendsPerShare).isNull()
+        assertThat(fundamentals.sharesOutstanding).isEqualTo(7_433_000_000L)
+    }
+
+    @Test
+    fun `should report no fundamentals when svc-data has no snapshot`() {
+        server
+            .expect(requestTo("http://bc-data/api/assets/a2/fundamentals"))
+            .andRespond(withStatus(HttpStatus.NOT_FOUND))
+
+        assertThat(client.getFundamentals("a2")).isNull()
+    }
+
     private companion object {
+        val FUNDAMENTALS =
+            """
+            {"assetId":"a1","source":"SEC","fiscalYearEnd":"2026-06-30","fiscalYear":2026,
+            "epsDiluted":13.64,"revenue":281724000000.00,"netIncome":101832000000.00,
+            "dividendsPerShare":null,"sharesOutstanding":7433000000,"asOf":"2026-10-12"}
+            """.trimIndent()
+
         val WATCHLIST =
             """
             {"data":{"items":[

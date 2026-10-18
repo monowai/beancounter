@@ -24,10 +24,12 @@ import org.springframework.stereotype.Service
  * - `beancounter.classification.batch-limit` (default `20`) - max assets *attempted* per run,
  *   sized to sit comfortably under AlphaVantage's 25 requests/day free-tier cap.
  *
- * A [EnrichmentResult.RATE_LIMITED] result aborts the run immediately - once the provider quota
- * is exhausted, further calls in the same run cannot succeed, so continuing just burns
- * wall-clock. Rate-limited assets are deliberately NOT stamped with `classificationCheckedAt`, so
- * they are retried first on the next run rather than pushed to the back of the queue.
+ * A [EnrichmentResult.RATE_LIMITED] result stops that provider for the rest of the run - once its
+ * quota is exhausted, further calls in the same run cannot succeed, so continuing just burns
+ * wall-clock. Assets another provider answers for (see [ClassificationEnricher.providerFor]) still
+ * run: otherwise one throttled provider at the head of the queue would starve the rest every day.
+ * Rate-limited assets are deliberately NOT stamped with `classificationCheckedAt`, so they are
+ * retried first on the next run rather than pushed to the back of the queue.
  */
 @Service
 class ClassificationRefreshService(
@@ -139,11 +141,15 @@ class ClassificationRefreshService(
                 "(batch-limit=$batchLimit)"
         )
 
-        for ((index, asset) in dueAssets.withIndex()) {
-            if (index >= batchLimit) {
+        val exhausted = mutableSetOf<ClassificationEnricher>()
+        var attempted = 0
+        for (asset in dueAssets) {
+            val provider = classificationEnricher.providerFor(asset)
+            if (attempted >= batchLimit || provider in exhausted) {
                 skipped++
                 continue
             }
+            attempted++
 
             val result =
                 try {
@@ -171,12 +177,11 @@ class ClassificationRefreshService(
                 }
                 EnrichmentResult.RATE_LIMITED -> {
                     rateLimited++
+                    exhausted += provider
                     log.warn(
                         "$description refresh hit provider rate limit at ${asset.code}; " +
-                            "aborting run, remaining assets deferred to next run"
+                            "its remaining assets deferred to next run"
                     )
-                    skipped += dueAssets.size - index - 1
-                    break
                 }
             }
         }

@@ -10,7 +10,8 @@ import java.time.LocalDateTime
 
 /**
  * Scheduled refresh of asset classification data.
- * Runs daily to keep ETF sector exposures up to date. Each run only attempts a bounded batch of
+ * Runs daily to keep ETF sector exposures and equity classifications up to date; for US filers
+ * the equity pass also snapshots SEC fundamentals. Each run only attempts a bounded batch of
  * assets due a recheck (see `ClassificationRefreshService`), so a daily cadence - not weekly - is
  * needed for the full population to cycle through in a reasonable time.
  */
@@ -42,5 +43,20 @@ class ClassificationSchedule(
         )
         val result = classificationRefreshService.refreshEtfSectors()
         log.info("Scheduled ETF sector refresh complete: $result")
+    }
+
+    /**
+     * Refresh equity sector/industry daily, half an hour after the ETF pass.
+     */
+    @SentryTransaction(operation = "scheduled", name = "ClassificationSchedule.refreshEquityClassifications")
+    @Scheduled(cron = "0 30 6 * * *", zone = "#{@scheduleZone}")
+    fun refreshEquityClassifications() {
+        log.info(
+            "Scheduled equity classification refresh starting {} - {}",
+            LocalDateTime.now(dateUtils.zoneId),
+            dateUtils.zoneId.id
+        )
+        val result = classificationRefreshService.refreshEquityClassifications()
+        log.info("Scheduled equity classification refresh complete: $result")
     }
 }

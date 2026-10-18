@@ -22,6 +22,12 @@ interface ClassificationEnricher {
     /** Fetch and persist classification data. See [EnrichmentResult] for the possible outcomes. */
     fun enrichClassification(asset: Asset): EnrichmentResult
 
+    /**
+     * The enricher that answers for [asset]. A chain names the delegate it routes to, so a
+     * refresh run that hits one provider's rate limit stops only that provider.
+     */
+    fun providerFor(asset: Asset): ClassificationEnricher = this
+
     companion object {
         val EQUITY_CATEGORIES = setOf("EQUITY", "COMMON STOCK")
 

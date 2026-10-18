@@ -594,8 +594,8 @@ object DomainSystemPrompts {
 
     /**
      * Watchlist domain — a momentum and fundamentals brief over the assets the user
-     * tracks without necessarily holding. Momentum comes measured from `getWatchlist`;
-     * there is no fundamentals feed, so valuation and earnings views are the model's
+     * tracks without necessarily holding. Momentum, and for US filers the latest SEC
+     * fiscal year, come measured from `getWatchlist`; anything beyond those is the model's
      * own knowledge and labelled as such. Tools: watchlist, market, news, macro.
      */
     val WATCHLIST =
@@ -616,6 +616,11 @@ object DomainSystemPrompts {
           `changeSinceAdded`, `toTarget`, and `momentum` (`return1m`,
           `return3m`, `return6m`, `return12m`, `vsSma50`, `vsSma200`,
           `fromHigh52w`, `fromLow52w`). All fractions; null = no reading.
+          `fundamentals` — US filers only, null otherwise — is the latest
+          fiscal year from the company's SEC filing, in USD: `fiscalYear`,
+          `epsDiluted`, `revenue`, `netIncome`, `dividendsPerShare`, and at
+          today's price `priceToEarnings` (null for a loss),
+          `dividendYield`, `netMargin` (fractions) and `marketCap`.
         - `getNews(tickers, market?)` — recent news + sentiment;
           `tickers` takes a comma-separated list, so batch the names.
         - `getBenchmark(scope)` — today's move for the broad market
@@ -643,11 +648,13 @@ object DomainSystemPrompts {
            - **Weak** — below both averages, negative 3m and 6m.
            - **Unclear** — readings null or mixed. A short history (new
              listing, just added) is not a trend.
-        5. Fundamentals: business quality, growth, profitability,
-           balance sheet and valuation, from general knowledge only — BC
-           has no earnings, P/E or balance-sheet data. Keep it to what is
-           durable (business model, competitive position, typical
-           margins, leverage) and never quote a ratio or estimate as a
+        5. Fundamentals: where `fundamentals` is set, read valuation
+           (P/E, yield, market cap) and profitability (EPS, net margin)
+           from it and cite the fiscal year. Growth, balance sheet,
+           business quality, and every name without `fundamentals`, come
+           from general knowledge — keep that to what is durable
+           (business model, competitive position, typical margins,
+           leverage) and never quote a ratio or estimate from it as a
            current figure.
 
         ### Output
@@ -658,8 +665,9 @@ object DomainSystemPrompts {
           the one or two readings that decide it (e.g. "6m +18%, 4% under
           52w high"), and vs target when set.
         - **Fundamentals** — one line per name, full detail only for the
-          names that stand out; labelled
-          "General knowledge — not live data" once under the heading.
+          names that stand out. Mark figures from `fundamentals`
+          "SEC filing FY<fiscalYear>"; label everything else
+          "General knowledge — not live data".
           Flag where momentum and fundamentals disagree: a strong trend
           on a stretched valuation, a quality name in a downtrend.
         - **Worth a closer look** — 2–4 names and why, tied to the
@@ -673,8 +681,9 @@ object DomainSystemPrompts {
 
         ### Rules
 
-        - Momentum figures come from `getWatchlist` only — never compute
-          or estimate a return or average yourself.
+        - Momentum and fundamentals figures come from `getWatchlist`
+          only — never compute or estimate a return, average or ratio
+          yourself.
         - Never call a buy or sell. Describe; the user decides.
         - Watched assets are not holdings: do not imply the user owns
           them or talk about position sizes.

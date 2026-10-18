@@ -4,7 +4,9 @@ import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.PriceHistoryResponse
 import com.beancounter.common.contracts.PricePoint
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetFundamentals
 import com.beancounter.common.model.Currency
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
@@ -14,7 +16,7 @@ import org.springframework.web.client.body
 import java.math.BigDecimal
 
 /**
- * Thin client for svc-data's watchlist and price-history APIs — only what the agent's
+ * Thin client for svc-data's watchlist, price-history and fundamentals APIs — only what the agent's
  * watchlist tool needs. The watchlist contract lives in svc-data, so the fields read here
  * are declared locally; unread fields are ignored.
  */
@@ -49,6 +51,20 @@ class WatchlistClient(
             .body<PriceHistoryResponse>()
             ?.prices
             ?: throw BusinessException("No price history response for asset $assetId")
+
+    /** The latest fiscal-year SEC snapshot, or null when svc-data holds none for [assetId]. */
+    fun getFundamentals(assetId: String): AssetFundamentals? =
+        try {
+            restClient
+                .get()
+                .uri("/assets/{assetId}/fundamentals", assetId)
+                .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+                .retrieve()
+                .body<AssetFundamentals>()
+        } catch (_: NotFoundException) {
+            // Only US filers are snapshotted; anything else has no fundamentals, which is not an error.
+            null
+        }
 }
 
 data class WatchlistEnvelope(

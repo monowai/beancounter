@@ -9,6 +9,7 @@ import com.beancounter.common.contracts.PricePoint
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetFundamentals
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
@@ -37,10 +38,11 @@ class WatchlistToolsTest {
 
     private fun entry(
         code: String,
-        price: String? = "120"
+        price: String? = "120",
+        currency: Currency = usd
     ) = WatchlistEntry(
         asset = Asset(code = code, id = "id-$code", name = "$code Inc", market = us),
-        currency = usd,
+        currency = currency,
         addedPrice = BigDecimal("100"),
         addedOn = "2026-06-01",
         targetPrice = BigDecimal("150"),
@@ -55,6 +57,28 @@ class WatchlistToolsTest {
         (60 downTo 0).map { back ->
             PricePoint(priceDate = today.minusDays(back.toLong()), close = BigDecimal(180 - back))
         }
+
+    private fun fundamentals(eps: String = "4") =
+        AssetFundamentals(
+            assetId = "id-MSFT",
+            fiscalYearEnd = LocalDate.parse("2026-06-30"),
+            fiscalYear = 2026,
+            epsDiluted = BigDecimal(eps),
+            revenue = BigDecimal("100000000"),
+            netIncome = BigDecimal("25000000"),
+            dividendsPerShare = BigDecimal("1.20"),
+            sharesOutstanding = 1_000_000L,
+            asOf = LocalDate.parse("2026-10-12")
+        )
+
+    private fun withFundamentals(
+        entry: WatchlistEntry,
+        snapshot: AssetFundamentals?
+    ) = mock<WatchlistClient> {
+        on { getWatchlist() } doReturn listOf(entry)
+        on { getCloses(any(), any()) } doReturn closes
+        on { getFundamentals(any()) } doReturn snapshot
+    }
 
     private fun tools(
         vararg entries: WatchlistEntry,
@@ -201,5 +225,95 @@ class WatchlistToolsTest {
         assertThat(brief.items).isEmpty()
         assertThat(brief.count).isZero()
         verify(client, never()).getCloses(any(), any())
+    }
+
+    @Test
+    fun `should attach the SEC fundamentals with valuation measured at the latest price`() {
+        val msft =
+            tools(
+                watchlistClient = withFundamentals(entry("MSFT"), fundamentals())
+            ).getWatchlist().items.single()
+
+        val f = msft.fundamentals
+        assertThat(f).isNotNull
+        assertThat(f!!.source).isEqualTo("SEC")
+        assertThat(f.fiscalYear).isEqualTo(2026)
+        assertThat(f.fiscalYearEnd).isEqualTo("2026-06-30")
+        assertThat(f.epsDiluted).isEqualTo(4.0)
+        assertThat(f.revenue).isEqualTo(100_000_000.0)
+        assertThat(f.netIncome).isEqualTo(25_000_000.0)
+        assertThat(f.dividendsPerShare).isEqualTo(1.2)
+        assertThat(f.sharesOutstanding).isEqualTo(1_000_000L)
+        assertThat(f.priceToEarnings).isEqualTo(30.0)
+        assertThat(f.dividendYield).isEqualTo(0.01)
+        assertThat(f.marketCap).isEqualTo(120_000_000.0)
+        assertThat(f.netMargin).isEqualTo(0.25)
+    }
+
+    @Test
+    fun `should give no price to earnings for a loss making company`() {
+        val msft =
+            tools(watchlistClient = withFundamentals(entry("MSFT"), fundamentals(eps = "-2")))
+                .getWatchlist()
+                .items
+                .single()
+
+        assertThat(msft.fundamentals!!.epsDiluted).isEqualTo(-2.0)
+        assertThat(msft.fundamentals!!.priceToEarnings).isNull()
+        assertThat(msft.fundamentals!!.marketCap).isEqualTo(120_000_000.0)
+    }
+
+    @Test
+    fun `should not measure USD filings against a price in another currency`() {
+        val aud = Currency("AUD")
+        val listed = entry("MSFT", currency = aud)
+
+        val f =
+            tools(
+                watchlistClient = withFundamentals(listed, fundamentals())
+            ).getWatchlist().items.single().fundamentals
+
+        assertThat(f!!.epsDiluted).isEqualTo(4.0)
+        assertThat(f.netMargin).isEqualTo(0.25)
+        assertThat(f.priceToEarnings).isNull()
+        assertThat(f.dividendYield).isNull()
+        assertThat(f.marketCap).isNull()
+    }
+
+    @Test
+    fun `should leave valuation empty for an asset with no price`() {
+        val f =
+            tools(watchlistClient = withFundamentals(entry("MSFT", price = null), fundamentals()))
+                .getWatchlist()
+                .items
+                .single()
+                .fundamentals
+
+        assertThat(f!!.epsDiluted).isEqualTo(4.0)
+        assertThat(f.priceToEarnings).isNull()
+        assertThat(f.marketCap).isNull()
+    }
+
+    @Test
+    fun `should leave fundamentals empty when svc-data has no snapshot`() {
+        val msft = tools(watchlistClient = withFundamentals(entry("MSFT"), null)).getWatchlist().items.single()
+
+        assertThat(msft.fundamentals).isNull()
+        assertThat(msft.momentum.asOf).isEqualTo("2026-10-16")
+    }
+
+    @Test
+    fun `should still describe an asset whose fundamentals read fails`() {
+        val client =
+            mock<WatchlistClient> {
+                on { getWatchlist() } doReturn listOf(entry("MSFT"))
+                on { getCloses(any(), any()) } doReturn closes
+                on { getFundamentals(any()) } doThrow SystemException("down")
+            }
+
+        val msft = tools(watchlistClient = client).getWatchlist().items.single()
+
+        assertThat(msft.fundamentals).isNull()
+        assertThat(msft.sector).isEqualTo("Technology")
     }
 }

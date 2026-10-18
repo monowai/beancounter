@@ -19,11 +19,12 @@ class ChainedClassificationEnricher(
 
     override fun isEquity(asset: Asset): Boolean = ClassificationEnricher.categoryIsEquity(asset)
 
-    override fun providerFor(asset: Asset): ClassificationEnricher =
-        delegates.firstOrNull { it.canEnrich(asset) } ?: this
+    override fun providerFor(asset: Asset): ClassificationEnricher = delegateFor(asset) ?: this
 
     override fun enrichClassification(asset: Asset): EnrichmentResult {
-        val enricher = delegates.firstOrNull { it.canEnrich(asset) }
+        val enricher = delegateFor(asset)
         return if (enricher == null) EnrichmentResult.NO_DATA else enricher.enrichClassification(asset)
     }
+
+    private fun delegateFor(asset: Asset): ClassificationEnricher? = delegates.firstOrNull { it.canEnrich(asset) }
 }

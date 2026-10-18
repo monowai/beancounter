@@ -268,6 +268,21 @@ class ClassificationRefreshServiceTest {
     }
 
     @Test
+    fun `an asset that cannot be routed is still attempted and the run carries on`() {
+        val unroutable = equity("eq-1")
+        val next = equity("eq-2")
+        whenever(classificationEnricher.providerFor(unroutable)).thenThrow(IllegalStateException("index down"))
+        whenever(classificationEnricher.enrichClassification(any())).thenReturn(EnrichmentResult.ENRICHED)
+        whenever(assetRepository.findActiveEquities()).thenReturn(listOf(unroutable, next))
+        whenever(assetRepository.findEquitiesDueForClassification(any())).thenReturn(listOf(unroutable, next))
+
+        val result = service().refreshEquityClassifications()
+
+        assertThat(result.processed).isEqualTo(2)
+        assertThat(next.classificationCheckedAt).isNotNull()
+    }
+
+    @Test
     fun `FAILED results are counted in errors, not silently dropped`() {
         val etf1 = etf("etf-1")
 

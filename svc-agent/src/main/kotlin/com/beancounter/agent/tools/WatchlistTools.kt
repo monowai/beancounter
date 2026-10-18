@@ -56,14 +56,12 @@ class WatchlistTools(
         // read, and a burst of those at once is what exhausts svc-data's heap.
         val items =
             shown.map { entry ->
-                val momentum =
-                    if (nanoTime() < deadline) {
-                        momentum(entry, from)
-                    } else {
-                        skipped++
-                        Momentum()
-                    }
-                describe(entry, classifications[entry.asset.id], momentum, fundamentals(entry))
+                if (nanoTime() < deadline) {
+                    describe(entry, classifications[entry.asset.id], momentum(entry, from), fundamentals(entry))
+                } else {
+                    skipped++
+                    describe(entry, classifications[entry.asset.id], Momentum(), null)
+                }
             }
         return WatchlistBrief(items, entries.size, entries.size > shown.size, skipped)
     }
@@ -96,7 +94,7 @@ class WatchlistTools(
             Momentum()
         }
 
-    // A plain row read, no provider call, so no time budget; a failure only drops the fundamentals.
+    // One svc-data read per asset, inside the same time budget; a failure only drops the fundamentals.
     private fun fundamentals(entry: WatchlistEntry): Fundamentals? =
         try {
             watchlistClient.getFundamentals(entry.asset.id)?.let { Fundamentals.of(it, valuationPrice(entry)) }
@@ -239,10 +237,11 @@ const val WATCHLIST_DESC =
         "asOf (the close date the readings are measured at), return1m/3m/6m/12m, " +
         "vsSma50/vsSma200 (latest close against its 50- and 200-day averages) and " +
         "fromHigh52w/fromLow52w, all fractions, null where history is too short. fundamentals, " +
-        "null when none is on file (non-US listings, funds), holds the latest fiscal year from " +
+        "null when none is on file (non-US listings, funds) or the read failed, so null never " +
+        "means the company has no filing; otherwise it holds the latest fiscal year from " +
         "the company's SEC filing in USD: source, fiscalYear, fiscalYearEnd, epsDiluted, revenue, " +
-        "netIncome, dividendsPerShare, sharesOutstanding, and measured at the price " +
-        "priceToEarnings (null for a loss), dividendYield and netMargin as fractions, and " +
-        "marketCap. count is the " +
+        "netIncome, dividendsPerShare, sharesOutstanding and netMargin (a fraction), plus at " +
+        "the latest watchlist price priceToEarnings (null for a loss), dividendYield (a " +
+        "fraction) and marketCap. count is the " +
         "full list size; truncated is true when only the first items are returned; " +
-        "momentumSkipped counts trailing items whose history was not read in time."
+        "momentumSkipped counts trailing items whose history and fundamentals were not read in time."

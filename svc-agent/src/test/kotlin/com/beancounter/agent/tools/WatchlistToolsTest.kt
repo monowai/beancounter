@@ -175,7 +175,7 @@ class WatchlistToolsTest {
     }
 
     @Test
-    fun `should stop reading history once the time budget is spent`() {
+    fun `should stop reading history and fundamentals once the time budget is spent`() {
         // Each read takes 20 seconds, so only the reads that start inside the budget run.
         var now = 0L
         val client =
@@ -185,6 +185,7 @@ class WatchlistToolsTest {
                     now += 20_000_000_000L
                     closes
                 }
+                on { getFundamentals(any()) } doReturn fundamentals()
             }
 
         val brief = tools(watchlistClient = client, nanoTime = { now }).getWatchlist()
@@ -192,6 +193,8 @@ class WatchlistToolsTest {
         assertThat(brief.items).hasSize(6)
         assertThat(brief.items.take(3).map { it.momentum.asOf }).containsOnly("2026-10-16")
         assertThat(brief.items.drop(3).map { it.momentum }).containsOnly(Momentum())
+        assertThat(brief.items.take(3).map { it.fundamentals }).doesNotContainNull()
+        assertThat(brief.items.drop(3).map { it.fundamentals }).containsOnlyNulls()
         assertThat(brief.momentumSkipped).isEqualTo(3)
     }
 

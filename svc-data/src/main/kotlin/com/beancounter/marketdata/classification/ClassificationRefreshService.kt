@@ -21,13 +21,16 @@ import org.springframework.stereotype.Service
  *
  * - `beancounter.classification.stale-after-days` (default `7`) - the recheck window. An asset
  *   checked more recently than this is skipped.
- * - `beancounter.classification.batch-limit` (default `20`) - max assets *attempted* per run,
- *   sized to sit comfortably under AlphaVantage's 25 requests/day free-tier cap.
+ * - `beancounter.classification.batch-limit` (default `20`) - max assets *attempted* per run.
+ *   The ETF and equity passes each run daily, so with AlphaVantage alone they share its
+ *   25 requests/day free-tier cap; once it is spent, each pass stops on its first rate limit.
  *
- * A [EnrichmentResult.RATE_LIMITED] result aborts the run immediately - once the provider quota
- * is exhausted, further calls in the same run cannot succeed, so continuing just burns
- * wall-clock. Rate-limited assets are deliberately NOT stamped with `classificationCheckedAt`, so
- * they are retried first on the next run rather than pushed to the back of the queue.
+ * A [EnrichmentResult.RATE_LIMITED] result stops that provider for the rest of the run - once its
+ * quota is exhausted, further calls in the same run cannot succeed, so continuing just burns
+ * wall-clock. Assets another provider answers for (see [ClassificationEnricher.providerFor]) still
+ * run: otherwise one throttled provider at the head of the queue would starve the rest every day.
+ * Rate-limited assets are deliberately NOT stamped with `classificationCheckedAt`, so they are
+ * retried first on the next run rather than pushed to the back of the queue.
  */
 @Service
 class ClassificationRefreshService(
@@ -122,6 +125,19 @@ class ClassificationRefreshService(
         assetRepository.save(asset)
     }
 
+    // Routing can touch a provider (SEC's ticker index); a failure falls back to the configured
+    // enricher rather than ending the run.
+    private fun providerFor(asset: Asset): ClassificationEnricher =
+        try {
+            classificationEnricher.providerFor(asset)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("Could not route ${asset.code} to a classification provider: ${e.message}")
+            classificationEnricher
+        }
+
     private fun processAssets(
         totalActive: Int,
         dueAssets: List<Asset>,
@@ -139,15 +155,25 @@ class ClassificationRefreshService(
                 "(batch-limit=$batchLimit)"
         )
 
-        for ((index, asset) in dueAssets.withIndex()) {
-            if (index >= batchLimit) {
+        val exhausted = mutableSetOf<ClassificationEnricher>()
+        var attempted = 0
+        for (asset in dueAssets) {
+            if (attempted >= batchLimit) {
                 skipped++
                 continue
             }
+            val provider = providerFor(asset)
+            if (provider in exhausted) {
+                skipped++
+                continue
+            }
+            attempted++
 
             val result =
                 try {
-                    classificationEnricher.enrichClassification(asset)
+                    // The resolved provider, not the chain, so the provider stopped on a rate
+                    // limit is the one that answered.
+                    provider.enrichClassification(asset)
                 } catch (
                     @Suppress("TooGenericExceptionCaught")
                     e: Exception
@@ -171,12 +197,11 @@ class ClassificationRefreshService(
                 }
                 EnrichmentResult.RATE_LIMITED -> {
                     rateLimited++
+                    exhausted += provider
                     log.warn(
-                        "$description refresh hit provider rate limit at ${asset.code}; " +
-                            "aborting run, remaining assets deferred to next run"
+                        "$description refresh hit the ${provider::class.simpleName} rate limit at " +
+                            "${asset.code}; that provider's remaining assets deferred to next run"
                     )
-                    skipped += dueAssets.size - index - 1
-                    break
                 }
             }
         }

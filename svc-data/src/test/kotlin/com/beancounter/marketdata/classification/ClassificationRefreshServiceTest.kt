@@ -20,7 +20,7 @@ import java.util.Optional
  * Unit tests for [ClassificationRefreshService].
  *
  * Covers the resume-aware refresh design (bc-claude fix/classification-refresh-resume): the
- * staleness window, the per-run batch limit, aborting on the first [EnrichmentResult.RATE_LIMITED],
+ * staleness window, the per-run batch limit, stopping a provider on its first [EnrichmentResult.RATE_LIMITED],
  * `classificationCheckedAt` stamping, and honest [com.beancounter.common.contracts.BackfillResult]
  * counts - specifically the regression that used to let [EnrichmentResult.FAILED] outcomes vanish
  * silently instead of landing in `errors`.
@@ -31,13 +31,27 @@ class ClassificationRefreshServiceTest {
 
     private val testMarket = Market(code = "NASDAQ", name = "NASDAQ")
 
-    private fun service(batchLimit: Int = 20) =
-        ClassificationRefreshService(
-            assetRepository,
-            classificationEnricher,
-            staleAfterDays = 7,
-            batchLimit = batchLimit
-        )
+    private fun service(
+        batchLimit: Int = 20,
+        enricher: ClassificationEnricher = classificationEnricher
+    ) = ClassificationRefreshService(
+        assetRepository,
+        enricher,
+        staleAfterDays = 7,
+        batchLimit = batchLimit
+    )
+
+    private fun equity(
+        id: String,
+        market: Market = testMarket
+    ) = Asset(
+        id = id,
+        code = id,
+        name = "Equity $id",
+        category = "EQUITY",
+        market = market,
+        status = Status.Active
+    )
 
     private fun etf(id: String) =
         Asset(
@@ -53,6 +67,7 @@ class ClassificationRefreshServiceTest {
     fun setUp() {
         assetRepository = mock()
         classificationEnricher = mock()
+        whenever(classificationEnricher.providerFor(any())).thenReturn(classificationEnricher)
         whenever(assetRepository.save(any<Asset>())).thenAnswer { it.getArgument<Asset>(0) }
     }
 
@@ -219,6 +234,52 @@ class ClassificationRefreshServiceTest {
         assertThat(result.rateLimited).isEqualTo(1)
         assertThat(result.skipped).isEqualTo(1)
         verify(classificationEnricher, never()).enrichClassification(etf3)
+    }
+
+    @Test
+    fun `a rate limit stops only the provider that hit it, so the other provider's assets still run`() {
+        val nzx = Market(code = "NZX", name = "NZX")
+        val listedOffshore = equity("nz-1", nzx)
+        val us1 = equity("us-1")
+        val alsoOffshore = equity("nz-2", nzx)
+        val us2 = equity("us-2")
+        val sec = mock<ClassificationEnricher>()
+        val alpha = mock<ClassificationEnricher>()
+        whenever(sec.canEnrich(any())).thenAnswer { it.getArgument<Asset>(0).market.code == "NASDAQ" }
+        whenever(alpha.canEnrich(any())).thenReturn(true)
+        whenever(alpha.enrichClassification(listedOffshore)).thenReturn(EnrichmentResult.RATE_LIMITED)
+        whenever(sec.enrichClassification(any())).thenReturn(EnrichmentResult.ENRICHED)
+        val due = listOf(listedOffshore, us1, alsoOffshore, us2)
+        whenever(assetRepository.findActiveEquities()).thenReturn(due)
+        whenever(assetRepository.findEquitiesDueForClassification(any())).thenReturn(due)
+
+        val result =
+            service(
+                enricher = ChainedClassificationEnricher(listOf(sec, alpha))
+            ).refreshEquityClassifications()
+
+        assertThat(result.processed).isEqualTo(2)
+        assertThat(result.rateLimited).isEqualTo(1)
+        assertThat(result.skipped).isEqualTo(1)
+        assertThat(us1.classificationCheckedAt).isNotNull()
+        assertThat(us2.classificationCheckedAt).isNotNull()
+        assertThat(alsoOffshore.classificationCheckedAt).isNull()
+        verify(alpha, never()).enrichClassification(alsoOffshore)
+    }
+
+    @Test
+    fun `an asset that cannot be routed is still attempted and the run carries on`() {
+        val unroutable = equity("eq-1")
+        val next = equity("eq-2")
+        whenever(classificationEnricher.providerFor(unroutable)).thenThrow(IllegalStateException("index down"))
+        whenever(classificationEnricher.enrichClassification(any())).thenReturn(EnrichmentResult.ENRICHED)
+        whenever(assetRepository.findActiveEquities()).thenReturn(listOf(unroutable, next))
+        whenever(assetRepository.findEquitiesDueForClassification(any())).thenReturn(listOf(unroutable, next))
+
+        val result = service().refreshEquityClassifications()
+
+        assertThat(result.processed).isEqualTo(2)
+        assertThat(next.classificationCheckedAt).isNotNull()
     }
 
     @Test

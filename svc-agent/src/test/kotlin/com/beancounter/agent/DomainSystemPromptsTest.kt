@@ -42,13 +42,15 @@ class DomainSystemPromptsTest {
     }
 
     @Test
-    fun `watchlist prompt reads momentum from the tool and labels fundamentals as general knowledge`() {
-        // There is no fundamentals feed: valuation and earnings views come from the model's
-        // own knowledge and must say so, while momentum is measured, never estimated.
+    fun `watchlist prompt reads momentum and SEC fundamentals from the tool and labels the rest`() {
+        // Momentum and, for US filers, the SEC figures are measured; anything else the model
+        // adds from its own knowledge must say so.
         assertThat(DomainSystemPrompts.WATCHLIST)
             .contains("getWatchlist")
             .contains("Momentum")
             .contains("Fundamentals")
+            .contains("priceToEarnings")
+            .contains("SEC filing")
             .contains("general knowledge")
             .contains("Not financial advice")
     }

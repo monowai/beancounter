@@ -54,6 +54,20 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `general prompt routes watchlist questions to getWatchlist`() {
+        assertThat(DomainSystemPrompts.GENERAL).contains("getWatchlist")
+    }
+
+    @Test
+    fun `watchlist prompt never sets a one-day benchmark against momentum returns`() {
+        // getBenchmark carries today's change only; a 6m return against it is no comparison.
+        assertThat(DomainSystemPrompts.WATCHLIST)
+            .contains("single-day")
+            .contains("consumer_discretionary")
+            .doesNotContain("relative strength")
+    }
+
+    @Test
     fun `follow-up directive answers the question instead of regenerating the brief`() {
         assertThat(DomainSystemPrompts.FOLLOW_UP)
             .contains("Answer the latest question directly")

@@ -86,7 +86,8 @@ class ToolSelector(
                         newsTools +
                         eventTools +
                         retireTools +
-                        rebalanceTools
+                        rebalanceTools +
+                        watchlistTools
                 ).toTypedArray()
             }
         }

@@ -51,7 +51,7 @@ class ToolSelectorTest {
     }
 
     @Test
-    fun `watchlist tools reach only the watchlist page`() {
+    fun `watchlist tools stay off other domain pages`() {
         assertThat(selector.selectTools(mapOf("page" to "Holdings"))).doesNotContain(watchlistTools)
     }
 
@@ -152,7 +152,8 @@ class ToolSelectorTest {
             newsTools,
             eventTools,
             retireTools,
-            rebalanceTools
+            rebalanceTools,
+            watchlistTools
         )
     }
 

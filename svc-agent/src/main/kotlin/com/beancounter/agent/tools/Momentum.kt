@@ -30,7 +30,9 @@ data class Momentum(
             val series = points.filter { it.close.signum() > 0 }.sortedBy { it.priceDate }
             if (series.isEmpty()) return Momentum()
             val latest = series.last()
-            val year = series.filter { it.priceDate > latest.priceDate.minusYears(1) }
+            val yearAgo = latest.priceDate.minusYears(1)
+            // A 52-week high or low needs a year of history, like the twelve-month return.
+            val year = series.filter { it.priceDate > yearAgo }.takeIf { series.first().priceDate <= yearAgo }
             return Momentum(
                 asOf = latest.priceDate.toString(),
                 return1m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusMonths(1))),
@@ -39,8 +41,8 @@ data class Momentum(
                 return12m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusMonths(12))),
                 vsSma50 = change(latest.close, average(series, SHORT_AVERAGE)),
                 vsSma200 = change(latest.close, average(series, LONG_AVERAGE)),
-                fromHigh52w = change(latest.close, year.maxOf { it.close }),
-                fromLow52w = change(latest.close, year.minOf { it.close })
+                fromHigh52w = change(latest.close, year?.maxOf { it.close }),
+                fromLow52w = change(latest.close, year?.minOf { it.close })
             )
         }
 

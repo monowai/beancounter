@@ -82,6 +82,14 @@ class MomentumTest {
     }
 
     @Test
+    fun `should leave the 52 week readings empty when the history is under a year`() {
+        val momentum = Momentum.of(rising(300))
+
+        assertThat(momentum.fromHigh52w).isNull()
+        assertThat(momentum.fromLow52w).isNull()
+    }
+
+    @Test
     fun `should report nothing for an empty series`() {
         val momentum = Momentum.of(emptyList())
 

@@ -29,6 +29,11 @@ class ChatModelSelectorTest {
     }
 
     @Test
+    fun `Watchlist uses SMART`() {
+        assertThat(selector.selectFor(mapOf("page" to "Watchlist"))).isEqualTo("smart-id")
+    }
+
+    @Test
     fun `Rebalance uses SMART`() {
         assertThat(selector.selectFor(mapOf("page" to "Rebalance Wizard"))).isEqualTo("smart-id")
     }

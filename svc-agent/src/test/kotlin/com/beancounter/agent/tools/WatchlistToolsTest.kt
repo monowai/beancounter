@@ -6,6 +6,8 @@ import com.beancounter.client.services.ClassificationClient
 import com.beancounter.common.contracts.AssetClassificationSummary
 import com.beancounter.common.contracts.BulkClassificationResponse
 import com.beancounter.common.contracts.PricePoint
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
@@ -13,6 +15,7 @@ import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
@@ -59,17 +62,16 @@ class WatchlistToolsTest {
             mock {
                 on { getWatchlist() } doReturn entries.toList()
                 on { getCloses(any(), any()) } doReturn closes
-            }
-    ): WatchlistTools {
-        val classificationClient =
-            mock<ClassificationClient> {
+            },
+        classificationClient: ClassificationClient =
+            mock {
                 on { getClassifications(any()) } doReturn
                     BulkClassificationResponse(
                         mapOf("id-MSFT" to AssetClassificationSummary("id-MSFT", "Technology", "Software"))
                     )
-            }
-        return WatchlistTools(watchlistClient, classificationClient, dateUtils)
-    }
+            },
+        nanoTime: () -> Long = { 0L }
+    ): WatchlistTools = WatchlistTools(watchlistClient, classificationClient, dateUtils, nanoTime)
 
     @Test
     fun `should describe each watched asset with its sector, entry, target and momentum`() {
@@ -121,6 +123,52 @@ class WatchlistToolsTest {
         assertThat(msft.code).isEqualTo("MSFT")
         assertThat(msft.sector).isEqualTo("Technology")
         assertThat(msft.momentum).isEqualTo(Momentum())
+    }
+
+    @Test
+    fun `should still describe an asset whose history read fails at svc-data`() {
+        // svc-data's HTTP errors arrive as mapped exceptions, not RestClientException.
+        val client =
+            mock<WatchlistClient> {
+                on { getWatchlist() } doReturn listOf(entry("MSFT"))
+                on { getCloses(any(), any()) } doThrow SystemException("backfill failed")
+            }
+
+        val msft = tools(watchlistClient = client).getWatchlist().items.single()
+
+        assertThat(msft.momentum).isEqualTo(Momentum())
+    }
+
+    @Test
+    fun `should still describe the watchlist when classifications cannot be read`() {
+        val classifications =
+            mock<ClassificationClient> { on { getClassifications(any()) } doThrow BusinessException("bad") }
+
+        val msft = tools(entry("MSFT"), classificationClient = classifications).getWatchlist().items.single()
+
+        assertThat(msft.sector).isNull()
+        assertThat(msft.momentum.asOf).isEqualTo("2026-10-16")
+    }
+
+    @Test
+    fun `should stop reading history once the time budget is spent`() {
+        // Each read takes 20 seconds, so only the reads that start inside the budget run.
+        var now = 0L
+        val client =
+            mock<WatchlistClient> {
+                on { getWatchlist() } doReturn (1..6).map { entry("A$it") }
+                on { getCloses(any(), any()) } doAnswer {
+                    now += 20_000_000_000L
+                    closes
+                }
+            }
+
+        val brief = tools(watchlistClient = client, nanoTime = { now }).getWatchlist()
+
+        assertThat(brief.items).hasSize(6)
+        assertThat(brief.items.take(3).map { it.momentum.asOf }).containsOnly("2026-10-16")
+        assertThat(brief.items.drop(3).map { it.momentum }).containsOnly(Momentum())
+        assertThat(brief.momentumSkipped).isEqualTo(3)
     }
 
     @Test

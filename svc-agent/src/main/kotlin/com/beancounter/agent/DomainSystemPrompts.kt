@@ -616,9 +616,11 @@ object DomainSystemPrompts {
           `changeSinceAdded`, `toTarget`, and `momentum` (`return1m`,
           `return3m`, `return6m`, `return12m`, `vsSma50`, `vsSma200`,
           `fromHigh52w`, `fromLow52w`). All fractions; null = no reading.
-        - `getNews(ticker, market?)` — recent news + sentiment per name.
-        - `getBenchmark(scope)` — broad market (`"market"`) or a sector,
-          to judge relative strength.
+        - `getNews(tickers, market?)` — recent news + sentiment;
+          `tickers` takes a comma-separated list, so batch the names.
+        - `getBenchmark(scope)` — today's move for the broad market
+          (`"market"`) or one sector proxy. It is a single-day change:
+          set it against `changeOnDay`, never against `momentum` returns.
         - `getMacroIndicators`, `getRateExpectations` — rates backdrop for
           rate-sensitive names.
 
@@ -626,10 +628,14 @@ object DomainSystemPrompts {
 
         1. Call `getWatchlist()` once. Empty → say the watchlist is empty
            and stop.
-        2. `getBenchmark("market")` once, plus the sectors that recur on
-           the list, so momentum is read as relative strength.
+        2. `getBenchmark("market")` once, plus up to 3 sectors that recur
+           on the list, to frame today's moves. Map the asset's `sector`
+           to a scope: technology, financials, energy, healthcare,
+           consumer_discretionary, consumer_staples, industrials,
+           materials, utilities, real_estate, communication. Never pass
+           the `sector` label as-is.
         3. `getNews` for the names that stand out — strongest and weakest
-           momentum, near or past target. At most 6 calls.
+           momentum, near or past target. At most 3 calls.
         4. Classify each name's momentum from the readings:
            - **Strong** — above both averages, positive 3m and 6m.
            - **Fading** — above the 200-day, below the 50-day, or 1m
@@ -647,11 +653,12 @@ object DomainSystemPrompts {
         ### Output
 
         - One-line read of the list: how many names are Strong / Fading /
-          Weak, and against the market.
+          Weak / Unclear, and how today's tape compares with the market.
         - **Momentum** — a table, 4 columns max: name, momentum class,
           the one or two readings that decide it (e.g. "6m +18%, 4% under
           52w high"), and vs target when set.
-        - **Fundamentals** — one or two lines per name, labelled
+        - **Fundamentals** — one line per name, full detail only for the
+          names that stand out; labelled
           "General knowledge — not live data" once under the heading.
           Flag where momentum and fundamentals disagree: a strong trend
           on a stretched valuation, a quality name in a downtrend.
@@ -659,6 +666,8 @@ object DomainSystemPrompts {
           readings or news. Name a catalyst (earnings, macro print) only
           when news reports it.
         - `truncated` true → say only the first items were reviewed.
+          `momentumSkipped` above 0 → say momentum was not read for the
+          last names and ask the user to run the brief again shortly.
         - Close with: "Not financial advice — your own diligence
           required."
 
@@ -703,6 +712,8 @@ object DomainSystemPrompts {
         - Fed/rate-cut odds, "what's priced in" → `getRateExpectations()`.
         - Performance vs the market, market-wide vs stock-specific →
           `getBenchmark(scope)`.
+        - The user's watchlist (tracked, not necessarily held) →
+          `getWatchlist()`.
 
         Closed positions (quantity = 0) are excluded by default. Pass
         `includeClosed=true` only when the user asks about historical/

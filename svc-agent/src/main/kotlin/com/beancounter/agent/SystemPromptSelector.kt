@@ -14,6 +14,9 @@ class SystemPromptSelector {
     fun selectFor(context: Map<String, Any>?): String {
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
         return when {
+            page.contains("watchlist") -> {
+                DomainSystemPrompts.WATCHLIST
+            }
             // Asset Review — match before the trade/event branch so we don't
             // fall through to DomainSystemPrompts.ASSET on the word "asset".
             page.contains("asset review") || page.contains("asset-review") -> {

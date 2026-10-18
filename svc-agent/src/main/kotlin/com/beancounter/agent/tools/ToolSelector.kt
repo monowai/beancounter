@@ -21,7 +21,8 @@ class ToolSelector(
     private val macroTools: MacroTools,
     private val eventTools: EventTools,
     private val retireTools: RetireTools,
-    private val rebalanceTools: RebalanceTools
+    private val rebalanceTools: RebalanceTools,
+    private val watchlistTools: WatchlistTools
 ) {
     /** Wealth baseline — portfolios, positions (and one holding, open or sold), markets/FX, macro backdrop. */
     private val wealthTools: List<Any> by lazy {
@@ -32,6 +33,10 @@ class ToolSelector(
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
 
         return when {
+            // Watchlist — tracked assets, not holdings: no portfolio or position tools.
+            page.contains("watchlist") -> {
+                arrayOf(watchlistTools, marketTools, newsTools, macroTools)
+            }
             // Asset Review — single-asset deep dive from assets/lookup.
             // Match before the trade/event branch so the word "asset" doesn't
             // trip a fall-through.
@@ -81,7 +86,8 @@ class ToolSelector(
                         newsTools +
                         eventTools +
                         retireTools +
-                        rebalanceTools
+                        rebalanceTools +
+                        watchlistTools
                 ).toTypedArray()
             }
         }

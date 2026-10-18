@@ -34,7 +34,8 @@ class ChatModelSelector(
                 "asset-review",
                 "independence",
                 "retire",
-                "rebalanc"
+                "rebalanc",
+                "watchlist"
             )
     }
 }

@@ -49,6 +49,12 @@ class SystemPromptSelectorTest {
     }
 
     @Test
+    fun `watchlist page returns the watchlist prompt`() {
+        val prompt = selector.selectFor(mapOf("page" to "Watchlist"))
+        assertThat(prompt).isEqualTo(DomainSystemPrompts.WATCHLIST)
+    }
+
+    @Test
     fun `null or unknown context falls back to the general prompt`() {
         assertThat(selector.selectFor(null)).isEqualTo(DomainSystemPrompts.GENERAL)
         assertThat(selector.selectFor(emptyMap())).isEqualTo(DomainSystemPrompts.GENERAL)

@@ -17,6 +17,7 @@ class ToolSelectorTest {
     private val eventTools = mock<EventTools>()
     private val retireTools = mock<RetireTools>()
     private val rebalanceTools = mock<RebalanceTools>()
+    private val watchlistTools = mock<WatchlistTools>()
 
     private val selector =
         ToolSelector(
@@ -28,7 +29,8 @@ class ToolSelectorTest {
             macroTools,
             eventTools,
             retireTools,
-            rebalanceTools
+            rebalanceTools,
+            watchlistTools
         )
 
     @Test
@@ -39,6 +41,18 @@ class ToolSelectorTest {
         // headlines so the model can quantify the backdrop it's reading about.
         val tools = selector.selectTools(mapOf("page" to "News & Sentiment"))
         assertThat(tools).containsExactlyInAnyOrder(newsTools, marketTools, macroTools)
+    }
+
+    @Test
+    fun `watchlist page ships watchlist, market, news, and macro tools only`() {
+        // Watched assets are not holdings, so the portfolio and position tools stay out.
+        val tools = selector.selectTools(mapOf("page" to "Watchlist"))
+        assertThat(tools).containsExactlyInAnyOrder(watchlistTools, marketTools, newsTools, macroTools)
+    }
+
+    @Test
+    fun `watchlist tools stay off other domain pages`() {
+        assertThat(selector.selectTools(mapOf("page" to "Holdings"))).doesNotContain(watchlistTools)
     }
 
     @Test
@@ -138,7 +152,8 @@ class ToolSelectorTest {
             newsTools,
             eventTools,
             retireTools,
-            rebalanceTools
+            rebalanceTools,
+            watchlistTools
         )
     }
 

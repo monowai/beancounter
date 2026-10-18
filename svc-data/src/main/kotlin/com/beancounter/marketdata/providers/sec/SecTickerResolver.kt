@@ -16,16 +16,22 @@ import java.time.Instant
  *
  * A failed index download is not cached, so while SEC throttles us every asset in a refresh run
  * would request the index again and prolong the block. After a 403 or 429 the resolver throws
- * [SecThrottledException] without a request until [THROTTLE_COOLDOWN] has passed.
+ * [SecThrottledException] without a request until [THROTTLE_COOLDOWN] has passed. The check,
+ * the fetch and the latch run under one lock so concurrent callers cannot each slip a request
+ * past an expired latch; a cached index makes the locked section a map lookup.
+ *
+ * SEC serves the same 403 "Request Rate Threshold Exceeded" page for a User-Agent without a
+ * contact email, so that misconfiguration is latched like a throttle too: one request per
+ * cooldown, assets left unstamped until it is fixed.
  */
 @Component
 class SecTickerResolver(
     private val directory: SecTickerDirectory,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    @Volatile
     private var throttledUntil: Instant = Instant.MIN
 
+    @Synchronized
     fun resolve(asset: Asset): String? {
         if (clock.instant() < throttledUntil) {
             throw SecThrottledException("SEC index throttled until $throttledUntil")
@@ -36,7 +42,11 @@ class SecTickerResolver(
             } catch (e: HttpStatusCodeException) {
                 if (e.statusCode !in THROTTLE_STATUSES) throw e
                 throttledUntil = clock.instant().plus(THROTTLE_COOLDOWN)
-                throw SecThrottledException("SEC index throttled (${e.statusCode.value()})", e)
+                throw SecThrottledException(
+                    "SEC index throttled (${e.statusCode.value()}); if it persists, check the " +
+                        "User-Agent carries a contact email",
+                    e
+                )
             }
         return index[normalise(asset.code)]
     }

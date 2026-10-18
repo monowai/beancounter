@@ -73,6 +73,29 @@ class EodhdGateway(
             .body<EodhdQuote>()
 
     /**
+     * Live (delayed) quotes for several symbols in one request: [symbol] in the path, the rest
+     * in `s`. EODHD answers a multi-symbol request with an array, one quote per symbol.
+     *
+     * GET /api/real-time/{symbol}?s={csv}&api_token={apiKey}&fmt=json
+     */
+    fun getRealTimeBatch(
+        symbol: String,
+        others: String,
+        apiKey: String = DEMO_KEY
+    ): List<EodhdQuote> =
+        restClient
+            .get()
+            .uri(
+                "/api/real-time/{symbol}?s={others}&api_token={apiKey}&fmt=json",
+                symbol,
+                others,
+                apiKey
+            ).retrieve()
+            .body<Array<EodhdQuote>>()
+            ?.toList()
+            ?: emptyList()
+
+    /**
      * Bulk last-day EOD prices for multiple symbols on a single exchange.
      *
      * GET /api/eod-bulk-last-day/{exchange}?symbols={csv}&date={date}&api_token={apiKey}&fmt=json

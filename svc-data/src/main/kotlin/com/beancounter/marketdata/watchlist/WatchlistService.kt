@@ -10,6 +10,7 @@ import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.providers.LiveQuoteService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceService
 import jakarta.transaction.Transactional
@@ -34,8 +35,12 @@ class WatchlistService(
     private val assetFinder: AssetFinder,
     private val priceService: PriceService,
     private val marketDataService: MarketDataService,
+    private val liveQuoteService: LiveQuoteService,
     private val dateUtils: DateUtils
 ) {
+    // No transaction: the live-quote call must not hold a connection while the provider answers.
+    // Each read below runs in its own repository transaction and items load their asset eagerly.
+    @Transactional(Transactional.TxType.SUPPORTS)
     fun get(owner: SystemUser): WatchlistView = view(itemRepository.findByOwnerIdOrderByAssetCode(owner.id))
 
     fun addItem(
@@ -60,7 +65,7 @@ class WatchlistService(
             latest = priceService.enrichedCopy(fetched)
             addedPrice = latest.close
         } else {
-            latest = latestPrices(listOf(asset))[asset.id]
+            latest = livePrices(listOf(asset))[asset.id]
             addedPrice = requirePositive(requested, "addedPrice")
         }
         val targetPrice = request.targetPrice?.let { requirePositive(it, "targetPrice") }
@@ -105,7 +110,7 @@ class WatchlistService(
             item.targetOn = null
         }
         val saved = itemRepository.save(item)
-        return itemView(saved, latestPrices(listOf(saved.asset))[saved.asset.id], splitFactors(listOf(saved)))
+        return itemView(saved, livePrices(listOf(saved.asset))[saved.asset.id], splitFactors(listOf(saved)))
     }
 
     fun deleteItem(
@@ -156,6 +161,25 @@ class WatchlistService(
             .firstOrNull { it.close.signum() > 0 }
 
     /**
+     * The provider's live (delayed) quote where it is at least as recent as the stored close,
+     * else the stored close. A watchlist is read for the price now, not last night's close.
+     */
+    private fun livePrices(assets: Collection<Asset>): Map<String, MarketData> {
+        val stored = latestPrices(assets)
+        val quotes = liveQuoteService.quotes(assets.distinctBy { it.id })
+        return assets
+            .mapNotNull { asset ->
+                val close = stored[asset.id]
+                val quote =
+                    quotes[asset.id]?.takeIf {
+                        it.close.signum() > 0 &&
+                            (close == null || it.priceDate >= close.priceDate)
+                    }
+                (quote ?: close)?.let { asset.id to it }
+            }.toMap()
+    }
+
+    /**
      * Latest close on or before today, ignoring rows without a positive close.
      */
     private fun latestPrices(assets: Collection<Asset>): Map<String, MarketData> =
@@ -164,7 +188,7 @@ class WatchlistService(
             .filterValues { it.close.signum() > 0 }
 
     private fun view(items: List<WatchlistItem>): WatchlistView {
-        val prices = latestPrices(items.map { it.asset })
+        val prices = livePrices(items.map { it.asset })
         return WatchlistView(
             items =
                 splitFactors(items).let { factors ->

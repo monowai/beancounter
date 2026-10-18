@@ -40,6 +40,13 @@ class EodhdProxy(
     ): EodhdQuote? = eodhdGateway.getRealTime(symbol, apiKey)
 
     @RateLimiter(name = "eodhd")
+    fun getRealTimeBatch(
+        symbol: String,
+        others: String,
+        apiKey: String
+    ): List<EodhdQuote> = eodhdGateway.getRealTimeBatch(symbol, others, apiKey)
+
+    @RateLimiter(name = "eodhd")
     fun getBulkPrices(
         exchange: String,
         symbols: String,

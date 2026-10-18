@@ -11,6 +11,7 @@ import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
+import com.beancounter.marketdata.providers.eodhd.model.EodhdQuote
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import com.beancounter.marketdata.providers.logApiKeyStatus
 import io.github.resilience4j.ratelimiter.RequestNotPermitted
@@ -240,6 +241,55 @@ class EodhdPriceService(
                 log.debug("EODHD live quote rate-limited for {}", symbol)
                 null
             } ?: return null
+        return toQuote(asset, quote)
+    }
+
+    /**
+     * Live quotes for several assets, [QUOTE_BATCH] symbols per `/api/real-time` request. A
+     * failed batch quotes none of its assets; they fall back to the stored close.
+     */
+    override fun getQuotes(assets: Collection<Asset>): Map<String, MarketData> =
+        // Assets can share a symbol (an explicit priceSymbol); each one gets the quote.
+        assets
+            .groupBy { eodhdConfig.getPriceCode(it).uppercase() }
+            .entries
+            .chunked(QUOTE_BATCH)
+            .flatMap { batch ->
+                val bySymbol = batch.associate { it.key to it.value }
+                val symbols = bySymbol.keys.toList()
+                if (symbols.size == 1) {
+                    val shared = bySymbol.getValue(symbols.single())
+                    val quote = getQuote(shared.first()) ?: return@flatMap emptyList()
+                    return@flatMap shared.map { it.id to quote.copy(asset = it) }
+                }
+                val quotes =
+                    try {
+                        eodhdProxy.getRealTimeBatch(
+                            symbols.first(),
+                            symbols.drop(1).joinToString(","),
+                            eodhdConfig.apiKey
+                        )
+                    } catch (e: RestClientException) {
+                        log.debug("EODHD live quotes unavailable for {}: {}", symbols, e.message)
+                        emptyList()
+                    } catch (_: RequestNotPermitted) {
+                        log.debug("EODHD live quotes rate-limited for {}", symbols)
+                        emptyList()
+                    }
+                quotes.flatMap { quote ->
+                    val shared =
+                        quote.code
+                            ?.uppercase()
+                            ?.let(bySymbol::get)
+                            .orEmpty()
+                    shared.mapNotNull { asset -> toQuote(asset, quote)?.let { asset.id to it } }
+                }
+            }.toMap()
+
+    private fun toQuote(
+        asset: Asset,
+        quote: EodhdQuote
+    ): MarketData? {
         val close = quote.close.asDecimal() ?: return null
         if (close.signum() <= 0) return null
         val timestamp = quote.timestamp.asDecimal()?.toLong() ?: return null
@@ -391,5 +441,8 @@ class EodhdPriceService(
         const val ID = "EODHD"
         private val HUNDRED = BigDecimal(100)
         private const val EODHD_ALIAS = "eodhd"
+
+        // EODHD's guidance for one multi-symbol `/api/real-time` request.
+        private const val QUOTE_BATCH = 15
     }
 }

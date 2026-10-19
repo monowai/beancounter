@@ -20,9 +20,19 @@ class ChatModelSelector(
         deepThink: Boolean = false
     ): String {
         if (deepThink) return tiers.deep
+        return if (isSmart(context)) tiers.smart else tiers.fast
+    }
+
+    /**
+     * Whether a pre-canned prompt reasons before answering: the SMART pages do, at low effort,
+     * because their briefs lean on tool figures and source labels that a short think keeps
+     * honest. Everything else answers straight away for the lowest latency.
+     */
+    fun reasonsFor(context: Map<String, Any>?): Boolean = isSmart(context)
+
+    private fun isSmart(context: Map<String, Any>?): Boolean {
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
-        val isSmart = SMART_DOMAINS.any { it in page }
-        return if (isSmart) tiers.smart else tiers.fast
+        return SMART_DOMAINS.any { it in page }
     }
 
     companion object {

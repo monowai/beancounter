@@ -204,7 +204,8 @@ agent:
   # Per-tier model IDs. ChatModelSelector picks one per call based on the page
   # context (Holdings / News / Asset Review / Independence / Rebalance / Watchlist).
   # SMART pages also reason before answering, at the thinking client's low effort;
-  # FAST pages answer with thinking disabled. Override per environment via
+  # FAST pages answer with thinking disabled. SMART defaults to the same model as
+  # FAST, so on DeepSeek the SMART tier is about reasoning, not a bigger model. Override per environment via
   # AI_MODEL_FAST / _SMART / _DEEP.
   #
   # Models (DeepSeek API, current as of 2026-09):

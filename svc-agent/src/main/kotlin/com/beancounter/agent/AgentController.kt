@@ -286,7 +286,9 @@ class AgentController(
      * The thinking client defaults every request to `reasoning_effort: low`
      * (beancounter#1128); a `think` + `deepThink` turn pins `high` here so the
      * deep tier keeps full effort. Effort is never set without `think` — any
-     * value re-enables thinking on the fast client.
+     * value re-enables thinking on the fast client. Callers pass [thinks], so
+     * `think` is also true for a SMART page's pre-canned prompt: such a turn
+     * reasons at low effort, or at high effort on the deep tier.
      */
     internal fun buildOptions(
         modelId: String,
@@ -1053,7 +1055,8 @@ data class AgentQuery(
      * Enable DeepSeek thinking mode for this request. Defaults to `false` so
      * pre-canned prompts get the fastest (non-thinking) response; the interactive
      * Chat FAB sets `true`. Orthogonal to [deepThink] (which escalates the model
-     * tier). Routes to the non-thinking `fastChatClient` when `false`.
+     * tier). When `false`, a SMART page ([ChatModelSelector.reasonsFor]) still
+     * reasons at low effort; any other page routes to the non-thinking `fastChatClient`.
      */
     val think: Boolean = false,
     /**

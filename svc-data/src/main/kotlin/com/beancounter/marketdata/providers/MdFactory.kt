@@ -5,6 +5,7 @@ import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
+import com.beancounter.marketdata.providers.fx.FxPairPriceService
 import com.beancounter.marketdata.providers.marketstack.MarketStackService
 import com.beancounter.marketdata.providers.morningstar.MorningstarPriceService
 import org.slf4j.LoggerFactory
@@ -25,13 +26,20 @@ class MdFactory internal constructor(
     privateMarketDataProvider: PrivateMarketDataProvider,
     marketStackService: MarketStackService,
     morningstarPriceService: MorningstarPriceService,
-    eodhdPriceService: EodhdPriceService
+    eodhdPriceService: EodhdPriceService,
+    fxPairPriceService: FxPairPriceService
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
             Pair(
                 CashProviderService.ID,
                 cashProviderService
+            ),
+            // Currency pairs claim only the FX market, so sitting beside Cash shifts no other
+            // market's routing; it wins FX over any vendor allowlist that still names FX.
+            Pair(
+                FxPairPriceService.ID,
+                fxPairPriceService
             ),
             Pair(
                 MarketStackService.ID,
@@ -51,7 +59,7 @@ class MdFactory internal constructor(
             ),
             // EODHD is appended last so it never wins by iteration order — its empty-by-default
             // `markets` allowlist already makes it inert until an operator opts in, but keeping the
-            // documented Cash → MarketStack → Alpha → Private → Morningstar precedence intact means
+            // documented Cash → FX → MarketStack → Alpha → Private → Morningstar precedence intact means
             // routing changes for an existing market require an explicit config change, never a
             // bean-registration order shift.
             Pair(

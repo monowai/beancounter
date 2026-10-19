@@ -170,4 +170,24 @@ class FxRateFallbackTest {
         val nzdUsd = response.data.rates[IsoCurrencyPair("NZD", "USD")]
         assertThat(nzdUsd).isNotNull
     }
+
+    @Test
+    fun `should date a pair rate by the cached rates it fell back to`() {
+        `when`(currencyService.getCode("AUD")).thenReturn(AUD)
+        `when`(fxRateRepository.findByDateRange(mondayDate)).thenReturn(emptyList())
+        `when`(fxProviderService.getRates(mondayString, null)).thenReturn(emptyList())
+        `when`(fxProviderService.getDefaultProviderId()).thenReturn("FRANKFURTER")
+        `when`(fxRateRepository.findMostRecentBefore(mondayDate)).thenReturn(fridayRates)
+        `when`(fxRateRepository.findBaseRate(USD)).thenReturn(
+            FxRate(from = USD, to = USD, rate = BigDecimal.ONE, date = LocalDate.of(1900, 1, 1))
+        )
+
+        val nzdAud = fxRateService.getPairRate("NZD", "AUD", mondayString)
+
+        // AUD per NZD = USD->AUD / USD->NZD
+        assertThat(nzdAud.rate).isEqualByComparingTo("0.94444444")
+        assertThat(nzdAud.date).isEqualTo(fridayDate)
+        assertThat(nzdAud.from.code).isEqualTo("NZD")
+        assertThat(nzdAud.to.code).isEqualTo("AUD")
+    }
 }

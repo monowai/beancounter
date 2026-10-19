@@ -85,42 +85,19 @@ internal class EodhdPriceServiceSearchTest {
     }
 
     @Test
-    fun `searchAssets prices an FX cross in its quote currency on the FX market`() {
-        // EODHD reports a cross as exchange FOREX, type Currency, currency "NA".
+    fun `searchAssets drops FOREX rows so currency pairs come only from the FX rate provider`() {
+        // Even with a market that would map EODHD's FOREX exchange, pairs are not EODHD assets.
         val service = EodhdPriceService(configWithMarkets("FX"), proxy, adapter, dateUtils)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(
-                searchResult(
-                    code = "NZDSGD",
-                    exchange = "FOREX",
-                    currency = "NA",
-                    name = "New Zealand Dollar/Singapore Dollar FX Cross Rate",
-                    type = "Currency"
-                )
+                searchResult(code = "NZDSGD", exchange = "FOREX", currency = "NA", type = "Currency"),
+                searchResult(code = "VOD", exchange = "LSE", currency = "GBX")
             )
         )
 
         val results = service.searchAssets("NZDSGD", null)
 
-        assertThat(results).hasSize(1)
-        val cross = results.first()
-        assertThat(cross.market).isEqualTo("FX")
-        assertThat(cross.currency).isEqualTo("SGD")
-        assertThat(cross.type).isEqualTo("Currency")
-    }
-
-    @Test
-    fun `searchAssets leaves the currency unset for a FOREX row that is not a pair`() {
-        // "NA" is EODHD's placeholder; persisting it would give the asset a currency that does not exist.
-        val service = EodhdPriceService(configWithMarkets("FX"), proxy, adapter, dateUtils)
-        whenever(proxy.searchAssets(any(), any())).thenReturn(
-            listOf(searchResult(code = "EURX", exchange = "FOREX", currency = "NA", type = "Currency"))
-        )
-
-        val results = service.searchAssets("EURX", null)
-
-        assertThat(results).hasSize(1)
-        assertThat(results.first().currency).isNull()
+        assertThat(results.map { it.symbol }).containsExactly("VOD")
     }
 
     @Test

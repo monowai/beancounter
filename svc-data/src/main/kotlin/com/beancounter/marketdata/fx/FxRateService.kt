@@ -182,7 +182,8 @@ class FxRateService(
         val rates = resolveRates(rateDate, null)
         val baseCode = currencyService.currencyConfig.baseCurrency.code
         if (rates.none { it.to.code == baseCode }) rates.add(baseCurrencyFxRate(null))
-        val ratesOn = rates.map { it.date }.filter { it.isAfter(BASE_RATE_DATE) }.maxOrNull() ?: getDate(rateDate)
+        // Base rates sit at 1900-01-01, so the latest date is the one the real rates are for.
+        val ratesOn = rates.maxOf { it.date }
         return FxRateCalculator
             .compute(ratesOn.toString(), listOf(pair), rates.associateBy { it.to.code })
             .rates
@@ -390,8 +391,5 @@ class FxRateService(
         // in-memory nearest-prior fallback can resolve weekend / holiday gaps.
         // 10 days covers any plausible bank-holiday cluster in developed markets.
         const val FALLBACK_LOOKBACK_DAYS = 10L
-
-        // Base (USD->USD) rates are stored on or before this date, never a real rate date.
-        val BASE_RATE_DATE: LocalDate = LocalDate.of(1900, 1, 1)
     }
 }

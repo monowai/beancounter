@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.fx
 
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
@@ -11,6 +12,7 @@ import com.beancounter.marketdata.fx.FxHistoryPoint
 import com.beancounter.marketdata.fx.FxHistoryResponse
 import com.beancounter.marketdata.fx.FxRateService
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -88,6 +90,36 @@ internal class FxPairPriceServiceTest {
         val prices = service.getMarketData(request)
 
         assertThat(prices.map { it.asset.code }).containsExactly("AUDSGD")
+    }
+
+    @Test
+    fun `should skip a pair whose currency or rate is unknown`() {
+        whenever(fxRateService.getPairRate("NZD", "SGD", "2024-01-22")).thenThrow(BusinessException("unknown"))
+        whenever(fxRateService.getPairRate("AUD", "SGD", "2024-01-22"))
+            .thenThrow(IllegalArgumentException("Rate for AUD not found"))
+        val request =
+            PriceRequest(
+                "2024-01-22",
+                listOf(
+                    PriceRequest.of(getTestAsset(fx, "NZDSGD")).assets.single(),
+                    PriceRequest.of(getTestAsset(fx, "AUDSGD")).assets.single()
+                )
+            )
+
+        assertThat(service.getMarketData(request)).isEmpty()
+    }
+
+    @Test
+    fun `should not hide an unexpected failure as a missing rate`() {
+        whenever(fxRateService.getPairRate("NZD", "SGD", "2024-01-22")).thenThrow(IllegalStateException("boom"))
+
+        assertThatThrownBy { service.getMarketData(PriceRequest.of(getTestAsset(fx, "NZDSGD"), "2024-01-22")) }
+            .isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test
+    fun `should backfill nothing for an FX asset that is not a pair`() {
+        assertThat(service.backFill(getTestAsset(fx, "EURX"), friday).data).isEmpty()
     }
 
     @Test

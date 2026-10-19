@@ -6,16 +6,22 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetSearchService
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiGateway
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateRepository
+import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
+import com.beancounter.marketdata.registration.SystemUserRepository
+import com.beancounter.marketdata.watchlist.AddWatchlistItemRequest
+import com.beancounter.marketdata.watchlist.WatchlistService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -62,6 +68,15 @@ internal class FxPairPricingTest {
 
     @Autowired
     private lateinit var assetSearchService: AssetSearchService
+
+    @Autowired
+    private lateinit var watchlistService: WatchlistService
+
+    @Autowired
+    private lateinit var systemUserRepository: SystemUserRepository
+
+    @Autowired
+    private lateinit var fxRateService: FxRateService
 
     private val thursday = LocalDate.of(2024, 1, 18)
     private val friday = LocalDate.of(2024, 1, 19)
@@ -129,8 +144,9 @@ internal class FxPairPricingTest {
 
         val history = mdFactory.getMarketDataProvider(asset.market).backFill(asset, thursday)
 
-        assertThat(history.data.map { it.priceDate }).containsExactly(thursday, friday)
-        assertThat(history.data.last().close)
+        // Starts at the from date; the watchlist test may also store today's rates.
+        assertThat(history.data.map { it.priceDate }).startsWith(thursday, friday)
+        assertThat(history.data.single { it.priceDate == friday }.close)
             .isEqualByComparingTo(usdSgd.divide(usdNzd, 6, RoundingMode.HALF_UP))
     }
 
@@ -139,5 +155,29 @@ internal class FxPairPricingTest {
         val results = assetSearchService.search("NZDSGD", null).data
 
         assertThat(results.filter { it.market == "FX" }.map { it.symbol }).containsExactly("NZDSGD")
+    }
+
+    @Test
+    fun `should stamp a pair added to a watchlist without a price at the latest rate`() {
+        // The rates for the date a "today" price resolves to; before the FX provider the pair
+        // fell through to the Cash provider and was stamped 1.00.
+        val rateDate = fxRateService.getDate(DateUtils.TODAY)
+        val usd = currencyService.getCode("USD")
+        val todayNzd = BigDecimal("1.650000")
+        val todaySgd = BigDecimal("1.360000")
+        fxRateRepository.saveAll(
+            listOf(
+                FxRate(from = usd, to = currencyService.getCode("NZD"), rate = todayNzd, date = rateDate),
+                FxRate(from = usd, to = currencyService.getCode("SGD"), rate = todaySgd, date = rateDate)
+            )
+        )
+        val owner = systemUserRepository.save(SystemUser(id = "fx-watcher", email = "fx-watcher@test.com"))
+
+        val item = watchlistService.addItem(owner, AddWatchlistItemRequest(assetId = nzdSgd().id))
+
+        val expected = todaySgd.divide(todayNzd, 6, RoundingMode.HALF_UP)
+        assertThat(item.addedPrice).isEqualByComparingTo(expected)
+        assertThat(item.price).isEqualByComparingTo(expected)
+        assertThat(item.priceDate).isEqualTo(rateDate)
     }
 }

@@ -59,13 +59,9 @@ class FxPairPriceService(
         return try {
             val rate = fxRateService.getPairRate(base, quote, rateDate)
             MarketData(asset = asset, priceDate = rate.date, close = scaled(rate.rate), source = ID)
-        } catch (e: BusinessException) {
-            log.warn("No FX rate for pair {} on {}: {}", asset.code, rateDate, e.message)
-            null
-        } catch (e: SystemException) {
-            log.warn("No FX rate for pair {} on {}: {}", asset.code, rateDate, e.message)
-            null
-        } catch (e: IllegalArgumentException) {
+        } catch (e: RuntimeException) {
+            // Kotlin has no multi-catch; the three "no rate" failures share only RuntimeException.
+            if (e !is BusinessException && e !is SystemException && e !is IllegalArgumentException) throw e
             log.warn("No FX rate for pair {} on {}: {}", asset.code, rateDate, e.message)
             null
         }

@@ -110,6 +110,20 @@ internal class EodhdPriceServiceSearchTest {
     }
 
     @Test
+    fun `searchAssets leaves the currency unset for a FOREX row that is not a pair`() {
+        // "NA" is EODHD's placeholder; persisting it would give the asset a currency that does not exist.
+        val service = EodhdPriceService(configWithMarkets("FX"), proxy, adapter, dateUtils)
+        whenever(proxy.searchAssets(any(), any())).thenReturn(
+            listOf(searchResult(code = "EURX", exchange = "FOREX", currency = "NA", type = "Currency"))
+        )
+
+        val results = service.searchAssets("EURX", null)
+
+        assertThat(results).hasSize(1)
+        assertThat(results.first().currency).isNull()
+    }
+
+    @Test
     fun `searchAssets routes a USD London listing to the LSE market`() {
         // VUAA/MOTU et al — USD-denominated London ETFs key to LSE (currencyId USD).
         val service = EodhdPriceService(configWithMarkets("LON,LSE"), proxy, adapter, dateUtils)

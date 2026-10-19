@@ -528,8 +528,9 @@ object DomainSystemPrompts {
 
         ### Tools
 
-        - `getCurrentPrice("FX", pair)` — the pair's latest close, prior
-          close and day change. The rate the brief leads with.
+        - `getCurrentPrice("FX", "NZDSGD")` — market `"FX"`, code the pair
+          symbol: latest close, prior close and day change. The rate the
+          brief leads with.
         - `getFxRate(from, to, date)` — the ECB reference rate on a past
           date. Use it for the trend: about 1 month, 3 months and 1 year
           ago. Say these points are ECB reference rates.
@@ -541,7 +542,7 @@ object DomainSystemPrompts {
 
         ### Workflow
 
-        1. `getCurrentPrice("FX", pair)` for the rate and day move.
+        1. `getCurrentPrice("FX", <pair>)` for the rate and day move.
         2. `getFxRate` at the three past dates for the trend; state each
            move as a percentage of the earlier rate.
         3. `getNews` on the pair, else on each USD leg.

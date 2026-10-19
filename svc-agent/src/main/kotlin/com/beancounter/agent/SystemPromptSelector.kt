@@ -58,6 +58,6 @@ class SystemPromptSelector {
 
 /** A currency pair on the FX market: reviewed as a rate, not a company. */
 internal fun isFxPair(context: Map<String, Any>?): Boolean =
-    context?.get("market")?.toString().equals(FX_MARKET, ignoreCase = true)
+    (context?.get("market") as? String)?.trim()?.equals(FX_MARKET, ignoreCase = true) == true
 
 private const val FX_MARKET = "FX"

@@ -123,6 +123,28 @@ internal class FxPairPriceServiceTest {
     }
 
     @Test
+    fun `should backfill nothing for a pair whose currency is unknown`() {
+        whenever(fxRateService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>()))
+            .thenThrow(BusinessException("[XYZ] is an unknown currency"))
+
+        assertThat(service.backFill(getTestAsset(fx, "NZDXYZ"), friday).data).isEmpty()
+    }
+
+    @Test
+    fun `should not hide an unexpected backfill failure as missing history`() {
+        whenever(fxRateService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>()))
+            .thenThrow(IllegalStateException("boom"))
+
+        assertThatThrownBy { service.backFill(getTestAsset(fx, "NZDSGD"), friday) }
+            .isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test
+    fun `should search the FX market however the caller spaces or cases it`() {
+        assertThat(service.searchAssets("NZDSGD", " fx ").map { it.symbol }).containsExactly("NZDSGD")
+    }
+
+    @Test
     fun `should resolve the price date the way the FX rates pick theirs`() {
         whenever(fxRateService.getDate("today")).thenReturn(friday)
 

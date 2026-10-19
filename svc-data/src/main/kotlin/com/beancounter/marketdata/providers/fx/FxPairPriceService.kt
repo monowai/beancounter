@@ -60,11 +60,16 @@ class FxPairPriceService(
             val rate = fxRateService.getPairRate(base, quote, rateDate)
             MarketData(asset = asset, priceDate = rate.date, close = scaled(rate.rate), source = ID)
         } catch (e: RuntimeException) {
-            // Kotlin has no multi-catch; the three "no rate" failures share only RuntimeException.
-            if (e !is BusinessException && e !is SystemException && e !is IllegalArgumentException) throw e
-            log.warn("No FX rate for pair {} on {}: {}", asset.code, rateDate, e.message)
+            log.warn("No FX rate for pair {} on {}: {}", asset.code, rateDate, noRate(e).message)
             null
         }
+    }
+
+    // Kotlin has no multi-catch; the "no rate" failures (unknown currency, no stored or fetchable
+    // rates, a leg missing from the table) share only RuntimeException. Anything else is rethrown.
+    private fun noRate(e: RuntimeException): RuntimeException {
+        if (e !is BusinessException && e !is SystemException && e !is IllegalArgumentException) throw e
+        return e
     }
 
     override fun backFill(
@@ -72,7 +77,13 @@ class FxPairPriceService(
         fromDate: LocalDate
     ): PriceResponse {
         val (base, quote) = legs(asset.code) ?: return PriceResponse()
-        val history = fxRateService.getHistoricalRates(base, quote, fromDate, dateUtils.date)
+        val history =
+            try {
+                fxRateService.getHistoricalRates(base, quote, fromDate, dateUtils.date)
+            } catch (e: RuntimeException) {
+                log.warn("No FX rate history for pair {} from {}: {}", asset.code, fromDate, noRate(e).message)
+                return PriceResponse()
+            }
         return PriceResponse(
             history.data.map { point ->
                 MarketData(asset = asset, priceDate = point.date, close = scaled(point.rate), source = ID)
@@ -89,7 +100,7 @@ class FxPairPriceService(
         keyword: String,
         market: String?
     ): List<AssetSearchResult> {
-        if (market != null && !isMarketSupported(Market(market))) return emptyList()
+        if (market != null && !ID.equals(market.trim(), ignoreCase = true)) return emptyList()
         val term = normalise(keyword)
         val currencies = configuredCurrencies()
         return when {

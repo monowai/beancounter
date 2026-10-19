@@ -529,11 +529,13 @@ object DomainSystemPrompts {
         ### Tools
 
         - `getCurrentPrice("FX", "NZDSGD")` — market `"FX"`, code the pair
-          symbol: latest close, prior close and day change. The rate the
-          brief leads with.
-        - `getFxRate(from, to, date)` — the ECB reference rate on a past
+          symbol: the latest daily reference rate, with its date, prior
+          close and day change. It comes from the same stored FX rates as
+          `getFxRate` and portfolio valuations; it is not a live quote, so
+          give its date. The rate the brief leads with.
+        - `getFxRate(from, to, date)` — the daily reference rate on a past
           date. Use it for the trend: about 1 month, 3 months and 1 year
-          ago. Say these points are ECB reference rates.
+          ago. Say these points are daily reference rates.
         - `getMacroIndicators` — treasury yields, oil and the backdrop.
         - `getRateExpectations` — policy-rate odds where covered.
         - `getNews(pair, "FX")` — news on the pair. Crosses (no USD in the

@@ -4,7 +4,6 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.MarketDataBoot
-import com.beancounter.marketdata.markets.MarketService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,16 +25,6 @@ internal class FxPairAssetTest {
 
     @Autowired
     private lateinit var assetService: AssetService
-
-    @Autowired
-    private lateinit var marketService: MarketService
-
-    @Test
-    fun `should route the FX market to EODHD's FOREX exchange`() {
-        val fx = marketService.getMarket("FX")
-
-        assertThat(fx.getAlias("eodhd")).isEqualTo("FOREX")
-    }
 
     @Test
     fun `should create a currency pair priced in its quote currency`() {

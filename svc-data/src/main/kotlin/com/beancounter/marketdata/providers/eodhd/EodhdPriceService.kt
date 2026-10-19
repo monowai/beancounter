@@ -361,6 +361,9 @@ class EodhdPriceService(
      * BC market are dropped rather than surfaced with an un-postable code — mirroring the FIGI path.
      */
     private fun toSearchResult(row: EodhdSearchResult): AssetSearchResult? {
+        // Currency pairs are priced from the stored FX rates (FxPairPriceService), so EODHD's
+        // FOREX rows are never offered as assets — one source per pair.
+        if (row.exchange.equals(FOREX_EXCHANGE, ignoreCase = true)) return null
         val market = resolveMarket(row.exchange, row.currency)
         if (market == null) {
             log.debug("Dropping EODHD result {} — exchange {} maps to no BC market", row.code, row.exchange)
@@ -371,22 +374,10 @@ class EodhdPriceService(
             name = row.name,
             type = row.type ?: "Equity",
             region = market.code,
-            currency = if (row.exchange.equals(FOREX_EXCHANGE, ignoreCase = true)) quoteCurrency(row) else row.currency,
+            currency = row.currency,
             market = market.code
         )
     }
-
-    /**
-     * EODHD reports a currency cross with currency "NA"; it is priced in its quote currency,
-     * the last three letters of the pair (NZDSGD is SGD per NZD). Anything else on FOREX keeps
-     * no currency rather than the "NA" placeholder, so creating it falls back to the market's.
-     */
-    private fun quoteCurrency(row: EodhdSearchResult): String? =
-        if (row.code.length == PAIR_LENGTH) {
-            row.code.takeLast(CURRENCY_LENGTH).uppercase()
-        } else {
-            row.currency?.takeUnless { it.isBlank() || it.equals(NO_CURRENCY, ignoreCase = true) }
-        }
 
     /**
      * Resolve an EODHD [exchange] to the owning BC [Market], disambiguating on the instrument
@@ -451,9 +442,6 @@ class EodhdPriceService(
 
     companion object {
         private const val FOREX_EXCHANGE = "FOREX"
-        private const val PAIR_LENGTH = 6
-        private const val CURRENCY_LENGTH = 3
-        private const val NO_CURRENCY = "NA"
         const val ID = "EODHD"
         private val HUNDRED = BigDecimal(100)
         private const val EODHD_ALIAS = "eodhd"

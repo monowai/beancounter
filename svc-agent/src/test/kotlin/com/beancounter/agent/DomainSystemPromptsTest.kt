@@ -39,6 +39,14 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `fx review presents the pair rate as the stored daily rate, not a live quote`() {
+        assertThat(DomainSystemPrompts.FX_REVIEW)
+            .contains("not a live quote")
+            .contains("same stored FX rates")
+            .doesNotContain("ECB")
+    }
+
+    @Test
     fun `asset review sends own-holding questions to getHolding instead of refusing`() {
         // An Asset Review answered "I can't — no portfolio selected" when asked about a sold
         // holding in a named portfolio, although the tools to look it up were wired.

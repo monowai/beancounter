@@ -87,14 +87,34 @@ class FxRateService(
             currencyService.getCode(to)
         }
 
-        val dateToFind = getDate(fxRequest.rateDate)
-        val isComparisonMode = fxRequest.provider != null
+        val rates = resolveRates(fxRequest.rateDate, fxRequest.provider)
+        val mappedRates = rates.associateBy { it.to.code }.toMutableMap()
+        return FxResponse(
+            FxRateCalculator.compute(
+                fxRequest.rateDate,
+                fxRequest.pairs,
+                mappedRates
+            )
+        )
+    }
+
+    /**
+     * The stored USD->X rates for [rateDate], fetching and caching them from the provider when the
+     * date has none, else falling back to the most recent cached date. Comparison mode (an
+     * explicit [provider]) reads only that provider's rates.
+     */
+    private fun resolveRates(
+        rateDate: String,
+        provider: String?
+    ): MutableList<FxRate> {
+        val dateToFind = getDate(rateDate)
+        val isComparisonMode = provider != null
 
         // For normal valuations (no explicit provider): use any cached rate regardless of provider
         // For comparison mode (explicit provider): use provider-specific cache
         var rates =
             if (isComparisonMode) {
-                fxRateRepository.findByDateRangeAndProvider(dateToFind, fxRequest.provider!!)
+                fxRateRepository.findByDateRangeAndProvider(dateToFind, provider!!)
             } else {
                 fxRateRepository.findByDateRange(dateToFind)
             }
@@ -103,16 +123,16 @@ class FxRateService(
         val hasRatesForDate = rates.any { it.date == dateToFind }
         if (!hasRatesForDate) {
             // No cached rates found for this date - fetch from external API
-            val effectiveProvider = fxRequest.provider ?: fxProviderService.getDefaultProviderId()
+            val effectiveProvider = provider ?: fxProviderService.getDefaultProviderId()
             val dateString = dateToFind.toString()
             log.info(
                 "Retrieving FX rates from {} for {} (requested={}, comparison={})",
                 effectiveProvider,
                 dateString,
-                fxRequest.rateDate,
+                rateDate,
                 isComparisonMode
             )
-            rates = fxProviderService.getRates(dateString, fxRequest.provider).toMutableList()
+            rates = fxProviderService.getRates(dateString, provider).toMutableList()
             if (rates.isNotEmpty()) {
                 // A concurrent request for the same date can race this insert (both see
                 // no cached rate, both fetch from the provider, both try to write the
@@ -122,7 +142,7 @@ class FxRateService(
                 conflictTolerantWriter.saveAll(fxRateRepository, rates)
                 cacheInvalidationProducer?.sendFxEvent(dateToFind)
                 // Add in the base rate of 1 for USD
-                rates.add(baseCurrencyFxRate(fxRequest.provider))
+                rates.add(baseCurrencyFxRate(provider))
             }
         }
 
@@ -135,23 +155,39 @@ class FxRateService(
                     rates.first().date,
                     dateToFind
                 )
-                rates.add(baseCurrencyFxRate(fxRequest.provider))
+                rates.add(baseCurrencyFxRate(provider))
             } else {
-                val effectiveProvider = fxRequest.provider ?: fxProviderService.getDefaultProviderId()
+                val effectiveProvider = provider ?: fxProviderService.getDefaultProviderId()
                 throw SystemException(
-                    "No rates found from $effectiveProvider for $dateToFind (requested=${fxRequest.rateDate})"
+                    "No rates found from $effectiveProvider for $dateToFind (requested=$rateDate)"
                 )
             }
         }
 
-        val mappedRates = rates.associateBy { it.to.code }.toMutableMap()
-        return FxResponse(
-            FxRateCalculator.compute(
-                fxRequest.rateDate,
-                fxRequest.pairs,
-                mappedRates
-            )
-        )
+        return rates.toMutableList()
+    }
+
+    /**
+     * One triangulated rate, [from] -> [to], dated by the rates it was computed from — on a
+     * fallback, the earlier cached date rather than the date requested. Prices a currency pair
+     * asset with the same rates a valuation converts with.
+     */
+    @Transactional
+    fun getPairRate(
+        from: String,
+        to: String,
+        rateDate: String = DateUtils.TODAY
+    ): FxRate {
+        val pair = IsoCurrencyPair(currencyService.getCode(from).code, currencyService.getCode(to).code)
+        val rates = resolveRates(rateDate, null)
+        val baseCode = currencyService.currencyConfig.baseCurrency.code
+        if (rates.none { it.to.code == baseCode }) rates.add(baseCurrencyFxRate(null))
+        // Base rates sit at 1900-01-01, so the latest date is the one the real rates are for.
+        val ratesOn = rates.maxOf { it.date }
+        return FxRateCalculator
+            .compute(ratesOn.toString(), listOf(pair), rates.associateBy { it.to.code })
+            .rates
+            .getValue(pair)
     }
 
     /**
@@ -257,12 +293,22 @@ class FxRateService(
         toCode: String,
         months: Int
     ): FxHistoryResponse {
+        val endDate = dateUtils.date
+        return getHistoricalRates(fromCode, toCode, endDate.minusMonths(months.toLong()), endDate)
+    }
+
+    /**
+     * [getHistoricalRates] over an explicit window, [startDate] to [endDate] inclusive.
+     */
+    fun getHistoricalRates(
+        fromCode: String,
+        toCode: String,
+        startDate: LocalDate,
+        endDate: LocalDate = dateUtils.date
+    ): FxHistoryResponse {
         val fromCurrency = currencyService.getCode(fromCode)
         val toCurrency = currencyService.getCode(toCode)
         val baseCurrency = currencyService.currencyConfig.baseCurrency
-
-        val endDate = dateUtils.date
-        val startDate = endDate.minusMonths(months.toLong())
 
         val data =
             when {

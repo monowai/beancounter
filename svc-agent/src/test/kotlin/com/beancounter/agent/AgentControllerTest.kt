@@ -256,6 +256,84 @@ class AgentControllerTest {
         assertThat(response.body?.error).isNull()
     }
 
+    private fun answering(text: String): ChatClient {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val callResponse = mock<ChatClient.CallResponseSpec>()
+        whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.chatResponse()).thenReturn(null)
+        whenever(callResponse.content()).thenReturn(text)
+        return mock { on { prompt() } doReturn request }
+    }
+
+    private fun routing(
+        thinking: ChatClient,
+        fast: ChatClient,
+        reasons: Boolean
+    ): AgentController {
+        val selector =
+            mock<ChatModelSelector> {
+                on { selectFor(anyOrNull(), any()) } doReturn "test-model-id"
+                on { reasonsFor(anyOrNull()) } doReturn reasons
+            }
+        return AgentController(
+            thinking,
+            fast,
+            null,
+            stubChecker(),
+            toolSelector,
+            systemPromptSelector,
+            selector,
+            MockEnvironment().withProperty("agent.provider", "deepseek"),
+            ObjectMapper(),
+            LlmMetrics(),
+            permissiveAuthorizer,
+            mock(),
+            mock(),
+            mock(),
+            InFlightTurns()
+        )
+    }
+
+    @Test
+    fun `a smart page's pre-canned prompt reasons on the thinking client`() {
+        val thinking = answering("reasoned")
+        val fast = answering("fast")
+
+        val response =
+            routing(thinking, fast, reasons = true)
+                .query(AgentQuery("Review my watchlist", context = mapOf("page" to "Watchlist")))
+
+        assertThat(response.body?.response).isEqualTo("reasoned")
+    }
+
+    @Test
+    fun `any other page's pre-canned prompt stays on the fast client`() {
+        val thinking = answering("reasoned")
+        val fast = answering("fast")
+
+        val response =
+            routing(thinking, fast, reasons = false)
+                .query(AgentQuery("Summarise", context = mapOf("page" to "Portfolio Review")))
+
+        assertThat(response.body?.response).isEqualTo("fast")
+    }
+
+    @Test
+    fun `buildOptions gives a reasoning turn the thinking budget`() {
+        val ctrl = routing(answering("x"), answering("y"), reasons = true)
+
+        val opts =
+            (
+                ctrl.buildOptions("deepseek-flash", deepThink = false, think = true)
+                    as org.springframework.ai.deepseek.DeepSeekChatOptions.Builder
+            ).build()
+
+        assertThat(opts.maxTokens).isEqualTo(16384)
+    }
+
     @Test
     fun `query still answers when saving the answer to its conversation fails`() {
         val request =

@@ -202,8 +202,10 @@ agent:
   # application-<provider>.yaml profile presets this plus the provider properties.
   provider: deepseek
   # Per-tier model IDs. ChatModelSelector picks one per call based on the page
-  # context (Holdings / News / Asset Review / Independence / Rebalance).
-  # Override per environment via AI_MODEL_FAST / _SMART / _DEEP.
+  # context (Holdings / News / Asset Review / Independence / Rebalance / Watchlist).
+  # SMART pages also reason before answering, at the thinking client's low effort;
+  # FAST pages answer with thinking disabled. Override per environment via
+  # AI_MODEL_FAST / _SMART / _DEEP.
   #
   # Models (DeepSeek API, current as of 2026-09):
   #   deepseek-flash    - GA general model (V4.1-Flash). Tool calling, 1M context,

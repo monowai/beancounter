@@ -375,7 +375,7 @@ class AgentController(
             // options — Anthropic cache config must be re-applied here, or
             // every request silently loses prompt caching. See buildOptions.
             val callResponse =
-                buildOptions(modelId, turn.deepThink, turn.think)?.let { opts ->
+                buildOptions(modelId, turn.deepThink, thinks(turn))?.let { opts ->
                     promptSpec.options(opts).call()
                 } ?: promptSpec.call()
 
@@ -828,13 +828,20 @@ class AgentController(
 
     /**
      * Pick the LLM client for this request. Pre-canned prompts (the default,
-     * `think=false`) use the non-thinking [fastChatClient] for lowest latency;
-     * the interactive Chat FAB sets `think=true` to keep DeepSeek thinking mode.
+     * `think=false`) use the non-thinking [fastChatClient] for lowest latency,
+     * except on the SMART pages, which reason at low effort; the interactive
+     * Chat FAB sets `think=true` to keep DeepSeek thinking mode.
      * Falls back to the thinking client if no fast client is configured.
      * Callers guard `chatClient != null` first, so the result is non-null.
      */
     private fun clientFor(request: AgentQuery): ChatClient =
-        (if (request.think) chatClient else fastChatClient ?: chatClient)!!
+        (if (thinks(request)) chatClient else fastChatClient ?: chatClient)!!
+
+    /**
+     * Whether this turn thinks: asked for (the Chat FAB), or a SMART page's pre-canned prompt,
+     * which reasons at the thinking client's low effort ([ChatModelSelector.reasonsFor]).
+     */
+    private fun thinks(request: AgentQuery): Boolean = request.think || chatModelSelector.reasonsFor(request.context)
 
     private fun buildStreamSpec(
         request: AgentQuery,
@@ -848,7 +855,7 @@ class AgentController(
                 .messages(historyMessages(request))
                 .user(buildUserMessage(request))
                 .tools(*tools)
-        return buildOptions(modelId, request.deepThink, request.think)?.let { opts ->
+        return buildOptions(modelId, request.deepThink, thinks(request))?.let { opts ->
             promptSpec.options(opts).stream()
         } ?: promptSpec.stream()
     }

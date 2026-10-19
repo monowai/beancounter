@@ -86,4 +86,18 @@ class ChatModelSelectorTest {
         assertThat(selector.selectFor(mapOf("page" to "Asset Review"), deepThink = false)).isEqualTo("smart-id")
         assertThat(selector.selectFor(mapOf("page" to "Holdings"), deepThink = false)).isEqualTo("fast-id")
     }
+
+    @Test
+    fun `smart pages reason a little before answering`() {
+        listOf("Asset Review", "Watchlist", "Independence", "Rebalance Wizard").forEach { page ->
+            assertThat(selector.reasonsFor(mapOf("page" to page))).`as`(page).isTrue()
+        }
+    }
+
+    @Test
+    fun `fast pages and a missing context answer without reasoning`() {
+        assertThat(selector.reasonsFor(mapOf("page" to "Portfolio Review"))).isFalse()
+        assertThat(selector.reasonsFor(mapOf("page" to "Holdings"))).isFalse()
+        assertThat(selector.reasonsFor(null)).isFalse()
+    }
 }

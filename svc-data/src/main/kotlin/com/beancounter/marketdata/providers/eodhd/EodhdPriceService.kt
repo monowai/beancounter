@@ -371,10 +371,22 @@ class EodhdPriceService(
             name = row.name,
             type = row.type ?: "Equity",
             region = market.code,
-            currency = row.currency,
+            currency = if (row.exchange.equals(FOREX_EXCHANGE, ignoreCase = true)) quoteCurrency(row) else row.currency,
             market = market.code
         )
     }
+
+    /**
+     * EODHD reports a currency cross with currency "NA"; it is priced in its quote currency,
+     * the last three letters of the pair (NZDSGD is SGD per NZD). Anything else on FOREX keeps
+     * no currency rather than the "NA" placeholder, so creating it falls back to the market's.
+     */
+    private fun quoteCurrency(row: EodhdSearchResult): String? =
+        if (row.code.length == PAIR_LENGTH) {
+            row.code.takeLast(CURRENCY_LENGTH).uppercase()
+        } else {
+            row.currency?.takeUnless { it.isBlank() || it.equals(NO_CURRENCY, ignoreCase = true) }
+        }
 
     /**
      * Resolve an EODHD [exchange] to the owning BC [Market], disambiguating on the instrument
@@ -438,6 +450,10 @@ class EodhdPriceService(
     }
 
     companion object {
+        private const val FOREX_EXCHANGE = "FOREX"
+        private const val PAIR_LENGTH = 6
+        private const val CURRENCY_LENGTH = 3
+        private const val NO_CURRENCY = "NA"
         const val ID = "EODHD"
         private val HUNDRED = BigDecimal(100)
         private const val EODHD_ALIAS = "eodhd"

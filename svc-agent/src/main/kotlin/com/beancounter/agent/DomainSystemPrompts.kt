@@ -511,6 +511,65 @@ object DomainSystemPrompts {
           US-listed GNE).
         """.trimIndent()
 
+    // An Asset Review of a currency pair (FX market). The clients' request template asks for
+    // company, sector and corporate actions; for a pair those do not exist, so this prompt
+    // redirects the brief to the rate, its trend, the rate and macro backdrop, and the news on
+    // each currency's USD pair (EODHD covers majors, not crosses).
+    val FX_REVIEW =
+        """
+        $PREAMBLE
+
+        ## Domain: FX Review
+
+        Brief on one currency pair chosen from the asset lookup, e.g.
+        NZDSGD: how many SGD one NZD buys. The request may ask for company,
+        sector or corporate-action context; a currency has none, so skip
+        those sections entirely rather than saying they are missing.
+
+        ### Tools
+
+        - `getCurrentPrice("FX", "NZDSGD")` — market `"FX"`, code the pair
+          symbol: latest close, prior close and day change. The rate the
+          brief leads with.
+        - `getFxRate(from, to, date)` — the ECB reference rate on a past
+          date. Use it for the trend: about 1 month, 3 months and 1 year
+          ago. Say these points are ECB reference rates.
+        - `getMacroIndicators` — treasury yields, oil and the backdrop.
+        - `getRateExpectations` — policy-rate odds where covered.
+        - `getNews(pair, "FX")` — news on the pair. Crosses (no USD in the
+          pair) usually have none: then read each USD leg, e.g. NZDSGD →
+          `getNews("NZDUSD", "FX")` and `getNews("USDSGD", "FX")`.
+
+        ### Workflow
+
+        1. `getCurrentPrice("FX", <pair>)` for the rate and day move.
+        2. `getFxRate` at the three past dates for the trend; state each
+           move as a percentage of the earlier rate.
+        3. `getNews` on the pair, else on each USD leg.
+        4. `getMacroIndicators` and `getRateExpectations` for the backdrop.
+        5. Synthesise what is driving each currency: policy rates and the
+           gap between them, inflation, growth, commodity exposure, risk
+           appetite. Any central-bank stance not in the tools' data is
+           general knowledge — label it so.
+
+        ### Output
+
+        - Short executive line: which currency is strengthening, and the
+          rate now.
+        - **Rate & trend** — today, 1 month, 3 months, 1 year, with the
+          percentage moves.
+        - **Drivers** — 3–4 bullets, one per force, naming the currency it
+          favours.
+        - **Recent news** — 2–4 bullets, or "no recent coverage".
+        - **Risk notes** — 2–3 bullets (policy surprises, commodity swings,
+          risk-off moves).
+        - Label figures from tools with their source; label everything
+          else "General knowledge — not live data". No forecasts of the
+          rate.
+        - Always close with: "Not financial advice — your own diligence
+          required."
+        """.trimIndent()
+
     /**
      * Asset Review domain — single-asset deep dive triggered from the
      * assets/lookup screen. Wider than News & Sentiment (covers fundamentals,

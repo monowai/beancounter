@@ -393,6 +393,8 @@ beancounter:
           name: "Retirement Fund"
         - id: "INDEX"
           name: "Market Index"
+        - id: "CURRENCY"
+          name: "Currency Pair"
 
   # Pre-seed market index assets created at startup. All routed to the
   # synthetic INDEX market. EODHD's `.INDX` exchange handles these natively
@@ -601,6 +603,20 @@ beancounter:
         type: "Index"
         aliases:
           eodhd: "INDX"
+
+      # Currency pairs (NZDSGD, NZDUSD), for watching rates. Each pair is an asset in the
+      # CURRENCY category priced in its quote currency (the last three letters), by EODHD's
+      # FOREX exchange. FX trades round the clock on weekdays and its day ends at 17:00 New
+      # York, so the pairs price with the US close. currencyId is only the fallback.
+      - code: "FX"
+        name: "Foreign Exchange"
+        currencyId: "USD"
+        timezoneId: "US/Eastern"
+        priceTime: "17:00"
+        enricher: "DEFAULT"
+        type: "Fx"
+        aliases:
+          eodhd: "FOREX"
     # News backend selector — `alpha` (default) or `eodhd`.
     # AlphaVantage NEWS_SENTIMENT needs a Premium key in practice; EODHD's `/api/news`
     # is exposed on the free tier so operators can flip this to `eodhd` when their EODHD

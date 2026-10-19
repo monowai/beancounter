@@ -1,5 +1,6 @@
 package com.beancounter.agent.tools
 
+import com.beancounter.agent.isFxPair
 import org.springframework.stereotype.Service
 
 /**
@@ -41,7 +42,12 @@ class ToolSelector(
             // Match before the trade/event branch so the word "asset" doesn't
             // trip a fall-through.
             page.contains("asset review") || page.contains("asset-review") -> {
-                (wealthTools + eventTools + newsTools).toTypedArray()
+                // A currency pair has no holdings or corporate events to read: the rate, macro and news.
+                if (isFxPair(context)) {
+                    arrayOf(marketTools, macroTools, newsTools)
+                } else {
+                    (wealthTools + eventTools + newsTools).toTypedArray()
+                }
             }
             // News & Sentiment — focused lookup, plus marketTools so the
             // model can ground analyst price targets surfaced in news

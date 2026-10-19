@@ -22,8 +22,21 @@ class DomainSystemPromptsTest {
             DomainSystemPrompts.ASSET,
             DomainSystemPrompts.INDEPENDENCE,
             DomainSystemPrompts.REBALANCE,
-            DomainSystemPrompts.WATCHLIST
+            DomainSystemPrompts.WATCHLIST,
+            DomainSystemPrompts.FX_REVIEW
         )
+
+    @Test
+    fun `fx review reads the rate, its trend, the macro backdrop and each leg's news`() {
+        assertThat(DomainSystemPrompts.FX_REVIEW)
+            .contains("getCurrentPrice")
+            .contains("getFxRate")
+            .contains("getRateExpectations")
+            .contains("getNews")
+            .contains("USD leg")
+            .contains("General knowledge")
+            .doesNotContain("Corporate actions")
+    }
 
     @Test
     fun `asset review sends own-holding questions to getHolding instead of refusing`() {

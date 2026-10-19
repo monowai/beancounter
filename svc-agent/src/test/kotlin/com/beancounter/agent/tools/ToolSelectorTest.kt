@@ -51,6 +51,12 @@ class ToolSelectorTest {
     }
 
     @Test
+    fun `an FX review ships market, macro and news tools but no portfolio or event tools`() {
+        val tools = selector.selectTools(mapOf("page" to "Asset Review", "market" to "FX"))
+        assertThat(tools).containsExactlyInAnyOrder(marketTools, macroTools, newsTools)
+    }
+
+    @Test
     fun `watchlist tools stay off other domain pages`() {
         assertThat(selector.selectTools(mapOf("page" to "Holdings"))).doesNotContain(watchlistTools)
     }

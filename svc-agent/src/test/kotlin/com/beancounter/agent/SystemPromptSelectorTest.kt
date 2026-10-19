@@ -43,6 +43,12 @@ class SystemPromptSelectorTest {
     }
 
     @Test
+    fun `an asset review of a currency pair returns the FX review prompt`() {
+        val prompt = selector.selectFor(mapOf("page" to "Asset Review", "market" to "FX", "tickers" to "NZDSGD"))
+        assertThat(prompt).isEqualTo(DomainSystemPrompts.FX_REVIEW)
+    }
+
+    @Test
     fun `asset review page returns the asset review prompt`() {
         val prompt = selector.selectFor(mapOf("page" to "Asset Review"))
         assertThat(prompt).isEqualTo(DomainSystemPrompts.ASSET_REVIEW)

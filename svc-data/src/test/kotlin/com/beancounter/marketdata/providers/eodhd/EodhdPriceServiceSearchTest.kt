@@ -31,10 +31,11 @@ internal class EodhdPriceServiceSearchTest {
     private val lon = Market(code = "LON", currencyId = "GBP", aliases = mapOf("eodhd" to "LSE"))
     private val lse = Market(code = "LSE", currencyId = "USD", aliases = mapOf("eodhd" to "LSE"))
     private val us = Market(code = "US", currencyId = "USD")
+    private val fx = Market(code = "FX", currencyId = "USD", aliases = mapOf("eodhd" to "FOREX"))
 
     @BeforeEach
     fun stubMarketMap() {
-        val markets = mapOf("LON" to lon, "LSE" to lse, "US" to us)
+        val markets = mapOf("LON" to lon, "LSE" to lse, "US" to us, "FX" to fx)
         whenever(marketService.getMarketMap()).thenReturn(markets)
         // canonical() only collapses the inactive US aggregator codes; for these
         // active markets it is identity, mirroring the real MarketService.
@@ -81,6 +82,45 @@ internal class EodhdPriceServiceSearchTest {
         assertThat(hysa.market).isEqualTo("US")
         assertThat(hysa.currency).isEqualTo("USD")
         assertThat(hysa.type).isEqualTo("ETF")
+    }
+
+    @Test
+    fun `searchAssets prices an FX cross in its quote currency on the FX market`() {
+        // EODHD reports a cross as exchange FOREX, type Currency, currency "NA".
+        val service = EodhdPriceService(configWithMarkets("FX"), proxy, adapter, dateUtils)
+        whenever(proxy.searchAssets(any(), any())).thenReturn(
+            listOf(
+                searchResult(
+                    code = "NZDSGD",
+                    exchange = "FOREX",
+                    currency = "NA",
+                    name = "New Zealand Dollar/Singapore Dollar FX Cross Rate",
+                    type = "Currency"
+                )
+            )
+        )
+
+        val results = service.searchAssets("NZDSGD", null)
+
+        assertThat(results).hasSize(1)
+        val cross = results.first()
+        assertThat(cross.market).isEqualTo("FX")
+        assertThat(cross.currency).isEqualTo("SGD")
+        assertThat(cross.type).isEqualTo("Currency")
+    }
+
+    @Test
+    fun `searchAssets leaves the currency unset for a FOREX row that is not a pair`() {
+        // "NA" is EODHD's placeholder; persisting it would give the asset a currency that does not exist.
+        val service = EodhdPriceService(configWithMarkets("FX"), proxy, adapter, dateUtils)
+        whenever(proxy.searchAssets(any(), any())).thenReturn(
+            listOf(searchResult(code = "EURX", exchange = "FOREX", currency = "NA", type = "Currency"))
+        )
+
+        val results = service.searchAssets("EURX", null)
+
+        assertThat(results).hasSize(1)
+        assertThat(results.first().currency).isNull()
     }
 
     @Test

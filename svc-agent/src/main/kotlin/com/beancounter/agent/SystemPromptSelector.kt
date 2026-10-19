@@ -20,7 +20,7 @@ class SystemPromptSelector {
             // Asset Review — match before the trade/event branch so we don't
             // fall through to DomainSystemPrompts.ASSET on the word "asset".
             page.contains("asset review") || page.contains("asset-review") -> {
-                DomainSystemPrompts.ASSET_REVIEW
+                if (isFxPair(context)) DomainSystemPrompts.FX_REVIEW else DomainSystemPrompts.ASSET_REVIEW
             }
             page.contains("news") && page.contains("sentiment") -> {
                 DomainSystemPrompts.NEWS_SENTIMENT
@@ -55,3 +55,9 @@ class SystemPromptSelector {
         }
     }
 }
+
+/** A currency pair on the FX market: reviewed as a rate, not a company. */
+internal fun isFxPair(context: Map<String, Any>?): Boolean =
+    context?.get("market")?.toString().equals(FX_MARKET, ignoreCase = true)
+
+private const val FX_MARKET = "FX"

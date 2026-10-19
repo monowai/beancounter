@@ -53,6 +53,17 @@ internal class EodhdConfigTest {
     }
 
     @Test
+    fun `getPriceCode resolves FX market pairs to the FOREX exchange suffix`() {
+        val fx = Market(code = "FX", aliases = mapOf("eodhd" to "FOREX"))
+        val ms = mock<MarketService>()
+        whenever(ms.getMarket("FX")).thenReturn(fx)
+
+        val cfg = EodhdConfig(ms)
+
+        assertThat(cfg.getPriceCode(Asset(code = "NZDSGD", market = fx))).isEqualTo("NZDSGD.FOREX")
+    }
+
+    @Test
     fun `getPriceCode honours an explicit priceSymbol override on the asset`() {
         val lon = Market(code = "LON", aliases = mapOf("eodhd" to "LSE"))
         val ms = mock<MarketService>()

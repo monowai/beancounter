@@ -5,6 +5,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetTraits
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -36,7 +37,7 @@ class OwnedAssetService(
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserIdAndCategory(user.id, category.uppercase())
         return AssetUpdateResponse(
-            assets.associate { getDisplayCode(it.code) to it }
+            assets.associate { AssetTraits.ownedCode(it.code) to it }
         )
     }
 
@@ -49,17 +50,8 @@ class OwnedAssetService(
                 ?: return AssetUpdateResponse(emptyMap())
         val assets = assetRepository.findBySystemUserId(user.id)
         return AssetUpdateResponse(
-            assets.associate { getDisplayCode(it.code) to it }
+            assets.associate { AssetTraits.ownedCode(it.code) to it }
         )
-    }
-
-    /**
-     * Extract the display code from a full asset code, stripping the owner prefix.
-     * e.g., "userId.WISE" -> "WISE"
-     */
-    private fun getDisplayCode(code: String): String {
-        val dotIndex = code.lastIndexOf(".")
-        return if (dotIndex >= 0) code.substring(dotIndex + 1) else code
     }
 
     /**

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.assets
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetTraits
 import org.springframework.stereotype.Service
 
 /**
@@ -33,7 +34,7 @@ class AssetIoDefinition {
      * Strips the user prefix from the code for cleaner export.
      */
     fun export(asset: Asset): Array<String?> {
-        val displayCode = getDisplayCode(asset.code)
+        val displayCode = AssetTraits.ownedCode(asset.code)
         return arrayOf(
             displayCode,
             asset.name,
@@ -63,14 +64,5 @@ class AssetIoDefinition {
             category = row[Columns.Category.ordinal].trim().uppercase().ifEmpty { "ACCOUNT" },
             owner = owner
         )
-    }
-
-    /**
-     * Extract the display code from a full asset code, stripping the owner prefix.
-     * e.g., "userId.WISE" -> "WISE"
-     */
-    private fun getDisplayCode(code: String): String {
-        val dotIndex = code.lastIndexOf(".")
-        return if (dotIndex >= 0) code.substring(dotIndex + 1) else code
     }
 }

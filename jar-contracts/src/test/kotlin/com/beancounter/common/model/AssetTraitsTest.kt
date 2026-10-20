@@ -95,4 +95,9 @@ class AssetTraitsTest {
     fun `should keep a code without a dot`() {
         assertThat(AssetTraits.displayCode("MSFT")).isEqualTo("MSFT")
     }
+
+    @Test
+    fun `should read an owned code after a short owner id`() {
+        assertThat(AssetTraits.ownedCode("test-user.BRK.B")).isEqualTo("BRK.B")
+    }
 }

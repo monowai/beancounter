@@ -54,5 +54,11 @@ object AssetTraits {
         return if (dot < OWNER_PREFIX_MIN_LENGTH) code else code.substring(dot + 1)
     }
 
+    /**
+     * The code of an asset already known to be private, as its owner reads it: everything
+     * after the owner id, which never carries a dot. Unlike [displayCode], no length guess.
+     */
+    fun ownedCode(code: String): String = code.substringAfter('.')
+
     private fun isPrivate(market: String?): Boolean = PRIVATE_MARKET.equals(market, ignoreCase = true)
 }

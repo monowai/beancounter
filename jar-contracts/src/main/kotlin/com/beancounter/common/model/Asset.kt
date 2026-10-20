@@ -118,5 +118,29 @@ data class Asset(
     val effectiveReportCategory: String
         get() = reportCategory ?: AssetCategory.toReportCategory(assetCategory.id)
 
+    /** Has a market price worth charting. See [AssetTraits]. Read-only in JSON. */
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val chartable: Boolean
+        get() = AssetTraits.chartable(assetCategory.id)
+
+    /** Can go on a watchlist. See [AssetTraits]. Read-only in JSON. */
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val watchable: Boolean
+        get() = AssetTraits.watchable(assetCategory.id, market.code)
+
+    /** News can be found for it. See [AssetTraits]. Read-only in JSON. */
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val hasNews: Boolean
+        get() = AssetTraits.hasNews(assetCategory.id, market.code)
+
+    /** The code a user reads, owner prefix dropped. See [AssetTraits]. Read-only in JSON. */
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val displayCode: String
+        get() = AssetTraits.displayCode(code)
+
     override fun toString(): String = "Asset(code=$code, name=$name)"
 }

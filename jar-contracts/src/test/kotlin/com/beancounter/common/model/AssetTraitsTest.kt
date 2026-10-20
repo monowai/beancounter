@@ -13,7 +13,9 @@ class AssetTraitsTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = ["CASH", "RE", "REAL ESTATE", "ACCOUNT", "BANK ACCOUNT", "TRADE", "POLICY", "cash", "Bank Account"]
+        strings = [
+            "CASH", "RE", "REAL ESTATE", "ACCOUNT", "BANK ACCOUNT", "TRADE", "POLICY", "PENSION", "cash", "Bank Account"
+        ]
     )
     fun `should not chart a category without a market price`(category: String) {
         assertThat(AssetTraits.chartable(category)).isFalse()
@@ -46,6 +48,12 @@ class AssetTraitsTest {
     fun `should have no news for cash like categories`() {
         assertThat(AssetTraits.hasNews("CASH", "CASH")).isFalse()
         assertThat(AssetTraits.hasNews("BANK ACCOUNT", "NASDAQ")).isFalse()
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["RE", "REAL ESTATE", "TRADE", "POLICY", "PENSION"])
+    fun `should have no news for an unpriced category on a public market`(category: String) {
+        assertThat(AssetTraits.hasNews(category, "NZX")).isFalse()
     }
 
     @Test

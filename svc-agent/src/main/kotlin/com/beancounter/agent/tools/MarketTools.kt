@@ -1,5 +1,6 @@
 package com.beancounter.agent.tools
 
+import com.beancounter.agent.client.WatchlistClient
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.client.MarketService
@@ -12,6 +13,8 @@ import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.IsoCurrencyPair
+import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.DateUtils
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Service
@@ -19,7 +22,11 @@ import java.math.BigDecimal
 
 /**
  * Tools for static reference data (markets, currencies), FX rates, and
- * single-asset spot price lookups for AI grounding.
+ * single-asset spot price and momentum lookups for AI grounding.
+ *
+ * Beancounter stores every US listing under market `US`; the exchange names a model
+ * reaches for (NASDAQ, NYSE, ...) are inactive markets that hold no assets, so a lookup
+ * on one that finds nothing is retried once on `US`.
  */
 @Service
 class MarketTools(
@@ -27,7 +34,9 @@ class MarketTools(
     private val staticService: StaticService,
     private val fxService: FxService,
     private val tokenService: TokenService,
-    private val priceService: PriceService
+    private val priceService: PriceService,
+    private val watchlistClient: WatchlistClient,
+    private val dateUtils: DateUtils = DateUtils()
 ) {
     @Tool(description = MARKETS_DESC)
     fun listMarkets(): MarketResponse = marketService.getMarkets()
@@ -51,21 +60,10 @@ class MarketTools(
 
     @Tool(description = PRICE_DESC)
     fun getCurrentPrice(
-        @ToolParam(description = "Market code, e.g. NASDAQ, NZX, ASX") market: String,
-        @ToolParam(description = "Asset code as listed on that market, e.g. AAPL") code: String
+        @ToolParam(description = MARKET_CODE_DESC) market: String,
+        @ToolParam(description = ASSET_CODE_DESC) code: String
     ): CurrentPrice {
-        val response =
-            priceService.getPrices(
-                PriceRequest(
-                    date = "today",
-                    assets = listOf(PriceAsset(market = market, code = code)),
-                    currentMode = true
-                ),
-                tokenService.bearerToken
-            )
-        val md =
-            response.data.firstOrNull()
-                ?: throw IllegalStateException("No price data for $market:$code")
+        val md = spot(market, code)
         return CurrentPrice(
             assetCode = md.asset.code,
             market = md.asset.market.code,
@@ -75,6 +73,51 @@ class MarketTools(
             priceDate = md.priceDate.toString()
         )
     }
+
+    @Tool(description = MOMENTUM_DESC)
+    fun getPriceMomentum(
+        @ToolParam(description = MARKET_CODE_DESC) market: String,
+        @ToolParam(description = ASSET_CODE_DESC) code: String
+    ): PriceMomentum {
+        val asset = spot(market, code).asset
+        val closes = watchlistClient.getCloses(asset.id, Momentum.historyFrom(dateUtils.date).toString()).toList()
+        val momentum = Momentum.of(closes)
+        // The close Momentum measures from: same date, so the two can never disagree.
+        val latest = momentum.asOf?.let { asOf -> closes.first { it.priceDate.toString() == asOf } }
+        return PriceMomentum(
+            assetCode = asset.code,
+            market = asset.market.code,
+            latestClose = latest?.close?.toDouble(),
+            latestCloseDate = momentum.asOf,
+            momentum = momentum
+        )
+    }
+
+    /** Today's price for [market]:[code], retrying a US exchange code on BC's `US` market. */
+    private fun spot(
+        market: String,
+        code: String
+    ): MarketData {
+        val requested = market.trim().uppercase()
+        return priceOn(requested, code)
+            ?: US_MARKET.takeIf { requested in US_EXCHANGE_CODES }?.let { priceOn(it, code) }
+            ?: throw IllegalStateException("No price data for $market:$code")
+    }
+
+    private fun priceOn(
+        market: String,
+        code: String
+    ): MarketData? =
+        priceService
+            .getPrices(
+                PriceRequest(
+                    date = "today",
+                    assets = listOf(PriceAsset(market = market, code = code)),
+                    currentMode = true
+                ),
+                tokenService.bearerToken
+            ).data
+            .firstOrNull()
 
     @Tool(description = BENCHMARK_DESC)
     fun getBenchmark(
@@ -129,9 +172,20 @@ class MarketTools(
     )
 
     companion object {
+        private const val US_MARKET = "US"
+
+        // Inputs svc-data folds onto its US market: the inactive exchange markets, their
+        // Sharesight aliases, and the colloquial aliases on US itself.
+        private val US_EXCHANGE_CODES =
+            setOf("NASDAQ", "NYSE", "AMEX", "ARCA", "NAS", "NYS", "NASAQ", "DOW", "DOW JONES")
+
+        const val MARKET_CODE_DESC =
+            "Beancounter market code, e.g. US, LON, ASX, NZX, SGX, or FX for a currency pair. " +
+                "US listings use US, whatever exchange they trade on."
+        const val ASSET_CODE_DESC = "Asset code as listed on that market, e.g. AAPL"
         const val MARKETS_DESC =
-            "List every market Beancounter knows about (NASDAQ, NYSE, ASX, NZX, etc.) " +
-                "with its trading currency and timezone."
+            "List every market Beancounter knows about (US, LON, ASX, NZX, etc.) " +
+                "with its trading currency and timezone. US listings use market US."
         const val FX_DESC =
             "Get the foreign exchange rate between two ISO currency codes on a given date. " +
                 "Returns the rate, the rate date and the provider."
@@ -141,7 +195,18 @@ class MarketTools(
                 "claim — for example, when a news article cites an analyst price target, " +
                 "call this to retrieve the current close so you can frame the implied " +
                 "growth percentage relative to today's price. Never quote a price target " +
-                "without also stating the current close."
+                "without also stating the current close. For trend, drawdown or the 52-week " +
+                "range, call getPriceMomentum instead."
+        const val MOMENTUM_DESC =
+            "Get one asset's price trend from its stored daily closes: latestClose and its date, " +
+                "the 52-week high and low closes (high52w, low52w), drawdown from the 52-week high " +
+                "(fromHigh52w) and distance above the low (fromLow52w), return1m/3m/6m/12m, and " +
+                "vsSma50/vsSma200 (latest close against its 50- and 200-day averages). The return, " +
+                "drawdown and average readings are fractions (-0.15 = 15% below); high52w and low52w " +
+                "are prices. Each is null only where history is too short. Use it " +
+                "for 'down from recent highs', 'price pressure', drawdown, trend or performance " +
+                "over a month to a year. Never say 52-week highs or drawdowns are unavailable " +
+                "without calling this first."
         const val BENCHMARK_DESC =
             "Get current market or sector benchmark performance (today's price change of a broad " +
                 "index or a sector proxy). Use this to contextualise a portfolio's or holding's " +
@@ -189,6 +254,18 @@ class MarketTools(
         private val MARKET_ALIASES = setOf("market", "markets", "macro", "broad", "overall", "index")
     }
 }
+
+/**
+ * One asset's [Momentum] with the latest stored close it is measured from; [latestClose]
+ * is null when the asset has no price history.
+ */
+data class PriceMomentum(
+    val assetCode: String,
+    val market: String,
+    val latestClose: Double?,
+    val latestCloseDate: String?,
+    val momentum: Momentum
+)
 
 /**
  * Compact projection of a single asset's spot price returned to the LLM.

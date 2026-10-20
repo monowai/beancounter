@@ -31,9 +31,6 @@ class WatchlistTools(
         /** Keeps the tool result, and the history reads behind it, bounded. */
         const val MAX_ITEMS = 25
 
-        // Thirteen months, so the twelve-month return has a close on or before its lookback date.
-        private const val HISTORY_MONTHS = 13L
-
         // A first read of a never-priced asset blocks on a provider backfill; past this budget
         // the remaining assets are described without momentum so the tool call stays responsive.
         private const val HISTORY_BUDGET_NANOS = 60_000_000_000L
@@ -49,7 +46,7 @@ class WatchlistTools(
         val shown = entries.take(MAX_ITEMS)
         if (shown.isEmpty()) return WatchlistBrief(emptyList(), 0, false, 0)
         val classifications = classifications(shown)
-        val from = dateUtils.date.minusMonths(HISTORY_MONTHS).toString()
+        val from = Momentum.historyFrom(dateUtils.date).toString()
         val deadline = nanoTime() + HISTORY_BUDGET_NANOS
         var skipped = 0
         // Sequential on purpose: an asset never priced before backfills on its first history
@@ -236,7 +233,8 @@ const val WATCHLIST_DESC =
         "from price up to target; negative means the price is above target). momentum holds " +
         "asOf (the close date the readings are measured at), return1m/3m/6m/12m, " +
         "vsSma50/vsSma200 (latest close against its 50- and 200-day averages) and " +
-        "fromHigh52w/fromLow52w, all fractions, null where history is too short. fundamentals, " +
+        "fromHigh52w/fromLow52w, all fractions, plus the 52-week high and low closes " +
+        "(high52w, low52w); each null where history is too short. fundamentals, " +
         "null when none is on file (non-US listings, funds) or the read failed, so null never " +
         "means the company has no filing; otherwise it holds the latest fiscal year from " +
         "the company's SEC filing in USD: source, fiscalYear, fiscalYearEnd, epsDiluted, revenue, " +

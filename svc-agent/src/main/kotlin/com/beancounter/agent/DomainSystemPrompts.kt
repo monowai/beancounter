@@ -151,6 +151,11 @@ object DomainSystemPrompts {
           NOT exposed — never claim them.
         - `getCurrentPrice(market, code)` — spot price for assets not yet
           held. Use to ground forward-looking statements.
+        - `getPriceMomentum(market, code)` — 52-week high and low,
+          drawdown from the high, 1–12 month returns and trend against the
+          50/200-day averages, from stored closes. Use it for "down from
+          its highs", price pressure or trend; never say these are
+          unavailable without calling it. US listings use market `US`.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
 
         ### Analyst price targets
@@ -273,6 +278,11 @@ object DomainSystemPrompts {
           analyst price target so implied growth `(target − close) /
           close` is always visible. Never quote a target without the
           current close.
+        - `getPriceMomentum(market, code)` — 52-week high and low,
+          drawdown from the high, 1–12 month returns and trend against the
+          50/200-day averages, from stored closes. Use it for "down from
+          its highs", price pressure or trend; never say these are
+          unavailable without calling it. US listings use market `US`.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
 
         ### Workflow
@@ -463,7 +473,7 @@ object DomainSystemPrompts {
 
     /**
      * News & Sentiment domain — single-ticker news lookup.
-     * Tools: NewsTools only.
+     * Tools: news, market (prices, momentum, FX) and macro.
      */
     val NEWS_SENTIMENT =
         """
@@ -482,9 +492,10 @@ object DomainSystemPrompts {
 
         ### Out of scope — never volunteer
 
-        Only `getNews` is available here — no tool verifies dividends,
-        splits, prices, earnings dates, or any other numeric/dated fact.
-        Therefore:
+        Beyond `getNews`, the tools here read only prices
+        (`getCurrentPrice`, `getPriceMomentum`), FX and the macro backdrop —
+        none verifies dividends, splits, earnings dates or any other
+        corporate fact. Therefore:
 
         - No factual claims about a dividend (amount, pay/record date,
           frequency, "first-ever"/"inaugural", yield, payout ratio).
@@ -496,6 +507,10 @@ object DomainSystemPrompts {
           attributed to the analyst/firm and ALWAYS pair with the current
           close (`getCurrentPrice(market, code)`) so implied growth
           `(target − close) / close` is visible. Never quote isolated.
+        - Exception: when the user asks about price pressure, a drawdown
+          or how far it is below its highs, call `getPriceMomentum(market,
+          code)` for the 52-week high and low and the 1–12 month returns.
+          US listings use market `US`.
         - For dividend/event history, direct the user to Asset Review or a
           portfolio context.
 
@@ -596,6 +611,11 @@ object DomainSystemPrompts {
         - `getCurrentPrice(market, code)` — current close, prior close,
           intraday change %. Required to ground any forward-looking
           framing such as analyst price targets.
+        - `getPriceMomentum(market, code)` — 52-week high and low,
+          drawdown from the high, 1–12 month returns and trend against the
+          50/200-day averages, from stored closes. Use it for "down from
+          its highs", price pressure or trend; never say these are
+          unavailable without calling it. US listings use market `US`.
         - `getBenchmark(scope)` — today's change for the broad market
           (`"market"`) or a sector, to frame the asset's own move.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
@@ -676,7 +696,9 @@ object DomainSystemPrompts {
           price, `addedPrice`/`addedOn`, `targetPrice`, `changeOnDay`,
           `changeSinceAdded`, `toTarget`, and `momentum` (`return1m`,
           `return3m`, `return6m`, `return12m`, `vsSma50`, `vsSma200`,
-          `fromHigh52w`, `fromLow52w`). All fractions; null = no reading.
+          `fromHigh52w`, `fromLow52w`) as fractions, plus `high52w` and
+          `low52w`, the 52-week high and low closes as prices; null = no
+          reading.
           `fundamentals` — US filers only, null otherwise — is the latest
           fiscal year from the company's SEC filing, in USD: `fiscalYear`,
           `epsDiluted`, `revenue`, `netIncome`, `dividendsPerShare` and
@@ -786,6 +808,9 @@ object DomainSystemPrompts {
         - Fed/rate-cut odds, "what's priced in" → `getRateExpectations()`.
         - Performance vs the market, market-wide vs stock-specific →
           `getBenchmark(scope)`.
+        - One asset's price now → `getCurrentPrice(market, code)`; its
+          trend, drawdown, 52-week high/low or 1–12 month returns →
+          `getPriceMomentum(market, code)`. US listings use market `US`.
         - The user's watchlist (tracked, not necessarily held) →
           `getWatchlist()`.
 

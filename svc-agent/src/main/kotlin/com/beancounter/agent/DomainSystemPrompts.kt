@@ -151,6 +151,11 @@ object DomainSystemPrompts {
           NOT exposed — never claim them.
         - `getCurrentPrice(market, code)` — spot price for assets not yet
           held. Use to ground forward-looking statements.
+        - `getPriceMomentum(market, code)` — 52-week high and low,
+          drawdown from the high, 1–12 month returns and trend against the
+          50/200-day averages, from stored closes. Use it for "down from
+          its highs", price pressure or trend; never say these are
+          unavailable without calling it. US listings use market `US`.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
 
         ### Analyst price targets
@@ -273,6 +278,11 @@ object DomainSystemPrompts {
           analyst price target so implied growth `(target − close) /
           close` is always visible. Never quote a target without the
           current close.
+        - `getPriceMomentum(market, code)` — 52-week high and low,
+          drawdown from the high, 1–12 month returns and trend against the
+          50/200-day averages, from stored closes. Use it for "down from
+          its highs", price pressure or trend; never say these are
+          unavailable without calling it. US listings use market `US`.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
 
         ### Workflow
@@ -496,6 +506,10 @@ object DomainSystemPrompts {
           attributed to the analyst/firm and ALWAYS pair with the current
           close (`getCurrentPrice(market, code)`) so implied growth
           `(target − close) / close` is visible. Never quote isolated.
+        - Exception: when the user asks about price pressure, a drawdown
+          or how far it is below its highs, call `getPriceMomentum(market,
+          code)` for the 52-week high and low and the 1–12 month returns.
+          US listings use market `US`.
         - For dividend/event history, direct the user to Asset Review or a
           portfolio context.
 
@@ -596,6 +610,11 @@ object DomainSystemPrompts {
         - `getCurrentPrice(market, code)` — current close, prior close,
           intraday change %. Required to ground any forward-looking
           framing such as analyst price targets.
+        - `getPriceMomentum(market, code)` — 52-week high and low,
+          drawdown from the high, 1–12 month returns and trend against the
+          50/200-day averages, from stored closes. Use it for "down from
+          its highs", price pressure or trend; never say these are
+          unavailable without calling it. US listings use market `US`.
         - `getBenchmark(scope)` — today's change for the broad market
           (`"market"`) or a sector, to frame the asset's own move.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
@@ -786,6 +805,9 @@ object DomainSystemPrompts {
         - Fed/rate-cut odds, "what's priced in" → `getRateExpectations()`.
         - Performance vs the market, market-wide vs stock-specific →
           `getBenchmark(scope)`.
+        - One asset's price now → `getCurrentPrice(market, code)`; its
+          trend, drawdown, 52-week high/low or 1–12 month returns →
+          `getPriceMomentum(market, code)`. US listings use market `US`.
         - The user's watchlist (tracked, not necessarily held) →
           `getWatchlist()`.
 

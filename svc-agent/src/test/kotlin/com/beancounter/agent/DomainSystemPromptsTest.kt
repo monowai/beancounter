@@ -57,6 +57,39 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `prompts that ship market tools send drawdown and 52 week questions to getPriceMomentum`() {
+        // A chat answered "52-week highs are not available" and could not say how far a stock
+        // was below its highs, although the closes to measure it were stored.
+        assertThat(
+            listOf(
+                DomainSystemPrompts.GENERAL,
+                DomainSystemPrompts.WEALTH,
+                DomainSystemPrompts.ASSET,
+                DomainSystemPrompts.ASSET_REVIEW,
+                DomainSystemPrompts.NEWS_SENTIMENT
+            )
+        ).allSatisfy { prompt ->
+            assertThat(prompt)
+                .contains("getPriceMomentum")
+                .contains("52-week high")
+                .contains("drawdown")
+        }
+    }
+
+    @Test
+    fun `prompts tell the model US listings use the US market code`() {
+        assertThat(
+            listOf(
+                DomainSystemPrompts.GENERAL,
+                DomainSystemPrompts.WEALTH,
+                DomainSystemPrompts.ASSET,
+                DomainSystemPrompts.ASSET_REVIEW,
+                DomainSystemPrompts.NEWS_SENTIMENT
+            )
+        ).allSatisfy { prompt -> assertThat(prompt).contains("US listings use market `US`") }
+    }
+
+    @Test
     fun `every domain prompt forbids a lead-in preamble`() {
         assertThat(allPrompts)
             .allSatisfy { prompt -> assertThat(prompt).contains("No preamble") }

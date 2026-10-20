@@ -236,7 +236,8 @@ const val WATCHLIST_DESC =
         "from price up to target; negative means the price is above target). momentum holds " +
         "asOf (the close date the readings are measured at), return1m/3m/6m/12m, " +
         "vsSma50/vsSma200 (latest close against its 50- and 200-day averages) and " +
-        "fromHigh52w/fromLow52w, all fractions, null where history is too short. fundamentals, " +
+        "fromHigh52w/fromLow52w, all fractions, plus the 52-week high and low closes " +
+        "(high52w, low52w); each null where history is too short. fundamentals, " +
         "null when none is on file (non-US listings, funds) or the read failed, so null never " +
         "means the company has no filing; otherwise it holds the latest fiscal year from " +
         "the company's SEC filing in USD: source, fiscalYear, fiscalYearEnd, epsDiluted, revenue, " +

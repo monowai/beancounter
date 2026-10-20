@@ -104,7 +104,7 @@ class NewsTools(
         const val MARKET_DESC =
             "Exchange/market code (e.g. 'NZX', 'ASX', 'LON', 'SGX'). Required for " +
                 "non-US tickers so the system resolves the correct exchange. " +
-                "Omit for US markets (NASDAQ, NYSE, AMEX)."
+                "Omit for US listings: Beancounter's market for them is US, whatever the exchange."
         const val TOPICS_DESC =
             "Optional topic filter: earnings, ipo, mergers_and_acquisitions, " +
                 "financial_markets, economy_fiscal, economy_monetary, " +

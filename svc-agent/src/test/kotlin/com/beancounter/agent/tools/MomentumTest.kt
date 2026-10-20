@@ -82,11 +82,34 @@ class MomentumTest {
     }
 
     @Test
+    fun `should report the 52 week high and low closes themselves`() {
+        val momentum = Momentum.of(rising(400))
+
+        // The window is the last 365 days: closes 135..499.
+        assertThat(momentum.high52w).isEqualTo(499.0)
+        assertThat(momentum.low52w).isEqualTo(135.0)
+    }
+
+    @Test
+    fun `should still read the 52 week range when history starts a few days after a year ago`() {
+        // A year back from the latest close fell on a weekend or holiday, so the first stored
+        // close is a couple of trading days later; the window is still a full 52 weeks.
+        val momentum = Momentum.of(rising(362))
+
+        assertThat(momentum.high52w).isEqualTo(461.0)
+        assertThat(momentum.low52w).isEqualTo(100.0)
+        assertThat(momentum.fromHigh52w).isEqualTo(0.0)
+        assertThat(momentum.fromLow52w).isCloseTo(461.0 / 100 - 1, within(0.0001))
+    }
+
+    @Test
     fun `should leave the 52 week readings empty when the history is under a year`() {
         val momentum = Momentum.of(rising(300))
 
         assertThat(momentum.fromHigh52w).isNull()
         assertThat(momentum.fromLow52w).isNull()
+        assertThat(momentum.high52w).isNull()
+        assertThat(momentum.low52w).isNull()
     }
 
     @Test

@@ -136,6 +136,12 @@ data class Asset(
     val hasNews: Boolean
         get() = AssetTraits.hasNews(assetCategory.id, market.code)
 
+    /** Cash or a bank account, with a balance rather than a trade. See [AssetTraits]. Read-only in JSON. */
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val cashLike: Boolean
+        get() = AssetTraits.cashLike(assetCategory.id)
+
     /** The code a user reads, owner prefix dropped. See [AssetTraits]. Read-only in JSON. */
     @get:Transient
     @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)

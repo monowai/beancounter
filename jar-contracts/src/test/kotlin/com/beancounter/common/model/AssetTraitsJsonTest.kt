@@ -28,6 +28,7 @@ class AssetTraitsJsonTest {
         assertThat(tree.get("watchable").asBoolean()).isTrue()
         assertThat(tree.get("hasNews").asBoolean()).isTrue()
         assertThat(tree.get("displayCode").asString()).isEqualTo("BRK.B")
+        assertThat(tree.get("cashLike").asBoolean()).isFalse()
     }
 
     @Test
@@ -38,6 +39,19 @@ class AssetTraitsJsonTest {
         assertThat(tree.get("watchable").asBoolean()).isFalse()
         assertThat(tree.get("hasNews").asBoolean()).isFalse()
         assertThat(tree.get("displayCode").asString()).isEqualTo("HOUSE")
+        assertThat(tree.get("cashLike").asBoolean()).isFalse()
+    }
+
+    @Test
+    fun `should serialize cash like for currency cash and a bank account`() {
+        val cash = objectMapper.readTree(objectMapper.writeValueAsString(asset("USD", "CASH", "CASH")))
+        val account =
+            objectMapper.readTree(
+                objectMapper.writeValueAsString(asset("$ownerId.SAVINGS", "ACCOUNT", "PRIVATE"))
+            )
+
+        assertThat(cash.get("cashLike").asBoolean()).isTrue()
+        assertThat(account.get("cashLike").asBoolean()).isTrue()
     }
 
     @Test
@@ -55,12 +69,13 @@ class AssetTraitsJsonTest {
     fun `should ignore traits sent by a client`() {
         val json =
             """{"code":"MSFT","market":{"code":"NASDAQ"},"assetCategory":{"id":"EQUITY","name":"Equity"},
-                |"chartable":false,"watchable":false,"hasNews":false,"displayCode":"X"}
+                |"chartable":false,"watchable":false,"hasNews":false,"cashLike":true,"displayCode":"X"}
             """.trimMargin()
 
         val result = objectMapper.readValue(json, Asset::class.java)
 
         assertThat(result.chartable).isTrue()
+        assertThat(result.cashLike).isFalse()
         assertThat(result.displayCode).isEqualTo("MSFT")
     }
 }

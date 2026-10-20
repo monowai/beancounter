@@ -406,4 +406,16 @@ class AgentConversationTest {
         assertThat(question.content).isEqualTo("Summarise recent news and sentiment for NATO...")
         assertThat(question.label).isEqualTo("News & Sentiment — NATO")
     }
+
+    @Test
+    fun `stream should store a canned question under its page's name`() {
+        val id = service.create(me).id
+        streams(chunk("Flat on the day.", "stop"))
+
+        controller().stream(AgentQuery(context = mapOf("page" to "Portfolio Review"), conversationId = id)).blockLast()
+
+        val question = service.get(me, id).messages.first()
+        assertThat(question.content).startsWith("Role: You are a financial columnist")
+        assertThat(question.label).isEqualTo("Portfolio Review")
+    }
 }

@@ -24,7 +24,9 @@ object AssetTraits {
             AssetCategory.ACCOUNT,
             BANK_ACCOUNT,
             AssetCategory.TRADE,
-            AssetCategory.POLICY
+            AssetCategory.POLICY,
+            // Stored before POLICY replaced it; still a policy, never priced.
+            "PENSION"
         )
 
     private val cashLike = setOf(AssetCategory.CASH, AssetCategory.ACCOUNT, BANK_ACCOUNT)
@@ -35,11 +37,11 @@ object AssetTraits {
     /** Cash or a bank account: its code is only a currency or an account handle. */
     fun cashLike(category: String): Boolean = category.uppercase() in cashLike
 
-    /** News (and an AI review built on it) can be found: not cash, nothing on the private market. */
+    /** News (and an AI review built on it) can be found: an asset with a market price, not on the private market. */
     fun hasNews(
         category: String,
         market: String?
-    ): Boolean = !cashLike(category) && !isPrivate(market)
+    ): Boolean = chartable(category) && !isPrivate(market)
 
     /** Can go on a watchlist: a market price to follow, so chartable and not private. */
     fun watchable(

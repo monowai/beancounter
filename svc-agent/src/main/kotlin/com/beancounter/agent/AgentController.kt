@@ -10,6 +10,7 @@ import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
+import com.beancounter.common.exception.BusinessException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
@@ -79,7 +80,9 @@ class AgentController(
     private val inFlightTurns: InFlightTurns,
     // UTC clock for stamping the current date onto each user message. Defaulted so Spring wires it
     // without a Clock bean; overridden in tests for a fixed date.
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock = Clock.systemUTC(),
+    // Defaulted like the clock, so the tests that build the controller by hand need not pass it.
+    private val pageQuerySelector: PageQuerySelector = PageQuerySelector()
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -171,6 +174,20 @@ class AgentController(
     internal fun systemPromptFor(request: AgentQuery): String {
         val domain = systemPromptSelector.selectFor(request.context)
         return if (request.history.isNullOrEmpty()) domain else "$domain\n\n${DomainSystemPrompts.FOLLOW_UP}"
+    }
+
+    /**
+     * The question this turn asks: the caller's own when it sent one, else the
+     * page's canned question ([PageQuerySelector]), stored under the page's name
+     * when the caller gave no label. A page with no canned question needs the
+     * caller to ask something — a 400 otherwise.
+     */
+    internal fun withQuestion(request: AgentQuery): AgentQuery {
+        if (request.query.isNotBlank()) return request
+        val canned =
+            pageQuerySelector.queryFor(request.context)
+                ?: throw BusinessException("A query is required for this page")
+        return request.copy(query = canned.question, label = request.label ?: canned.label)
     }
 
     /**
@@ -337,12 +354,14 @@ class AgentController(
         summary = "Ask the agent a natural language question",
         description =
             "The LLM is given a small fixed set of tools that call the standard " +
-                "Beancounter REST APIs. It chooses which to invoke."
+                "Beancounter REST APIs. It chooses which to invoke. A blank query asks " +
+                "the canned question for `context.page` (Asset Review, Portfolio Review)."
     )
     fun query(
-        @RequestBody request: AgentQuery
+        @RequestBody body: AgentQuery
     ): ResponseEntity<AgentResponse> {
-        scopeAuthorizer.authorize(request.context)
+        scopeAuthorizer.authorize(body.context)
+        val request = withQuestion(body)
         val safeQuery = HtmlUtils.htmlEscape(request.query)
         if (chatClient == null) {
             return ResponseEntity
@@ -486,9 +505,10 @@ class AgentController(
                 "browser idle-timeouts on long queries."
     )
     fun stream(
-        @RequestBody request: AgentQuery
+        @RequestBody body: AgentQuery
     ): Flux<ServerSentEvent<String>> {
-        scopeAuthorizer.authorize(request.context)
+        scopeAuthorizer.authorize(body.context)
+        val request = withQuestion(body)
         // A code, not prose: the streaming path's error payload is a contract
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
@@ -1049,7 +1069,11 @@ class AgentController(
 }
 
 data class AgentQuery(
-    val query: String,
+    /**
+     * The question. Blank asks the page's canned question instead
+     * ([PageQuerySelector]); a page without one rejects a blank query.
+     */
+    val query: String = "",
     val context: Map<String, Any>? = null,
     /**
      * Enable DeepSeek thinking mode for this request. Defaults to `false` so

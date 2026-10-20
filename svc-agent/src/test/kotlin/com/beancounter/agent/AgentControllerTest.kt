@@ -11,6 +11,7 @@ import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.health.ServiceStatus
 import com.beancounter.agent.tools.ToolSelector
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -332,6 +333,57 @@ class AgentControllerTest {
             ).build()
 
         assertThat(opts.maxTokens).isEqualTo(16384)
+    }
+
+    private fun modelHearing(questions: org.mockito.kotlin.KArgumentCaptor<String>): ChatClient {
+        val request =
+            mock<ChatClient.ChatClientRequestSpec>(
+                defaultAnswer = org.mockito.Answers.RETURNS_SELF
+            )
+        val callResponse = mock<ChatClient.CallResponseSpec>()
+        whenever(request.user(questions.capture())).thenReturn(request)
+        whenever(request.call()).thenReturn(callResponse)
+        whenever(callResponse.chatResponse()).thenReturn(null)
+        whenever(callResponse.content()).thenReturn("reviewed")
+        return mock { on { prompt() } doReturn request }
+    }
+
+    @Test
+    fun `a blank query on the asset review page reaches the model as the page's canned question`() {
+        val questions = org.mockito.kotlin.argumentCaptor<String>()
+        val context = mapOf<String, Any>("page" to "Asset Review", "tickers" to "ABC", "market" to "NYSE")
+
+        val response = controller(chatClient = modelHearing(questions)).query(AgentQuery(context = context))
+
+        assertThat(response.statusCode.value()).isEqualTo(200)
+        assertThat(questions.lastValue).endsWith(
+            "\n\nProduce an Asset Review for ABC listed on NYSE. Cover company and sector context, " +
+                "current sentiment from recent news, corporate-action history (dividends and splits in the " +
+                "last 12 months), and qualitative risk callouts. Stay at the ticker level — do not assume " +
+                "the user holds it."
+        )
+        assertThat(response.body?.query).startsWith("Produce an Asset Review for ABC listed on NYSE.")
+    }
+
+    @Test
+    fun `a caller's own question is asked in place of the page's canned question`() {
+        val questions = org.mockito.kotlin.argumentCaptor<String>()
+        val context = mapOf<String, Any>("page" to "Asset Review", "tickers" to "ABC")
+
+        controller(chatClient = modelHearing(questions)).query(AgentQuery("Is it cheap?", context = context))
+
+        assertThat(questions.lastValue).endsWith("\n\nIs it cheap?").doesNotContain("Produce an Asset Review")
+    }
+
+    @Test
+    fun `a blank query on a page without a canned question is a bad request`() {
+        val ctrl = controller(chatClient = answering("never"))
+        val blank = AgentQuery(" ", context = mapOf("page" to "Settings"))
+
+        assertThatThrownBy { ctrl.query(blank) }
+            .isInstanceOf(com.beancounter.common.exception.BusinessException::class.java)
+        assertThatThrownBy { ctrl.stream(blank) }
+            .isInstanceOf(com.beancounter.common.exception.BusinessException::class.java)
     }
 
     @Test

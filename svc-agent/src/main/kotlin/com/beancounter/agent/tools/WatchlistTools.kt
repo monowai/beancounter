@@ -31,9 +31,6 @@ class WatchlistTools(
         /** Keeps the tool result, and the history reads behind it, bounded. */
         const val MAX_ITEMS = 25
 
-        // Thirteen months, so the twelve-month return has a close on or before its lookback date.
-        private const val HISTORY_MONTHS = 13L
-
         // A first read of a never-priced asset blocks on a provider backfill; past this budget
         // the remaining assets are described without momentum so the tool call stays responsive.
         private const val HISTORY_BUDGET_NANOS = 60_000_000_000L
@@ -49,7 +46,7 @@ class WatchlistTools(
         val shown = entries.take(MAX_ITEMS)
         if (shown.isEmpty()) return WatchlistBrief(emptyList(), 0, false, 0)
         val classifications = classifications(shown)
-        val from = dateUtils.date.minusMonths(HISTORY_MONTHS).toString()
+        val from = Momentum.historyFrom(dateUtils.date).toString()
         val deadline = nanoTime() + HISTORY_BUDGET_NANOS
         var skipped = 0
         // Sequential on purpose: an asset never priced before backfills on its first history

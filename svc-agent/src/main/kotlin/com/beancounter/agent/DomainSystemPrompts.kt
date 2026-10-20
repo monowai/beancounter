@@ -473,7 +473,7 @@ object DomainSystemPrompts {
 
     /**
      * News & Sentiment domain — single-ticker news lookup.
-     * Tools: NewsTools only.
+     * Tools: news, market (prices, momentum, FX) and macro.
      */
     val NEWS_SENTIMENT =
         """
@@ -492,9 +492,10 @@ object DomainSystemPrompts {
 
         ### Out of scope — never volunteer
 
-        Only `getNews` is available here — no tool verifies dividends,
-        splits, prices, earnings dates, or any other numeric/dated fact.
-        Therefore:
+        Beyond `getNews`, the tools here read only prices
+        (`getCurrentPrice`, `getPriceMomentum`), FX and the macro backdrop —
+        none verifies dividends, splits, earnings dates or any other
+        corporate fact. Therefore:
 
         - No factual claims about a dividend (amount, pay/record date,
           frequency, "first-ever"/"inaugural", yield, payout ratio).
@@ -695,7 +696,9 @@ object DomainSystemPrompts {
           price, `addedPrice`/`addedOn`, `targetPrice`, `changeOnDay`,
           `changeSinceAdded`, `toTarget`, and `momentum` (`return1m`,
           `return3m`, `return6m`, `return12m`, `vsSma50`, `vsSma200`,
-          `fromHigh52w`, `fromLow52w`). All fractions; null = no reading.
+          `fromHigh52w`, `fromLow52w`) as fractions, plus `high52w` and
+          `low52w`, the 52-week high and low closes as prices; null = no
+          reading.
           `fundamentals` — US filers only, null otherwise — is the latest
           fiscal year from the company's SEC filing, in USD: `fiscalYear`,
           `epsDiluted`, `revenue`, `netIncome`, `dividendsPerShare` and

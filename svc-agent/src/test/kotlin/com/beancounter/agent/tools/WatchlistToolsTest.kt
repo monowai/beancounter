@@ -122,11 +122,11 @@ class WatchlistToolsTest {
     }
 
     @Test
-    fun `should read thirteen months of history so a twelve month return can be measured`() {
+    fun `should read thirteen months and a week of history so a twelve month return can be measured`() {
         val client =
             mock<WatchlistClient> {
                 on { getWatchlist() } doReturn listOf(entry("MSFT"))
-                on { getCloses("id-MSFT", "2025-09-16") } doReturn closes
+                on { getCloses("id-MSFT", "2025-09-09") } doReturn closes
             }
 
         val msft = tools(watchlistClient = client).getWatchlist().items.single()

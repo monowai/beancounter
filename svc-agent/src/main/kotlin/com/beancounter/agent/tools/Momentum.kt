@@ -33,6 +33,14 @@ data class Momentum(
         // whose first close falls within this many days after it still spans the 52 weeks.
         private const val YEAR_EDGE_DAYS = 7L
 
+        // Thirteen months and a week, so the twelve-month return and the 52-week window have a
+        // close on or before their lookback date even across weekends and holidays.
+        private const val HISTORY_MONTHS = 13L
+        private const val HISTORY_MARGIN_DAYS = 7L
+
+        /** The first date of the close history to read for a full set of readings as of [today]. */
+        fun historyFrom(today: LocalDate): LocalDate = today.minusMonths(HISTORY_MONTHS).minusDays(HISTORY_MARGIN_DAYS)
+
         fun of(points: List<PricePoint>): Momentum {
             val series = points.filter { it.close.signum() > 0 }.sortedBy { it.priceDate }
             if (series.isEmpty()) return Momentum()

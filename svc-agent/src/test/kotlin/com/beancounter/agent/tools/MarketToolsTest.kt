@@ -104,10 +104,20 @@ class MarketToolsTest {
     fun `getCurrentPrice treats NYSE, AMEX and lower-case exchange codes as US listings`() {
         whenever(priceService.getPrices(lookupOn("US"), any())).thenReturn(PriceResponse(listOf(spot("XYZ", "US"))))
         listOf("NYSE", "amex", "Arca").forEach { exchange ->
-            whenever(priceService.getPrices(lookupOn(exchange), any())).thenReturn(PriceResponse(emptyList()))
+            whenever(
+                priceService.getPrices(lookupOn(exchange.uppercase()), any())
+            ).thenReturn(PriceResponse(emptyList()))
 
             assertThat(marketTools.getCurrentPrice(exchange, "XYZ").market).isEqualTo("US")
         }
+    }
+
+    @Test
+    fun `getCurrentPrice trims and upper-cases the market before the lookup and the fallback`() {
+        whenever(priceService.getPrices(lookupOn("NASDAQ"), any())).thenReturn(PriceResponse(emptyList()))
+        whenever(priceService.getPrices(lookupOn("US"), any())).thenReturn(PriceResponse(listOf(spot("XYZ", "US"))))
+
+        assertThat(marketTools.getCurrentPrice(" nasdaq ", "XYZ").market).isEqualTo("US")
     }
 
     @Test
@@ -196,6 +206,7 @@ class MarketToolsTest {
 
         assertThat(callbacks).containsKeys("getCurrentPrice", "getPriceMomentum")
         assertThat(callbacks.getValue("getPriceMomentum").toolDefinition.description())
+            .contains("high52w and low52w are prices")
             .contains("52-week high")
             .contains("drawdown")
             .contains("Never say")

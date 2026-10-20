@@ -77,6 +77,21 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `news prompt lists its price tools instead of claiming getNews is the only tool`() {
+        assertThat(DomainSystemPrompts.NEWS_SENTIMENT)
+            .doesNotContain("Only `getNews` is available")
+            .contains("(`getCurrentPrice`, `getPriceMomentum`)")
+    }
+
+    @Test
+    fun `watchlist prompt names the 52 week high and low closes as prices`() {
+        assertThat(DomainSystemPrompts.WATCHLIST)
+            .contains("`high52w`")
+            .contains("`low52w`")
+            .contains("as prices")
+    }
+
+    @Test
     fun `prompts tell the model US listings use the US market code`() {
         assertThat(
             listOf(

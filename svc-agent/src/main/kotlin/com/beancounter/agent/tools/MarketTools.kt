@@ -80,15 +80,16 @@ class MarketTools(
         @ToolParam(description = ASSET_CODE_DESC) code: String
     ): PriceMomentum {
         val asset = spot(market, code).asset
-        val from = dateUtils.date.minusMonths(HISTORY_MONTHS).minusDays(HISTORY_MARGIN_DAYS)
-        val closes = watchlistClient.getCloses(asset.id, from.toString())
-        val latest = closes.filter { it.close.signum() > 0 }.maxByOrNull { it.priceDate }
+        val closes = watchlistClient.getCloses(asset.id, Momentum.historyFrom(dateUtils.date).toString()).toList()
+        val momentum = Momentum.of(closes)
+        // The close Momentum measures from: same date, so the two can never disagree.
+        val latest = momentum.asOf?.let { asOf -> closes.first { it.priceDate.toString() == asOf } }
         return PriceMomentum(
             assetCode = asset.code,
             market = asset.market.code,
             latestClose = latest?.close?.toDouble(),
-            latestCloseDate = latest?.priceDate?.toString(),
-            momentum = Momentum.of(closes.toList())
+            latestCloseDate = momentum.asOf,
+            momentum = momentum
         )
     }
 
@@ -96,10 +97,12 @@ class MarketTools(
     private fun spot(
         market: String,
         code: String
-    ): MarketData =
-        priceOn(market, code)
-            ?: US_MARKET.takeIf { market.trim().uppercase() in US_EXCHANGE_CODES }?.let { priceOn(it, code) }
+    ): MarketData {
+        val requested = market.trim().uppercase()
+        return priceOn(requested, code)
+            ?: US_MARKET.takeIf { requested in US_EXCHANGE_CODES }?.let { priceOn(it, code) }
             ?: throw IllegalStateException("No price data for $market:$code")
+    }
 
     private fun priceOn(
         market: String,
@@ -176,11 +179,6 @@ class MarketTools(
         private val US_EXCHANGE_CODES =
             setOf("NASDAQ", "NYSE", "AMEX", "ARCA", "NAS", "NYS", "NASAQ", "DOW", "DOW JONES")
 
-        // Thirteen months and a week, so the twelve-month return and the 52-week window have a
-        // close on or before their lookback date even across weekends and holidays.
-        private const val HISTORY_MONTHS = 13L
-        private const val HISTORY_MARGIN_DAYS = 7L
-
         const val MARKET_CODE_DESC =
             "Beancounter market code, e.g. US, LON, ASX, NZX, SGX, or FX for a currency pair. " +
                 "US listings use US, whatever exchange they trade on."
@@ -203,8 +201,9 @@ class MarketTools(
             "Get one asset's price trend from its stored daily closes: latestClose and its date, " +
                 "the 52-week high and low closes (high52w, low52w), drawdown from the 52-week high " +
                 "(fromHigh52w) and distance above the low (fromLow52w), return1m/3m/6m/12m, and " +
-                "vsSma50/vsSma200 (latest close against its 50- and 200-day averages). Readings " +
-                "are fractions (-0.15 = 15% below), null only where history is too short. Use it " +
+                "vsSma50/vsSma200 (latest close against its 50- and 200-day averages). The return, " +
+                "drawdown and average readings are fractions (-0.15 = 15% below); high52w and low52w " +
+                "are prices. Each is null only where history is too short. Use it " +
                 "for 'down from recent highs', 'price pressure', drawdown, trend or performance " +
                 "over a month to a year. Never say 52-week highs or drawdowns are unavailable " +
                 "without calling this first."

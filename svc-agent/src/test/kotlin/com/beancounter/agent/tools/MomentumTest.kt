@@ -113,6 +113,11 @@ class MomentumTest {
     }
 
     @Test
+    fun `should start the history read thirteen months and a week back`() {
+        assertThat(Momentum.historyFrom(today)).isEqualTo(LocalDate.parse("2025-09-09"))
+    }
+
+    @Test
     fun `should report nothing for an empty series`() {
         val momentum = Momentum.of(emptyList())
 

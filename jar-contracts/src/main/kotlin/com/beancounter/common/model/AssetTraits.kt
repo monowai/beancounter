@@ -34,7 +34,10 @@ object AssetTraits {
     /** Has a market price worth charting. */
     fun chartable(category: String): Boolean = category.uppercase() !in notChartable
 
-    /** Cash or a bank account: its code is only a currency or an account handle. */
+    /**
+     * Cash or a bank account: its code is only a currency or an account handle, and it has a
+     * balance a user can set. TRADE reports as cash but is left out: it is not balance-set.
+     */
     fun cashLike(category: String): Boolean = category.uppercase() in cashLike
 
     /** News (and an AI review built on it) can be found: an asset with a market price, not on the private market. */

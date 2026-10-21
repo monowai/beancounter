@@ -44,8 +44,8 @@ object PageQueries {
     private const val HOLDING_ANALYSIS_QUESTION =
         "Produce a Holding Analysis: assess this position in light of the Asset Review above. Cover " +
             "position size (its weight in the portfolio against what the review says about the asset), " +
-            "entry (average cost against the current price), the result so far (unrealised and realised " +
-            "gain), what the review's points mean for this holding, and what to watch. Stay factual and " +
+            "entry (average cost against the current price), the result so far (the unrealised gain on " +
+            "cost), what the review's points mean for this holding, and what to watch. Stay factual and " +
             "use the figures given. No recommendations to buy or sell."
 
     /**

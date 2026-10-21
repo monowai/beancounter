@@ -692,11 +692,10 @@ object DomainSystemPrompts {
         - The holding figures are authoritative: cite them as given and
           never recompute them. Weight is measured in the portfolio
           currency; average cost and current price are per unit in the
-          trade currency.
-        - This domain is the exception to the dollars rule for this one
-          holding: its quantity, cost basis, market value and gains may be
-          quoted, with their currency. Tool results stay dollar-scrubbed —
-          never derive amounts for any other holding.
+          trade currency; the unrealised gain is a percentage of cost.
+        - Quote this holding's percentages and unit prices only. The
+          privacy rule above still holds: you have no quantity or amount
+          for it, so never estimate what the holding is worth.
 
         ### Tools
 
@@ -724,7 +723,7 @@ object DomainSystemPrompts {
         - **Position size** — the weight in the portfolio, and whether the
           review's risks and outlook sit easily with a position that size.
         - **Entry** — average cost against the current price.
-        - **Result** — unrealised and realised gain, and how long it has
+        - **Result** — the unrealised gain on cost, and how long it has
           been held.
         - **What the review means for this holding** — 2–4 bullets tying
           the review's points to this position.

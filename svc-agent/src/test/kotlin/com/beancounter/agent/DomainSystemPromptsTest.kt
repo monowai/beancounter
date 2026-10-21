@@ -236,5 +236,9 @@ class DomainSystemPromptsTest {
             .contains("average cost")
             .contains("Not financial advice")
             .contains("never recompute")
+            .contains("percentages and unit prices")
+            .doesNotContain("market value")
+            .doesNotContain("cost basis")
+            .doesNotContain("exception to the dollars rule")
     }
 }

@@ -77,15 +77,11 @@ class HoldingFactsReader(
             assetName = position.asset.name ?: position.asset.code,
             market = position.asset.market.code,
             tradeCurrency = trade.currency.code,
-            quantity = position.quantityValues.getTotal(),
             weight = inPortfolio.weight,
             averageCost = trade.averageCost,
             currentPrice = close,
             priceDate = close?.let { trade.priceData.priceDate },
-            costBasis = inPortfolio.costValue,
-            marketValue = inPortfolio.marketValue,
-            unrealisedGain = inPortfolio.unrealisedGain,
-            realisedGain = inPortfolio.realisedGain,
+            unrealisedGainRatio = HoldingFacts.ratio(inPortfolio.unrealisedGain, inPortfolio.costValue),
             opened = position.dateValues.opened
         )
     }

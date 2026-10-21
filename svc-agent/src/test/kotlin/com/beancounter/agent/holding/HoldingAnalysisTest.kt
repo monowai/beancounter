@@ -169,7 +169,7 @@ class HoldingAnalysisTest {
 
     private fun natoHolding(): Position =
         Position(nato, portfolio).apply {
-            quantityValues.purchased = BigDecimal("120")
+            quantityValues.purchased = BigDecimal("173")
             getMoneyValues(Position.In.TRADE, usd).apply {
                 averageCost = BigDecimal("21.5")
                 priceData.close = BigDecimal("25.1")
@@ -177,11 +177,11 @@ class HoldingAnalysisTest {
             }
             getMoneyValues(Position.In.PORTFOLIO, sgd).apply {
                 weight = BigDecimal("0.125")
-                marketValue = BigDecimal("3900")
-                costValue = BigDecimal("3330")
-                unrealisedGain = BigDecimal("570")
-                realisedGain = BigDecimal("45")
-                averageCost = BigDecimal("27.75")
+                marketValue = BigDecimal("4823.61")
+                costValue = BigDecimal("4105.37")
+                unrealisedGain = BigDecimal("718.24")
+                realisedGain = BigDecimal("61.29")
+                averageCost = BigDecimal("23.73")
             }
             // A TRADE-currency weight is not the position's weight in its portfolio.
             moneyValues[Position.In.TRADE]!!.weight = BigDecimal("0.4")
@@ -279,6 +279,21 @@ class HoldingAnalysisTest {
         return sent.allValues
     }
 
+    /** The model never sees what the holding is worth: no quantity, value, cost or money gain. */
+    private fun assertNoAmounts(prompt: String) {
+        assertThat(prompt)
+            .doesNotContain("173")
+            .doesNotContain("4823")
+            .doesNotContain("4105")
+            .doesNotContain("718")
+            .doesNotContain("61.29")
+            .doesNotContain("23.73")
+            .doesNotContainIgnoringCase("quantity")
+            .doesNotContainIgnoringCase("market value")
+            .doesNotContainIgnoringCase("cost basis")
+            .doesNotContainPattern("(?i)(?<!un)realised gain")
+    }
+
     private fun systemPrompts(): List<String> {
         val sent = argumentCaptor<String>()
         verify(request, atLeastOnce()).system(sent.capture())
@@ -299,19 +314,16 @@ class HoldingAnalysisTest {
             .contains("Asset Review of NATO listed on NASDAQ, as of ${LocalDate.now(clock)}")
             .contains(cachedReview)
             .contains("Portfolio: TYLER (Tyler), portfolio currency SGD")
-            .contains("Quantity held: 120")
             .contains("Weight in portfolio: 12.5%")
             .contains("Average cost: 21.50 USD per unit")
             .contains("Current price: 25.10 USD (2026-09-30)")
-            .contains("Cost basis: 3330.00 SGD")
-            .contains("Market value: 3900.00 SGD")
-            .contains("Unrealised gain: 570.00 SGD (17.1% on cost)")
-            .contains("Realised gain: 45.00 SGD")
+            .contains("Unrealised gain: 17.5% on cost")
             .contains("Opened: 2025-03-04")
             .contains("Produce a Holding Analysis")
             .doesNotContain("123456.78")
             .doesNotContain("0.99")
             .doesNotContain("40.0%")
+        assertNoAmounts(userMessages().single())
         assertThat(systemPrompts().single()).isEqualTo(DomainSystemPrompts.HOLDING_ANALYSIS)
     }
 
@@ -362,7 +374,7 @@ class HoldingAnalysisTest {
         assertThat(response.body!!.response).isEqualTo("Sized sensibly.")
         assertThat(response.body!!.cached).isFalse()
         assertThat(callCalls).isEqualTo(1)
-        assertThat(userMessages().single()).contains(cachedReview).contains("Market value: 3900.00 SGD")
+        assertThat(userMessages().single()).contains(cachedReview).contains("Unrealised gain: 17.5% on cost")
     }
 
     @Test
@@ -377,7 +389,7 @@ class HoldingAnalysisTest {
 
     @Test
     fun `a sold holding should be not-held`() {
-        held = listOf(natoHolding().apply { quantityValues.sold = BigDecimal("-120") })
+        held = listOf(natoHolding().apply { quantityValues.sold = BigDecimal("-173") })
 
         assertThat(stream(analysis()).map { it.data() }).containsExactly("not-held")
     }
@@ -498,7 +510,7 @@ class HoldingAnalysisTest {
         assertThat(detail.kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
         assertThat(detail.messages.map { it.role }).containsExactly("user", "assistant")
         assertThat(detail.messages.first().label).isEqualTo("Holding Analysis — NATO")
-        assertThat(detail.messages.first().content).contains(cachedReview).contains("Quantity held: 120")
+        assertThat(detail.messages.first().content).contains(cachedReview).contains("Weight in portfolio: 12.5%")
         assertThat(detail.messages.last().content).isEqualTo("Sized sensibly.")
         assertThat(detail.pending).isFalse()
     }

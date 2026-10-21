@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Clock
@@ -28,7 +29,12 @@ class AssetReviewCacheService(
         const val KEEP_DAYS = 3L
     }
 
-    private val transaction = TransactionTemplate(transactionManager)
+    // Its own transaction even when a caller has one open, so a lost insert race
+    // rolls back only this write and the retry starts clean.
+    private val transaction =
+        TransactionTemplate(transactionManager).apply {
+            propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+        }
 
     @Transactional(readOnly = true)
     override fun find(key: AssetReviewKey): CachedReview? {

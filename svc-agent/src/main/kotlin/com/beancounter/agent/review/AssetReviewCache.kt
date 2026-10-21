@@ -15,19 +15,13 @@ data class AssetReviewKey(
     val model: String
 )
 
-/** A cached answer and the model that wrote it. */
-data class CachedReview(
-    val content: String,
-    val model: String
-)
-
 /** Serves and stores canned Asset Reviews. */
 interface AssetReviewCache {
     /** False when reviews are never cached, so a caller need not build a key. */
     val enabled: Boolean
 
-    /** The fresh review for [key], or null on a miss. */
-    fun find(key: AssetReviewKey): CachedReview?
+    /** The fresh review for [key], or null on a miss. [AssetReviewKey.model] wrote it. */
+    fun find(key: AssetReviewKey): String?
 
     /** Keep [content] as the answer for [key], replacing any earlier one. */
     fun store(
@@ -41,7 +35,7 @@ interface AssetReviewCache {
             object : AssetReviewCache {
                 override val enabled = false
 
-                override fun find(key: AssetReviewKey): CachedReview? = null
+                override fun find(key: AssetReviewKey): String? = null
 
                 override fun store(
                     key: AssetReviewKey,

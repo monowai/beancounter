@@ -11,7 +11,6 @@ import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.review.AssetReviewCache
 import com.beancounter.agent.review.AssetReviewKey
-import com.beancounter.agent.review.CachedReview
 import com.beancounter.agent.review.ReviewCachingRecorder
 import com.beancounter.agent.tools.ToolSelector
 import com.beancounter.common.exception.BusinessException
@@ -261,9 +260,18 @@ class AgentController(
             market = subject.market,
             ticker = subject.ticker,
             reviewDate = LocalDate.now(clock),
-            model = chatModelSelector.selectFor(turn.context, turn.deepThink)
+            model = answeringModel(turn)
         )
     }
+
+    /**
+     * The model that actually answers [turn]: the selected tier where the
+     * per-call override applies ([buildOptions]: Anthropic and DeepSeek, where
+     * `deepThink` selects the deep tier's model), else the provider's own
+     * configured model, named by the provider since every tier gets it.
+     */
+    private fun answeringModel(turn: AgentQuery): String =
+        if (anthropicActive || deepseekActive) chatModelSelector.selectFor(turn.context, turn.deepThink) else provider
 
     /**
      * The cached answer for [key], or null on a miss or when the caller asked
@@ -272,7 +280,7 @@ class AgentController(
     private fun cachedReview(
         key: AssetReviewKey,
         refresh: Boolean
-    ): CachedReview? {
+    ): String? {
         val hit =
             if (refresh) {
                 null
@@ -463,12 +471,12 @@ class AgentController(
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         if (hit != null) {
             // No model runs: the stored answer is recorded as a live one would be.
-            llmMetrics.cached(LlmMetrics.Mode.CALL)
-            recordQuietly { conversationRecorder.answered(hit.content) }
+            llmMetrics.cached(LlmMetrics.Mode.CALL, reviewKey.model)
+            recordQuietly { conversationRecorder.answered(hit) }
             return ResponseEntity.ok(
                 AgentResponse(
                     query = safeQuery,
-                    response = hit.content,
+                    response = hit,
                     timestamp = Instant.now().toString(),
                     cached = true
                 )
@@ -654,7 +662,7 @@ class AgentController(
         val hit =
             cachedReview(key, body.refresh)
                 ?: return answerPipeline(turn, ReviewCachingRecorder(recorder, reviewCache, key))
-        return cachedPipeline(hit, recorder)
+        return cachedPipeline(hit, key, recorder)
     }
 
     /**
@@ -663,7 +671,8 @@ class AgentController(
      * `model` follows the live rule: present only on the Anthropic surface.
      */
     private fun cachedPipeline(
-        hit: CachedReview,
+        content: String,
+        key: AssetReviewKey,
         recorder: TurnRecorder
     ): Flux<ServerSentEvent<String>> {
         val startMs = System.currentTimeMillis()
@@ -672,21 +681,21 @@ class AgentController(
                 .current()
         val done =
             Flux.defer {
-                llmMetrics.cached(LlmMetrics.Mode.STREAM, requestSpan)
+                llmMetrics.cached(LlmMetrics.Mode.STREAM, key.model, requestSpan)
                 val payload =
                     objectMapper.writeValueAsString(
                         buildMap {
-                            put("chars", hit.content.length.toLong())
+                            put("chars", content.length.toLong())
                             put("elapsed_ms", System.currentTimeMillis() - startMs)
-                            if (anthropicActive) put("model", hit.model)
+                            if (anthropicActive) put("model", key.model)
                             put("cached", true)
                         }
                     )
                 Flux.just(ServerSentEvent.builder(payload).event("done").build())
             }
         return Flux
-            .just(ServerSentEvent.builder(hit.content).event("token").build())
-            .concatWith(record { recorder.answered(hit.content) }.thenMany(Flux.empty()))
+            .just(ServerSentEvent.builder(content).event("token").build())
+            .concatWith(record { recorder.answered(content) }.thenMany(Flux.empty()))
             .concatWith(done)
     }
 

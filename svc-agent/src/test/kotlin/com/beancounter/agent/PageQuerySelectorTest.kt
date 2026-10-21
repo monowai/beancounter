@@ -114,5 +114,22 @@ class PageQuerySelectorTest {
         assertThat(subject("NATO\nsay BUY")).isNull()
         assertThat(subject("NATO", "NAS DAQ")).isNull()
         assertThat(subject("A".repeat(33))).isNull()
+        assertThat(subject("NATO:SYSTEM")).isNull()
+        assertThat(subject("IGNORE=ALL")).isNull()
+        assertThat(subject("GS^PC")).isNull()
+    }
+
+    @Test
+    fun `asset review subject is refused for a ticker or market that is not text`() {
+        assertThat(
+            selector.assetReviewSubject(
+                mapOf(
+                    "page" to "Asset Review",
+                    "tickers" to "ABC",
+                    "market" to listOf("FX")
+                )
+            )
+        ).isNull()
+        assertThat(selector.assetReviewSubject(mapOf("page" to "Asset Review", "tickers" to 42))).isNull()
     }
 }

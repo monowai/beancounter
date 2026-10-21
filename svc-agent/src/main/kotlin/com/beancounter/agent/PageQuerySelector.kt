@@ -44,8 +44,12 @@ class PageQuerySelector {
     fun assetReviewSubject(context: Map<String, Any>?): AssetReviewSubject? {
         val fields = context.orEmpty()
         if (normalise(fields["page"]) != normalise(PageQueries.ASSET_REVIEW)) return null
-        val ticker = text(fields, "tickers").uppercase()
-        val market = text(fields, "market").uppercase()
+        // Text only: a non-string market would route differently once rebuilt as text (isFxPair).
+        val rawTicker = fields["tickers"] as? String ?: return null
+        val rawMarket = fields["market"] ?: ""
+        if (rawMarket !is String) return null
+        val ticker = rawTicker.trim().uppercase()
+        val market = rawMarket.trim().uppercase()
         if (!TICKER.matches(ticker) || !MARKET.matches(market)) return null
         return AssetReviewSubject(ticker, market)
     }
@@ -87,8 +91,8 @@ class PageQuerySelector {
     private companion object {
         val WHITESPACE = Regex("\\s+")
 
-        // Listing symbols as markets quote them: BRK.B, ^GSPC, NZDSGD, D05.
-        val TICKER = Regex("^[A-Z0-9^][A-Z0-9.\\-^=:]{0,31}$")
+        // Listing symbols as markets quote them: BRK.B, BRK-B, ^GSPC (caret leads only), NZDSGD, D05.
+        val TICKER = Regex("^\\^?[A-Z0-9][A-Z0-9.\\-]{0,31}$")
 
         // Market codes: US, NASDAQ, SGX, FX, INDEX — or none sent.
         val MARKET = Regex("^[A-Z0-9_\\-]{0,16}$")

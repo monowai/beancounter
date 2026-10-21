@@ -186,4 +186,20 @@ class ToolSelectorTest {
         val tools = selector.selectTools(emptyMap())
         assertThat(tools).contains(eventTools, assetEventTools, retireTools, rebalanceTools)
     }
+
+    @Test
+    fun `the asset review prompt names exactly the tools the page registers`() {
+        val registered = toolNames(selector.selectTools(mapOf("page" to "Asset Review")))
+        val domain =
+            com.beancounter.agent.DomainSystemPrompts.ASSET_REVIEW
+                .substringAfter("## Domain: Asset Review")
+        val called =
+            Regex("`([a-z][A-Za-z]+)\\(")
+                .findAll(domain)
+                .map { it.groupValues[1] }
+                .toSet()
+
+        assertThat(registered).allSatisfy { assertThat(domain).contains("`$it") }
+        assertThat(called).isSubsetOf(registered)
+    }
 }

@@ -112,7 +112,10 @@ class AssetReviewCacheTest {
         }
     }
 
-    private fun controller(reviewCache: AssetReviewCache = cache): AgentController =
+    private fun controller(
+        reviewCache: AssetReviewCache = cache,
+        environment: MockEnvironment = MockEnvironment()
+    ): AgentController =
         AgentController(
             client,
             null,
@@ -121,7 +124,7 @@ class AssetReviewCacheTest {
             mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
             mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
             modelSelector,
-            MockEnvironment(),
+            environment,
             ObjectMapper(),
             LlmMetrics(),
             mock<AgentScopeAuthorizer>(),
@@ -476,7 +479,7 @@ class AssetReviewCacheTest {
             object : AssetReviewCache {
                 override val enabled = true
 
-                override fun find(key: AssetReviewKey): CachedReview? = null
+                override fun find(key: AssetReviewKey): String? = null
 
                 override fun store(
                     key: AssetReviewKey,
@@ -517,6 +520,34 @@ class AssetReviewCacheTest {
 
         assertThat(results).allSatisfy { assertThat(it.isSuccess).isTrue() }
         assertThat(repository.findAll()).hasSize(1)
-        assertThat(cache.find(key)?.content).isEqualTo("NATO looks steady.")
+        assertThat(cache.find(key)).isEqualTo("NATO looks steady.")
+    }
+
+    @Test
+    fun `a review sent with a blank market or none should share one row`() {
+        val noMarket = AgentQuery(context = mapOf("page" to "Asset Review", "tickers" to "NATO"))
+
+        streamed(review(market = ""))
+        val events = streamed(noMarket)
+
+        assertThat(streamCalls).isEqualTo(1)
+        assertThat(doneOf(events)["cached"]).isEqualTo(true)
+        assertThat(repository.findAll().map { it.market }).containsExactly("")
+    }
+
+    @Test
+    fun `the deep tier should share the review when the provider ignores the per-call model`() {
+        // On ollama/openai the configured client's own model answers every tier.
+        val ollama = MockEnvironment().withProperty("agent.provider", "ollama")
+
+        controller(environment = ollama).stream(review()).collectList().block(Duration.ofSeconds(5))
+        val events =
+            controller(
+                environment = ollama
+            ).stream(review(deepThink = true)).collectList().block(Duration.ofSeconds(5)).orEmpty()
+
+        assertThat(streamCalls).isEqualTo(1)
+        assertThat(doneOf(events)["cached"]).isEqualTo(true)
+        assertThat(repository.findAll().map { it.model }).containsExactly("ollama")
     }
 }

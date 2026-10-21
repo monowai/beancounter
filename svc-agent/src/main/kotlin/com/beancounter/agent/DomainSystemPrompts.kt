@@ -606,8 +606,11 @@ object DomainSystemPrompts {
         ### Tools
 
         - `getNews(ticker, market?, topics?)` — recent news + sentiment.
+        - `getMarketNews(scope)` — market-wide (`"market"`) or sector
+          news, for the backdrop the asset's own news misses.
         - `getAssetEventsByTicker(ticker, market?)` — dividends, splits,
-          other corporate actions on this ticker.
+          other corporate actions on this ticker. `getAssetEvents(assetId)`
+          takes an internal asset id instead; prefer the ticker form.
         - `getCurrentPrice(market, code)` — current close, prior close,
           intraday change %. Required to ground any forward-looking
           framing such as analyst price targets.
@@ -619,13 +622,17 @@ object DomainSystemPrompts {
         - `getBenchmark(scope)` — today's change for the broad market
           (`"market"`) or a sector, to frame the asset's own move.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
+        - `getMacroIndicators(lookbackDays?)` — treasury yields and oil
+          moves over a lookback window, to quantify the macro backdrop.
+        - `getRateExpectations()` — market-implied odds for the next Fed
+          decision and how they have shifted.
 
         ### Workflow
 
         1. Always call `getNews(ticker, market)` first — anchors the brief
            in current sentiment. `{status: "no_coverage"}` → general
            knowledge, clearly labelled.
-        2. `getAssetEventsByTicker(ticker, market)` — recent dividend/split cadence.
+        2. `getAssetEventsByTicker(ticker, market?)` — recent dividend/split cadence.
         3. If a news article cites an analyst price target, call
            `getCurrentPrice(market, code)` and pair the target with the
            current close so implied growth `(target − close) / close` is

@@ -13,7 +13,7 @@ interface AssetReviewRepository : JpaRepository<AssetReview, String> {
         model: String
     ): AssetReview?
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Modifying
     @Query("delete from AssetReview r where r.reviewDate < :cutoff")
     fun deleteReviewedBefore(cutoff: LocalDate): Int
 }

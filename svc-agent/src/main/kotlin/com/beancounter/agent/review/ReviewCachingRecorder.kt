@@ -16,12 +16,10 @@ class ReviewCachingRecorder(
 ) : TurnRecorder {
     private val log = LoggerFactory.getLogger(ReviewCachingRecorder::class.java)
 
+    /** Caches only once the turn is recorded: an answer the conversation lacks is not shared. */
     override fun answered(content: String) {
-        try {
-            delegate.answered(content)
-        } finally {
-            store(content)
-        }
+        delegate.answered(content)
+        store(content)
     }
 
     override fun failed(code: String) = delegate.failed(code)

@@ -273,14 +273,16 @@ class LlmMetricsTest {
     }
 
     @Test
-    fun `cached tags the supplied span so cached turns can be told apart`() {
-        val span = mock<Span>()
-        whenever(span.setAttribute(any<String>(), any<Boolean>())).thenReturn(span)
-        whenever(span.setAttribute(any<String>(), any<String>())).thenReturn(span)
+    fun `cached exports its own span so cached turns can be counted`() {
+        val exporter = InMemorySpanExporter.create()
 
-        LlmMetrics().cached(LlmMetrics.Mode.STREAM, span)
+        LlmMetrics(tracerFor(exporter)).cached(LlmMetrics.Mode.STREAM, "deepseek-flash")
 
-        verify(span).setAttribute(eq("agent.cached"), eq(true))
-        verify(span).setAttribute(eq("agent.mode"), eq("stream"))
+        val span = exporter.finishedSpanItems.single()
+        val attributes = span.attributes.asMap().mapKeys { it.key.key }
+        assertThat(span.name).isEqualTo(LlmMetrics.SPAN_NAME)
+        assertThat(attributes["agent.cached"]).isEqualTo(true)
+        assertThat(attributes["agent.mode"]).isEqualTo("stream")
+        assertThat(attributes["agent.model"]).isEqualTo("deepseek-flash")
     }
 }

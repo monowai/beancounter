@@ -18,6 +18,9 @@ interface WatchlistItemRepository : CrudRepository<WatchlistItem, String> {
         ownerId: String
     ): Optional<WatchlistItem>
 
+    /** Items with a target that has not been reached yet. */
+    fun findByTargetPriceIsNotNullAndTargetHitOnIsNull(): List<WatchlistItem>
+
     fun existsByOwnerIdAndAssetId(
         ownerId: String,
         assetId: String

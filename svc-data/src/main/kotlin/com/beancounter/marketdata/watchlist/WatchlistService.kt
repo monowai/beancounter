@@ -6,6 +6,7 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
@@ -32,6 +33,7 @@ import java.time.LocalDate
 @Transactional
 class WatchlistService(
     private val itemRepository: WatchlistItemRepository,
+    private val alertRepository: WatchlistAlertRepository,
     private val assetFinder: AssetFinder,
     private val priceService: PriceService,
     private val marketDataService: MarketDataService,
@@ -70,17 +72,31 @@ class WatchlistService(
         }
         val targetPrice = request.targetPrice?.let { requirePositive(it, "targetPrice") }
         val item =
-            itemRepository.save(
-                WatchlistItem(
-                    owner = owner,
-                    asset = asset,
-                    addedPrice = addedPrice,
-                    addedOn = dateUtils.date,
-                    targetPrice = targetPrice,
-                    targetOn = targetPrice?.let { dateUtils.date }
-                )
+            WatchlistItem(
+                owner = owner,
+                asset = asset,
+                addedPrice = addedPrice,
+                addedOn = dateUtils.date
             )
-        return itemView(item, latest, splitFactors(listOf(item)))
+        // addedPrice was just entered, so it is already on today's basis.
+        targetPrice?.let { setTarget(item, it, latest?.close ?: addedPrice) }
+        val saved = itemRepository.save(item)
+        return itemView(saved, latest, splitFactors(listOf(saved)))
+    }
+
+    /**
+     * Arm a target entered on today's basis. Its direction is fixed against [reference], the
+     * price the caller sees now: ABOVE when the target is at or above it, else BELOW.
+     */
+    private fun setTarget(
+        item: WatchlistItem,
+        target: BigDecimal,
+        reference: BigDecimal
+    ) {
+        item.targetPrice = target
+        item.targetOn = dateUtils.date
+        item.targetDirection = TargetDirection.of(target, reference)
+        item.targetHitOn = null
     }
 
     fun updateItem(
@@ -94,36 +110,43 @@ class WatchlistService(
         }
         // Callers send prices on today's share basis. addedPrice stays stored on the addedOn
         // basis, so undo any split since then; a new target is simply dated today.
+        val addedFactor = splitFactors(listOf(item)).getValue(item.id).getValue(item.addedOn)
         request.addedPrice?.let { entered ->
-            val factor = splitFactors(listOf(item)).getValue(item.id).getValue(item.addedOn)
             item.addedPrice =
                 requirePositive(entered, "addedPrice")
-                    .multiply(factor)
-                    .setScale(PERCENT_SCALE, RoundingMode.HALF_UP)
+                    .multiply(addedFactor)
+                    .setScale(PRICE_SCALE, RoundingMode.HALF_UP)
         }
+        val latest = livePrices(listOf(item.asset))[item.asset.id]
         request.targetPrice?.let {
-            item.targetPrice = requirePositive(it, "targetPrice")
-            item.targetOn = dateUtils.date
+            setTarget(item, requirePositive(it, "targetPrice"), latest?.close ?: rebase(item.addedPrice, addedFactor))
         }
         if (request.clearTarget) {
             item.targetPrice = null
             item.targetOn = null
+            item.targetDirection = null
+            item.targetHitOn = null
         }
         val saved = itemRepository.save(item)
-        return itemView(saved, livePrices(listOf(saved.asset))[saved.asset.id], splitFactors(listOf(saved)))
+        return itemView(saved, latest, splitFactors(listOf(saved)))
     }
 
     fun deleteItem(
         owner: SystemUser,
         itemId: String
     ) {
-        itemRepository.delete(itemOrThrow(owner, itemId))
+        val item = itemOrThrow(owner, itemId)
+        alertRepository.deleteByItemId(item.id)
+        itemRepository.delete(item)
     }
 
     /**
-     * Offboarding: remove the owner's watchlist. Idempotent.
+     * Offboarding: remove the owner's watchlist and its alerts. Idempotent.
      */
-    fun deleteByOwner(ownerId: String): Int = itemRepository.deleteByOwnerId(ownerId)
+    fun deleteByOwner(ownerId: String): Int {
+        alertRepository.deleteByOwnerId(ownerId)
+        return itemRepository.deleteByOwnerId(ownerId)
+    }
 
     private fun itemOrThrow(
         owner: SystemUser,
@@ -214,14 +237,15 @@ class WatchlistService(
             addedPrice = addedPrice,
             addedOn = item.addedOn,
             targetPrice = target,
-            currency = item.asset.accountingType?.currency ?: item.asset.market.currency,
+            currency = item.asset.watchlistCurrency(),
             price = price,
             priceDate = latest?.priceDate,
             changeOnDay = latest?.change,
             changeOnDayPercent = latest?.changePercent,
             changeSinceAdded = sinceAdded,
             changeSinceAddedPercent = sinceAdded?.let { fraction(it, addedPrice) },
-            toTarget = if (price == null || target == null) null else fraction(target.subtract(price), price)
+            toTarget = if (price == null || target == null) null else fraction(target.subtract(price), price),
+            targetHitOn = item.targetHitOn
         )
     }
 
@@ -243,22 +267,10 @@ class WatchlistService(
         return items.associate { it.id to byAsset.getValue(it.asset.id) }
     }
 
-    private fun rebase(
-        price: BigDecimal,
-        factor: BigDecimal
-    ): BigDecimal =
-        if (factor.compareTo(BigDecimal.ONE) ==
-            0
-        ) {
-            price
-        } else {
-            price.divide(factor, PERCENT_SCALE, RoundingMode.HALF_UP)
-        }
-
     private fun fraction(
         numerator: BigDecimal,
         denominator: BigDecimal
-    ): BigDecimal = numerator.divide(denominator, PERCENT_SCALE, RoundingMode.HALF_UP)
+    ): BigDecimal = numerator.divide(denominator, PRICE_SCALE, RoundingMode.HALF_UP)
 
     private fun requirePositive(
         value: BigDecimal,
@@ -268,9 +280,5 @@ class WatchlistService(
             throw BusinessException("$field must be greater than zero")
         }
         return value
-    }
-
-    companion object {
-        private const val PERCENT_SCALE = 6
     }
 }

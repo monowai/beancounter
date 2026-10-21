@@ -124,12 +124,12 @@ class WatchlistClientTest {
             "addedPrice":500.00,"addedOn":"2026-10-01","targetPrice":600,
             "currency":{"code":"USD","name":"Dollar","symbol":"${'$'}"},
             "price":529.05,"priceDate":"2026-10-16","changeOnDay":6.44,"changeOnDayPercent":0.012323,
-            "changeSinceAdded":29.05,"changeSinceAddedPercent":0.0581,"toTarget":0.134108},
+            "changeSinceAdded":29.05,"changeSinceAddedPercent":0.0581,"toTarget":0.134108,"targetHitOn":"2026-10-16"},
             {"id":"w2","asset":{"code":"NEW","id":"a2","name":"","market":{"code":"NZX","name":"NZX","currencyId":"NZD"},
             "assetCategory":{"id":"ETF","name":"Exchange Traded Fund"},"status":"Active"},
             "addedPrice":1,"addedOn":"2026-10-18","targetPrice":null,"currency":{"code":"NZD","name":"Dollar","symbol":"${'$'}"},
             "price":null,"priceDate":null,"changeOnDay":null,"changeOnDayPercent":null,
-            "changeSinceAdded":null,"changeSinceAddedPercent":null,"toTarget":null}
+            "changeSinceAdded":null,"changeSinceAddedPercent":null,"toTarget":null,"targetHitOn":null}
             ]}}
             """.trimIndent()
 

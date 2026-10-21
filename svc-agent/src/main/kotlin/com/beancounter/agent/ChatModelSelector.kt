@@ -3,11 +3,11 @@ package com.beancounter.agent
 import org.springframework.stereotype.Service
 
 /**
- * Maps a page context to an Anthropic model id. Mirrors [SystemPromptSelector]:
- * one tier per analytical domain so we don't pay Sonnet/Opus rates for chat-style
- * holding lookups that Haiku already answers well.
+ * Maps a page context to a model id by its [PageDomain], the same mapping
+ * [SystemPromptSelector] uses: one tier per analytical domain so we don't pay
+ * SMART rates for chat-style holding lookups the FAST tier already answers well.
  *
- * Default is FAST. Domains in [SMART_DOMAINS] escalate to the SMART tier.
+ * Default is FAST. [PageDomain.smart] domains escalate to the SMART tier.
  *
  * Tested against [ChatModelSelectorTest] — the table there is the contract.
  */
@@ -30,24 +30,5 @@ class ChatModelSelector(
      */
     fun reasonsFor(context: Map<String, Any>?): Boolean = isSmart(context)
 
-    private fun isSmart(context: Map<String, Any>?): Boolean {
-        val page = context?.get("page")?.toString()?.lowercase() ?: ""
-        return SMART_DOMAINS.any { it in page }
-    }
-
-    companion object {
-        // Substrings checked against `page.lowercase()`. Keep narrow:
-        // anything not listed defaults to FAST.
-        private val SMART_DOMAINS =
-            listOf(
-                "asset review",
-                "asset-review",
-                "holding analysis",
-                "holding-analysis",
-                "independence",
-                "retire",
-                "rebalanc",
-                "watchlist"
-            )
-    }
+    private fun isSmart(context: Map<String, Any>?): Boolean = PageDomain.of(context).smart
 }

@@ -31,10 +31,10 @@ data class HoldingAnalysisSubject(
 }
 
 /**
- * Maps a page context to its canned user question, the way
- * [SystemPromptSelector] maps it to the system prompt. A caller that sends no
- * question of its own is asked this one. Pages match exactly (case, hyphens
- * and spacing aside), so "Asset Review notes" is not an Asset Review.
+ * Maps a page context to its canned user question. A caller that sends no
+ * question of its own is asked this one. Pages match as a [CannedPage]:
+ * exactly (case, hyphens and spacing aside), so "Asset Review notes" is in
+ * the Asset Review [PageDomain] but is not an Asset Review page.
  *
  * See [PageQueries] for the question text.
  */
@@ -42,12 +42,10 @@ data class HoldingAnalysisSubject(
 class PageQuerySelector {
     fun queryFor(context: Map<String, Any>?): CannedQuery? {
         val fields = context.orEmpty()
-        return when (normalise(fields["page"])) {
-            normalise(PageQueries.ASSET_REVIEW) -> assetReview(fields)
-            normalise(
-                PageQueries.PORTFOLIO_REVIEW
-            ) -> CannedQuery(PageQueries.PORTFOLIO_REVIEW, PageQueries.DAILY_BRIEFING)
-            else -> null
+        return when (CannedPage.of(fields)) {
+            CannedPage.ASSET_REVIEW -> assetReview(fields)
+            CannedPage.PORTFOLIO_REVIEW -> CannedQuery(PageQueries.PORTFOLIO_REVIEW, PageQueries.DAILY_BRIEFING)
+            CannedPage.HOLDING_ANALYSIS, null -> null
         }
     }
 
@@ -59,7 +57,7 @@ class PageQuerySelector {
      */
     fun assetReviewSubject(context: Map<String, Any>?): AssetReviewSubject? {
         val fields = context.orEmpty()
-        if (normalise(fields["page"]) != normalise(PageQueries.ASSET_REVIEW)) return null
+        if (CannedPage.of(fields) != CannedPage.ASSET_REVIEW) return null
         // Text only: a non-string market would route differently once rebuilt as text (isFxPair).
         val rawTicker = fields["tickers"] as? String ?: return null
         val rawMarket = fields["market"] ?: ""
@@ -91,7 +89,7 @@ class PageQuerySelector {
      */
     fun holdingAnalysisSubject(context: Map<String, Any>?): HoldingAnalysisSubject? {
         val fields = context.orEmpty()
-        if (normalise(fields["page"]) != normalise(PageQueries.HOLDING_ANALYSIS)) return null
+        if (CannedPage.of(fields) != CannedPage.HOLDING_ANALYSIS) return null
         val asset =
             assetReviewSubject(fields + ("page" to PageQueries.ASSET_REVIEW))
                 ?: throw BusinessException(INVALID_HOLDING_ANALYSIS)
@@ -116,10 +114,10 @@ class PageQuerySelector {
 
     /** The kind of conversation a first turn on this page starts. */
     fun kindFor(context: Map<String, Any>?): ConversationKind =
-        when (normalise(context?.get("page"))) {
-            normalise(PageQueries.ASSET_REVIEW) -> ConversationKind.ASSET_REVIEW
-            normalise(PageQueries.HOLDING_ANALYSIS) -> ConversationKind.HOLDING_ANALYSIS
-            else -> ConversationKind.CHAT
+        when (CannedPage.of(context)) {
+            CannedPage.ASSET_REVIEW -> ConversationKind.ASSET_REVIEW
+            CannedPage.HOLDING_ANALYSIS -> ConversationKind.HOLDING_ANALYSIS
+            CannedPage.PORTFOLIO_REVIEW, null -> ConversationKind.CHAT
         }
 
     private fun assetReview(fields: Map<String, Any>): CannedQuery? {
@@ -136,23 +134,12 @@ class PageQuerySelector {
         key: String
     ): String = fields[key]?.toString().orEmpty().trim()
 
-    private fun normalise(page: Any?): String =
-        page
-            ?.toString()
-            .orEmpty()
-            .trim()
-            .lowercase()
-            .replace('-', ' ')
-            .replace(WHITESPACE, " ")
-
     companion object {
         /** The 400 a malformed Holding Analysis request gets. A contract: clients key off it. */
         const val INVALID_HOLDING_ANALYSIS = "invalid-holding-analysis"
 
         /** The 400 a Holding Analysis asked inside an Asset Review conversation gets. Also a contract. */
         const val HOLDING_IN_ASSET_REVIEW = "holding-analysis-in-asset-review"
-
-        private val WHITESPACE = Regex("\\s+")
 
         // Listing symbols as markets quote them: BRK.B, BRK-B, ^GSPC (caret leads only), NZDSGD, D05.
         private val TICKER = Regex("^\\^?[A-Z0-9][A-Z0-9.\\-]{0,31}$")

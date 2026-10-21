@@ -27,8 +27,7 @@ data class HoldingAnalysisSubject(
     val portfolioCode: String
 ) {
     /** The asset alone, which is what its Asset Review is about. */
-    val asset: AssetReviewSubject
-        get() = AssetReviewSubject(ticker, market)
+    val asset: AssetReviewSubject = AssetReviewSubject(ticker, market)
 }
 
 /**
@@ -86,7 +85,9 @@ class PageQuerySelector {
      * The holding a Holding Analysis page asks about, or null for any other
      * page. Its ticker and market follow the Asset Review subject's rules and
      * its portfolio code must be a plain code: anything else on the page is a
-     * [BusinessException] (400) carrying [INVALID_HOLDING_ANALYSIS].
+     * [BusinessException] (400) carrying [INVALID_HOLDING_ANALYSIS]. A
+     * currency pair is refused the same way: its review is the FX review, with
+     * other tools, and a pair is not a holding to analyse.
      */
     fun holdingAnalysisSubject(context: Map<String, Any>?): HoldingAnalysisSubject? {
         val fields = context.orEmpty()
@@ -94,6 +95,7 @@ class PageQuerySelector {
         val asset =
             assetReviewSubject(fields + ("page" to PageQueries.ASSET_REVIEW))
                 ?: throw BusinessException(INVALID_HOLDING_ANALYSIS)
+        if (isFxPair(mapOf("market" to asset.market))) throw BusinessException(INVALID_HOLDING_ANALYSIS)
         val portfolioCode =
             (fields["portfolioCode"] as? String)
                 ?.trim()

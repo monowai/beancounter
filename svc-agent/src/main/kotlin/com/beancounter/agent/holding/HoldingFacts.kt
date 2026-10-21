@@ -1,5 +1,6 @@
 package com.beancounter.agent.holding
 
+import com.beancounter.agent.PageQueries
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -11,7 +12,9 @@ import java.time.LocalDate
  * same rule [com.beancounter.agent.tools.ResponseScrubber] keeps for tools.
  *
  * [weight] is the PORTFOLIO-bucket weight, a single-currency figure. Unit
- * prices are per unit in the asset's [tradeCurrency]. [unrealisedGainRatio]
+ * prices — [averageCost] and [currentPrice] — both come from the TRADE
+ * bucket, so the entry-versus-now comparison is in one currency, the asset's
+ * [tradeCurrency]. [unrealisedGainRatio]
  * is svc-position's unrealised gain over its cost, both in the portfolio
  * currency; null when there is no cost to measure it against.
  */
@@ -35,6 +38,7 @@ data class HoldingFacts(
         private const val MAX_PRICE_SCALE = 4
         private const val PERCENT_SCALE = 1
         private const val RATIO_SCALE = 6
+        private val WHITESPACE = Regex("\\s+")
 
         /** [gain] over [cost], or null when there is no cost to measure it against. */
         fun ratio(
@@ -43,11 +47,14 @@ data class HoldingFacts(
         ): BigDecimal? = if (cost.signum() > 0) gain.divide(cost, RATIO_SCALE, RoundingMode.HALF_UP) else null
     }
 
-    /** A compact block of facts, one per line, ready for a prompt. */
+    /**
+     * A compact block of facts, one per line, ready for a prompt. Names are
+     * free text, so each is kept to one line with no fence tags in it.
+     */
     fun describe(): String =
         buildList {
-            add("- Portfolio: $portfolioCode ($portfolioName), portfolio currency $portfolioCurrency")
-            add("- Asset: $assetCode ($assetName) on $market, trade currency $tradeCurrency")
+            add("- Portfolio: $portfolioCode (${plain(portfolioName)}), portfolio currency $portfolioCurrency")
+            add("- Asset: $assetCode (${plain(assetName)}) on $market, trade currency $tradeCurrency")
             add("- Weight in portfolio: ${percent(weight)} (measured in $portfolioCurrency)")
             add("- Average cost: ${price(averageCost)} $tradeCurrency per unit")
             currentPrice?.let {
@@ -64,6 +71,9 @@ data class HoldingFacts(
                 RoundingMode.HALF_UP
             ).toPlainString()
 
+    private fun plain(name: String): String = PageQueries.unfenced(name).replace(WHITESPACE, " ").trim()
+
+    /** [ratio] is a fraction: 0.125 reads as 12.5%. */
     private fun percent(ratio: BigDecimal): String =
         ratio.movePointRight(2).setScale(PERCENT_SCALE, RoundingMode.HALF_UP).toPlainString() + "%"
 }

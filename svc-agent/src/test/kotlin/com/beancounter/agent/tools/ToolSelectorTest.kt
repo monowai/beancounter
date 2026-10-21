@@ -46,6 +46,17 @@ class ToolSelectorTest {
                     .map { it.name }
             }.toSet()
 
+    /** Each `@Tool` method's parameter names, read off its real class. */
+    private fun toolParams(tools: Array<Any>): Map<String, List<String>> =
+        tools
+            .flatMap { tool ->
+                generateSequence<Class<*>>(tool.javaClass) { it.superclass }
+                    .first { !it.name.contains("MockitoMock") }
+                    .declaredMethods
+                    .filter { it.isAnnotationPresent(org.springframework.ai.tool.annotation.Tool::class.java) }
+                    .map { method -> method.name to method.parameters.map { it.name } }
+            }.toMap()
+
     @Test
     fun `news sentiment page ships news, market, and macro tools`() {
         // marketTools is included so the model can call getCurrentPrice
@@ -233,5 +244,28 @@ class ToolSelectorTest {
         assertThat(registered).contains("getHolding", "getPositions", "listPortfolios", "getNews")
         assertThat(registered).allSatisfy { assertThat(domain).contains("`$it") }
         assertThat(called).isSubsetOf(registered)
+    }
+
+    @Test
+    fun `the holding analysis prompt calls each tool with its real parameter names`() {
+        val params = toolParams(selector.selectTools(mapOf("page" to "Holding Analysis")))
+        val domain =
+            com.beancounter.agent.DomainSystemPrompts.HOLDING_ANALYSIS
+                .substringAfter("## Domain: Holding Analysis")
+        val calls =
+            Regex("`([a-z][A-Za-z]+)\\(([^)`]*)\\)")
+                .findAll(domain)
+                .map { it.groupValues[1] to it.groupValues[2] }
+                .toList()
+
+        assertThat(params["getHolding"]).containsExactly("portfolioCode", "assetCode", "market")
+        assertThat(calls).isNotEmpty.allSatisfy { (tool, args) ->
+            val named =
+                args
+                    .split(",")
+                    .map { it.trim().removeSuffix("?") }
+                    .filter { it.isNotEmpty() }
+            assertThat(params.getValue(tool)).describedAs(tool).containsAll(named)
+        }
     }
 }

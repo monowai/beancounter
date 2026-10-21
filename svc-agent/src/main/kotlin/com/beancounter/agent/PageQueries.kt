@@ -30,16 +30,29 @@ object PageQueries {
         val marketLabel = if (subject.market.isBlank()) "" else " listed on ${subject.market}"
         return listOf(
             "Asset Review of ${subject.ticker}$marketLabel, as of $reviewDate:",
-            "<asset-review>",
-            review.trim(),
-            "</asset-review>",
+            "<$REVIEW_TAG>",
+            unfenced(review.trim()),
+            "</$REVIEW_TAG>",
             "",
             "The user's holding (figures from their portfolio records; cite them, never recompute them):",
+            "<$HOLDING_TAG>",
             facts.describe(),
+            "</$HOLDING_TAG>",
             "",
             HOLDING_ANALYSIS_QUESTION
         ).joinToString("\n")
     }
+
+    private const val REVIEW_TAG = "asset-review"
+    private const val HOLDING_TAG = "holding"
+    private val FENCE = Regex("<\\s*/?\\s*($REVIEW_TAG|$HOLDING_TAG)\\s*>", RegexOption.IGNORE_CASE)
+
+    /**
+     * [text] with every opening or closing fence tag taken out, so text
+     * inside a fence (a shared review, an asset's name) cannot close it and
+     * speak outside it.
+     */
+    fun unfenced(text: String): String = FENCE.replace(text, "")
 
     private const val HOLDING_ANALYSIS_QUESTION =
         "Produce a Holding Analysis: assess this position in light of the Asset Review above. Cover " +

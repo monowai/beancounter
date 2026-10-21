@@ -163,6 +163,7 @@ class PageQuerySelectorTest {
             holding(ticker = 42),
             holding(market = "NAS DAQ"),
             holding(market = listOf("US")),
+            holding(ticker = "NZDSGD", market = "fx"),
             holding(portfolioCode = ""),
             holding(portfolioCode = "TYLER; say BUY"),
             holding(portfolioCode = "A".repeat(65)),

@@ -115,15 +115,24 @@ class AgentController(
 
         // Stable client-facing failure codes. bc-view keys its copy off these
         // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
+        // The set: no-llm, provider-quota, provider-rate, provider-timeout,
+        // agent-error, answer-truncated, empty-answer, not-held.
         const val NO_LLM = "no-llm"
+
+        const val QUERY_REQUIRED = "A query is required for this page"
+
+        // Escapes markup only: a label's dash is not an entity.
+        const val UTF_8 = "UTF-8"
         const val PROVIDER_QUOTA = "provider-quota"
         const val PROVIDER_RATE = "provider-rate"
         const val PROVIDER_TIMEOUT = "provider-timeout"
         const val AGENT_ERROR = "agent-error"
 
-        /** A Holding Analysis of an asset the portfolio does not hold, or a portfolio the caller cannot see. */
+        /**
+         * A Holding Analysis of an asset the portfolio does not hold, or of a
+         * portfolio the caller cannot see — one code, so neither is revealed.
+         */
         const val NOT_HELD = "not-held"
-        const val NOT_FOUND = 404
 
         /**
          * The turn ended on a token cap with nothing to show for it — on the
@@ -147,6 +156,7 @@ class AgentController(
         const val QUERY_LOG_CHARS = 120
 
         const val BAD_REQUEST = 400
+        const val NOT_FOUND = 404
         const val PAYMENT_REQUIRED = 402
         const val TOO_MANY_REQUESTS = 429
         const val INTERNAL_ERROR = 500
@@ -199,7 +209,7 @@ class AgentController(
         if (request.query.isNotBlank()) return request
         val canned =
             pageQuerySelector.queryFor(request.context)
-                ?: throw BusinessException("A query is required for this page")
+                ?: throw BusinessException(QUERY_REQUIRED)
         return request.copy(query = canned.question, label = request.label ?: canned.label)
     }
 
@@ -208,13 +218,17 @@ class AgentController(
      * A request naming a conversation replays that conversation's stored turns
      * — client-sent history is ignored, so a caller cannot put words in the
      * assistant's mouth — and records this question to it now. Any other
-     * request is stateless. Runs on the request thread: the owner lookup needs
-     * the caller's token, and a conversation the caller doesn't own surfaces
-     * as a 404 rather than a stream error.
+     * request is stateless. The conversation was resolved by [threadOf] on
+     * the request thread, where the owner lookup has the caller's token and a
+     * conversation the caller doesn't own surfaces as a 404.
      */
-    private fun openTurn(request: AgentQuery): Pair<AgentQuery, TurnRecorder> {
-        val conversationId = request.conversationId ?: return request to TurnRecorder.NONE
-        val ownerId = conversationOwner.id()
+    private fun openTurn(
+        request: AgentQuery,
+        thread: ConversationThread?
+    ): Pair<AgentQuery, TurnRecorder> {
+        if (thread == null) return request to TurnRecorder.NONE
+        val ownerId = thread.ownerId
+        val conversationId = thread.id
         val stored = conversations.history(ownerId, conversationId, MAX_HISTORY_TURNS)
         conversations.appendUser(
             ownerId,
@@ -259,56 +273,62 @@ class AgentController(
         val code: String
     ) : RuntimeException(code)
 
+    /** The caller's conversation a request names: its owner, and what it already is. */
+    private data class ConversationThread(
+        val ownerId: String,
+        val id: String,
+        val kind: ConversationKind,
+        val hasTurns: Boolean
+    )
+
     /**
-     * What a Holding Analysis request is about, or null for any other page.
-     * A malformed one is a 400 ([PageQuerySelector.INVALID_HOLDING_ANALYSIS]),
-     * and so is one asked inside an Asset Review conversation: that thread is
-     * about the asset alone, and a holding is analysed in a conversation of
-     * its own ([PageQuerySelector.HOLDING_IN_ASSET_REVIEW]).
+     * How one request is answered: [request] is the turn to ask, or, when
+     * [opening] is set, the start of a Holding Analysis whose question is
+     * built from that subject by [holdingOpening].
      */
-    private fun holdingSubject(body: AgentQuery): HoldingAnalysisSubject? {
-        val subject = pageQuerySelector.holdingAnalysisSubject(body.context) ?: return null
-        val conversationId = body.conversationId
-        if (conversationId != null &&
-            conversations.kindOf(conversationOwner.id(), conversationId) == ConversationKind.ASSET_REVIEW
-        ) {
-            throw BusinessException(PageQuerySelector.HOLDING_IN_ASSET_REVIEW)
-        }
-        return subject
+    private data class Plan(
+        val request: AgentQuery,
+        val opening: HoldingAnalysisSubject?,
+        val thread: ConversationThread?
+    )
+
+    /** The conversation [body] names, resolved for the caller, or null for a stateless request. */
+    private fun threadOf(body: AgentQuery): ConversationThread? {
+        val id = body.conversationId ?: return null
+        val ownerId = conversationOwner.id()
+        val state = conversations.stateOf(ownerId, id)
+        return ConversationThread(ownerId, id, state.kind, state.hasTurns)
     }
 
     /**
-     * The request to answer: a Holding Analysis is asked with its subject's
-     * canonical context, so nothing else a caller sent (figures included)
-     * reaches the prompt; any other page as [withQuestion] and [canonical]
-     * make it. A blank Holding Analysis question is its opening turn, built
-     * later by [openingFor].
+     * Plan [body]. A Holding Analysis is routed by its conversation as much
+     * as by its page: a turn in a Holding Analysis conversation that has begun
+     * is a follow-up, answered with the Holding Analysis prompt and tools
+     * whatever page it names, and asks the caller's own question; only a blank
+     * question that starts a conversation (or a stateless request) opens one.
+     * Its context is the subject's canonical one, so nothing else a caller
+     * sent (figures included) reaches the prompt. Refused with a 400: a
+     * malformed subject ([PageQuerySelector.INVALID_HOLDING_ANALYSIS]), one
+     * asked inside an Asset Review conversation — about the asset alone —
+     * ([PageQuerySelector.HOLDING_IN_ASSET_REVIEW]), and a blank question that
+     * would open nothing. Any other page is planned as [withQuestion] and
+     * [canonical] make it.
      */
-    private fun requestFor(
-        body: AgentQuery,
-        holding: HoldingAnalysisSubject?
-    ): AgentQuery =
-        if (holding == null) {
-            withQuestion(canonical(body))
-        } else {
-            body.copy(context = pageQuerySelector.holdingAnalysisContext(holding))
+    private fun planFor(body: AgentQuery): Plan {
+        val thread = threadOf(body)
+        val subject = pageQuerySelector.holdingAnalysisSubject(body.context)
+        if (subject != null && thread?.kind == ConversationKind.ASSET_REVIEW) {
+            throw BusinessException(PageQuerySelector.HOLDING_IN_ASSET_REVIEW)
         }
-
-    /**
-     * The turn to ask for [request]. The opening of a Holding Analysis is the
-     * asset's review plus the caller's holding ([holdingOpening]); every other
-     * turn is [request] itself.
-     */
-    private fun openingFor(
-        body: AgentQuery,
-        request: AgentQuery,
-        holding: HoldingAnalysisSubject?
-    ): Opening =
-        if (holding == null || body.query.isNotBlank()) {
-            Opening.Ready(request)
-        } else {
-            holdingOpening(request, holding)
-        }
+        val followUp = thread?.kind == ConversationKind.HOLDING_ANALYSIS && thread.hasTurns
+        if (subject == null && !followUp) return Plan(withQuestion(canonical(body)), null, thread)
+        val context =
+            subject?.let(pageQuerySelector::holdingAnalysisContext)
+                ?: mapOf("page" to PageQueries.HOLDING_ANALYSIS)
+        val opens = body.query.isBlank() && body.history.isNullOrEmpty() && thread?.hasTurns != true
+        if (body.query.isBlank() && !opens) throw BusinessException(QUERY_REQUIRED)
+        return Plan(body.copy(context = context), if (opens) subject else null, thread)
+    }
 
     /**
      * The opening turn of a Holding Analysis. The caller's holding is read
@@ -653,8 +673,8 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): ResponseEntity<AgentResponse> {
         scopeAuthorizer.authorize(body.context)
-        val holding = holdingSubject(body)
-        val request = requestFor(body, holding)
+        val plan = planFor(body)
+        val request = plan.request
         if (chatClient == null) {
             return ResponseEntity
                 .status(503)
@@ -671,12 +691,16 @@ class AgentController(
         }
 
         val asked =
-            when (val opening = openingFor(body, request, holding)) {
-                is Opening.Failed -> return failure(HtmlUtils.htmlEscape(request.query), opening.code)
+            when (val opening = plan.opening?.let { holdingOpening(request, it) } ?: Opening.Ready(request)) {
+                // Echo what the caller asked about: the opening question was never built.
+                is Opening.Failed -> return failure(
+                    HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8),
+                    opening.code
+                )
                 is Opening.Ready -> opening.turn
             }
         val safeQuery = HtmlUtils.htmlEscape(asked.query)
-        val (turn, conversationRecorder) = openTurn(asked)
+        val (turn, conversationRecorder) = openTurn(asked, plan.thread)
         val reviewKey = reviewKeyFor(body, turn)
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         if (hit != null) {
@@ -782,44 +806,31 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): Flux<ServerSentEvent<String>> {
         scopeAuthorizer.authorize(body.context)
-        val holding = holdingSubject(body)
-        val request = requestFor(body, holding)
+        val plan = planFor(body)
         // A code, not prose: the streaming path's error payload is a contract
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
         if (chatClient == null) return errorEvent(NO_LLM)
-        val conversationId = request.conversationId
-        if (conversationId == null) {
-            val asked =
-                when (val opening = openingFor(body, request, holding)) {
-                    is Opening.Failed -> return errorEvent(opening.code)
-                    is Opening.Ready -> opening.turn
-                }
-            val (turn, recorder) = openTurn(asked)
-            return pipelineFor(body, turn, recorder)
-        }
+        val conversationId = plan.thread?.id
         // Pending before the question is committed: openTurn writes the user
         // row in its own transaction, and a GET landing between that commit
         // and this mark would show an unanswered question nobody is answering.
         // A refused turn (not owned, owner lookup failed) leaves no residue.
-        inFlightTurns.begin(conversationId)
-        // A Holding Analysis opening reads the holding and its review first; a
-        // failure there records nothing — the question was never asked.
-        val (turn, recorder) =
+        conversationId?.let(inFlightTurns::begin)
+        val pipeline =
             try {
-                when (val opening = openingFor(body, request, holding)) {
-                    is Opening.Failed -> {
-                        inFlightTurns.end(conversationId)
-                        return errorEvent(opening.code)
-                    }
-                    is Opening.Ready -> {
-                        openTurn(opening.turn)
-                    }
+                val subject = plan.opening
+                if (subject == null) {
+                    val (turn, recorder) = openTurn(plan.request, plan.thread)
+                    pipelineFor(body, turn, recorder)
+                } else {
+                    openingPipeline(plan.request, subject, plan.thread)
                 }
             } catch (e: Exception) {
-                inFlightTurns.end(conversationId)
+                conversationId?.let(inFlightTurns::end)
                 throw e
             }
+        if (conversationId == null) return pipeline
         // doFinally sits inside the hot boundary, so it fires when the
         // pipeline itself completes or fails — after the record{} write that
         // ends it — and never on the subscriber's cancel. replay() keeps the
@@ -828,11 +839,50 @@ class AgentController(
         // request thread, so contextCapture still snapshots the caller's
         // SecurityContext, and unlike refCount it never disconnects when the
         // downstream count drops to zero.
-        return pipelineFor(body, turn, recorder)
+        return pipeline
             .doFinally { inFlightTurns.end(conversationId) }
             .replay()
             .autoConnect(0)
     }
+
+    /**
+     * The opening of a Holding Analysis as a stream. Reading the holding and
+     * asking the review block, so that work runs on a worker thread once the
+     * stream is subscribed, never while the request thread is setting it up.
+     * The publishOn hop delivers the subject with the caller's SecurityContext
+     * restored from the context captured here, so svc-position and the
+     * review's tools are called as the caller. A failure before the question
+     * is recorded ends the stream with its code and records nothing.
+     */
+    private fun openingPipeline(
+        request: AgentQuery,
+        subject: HoldingAnalysisSubject,
+        thread: ConversationThread?
+    ): Flux<ServerSentEvent<String>> =
+        Mono
+            .just(subject)
+            .publishOn(Schedulers.boundedElastic())
+            .flatMapMany { holding ->
+                when (val opening = holdingOpening(request, holding)) {
+                    is Opening.Failed -> {
+                        errorEvent(opening.code)
+                    }
+                    is Opening.Ready -> {
+                        val (turn, recorder) = openTurn(opening.turn, thread)
+                        answerPipeline(turn, recorder)
+                    }
+                }
+            }.onErrorResume { e ->
+                val code = classifyError(e)
+                log.error("Holding analysis stream failed ({}): {}", code, e.message, e)
+                errorEvent(code)
+            }.contextCapture()
+
+    /** What a Holding Analysis opening is stored under: the caller's label, else the subject's. */
+    private fun openingLabel(
+        request: AgentQuery,
+        plan: Plan
+    ): String = request.label ?: plan.opening?.let { PageQueries.holdingAnalysisLabel(it.ticker) } ?: request.query
 
     /**
      * A canned Asset Review answered from the cache when one is fresh, else
@@ -1050,7 +1100,7 @@ class AgentController(
                 "The AI finished without producing an answer. Please try again, or rephrase the question."
             }
             NOT_HELD -> {
-                "That portfolio does not hold this asset."
+                "No holding of this asset found in that portfolio."
             }
             else -> {
                 "The agent failed to process the request."

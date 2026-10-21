@@ -36,8 +36,8 @@ class HoldingFactsReader(
 
     override fun find(subject: HoldingAnalysisSubject): HoldingFacts? {
         val positions = positionsOf(subject.portfolioCode) ?: return null
-        val position =
-            positions.positions.values.singleOrNull {
+        val matched =
+            positions.positions.values.filter {
                 it.asset.code.equals(subject.ticker, ignoreCase = true) &&
                     (
                         subject.market.isEmpty() ||
@@ -45,7 +45,17 @@ class HoldingFactsReader(
                                 .equals(subject.market, ignoreCase = true)
                     ) &&
                     it.quantityValues.hasPosition()
-            } ?: return null
+            }
+        if (matched.size > 1) {
+            // Only when no market was sent: a ticker held on more than one market is not one holding.
+            log.debug(
+                "Holding analysis of {} in {} matched several markets: {}",
+                subject.ticker,
+                subject.portfolioCode,
+                matched.map { it.asset.market.code }
+            )
+        }
+        val position = matched.singleOrNull() ?: return null
         return factsOf(positions, position)
     }
 
@@ -65,8 +75,17 @@ class HoldingFactsReader(
         positions: Positions,
         position: Position
     ): HoldingFacts? {
-        val trade = position.moneyValues[Position.In.TRADE] ?: return null
-        val inPortfolio = position.moneyValues[Position.In.PORTFOLIO] ?: return null
+        val trade = position.moneyValues[Position.In.TRADE]
+        val inPortfolio = position.moneyValues[Position.In.PORTFOLIO]
+        if (trade == null || inPortfolio == null) {
+            log.debug(
+                "Holding analysis of {} in {} found the position without its {} valuation",
+                position.asset.code,
+                positions.portfolio.code,
+                if (trade == null) Position.In.TRADE else Position.In.PORTFOLIO
+            )
+            return null
+        }
         val portfolio = positions.portfolio
         val close = trade.priceData.close.takeIf { it.signum() > 0 }
         return HoldingFacts(

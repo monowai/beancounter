@@ -67,6 +67,8 @@ interface ConversationMessageRepository : JpaRepository<ConversationMessage, Str
 
     fun countByConversationId(conversationId: String): Int
 
+    fun existsByConversationId(conversationId: String): Boolean
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from ConversationMessage m where m.conversationId = :conversationId")
     fun deleteOfConversation(conversationId: String): Int

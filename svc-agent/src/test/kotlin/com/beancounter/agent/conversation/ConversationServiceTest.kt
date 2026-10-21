@@ -117,6 +117,19 @@ class ConversationServiceTest {
         assertThat(service.list(owner, 0, 10).single().kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
     }
 
+    @Autowired
+    private lateinit var jdbc: org.springframework.jdbc.core.JdbcTemplate
+
+    @Test
+    fun `should refuse a kind the schema does not know`() {
+        val insert =
+            "insert into conversation (id, owner_id, title, created_at, updated_at, hidden, kind) " +
+                "values ('bogus-kind', ?, '', current_timestamp, current_timestamp, false, 'BOGUS')"
+
+        assertThatThrownBy { jdbc.update(insert, owner) }
+            .isInstanceOf(org.springframework.dao.DataIntegrityViolationException::class.java)
+    }
+
     @Test
     fun `should not turn a chat into a review after its first turn`() {
         val id = service.create(owner).id

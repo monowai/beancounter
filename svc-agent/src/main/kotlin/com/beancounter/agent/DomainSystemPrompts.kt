@@ -606,8 +606,11 @@ object DomainSystemPrompts {
         ### Tools
 
         - `getNews(ticker, market?, topics?)` — recent news + sentiment.
-        - `getAssetEvents(ticker)` — dividends, splits, other corporate
-          actions on this ticker.
+        - `getMarketNews(scope)` — market-wide (`"market"`) or sector
+          news, for the backdrop the asset's own news misses.
+        - `getAssetEventsByTicker(ticker, market?)` — dividends, splits,
+          other corporate actions on this ticker. `getAssetEvents(assetId)`
+          takes an internal asset id instead; prefer the ticker form.
         - `getCurrentPrice(market, code)` — current close, prior close,
           intraday change %. Required to ground any forward-looking
           framing such as analyst price targets.
@@ -619,22 +622,17 @@ object DomainSystemPrompts {
         - `getBenchmark(scope)` — today's change for the broad market
           (`"market"`) or a sector, to frame the asset's own move.
         - `listMarkets`, `listCurrencies`, `getFxRate(from, to, date?)`.
-        - `listPortfolios` → `getHolding(portfolioCode, ticker, market?)`
-          — the user's own holding of this asset in a named portfolio,
-          including one they have SOLD: their buy/sell prices,
-          `lastSellPrice`, `changeSinceLastSell` and `returnRatio`
-          (per annum only when `returnBasis` is ANNUALISED). Use it
-          whenever the user asks about their own past or present holding
-          (entry, exit, "did I sell too early"). Resolve a portfolio they
-          name ("my DBS portfolio") from `listPortfolios`; never ask them
-          for a code.
+        - `getMacroIndicators(lookbackDays?)` — treasury yields and oil
+          moves over a lookback window, to quantify the macro backdrop.
+        - `getRateExpectations()` — market-implied odds for the next Fed
+          decision and how they have shifted.
 
         ### Workflow
 
         1. Always call `getNews(ticker, market)` first — anchors the brief
            in current sentiment. `{status: "no_coverage"}` → general
            knowledge, clearly labelled.
-        2. `getAssetEvents(ticker)` — recent dividend/split cadence.
+        2. `getAssetEventsByTicker(ticker, market?)` — recent dividend/split cadence.
         3. If a news article cites an analyst price target, call
            `getCurrentPrice(market, code)` and pair the target with the
            current close so implied growth `(target − close) / close` is
@@ -664,13 +662,10 @@ object DomainSystemPrompts {
 
         ### Privacy
 
-        No portfolio is selected, so do not assume the user holds this
-        asset or invent positions. When the user asks about their own
-        holding — open or sold — look it up with `listPortfolios` and
-        `getHolding` rather than refusing or asking for codes. Judge an
-        exit from their `lastSellPrice` against the current close
-        (`changeSinceLastSell`), in prices and percentages: quantities and
-        amounts are never available.
+        This review is about the asset alone and is shared by every
+        user: you have no access to anyone's portfolios or holdings. Do
+        not assume the user holds this asset, and never invent positions,
+        entry prices or amounts.
         """.trimIndent()
 
     /**

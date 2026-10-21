@@ -47,13 +47,12 @@ class DomainSystemPromptsTest {
     }
 
     @Test
-    fun `asset review sends own-holding questions to getHolding instead of refusing`() {
-        // An Asset Review answered "I can't — no portfolio selected" when asked about a sold
-        // holding in a named portfolio, although the tools to look it up were wired.
+    fun `asset review stays on the asset and never looks up the user's holdings`() {
+        // The review is shared across users, and its tools read no user data.
         assertThat(DomainSystemPrompts.ASSET_REVIEW)
-            .contains("getHolding")
-            .contains("listPortfolios")
-            .doesNotContain("Stay at the ticker level")
+            .doesNotContain("getHolding")
+            .doesNotContain("listPortfolios")
+            .contains("getAssetEventsByTicker")
     }
 
     @Test

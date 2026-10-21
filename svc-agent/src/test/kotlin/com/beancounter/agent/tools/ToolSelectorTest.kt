@@ -15,6 +15,7 @@ class ToolSelectorTest {
     private val newsTools = mock<NewsTools>()
     private val macroTools = mock<MacroTools>()
     private val eventTools = mock<EventTools>()
+    private val assetEventTools = mock<AssetEventTools>()
     private val retireTools = mock<RetireTools>()
     private val rebalanceTools = mock<RebalanceTools>()
     private val watchlistTools = mock<WatchlistTools>()
@@ -28,10 +29,22 @@ class ToolSelectorTest {
             newsTools,
             macroTools,
             eventTools,
+            assetEventTools,
             retireTools,
             rebalanceTools,
             watchlistTools
         )
+
+    /** The `@Tool` method names a tool object exposes to the model, read off its real class. */
+    private fun toolNames(tools: Array<Any>): Set<String> =
+        tools
+            .flatMap { tool ->
+                generateSequence<Class<*>>(tool.javaClass) { it.superclass }
+                    .first { !it.name.contains("MockitoMock") }
+                    .declaredMethods
+                    .filter { it.isAnnotationPresent(org.springframework.ai.tool.annotation.Tool::class.java) }
+                    .map { it.name }
+            }.toSet()
 
     @Test
     fun `news sentiment page ships news, market, and macro tools`() {
@@ -62,9 +75,14 @@ class ToolSelectorTest {
     }
 
     @Test
-    fun `asset review can look up the user's own holding of the asset, open or sold`() {
-        val tools = selector.selectTools(mapOf("page" to "Asset Review"))
-        assertThat(tools).contains(portfolioTools, positionTools, holdingTools)
+    fun `asset review reads only the asset, never the caller's portfolios, positions or holdings`() {
+        // The review is about the asset alone, so it can be cached for every user.
+        val userData = toolNames(arrayOf(portfolioTools, positionTools, holdingTools, eventTools))
+        val names = toolNames(selector.selectTools(mapOf("page" to "Asset Review")))
+
+        assertThat(userData).contains("listPortfolios", "getHolding", "loadPortfolioEvents")
+        assertThat(names).contains("getNews", "getAssetEventsByTicker", "getCurrentPrice", "getMacroIndicators")
+        assertThat(names).doesNotContainAnyElementsOf(userData)
     }
 
     @Test
@@ -80,6 +98,7 @@ class ToolSelectorTest {
             marketTools,
             macroTools,
             eventTools,
+            assetEventTools,
             newsTools
         )
         assertThat(tools).doesNotContain(retireTools, rebalanceTools)
@@ -96,7 +115,7 @@ class ToolSelectorTest {
             macroTools,
             retireTools
         )
-        assertThat(tools).doesNotContain(rebalanceTools, eventTools, newsTools)
+        assertThat(tools).doesNotContain(rebalanceTools, eventTools, assetEventTools, newsTools)
     }
 
     @Test
@@ -110,7 +129,7 @@ class ToolSelectorTest {
             macroTools,
             rebalanceTools
         )
-        assertThat(tools).doesNotContain(retireTools, eventTools, newsTools)
+        assertThat(tools).doesNotContain(retireTools, eventTools, assetEventTools, newsTools)
     }
 
     @Test
@@ -123,24 +142,22 @@ class ToolSelectorTest {
             marketTools,
             macroTools,
             eventTools,
+            assetEventTools,
             newsTools
         )
         assertThat(tools).doesNotContain(retireTools, rebalanceTools)
     }
 
     @Test
-    fun `asset review page ships wealth baseline plus event and news tools`() {
+    fun `asset review page ships market, macro, asset event and news tools`() {
         // Asset Review is a deep-dive on a single ticker triggered from
         // the assets/lookup screen — needs market context, news, and
-        // corporate-event history. No retire/rebalance.
+        // corporate-event history. No user data, no retire/rebalance.
         val tools = selector.selectTools(mapOf("page" to "Asset Review"))
         assertThat(tools).containsExactlyInAnyOrder(
-            portfolioTools,
-            positionTools,
-            holdingTools,
             marketTools,
             macroTools,
-            eventTools,
+            assetEventTools,
             newsTools
         )
         assertThat(tools).doesNotContain(retireTools, rebalanceTools)
@@ -157,6 +174,7 @@ class ToolSelectorTest {
             macroTools,
             newsTools,
             eventTools,
+            assetEventTools,
             retireTools,
             rebalanceTools,
             watchlistTools
@@ -166,6 +184,22 @@ class ToolSelectorTest {
     @Test
     fun `empty context ships every tool`() {
         val tools = selector.selectTools(emptyMap())
-        assertThat(tools).contains(eventTools, retireTools, rebalanceTools)
+        assertThat(tools).contains(eventTools, assetEventTools, retireTools, rebalanceTools)
+    }
+
+    @Test
+    fun `the asset review prompt names exactly the tools the page registers`() {
+        val registered = toolNames(selector.selectTools(mapOf("page" to "Asset Review")))
+        val domain =
+            com.beancounter.agent.DomainSystemPrompts.ASSET_REVIEW
+                .substringAfter("## Domain: Asset Review")
+        val called =
+            Regex("`([a-z][A-Za-z]+)\\(")
+                .findAll(domain)
+                .map { it.groupValues[1] }
+                .toSet()
+
+        assertThat(registered).allSatisfy { assertThat(domain).contains("`$it") }
+        assertThat(called).isSubsetOf(registered)
     }
 }

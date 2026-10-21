@@ -79,6 +79,34 @@ class LlmMetrics(
     }
 
     /**
+     * Record a turn answered from the Asset Review cache: no model ran, so
+     * there are no tokens, only that the store served it and which model's
+     * answer it was. Like [capture], on a span this class owns, parented off
+     * [parent] — so cached turns are countable on the streaming path too.
+     */
+    fun cached(
+        mode: Mode,
+        modelId: String?,
+        parent: Span = Span.current()
+    ) {
+        @Suppress("TooGenericExceptionCaught")
+        try {
+            val builder = tracer.spanBuilder(SPAN_NAME)
+            if (parent.isRecording) builder.setParent(Context.current().with(parent))
+            val span = builder.startSpan()
+            try {
+                span.setAttribute(ATTR_CACHED, true)
+                span.setAttribute(ATTR_MODE, mode.tag)
+                if (!modelId.isNullOrBlank()) span.setAttribute(ATTR_MODEL, modelId)
+            } finally {
+                span.end()
+            }
+        } catch (e: Exception) {
+            log.debug("LlmMetrics.cached failed: {}", e.message)
+        }
+    }
+
+    /**
      * Emit a span this class owns, rather than only decorating whichever span
      * happens to be current.
      *
@@ -153,6 +181,7 @@ class LlmMetrics(
         private const val ATTR_TOOLS = "agent.tools"
         private const val ATTR_MODE = "agent.mode"
         private const val ATTR_ELAPSED_MS = "agent.elapsed_ms"
+        private const val ATTR_CACHED = "agent.cached"
 
         // Tokens use the `llm.*` namespace so Sentry's GenAI dashboards
         // and the standard `has:llm.total_tokens` event filter pick them

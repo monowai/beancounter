@@ -20,6 +20,13 @@ beancounter:
     # they carry the per-request token telemetry (beancounter#1129). Prefix
     # match: covers /agent/query and /agent/query/stream.
     always-sample-paths: /agent/query
+  agent:
+    # Canned Asset Reviews are answered once per user, asset, day and model
+    # (AssetReviewCacheService); repeats within max-age are served from the
+    # agent database without an LLM call. A request with refresh=true re-asks.
+    review-cache:
+      enabled: true
+      max-age: PT8H
 
 
 marketdata:

@@ -52,7 +52,7 @@ class ConversationService(
     ): List<ConversationSummary> =
         conversations
             .findListed(ownerId, PageRequest.of(page, size))
-            .map { ConversationSummary(it.id, it.title, it.createdAt, it.updatedAt) }
+            .map { ConversationSummary(it.id, it.title, it.createdAt, it.updatedAt, it.kind) }
 
     @Transactional(readOnly = true)
     fun get(
@@ -69,19 +69,41 @@ class ConversationService(
                 messages.findByConversationIdOrderBySeq(id).map {
                     ConversationTurn(it.id, it.role, it.content, it.createdAt, it.error, it.deepThink, it.label)
                 },
-            pending = inFlight.isPending(id)
+            pending = inFlight.isPending(id),
+            kind = conversation.kind
         )
     }
 
+    /** What the owner's conversation [id] is. */
+    @Transactional(readOnly = true)
+    fun kindOf(
+        ownerId: String,
+        id: String
+    ): ConversationKind = owned(ownerId, id).kind
+
+    /** What the owner's conversation [id] is, and whether it holds a turn yet. */
+    @Transactional(readOnly = true)
+    fun stateOf(
+        ownerId: String,
+        id: String
+    ): ConversationState = ConversationState(owned(ownerId, id).kind, messages.existsByConversationId(id))
+
+    /**
+     * Record a question. The first one also fixes the conversation's [kind]:
+     * the locked row is dirty-checked, so the kind commits with this turn or
+     * not at all.
+     */
     fun appendUser(
         ownerId: String,
         id: String,
         content: String,
         deepThink: Boolean,
-        label: String? = null
+        label: String? = null,
+        kind: ConversationKind = ConversationKind.CHAT
     ): ConversationMessage {
         val conversation = locked(ownerId, id)
         if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(label ?: content)
+        if (!messages.existsByConversationId(id)) conversation.kind = kind
         // Caller-supplied display text: clip to the column rather than fail the turn.
         return append(conversation, ROLE_USER, content, deepThink, null, label?.take(LABEL_MAX_CHARS))
     }
@@ -202,11 +224,18 @@ class ConversationService(
     }
 }
 
+/** What a conversation is and whether it has begun. */
+data class ConversationState(
+    val kind: ConversationKind,
+    val hasTurns: Boolean
+)
+
 data class ConversationSummary(
     val id: String,
     val title: String,
     val createdAt: Instant,
-    val updatedAt: Instant
+    val updatedAt: Instant,
+    val kind: ConversationKind = ConversationKind.CHAT
 )
 
 data class ConversationTurn(
@@ -234,5 +263,6 @@ data class ConversationDetail(
      * before, so the reverse — `pending == false` with the answer still being
      * written — cannot happen. A best-effort hint: a client that sees it polls again.
      */
-    val pending: Boolean
+    val pending: Boolean,
+    val kind: ConversationKind = ConversationKind.CHAT
 )

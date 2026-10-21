@@ -1,6 +1,7 @@
 package com.beancounter.agent
 
 import com.beancounter.agent.config.AgentScopeAuthorizer
+import com.beancounter.agent.conversation.ConversationKind
 import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationRecorder
 import com.beancounter.agent.conversation.ConversationService
@@ -9,6 +10,7 @@ import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
+import com.beancounter.agent.holding.HoldingFactsSource
 import com.beancounter.agent.review.AssetReviewCache
 import com.beancounter.agent.review.AssetReviewKey
 import com.beancounter.agent.review.ReviewCachingRecorder
@@ -87,7 +89,9 @@ class AgentController(
     // Defaulted like the clock, so the tests that build the controller by hand need not pass it.
     private val pageQuerySelector: PageQuerySelector = PageQuerySelector(),
     // Defaulted like the clock: the hand-built controllers in tests cache nothing.
-    private val reviewCache: AssetReviewCache = AssetReviewCache.NONE
+    private val reviewCache: AssetReviewCache = AssetReviewCache.NONE,
+    // Defaulted like the clock: the hand-built controllers in tests hold nothing.
+    private val holdings: HoldingFactsSource = HoldingFactsSource.NONE
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -111,11 +115,24 @@ class AgentController(
 
         // Stable client-facing failure codes. bc-view keys its copy off these
         // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
+        // The set: no-llm, provider-quota, provider-rate, provider-timeout,
+        // agent-error, answer-truncated, empty-answer, not-held.
         const val NO_LLM = "no-llm"
+
+        const val QUERY_REQUIRED = "A query is required for this page"
+
+        // Escapes markup only: a label's dash is not an entity.
+        const val UTF_8 = "UTF-8"
         const val PROVIDER_QUOTA = "provider-quota"
         const val PROVIDER_RATE = "provider-rate"
         const val PROVIDER_TIMEOUT = "provider-timeout"
         const val AGENT_ERROR = "agent-error"
+
+        /**
+         * A Holding Analysis of an asset the portfolio does not hold, or of a
+         * portfolio the caller cannot see — one code, so neither is revealed.
+         */
+        const val NOT_HELD = "not-held"
 
         /**
          * The turn ended on a token cap with nothing to show for it — on the
@@ -139,6 +156,7 @@ class AgentController(
         const val QUERY_LOG_CHARS = 120
 
         const val BAD_REQUEST = 400
+        const val NOT_FOUND = 404
         const val PAYMENT_REQUIRED = 402
         const val TOO_MANY_REQUESTS = 429
         const val INTERNAL_ERROR = 500
@@ -191,7 +209,7 @@ class AgentController(
         if (request.query.isNotBlank()) return request
         val canned =
             pageQuerySelector.queryFor(request.context)
-                ?: throw BusinessException("A query is required for this page")
+                ?: throw BusinessException(QUERY_REQUIRED)
         return request.copy(query = canned.question, label = request.label ?: canned.label)
     }
 
@@ -200,15 +218,26 @@ class AgentController(
      * A request naming a conversation replays that conversation's stored turns
      * — client-sent history is ignored, so a caller cannot put words in the
      * assistant's mouth — and records this question to it now. Any other
-     * request is stateless. Runs on the request thread: the owner lookup needs
-     * the caller's token, and a conversation the caller doesn't own surfaces
-     * as a 404 rather than a stream error.
+     * request is stateless. The conversation was resolved by [threadOf] on
+     * the request thread, where the owner lookup has the caller's token and a
+     * conversation the caller doesn't own surfaces as a 404.
      */
-    private fun openTurn(request: AgentQuery): Pair<AgentQuery, TurnRecorder> {
-        val conversationId = request.conversationId ?: return request to TurnRecorder.NONE
-        val ownerId = conversationOwner.id()
+    private fun openTurn(
+        request: AgentQuery,
+        thread: ConversationThread?
+    ): Pair<AgentQuery, TurnRecorder> {
+        if (thread == null) return request to TurnRecorder.NONE
+        val ownerId = thread.ownerId
+        val conversationId = thread.id
         val stored = conversations.history(ownerId, conversationId, MAX_HISTORY_TURNS)
-        conversations.appendUser(ownerId, conversationId, request.query, request.deepThink, request.label)
+        conversations.appendUser(
+            ownerId,
+            conversationId,
+            request.query,
+            request.deepThink,
+            request.label,
+            pageQuerySelector.kindFor(request.context)
+        )
         // Titles see a canned prompt's label, which names the subject without its instructions.
         val recorder =
             ConversationRecorder(
@@ -227,6 +256,201 @@ class AgentController(
             )
         return request.copy(history = stored) to recorder
     }
+
+    /** A Holding Analysis's opening turn, ready to ask, or the stable code it failed with. */
+    private sealed interface Opening {
+        data class Ready(
+            val turn: AgentQuery
+        ) : Opening
+
+        data class Failed(
+            val code: String
+        ) : Opening
+    }
+
+    /** A turn that could not be answered, carrying the stable code it fails with. */
+    private class UnansweredTurn(
+        val code: String
+    ) : RuntimeException(code)
+
+    /** The caller's conversation a request names: its owner, and what it already is. */
+    private data class ConversationThread(
+        val ownerId: String,
+        val id: String,
+        val kind: ConversationKind,
+        val hasTurns: Boolean
+    )
+
+    /**
+     * How one request is answered: [request] is the turn to ask, or, when
+     * [opening] is set, the start of a Holding Analysis whose question is
+     * built from that subject by [holdingOpening].
+     */
+    private data class Plan(
+        val request: AgentQuery,
+        val opening: HoldingAnalysisSubject?,
+        val thread: ConversationThread?
+    )
+
+    /** The conversation [body] names, resolved for the caller, or null for a stateless request. */
+    private fun threadOf(body: AgentQuery): ConversationThread? {
+        val id = body.conversationId ?: return null
+        val ownerId = conversationOwner.id()
+        val state = conversations.stateOf(ownerId, id)
+        return ConversationThread(ownerId, id, state.kind, state.hasTurns)
+    }
+
+    /**
+     * Plan [body]. A Holding Analysis is routed by its conversation as much
+     * as by its page: a turn in a Holding Analysis conversation that has begun
+     * is a follow-up, answered with the Holding Analysis prompt and tools
+     * whatever page it names, and asks the caller's own question; only a blank
+     * question that starts a conversation (or a stateless request) opens one.
+     * Its context is the subject's canonical one, so nothing else a caller
+     * sent (figures included) reaches the prompt. Refused with a 400: a
+     * malformed subject ([PageQuerySelector.INVALID_HOLDING_ANALYSIS]), one
+     * asked inside an Asset Review conversation — about the asset alone —
+     * ([PageQuerySelector.HOLDING_IN_ASSET_REVIEW]), and a blank question that
+     * would open nothing. Any other page is planned as [withQuestion] and
+     * [canonical] make it.
+     */
+    private fun planFor(body: AgentQuery): Plan {
+        val thread = threadOf(body)
+        val subject = pageQuerySelector.holdingAnalysisSubject(body.context)
+        if (subject != null && thread?.kind == ConversationKind.ASSET_REVIEW) {
+            throw BusinessException(PageQuerySelector.HOLDING_IN_ASSET_REVIEW)
+        }
+        val followUp = thread?.kind == ConversationKind.HOLDING_ANALYSIS && thread.hasTurns
+        if (subject == null && !followUp) return Plan(withQuestion(canonical(body)), null, thread)
+        val context =
+            subject?.let(pageQuerySelector::holdingAnalysisContext)
+                ?: mapOf("page" to PageQueries.HOLDING_ANALYSIS)
+        val opens = body.query.isBlank() && body.history.isNullOrEmpty() && thread?.hasTurns != true
+        if (body.query.isBlank() && !opens) throw BusinessException(QUERY_REQUIRED)
+        return Plan(body.copy(context = context), if (opens) subject else null, thread)
+    }
+
+    /**
+     * The opening turn of a Holding Analysis. The caller's holding is read
+     * first, server side with their own credentials, so a holding they do not
+     * have costs no model call; then the asset's review, cached or generated
+     * ([assetReview]). The question carries both: the review labelled with its
+     * date, then the holding's figures, then [PageQueries.holdingAnalysis]'s
+     * ask. Never cached: it is the caller's own.
+     */
+    private fun holdingOpening(
+        request: AgentQuery,
+        subject: HoldingAnalysisSubject
+    ): Opening =
+        try {
+            val facts = holdings.find(subject)
+            if (facts == null) {
+                Opening.Failed(NOT_HELD)
+            } else {
+                val reviewDate = LocalDate.now(clock)
+                val review = assetReview(subject.asset, reviewDate, request)
+                Opening.Ready(
+                    request.copy(
+                        query = PageQueries.holdingAnalysis(subject, reviewDate, review, facts),
+                        label = request.label ?: PageQueries.holdingAnalysisLabel(subject.ticker)
+                    )
+                )
+            }
+        } catch (
+            // Before any stream exists: classified like a stream failure, never a 500.
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            val code = classifyError(e)
+            log.error("Holding analysis could not open ({}): {}", code, e.message, e)
+            Opening.Failed(code)
+        }
+
+    /**
+     * The Asset Review of [asset] on [reviewDate]: the cached one when fresh,
+     * else asked of the model exactly as the canonical cached review is —
+     * from the asset alone, never the caller's context — and stored for every
+     * caller, as [ReviewCachingRecorder] would.
+     */
+    private fun assetReview(
+        asset: AssetReviewSubject,
+        reviewDate: LocalDate,
+        request: AgentQuery
+    ): String {
+        val turn =
+            withQuestion(
+                AgentQuery(
+                    context = pageQuerySelector.assetReviewContext(asset),
+                    think = request.think,
+                    deepThink = request.deepThink
+                )
+            )
+        val key = AssetReviewKey(asset.market, asset.ticker, reviewDate, answeringModel(turn))
+        val hit = cachedReview(key, request.refresh)
+        if (hit != null) return hit
+        val answer = ask(turn)
+        if (answer.content.isBlank()) throw UnansweredTurn(emptyAnswerCode(answer.finishReason))
+        try {
+            reviewCache.store(key, answer.content)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("Failed to cache asset review {}:{}: {}", key.market, key.ticker, e.message)
+        }
+        return answer.content
+    }
+
+    /** One blocking model answer and why it ended. */
+    private data class ModelAnswer(
+        val content: String,
+        val finishReason: String?,
+        val modelId: String
+    )
+
+    /**
+     * Ask the model [turn] and wait for the answer. Per-call options REPLACE
+     * (not merge) the ChatClient's default options — Anthropic cache config
+     * must be re-applied here, or every request silently loses prompt
+     * caching. See [buildOptions].
+     */
+    private fun ask(turn: AgentQuery): ModelAnswer {
+        val userMessage = buildUserMessage(turn)
+        val tools = toolSelector.selectTools(turn.context)
+        val modelId = chatModelSelector.selectFor(turn.context, turn.deepThink)
+        val startMs = System.currentTimeMillis()
+        val promptSpec =
+            clientFor(turn)
+                .prompt()
+                .system(systemPromptFor(turn))
+                .messages(historyMessages(turn))
+                .user(userMessage)
+                .tools(*tools)
+        val callResponse =
+            buildOptions(modelId, turn.deepThink, thinks(turn))?.let { opts ->
+                promptSpec.options(opts).call()
+            } ?: promptSpec.call()
+        val chatResponse = callResponse.chatResponse()
+        val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: ""
+        logLlmInteraction(userMessage, tools, chatResponse, content, System.currentTimeMillis() - startMs, modelId)
+        return ModelAnswer(content, chatResponse?.result?.metadata?.finishReason, modelId)
+    }
+
+    /** A failed `/query`, in the shape every failure takes. */
+    private fun failure(
+        safeQuery: String,
+        code: String
+    ): ResponseEntity<AgentResponse> =
+        ResponseEntity
+            .status(statusFor(code))
+            .body(
+                AgentResponse(
+                    query = safeQuery,
+                    response = messageFor(code),
+                    timestamp = Instant.now().toString(),
+                    error = code
+                )
+            )
 
     /**
      * A canned Asset Review that may be shared, rebuilt from its cache key
@@ -449,14 +673,14 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): ResponseEntity<AgentResponse> {
         scopeAuthorizer.authorize(body.context)
-        val request = withQuestion(canonical(body))
-        val safeQuery = HtmlUtils.htmlEscape(request.query)
+        val plan = planFor(body)
+        val request = plan.request
         if (chatClient == null) {
             return ResponseEntity
                 .status(503)
                 .body(
                     AgentResponse(
-                        query = safeQuery,
+                        query = HtmlUtils.htmlEscape(request.query),
                         response =
                             "No LLM is configured. Set ${AgentProvider.PROPERTY} to '${AgentProvider.DEEPSEEK}', " +
                                 "'${AgentProvider.ANTHROPIC}', '${AgentProvider.OPENAI}', or '${AgentProvider.OLLAMA}'.",
@@ -466,7 +690,17 @@ class AgentController(
                 )
         }
 
-        val (turn, conversationRecorder) = openTurn(request)
+        val asked =
+            when (val opening = plan.opening?.let { holdingOpening(request, it) } ?: Opening.Ready(request)) {
+                // Echo what the caller asked about: the opening question was never built.
+                is Opening.Failed -> return failure(
+                    HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8),
+                    opening.code
+                )
+                is Opening.Ready -> opening.turn
+            }
+        val safeQuery = HtmlUtils.htmlEscape(asked.query)
+        val (turn, conversationRecorder) = openTurn(asked, plan.thread)
         val reviewKey = reviewKeyFor(body, turn)
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         if (hit != null) {
@@ -485,55 +719,23 @@ class AgentController(
         val recorder =
             reviewKey?.let { ReviewCachingRecorder(conversationRecorder, reviewCache, it) } ?: conversationRecorder
         return try {
-            val userMessage = buildUserMessage(turn)
-            val tools = toolSelector.selectTools(turn.context)
-            val systemPrompt = systemPromptFor(turn)
-            val modelId = chatModelSelector.selectFor(turn.context, turn.deepThink)
-            val startMs = System.currentTimeMillis()
-            val promptSpec =
-                clientFor(turn)
-                    .prompt()
-                    .system(systemPrompt)
-                    .messages(historyMessages(turn))
-                    .user(userMessage)
-                    .tools(*tools)
-            // Per-call options REPLACE (not merge) the ChatClient's default
-            // options — Anthropic cache config must be re-applied here, or
-            // every request silently loses prompt caching. See buildOptions.
-            val callResponse =
-                buildOptions(modelId, turn.deepThink, thinks(turn))?.let { opts ->
-                    promptSpec.options(opts).call()
-                } ?: promptSpec.call()
-
-            val chatResponse = callResponse.chatResponse()
-            val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: ""
-            val elapsedMs = System.currentTimeMillis() - startMs
-
-            logLlmInteraction(userMessage, tools, chatResponse, content, elapsedMs, modelId)
+            val answer = ask(turn)
+            val content = answer.content
 
             // Same hole the streaming path had: a turn can succeed at the HTTP
             // level and still say nothing (typically after the context window
             // filled with tool results). Answering with a blank body left every
             // caller rendering an empty response and no reason for it.
             if (content.isBlank()) {
-                val code = emptyAnswerCode(chatResponse?.result?.metadata?.finishReason)
+                val code = emptyAnswerCode(answer.finishReason)
                 log.warn(
                     "Agent query produced no answer: code={}, model={}, query=\"{}\"",
                     code,
-                    modelId,
+                    answer.modelId,
                     safeQuery.take(QUERY_LOG_CHARS)
                 )
                 recordQuietly { recorder.failed(code) }
-                return ResponseEntity
-                    .status(statusFor(code))
-                    .body(
-                        AgentResponse(
-                            query = safeQuery,
-                            response = messageFor(code),
-                            timestamp = Instant.now().toString(),
-                            error = code
-                        )
-                    )
+                return failure(safeQuery, code)
             }
 
             recordQuietly { recorder.answered(content) }
@@ -557,16 +759,7 @@ class AgentController(
             val errorCode = classifyError(e)
             log.error("Agent query failed ({}): {}", errorCode, e.message, e)
             recordQuietly { recorder.failed(errorCode) }
-            ResponseEntity
-                .status(statusFor(errorCode))
-                .body(
-                    AgentResponse(
-                        query = safeQuery,
-                        response = messageFor(errorCode),
-                        timestamp = Instant.now().toString(),
-                        error = errorCode
-                    )
-                )
+            failure(safeQuery, errorCode)
         }
     }
 
@@ -613,28 +806,31 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): Flux<ServerSentEvent<String>> {
         scopeAuthorizer.authorize(body.context)
-        val request = withQuestion(canonical(body))
+        val plan = planFor(body)
         // A code, not prose: the streaming path's error payload is a contract
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
         if (chatClient == null) return errorEvent(NO_LLM)
-        val conversationId = request.conversationId
-        if (conversationId == null) {
-            val (turn, recorder) = openTurn(request)
-            return pipelineFor(body, turn, recorder)
-        }
+        val conversationId = plan.thread?.id
         // Pending before the question is committed: openTurn writes the user
         // row in its own transaction, and a GET landing between that commit
         // and this mark would show an unanswered question nobody is answering.
         // A refused turn (not owned, owner lookup failed) leaves no residue.
-        inFlightTurns.begin(conversationId)
-        val (turn, recorder) =
+        conversationId?.let(inFlightTurns::begin)
+        val pipeline =
             try {
-                openTurn(request)
+                val subject = plan.opening
+                if (subject == null) {
+                    val (turn, recorder) = openTurn(plan.request, plan.thread)
+                    pipelineFor(body, turn, recorder)
+                } else {
+                    openingPipeline(plan.request, subject, plan.thread)
+                }
             } catch (e: Exception) {
-                inFlightTurns.end(conversationId)
+                conversationId?.let(inFlightTurns::end)
                 throw e
             }
+        if (conversationId == null) return pipeline
         // doFinally sits inside the hot boundary, so it fires when the
         // pipeline itself completes or fails — after the record{} write that
         // ends it — and never on the subscriber's cancel. replay() keeps the
@@ -643,11 +839,50 @@ class AgentController(
         // request thread, so contextCapture still snapshots the caller's
         // SecurityContext, and unlike refCount it never disconnects when the
         // downstream count drops to zero.
-        return pipelineFor(body, turn, recorder)
+        return pipeline
             .doFinally { inFlightTurns.end(conversationId) }
             .replay()
             .autoConnect(0)
     }
+
+    /**
+     * The opening of a Holding Analysis as a stream. Reading the holding and
+     * asking the review block, so that work runs on a worker thread once the
+     * stream is subscribed, never while the request thread is setting it up.
+     * The publishOn hop delivers the subject with the caller's SecurityContext
+     * restored from the context captured here, so svc-position and the
+     * review's tools are called as the caller. A failure before the question
+     * is recorded ends the stream with its code and records nothing.
+     */
+    private fun openingPipeline(
+        request: AgentQuery,
+        subject: HoldingAnalysisSubject,
+        thread: ConversationThread?
+    ): Flux<ServerSentEvent<String>> =
+        Mono
+            .just(subject)
+            .publishOn(Schedulers.boundedElastic())
+            .flatMapMany { holding ->
+                when (val opening = holdingOpening(request, holding)) {
+                    is Opening.Failed -> {
+                        errorEvent(opening.code)
+                    }
+                    is Opening.Ready -> {
+                        val (turn, recorder) = openTurn(opening.turn, thread)
+                        answerPipeline(turn, recorder)
+                    }
+                }
+            }.onErrorResume { e ->
+                val code = classifyError(e)
+                log.error("Holding analysis stream failed ({}): {}", code, e.message, e)
+                errorEvent(code)
+            }.contextCapture()
+
+    /** What a Holding Analysis opening is stored under: the caller's label, else the subject's. */
+    private fun openingLabel(
+        request: AgentQuery,
+        plan: Plan
+    ): String = request.label ?: plan.opening?.let { PageQueries.holdingAnalysisLabel(it.ticker) } ?: request.query
 
     /**
      * A canned Asset Review answered from the cache when one is fresh, else
@@ -747,6 +982,7 @@ class AgentController(
      * two levels down.
      */
     internal fun classifyError(e: Throwable): String {
+        if (e is UnansweredTurn) return e.code
         val chain = causeChain(e)
         val message = chain.joinToString(" | ") { it.message.orEmpty() }
         val statuses = chain.mapNotNull(::httpStatusOf)
@@ -834,6 +1070,7 @@ class AgentController(
             // codes over a 200 SSE stream; the code, not the status, is the
             // contract both transports share.
             ANSWER_TRUNCATED, EMPTY_ANSWER -> UNPROCESSABLE_CONTENT
+            NOT_HELD -> NOT_FOUND
             else -> INTERNAL_ERROR
         }
 
@@ -861,6 +1098,9 @@ class AgentController(
             }
             EMPTY_ANSWER -> {
                 "The AI finished without producing an answer. Please try again, or rephrase the question."
+            }
+            NOT_HELD -> {
+                "No holding of this asset found in that portfolio."
             }
             else -> {
                 "The agent failed to process the request."

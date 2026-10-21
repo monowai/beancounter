@@ -58,7 +58,8 @@ class ConversationController(
                 conversation.id,
                 if (turns.isEmpty()) conversation.title else service.titleOf(ownerId, conversation.id),
                 conversation.createdAt,
-                conversation.updatedAt
+                conversation.updatedAt,
+                conversation.kind
             )
         )
     }

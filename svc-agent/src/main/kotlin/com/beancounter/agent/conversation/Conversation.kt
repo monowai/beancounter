@@ -3,6 +3,8 @@ package com.beancounter.agent.conversation
 import com.beancounter.common.utils.KeyGenUtils
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
@@ -12,6 +14,7 @@ import java.time.Instant
  * `SystemUser.id`. [updatedAt] moves with every turn, ordering the user's list
  * and driving the retention purge. A [hidden] conversation is read only by its
  * id, never listed: a one-off answer kept for a client that lost its stream.
+ * [kind] is set by the first turn and kept.
  */
 @Entity
 @Table(name = "conversation")
@@ -27,7 +30,10 @@ class Conversation(
     @Column(nullable = false)
     var updatedAt: Instant,
     @Column(nullable = false)
-    val hidden: Boolean = false
+    val hidden: Boolean = false,
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    var kind: ConversationKind = ConversationKind.CHAT
 )
 
 /**

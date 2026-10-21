@@ -14,6 +14,10 @@ class SystemPromptSelector {
     fun selectFor(context: Map<String, Any>?): String {
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
         return when {
+            // Holding Analysis — first, so "holding" never falls through to Wealth.
+            page.contains("holding analysis") || page.contains("holding-analysis") -> {
+                DomainSystemPrompts.HOLDING_ANALYSIS
+            }
             page.contains("watchlist") -> {
                 DomainSystemPrompts.WATCHLIST
             }

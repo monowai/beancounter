@@ -1,5 +1,8 @@
 package com.beancounter.agent
 
+import com.beancounter.agent.holding.HoldingFacts
+import java.time.LocalDate
+
 /**
  * The canned user questions behind a page's one-tap analysis. A client names
  * the page and its subject in `context`; the question itself lives here, so a
@@ -8,6 +11,55 @@ package com.beancounter.agent
 object PageQueries {
     const val ASSET_REVIEW = "Asset Review"
     const val PORTFOLIO_REVIEW = "Portfolio Review"
+    const val HOLDING_ANALYSIS = "Holding Analysis"
+
+    /** What a Holding Analysis is stored under when the caller gave no label. */
+    fun holdingAnalysisLabel(ticker: String): String = "$HOLDING_ANALYSIS — $ticker"
+
+    /**
+     * The opening question of a Holding Analysis: the Asset Review of the
+     * asset, labelled with its date, then the caller's holding as
+     * svc-position reports it, then what to make of the two together.
+     */
+    fun holdingAnalysis(
+        subject: HoldingAnalysisSubject,
+        reviewDate: LocalDate,
+        review: String,
+        facts: HoldingFacts
+    ): String {
+        val marketLabel = if (subject.market.isBlank()) "" else " listed on ${subject.market}"
+        return listOf(
+            "Asset Review of ${subject.ticker}$marketLabel, as of $reviewDate:",
+            "<$REVIEW_TAG>",
+            unfenced(review.trim()),
+            "</$REVIEW_TAG>",
+            "",
+            "The user's holding (figures from their portfolio records; cite them, never recompute them):",
+            "<$HOLDING_TAG>",
+            facts.describe(),
+            "</$HOLDING_TAG>",
+            "",
+            HOLDING_ANALYSIS_QUESTION
+        ).joinToString("\n")
+    }
+
+    private const val REVIEW_TAG = "asset-review"
+    private const val HOLDING_TAG = "holding"
+    private val FENCE = Regex("<\\s*/?\\s*($REVIEW_TAG|$HOLDING_TAG)\\s*>", RegexOption.IGNORE_CASE)
+
+    /**
+     * [text] with every opening or closing fence tag taken out, so text
+     * inside a fence (a shared review, an asset's name) cannot close it and
+     * speak outside it.
+     */
+    fun unfenced(text: String): String = FENCE.replace(text, "")
+
+    private const val HOLDING_ANALYSIS_QUESTION =
+        "Produce a Holding Analysis: assess this position in light of the Asset Review above. Cover " +
+            "position size (its weight in the portfolio against what the review says about the asset), " +
+            "entry (average cost against the current price), the result so far (the unrealised gain on " +
+            "cost), what the review's points mean for this holding, and what to watch. Stay factual and " +
+            "use the figures given. No recommendations to buy or sell."
 
     /**
      * A single-asset deep dive. The name and market are left out when the

@@ -401,6 +401,11 @@ class AgentControllerTest {
             mock<com.beancounter.agent.conversation.ConversationService> {
                 on { history(any(), any(), any()) } doReturn emptyList()
                 on { titleOf(any(), any()) } doReturn "Portfolio"
+                on { stateOf(any(), any()) } doReturn
+                    com.beancounter.agent.conversation.ConversationState(
+                        com.beancounter.agent.conversation.ConversationKind.CHAT,
+                        hasTurns = false
+                    )
                 on { appendAssistant(any(), any(), any(), anyOrNull()) } doAnswer {
                     throw IllegalStateException("agent database unavailable")
                 }

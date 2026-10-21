@@ -67,4 +67,14 @@ class SystemPromptSelectorTest {
         assertThat(selector.selectFor(mapOf("page" to "Settings")))
             .isEqualTo(DomainSystemPrompts.GENERAL)
     }
+
+    @Test
+    fun `holding analysis page returns the holding analysis prompt`() {
+        assertThat(
+            selector.selectFor(mapOf("page" to "Holding Analysis"))
+        ).isEqualTo(DomainSystemPrompts.HOLDING_ANALYSIS)
+        assertThat(
+            selector.selectFor(mapOf("page" to "holding-analysis"))
+        ).isEqualTo(DomainSystemPrompts.HOLDING_ANALYSIS)
+    }
 }

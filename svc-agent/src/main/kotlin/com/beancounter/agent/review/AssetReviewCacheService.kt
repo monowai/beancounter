@@ -1,8 +1,11 @@
 package com.beancounter.agent.review
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.Clock
 import java.time.Duration
 
@@ -10,12 +13,13 @@ import java.time.Duration
  * The [AssetReviewCache] in the agent database, so cached reviews survive
  * restarts and deploys. A review is served only on its own [AssetReviewKey.reviewDate]
  * and while younger than `beancounter.agent.review-cache.max-age`. Each store
- * clears reviews dated more than [KEEP_DAYS] days back.
+ * clears reviews dated more than [KEEP_DAYS] days back. Two first requests
+ * for one review can race to insert it; the loser overwrites the winner's row.
  */
 @Service
-@Transactional
 class AssetReviewCacheService(
     private val repository: AssetReviewRepository,
+    transactionManager: PlatformTransactionManager,
     private val clock: Clock,
     @Value($$"${beancounter.agent.review-cache.enabled:true}") override val enabled: Boolean,
     @Value($$"${beancounter.agent.review-cache.max-age:PT8H}") private val maxAge: Duration
@@ -23,6 +27,8 @@ class AssetReviewCacheService(
     companion object {
         const val KEEP_DAYS = 3L
     }
+
+    private val transaction = TransactionTemplate(transactionManager)
 
     @Transactional(readOnly = true)
     override fun find(key: AssetReviewKey): CachedReview? {
@@ -37,11 +43,24 @@ class AssetReviewCacheService(
         content: String
     ) {
         if (!enabled || content.isBlank()) return
+        try {
+            transaction.executeWithoutResult { write(key, content) }
+        } catch (_: DataIntegrityViolationException) {
+            // A concurrent first request inserted the same key; its row now exists to update.
+            transaction.executeWithoutResult { write(key, content) }
+        }
+    }
+
+    private fun write(
+        key: AssetReviewKey,
+        content: String
+    ) {
         repository.deleteReviewedBefore(key.reviewDate.minusDays(KEEP_DAYS))
         val now = clock.instant()
         val review = existing(key)
         if (review == null) {
-            repository.save(
+            // Flushed here so a lost insert race surfaces inside this transaction.
+            repository.saveAndFlush(
                 AssetReview(
                     market = key.market,
                     ticker = key.ticker,

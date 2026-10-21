@@ -35,14 +35,31 @@ class PageQuerySelector {
         }
     }
 
-    /** The asset an Asset Review page asks about, or null for any other page or no ticker. */
+    /**
+     * The asset an Asset Review page asks about, or null for any other page,
+     * no ticker, or a ticker or market that is not a plain symbol. A review
+     * of a subject is shared by every caller, so only a value that cannot
+     * carry instructions qualifies.
+     */
     fun assetReviewSubject(context: Map<String, Any>?): AssetReviewSubject? {
         val fields = context.orEmpty()
         if (normalise(fields["page"]) != normalise(PageQueries.ASSET_REVIEW)) return null
-        val ticker = text(fields, "tickers")
-        if (ticker.isEmpty()) return null
-        return AssetReviewSubject(ticker.uppercase(), text(fields, "market").uppercase())
+        val ticker = text(fields, "tickers").uppercase()
+        val market = text(fields, "market").uppercase()
+        if (!TICKER.matches(ticker) || !MARKET.matches(market)) return null
+        return AssetReviewSubject(ticker, market)
     }
+
+    /**
+     * The canonical page context for [subject]: page, ticker and market only,
+     * so nothing a caller sent beyond the cache key reaches a shared prompt.
+     */
+    fun assetReviewContext(subject: AssetReviewSubject): Map<String, Any> =
+        buildMap {
+            put("page", PageQueries.ASSET_REVIEW)
+            put("tickers", subject.ticker)
+            if (subject.market.isNotEmpty()) put("market", subject.market)
+        }
 
     private fun assetReview(fields: Map<String, Any>): CannedQuery? {
         val ticker = text(fields, "tickers")
@@ -69,5 +86,11 @@ class PageQuerySelector {
 
     private companion object {
         val WHITESPACE = Regex("\\s+")
+
+        // Listing symbols as markets quote them: BRK.B, ^GSPC, NZDSGD, D05.
+        val TICKER = Regex("^[A-Z0-9^][A-Z0-9.\\-^=:]{0,31}$")
+
+        // Market codes: US, NASDAQ, SGX, FX, INDEX — or none sent.
+        val MARKET = Regex("^[A-Z0-9_\\-]{0,16}$")
     }
 }

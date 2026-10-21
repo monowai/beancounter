@@ -230,6 +230,19 @@ class AgentController(
     }
 
     /**
+     * A canned Asset Review that may be shared, rebuilt from its cache key
+     * alone: the page, ticker and market, with the server's label. A shared
+     * answer reaches every user, so caller-supplied context (`assetName`, any
+     * other key) and label must never shape its prompt. Anything else is
+     * returned as sent.
+     */
+    private fun canonical(body: AgentQuery): AgentQuery {
+        if (!reviewCache.enabled || body.query.isNotBlank() || !body.history.isNullOrEmpty()) return body
+        val subject = pageQuerySelector.assetReviewSubject(body.context) ?: return body
+        return body.copy(context = pageQuerySelector.assetReviewContext(subject), label = null)
+    }
+
+    /**
      * Where this turn's canned Asset Review is cached, or null when it is not
      * one: the caller asked nothing of its own and neither the request nor the
      * conversation carries earlier turns. A free-form question or a follow-up
@@ -428,7 +441,7 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): ResponseEntity<AgentResponse> {
         scopeAuthorizer.authorize(body.context)
-        val request = withQuestion(body)
+        val request = withQuestion(canonical(body))
         val safeQuery = HtmlUtils.htmlEscape(request.query)
         if (chatClient == null) {
             return ResponseEntity
@@ -592,7 +605,7 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): Flux<ServerSentEvent<String>> {
         scopeAuthorizer.authorize(body.context)
-        val request = withQuestion(body)
+        val request = withQuestion(canonical(body))
         // A code, not prose: the streaming path's error payload is a contract
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.

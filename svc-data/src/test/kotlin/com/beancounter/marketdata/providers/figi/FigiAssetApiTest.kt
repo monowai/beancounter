@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.figi
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.input.AssetInput
@@ -13,9 +14,12 @@ import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.P_CODE
 import com.beancounter.marketdata.Constants.Companion.P_NAME
 import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetSearchService
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.EnrichmentFactory
+import com.beancounter.marketdata.assets.figi.FigiBackfillService
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.assets.figi.FigiSearch
@@ -35,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
@@ -82,6 +87,15 @@ class FigiAssetApiTest {
     @Autowired
     private lateinit var context: WebApplicationContext
 
+    @Autowired
+    private lateinit var assetRepository: AssetRepository
+
+    @Autowired
+    private lateinit var assetFinder: AssetFinder
+
+    @Autowired
+    private lateinit var figiBackfillService: FigiBackfillService
+
     @Test
     fun is_CommonStockFound() {
         val asset =
@@ -94,7 +108,97 @@ class FigiAssetApiTest {
             .hasFieldOrPropertyWithValue(
                 P_NAME,
                 "MICROSOFT CORP"
-            ).isNotNull
+            ).hasFieldOrPropertyWithValue(
+                "compositeFigi",
+                "BBG000BPH459"
+            )
+    }
+
+    @Test
+    fun `should backfill compositeFigi without changing the asset's identity`() {
+        val created =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, MSFT.code), MSFT.code))
+                .data.values
+                .first()
+        assetRepository.save(assetFinder.find(created.id).also { it.compositeFigi = null })
+
+        val result = figiBackfillService.backfill(limit = 100)
+
+        val backfilled = assetFinder.find(created.id)
+        assertThat(result.resolved).isGreaterThanOrEqualTo(1)
+        assertThat(backfilled.compositeFigi).isEqualTo("BBG000BPH459")
+        assertThat(backfilled.name).isEqualTo(created.name)
+        assertThat(backfilled.category).isEqualTo(created.category)
+    }
+
+    @Test
+    fun `should not backfill an asset that already has a compositeFigi`() {
+        val created =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, MSFT.code), MSFT.code))
+                .data.values
+                .first()
+        assetRepository.save(assetFinder.find(created.id).also { it.compositeFigi = "BBGKEEPME001" })
+
+        figiBackfillService.backfill(limit = 100)
+
+        assertThat(assetFinder.find(created.id).compositeFigi).isEqualTo("BBGKEEPME001")
+    }
+
+    @Test
+    fun `should move past assets before the after cursor`() {
+        val created =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, MSFT.code), MSFT.code))
+                .data.values
+                .first()
+        assetRepository.save(assetFinder.find(created.id).also { it.compositeFigi = null })
+
+        val result = figiBackfillService.backfill(limit = 100, after = created.id)
+
+        assertThat(result.unresolved).doesNotContain(created.id)
+        assertThat(assetFinder.find(created.id).compositeFigi).isNull()
+    }
+
+    @Test
+    fun `should forbid a user from running the FIGI backfill`() {
+        val mockMvc =
+            MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+                .build()
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("$ASSET_ROOT/figi/backfill")
+                    .with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
+                            .authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_USER))
+                    )
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
+    }
+
+    @Test
+    fun `should let an admin run the FIGI backfill`() {
+        val mockMvc =
+            MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+                .build()
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("$ASSET_ROOT/figi/backfill")
+                    .param("limit", "5")
+                    .with(
+                        SecurityMockMvcRequestPostProcessors
+                            .jwt()
+                            .authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_ADMIN))
+                    )
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.attempted").isNumber)
     }
 
     @Test

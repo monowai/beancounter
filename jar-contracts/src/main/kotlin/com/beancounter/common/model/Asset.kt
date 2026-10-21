@@ -75,7 +75,13 @@ data class Asset(
      * available in that case.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    var classificationCheckedAt: LocalDate? = null
+    var classificationCheckedAt: LocalDate? = null,
+    /**
+     * OpenFIGI composite FIGI: the identifier shared by this instrument's listings within one
+     * country. Stable across ticker changes and providers. Null until FIGI resolves the asset.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    var compositeFigi: String? = null
 ) {
     companion object {
         @JvmStatic

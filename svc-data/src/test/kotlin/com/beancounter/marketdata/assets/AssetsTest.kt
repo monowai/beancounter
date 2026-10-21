@@ -78,7 +78,8 @@ class AssetsTest {
                 "sector",
                 "industry",
                 "expectedReturnRate",
-                "classificationCheckedAt"
+                "classificationCheckedAt",
+                "compositeFigi"
             )
         assertThat(result.assets[1].resolvedAsset)
             .isNotNull
@@ -89,7 +90,8 @@ class AssetsTest {
                 "sector",
                 "industry",
                 "expectedReturnRate",
-                "classificationCheckedAt"
+                "classificationCheckedAt",
+                "compositeFigi"
             )
 
         // val byProviders = ProviderUtils().splitProviders(priceRequest.assets)

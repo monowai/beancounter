@@ -226,4 +226,17 @@ interface AssetRepository : JpaRepository<Asset, String> {
     fun searchByCodeOrName(
         @Param("keyword") keyword: String
     ): List<Asset>
+
+    /**
+     * Active, shared (unowned) assets that FIGI has not yet resolved to a composite FIGI.
+     * Owned assets are private to their user and never sent to OpenFIGI.
+     */
+    @Query(
+        "SELECT a FROM Asset a " +
+            "WHERE a.compositeFigi IS NULL " +
+            "AND a.systemUser IS NULL " +
+            "AND a.status = com.beancounter.common.model.Status.Active " +
+            "ORDER BY a.id"
+    )
+    fun findWithoutCompositeFigi(): Stream<Asset>
 }

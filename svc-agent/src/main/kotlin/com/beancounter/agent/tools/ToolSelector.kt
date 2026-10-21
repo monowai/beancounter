@@ -83,11 +83,14 @@ class ToolSelector(
             }
             // Asset — wealth + corporate events. Users on trade/event pages
             // may also want news on a specific ticker, so keep newsTools.
+            PageDomain.ASSET -> {
+                (wealthTools + eventTools + newsTools).toTypedArray()
+            }
             // Wealth — portfolios/holdings. Keep newsTools for "what's
             // happening with my holdings" style questions, plus eventTools
             // so users can ask "how many dividends has GOOG paid?" without
             // having to navigate to a corporate-events page first.
-            PageDomain.ASSET, PageDomain.WEALTH -> {
+            PageDomain.WEALTH -> {
                 (wealthTools + eventTools + newsTools).toTypedArray()
             }
             // Unknown / no context — ship everything so the LLM can route.

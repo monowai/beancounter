@@ -13,7 +13,9 @@ package com.beancounter.agent
  * page that matches none, or no page at all, is [GENERAL].
  *
  * [smart] domains escalate to the SMART model tier and reason before a
- * canned answer; the rest stay on FAST.
+ * canned answer; the rest stay on FAST. [smart] is a cost contract: turning it
+ * on moves every page in the domain onto SMART rates, so PageDomainTest pins
+ * each domain's tier.
  */
 enum class PageDomain(
     val smart: Boolean,

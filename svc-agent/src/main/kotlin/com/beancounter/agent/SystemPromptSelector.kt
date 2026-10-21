@@ -3,61 +3,45 @@ package com.beancounter.agent
 import org.springframework.stereotype.Service
 
 /**
- * Maps a page context to a focused domain system prompt. One prompt per
- * domain keeps each call tight (fewer input tokens) and lets the Anthropic
- * system-prompt cache key on a stable string per domain.
+ * Maps a page context's [PageDomain] to a focused domain system prompt. One
+ * prompt per domain keeps each call tight (fewer input tokens) and lets the
+ * Anthropic system-prompt cache key on a stable string per domain. An FX pair
+ * on an Asset Review page gets the FX review instead.
  *
  * See [DomainSystemPrompts] for the prompt content.
  */
 @Service
 class SystemPromptSelector {
-    fun selectFor(context: Map<String, Any>?): String {
-        val page = context?.get("page")?.toString()?.lowercase() ?: ""
-        return when {
-            // Holding Analysis — first, so "holding" never falls through to Wealth.
-            page.contains("holding analysis") || page.contains("holding-analysis") -> {
+    fun selectFor(context: Map<String, Any>?): String =
+        when (PageDomain.of(context)) {
+            PageDomain.HOLDING_ANALYSIS -> {
                 DomainSystemPrompts.HOLDING_ANALYSIS
             }
-            page.contains("watchlist") -> {
+            PageDomain.WATCHLIST -> {
                 DomainSystemPrompts.WATCHLIST
             }
-            // Asset Review — match before the trade/event branch so we don't
-            // fall through to DomainSystemPrompts.ASSET on the word "asset".
-            page.contains("asset review") || page.contains("asset-review") -> {
+            PageDomain.ASSET_REVIEW -> {
                 if (isFxPair(context)) DomainSystemPrompts.FX_REVIEW else DomainSystemPrompts.ASSET_REVIEW
             }
-            page.contains("news") && page.contains("sentiment") -> {
+            PageDomain.NEWS_SENTIMENT -> {
                 DomainSystemPrompts.NEWS_SENTIMENT
             }
-            page.contains("independence") ||
-                page.contains("retire") ||
-                page.contains("fi") -> {
+            PageDomain.INDEPENDENCE -> {
                 DomainSystemPrompts.INDEPENDENCE
             }
-            page.contains("rebalanc") -> {
+            PageDomain.REBALANCE -> {
                 DomainSystemPrompts.REBALANCE
             }
-            page.contains("event") ||
-                page.contains("proposed") ||
-                page.contains("dividend") ||
-                page.contains("trade") ||
-                page.contains("trn") -> {
+            PageDomain.ASSET -> {
                 DomainSystemPrompts.ASSET
             }
-            page.contains("holding") ||
-                page.contains("portfolio") ||
-                page.contains("wealth") ||
-                page.contains("position") -> {
+            PageDomain.WEALTH -> {
                 DomainSystemPrompts.WEALTH
             }
-            page.isEmpty() -> {
-                DomainSystemPrompts.GENERAL
-            }
-            else -> {
+            PageDomain.GENERAL -> {
                 DomainSystemPrompts.GENERAL
             }
         }
-    }
 }
 
 /** A currency pair on the FX market: reviewed as a rate, not a company. */

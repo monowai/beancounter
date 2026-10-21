@@ -29,7 +29,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
     "com.beancounter.marketdata.tax",
     "com.beancounter.marketdata.broker",
     "com.beancounter.marketdata.news",
-    "com.beancounter.marketdata.macro"
+    "com.beancounter.marketdata.macro",
+    "com.beancounter.marketdata.watchlist"
 )
 @EnableRetry
 @EnableWebSecurity

@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "Watchlist", description = "Assets to watch, with price changes since added")
 class WatchlistController(
     private val watchlistService: WatchlistService,
+    private val watchlistAlertService: WatchlistAlertService,
     private val systemUserService: SystemUserService
 ) {
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -88,4 +89,27 @@ class WatchlistController(
         watchlistService.deleteItem(systemUserService.getOrThrow(), itemId)
         return mapOf("deleted" to itemId)
     }
+
+    @GetMapping(value = ["/alerts"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "Get the caller's watchlist alerts",
+        description = """
+            Targets reached by a scheduled close, newest first. A target fires once, in the
+            direction fixed when it was set (ABOVE: close at or above the target; BELOW: at or
+            below); editing the target re-arms it. targetPrice and close are in the asset's market
+            currency and on today's share basis. priceDate is the reaching close's date.
+        """
+    )
+    fun alerts(): WatchlistAlertsResponse =
+        WatchlistAlertsResponse(watchlistAlertService.alerts(systemUserService.getOrThrow()))
+
+    @DeleteMapping(value = ["/alerts/{alertId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "Dismiss a watchlist alert",
+        description = "Returns the caller's remaining alerts. 404 when the alert is not the caller's."
+    )
+    fun deleteAlert(
+        @PathVariable alertId: String
+    ): WatchlistAlertsResponse =
+        WatchlistAlertsResponse(watchlistAlertService.deleteAlert(systemUserService.getOrThrow(), alertId))
 }

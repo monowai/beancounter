@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.config.MarketClose
 import com.beancounter.marketdata.config.PriceScheduleProperties
+import com.beancounter.marketdata.watchlist.WatchlistAlertService
 import io.sentry.spring7.tracing.SentryTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -22,7 +23,8 @@ import java.time.ZoneId
  * market's EOD prices publish — independent of daylight-saving and of the
  * server's zone. All triggers call the same idempotent [updatePrices]; the
  * per-market availability gate ensures each fire only pulls markets that have
- * actually closed.
+ * actually closed. Once a refresh finishes, watchlist targets are checked against
+ * the closes it stored.
  */
 @Service
 @ConditionalOnProperty(
@@ -32,6 +34,7 @@ import java.time.ZoneId
 )
 class PriceSchedule(
     private val priceRefresh: PriceRefresh,
+    private val watchlistAlertService: WatchlistAlertService,
     private val dateUtils: DateUtils,
     private val properties: PriceScheduleProperties
 ) : SchedulingConfigurer {
@@ -75,6 +78,24 @@ class PriceSchedule(
             LocalDateTime.now(dateUtils.zoneId),
             dateUtils.zoneId.id
         )
-        priceRefresh.updatePrices()
+        try {
+            priceRefresh.updatePrices()
+        } finally {
+            // After the fetch loop, never inside it: prices commit per asset, so a refresh that
+            // failed part way still leaves closes worth checking.
+            checkWatchlistTargets()
+        }
+    }
+
+    private fun checkWatchlistTargets() {
+        try {
+            watchlistAlertService.checkTargets()
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            // The check must never fail the scheduled refresh; the next fire retries it.
+            log.warn("Watchlist target check failed: {}", e.message, e)
+        }
     }
 }

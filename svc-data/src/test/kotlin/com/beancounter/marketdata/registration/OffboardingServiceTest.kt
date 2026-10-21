@@ -5,10 +5,14 @@ import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Broker
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
@@ -23,6 +27,8 @@ import com.beancounter.marketdata.tax.TaxRateRequest
 import com.beancounter.marketdata.tax.TaxRateService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.watchlist.AddWatchlistItemRequest
+import com.beancounter.marketdata.watchlist.WatchlistAlert
+import com.beancounter.marketdata.watchlist.WatchlistAlertRepository
 import com.beancounter.marketdata.watchlist.WatchlistItemRepository
 import com.beancounter.marketdata.watchlist.WatchlistService
 import org.assertj.core.api.Assertions.assertThat
@@ -32,6 +38,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
+import java.time.Instant
 
 /**
  * Tests for user offboarding functionality.
@@ -82,6 +89,9 @@ class OffboardingServiceTest {
 
     @Autowired
     private lateinit var watchlistItemRepository: WatchlistItemRepository
+
+    @Autowired
+    private lateinit var watchlistAlertRepository: WatchlistAlertRepository
 
     @Autowired
     private lateinit var systemUserService: Registration
@@ -683,5 +693,71 @@ class OffboardingServiceTest {
         assertThat(result.success).isTrue()
         assertThat(assetRepository.findBySystemUserId(user.id)).isEmpty()
         assertThat(watchlistItemRepository.findByOwnerIdOrderByAssetCode(user.id)).isEmpty()
+    }
+
+    /** A fired alert on each of the user's watchlist items. */
+    private fun alertOnEveryItem(user: SystemUser) {
+        watchlistItemRepository.findByOwnerIdOrderByAssetCode(user.id).forEach { item ->
+            watchlistAlertRepository.save(
+                WatchlistAlert(
+                    owner = item.owner,
+                    item = item,
+                    asset = item.asset,
+                    targetPrice = BigDecimal.TEN,
+                    direction = TargetDirection.ABOVE,
+                    close = BigDecimal.TEN,
+                    priceDate = item.addedOn,
+                    createdAt = Instant.now()
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `should delete watchlist alerts on account deletion`() {
+        val user = SystemUser(id = "offboard-wl-alert-user", email = "offboard-wl-alert@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        // A public asset survives offboarding, so only the owner sweep can clear its alert.
+        val public =
+            assetRepository.save(
+                Asset(code = "OFFBOARD-WL-PUBLIC", id = KeyGenUtils().id, market = NASDAQ, marketCode = NASDAQ.code)
+            )
+        watchlistService.addItem(
+            systemUserRepository.findById(user.id).orElseThrow(),
+            AddWatchlistItemRequest(assetId = public.id, addedPrice = BigDecimal.TEN)
+        )
+        alertOnEveryItem(user)
+        assertThat(watchlistAlertRepository.findByOwnerIdOrderByCreatedAtDesc(user.id)).isNotEmpty()
+
+        val result = offboardingService.deleteUserAccount()
+
+        assertThat(result.success).isTrue()
+        assertThat(watchlistAlertRepository.findByOwnerIdOrderByCreatedAtDesc(user.id)).isEmpty()
+    }
+
+    @Test
+    fun `should delete watchlist alerts on a user asset when wealth is deleted`() {
+        val user = SystemUser(id = "offboard-wl-alert-wealth", email = "offboard-wl-alert-wealth@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        watchedOwnAsset(user, "OFFBOARD-WL-ALERT-WEALTH")
+        alertOnEveryItem(user)
+
+        val result = offboardingService.deleteUserWealth()
+
+        assertThat(result.success).isTrue()
+        assertThat(watchlistAlertRepository.findByOwnerIdOrderByCreatedAtDesc(user.id)).isEmpty()
+    }
+
+    @Test
+    fun `should delete watchlist alerts on a user asset when assets are deleted`() {
+        val user = SystemUser(id = "offboard-wl-alert-assets", email = "offboard-wl-alert-assets@test.com")
+        mockAuthConfig.login(user, systemUserService)
+        watchedOwnAsset(user, "OFFBOARD-WL-ALERT-ASSETS")
+        alertOnEveryItem(user)
+
+        val result = offboardingService.deleteUserAssets()
+
+        assertThat(result.success).isTrue()
+        assertThat(watchlistAlertRepository.findByOwnerIdOrderByCreatedAtDesc(user.id)).isEmpty()
     }
 }

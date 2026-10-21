@@ -39,9 +39,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.LocalDate
 
 /**
  * Watchlist target alerts against real H2 state: the direction fixed when a target is set,
@@ -87,6 +90,9 @@ class WatchlistAlertTest {
 
     @Autowired
     private lateinit var dateUtils: DateUtils
+
+    @Autowired
+    private lateinit var transactionManager: PlatformTransactionManager
 
     private lateinit var tokenA: Jwt
     private lateinit var tokenB: Jwt
@@ -437,6 +443,104 @@ class WatchlistAlertTest {
 
         assertThat(alertsFor(itemId)).isEmpty()
         assertThat(alertRepository.findAll().filter { it.asset.id == stock.id }).isEmpty()
+    }
+
+    private fun markHit(
+        itemId: String,
+        targetOn: LocalDate,
+        price: BigDecimal
+    ): Int =
+        requireNotNull(
+            TransactionTemplate(transactionManager).execute {
+                watchlistItemRepository.markHit(itemId, targetOn, price, dateUtils.date)
+            }
+        )
+
+    /** Fixture: a target whose side V44 backfilled without a split rebase (V45 flags it). */
+    private fun backfilledSide(
+        itemId: String,
+        direction: TargetDirection
+    ) {
+        watchlistItemRepository.save(stored(itemId).copy(targetDirection = direction, directionUnverified = true))
+    }
+
+    @Test
+    fun `should re-derive a backfilled side across a split without alerting`() {
+        val stock = asset("WLAREDERIVE")
+        close(stock, 11, "110")
+        val itemId = watch(stock, addedPrice = 110, targetPrice = 100)
+        backdateTarget(itemId, 10)
+        close(stock, 5, "27", split = "4")
+        // V44 compared 100 (pre-split basis) with 27 and armed it ABOVE; on one basis it is 25.
+        backfilledSide(itemId, TargetDirection.ABOVE)
+
+        alertService.checkTargets()
+
+        assertThat(alertsFor(itemId)).isEmpty()
+        assertThat(stored(itemId).targetDirection).isEqualTo(TargetDirection.BELOW)
+        assertThat(stored(itemId).directionUnverified).isFalse()
+    }
+
+    @Test
+    fun `should alert on a re-derived side once the close crosses it`() {
+        val stock = asset("WLAREDERIVED")
+        close(stock, 11, "110")
+        val itemId = watch(stock, addedPrice = 110, targetPrice = 100)
+        backdateTarget(itemId, 10)
+        close(stock, 5, "27", split = "4")
+        backfilledSide(itemId, TargetDirection.ABOVE)
+        alertService.checkTargets()
+        close(stock, 1, "24")
+
+        alertService.checkTargets()
+
+        val alert = alertsFor(itemId).single()
+        assertThat(alert.path("direction").asString()).isEqualTo("BELOW")
+        assertThat(alert.path("targetPrice").decimalValue()).isEqualByComparingTo("25")
+    }
+
+    @Test
+    fun `should clear the backfill flag when a target is set`() {
+        val stock = asset("WLAREFLAG")
+        close(stock, 1, "100")
+        val itemId = watch(stock, addedPrice = 100, targetPrice = 120)
+        backfilledSide(itemId, TargetDirection.ABOVE)
+
+        retarget(itemId, mapOf("targetPrice" to 90))
+
+        assertThat(stored(itemId).directionUnverified).isFalse()
+        assertThat(stored(itemId).targetDirection).isEqualTo(TargetDirection.BELOW)
+    }
+
+    @Test
+    fun `should stamp a target hit only for the first check that reaches it`() {
+        val stock = asset("WLAMARK")
+        close(stock, 1, "100")
+        val itemId = watch(stock, addedPrice = 100, targetPrice = 120)
+        val target = stored(itemId)
+        val targetOn = requireNotNull(target.targetOn)
+        val price = requireNotNull(target.targetPrice)
+
+        val first = markHit(itemId, targetOn, price)
+        val second = markHit(itemId, targetOn, price)
+
+        assertThat(first).isEqualTo(1)
+        assertThat(second).describedAs("already stamped").isZero()
+        assertThat(stored(itemId).targetHitOn).isEqualTo(dateUtils.date)
+    }
+
+    @Test
+    fun `should not stamp a target that was edited since the check read it`() {
+        val stock = asset("WLAMARKEDIT")
+        close(stock, 1, "100")
+        val itemId = watch(stock, addedPrice = 100, targetPrice = 120)
+        val targetOn = requireNotNull(stored(itemId).targetOn)
+        retarget(itemId, mapOf("targetPrice" to 140))
+
+        val stamped = markHit(itemId, targetOn, BigDecimal("120"))
+
+        assertThat(stamped).isZero()
+        assertThat(stored(itemId).targetHitOn).isNull()
     }
 
     companion object {

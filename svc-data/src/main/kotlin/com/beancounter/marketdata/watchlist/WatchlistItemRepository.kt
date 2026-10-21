@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.Optional
 
 /**
@@ -20,6 +22,22 @@ interface WatchlistItemRepository : CrudRepository<WatchlistItem, String> {
 
     /** Items with a target that has not been reached yet. */
     fun findByTargetPriceIsNotNullAndTargetHitOnIsNull(): List<WatchlistItem>
+
+    /**
+     * Stamp an armed target as reached on [hitOn], only while it is still the target the caller
+     * checked. Returns 0 when another check, or an edit, got there first: the alert is not raised.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query(
+        "update WatchlistItem i set i.targetHitOn = :hitOn where i.id = :id and i.targetHitOn is null " +
+            "and i.targetOn = :targetOn and i.targetPrice = :targetPrice"
+    )
+    fun markHit(
+        @Param("id") id: String,
+        @Param("targetOn") targetOn: LocalDate,
+        @Param("targetPrice") targetPrice: BigDecimal,
+        @Param("hitOn") hitOn: LocalDate
+    ): Int
 
     fun existsByOwnerIdAndAssetId(
         ownerId: String,

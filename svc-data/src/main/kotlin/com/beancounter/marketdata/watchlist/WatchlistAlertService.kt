@@ -4,6 +4,7 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.PriceService
@@ -23,8 +24,8 @@ import java.time.LocalDate
  * item (a target not yet reached) is compared with its asset's latest stored close dated on
  * or after the target was set. The stored target is on the share basis of its targetOn date
  * and the raw close on its own, so the target is rebased across splits between the two. A
- * crossing in the item's fixed direction writes a [WatchlistAlert] and stamps the item's
- * targetHitOn, so each target fires once.
+ * crossing in the item's fixed direction stamps the item's targetHitOn, only while it is still
+ * unstamped, and writes a [WatchlistAlert], so each target fires once even when checks overlap.
  *
  * Read paths are owner-scoped; another user's alert is reported as not found.
  */
@@ -133,19 +134,34 @@ class WatchlistAlertService(
     ): Boolean =
         perItem.execute {
             // Re-read inside the transaction: the target may have been edited since the sweep began.
-            val current = itemRepository.findById(item.id).orElseThrow()
+            val found = itemRepository.findById(item.id)
+            if (found.isEmpty) return@execute false
+            val current = found.get()
             val unchanged =
                 current.targetHitOn == null &&
                     current.targetOn == item.targetOn &&
                     current.targetPrice?.compareTo(item.targetPrice) == 0
             if (!unchanged) return@execute false
+            val stored = requireNotNull(current.targetPrice)
             // Undo the splits after targetOn, re-apply those after the close: the close's basis.
             val target =
-                requireNotNull(current.targetPrice)
+                stored
                     .multiply(factors.getValue(close.priceDate))
                     .divide(factors.getValue(targetOn(current)), PRICE_SCALE, RoundingMode.HALF_UP)
+            if (current.directionUnverified) {
+                // V44's backfill compared prices on different share bases: re-derive the side
+                // from this close. A target never fires on the close its side was taken from.
+                current.targetDirection = TargetDirection.of(target, close.close)
+                current.directionUnverified = false
+                itemRepository.save(current)
+                return@execute false
+            }
             val direction = requireNotNull(current.targetDirection) { "Target without direction: ${item.id}" }
             if (!direction.reached(close.close, target)) return@execute false
+            // Conditional stamp: an overlapping check that got there first raises no second alert.
+            if (itemRepository.markHit(current.id, targetOn(current), stored, close.priceDate) == 0) {
+                return@execute false
+            }
             alertRepository.save(
                 WatchlistAlert(
                     owner = current.owner,
@@ -158,8 +174,6 @@ class WatchlistAlertService(
                     createdAt = Instant.now()
                 )
             )
-            current.targetHitOn = close.priceDate
-            itemRepository.save(current)
             true
         } == true
 

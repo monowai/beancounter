@@ -69,5 +69,10 @@ data class WatchlistItem(
     var targetDirection: TargetDirection? = null,
     // Close date the target was reached on; null while armed. Reset whenever the target changes.
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    var targetHitOn: LocalDate? = null
+    var targetHitOn: LocalDate? = null,
+    // True while targetDirection is V44's backfill, compared without a split rebase (V45). The
+    // next target check re-derives it on one share basis; setting a target clears it.
+    @JsonIgnore
+    @Column(nullable = false)
+    var directionUnverified: Boolean = false
 )

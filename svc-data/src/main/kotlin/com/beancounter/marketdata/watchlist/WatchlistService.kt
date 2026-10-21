@@ -97,6 +97,7 @@ class WatchlistService(
         item.targetOn = dateUtils.date
         item.targetDirection = TargetDirection.of(target, reference)
         item.targetHitOn = null
+        item.directionUnverified = false
     }
 
     fun updateItem(
@@ -126,6 +127,7 @@ class WatchlistService(
             item.targetOn = null
             item.targetDirection = null
             item.targetHitOn = null
+            item.directionUnverified = false
         }
         val saved = itemRepository.save(item)
         return itemView(saved, latest, splitFactors(listOf(saved)))

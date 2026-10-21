@@ -8,6 +8,12 @@ data class CannedQuery(
     val question: String
 )
 
+/** What a canned Asset Review is about, upper-cased; [market] is blank when the page sent none. */
+data class AssetReviewSubject(
+    val ticker: String,
+    val market: String
+)
+
 /**
  * Maps a page context to its canned user question, the way
  * [SystemPromptSelector] maps it to the system prompt. A caller that sends no
@@ -27,6 +33,15 @@ class PageQuerySelector {
             ) -> CannedQuery(PageQueries.PORTFOLIO_REVIEW, PageQueries.DAILY_BRIEFING)
             else -> null
         }
+    }
+
+    /** The asset an Asset Review page asks about, or null for any other page or no ticker. */
+    fun assetReviewSubject(context: Map<String, Any>?): AssetReviewSubject? {
+        val fields = context.orEmpty()
+        if (normalise(fields["page"]) != normalise(PageQueries.ASSET_REVIEW)) return null
+        val ticker = text(fields, "tickers")
+        if (ticker.isEmpty()) return null
+        return AssetReviewSubject(ticker.uppercase(), text(fields, "market").uppercase())
     }
 
     private fun assetReview(fields: Map<String, Any>): CannedQuery? {

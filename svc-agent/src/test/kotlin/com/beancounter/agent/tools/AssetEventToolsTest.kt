@@ -2,7 +2,6 @@ package com.beancounter.agent.tools
 
 import com.beancounter.agent.client.AssetClient
 import com.beancounter.agent.client.EventClient
-import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import org.assertj.core.api.Assertions.assertThat
@@ -15,7 +14,7 @@ import org.mockito.kotlin.mock
  * [AssetClient] before delegating to [EventClient.getAssetEvents]. The
  * LLM never sees the internal asset id — only the ticker / market pair.
  */
-class EventToolsTest {
+class AssetEventToolsTest {
     private val asset =
         Asset(
             id = ASSET_ID,
@@ -54,7 +53,7 @@ class EventToolsTest {
         assertThat(result).isEqualTo(payload)
     }
 
-    private fun build(): EventTools {
+    private fun build(): AssetEventTools {
         val assetClient =
             mock<AssetClient> {
                 on { getAsset(MARKET, TICKER) } doReturn asset
@@ -63,9 +62,8 @@ class EventToolsTest {
             mock<EventClient> {
                 on { getAssetEvents(ASSET_ID) } doReturn payload
             }
-        return EventTools(
+        return AssetEventTools(
             eventClient = eventClient,
-            portfolioServiceClient = mock<PortfolioServiceClient>(),
             assetClient = assetClient
         )
     }

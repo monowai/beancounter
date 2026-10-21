@@ -9,6 +9,10 @@ import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
+import com.beancounter.agent.review.AssetReviewCache
+import com.beancounter.agent.review.AssetReviewKey
+import com.beancounter.agent.review.CachedReview
+import com.beancounter.agent.review.ReviewCachingRecorder
 import com.beancounter.agent.tools.ToolSelector
 import com.beancounter.common.exception.BusinessException
 import io.swagger.v3.oas.annotations.Operation
@@ -82,7 +86,9 @@ class AgentController(
     // without a Clock bean; overridden in tests for a fixed date.
     private val clock: Clock = Clock.systemUTC(),
     // Defaulted like the clock, so the tests that build the controller by hand need not pass it.
-    private val pageQuerySelector: PageQuerySelector = PageQuerySelector()
+    private val pageQuerySelector: PageQuerySelector = PageQuerySelector(),
+    // Defaulted like the clock: the hand-built controllers in tests cache nothing.
+    private val reviewCache: AssetReviewCache = AssetReviewCache.NONE
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -221,6 +227,67 @@ class AgentController(
                         (request.label ?: request.query)
             )
         return request.copy(history = stored) to recorder
+    }
+
+    /**
+     * Where this turn's canned Asset Review is cached, or null when it is not
+     * one: the caller asked nothing of its own and neither the request nor the
+     * conversation carries earlier turns. A free-form question or a follow-up
+     * is always answered live. The review reads no user data (see
+     * [ToolSelector]), so it is keyed by the asset alone, the date stamped
+     * into the prompt, and the model that answers — never by the caller.
+     */
+    private fun reviewKeyFor(
+        body: AgentQuery,
+        turn: AgentQuery
+    ): AssetReviewKey? {
+        if (!reviewCache.enabled) return null
+        if (body.query.isNotBlank() || !body.history.isNullOrEmpty() || !turn.history.isNullOrEmpty()) return null
+        val subject = pageQuerySelector.assetReviewSubject(turn.context) ?: return null
+        return AssetReviewKey(
+            market = subject.market,
+            ticker = subject.ticker,
+            reviewDate = LocalDate.now(clock),
+            model = chatModelSelector.selectFor(turn.context, turn.deepThink)
+        )
+    }
+
+    /**
+     * The cached answer for [key], or null on a miss or when the caller asked
+     * to [AgentQuery.refresh] it. A failed read is a miss.
+     */
+    private fun cachedReview(
+        key: AssetReviewKey,
+        refresh: Boolean
+    ): CachedReview? {
+        val hit =
+            if (refresh) {
+                null
+            } else {
+                try {
+                    reviewCache.find(key)
+                } catch (
+                    @Suppress("TooGenericExceptionCaught")
+                    e: Exception
+                ) {
+                    log.warn("Asset review cache read failed: {}", e.message)
+                    null
+                }
+            }
+        log.debug(
+            "Asset review cache {} for {}:{} on {}",
+            if (refresh) {
+                "refresh"
+            } else if (hit == null) {
+                "miss"
+            } else {
+                "hit"
+            },
+            key.market,
+            key.ticker,
+            key.reviewDate
+        )
+        return hit
     }
 
     /**
@@ -378,7 +445,24 @@ class AgentController(
                 )
         }
 
-        val (turn, recorder) = openTurn(request)
+        val (turn, conversationRecorder) = openTurn(request)
+        val reviewKey = reviewKeyFor(body, turn)
+        val hit = reviewKey?.let { cachedReview(it, body.refresh) }
+        if (hit != null) {
+            // No model runs: the stored answer is recorded as a live one would be.
+            llmMetrics.cached(LlmMetrics.Mode.CALL)
+            recordQuietly { conversationRecorder.answered(hit.content) }
+            return ResponseEntity.ok(
+                AgentResponse(
+                    query = safeQuery,
+                    response = hit.content,
+                    timestamp = Instant.now().toString(),
+                    cached = true
+                )
+            )
+        }
+        val recorder =
+            reviewKey?.let { ReviewCachingRecorder(conversationRecorder, reviewCache, it) } ?: conversationRecorder
         return try {
             val userMessage = buildUserMessage(turn)
             val tools = toolSelector.selectTools(turn.context)
@@ -516,7 +600,7 @@ class AgentController(
         val conversationId = request.conversationId
         if (conversationId == null) {
             val (turn, recorder) = openTurn(request)
-            return answerPipeline(turn, recorder)
+            return pipelineFor(body, turn, recorder)
         }
         // Pending before the question is committed: openTurn writes the user
         // row in its own transaction, and a GET landing between that commit
@@ -538,10 +622,59 @@ class AgentController(
         // request thread, so contextCapture still snapshots the caller's
         // SecurityContext, and unlike refCount it never disconnects when the
         // downstream count drops to zero.
-        return answerPipeline(turn, recorder)
+        return pipelineFor(body, turn, recorder)
             .doFinally { inFlightTurns.end(conversationId) }
             .replay()
             .autoConnect(0)
+    }
+
+    /**
+     * A canned Asset Review answered from the cache when one is fresh, else
+     * live, keeping a successful live answer for next time.
+     */
+    private fun pipelineFor(
+        body: AgentQuery,
+        turn: AgentQuery,
+        recorder: TurnRecorder
+    ): Flux<ServerSentEvent<String>> {
+        val key = reviewKeyFor(body, turn) ?: return answerPipeline(turn, recorder)
+        val hit =
+            cachedReview(key, body.refresh)
+                ?: return answerPipeline(turn, ReviewCachingRecorder(recorder, reviewCache, key))
+        return cachedPipeline(hit, recorder)
+    }
+
+    /**
+     * Stream a cached review the way a live answer ends: its text as a token,
+     * the turn recorded, then `done` flagged `cached`. No model is called.
+     * `model` follows the live rule: present only on the Anthropic surface.
+     */
+    private fun cachedPipeline(
+        hit: CachedReview,
+        recorder: TurnRecorder
+    ): Flux<ServerSentEvent<String>> {
+        val startMs = System.currentTimeMillis()
+        val requestSpan =
+            io.opentelemetry.api.trace.Span
+                .current()
+        val done =
+            Flux.defer {
+                llmMetrics.cached(LlmMetrics.Mode.STREAM, requestSpan)
+                val payload =
+                    objectMapper.writeValueAsString(
+                        buildMap {
+                            put("chars", hit.content.length.toLong())
+                            put("elapsed_ms", System.currentTimeMillis() - startMs)
+                            if (anthropicActive) put("model", hit.model)
+                            put("cached", true)
+                        }
+                    )
+                Flux.just(ServerSentEvent.builder(payload).event("done").build())
+            }
+        return Flux
+            .just(ServerSentEvent.builder(hit.content).event("token").build())
+            .concatWith(record { recorder.answered(hit.content) }.thenMany(Flux.empty()))
+            .concatWith(done)
     }
 
     /**
@@ -1107,7 +1240,12 @@ data class AgentQuery(
      * Display text for a canned prompt (a Quick Analysis), stored beside the
      * question so a reloaded conversation shows it instead of the prompt.
      */
-    val label: String? = null
+    val label: String? = null,
+    /**
+     * Ask the model even when a cached answer to this canned review exists,
+     * and keep the new answer in its place.
+     */
+    val refresh: Boolean = false
 )
 
 /**
@@ -1123,5 +1261,7 @@ data class AgentResponse(
     val query: String,
     val response: String,
     val timestamp: String,
-    val error: String? = null
+    val error: String? = null,
+    /** True when the answer was served from the Asset Review cache, not the model. */
+    val cached: Boolean = false
 )

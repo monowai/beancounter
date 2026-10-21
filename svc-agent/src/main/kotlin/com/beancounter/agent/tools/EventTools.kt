@@ -1,6 +1,5 @@
 package com.beancounter.agent.tools
 
-import com.beancounter.agent.client.AssetClient
 import com.beancounter.agent.client.EventClient
 import com.beancounter.client.services.PortfolioServiceClient
 import org.springframework.ai.tool.annotation.Tool
@@ -8,7 +7,8 @@ import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Service
 
 /**
- * Tools for corporate event lookup, loading and backfill.
+ * Tools that load and backfill corporate events for the caller's portfolios.
+ * Read-only lookups of one asset's events live in [AssetEventTools].
  *
  * Portfolio-scoped tools come in pairs: a by-**code** variant for the
  * standard case (the user owns the portfolio and refers to it by its
@@ -23,39 +23,8 @@ import org.springframework.stereotype.Service
 @Service
 class EventTools(
     private val eventClient: EventClient,
-    private val portfolioServiceClient: PortfolioServiceClient,
-    private val assetClient: AssetClient
+    private val portfolioServiceClient: PortfolioServiceClient
 ) {
-    @Tool(description = ASSET_EVENTS_DESC)
-    fun getAssetEvents(
-        @ToolParam(
-            description =
-                "Internal Beancounter asset id (UUID-like). " +
-                    "If the user gives a public ticker, use getAssetEventsByTicker instead."
-        ) assetId: String
-    ): Map<String, Any> = eventClient.getAssetEvents(assetId)
-
-    @Tool(description = ASSET_EVENTS_BY_TICKER_DESC)
-    fun getAssetEventsByTicker(
-        @ToolParam(
-            description = "Ticker symbol as quoted on the market, e.g. 'GOOG', 'AAPL'."
-        ) ticker: String,
-        @ToolParam(
-            required = false,
-            description =
-                "Optional Beancounter market hint. Default 'US' covers every " +
-                    "US-listed equity (NASDAQ/NYSE/AMEX/ARCA all collapse to " +
-                    "the canonical US market server-side). Pass 'ASX', 'NZX', " +
-                    "'SGX' etc. for non-US listings, or call listMarkets for " +
-                    "the full set. Typos like 'NASAQ' and index labels like " +
-                    "'DOW' / 'DOW JONES' are also accepted and resolved to US."
-        ) market: String = "US"
-    ): Map<String, Any> {
-        val resolved = market.ifBlank { "US" }
-        val asset = assetClient.getAsset(resolved, ticker)
-        return eventClient.getAssetEvents(asset.id)
-    }
-
     @Tool(description = LOAD_DESC)
     fun loadPortfolioEvents(
         @ToolParam(description = "Portfolio code as the user types it, e.g. 'TYLER'") portfolioCode: String,
@@ -99,17 +68,6 @@ class EventTools(
     ): Map<String, Any> = eventClient.backfillPortfolio(portfolioId, fromDate, toDate.ifBlank { fromDate })
 
     companion object {
-        const val ASSET_EVENTS_DESC =
-            "List all stored corporate events (dividends, splits) for an internal " +
-                "Beancounter asset id, ordered by pay date, most recent first. " +
-                "For public tickers, prefer getAssetEventsByTicker."
-        const val ASSET_EVENTS_BY_TICKER_DESC =
-            "List all stored corporate events (dividends, splits) for a publicly " +
-                "listed ticker — e.g. 'how many dividends has GOOG paid?'. " +
-                "Resolves the ticker on the named market into a Beancounter asset " +
-                "(creating one on demand) and then returns the same payload as " +
-                "getAssetEvents. Prefer this tool when the user names a ticker " +
-                "rather than referring to a portfolio holding."
         const val LOAD_DESC =
             "Trigger a load of new corporate events from external providers for every asset " +
                 "in a portfolio. Returns immediately; the load runs asynchronously."

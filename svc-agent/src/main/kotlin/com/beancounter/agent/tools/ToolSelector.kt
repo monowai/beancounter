@@ -20,7 +20,8 @@ class ToolSelector(
     private val marketTools: MarketTools,
     private val newsTools: NewsTools,
     private val macroTools: MacroTools,
-    private val eventTools: EventTools,
+    private val portfolioEventTools: EventTools,
+    private val assetEventTools: AssetEventTools,
     private val retireTools: RetireTools,
     private val rebalanceTools: RebalanceTools,
     private val watchlistTools: WatchlistTools
@@ -29,6 +30,9 @@ class ToolSelector(
     private val wealthTools: List<Any> by lazy {
         listOf(portfolioTools, positionTools, holdingTools, marketTools, macroTools)
     }
+
+    /** Corporate events: one asset's history plus loading them for the caller's portfolios. */
+    private val eventTools: List<Any> by lazy { listOf(assetEventTools, portfolioEventTools) }
 
     fun selectTools(context: Map<String, Any>?): Array<Any> {
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
@@ -42,11 +46,13 @@ class ToolSelector(
             // Match before the trade/event branch so the word "asset" doesn't
             // trip a fall-through.
             page.contains("asset review") || page.contains("asset-review") -> {
-                // A currency pair has no holdings or corporate events to read: the rate, macro and news.
+                // About the asset alone, never the caller's portfolios or holdings,
+                // so one review serves every user (and is cached that way).
+                // A currency pair has no corporate events: the rate, macro and news.
                 if (isFxPair(context)) {
                     arrayOf(marketTools, macroTools, newsTools)
                 } else {
-                    (wealthTools + eventTools + newsTools).toTypedArray()
+                    arrayOf(marketTools, macroTools, assetEventTools, newsTools)
                 }
             }
             // News & Sentiment — focused lookup, plus marketTools so the

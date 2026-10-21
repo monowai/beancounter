@@ -78,4 +78,26 @@ class PageQuerySelectorTest {
         // bc-view's DAILY_BRIEFING_PROMPT, characters as sent; a drift in either copy changes this.
         const val DAILY_BRIEFING_LENGTH = 4059
     }
+
+    @Test
+    fun `asset review names its subject upper-cased for the review cache`() {
+        val subject =
+            selector.assetReviewSubject(
+                mapOf(
+                    "page" to "asset-review",
+                    "tickers" to " abc ",
+                    "market" to "nyse"
+                )
+            )
+
+        assertThat(subject).isEqualTo(AssetReviewSubject(ticker = "ABC", market = "NYSE"))
+    }
+
+    @Test
+    fun `asset review subject is blank-market when the page sent none, and absent off the page`() {
+        assertThat(selector.assetReviewSubject(mapOf("page" to "Asset Review", "tickers" to "ABC")))
+            .isEqualTo(AssetReviewSubject(ticker = "ABC", market = ""))
+        assertThat(selector.assetReviewSubject(mapOf("page" to "Asset Review notes", "tickers" to "ABC"))).isNull()
+        assertThat(selector.assetReviewSubject(mapOf("page" to "Asset Review"))).isNull()
+    }
 }

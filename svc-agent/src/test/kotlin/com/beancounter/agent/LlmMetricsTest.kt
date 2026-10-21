@@ -271,4 +271,16 @@ class LlmMetricsTest {
         verify(span).setAttribute(eq("agent.mode"), eq("call"))
         verify(span).setAttribute(eq("llm.total_tokens"), eq(15L))
     }
+
+    @Test
+    fun `cached tags the supplied span so cached turns can be told apart`() {
+        val span = mock<Span>()
+        whenever(span.setAttribute(any<String>(), any<Boolean>())).thenReturn(span)
+        whenever(span.setAttribute(any<String>(), any<String>())).thenReturn(span)
+
+        LlmMetrics().cached(LlmMetrics.Mode.STREAM, span)
+
+        verify(span).setAttribute(eq("agent.cached"), eq(true))
+        verify(span).setAttribute(eq("agent.mode"), eq("stream"))
+    }
 }

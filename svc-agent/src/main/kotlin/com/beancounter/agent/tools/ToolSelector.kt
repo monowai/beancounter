@@ -38,6 +38,20 @@ class ToolSelector(
         val page = context?.get("page")?.toString()?.lowercase() ?: ""
 
         return when {
+            // Holding Analysis — the caller's own holding of one asset: the holding,
+            // position and portfolio tools, plus the asset's market, macro, events and news.
+            // Matched first, so "holding" never falls through to Wealth.
+            page.contains("holding analysis") || page.contains("holding-analysis") -> {
+                arrayOf(
+                    portfolioTools,
+                    positionTools,
+                    holdingTools,
+                    marketTools,
+                    macroTools,
+                    assetEventTools,
+                    newsTools
+                )
+            }
             // Watchlist — tracked assets, not holdings: no portfolio or position tools.
             page.contains("watchlist") -> {
                 arrayOf(watchlistTools, marketTools, newsTools, macroTools)

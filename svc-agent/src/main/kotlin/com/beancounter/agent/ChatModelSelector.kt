@@ -42,6 +42,8 @@ class ChatModelSelector(
             listOf(
                 "asset review",
                 "asset-review",
+                "holding analysis",
+                "holding-analysis",
                 "independence",
                 "retire",
                 "rebalanc",

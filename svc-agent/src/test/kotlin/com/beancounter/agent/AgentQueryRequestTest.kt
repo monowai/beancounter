@@ -13,6 +13,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 /**
@@ -54,5 +55,15 @@ class AgentQueryRequestTest {
     @Test
     fun `should reject a blank question on a page that has no canned question`() {
         ask("""{"query":"  ","context":{"page":"Settings"}}""").andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `should reject a holding analysis without a plain portfolio code with a stable error`() {
+        ask("""{"context":{"page":"Holding Analysis","tickers":"NATO","market":"NASDAQ"}}""")
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value(PageQuerySelector.INVALID_HOLDING_ANALYSIS))
+        ask("""{"context":{"page":"Holding Analysis","tickers":"NATO","market":"NASDAQ","portfolioCode":"A B"}}""")
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value(PageQuerySelector.INVALID_HOLDING_ANALYSIS))
     }
 }

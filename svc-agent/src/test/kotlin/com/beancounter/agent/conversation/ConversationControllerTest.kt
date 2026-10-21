@@ -114,6 +114,27 @@ class ConversationControllerTest {
     }
 
     @Test
+    fun `should expose each conversation's kind`() {
+        val chat = seeded(me, "How is my portfolio?")
+        val review = service.create(me).id
+        service.appendUser(me, review, "Analyse NATO", false, kind = ConversationKind.HOLDING_ANALYSIS)
+
+        mockMvc
+            .perform(get("/agent/conversations/$review").with(jwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.kind").value("HOLDING_ANALYSIS"))
+        mockMvc
+            .perform(get("/agent/conversations/$chat").with(jwt()))
+            .andExpect(jsonPath("$.data.kind").value("CHAT"))
+        mockMvc
+            .perform(get("/agent/conversations").with(jwt()))
+            .andExpect(jsonPath("$.data[?(@.id == '$review')].kind").value("HOLDING_ANALYSIS"))
+        mockMvc
+            .perform(post("/agent/conversations").with(jwt()))
+            .andExpect(jsonPath("$.data.kind").value("CHAT"))
+    }
+
+    @Test
     fun `should still create an empty conversation from an empty turn list`() {
         mockMvc
             .perform(seed("""{"turns":[]}"""))

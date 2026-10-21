@@ -100,4 +100,10 @@ class ChatModelSelectorTest {
         assertThat(selector.reasonsFor(mapOf("page" to "Holdings"))).isFalse()
         assertThat(selector.reasonsFor(null)).isFalse()
     }
+
+    @Test
+    fun `Holding Analysis uses SMART`() {
+        assertThat(selector.selectFor(mapOf("page" to "Holding Analysis"))).isEqualTo("smart-id")
+        assertThat(selector.reasonsFor(mapOf("page" to "Holding Analysis"))).isTrue()
+    }
 }

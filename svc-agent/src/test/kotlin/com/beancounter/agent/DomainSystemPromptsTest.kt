@@ -23,7 +23,8 @@ class DomainSystemPromptsTest {
             DomainSystemPrompts.INDEPENDENCE,
             DomainSystemPrompts.REBALANCE,
             DomainSystemPrompts.WATCHLIST,
-            DomainSystemPrompts.FX_REVIEW
+            DomainSystemPrompts.FX_REVIEW,
+            DomainSystemPrompts.HOLDING_ANALYSIS
         )
 
     @Test
@@ -223,5 +224,17 @@ class DomainSystemPromptsTest {
     @Test
     fun `independence prompt reports an unreadable timeline instead of calling it unset`() {
         assertThat(DomainSystemPrompts.INDEPENDENCE).contains("phasesUnreadable")
+    }
+
+    @Test
+    fun `holding analysis reads the opening review and holding facts, and may cite that holding's figures`() {
+        assertThat(DomainSystemPrompts.HOLDING_ANALYSIS)
+            .contains("## Domain: Holding Analysis")
+            .contains("Asset Review")
+            .contains("getHolding")
+            .contains("weight")
+            .contains("average cost")
+            .contains("Not financial advice")
+            .contains("never recompute")
     }
 }

@@ -202,4 +202,36 @@ class ToolSelectorTest {
         assertThat(registered).allSatisfy { assertThat(domain).contains("`$it") }
         assertThat(called).isSubsetOf(registered)
     }
+
+    @Test
+    fun `holding analysis ships the holding, position and portfolio tools plus market, macro, asset event and news`() {
+        val tools = selector.selectTools(mapOf("page" to "Holding Analysis", "tickers" to "NATO"))
+        assertThat(tools).containsExactlyInAnyOrder(
+            portfolioTools,
+            positionTools,
+            holdingTools,
+            marketTools,
+            macroTools,
+            assetEventTools,
+            newsTools
+        )
+        assertThat(tools).doesNotContain(eventTools, retireTools, rebalanceTools, watchlistTools)
+    }
+
+    @Test
+    fun `the holding analysis prompt names exactly the tools the page registers`() {
+        val registered = toolNames(selector.selectTools(mapOf("page" to "Holding Analysis")))
+        val domain =
+            com.beancounter.agent.DomainSystemPrompts.HOLDING_ANALYSIS
+                .substringAfter("## Domain: Holding Analysis")
+        val called =
+            Regex("`([a-z][A-Za-z]+)\\(")
+                .findAll(domain)
+                .map { it.groupValues[1] }
+                .toSet()
+
+        assertThat(registered).contains("getHolding", "getPositions", "listPortfolios", "getNews")
+        assertThat(registered).allSatisfy { assertThat(domain).contains("`$it") }
+        assertThat(called).isSubsetOf(registered)
+    }
 }

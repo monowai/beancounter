@@ -97,6 +97,36 @@ class ConversationServiceTest {
     }
 
     @Test
+    fun `should start every conversation as a plain chat`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "How is my portfolio?", false)
+
+        assertThat(service.get(owner, id).kind).isEqualTo(ConversationKind.CHAT)
+        assertThat(service.list(owner, 0, 10).single().kind).isEqualTo(ConversationKind.CHAT)
+    }
+
+    @Test
+    fun `should take its kind from the first turn and keep it`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "Analyse my holding", false, kind = ConversationKind.HOLDING_ANALYSIS)
+        service.appendAssistant(owner, id, "Sized at a tenth of the book.", null)
+        service.appendUser(owner, id, "And the review?", false, kind = ConversationKind.ASSET_REVIEW)
+
+        assertThat(service.get(owner, id).kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
+        assertThat(service.kindOf(owner, id)).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
+        assertThat(service.list(owner, 0, 10).single().kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
+    }
+
+    @Test
+    fun `should not turn a chat into a review after its first turn`() {
+        val id = service.create(owner).id
+        service.appendUser(owner, id, "What is an ETF?", false)
+        service.appendUser(owner, id, "Review it", false, kind = ConversationKind.ASSET_REVIEW)
+
+        assertThat(service.kindOf(owner, id)).isEqualTo(ConversationKind.CHAT)
+    }
+
+    @Test
     fun `should title a conversation provisionally from its first user message`() {
         val id = service.create(owner).id
         service.appendUser(owner, id, "In one sentence, what is an index fund?", false)

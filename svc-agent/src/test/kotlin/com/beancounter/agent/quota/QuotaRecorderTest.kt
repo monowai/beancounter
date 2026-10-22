@@ -18,6 +18,8 @@ class QuotaRecorderTest {
             override fun spend(ownerId: String) {
                 spent += ownerId
             }
+
+            override fun disabled(ownerId: String) = false
         }
 
     private fun recorder(delegate: TurnRecorder) = QuotaRecorder(delegate, quota, "owner")

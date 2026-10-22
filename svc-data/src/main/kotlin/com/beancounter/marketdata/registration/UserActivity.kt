@@ -17,7 +17,6 @@ import java.time.Instant
 @Table(name = "user_activity")
 class UserActivity(
     @Id
-    @Column(length = 36)
     val systemUserId: String,
     @Column(nullable = false)
     var lastSeen: Instant

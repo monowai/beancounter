@@ -25,6 +25,7 @@ class AdminUserController(
             systemUsers.findAll().map {
                 AdminUser(it.id, it.email, it.active, it.since, lastSeen[it.id])
             }
+        // Descending with nulls first in the ascending order puts never-seen users last.
         return AdminUsersResponse(users.sortedWith(compareByDescending(nullsFirst()) { it.lastSeen }))
     }
 }

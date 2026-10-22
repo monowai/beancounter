@@ -183,9 +183,9 @@ class ApiKeyService(
      * past the AI quota with `beancounter:ai`.
      */
     private fun validatedScopes(requested: Collection<String>): Collection<String> {
-        val held = callerScopes()
-        val scopes = requested.ifEmpty { ISSUABLE_SCOPES.filter { it in held } }
-        val invalid = scopes.filterNot { it in ISSUABLE_SCOPES && it in held }
+        val issuable = ISSUABLE_SCOPES.intersect(callerScopes())
+        val scopes = requested.ifEmpty { issuable }
+        val invalid = scopes.filterNot { it in issuable }
         if (invalid.isNotEmpty()) {
             throw BusinessException(
                 "Scope(s) not permitted for API keys: ${invalid.joinToString(", ")}"
@@ -199,7 +199,7 @@ class ApiKeyService(
             .getContext()
             .authentication
             ?.authorities
-            ?.mapNotNull { it.authority?.removePrefix(SCOPE_PREFIX) }
+            ?.mapNotNull { it.authority?.takeIf { name -> name.startsWith(SCOPE_PREFIX) }?.removePrefix(SCOPE_PREFIX) }
             ?.toSet()
             .orEmpty()
 
@@ -230,11 +230,12 @@ class ApiKeyService(
         // Scopes issuable via API key, each only to a caller whose token holds
         // it. beancounter:admin and beancounter:system are never issuable this way.
         private val ISSUABLE_SCOPES =
-            listOf(
+            linkedSetOf(
                 AuthConstants.APP_NAME,
                 AuthConstants.USER,
                 AuthConstants.PREVIEW,
-                AuthConstants.AI
+                AuthConstants.AI,
+                AuthConstants.VERIFIED
             )
     }
 }

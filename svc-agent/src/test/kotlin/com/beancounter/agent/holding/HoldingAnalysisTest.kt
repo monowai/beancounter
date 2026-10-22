@@ -221,7 +221,7 @@ class HoldingAnalysisTest {
             MockEnvironment(),
             ObjectMapper(),
             LlmMetrics(),
-            mock<AgentScopeAuthorizer>(),
+            mock<AgentScopeAuthorizer> { on { verified() } doAnswer { true } },
             conversations,
             owner,
             mock<ConversationTitler>(),

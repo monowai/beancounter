@@ -108,7 +108,7 @@ class AgentQuotaTest {
         conversations.deleteAll(me)
         modelCalls = 0
         modelFails = false
-        actAs(AuthConstants.SCOPE_PREVIEW)
+        actAs(AuthConstants.SCOPE_PREVIEW, AuthConstants.SCOPE_VERIFIED)
         whenever(request.call()).thenAnswer {
             modelCalls++
             if (modelFails) throw IllegalStateException("model down")
@@ -303,6 +303,45 @@ class AgentQuotaTest {
 
         quota.clearLimit(me)
         assertThat(quota.statusOf(me).limit).isEqualTo(3)
+    }
+
+    @Test
+    fun `an unconfirmed email should get a cached asset review and nothing live`() {
+        ask(assetReview)
+        actAs(AuthConstants.SCOPE_PREVIEW)
+        modelCalls = 0
+
+        val cached = ask(assetReview)
+        val refused = listOf(chat, news, assetReview.copy(refresh = true)).map { controller().query(it) }
+
+        assertThat(cached.statusCode.value()).isEqualTo(200)
+        assertThat(cached.body?.cached).isTrue()
+        assertThat(refused.map { it.statusCode.value() to it.body?.error })
+            .containsOnly(403 to "email-unverified")
+        assertThat(modelCalls).isZero()
+        assertThat(quota.statusOf(me).used).isEqualTo(1)
+    }
+
+    @Test
+    fun `an unconfirmed email should be refused a live stream before any model call`() {
+        actAs(AuthConstants.SCOPE_PREVIEW)
+
+        val events =
+            controller()
+                .stream(assetReview)
+                .collectList()
+                .block(Duration.ofSeconds(5))
+                .orEmpty()
+
+        assertThat(events.map { it.event() to it.data() }).containsExactly("error" to "email-unverified")
+        assertThat(modelCalls).isZero()
+    }
+
+    @Test
+    fun `the ai role should not need a confirmed email`() {
+        actAs(AuthConstants.SCOPE_AI)
+
+        assertThat(ask(chat).statusCode.value()).isEqualTo(200)
     }
 
     @Test

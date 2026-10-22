@@ -90,12 +90,6 @@ class AgentControllerAuthzTest {
     }
 
     @Test
-    fun `partial news page matches are metered`() {
-        authenticateAs(AuthConstants.SCOPE_PREVIEW)
-        assertThat(authorizer.metered(on("weekly news and sentiment summary"))).isTrue()
-    }
-
-    @Test
     fun `user-only scope is rejected on every agent surface`() {
         authenticateAs(AuthConstants.SCOPE_USER, AuthConstants.SCOPE_BC)
 
@@ -110,5 +104,32 @@ class AgentControllerAuthzTest {
         assertThatThrownBy {
             authorizer.authorize()
         }.isInstanceOf(AccessDeniedException::class.java)
+    }
+
+    @Test
+    fun `a preview caller is verified only with a confirmed email`() {
+        authenticateAs(AuthConstants.SCOPE_PREVIEW)
+        assertThat(authorizer.verified()).isFalse()
+
+        authenticateAs(AuthConstants.SCOPE_PREVIEW, AuthConstants.SCOPE_VERIFIED)
+        assertThat(authorizer.verified()).isTrue()
+    }
+
+    @Test
+    fun `ai and system callers need no confirmed email`() {
+        authenticateAs(AuthConstants.SCOPE_AI)
+        assertThat(authorizer.verified()).isTrue()
+
+        authenticateAs(AuthConstants.SCOPE_SYSTEM)
+        assertThat(authorizer.verified()).isTrue()
+    }
+
+    @Test
+    fun `a one-off news page is free however the client spells it`() {
+        authenticateAs(AuthConstants.SCOPE_PREVIEW)
+
+        assertThat(authorizer.metered(on("News and Sentiment"))).isFalse()
+        assertThat(authorizer.metered(on("news-sentiment"))).isFalse()
+        assertThat(authorizer.metered(on("Holding Analysis news sentiment"))).isTrue()
     }
 }

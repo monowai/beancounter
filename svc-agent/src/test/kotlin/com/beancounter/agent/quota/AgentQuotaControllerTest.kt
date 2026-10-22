@@ -48,7 +48,13 @@ class AgentQuotaControllerTest {
     private val me = "quota-rest-me"
     private val other = "quota-rest-other"
 
-    private fun previewUser() = jwt().authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_PREVIEW))
+    private fun previewUser() =
+        jwt().authorities(
+            SimpleGrantedAuthority(AuthConstants.SCOPE_PREVIEW),
+            SimpleGrantedAuthority(AuthConstants.SCOPE_VERIFIED)
+        )
+
+    private fun unverifiedUser() = jwt().authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_PREVIEW))
 
     private fun aiUser() = jwt().authorities(SimpleGrantedAuthority(AuthConstants.SCOPE_AI))
 
@@ -81,6 +87,15 @@ class AgentQuotaControllerTest {
             .andExpect(jsonPath("$.data.remaining").value(9))
             .andExpect(jsonPath("$.data.resetAt").isNotEmpty)
             .andExpect(jsonPath("$.data.contact").value("askmonowai@duck.com"))
+            .andExpect(jsonPath("$.data.verified").value(true))
+    }
+
+    @Test
+    fun `a user with an unconfirmed email should read that they are not verified`() {
+        mockMvc
+            .perform(get("/agent/quota").with(unverifiedUser()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.verified").value(false))
     }
 
     @Test
@@ -89,6 +104,8 @@ class AgentQuotaControllerTest {
             .perform(get("/agent/quota").with(aiUser()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.unlimited").value(true))
+            .andExpect(jsonPath("$.data.verified").value(true))
+            .andExpect(jsonPath("$.data.contact").value("askmonowai@duck.com"))
     }
 
     @Test
@@ -137,5 +154,20 @@ class AgentQuotaControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"weeklyLimit":-1}""")
             ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `an administrator's request without a limit should be refused, not read as zero`() {
+        mockMvc
+            .perform(
+                put("/agent/quota/$other")
+                    .with(admin())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            ).andExpect(status().isBadRequest)
+
+        mockMvc
+            .perform(get("/agent/quota/$other").with(admin()))
+            .andExpect(jsonPath("$.data.override").value(false))
     }
 }

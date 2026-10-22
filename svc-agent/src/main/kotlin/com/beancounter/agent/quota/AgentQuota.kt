@@ -55,6 +55,10 @@ class AgentQuota(
         )
     }
 
+    /** The status of a caller with no quota (`beancounter:ai`): nothing counted, the same contact. */
+    fun unlimited(): QuotaStatus =
+        QuotaStatus(limit = 0, used = 0, remaining = 0, resetAt = null, contact = contact, unlimited = true)
+
     /** Give [ownerId] a weekly limit of their own. */
     @Transactional
     fun setLimit(
@@ -90,6 +94,8 @@ class AgentQuota(
  * One user's weekly AI quota. [unlimited] callers (`beancounter:ai`) are never
  * counted, and the other fields are then zero. [contact] is who to ask for a
  * higher limit; [override] is true when an administrator set [limit].
+ * [verified] is false when the caller's email address is not confirmed: they
+ * are then served cached Asset Reviews only.
  */
 data class QuotaStatus(
     val limit: Int,
@@ -98,5 +104,6 @@ data class QuotaStatus(
     val resetAt: Instant?,
     val contact: String,
     val override: Boolean = false,
-    val unlimited: Boolean = false
+    val unlimited: Boolean = false,
+    val verified: Boolean = true
 )

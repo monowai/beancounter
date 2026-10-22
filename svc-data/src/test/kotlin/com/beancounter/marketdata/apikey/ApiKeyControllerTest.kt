@@ -2,6 +2,7 @@ package com.beancounter.marketdata.apikey
 
 import com.beancounter.auth.AuthConfig
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.ApiKeyCreatedResponse
 import com.beancounter.common.contracts.ApiKeyRequest
 import com.beancounter.common.contracts.ApiKeyResponse
@@ -18,6 +19,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -391,6 +393,49 @@ internal class ApiKeyControllerTest {
         val created = createKey(token, ApiKeyRequest(name = "ai-key"))
 
         assertThat(created.data.scopes).contains("beancounter:ai", "beancounter:preview")
+    }
+
+    @Test
+    fun `a verified caller's default key carries verified, an unverified caller's does not`() {
+        val verified =
+            createKey(
+                holding(
+                    registeredToken("apikey-verified"),
+                    "beancounter beancounter:user beancounter:preview beancounter:verified"
+                ),
+                ApiKeyRequest(name = "verified-key")
+            )
+        val unverified =
+            createKey(
+                holding(registeredToken("apikey-unverified"), "beancounter beancounter:user beancounter:preview"),
+                ApiKeyRequest(name = "unverified-key")
+            )
+
+        assertThat(verified.data.scopes).contains("beancounter:verified")
+        assertThat(unverified.data.scopes).doesNotContain("beancounter:verified")
+    }
+
+    @Test
+    fun `an authority that is not a scope does not let a key carry that scope`() {
+        val token = registeredToken("apikey-not-a-scope")
+
+        mockMvc
+            .perform(
+                post(API_KEYS_ROOT)
+                    .with(
+                        jwt()
+                            .jwt(token)
+                            .authorities(
+                                SimpleGrantedAuthority(AuthConstants.SCOPE_USER),
+                                SimpleGrantedAuthority(AuthConstants.AI)
+                            )
+                    ).with(csrf())
+                    .content(
+                        objectMapper.writeValueAsBytes(
+                            ApiKeyRequest(name = "ai-key", scopes = listOf(AuthConstants.AI))
+                        )
+                    ).contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isBadRequest)
     }
 
     @Test

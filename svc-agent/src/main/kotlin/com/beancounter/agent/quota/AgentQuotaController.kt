@@ -27,13 +27,13 @@ class AgentQuotaController(
     private val scopes: AgentScopeAuthorizer
 ) {
     @GetMapping
-    @Operation(summary = "The caller's weekly AI quota; unlimited with beancounter:ai")
+    @Operation(summary = "The caller's weekly AI quota; unlimited with beancounter:ai; verified = email confirmed")
     fun mine(): QuotaResponse =
         QuotaResponse(
             if (scopes.unlimited()) {
-                QuotaStatus(limit = 0, used = 0, remaining = 0, resetAt = null, contact = "", unlimited = true)
+                quota.unlimited()
             } else {
-                quota.statusOf(owner.id())
+                quota.statusOf(owner.id()).copy(verified = scopes.verified())
             }
         )
 

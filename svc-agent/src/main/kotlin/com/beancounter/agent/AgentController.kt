@@ -120,11 +120,15 @@ class AgentController(
         // Stable client-facing failure codes. bc-view keys its copy off these
         // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
         // The set: no-llm, provider-quota, provider-rate, provider-timeout,
-        // agent-error, answer-truncated, empty-answer, not-held, ai-quota.
+        // agent-error, answer-truncated, empty-answer, not-held, ai-quota,
+        // email-unverified.
         const val NO_LLM = "no-llm"
 
         /** The caller has used this week's AI turns ([com.beancounter.agent.quota.AgentQuota]). */
         const val AI_QUOTA = "ai-quota"
+
+        /** The caller has not confirmed their email address, so is served cached Asset Reviews only. */
+        const val EMAIL_UNVERIFIED = "email-unverified"
 
         const val QUERY_REQUIRED = "A query is required for this page"
 
@@ -163,6 +167,7 @@ class AgentController(
         const val QUERY_LOG_CHARS = 120
 
         const val BAD_REQUEST = 400
+        const val FORBIDDEN = 403
         const val NOT_FOUND = 404
         const val PAYMENT_REQUIRED = 402
         const val TOO_MANY_REQUESTS = 429
@@ -702,8 +707,9 @@ class AgentController(
         val reviewKey = if (plan.opening == null) reviewKeyFor(body, request, plan.thread) else null
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         val meter = meterFor(body, plan)
-        if (hit == null && !admitted(meter)) {
-            return failure(HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8), AI_QUOTA)
+        val refused = if (hit == null) refusalFor(meter) else null
+        if (refused != null) {
+            return failure(HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8), refused)
         }
         val asked =
             when (val opening = plan.opening?.let { holdingOpening(request, it) } ?: Opening.Ready(request)) {
@@ -831,7 +837,8 @@ class AgentController(
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         val meter = meterFor(body, plan)
         // Refused before the question is recorded: an exhausted caller leaves no residue.
-        if (hit == null && !admitted(meter)) return errorEvent(AI_QUOTA)
+        val refused = if (hit == null) refusalFor(meter) else null
+        if (refused != null) return errorEvent(refused)
         val conversationId = plan.thread?.id
         // Pending before the question is committed: openTurn writes the user
         // row in its own transaction, and a GET landing between that commit
@@ -933,8 +940,17 @@ class AgentController(
         plan: Plan
     ): String? = if (scopeAuthorizer.metered(body)) plan.thread?.ownerId ?: conversationOwner.id() else null
 
-    /** True when [meter] is unmetered or still has a turn left this week. */
-    private fun admitted(meter: String?): Boolean = meter == null || quota.allows(meter)
+    /**
+     * Why a live turn is refused, or null to run it: an unconfirmed email
+     * address is refused first, then a metered caller with no turn left this week.
+     * Asked only on an Asset Review cache miss: a hit is served free to anyone.
+     */
+    private fun refusalFor(meter: String?): String? =
+        when {
+            !scopeAuthorizer.verified() -> EMAIL_UNVERIFIED
+            meter != null && !quota.allows(meter) -> AI_QUOTA
+            else -> null
+        }
 
     /** [recorder], counting an answered turn against [meter] when metered. */
     private fun metered(
@@ -1113,6 +1129,7 @@ class AgentController(
             // contract both transports share.
             ANSWER_TRUNCATED, EMPTY_ANSWER -> UNPROCESSABLE_CONTENT
             NOT_HELD -> NOT_FOUND
+            EMAIL_UNVERIFIED -> FORBIDDEN
             else -> INTERNAL_ERROR
         }
 
@@ -1146,6 +1163,9 @@ class AgentController(
             }
             AI_QUOTA -> {
                 "You have used this week's AI questions. Each one frees up seven days after it was asked."
+            }
+            EMAIL_UNVERIFIED -> {
+                "Confirm your email address to ask the AI. Cached Asset Reviews are still available."
             }
             else -> {
                 "The agent failed to process the request."

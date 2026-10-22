@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
  * executes the migration file itself.
  */
 class AssetCompositeFigiMigrationTest {
-    private val migrationFile = "V45__asset_composite_figi.sql"
+    private val migrationFile = "V46__asset_composite_figi.sql"
 
     @Test
     fun `should add a nullable composite_figi and be safe to rerun`() {

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.apikey
 
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.contracts.ApiKeyTokenRequest
+import com.beancounter.marketdata.registration.UserActivityService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.RestController
  * live under `/me` or behind the usual scope gate (see
  * ControllerAuthorizationTest's allowlist). Guarded instead by
  * [TokenRateLimiter], keyed on the forwarded client address (falling back
- * to the socket address) - see [TokenRateLimiter.clientKey].
+ * to the socket address) - see [TokenRateLimiter.clientKey]. An exchange
+ * marks the key's owner as seen: the mobile app and MCP clients reach
+ * Beancounter only through exchanged keys, never through `/me`.
  */
 @RestController
 @RequestMapping("/api-keys")
@@ -28,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController
 class ApiKeyTokenController(
     private val apiKeyService: ApiKeyService,
     private val bcTokenIssuer: BcTokenIssuer,
-    private val tokenRateLimiter: TokenRateLimiter
+    private val tokenRateLimiter: TokenRateLimiter,
+    private val userActivity: UserActivityService
 ) {
     @PostMapping("/token")
     @Operation(summary = "Exchange a raw API key, or a device-key assertion, for a short-lived JWT")
@@ -44,6 +48,7 @@ class ApiKeyTokenController(
                 apiKeyService.verify(request.apiKey)
             }
         val jwt = bcTokenIssuer.mint(verifiedKey)
+        userActivity.seenQuietly(verifiedKey.owner.id)
         return OpenIdResponse(
             token = jwt.tokenValue,
             scope = verifiedKey.scopes,

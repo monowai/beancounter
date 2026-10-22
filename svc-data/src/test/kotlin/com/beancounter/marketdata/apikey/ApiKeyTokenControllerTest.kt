@@ -10,6 +10,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.registration.SystemUserRepository
+import com.beancounter.marketdata.registration.UserActivityRepository
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.RSAKey
@@ -60,6 +61,9 @@ internal class ApiKeyTokenControllerTest {
 
     @Autowired
     private lateinit var systemUserRepository: SystemUserRepository
+
+    @Autowired
+    private lateinit var userActivity: UserActivityRepository
 
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
@@ -158,6 +162,17 @@ internal class ApiKeyTokenControllerTest {
         assertThat(claims.audience).isNotEmpty()
         assertThat(claims.expirationTime.toInstant())
             .isCloseTo(Instant.now().plus(Duration.ofHours(1)), within(30, ChronoUnit.SECONDS))
+    }
+
+    @Test
+    fun `an exchange should mark the key's owner as seen`() {
+        val created = createKey(registeredToken("token-exchange-seen"))
+        val owner = ownerOf("token-exchange-seen")
+        assertThat(userActivity.findById(owner.id)).isEmpty
+
+        exchange(created.apiKey, "10.1.0.9").andExpect(status().isOk)
+
+        assertThat(userActivity.findById(owner.id)).isPresent
     }
 
     @Test

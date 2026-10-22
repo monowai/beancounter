@@ -349,13 +349,65 @@ internal class ApiKeyControllerTest {
             ).andExpect(status().isBadRequest)
     }
 
+    // The caller's token, holding exactly [scope].
+    private fun holding(
+        token: Jwt,
+        scope: String
+    ): Jwt =
+        Jwt
+            .withTokenValue(token.tokenValue)
+            .headers { it.putAll(token.headers) }
+            .claims { it.putAll(token.claims) }
+            .claim("scope", scope)
+            .build()
+
     @Test
-    fun `default scopes applied`() {
+    fun `default scopes are capped at the scopes the caller holds`() {
         val token = registeredToken("apikey-defaults")
         val created = createKey(token, ApiKeyRequest(name = "default-scope-key"))
 
         assertThat(created.data.scopes)
-            .containsExactlyInAnyOrder("beancounter", "beancounter:user", "beancounter:ai")
+            .containsExactlyInAnyOrder("beancounter", "beancounter:user")
+    }
+
+    @Test
+    fun `a preview caller's default key carries preview and never ai`() {
+        val token = holding(registeredToken("apikey-preview"), "beancounter beancounter:user beancounter:preview")
+
+        val created = createKey(token, ApiKeyRequest(name = "preview-key"))
+
+        assertThat(created.data.scopes)
+            .containsExactlyInAnyOrder("beancounter", "beancounter:user", "beancounter:preview")
+    }
+
+    @Test
+    fun `an ai caller's default key carries ai`() {
+        val token =
+            holding(
+                registeredToken("apikey-ai"),
+                "beancounter beancounter:user beancounter:preview beancounter:ai"
+            )
+
+        val created = createKey(token, ApiKeyRequest(name = "ai-key"))
+
+        assertThat(created.data.scopes).contains("beancounter:ai", "beancounter:preview")
+    }
+
+    @Test
+    fun `a scope the caller does not hold is refused`() {
+        val token = holding(registeredToken("apikey-no-ai"), "beancounter beancounter:user beancounter:preview")
+
+        mockMvc
+            .perform(
+                post(API_KEYS_ROOT)
+                    .with(jwt().jwt(token))
+                    .with(csrf())
+                    .content(
+                        objectMapper.writeValueAsBytes(
+                            ApiKeyRequest(name = "ai-key", scopes = listOf("beancounter:ai"))
+                        )
+                    ).contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isBadRequest)
     }
 
     @Test

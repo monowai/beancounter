@@ -27,6 +27,12 @@ beancounter:
     review-cache:
       enabled: true
       max-age: PT8H
+    # Answered AI turns a caller without beancounter:ai may run in a rolling
+    # seven days (AgentQuota). An administrator can set a per-user limit via
+    # PUT /agent/quota/{systemUserId}. contact is shown to an exhausted user.
+    quota:
+      weekly: 10
+      contact: "askmonowai@duck.com"
 
 
 marketdata:

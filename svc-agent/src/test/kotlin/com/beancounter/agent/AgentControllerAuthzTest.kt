@@ -14,17 +14,15 @@ import org.springframework.security.core.context.SecurityContextHolder
 /**
  * Contract for [AgentScopeAuthorizer]:
  *
- *  | Caller scope            | `context.page = "Asset Review"` | `context.page = "Portfolio AI"` |
- *  |-------------------------|--------------------------------|--------------------------------|
- *  | beancounter:ai          | allow                          | allow                          |
- *  | beancounter:preview     | allow                          | DENY                           |
- *  | beancounter:system      | allow                          | allow                          |
- *  | beancounter:user (only) | DENY                           | DENY                           |
- *
- * News & Sentiment popup is also preview-eligible (single-asset surface).
+ *  | Caller scope            | any page | metered (weekly quota)              |
+ *  |-------------------------|----------|-------------------------------------|
+ *  | beancounter:ai          | allow    | never                               |
+ *  | beancounter:system      | allow    | never                               |
+ *  | beancounter:preview     | allow    | yes, except a one-off News query    |
+ *  | beancounter:user (only) | DENY     | -                                   |
  */
 private const val PAGE_ASSET_REVIEW = "Asset Review"
-private const val PAGE_NEWS_SENTIMENT = "News Sentiment"
+private const val PAGE_NEWS_SENTIMENT = "News & Sentiment"
 private const val PAGE_PORTFOLIO_AI = "Portfolio AI Overview"
 
 class AgentControllerAuthzTest {
@@ -46,42 +44,55 @@ class AgentControllerAuthzTest {
             )
     }
 
+    private fun on(page: String?) = AgentQuery("q", context = page?.let { mapOf("page" to it) })
+
     @Test
-    fun `ai scope authorizes any agent context`() {
+    fun `ai scope authorizes any agent context and is never metered`() {
         authenticateAs(AuthConstants.SCOPE_AI)
-        authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
-        authorizer.authorize(mapOf("page" to PAGE_PORTFOLIO_AI))
-        authorizer.authorize(null)
+        authorizer.authorize()
+        assertThat(authorizer.metered(on(PAGE_PORTFOLIO_AI))).isFalse()
     }
 
     @Test
-    fun `system scope authorizes any agent context`() {
+    fun `system scope authorizes any agent context and is never metered`() {
         authenticateAs(AuthConstants.SCOPE_SYSTEM)
-        authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
-        authorizer.authorize(mapOf("page" to "Independence"))
-        authorizer.authorize(null)
+        authorizer.authorize()
+        assertThat(authorizer.metered(on("Independence"))).isFalse()
     }
 
     @Test
-    fun `preview scope authorizes only the single-asset surfaces`() {
+    fun `preview scope authorizes every agent surface, metered`() {
         authenticateAs(AuthConstants.SCOPE_PREVIEW)
 
-        // Allowed surfaces — case-insensitive, both spellings accepted.
-        authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
-        authorizer.authorize(mapOf("page" to "asset-review"))
-        authorizer.authorize(mapOf("page" to PAGE_NEWS_SENTIMENT))
+        authorizer.authorize()
 
-        assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to PAGE_PORTFOLIO_AI))
-        }.isInstanceOf(AccessDeniedException::class.java)
+        assertThat(authorizer.metered(on(PAGE_PORTFOLIO_AI))).isTrue()
+        assertThat(authorizer.metered(on(PAGE_ASSET_REVIEW))).isTrue()
+        assertThat(authorizer.metered(on(null))).isTrue()
+    }
 
-        assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to "Independence"))
-        }.isInstanceOf(AccessDeniedException::class.java)
+    @Test
+    fun `a one-off news query is free, in either spelling`() {
+        authenticateAs(AuthConstants.SCOPE_PREVIEW)
 
-        assertThatThrownBy {
-            authorizer.authorize(null)
-        }.isInstanceOf(AccessDeniedException::class.java)
+        assertThat(authorizer.metered(on(PAGE_NEWS_SENTIMENT))).isFalse()
+        assertThat(authorizer.metered(on("news-sentiment"))).isFalse()
+    }
+
+    @Test
+    fun `a news page turn in a conversation or with history is metered`() {
+        authenticateAs(AuthConstants.SCOPE_PREVIEW)
+
+        assertThat(authorizer.metered(on(PAGE_NEWS_SENTIMENT).copy(conversationId = "c1"))).isTrue()
+        assertThat(
+            authorizer.metered(on(PAGE_NEWS_SENTIMENT).copy(history = listOf(ChatTurn("user", "earlier"))))
+        ).isTrue()
+    }
+
+    @Test
+    fun `partial news page matches are metered`() {
+        authenticateAs(AuthConstants.SCOPE_PREVIEW)
+        assertThat(authorizer.metered(on("weekly news and sentiment summary"))).isTrue()
     }
 
     @Test
@@ -89,15 +100,7 @@ class AgentControllerAuthzTest {
         authenticateAs(AuthConstants.SCOPE_USER, AuthConstants.SCOPE_BC)
 
         assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
-        }.isInstanceOf(AccessDeniedException::class.java)
-
-        assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to PAGE_PORTFOLIO_AI))
-        }.isInstanceOf(AccessDeniedException::class.java)
-
-        assertThatThrownBy {
-            authorizer.authorize(null)
+            authorizer.authorize()
         }.isInstanceOf(AccessDeniedException::class.java)
     }
 
@@ -105,35 +108,7 @@ class AgentControllerAuthzTest {
     fun `unauthenticated context is rejected`() {
         SecurityContextHolder.clearContext()
         assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to PAGE_ASSET_REVIEW))
-        }.isInstanceOf(AccessDeniedException::class.java)
-    }
-
-    @Test
-    fun `requiredFor returns preview-tier set for asset and news surfaces only`() {
-        assertThat(authorizer.requiredFor(mapOf("page" to PAGE_ASSET_REVIEW)))
-            .contains(AuthConstants.SCOPE_PREVIEW)
-        assertThat(authorizer.requiredFor(mapOf("page" to "asset-review")))
-            .contains(AuthConstants.SCOPE_PREVIEW)
-        assertThat(authorizer.requiredFor(mapOf("page" to PAGE_NEWS_SENTIMENT)))
-            .contains(AuthConstants.SCOPE_PREVIEW)
-
-        assertThat(authorizer.requiredFor(mapOf("page" to PAGE_PORTFOLIO_AI)))
-            .doesNotContain(AuthConstants.SCOPE_PREVIEW)
-        assertThat(authorizer.requiredFor(null))
-            .doesNotContain(AuthConstants.SCOPE_PREVIEW)
-    }
-
-    @Test
-    fun `partial keyword matches do not grant preview access`() {
-        authenticateAs(AuthConstants.SCOPE_PREVIEW)
-        // Substring matches like "asset review notes" or "weekly news + sentiment summary"
-        // must NOT be treated as preview-eligible — only exact normalised pages do.
-        assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to "asset review notes"))
-        }.isInstanceOf(AccessDeniedException::class.java)
-        assertThatThrownBy {
-            authorizer.authorize(mapOf("page" to "weekly news and sentiment summary"))
+            authorizer.authorize()
         }.isInstanceOf(AccessDeniedException::class.java)
     }
 }

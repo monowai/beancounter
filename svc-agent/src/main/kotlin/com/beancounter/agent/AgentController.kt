@@ -11,6 +11,8 @@ import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.holding.HoldingFactsSource
+import com.beancounter.agent.quota.QuotaRecorder
+import com.beancounter.agent.quota.TurnQuota
 import com.beancounter.agent.review.AssetReviewCache
 import com.beancounter.agent.review.AssetReviewKey
 import com.beancounter.agent.review.ReviewCachingRecorder
@@ -91,7 +93,9 @@ class AgentController(
     // Defaulted like the clock: the hand-built controllers in tests cache nothing.
     private val reviewCache: AssetReviewCache = AssetReviewCache.NONE,
     // Defaulted like the clock: the hand-built controllers in tests hold nothing.
-    private val holdings: HoldingFactsSource = HoldingFactsSource.NONE
+    private val holdings: HoldingFactsSource = HoldingFactsSource.NONE,
+    // Defaulted like the clock: the hand-built controllers in tests meter nothing.
+    private val quota: TurnQuota = TurnQuota.NONE
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -116,8 +120,11 @@ class AgentController(
         // Stable client-facing failure codes. bc-view keys its copy off these
         // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
         // The set: no-llm, provider-quota, provider-rate, provider-timeout,
-        // agent-error, answer-truncated, empty-answer, not-held.
+        // agent-error, answer-truncated, empty-answer, not-held, ai-quota.
         const val NO_LLM = "no-llm"
+
+        /** The caller has used this week's AI turns ([com.beancounter.agent.quota.AgentQuota]). */
+        const val AI_QUOTA = "ai-quota"
 
         const val QUERY_REQUIRED = "A query is required for this page"
 
@@ -468,17 +475,19 @@ class AgentController(
     /**
      * Where this turn's canned Asset Review is cached, or null when it is not
      * one: the caller asked nothing of its own and neither the request nor the
-     * conversation carries earlier turns. A free-form question or a follow-up
+     * conversation carries earlier turns. Read before the turn is recorded, so
+     * a cache hit is known before the quota is asked. A free-form question or a follow-up
      * is always answered live. The review reads no user data (see
      * [ToolSelector]), so it is keyed by the asset alone, the date stamped
      * into the prompt, and the model that answers — never by the caller.
      */
     private fun reviewKeyFor(
         body: AgentQuery,
-        turn: AgentQuery
+        turn: AgentQuery,
+        thread: ConversationThread?
     ): AssetReviewKey? {
         if (!reviewCache.enabled) return null
-        if (body.query.isNotBlank() || !body.history.isNullOrEmpty() || !turn.history.isNullOrEmpty()) return null
+        if (body.query.isNotBlank() || !body.history.isNullOrEmpty() || thread?.hasTurns == true) return null
         val subject = pageQuerySelector.assetReviewSubject(turn.context) ?: return null
         return AssetReviewKey(
             market = subject.market,
@@ -672,7 +681,7 @@ class AgentController(
     fun query(
         @RequestBody body: AgentQuery
     ): ResponseEntity<AgentResponse> {
-        scopeAuthorizer.authorize(body.context)
+        scopeAuthorizer.authorize()
         val plan = planFor(body)
         val request = plan.request
         if (chatClient == null) {
@@ -690,6 +699,12 @@ class AgentController(
                 )
         }
 
+        val reviewKey = if (plan.opening == null) reviewKeyFor(body, request, plan.thread) else null
+        val hit = reviewKey?.let { cachedReview(it, body.refresh) }
+        val meter = meterFor(body, plan)
+        if (hit == null && !admitted(meter)) {
+            return failure(HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8), AI_QUOTA)
+        }
         val asked =
             when (val opening = plan.opening?.let { holdingOpening(request, it) } ?: Opening.Ready(request)) {
                 // Echo what the caller asked about: the opening question was never built.
@@ -701,10 +716,8 @@ class AgentController(
             }
         val safeQuery = HtmlUtils.htmlEscape(asked.query)
         val (turn, conversationRecorder) = openTurn(asked, plan.thread)
-        val reviewKey = reviewKeyFor(body, turn)
-        val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         if (hit != null) {
-            // No model runs: the stored answer is recorded as a live one would be.
+            // No model runs: the stored answer is recorded as a live one would be, and not counted.
             llmMetrics.cached(LlmMetrics.Mode.CALL, reviewKey.model)
             recordQuietly { conversationRecorder.answered(hit) }
             return ResponseEntity.ok(
@@ -717,7 +730,10 @@ class AgentController(
             )
         }
         val recorder =
-            reviewKey?.let { ReviewCachingRecorder(conversationRecorder, reviewCache, it) } ?: conversationRecorder
+            metered(
+                reviewKey?.let { ReviewCachingRecorder(conversationRecorder, reviewCache, it) } ?: conversationRecorder,
+                meter
+            )
         return try {
             val answer = ask(turn)
             val content = answer.content
@@ -805,12 +821,17 @@ class AgentController(
     fun stream(
         @RequestBody body: AgentQuery
     ): Flux<ServerSentEvent<String>> {
-        scopeAuthorizer.authorize(body.context)
+        scopeAuthorizer.authorize()
         val plan = planFor(body)
         // A code, not prose: the streaming path's error payload is a contract
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
         if (chatClient == null) return errorEvent(NO_LLM)
+        val reviewKey = if (plan.opening == null) reviewKeyFor(body, plan.request, plan.thread) else null
+        val hit = reviewKey?.let { cachedReview(it, body.refresh) }
+        val meter = meterFor(body, plan)
+        // Refused before the question is recorded: an exhausted caller leaves no residue.
+        if (hit == null && !admitted(meter)) return errorEvent(AI_QUOTA)
         val conversationId = plan.thread?.id
         // Pending before the question is committed: openTurn writes the user
         // row in its own transaction, and a GET landing between that commit
@@ -822,9 +843,9 @@ class AgentController(
                 val subject = plan.opening
                 if (subject == null) {
                     val (turn, recorder) = openTurn(plan.request, plan.thread)
-                    pipelineFor(body, turn, recorder)
+                    pipelineFor(reviewKey, hit, turn, recorder, meter)
                 } else {
-                    openingPipeline(plan.request, subject, plan.thread)
+                    openingPipeline(plan.request, subject, plan.thread, meter)
                 }
             } catch (e: Exception) {
                 conversationId?.let(inFlightTurns::end)
@@ -857,7 +878,8 @@ class AgentController(
     private fun openingPipeline(
         request: AgentQuery,
         subject: HoldingAnalysisSubject,
-        thread: ConversationThread?
+        thread: ConversationThread?,
+        meter: String?
     ): Flux<ServerSentEvent<String>> =
         Mono
             .just(subject)
@@ -869,7 +891,7 @@ class AgentController(
                     }
                     is Opening.Ready -> {
                         val (turn, recorder) = openTurn(opening.turn, thread)
-                        answerPipeline(turn, recorder)
+                        answerPipeline(turn, metered(recorder, meter))
                     }
                 }
             }.onErrorResume { e ->
@@ -885,20 +907,40 @@ class AgentController(
     ): String = request.label ?: plan.opening?.let { PageQueries.holdingAnalysisLabel(it.ticker) } ?: request.query
 
     /**
-     * A canned Asset Review answered from the cache when one is fresh, else
-     * live, keeping a successful live answer for next time.
+     * A canned Asset Review answered from the cache [hit] when one is fresh,
+     * uncounted; else live, keeping a successful answer under [key] for next
+     * time and counting it against [meter].
      */
     private fun pipelineFor(
-        body: AgentQuery,
+        key: AssetReviewKey?,
+        hit: String?,
         turn: AgentQuery,
-        recorder: TurnRecorder
+        recorder: TurnRecorder,
+        meter: String?
     ): Flux<ServerSentEvent<String>> {
-        val key = reviewKeyFor(body, turn) ?: return answerPipeline(turn, recorder)
-        val hit =
-            cachedReview(key, body.refresh)
-                ?: return answerPipeline(turn, ReviewCachingRecorder(recorder, reviewCache, key))
-        return cachedPipeline(hit, key, recorder)
+        if (key != null && hit != null) return cachedPipeline(hit, key, recorder)
+        val live = key?.let { ReviewCachingRecorder(recorder, reviewCache, it) } ?: recorder
+        return answerPipeline(turn, metered(live, meter))
     }
+
+    /**
+     * Who [body]'s turn is counted against: the caller's `SystemUser.id` when
+     * metered ([AgentScopeAuthorizer.metered]), else null. Read on the request
+     * thread, where the owner lookup has the caller's token.
+     */
+    private fun meterFor(
+        body: AgentQuery,
+        plan: Plan
+    ): String? = if (scopeAuthorizer.metered(body)) plan.thread?.ownerId ?: conversationOwner.id() else null
+
+    /** True when [meter] is unmetered or still has a turn left this week. */
+    private fun admitted(meter: String?): Boolean = meter == null || quota.allows(meter)
+
+    /** [recorder], counting an answered turn against [meter] when metered. */
+    private fun metered(
+        recorder: TurnRecorder,
+        meter: String?
+    ): TurnRecorder = meter?.let { QuotaRecorder(recorder, quota, it) } ?: recorder
 
     /**
      * Stream a cached review the way a live answer ends: its text as a token,
@@ -1060,7 +1102,7 @@ class AgentController(
     private fun statusFor(errorCode: String): Int =
         when (errorCode) {
             PROVIDER_QUOTA -> PAYMENT_REQUIRED
-            PROVIDER_RATE -> TOO_MANY_REQUESTS
+            PROVIDER_RATE, AI_QUOTA -> TOO_MANY_REQUESTS
             PROVIDER_TIMEOUT -> GATEWAY_TIMEOUT
             // Not a server fault: the request was well-formed, the provider
             // call succeeded, and the model finished — it just produced no
@@ -1101,6 +1143,9 @@ class AgentController(
             }
             NOT_HELD -> {
                 "No holding of this asset found in that portfolio."
+            }
+            AI_QUOTA -> {
+                "You have used this week's AI questions. Each one frees up seven days after it was asked."
             }
             else -> {
                 "The agent failed to process the request."

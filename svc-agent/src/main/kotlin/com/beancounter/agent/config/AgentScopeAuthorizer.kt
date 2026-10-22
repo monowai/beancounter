@@ -1,5 +1,6 @@
 package com.beancounter.agent.config
 
+import com.beancounter.agent.AgentQuery
 import com.beancounter.agent.normalisePage
 import com.beancounter.auth.model.AuthConstants
 import org.springframework.security.access.AccessDeniedException
@@ -9,60 +10,50 @@ import org.springframework.stereotype.Component
 /**
  * Per-call authorization for the agent endpoints.
  *
- * The single `/agent/query` endpoint serves two tiers:
- *
- *  - Default tier — full AI review (portfolio overview, chat, retirement, rebalance, etc.)
- *    requires `beancounter:ai` (or `beancounter:system` for M2M).
- *  - Preview tier — single-asset surfaces (Asset Review popup and the per-holding
- *    News & Sentiment popup) additionally accept `beancounter:preview` so default users
- *    can sample the AI features without a paid upgrade.
- *
- * The split is body-driven (the LLM tool routing already keys off `context.page`,
- * see [com.beancounter.agent.tools.ToolSelector]), so authz is applied programmatically
- * inside the controller rather than via `@PreAuthorize`.
+ * Every page is open to `beancounter:preview` (the default role),
+ * `beancounter:ai` and `beancounter:system`. A preview caller is metered:
+ * their turns count against a weekly quota (see
+ * [com.beancounter.agent.quota.AgentQuota]), except a one-off News & Sentiment
+ * lookup. `beancounter:ai` and M2M callers are never metered.
  */
 @Component
 class AgentScopeAuthorizer {
-    fun authorize(context: Map<String, Any>?) {
-        val required = requiredFor(context)
-        val granted =
-            SecurityContextHolder
-                .getContext()
-                .authentication
-                ?.authorities
-                ?.map { it.authority }
-                ?.toSet()
-                .orEmpty()
-        if (granted.intersect(required).isEmpty()) {
-            throw AccessDeniedException(
-                "Agent query requires one of: ${required.joinToString(", ")}"
-            )
+    fun authorize() {
+        if (granted().intersect(ALLOWED).isEmpty()) {
+            throw AccessDeniedException("Agent query requires one of: ${ALLOWED.joinToString(", ")}")
         }
     }
 
-    internal fun requiredFor(context: Map<String, Any>?): Set<String> {
-        val normalizedPage = normalisePage(context?.get("page"))
-        return if (normalizedPage in PREVIEW_PAGES) {
-            setOf(
-                AuthConstants.SCOPE_AI,
-                AuthConstants.SCOPE_PREVIEW,
-                AuthConstants.SCOPE_SYSTEM
-            )
-        } else {
-            setOf(
-                AuthConstants.SCOPE_AI,
-                AuthConstants.SCOPE_SYSTEM
-            )
-        }
+    /** True when the caller has no quota to count against. */
+    fun unlimited(): Boolean = granted().intersect(UNLIMITED).isNotEmpty()
+
+    /**
+     * True when [body] counts against the caller's quota. A News & Sentiment
+     * lookup is free only as a one-off: a turn in a conversation or carrying
+     * history is a chat, whatever page it names.
+     */
+    fun metered(body: AgentQuery): Boolean {
+        if (unlimited()) return false
+        val oneOff = body.conversationId == null && body.history.isNullOrEmpty()
+        return !(oneOff && normalisePage(body.context?.get("page")) in FREE_PAGES)
     }
+
+    private fun granted(): Set<String> =
+        SecurityContextHolder
+            .getContext()
+            .authentication
+            ?.authorities
+            ?.mapNotNull { it.authority }
+            ?.toSet()
+            .orEmpty()
 
     companion object {
-        // Exact-match allowlist of preview-eligible page values. The
-        // normalisation step (trim, lowercase, hyphen→space, whitespace
-        // collapse) lets the bc-view side send "Asset Review" / "asset-review"
-        // and have authz still resolve to the same key. Substring matching
-        // is deliberately avoided — a page literal like "asset review notes"
-        // would otherwise grant preview access to a non-preview surface.
-        private val PREVIEW_PAGES = setOf("asset review", "news sentiment")
+        private val UNLIMITED = setOf(AuthConstants.SCOPE_AI, AuthConstants.SCOPE_SYSTEM)
+        private val ALLOWED = UNLIMITED + AuthConstants.SCOPE_PREVIEW
+
+        // Exact-match allowlist of normalised pages (see normalisePage); bc-view
+        // sends "News & Sentiment". Substring matching would let any page named
+        // like news run free.
+        private val FREE_PAGES = setOf("news sentiment", "news & sentiment")
     }
 }

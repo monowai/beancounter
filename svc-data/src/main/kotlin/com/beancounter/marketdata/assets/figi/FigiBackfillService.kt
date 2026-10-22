@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
  * Writes the composite FIGI only; name and category stay as they are.
  *
  * Deliberately not transactional: no connection is held across OpenFIGI calls, and each
- * resolved asset is saved on its own so progress survives a failure mid-batch.
+ * resolved asset is written on its own so progress survives a failure mid-batch.
  */
 @Service
 @ConditionalOnProperty(
@@ -26,10 +26,12 @@ class FigiBackfillService(
     private val figiProxy: FigiProxy
 ) {
     /**
-     * Resolve up to [limit] assets (clamped to 1..[MAX_LIMIT]) on markets with a FIGI alias,
-     * starting after the [after] id. Each attempt can cost up to four OpenFIGI calls. An asset
-     * FIGI cannot resolve stays null; pass [FigiBackfillResult.lastId] as [after] to move past
-     * it, or omit [after] to retry from the start.
+     * Resolve up to [limit] active, unowned assets (clamped to 1..[MAX_LIMIT]) on markets with
+     * a FIGI alias, starting after the [after] id. Each attempt can cost up to four OpenFIGI
+     * calls. An asset FIGI cannot match stays null; pass [FigiBackfillResult.lastId] as [after]
+     * to move past it, or omit [after] to retry from the start. A provider failure stops the
+     * run at that asset, reported as [FigiBackfillResult.failed], and [FigiBackfillResult.lastId]
+     * stops short of it so the next run starts there.
      */
     fun backfill(
         limit: Int,
@@ -48,28 +50,43 @@ class FigiBackfillService(
                 PageRequest.of(0, limit.coerceIn(1, MAX_LIMIT))
             )
         val unresolved = mutableListOf<String>()
+        var attempted = 0
+        var lastId = after
+        var failed: String? = null
         for (asset in candidates) {
             val compositeFigi =
-                figiProxy.find(figiMarkets.getValue(asset.marketCode), asset.code, asset.id)?.compositeFigi
+                try {
+                    figiProxy.find(figiMarkets.getValue(asset.marketCode), asset.code, asset.id)?.compositeFigi
+                } catch (
+                    @Suppress("TooGenericExceptionCaught")
+                    e: RuntimeException
+                ) {
+                    log.warn("FIGI backfill stopped at {}: {}", asset.id, e.message)
+                    failed = asset.id
+                    break
+                }
             if (compositeFigi == null) {
                 unresolved.add(asset.id)
             } else {
-                asset.compositeFigi = compositeFigi
-                assetRepository.save(asset)
+                assetRepository.updateCompositeFigi(asset.id, compositeFigi)
             }
+            attempted++
+            lastId = asset.id
         }
         val result =
             FigiBackfillResult(
-                attempted = candidates.size,
-                resolved = candidates.size - unresolved.size,
+                attempted = attempted,
+                resolved = attempted - unresolved.size,
                 unresolved = unresolved,
-                lastId = candidates.lastOrNull()?.id
+                lastId = lastId,
+                failed = failed
             )
         log.info(
-            "FIGI backfill: attempted {}, resolved {}, lastId {}, unresolved {}",
+            "FIGI backfill: attempted {}, resolved {}, lastId {}, failed {}, unresolved {}",
             result.attempted,
             result.resolved,
             result.lastId,
+            result.failed,
             result.unresolved
         )
         return result
@@ -83,12 +100,13 @@ class FigiBackfillService(
 
 /**
  * Outcome of a [FigiBackfillService.backfill] run. [unresolved] holds the ids FIGI did not
- * match, whether for no match or a provider error; [lastId] is the cursor for the next run,
- * null when nothing was attempted.
+ * match (a provider error FIGI reports in its response body also lands here); [failed] is the
+ * asset whose lookup threw and stopped the run; [lastId] is the cursor for the next run.
  */
 data class FigiBackfillResult(
     val attempted: Int,
     val resolved: Int,
     val unresolved: List<String> = emptyList(),
-    val lastId: String? = null
+    val lastId: String? = null,
+    val failed: String? = null
 )

@@ -162,6 +162,28 @@ class FigiAssetApiTest {
     }
 
     @Test
+    fun `should stop at a provider failure and resume from it`() {
+        val failing =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, "FIGIFAIL", "Failing"), "FIGIFAIL"))
+                .data.values
+                .first()
+        wireMock.stubFor(
+            WireMock
+                .post(WireMock.urlEqualTo("/v3/mapping"))
+                .withRequestBody(WireMock.containing("FIGIFAIL"))
+                .atPriority(1)
+                .willReturn(WireMock.aResponse().withStatus(500))
+        )
+
+        val result = figiBackfillService.backfill(limit = 200)
+
+        assertThat(result.failed).isEqualTo(failing.id)
+        assertThat(result.unresolved).doesNotContain(failing.id)
+        assertThat(result.lastId == null || result.lastId!! < failing.id).isTrue()
+    }
+
+    @Test
     fun `should clamp an out-of-range backfill limit`() {
         assertThat(figiBackfillService.backfill(limit = -5).attempted).isLessThanOrEqualTo(1)
     }

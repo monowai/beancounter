@@ -3,8 +3,10 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.model.Asset
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.Optional
 import java.util.stream.Stream
@@ -234,11 +236,11 @@ interface AssetRepository : JpaRepository<Asset, String> {
      * their user and never sent to OpenFIGI.
      */
     @Query(
-        "SELECT a FROM Asset a " +
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
             "WHERE a.compositeFigi IS NULL " +
             "AND a.systemUser IS NULL " +
             "AND a.status = com.beancounter.common.model.Status.Active " +
-            "AND a.code IS NOT NULL AND a.code <> '' " +
+            "AND a.code IS NOT NULL AND TRIM(a.code) <> '' " +
             "AND a.marketCode IN :marketCodes " +
             "AND a.id > :after " +
             "ORDER BY a.id"
@@ -248,4 +250,16 @@ interface AssetRepository : JpaRepository<Asset, String> {
         @Param("after") after: String,
         pageable: Pageable
     ): List<Asset>
+
+    /**
+     * Set only the composite FIGI, so a slow provider lookup never writes back stale copies of
+     * the asset's other columns.
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE Asset a SET a.compositeFigi = :compositeFigi WHERE a.id = :id")
+    fun updateCompositeFigi(
+        @Param("id") id: String,
+        @Param("compositeFigi") compositeFigi: String
+    ): Int
 }

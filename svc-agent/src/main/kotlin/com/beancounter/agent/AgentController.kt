@@ -121,11 +121,14 @@ class AgentController(
         // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
         // The set: no-llm, provider-quota, provider-rate, provider-timeout,
         // agent-error, answer-truncated, empty-answer, not-held, ai-quota,
-        // email-unverified.
+        // email-unverified, ai-disabled.
         const val NO_LLM = "no-llm"
 
         /** The caller has used this week's AI turns ([com.beancounter.agent.quota.AgentQuota]). */
         const val AI_QUOTA = "ai-quota"
+
+        /** An administrator has turned AI off for the caller (a weekly limit of 0). */
+        const val AI_DISABLED = "ai-disabled"
 
         /** The caller has not confirmed their email address, so is served cached Asset Reviews only. */
         const val EMAIL_UNVERIFIED = "email-unverified"
@@ -942,13 +945,17 @@ class AgentController(
 
     /**
      * Why a live turn is refused, or null to run it: an unconfirmed email
-     * address is refused first, then a metered caller with no turn left this week.
+     * address first, then a metered caller an administrator has disabled, then
+     * one with no turn left this week. A free one-off News lookup is never
+     * metered, so it needs no caller identity and is not refused for either.
      * Asked only on an Asset Review cache miss: a hit is served free to anyone.
      */
     private fun refusalFor(meter: String?): String? =
         when {
             !scopeAuthorizer.verified() -> EMAIL_UNVERIFIED
-            meter != null && !quota.allows(meter) -> AI_QUOTA
+            meter == null -> null
+            quota.disabled(meter) -> AI_DISABLED
+            !quota.allows(meter) -> AI_QUOTA
             else -> null
         }
 
@@ -1129,7 +1136,7 @@ class AgentController(
             // contract both transports share.
             ANSWER_TRUNCATED, EMPTY_ANSWER -> UNPROCESSABLE_CONTENT
             NOT_HELD -> NOT_FOUND
-            EMAIL_UNVERIFIED -> FORBIDDEN
+            EMAIL_UNVERIFIED, AI_DISABLED -> FORBIDDEN
             else -> INTERNAL_ERROR
         }
 
@@ -1163,6 +1170,9 @@ class AgentController(
             }
             AI_QUOTA -> {
                 "You have used this week's AI questions. Each one frees up seven days after it was asked."
+            }
+            AI_DISABLED -> {
+                "AI is turned off for your account. Ask the administrator to turn it back on."
             }
             EMAIL_UNVERIFIED -> {
                 "Confirm your email address to ask the AI. Cached Asset Reviews are still available."

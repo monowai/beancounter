@@ -25,7 +25,8 @@ import org.springframework.web.bind.annotation.RestController
 class RegistrationController internal constructor(
     private val systemUserService: SystemUserService,
     private val userPreferencesService: UserPreferencesService,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val userActivity: UserActivityService
 ) {
     @GetMapping("/me")
     @PreAuthorize(
@@ -52,6 +53,8 @@ class RegistrationController internal constructor(
         val user =
             systemUserService.find(tokenService.subject)
                 ?: throw ForbiddenException("Authenticated, but unregistered")
+        // The user's own call, never a service resolving them: this is what "last seen" means.
+        userActivity.seenQuietly(user.id)
         val preferences = userPreferencesService.getOrCreate(user)
         return RegistrationResponse(user, preferences)
     }

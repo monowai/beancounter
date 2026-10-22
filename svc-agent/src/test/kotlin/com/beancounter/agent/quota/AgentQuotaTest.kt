@@ -345,6 +345,67 @@ class AgentQuotaTest {
     }
 
     @Test
+    fun `an administrator's unlimited grant should admit past the default and still count use`() {
+        quota.setUnlimited(me)
+
+        val answered = ask(chat, times = 5)
+
+        assertThat(answered.statusCode.value()).isEqualTo(200)
+        val status = quota.statusOf(me)
+        assertThat(status.unlimited).isTrue()
+        assertThat(status.override).isTrue()
+        assertThat(status.used).isEqualTo(5)
+    }
+
+    @Test
+    fun `an administrator's unlimited grant should still need a confirmed email`() {
+        quota.setUnlimited(me)
+        actAs(AuthConstants.SCOPE_PREVIEW)
+
+        assertThat(controller().query(chat).body?.error).isEqualTo("email-unverified")
+    }
+
+    @Test
+    fun `a disabled user should be refused every metered turn with ai-disabled`() {
+        quota.setLimit(me, 0)
+
+        val refused =
+            listOf(chat, assetReview, news.copy(conversationId = conversations.create(me).id))
+                .map { controller().query(it) }
+
+        assertThat(refused.map { it.statusCode.value() to it.body?.error })
+            .containsOnly(403 to "ai-disabled")
+        assertThat(modelCalls).isZero()
+    }
+
+    @Test
+    fun `a disabled user should still be served a cached asset review`() {
+        ask(assetReview)
+        quota.setLimit(me, 0)
+
+        val cached = ask(assetReview)
+
+        assertThat(cached.statusCode.value()).isEqualTo(200)
+        assertThat(cached.body?.cached).isTrue()
+    }
+
+    @Test
+    fun `the overview should list users with use or an override, and the default`() {
+        val other = "quota-other"
+        quota.forget(other)
+        quota.clearLimit(other)
+        ask(chat)
+        quota.setUnlimited(other)
+
+        val overview = quota.overview()
+
+        assertThat(overview.defaultLimit).isEqualTo(3)
+        assertThat(overview.users[me]?.used).isEqualTo(1)
+        assertThat(overview.users[other]?.unlimited).isTrue()
+        quota.clearLimit(other)
+    }
+
+    @Test
     fun `status should name the contact for raising the quota`() {
         assertThat(quota.statusOf(me).contact).isEqualTo("help@example.com")
         assertThat(quota.statusOf(me).resetAt).isNull()

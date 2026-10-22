@@ -252,12 +252,16 @@ interface AssetRepository : JpaRepository<Asset, String> {
     ): List<Asset>
 
     /**
-     * Set only the composite FIGI, so a slow provider lookup never writes back stale copies of
-     * the asset's other columns.
+     * Set only the composite FIGI, and only while it is still null, so a slow provider lookup
+     * never writes back stale columns or replaces a value another path set meanwhile.
+     * Returns the rows changed: 0 when the asset is gone or already has a composite FIGI.
      */
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
-    @Query("UPDATE Asset a SET a.compositeFigi = :compositeFigi WHERE a.id = :id")
+    @Query(
+        "UPDATE Asset a SET a.compositeFigi = :compositeFigi " +
+            "WHERE a.id = :id AND a.compositeFigi IS NULL"
+    )
     fun updateCompositeFigi(
         @Param("id") id: String,
         @Param("compositeFigi") compositeFigi: String

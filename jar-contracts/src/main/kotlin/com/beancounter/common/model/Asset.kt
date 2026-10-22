@@ -79,6 +79,7 @@ data class Asset(
     /**
      * OpenFIGI composite FIGI: the identifier shared by this instrument's listings within one
      * country. Stable across ticker changes and providers. Null until FIGI resolves the asset.
+     * Not unique per asset: BC markets that share a FIGI country can each hold the instrument.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var compositeFigi: String? = null

@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -27,18 +28,31 @@ class FigiEnricher(
         id: String,
         market: Market,
         assetInput: AssetInput
-    ): Asset =
-        figiProxy.find(
-            market,
-            assetInput.code,
-            id = id
-        ) ?: defaultEnricher.enrich(
+    ): Asset {
+        val found =
+            try {
+                figiProxy.find(
+                    market,
+                    assetInput.code,
+                    id = id
+                )
+            } catch (e: FigiProviderException) {
+                // Persist a default-named asset rather than fail the create.
+                log.warn("FIGI error, using default enricher: {}", e.message)
+                null
+            }
+        return found ?: defaultEnricher.enrich(
             id,
             market,
             assetInput
         )
+    }
 
     override fun canEnrich(asset: Asset): Boolean = asset.name.isNullOrBlank()
 
     override fun id(): String = "FIGI"
+
+    companion object {
+        private val log = LoggerFactory.getLogger(FigiEnricher::class.java)
+    }
 }

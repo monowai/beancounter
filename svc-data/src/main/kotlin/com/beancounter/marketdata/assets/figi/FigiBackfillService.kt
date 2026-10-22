@@ -51,6 +51,7 @@ class FigiBackfillService(
             )
         val unresolved = mutableListOf<String>()
         var attempted = 0
+        var resolved = 0
         var lastId = after
         var failed: String? = null
         for (asset in candidates) {
@@ -61,14 +62,14 @@ class FigiBackfillService(
                     @Suppress("TooGenericExceptionCaught")
                     e: RuntimeException
                 ) {
-                    log.warn("FIGI backfill stopped at {}: {}", asset.id, e.message)
+                    log.warn("FIGI backfill stopped at {}", asset.id, e)
                     failed = asset.id
                     break
                 }
             if (compositeFigi == null) {
                 unresolved.add(asset.id)
-            } else {
-                assetRepository.updateCompositeFigi(asset.id, compositeFigi)
+            } else if (assetRepository.updateCompositeFigi(asset.id, compositeFigi) == 1) {
+                resolved++
             }
             attempted++
             lastId = asset.id
@@ -76,7 +77,7 @@ class FigiBackfillService(
         val result =
             FigiBackfillResult(
                 attempted = attempted,
-                resolved = attempted - unresolved.size,
+                resolved = resolved,
                 unresolved = unresolved,
                 lastId = lastId,
                 failed = failed
@@ -99,9 +100,9 @@ class FigiBackfillService(
 }
 
 /**
- * Outcome of a [FigiBackfillService.backfill] run. [unresolved] holds the ids FIGI did not
- * match (a provider error FIGI reports in its response body also lands here); [failed] is the
- * asset whose lookup threw and stopped the run; [lastId] is the cursor for the next run.
+ * Outcome of a [FigiBackfillService.backfill] run. [resolved] counts assets written;
+ * [unresolved] holds the ids FIGI did not match; [failed] is the asset whose lookup hit a
+ * provider error and stopped the run; [lastId] is the cursor for the next run.
  */
 data class FigiBackfillResult(
     val attempted: Int,

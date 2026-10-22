@@ -35,11 +35,11 @@ class FigiController(
     @Operation(
         summary = "Backfill composite FIGIs for existing assets",
         description =
-            "Resolves up to `limit` (max 200) active, unowned assets that have no composite FIGI. " +
-                "Pass the previous lastId as `after` to continue; done when attempted is 0."
+            "Resolves up to `limit` (max ${FigiBackfillService.MAX_LIMIT}) active, unowned assets " +
+                "that have no composite FIGI. Pass the previous lastId as `after` to continue; done when attempted is 0."
     )
     fun backfill(
-        @Parameter(description = "Assets to attempt, clamped to 1..200", example = "50")
+        @Parameter(description = "Assets to attempt, clamped to 1..${FigiBackfillService.MAX_LIMIT}", example = "50")
         @RequestParam(required = false, defaultValue = "50") limit: Int = 50,
         @Parameter(description = "Asset id cursor: the previous run's lastId")
         @RequestParam(required = false) after: String? = null

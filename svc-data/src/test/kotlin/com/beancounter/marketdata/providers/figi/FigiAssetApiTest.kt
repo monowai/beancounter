@@ -184,6 +184,74 @@ class FigiAssetApiTest {
     }
 
     @Test
+    fun `should stop when OpenFIGI reports an error in the response body`() {
+        val throttled =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, "FIGIERR", "Throttled"), "FIGIERR"))
+                .data.values
+                .first()
+        wireMock.stubFor(
+            WireMock
+                .post(WireMock.urlEqualTo("/v3/mapping"))
+                .withRequestBody(WireMock.containing("FIGIERR"))
+                .atPriority(1)
+                .willReturn(
+                    WireMock
+                        .aResponse()
+                        .withStatus(200)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody("[{\"error\": \"Too Many Requests\"}]")
+                )
+        )
+
+        val result = figiBackfillService.backfill(limit = 200)
+
+        assertThat(result.failed).isEqualTo(throttled.id)
+        assertThat(result.unresolved).doesNotContain(throttled.id)
+    }
+
+    @Test
+    fun `should fall back to the default enricher when OpenFIGI reports an error`() {
+        wireMock.stubFor(
+            WireMock
+                .post(WireMock.urlEqualTo("/v3/mapping"))
+                .withRequestBody(WireMock.containing("FIGIDEF"))
+                .atPriority(1)
+                .willReturn(
+                    WireMock
+                        .aResponse()
+                        .withStatus(200)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody("[{\"error\": \"Too Many Requests\"}]")
+                )
+        )
+
+        val created =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, "FIGIDEF", "Default Name"), "FIGIDEF"))
+                .data.values
+                .first()
+
+        assertThat(created.name).isEqualTo("Default Name")
+        assertThat(created.compositeFigi).isNull()
+    }
+
+    @Test
+    fun `should not overwrite a composite FIGI that is already set`() {
+        val created =
+            assetService
+                .handle(AssetRequest(AssetInput(NASDAQ.code, MSFT.code), MSFT.code))
+                .data.values
+                .first()
+        assetRepository.save(assetFinder.find(created.id).also { it.compositeFigi = "BBGKEEPME001" })
+
+        val updated = assetRepository.updateCompositeFigi(created.id, "BBGOTHER0001")
+
+        assertThat(updated).isZero()
+        assertThat(assetFinder.find(created.id).compositeFigi).isEqualTo("BBGKEEPME001")
+    }
+
+    @Test
     fun `should clamp an out-of-range backfill limit`() {
         assertThat(figiBackfillService.backfill(limit = -5).attempted).isLessThanOrEqualTo(1)
     }

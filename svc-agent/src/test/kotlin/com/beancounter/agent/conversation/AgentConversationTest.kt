@@ -110,7 +110,7 @@ class AgentConversationTest {
             MockEnvironment(),
             ObjectMapper(),
             LlmMetrics(),
-            mock<AgentScopeAuthorizer>(),
+            mock<AgentScopeAuthorizer> { on { verified() } doReturn true },
             conversations,
             owner,
             ConversationTitler(null, client, conversations, titleScope),

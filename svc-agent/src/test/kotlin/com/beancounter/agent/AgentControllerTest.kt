@@ -142,7 +142,8 @@ class AgentControllerTest {
     // itself is verified in AgentControllerAuthzTest.
     private val permissiveAuthorizer =
         mock<AgentScopeAuthorizer> {
-            on { authorize(anyOrNull()) } doAnswer { }
+            on { authorize() } doAnswer { }
+            on { verified() } doAnswer { true }
         }
 
     private fun controller(

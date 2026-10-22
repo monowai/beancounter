@@ -148,6 +148,28 @@ internal class DeviceKeyTest {
     }
 
     @Test
+    fun `a device key carries only the scopes the caller holds`() {
+        val token = registeredToken("device-scopes")
+        val preview =
+            Jwt
+                .withTokenValue(token.tokenValue)
+                .headers { it.putAll(token.headers) }
+                .claims { it.putAll(token.claims) }
+                .claim("scope", "beancounter beancounter:user beancounter:preview")
+                .build()
+
+        val id = registered(preview, newKey())
+
+        assertThat(
+            apiKeyRepository
+                .findById(id)
+                .orElseThrow()
+                .scopes
+                .split(" ")
+        ).containsExactlyInAnyOrder("beancounter", "beancounter:user", "beancounter:preview")
+    }
+
+    @Test
     fun `registration needs an account sign-in`() {
         val token = registeredToken("device-register-derived")
         val keyDerived =

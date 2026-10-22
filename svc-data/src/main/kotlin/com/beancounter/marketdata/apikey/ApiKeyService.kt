@@ -13,6 +13,7 @@ import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.ApiKey
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -101,7 +102,7 @@ class ApiKeyService(
                     name = request.name,
                     prefix = "$DEVICE_PREFIX${keyHash.take(DEVICE_PREFIX_HASH_LENGTH)}",
                     keyHash = keyHash,
-                    scopes = DEFAULT_SCOPES.joinToString(" "),
+                    scopes = validatedScopes(emptyList()).joinToString(" "),
                     publicKey = publicKey
                 )
             )
@@ -175,9 +176,16 @@ class ApiKeyService(
         return found
     }
 
+    /**
+     * The scopes a new key carries: those asked for, or by default every
+     * issuable scope the caller's own token holds. A key never carries a scope
+     * its owner's sign-in lacks, so a default-role user cannot mint their way
+     * past the AI quota with `beancounter:ai`.
+     */
     private fun validatedScopes(requested: Collection<String>): Collection<String> {
-        val scopes = requested.ifEmpty { DEFAULT_SCOPES }
-        val invalid = scopes.filterNot { ALLOWED_SCOPES.contains(it) }
+        val issuable = ISSUABLE_SCOPES.intersect(callerScopes())
+        val scopes = requested.ifEmpty { issuable }
+        val invalid = scopes.filterNot { it in issuable }
         if (invalid.isNotEmpty()) {
             throw BusinessException(
                 "Scope(s) not permitted for API keys: ${invalid.joinToString(", ")}"
@@ -185,6 +193,15 @@ class ApiKeyService(
         }
         return scopes
     }
+
+    private fun callerScopes(): Set<String> =
+        SecurityContextHolder
+            .getContext()
+            .authentication
+            ?.authorities
+            ?.mapNotNull { it.authority?.takeIf { name -> name.startsWith(SCOPE_PREFIX) }?.removePrefix(SCOPE_PREFIX) }
+            ?.toSet()
+            .orEmpty()
 
     private fun ApiKey.toView() =
         ApiKeyView(
@@ -208,15 +225,17 @@ class ApiKeyService(
         // not a secret: [verify] must still refuse rows with a public key.
         private const val DEVICE_HASH_DOMAIN = "device-spki:"
 
-        // Scopes issuable via API key are capped at the owner's own
-        // day-to-day authorities. beancounter:admin and beancounter:system
-        // are never issuable this way.
-        private val DEFAULT_SCOPES =
-            listOf(
+        private const val SCOPE_PREFIX = "SCOPE_"
+
+        // Scopes issuable via API key, each only to a caller whose token holds
+        // it. beancounter:admin and beancounter:system are never issuable this way.
+        private val ISSUABLE_SCOPES =
+            linkedSetOf(
                 AuthConstants.APP_NAME,
                 AuthConstants.USER,
-                AuthConstants.AI
+                AuthConstants.PREVIEW,
+                AuthConstants.AI,
+                AuthConstants.VERIFIED
             )
-        private val ALLOWED_SCOPES = DEFAULT_SCOPES.toSet()
     }
 }

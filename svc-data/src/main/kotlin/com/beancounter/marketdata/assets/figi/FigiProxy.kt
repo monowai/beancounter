@@ -60,15 +60,9 @@ class FigiProxy internal constructor(
                 return null
             }
         if (response?.error != null) {
-            // Hard error (rate-limit / auth). Return null so the enricher chain falls
-            // back to the default enricher rather than persisting a null-named asset.
-            log.debug(
-                "Error {}/{} {}",
-                figiMarket,
-                figiCode,
-                response.error
-            )
-            return null
+            // Hard error (rate-limit / auth) reported in the body. Not a no-match: callers
+            // decide whether to fall back (FigiEnricher) or stop (FigiBackfillService).
+            throw FigiProviderException("$figiMarket/$figiCode: ${response.error}")
         }
         if (response?.data != null) {
             for (datum in response.data!!) {

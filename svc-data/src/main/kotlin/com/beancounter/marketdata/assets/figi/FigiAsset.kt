@@ -6,5 +6,6 @@ package com.beancounter.marketdata.assets.figi
 data class FigiAsset(
     val name: String,
     val ticker: String,
-    val securityType2: String
+    val securityType2: String,
+    val compositeFIGI: String? = null
 )

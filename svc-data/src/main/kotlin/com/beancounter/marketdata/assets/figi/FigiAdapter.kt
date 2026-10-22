@@ -51,5 +51,5 @@ class FigiAdapter(
             defaultName = figiAsset.name,
             id = id,
             category = figiAsset.securityType2
-        )
+        ).also { it.compositeFigi = figiAsset.compositeFIGI }
 }

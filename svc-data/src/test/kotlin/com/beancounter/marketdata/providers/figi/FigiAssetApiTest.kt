@@ -127,6 +127,7 @@ class FigiAssetApiTest {
 
         val backfilled = assetFinder.find(created.id)
         assertThat(result.resolved).isGreaterThanOrEqualTo(1)
+        assertThat(result.resolved + result.unresolved.size + result.skipped.size).isEqualTo(result.attempted)
         assertThat(backfilled.compositeFigi).isEqualTo("BBG000BPH459")
         assertThat(backfilled.name).isEqualTo(created.name)
         assertThat(backfilled.category).isEqualTo(created.category)

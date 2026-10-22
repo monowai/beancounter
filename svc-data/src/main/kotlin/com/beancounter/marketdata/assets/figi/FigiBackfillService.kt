@@ -52,12 +52,15 @@ class FigiBackfillService(
         val unresolved = mutableListOf<String>()
         var attempted = 0
         var resolved = 0
+        val skipped = mutableListOf<String>()
         var lastId = after
         var failed: String? = null
         for (asset in candidates) {
+            // Outside the catch: the query only returns these markets, so a miss is a bug, not a provider error.
+            val market = figiMarkets.getValue(asset.marketCode)
             val compositeFigi =
                 try {
-                    figiProxy.find(figiMarkets.getValue(asset.marketCode), asset.code, asset.id)?.compositeFigi
+                    figiProxy.find(market, asset.code, asset.id)?.compositeFigi
                 } catch (
                     @Suppress("TooGenericExceptionCaught")
                     e: RuntimeException
@@ -70,6 +73,8 @@ class FigiBackfillService(
                 unresolved.add(asset.id)
             } else if (assetRepository.updateCompositeFigi(asset.id, compositeFigi) == 1) {
                 resolved++
+            } else {
+                skipped.add(asset.id)
             }
             attempted++
             lastId = asset.id
@@ -79,16 +84,18 @@ class FigiBackfillService(
                 attempted = attempted,
                 resolved = resolved,
                 unresolved = unresolved,
+                skipped = skipped,
                 lastId = lastId,
                 failed = failed
             )
         log.info(
-            "FIGI backfill: attempted {}, resolved {}, lastId {}, failed {}, unresolved {}",
+            "FIGI backfill: attempted {}, resolved {}, lastId {}, failed {}, unresolved {}, skipped {}",
             result.attempted,
             result.resolved,
             result.lastId,
             result.failed,
-            result.unresolved
+            result.unresolved,
+            result.skipped
         )
         return result
     }
@@ -100,14 +107,16 @@ class FigiBackfillService(
 }
 
 /**
- * Outcome of a [FigiBackfillService.backfill] run. [resolved] counts assets written;
- * [unresolved] holds the ids FIGI did not match; [failed] is the asset whose lookup hit a
- * provider error and stopped the run; [lastId] is the cursor for the next run.
+ * Outcome of a [FigiBackfillService.backfill] run. [attempted] = [resolved] (written) +
+ * [unresolved] (FIGI had no match) + [skipped] (deleted, or another path set the value
+ * meanwhile). [failed] is the asset whose lookup hit a provider error and stopped the run;
+ * [lastId] is the cursor for the next run.
  */
 data class FigiBackfillResult(
     val attempted: Int,
     val resolved: Int,
     val unresolved: List<String> = emptyList(),
+    val skipped: List<String> = emptyList(),
     val lastId: String? = null,
     val failed: String? = null
 )

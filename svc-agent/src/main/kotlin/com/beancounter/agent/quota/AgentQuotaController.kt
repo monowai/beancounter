@@ -3,6 +3,7 @@ package com.beancounter.agent.quota
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.exception.BusinessException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.access.prepost.PreAuthorize
@@ -33,9 +34,14 @@ class AgentQuotaController(
             if (scopes.unlimited()) {
                 quota.unlimited()
             } else {
-                quota.statusOf(owner.id()).copy(verified = scopes.verified())
-            }
+                quota.statusOf(owner.id())
+            }.copy(verified = scopes.emailConfirmed())
         )
+
+    @GetMapping("/overview")
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
+    @Operation(summary = "The default limit and every user with use this week or an override (admin)")
+    fun overview(): QuotaOverviewResponse = QuotaOverviewResponse(quota.overview())
 
     @GetMapping("/{systemUserId}")
     @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
@@ -46,11 +52,22 @@ class AgentQuotaController(
 
     @PutMapping("/{systemUserId}")
     @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
-    @Operation(summary = "Set a user's weekly AI limit, replacing the default (admin)")
+    @Operation(
+        summary = "Set a user's weekly AI limit (0 disables AI) or grant unlimited, replacing the default (admin)"
+    )
     fun set(
         @PathVariable systemUserId: String,
         @RequestBody request: QuotaLimitRequest
-    ): QuotaResponse = QuotaResponse(quota.setLimit(systemUserId, request.weeklyLimit))
+    ): QuotaResponse {
+        val limit = request.weeklyLimit
+        val status =
+            when {
+                request.unlimited && limit == null -> quota.setUnlimited(systemUserId)
+                !request.unlimited && limit != null -> quota.setLimit(systemUserId, limit)
+                else -> throw BusinessException("Send either weeklyLimit or unlimited=true")
+            }
+        return QuotaResponse(status)
+    }
 
     @DeleteMapping("/{systemUserId}")
     @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
@@ -60,8 +77,14 @@ class AgentQuotaController(
     ): QuotaResponse = QuotaResponse(quota.clearLimit(systemUserId))
 }
 
+/** Either a [weeklyLimit] (0 disables AI) or [unlimited], never both. */
 data class QuotaLimitRequest(
-    val weeklyLimit: Int
+    val weeklyLimit: Int? = null,
+    val unlimited: Boolean = false
+)
+
+data class QuotaOverviewResponse(
+    val data: QuotaOverview
 )
 
 data class QuotaResponse(

@@ -104,8 +104,24 @@ class AgentQuotaControllerTest {
             .perform(get("/agent/quota").with(aiUser()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.unlimited").value(true))
-            .andExpect(jsonPath("$.data.verified").value(true))
             .andExpect(jsonPath("$.data.contact").value("askmonowai@duck.com"))
+    }
+
+    @Test
+    fun `an ai user's quota should report whether their email is confirmed`() {
+        mockMvc
+            .perform(get("/agent/quota").with(aiUser()))
+            .andExpect(jsonPath("$.data.verified").value(false))
+
+        mockMvc
+            .perform(
+                get("/agent/quota").with(
+                    jwt().authorities(
+                        SimpleGrantedAuthority(AuthConstants.SCOPE_AI),
+                        SimpleGrantedAuthority(AuthConstants.SCOPE_VERIFIED)
+                    )
+                )
+            ).andExpect(jsonPath("$.data.verified").value(true))
     }
 
     @Test
@@ -169,5 +185,50 @@ class AgentQuotaControllerTest {
         mockMvc
             .perform(get("/agent/quota/$other").with(admin()))
             .andExpect(jsonPath("$.data.override").value(false))
+    }
+
+    @Test
+    fun `an administrator should grant unlimited, disable, and read the overview`() {
+        mockMvc
+            .perform(
+                put("/agent/quota/$other")
+                    .with(admin())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"unlimited":true}""")
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.unlimited").value(true))
+            .andExpect(jsonPath("$.data.override").value(true))
+
+        mockMvc
+            .perform(get("/agent/quota/overview").with(admin()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.defaultLimit").value(10))
+            .andExpect(jsonPath("$.data.users.$other.unlimited").value(true))
+
+        mockMvc
+            .perform(
+                put("/agent/quota/$other")
+                    .with(admin())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"weeklyLimit":0}""")
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.limit").value(0))
+            .andExpect(jsonPath("$.data.unlimited").value(false))
+    }
+
+    @Test
+    fun `a request naming both a limit and unlimited should be refused`() {
+        mockMvc
+            .perform(
+                put("/agent/quota/$other")
+                    .with(admin())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"weeklyLimit":5,"unlimited":true}""")
+            ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `a non-administrator should not read the overview`() {
+        mockMvc.perform(get("/agent/quota/overview").with(aiUser())).andExpect(status().isForbidden)
     }
 }

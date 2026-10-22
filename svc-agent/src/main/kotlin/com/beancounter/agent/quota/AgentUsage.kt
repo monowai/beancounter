@@ -19,7 +19,10 @@ class AgentUsage(
     val usedAt: Instant
 )
 
-/** An administrator's weekly limit for [ownerId], replacing the configured default. */
+/**
+ * An administrator's allowance for [ownerId], replacing the configured default:
+ * [weeklyLimit] turns a week (0 disables AI), or no limit when [unlimited].
+ */
 @Entity
 @Table(name = "agent_quota_limit")
 class AgentQuotaLimit(
@@ -28,5 +31,7 @@ class AgentQuotaLimit(
     @Column(nullable = false)
     var weeklyLimit: Int,
     @Column(nullable = false)
-    var updatedAt: Instant
+    var updatedAt: Instant,
+    @Column(nullable = false)
+    var unlimited: Boolean = false
 )

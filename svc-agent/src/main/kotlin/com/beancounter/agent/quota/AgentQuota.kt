@@ -30,7 +30,11 @@ class AgentQuota(
     }
 
     @Transactional(readOnly = true)
-    override fun allows(ownerId: String): Boolean = statusOf(ownerId).remaining > 0
+    override fun allows(ownerId: String): Boolean = statusOf(ownerId).let { it.unlimited || it.remaining > 0 }
+
+    @Transactional(readOnly = true)
+    override fun disabled(ownerId: String): Boolean =
+        limits.findById(ownerId).map { !it.unlimited && it.weeklyLimit == 0 }.orElse(false)
 
     @Transactional
     override fun spend(ownerId: String) {
@@ -39,11 +43,18 @@ class AgentQuota(
         usage.save(AgentUsage(ownerId = ownerId, usedAt = now))
     }
 
-    /** [ownerId]'s quota now: [QuotaStatus.resetAt] is when the oldest counted turn frees up. */
+    /**
+     * [ownerId]'s quota now: [QuotaStatus.resetAt] is when the oldest counted
+     * turn frees up. An administrator's unlimited grant reports [QuotaStatus.unlimited]
+     * with the turns still counted in [QuotaStatus.used].
+     */
     @Transactional(readOnly = true)
     fun statusOf(ownerId: String): QuotaStatus {
         val counted = usage.findByOwnerIdAndUsedAtAfterOrderByUsedAt(ownerId, clock.instant().minus(WINDOW))
         val override = limits.findById(ownerId).orElse(null)
+        if (override?.unlimited == true) {
+            return unlimited().copy(used = counted.size, override = true)
+        }
         val limit = override?.weeklyLimit ?: weekly
         return QuotaStatus(
             limit = limit,
@@ -53,6 +64,13 @@ class AgentQuota(
             contact = contact,
             override = override != null
         )
+    }
+
+    /** The default limit, and the status of every user with a turn this week or an override. */
+    @Transactional(readOnly = true)
+    fun overview(): QuotaOverview {
+        val owners = usage.ownersActiveAfter(clock.instant().minus(WINDOW)) + limits.findAll().map { it.ownerId }
+        return QuotaOverview(weekly, owners.distinct().associateWith(::statusOf))
     }
 
     /** The status of a caller with no quota (`beancounter:ai`): nothing counted, the same contact. */
@@ -66,11 +84,24 @@ class AgentQuota(
         weeklyLimit: Int
     ): QuotaStatus {
         if (weeklyLimit < 0) throw BusinessException("weeklyLimit must not be negative")
+        return override(ownerId, weeklyLimit, unlimited = false)
+    }
+
+    /** Give [ownerId] unlimited turns; a confirmed email is still required. */
+    @Transactional
+    fun setUnlimited(ownerId: String): QuotaStatus = override(ownerId, weeklyLimit = 0, unlimited = true)
+
+    private fun override(
+        ownerId: String,
+        weeklyLimit: Int,
+        unlimited: Boolean
+    ): QuotaStatus {
         val row = limits.findById(ownerId).orElse(null)
         if (row == null) {
-            limits.save(AgentQuotaLimit(ownerId, weeklyLimit, clock.instant()))
+            limits.save(AgentQuotaLimit(ownerId, weeklyLimit, clock.instant(), unlimited))
         } else {
             row.weeklyLimit = weeklyLimit
+            row.unlimited = unlimited
             row.updatedAt = clock.instant()
         }
         return statusOf(ownerId)
@@ -90,12 +121,19 @@ class AgentQuota(
     }
 }
 
+/** The configured [defaultLimit], and [users] keyed by `SystemUser.id`; a user absent from it is on the default. */
+data class QuotaOverview(
+    val defaultLimit: Int,
+    val users: Map<String, QuotaStatus>
+)
+
 /**
- * One user's weekly AI quota. [unlimited] callers (`beancounter:ai`) are never
- * counted, and the other fields are then zero. [contact] is who to ask for a
+ * One user's weekly AI quota. [unlimited] callers (`beancounter:ai`, or an
+ * administrator's grant) have no limit, and [limit] and [remaining] are then zero.
+ * An [override] with a [limit] of 0 has AI disabled. [contact] is who to ask for a
  * higher limit; [override] is true when an administrator set [limit].
- * [verified] is false when the caller's email address is not confirmed: they
- * are then served cached Asset Reviews only.
+ * [verified] is false when the caller's email address is not confirmed; a
+ * metered caller is then served cached Asset Reviews only.
  */
 data class QuotaStatus(
     val limit: Int,

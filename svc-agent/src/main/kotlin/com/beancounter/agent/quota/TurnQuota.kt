@@ -10,6 +10,9 @@ interface TurnQuota {
     /** Count one answered turn against [ownerId]. */
     fun spend(ownerId: String)
 
+    /** True when an administrator has turned AI off for [ownerId] (a limit of 0). */
+    fun disabled(ownerId: String): Boolean
+
     companion object {
         /** No quota: every turn is admitted and nothing is counted. */
         val NONE =
@@ -17,6 +20,8 @@ interface TurnQuota {
                 override fun allows(ownerId: String) = true
 
                 override fun spend(ownerId: String) = Unit
+
+                override fun disabled(ownerId: String) = false
             }
     }
 }

@@ -94,8 +94,8 @@ class AgentQuota(
  * One user's weekly AI quota. [unlimited] callers (`beancounter:ai`) are never
  * counted, and the other fields are then zero. [contact] is who to ask for a
  * higher limit; [override] is true when an administrator set [limit].
- * [verified] is false when the caller's email address is not confirmed: they
- * are then served cached Asset Reviews only.
+ * [verified] is false when the caller's email address is not confirmed; a
+ * metered caller is then served cached Asset Reviews only.
  */
 data class QuotaStatus(
     val limit: Int,

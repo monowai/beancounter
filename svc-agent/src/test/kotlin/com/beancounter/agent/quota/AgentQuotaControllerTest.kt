@@ -104,8 +104,24 @@ class AgentQuotaControllerTest {
             .perform(get("/agent/quota").with(aiUser()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.unlimited").value(true))
-            .andExpect(jsonPath("$.data.verified").value(true))
             .andExpect(jsonPath("$.data.contact").value("askmonowai@duck.com"))
+    }
+
+    @Test
+    fun `an ai user's quota should report whether their email is confirmed`() {
+        mockMvc
+            .perform(get("/agent/quota").with(aiUser()))
+            .andExpect(jsonPath("$.data.verified").value(false))
+
+        mockMvc
+            .perform(
+                get("/agent/quota").with(
+                    jwt().authorities(
+                        SimpleGrantedAuthority(AuthConstants.SCOPE_AI),
+                        SimpleGrantedAuthority(AuthConstants.SCOPE_VERIFIED)
+                    )
+                )
+            ).andExpect(jsonPath("$.data.verified").value(true))
     }
 
     @Test

@@ -32,7 +32,10 @@ class AgentScopeAuthorizer {
     fun unlimited(): Boolean = granted().intersect(UNLIMITED).isNotEmpty()
 
     /** True when the caller may run live turns: unlimited, or their email address is confirmed. */
-    fun verified(): Boolean = unlimited() || AuthConstants.SCOPE_VERIFIED in granted()
+    fun verified(): Boolean = unlimited() || emailConfirmed()
+
+    /** True when the caller's email address is confirmed, whatever their role. */
+    fun emailConfirmed(): Boolean = AuthConstants.SCOPE_VERIFIED in granted()
 
     /**
      * True when [body] counts against the caller's quota. A News & Sentiment

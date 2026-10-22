@@ -33,8 +33,8 @@ class AgentQuotaController(
             if (scopes.unlimited()) {
                 quota.unlimited()
             } else {
-                quota.statusOf(owner.id()).copy(verified = scopes.verified())
-            }
+                quota.statusOf(owner.id())
+            }.copy(verified = scopes.emailConfirmed())
         )
 
     @GetMapping("/{systemUserId}")

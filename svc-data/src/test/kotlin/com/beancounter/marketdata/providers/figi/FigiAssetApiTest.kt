@@ -162,6 +162,11 @@ class FigiAssetApiTest {
     }
 
     @Test
+    fun `should clamp an out-of-range backfill limit`() {
+        assertThat(figiBackfillService.backfill(limit = -5).attempted).isLessThanOrEqualTo(1)
+    }
+
+    @Test
     fun `should forbid a user from running the FIGI backfill`() {
         val mockMvc =
             MockMvcBuilders

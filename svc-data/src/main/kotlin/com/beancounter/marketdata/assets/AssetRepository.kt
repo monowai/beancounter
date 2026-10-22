@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.assets
 
 import com.beancounter.common.model.Asset
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -228,15 +229,23 @@ interface AssetRepository : JpaRepository<Asset, String> {
     ): List<Asset>
 
     /**
-     * Active, shared (unowned) assets that FIGI has not yet resolved to a composite FIGI.
-     * Owned assets are private to their user and never sent to OpenFIGI.
+     * Active, shared (unowned) assets on [marketCodes] that FIGI has not yet resolved to a
+     * composite FIGI, ordered by id after the [after] cursor. Owned assets are private to
+     * their user and never sent to OpenFIGI.
      */
     @Query(
         "SELECT a FROM Asset a " +
             "WHERE a.compositeFigi IS NULL " +
             "AND a.systemUser IS NULL " +
             "AND a.status = com.beancounter.common.model.Status.Active " +
+            "AND a.code IS NOT NULL AND a.code <> '' " +
+            "AND a.marketCode IN :marketCodes " +
+            "AND a.id > :after " +
             "ORDER BY a.id"
     )
-    fun findWithoutCompositeFigi(): Stream<Asset>
+    fun findWithoutCompositeFigi(
+        @Param("marketCodes") marketCodes: Collection<String>,
+        @Param("after") after: String,
+        pageable: Pageable
+    ): List<Asset>
 }

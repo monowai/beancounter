@@ -34,7 +34,7 @@ class FigiController(
     @Operation(
         summary = "Backfill composite FIGIs for existing assets",
         description =
-            "Resolves up to `limit` unowned assets that have no composite FIGI. " +
+            "Resolves up to `limit` (max 200) unowned assets that have no composite FIGI. " +
                 "Pass the previous lastId as `after` to continue; done when attempted is 0."
     )
     fun backfill(

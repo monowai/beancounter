@@ -32,9 +32,7 @@ class WatchlistController(
     private val watchlistAlertService: WatchlistAlertService,
     private val systemUserService: SystemUserService
 ) {
-    @PreAuthorize(
-        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_WIDGET}', '${AuthConstants.SCOPE_SYSTEM}')"
-    )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         summary = "Get the caller's watchlist",
@@ -94,9 +92,7 @@ class WatchlistController(
     }
 
     @GetMapping(value = ["/alerts"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @PreAuthorize(
-        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_WIDGET}', '${AuthConstants.SCOPE_SYSTEM}')"
-    )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @Operation(
         summary = "Get the caller's watchlist alerts",
         description = """

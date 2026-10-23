@@ -177,9 +177,7 @@ class ClassificationController(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @PreAuthorize(
-        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_WIDGET}', '${AuthConstants.SCOPE_SYSTEM}')"
-    )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @Operation(
         summary = "Get classifications for multiple assets",
         description = "Returns sector and industry classifications for multiple assets in bulk"

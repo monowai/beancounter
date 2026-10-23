@@ -8,10 +8,14 @@ import com.beancounter.common.contracts.ApiKeyRequest
 import com.beancounter.common.contracts.ApiKeyResponse
 import com.beancounter.common.contracts.ApiKeyTokenRequest
 import com.beancounter.common.contracts.DeviceKeyRequest
+import com.beancounter.common.contracts.FxRequest
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.WidgetKeyRequest
+import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
@@ -159,10 +163,10 @@ internal class WidgetKeyTest {
     // The token the widget really holds: minted by the assertion exchange.
     private fun widgetToken(
         id: String,
-        remoteAddr: String
+        remoteAddr: String,
+        token: Jwt = registeredToken(id)
     ): Jwt {
         val key = newKey()
-        val token = registeredToken(id)
         val widgetId = widgetKey(token, deviceKey(token), key)
         val result =
             mockMvc
@@ -342,9 +346,28 @@ internal class WidgetKeyTest {
 
     @Test
     fun `should let a widget token make the reads svc-position forwards for net worth`() {
-        val widget = widgetToken("widget-net-worth-reads", "10.11.0.4")
+        val owner = registeredToken("widget-net-worth-reads")
+        val portfolio =
+            BcMvcHelper
+                .portfolioCreate(PortfolioInput(code = "WIDGET-NW"), mockMvc, owner)
+                .data
+                .first()
+        val widget = widgetToken("widget-net-worth-reads", "10.11.0.4", owner)
 
         call(widget, get("/portfolios"), status().isOk)
+        call(widget, get("/trns/portfolio/${portfolio.id}"), status().isOk)
+        call(
+            widget,
+            post(
+                "/prices"
+            ).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(PriceRequest())),
+            status().isOk
+        )
+        call(
+            widget,
+            post("/fx").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(FxRequest())),
+            status().isOk
+        )
         call(widget, get("/assets/config"), status().isOk)
         call(
             widget,

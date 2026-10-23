@@ -23,6 +23,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.stereotype.Service
 import org.springframework.web.cors.CorsConfiguration
+import java.util.Locale
 
 /**
  * Spring-security config to support OAuth2/JWT for MVC endpoints
@@ -180,11 +181,12 @@ class WebAuthFilterConfig {
         Binder
             .get(environment)
             .bind("auth.widget-routes", Bindable.listOf(String::class.java))
-            .orElse(emptyList())
-            .orEmpty()
+            .orElseGet { emptyList() }
             .map { widgetRoute(it) }
 
     companion object {
+        private val WHITESPACE = Regex("\\s+")
+
         private val HTTP_METHODS =
             setOf(
                 HttpMethod.GET,
@@ -199,12 +201,19 @@ class WebAuthFilterConfig {
          * startup instead of silently leaving a route closed or open.
          */
         fun widgetRoute(entry: String): Pair<HttpMethod, String> {
-            val parts = entry.trim().split(Regex("\\s+"))
+            val parts = entry.trim().split(WHITESPACE)
             require(parts.size == 2) { "auth.widget-routes entry must be '<METHOD> <path>': '$entry'" }
-            val method = HTTP_METHODS.firstOrNull { it.name() == parts[0].uppercase() }
+            val method = HTTP_METHODS.firstOrNull { it.name() == parts[0].uppercase(Locale.ROOT) }
             requireNotNull(method) { "auth.widget-routes entry has an unknown method: '$entry'" }
-            require(parts[1].startsWith("/")) { "auth.widget-routes path must start with '/': '$entry'" }
-            return method to parts[1]
+            val path = parts[1]
+            require(path.startsWith("/")) { "auth.widget-routes path must start with '/': '$entry'" }
+            // A bare root or an Ant wildcard would open far more than the one route intended.
+            // Path variables such as {id} stay allowed.
+            require(path != "/") { "auth.widget-routes path must not be the bare root: '$entry'" }
+            require('*' !in path && '?' !in path) {
+                "auth.widget-routes path must not contain a wildcard: '$entry'"
+            }
+            return method to path
         }
     }
 }

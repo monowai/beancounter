@@ -139,6 +139,22 @@ class WidgetRoutesAuthTest {
         }
     }
 
+    @Test
+    fun `should refuse a wildcard widget route`() {
+        listOf("GET /**", "GET /prices/*", "GET /portfolios/**", "GET /price?").forEach { entry ->
+            assertThatThrownBy { WebAuthFilterConfig.widgetRoute(entry) }
+                .isInstanceOf(IllegalArgumentException::class.java)
+                .hasMessageContaining("wildcard")
+        }
+    }
+
+    @Test
+    fun `should refuse a bare root widget route`() {
+        assertThatThrownBy { WebAuthFilterConfig.widgetRoute("GET /") }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("bare root")
+    }
+
     @RestController
     internal class WidgetController {
         @GetMapping("/widget-read")

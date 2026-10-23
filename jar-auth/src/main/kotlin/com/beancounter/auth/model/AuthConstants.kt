@@ -16,7 +16,7 @@ object AuthConstants {
 
     /**
      * Carried alone by a home-screen widget's key, which works without biometrics. It reaches
-     * only the read routes a service lists in `auth.widget-routes`.
+     * only the routes a service lists in `auth.widget-routes`.
      */
     const val WIDGET = "$APP_NAME:widget"
 
@@ -31,6 +31,9 @@ object AuthConstants {
     const val SCOPE_PREVIEW = "SCOPE_$PREVIEW"
     const val SCOPE_WIDGET = "SCOPE_$WIDGET"
     const val SCOPE_VERIFIED = "SCOPE_$VERIFIED"
+
+    /** The @PreAuthorize for a handler listed in auth.widget-routes. */
+    const val USER_WIDGET_OR_SYSTEM = "hasAnyAuthority('$SCOPE_USER', '$SCOPE_WIDGET', '$SCOPE_SYSTEM')"
 
     val authSystem = SystemUser(id = SYSTEM)
 

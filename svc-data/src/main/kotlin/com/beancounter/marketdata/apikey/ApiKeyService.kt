@@ -143,7 +143,7 @@ class ApiKeyService(
         val publicKey = Base64.getEncoder().encodeToString(DeviceAssertions.p256(encodedPublicKey).encoded)
         val keyHash = ApiKeyGenerator.hash("$DEVICE_HASH_DOMAIN$publicKey")
         if (apiKeyRepository.findByKeyHash(keyHash) != null) {
-            throw BusinessException("Device key is already registered")
+            throw BusinessException("This key is already registered")
         }
         return apiKeyRepository.save(
             ApiKey(

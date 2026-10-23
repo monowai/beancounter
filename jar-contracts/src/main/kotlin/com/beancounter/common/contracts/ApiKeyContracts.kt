@@ -62,3 +62,15 @@ data class DeviceKeyRequest(
     val name: String,
     val publicKey: String
 )
+
+/**
+ * Registers a home-screen widget's key under the phone's own device key
+ * ([deviceKeyId]). Like [DeviceKeyRequest], [publicKey] is the base64 X.509
+ * SubjectPublicKeyInfo of a P-256 key, but the widget's key works without
+ * biometrics, so its tokens carry only the narrow widget scope.
+ */
+data class WidgetKeyRequest(
+    val name: String,
+    val publicKey: String,
+    val deviceKeyId: String
+)

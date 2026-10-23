@@ -64,6 +64,7 @@ class TrnController(
         value = ["/portfolio/{portfolioId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @Operation(
         summary = "Get transactions for portfolio as of specific date",
         description = """

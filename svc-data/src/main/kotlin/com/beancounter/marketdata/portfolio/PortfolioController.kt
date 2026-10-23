@@ -55,6 +55,7 @@ class PortfolioController internal constructor(
     private val portfolioMergeService: PortfolioMergeService
 ) {
     @GetMapping
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @Operation(
         summary = "Get all portfolios",
         description = """
@@ -154,6 +155,7 @@ class PortfolioController internal constructor(
     ): PortfoliosResponse = PortfoliosResponse(portfolioService.findAll(inactive))
 
     @GetMapping("/{id}")
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @Operation(
         summary = "Get portfolio by ID",
         description = """

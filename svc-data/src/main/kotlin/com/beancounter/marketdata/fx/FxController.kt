@@ -36,7 +36,10 @@ class FxController
         private val fxRateService: FxRateService,
         private val tokenService: TokenService
     ) {
+        // A cache-filling read: a miss fetches from the provider and stores it. The widget scope
+        // is allowed because svc-position forwards the caller's JWT here to value net worth.
         @PostMapping
+        @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
         fun getRates(
             @RequestBody fxRequest: FxRequest
         ): FxResponse =

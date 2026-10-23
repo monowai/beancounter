@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.ApiKeyRequest
 import com.beancounter.common.contracts.ApiKeyResponse
 import com.beancounter.common.contracts.ApiKeysResponse
 import com.beancounter.common.contracts.DeviceKeyRequest
+import com.beancounter.common.contracts.WidgetKeyRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import io.swagger.v3.oas.annotations.Operation
@@ -66,6 +67,16 @@ class ApiKeyController internal constructor(
     ): ApiKeyResponse {
         requireAccountSignIn(jwt)
         return apiKeyService.createDevice(request)
+    }
+
+    @PostMapping("/widget")
+    @Operation(summary = "Register a home-screen widget's key under one of the caller's device keys")
+    fun registerWidget(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestBody request: WidgetKeyRequest
+    ): ApiKeyResponse {
+        requireAccountSignIn(jwt)
+        return apiKeyService.createWidget(request)
     }
 
     @GetMapping("")

@@ -7,10 +7,12 @@ import com.beancounter.common.contracts.ApiKeyResponse
 import com.beancounter.common.contracts.ApiKeyView
 import com.beancounter.common.contracts.ApiKeysResponse
 import com.beancounter.common.contracts.DeviceKeyRequest
+import com.beancounter.common.contracts.WidgetKeyRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.ApiKey
+import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.springframework.security.core.context.SecurityContextHolder
@@ -70,14 +72,27 @@ class ApiKeyService(
         )
     }
 
+    /** Revokes the key and its active children: a widget key never outlives its device key. */
     fun revoke(id: String): ApiKeyResponse {
         val owner = systemUserService.getOrThrow()
         val existing = findOwnedOrThrow(id, owner.id)
+        val revokedAt = auditInstant()
         if (existing.revokedAt == null) {
-            existing.revokedAt = auditInstant()
+            existing.revokedAt = revokedAt
             apiKeyRepository.save(existing)
         }
+        revokeChildren(existing.id, revokedAt)
         return ApiKeyResponse(existing.toView())
+    }
+
+    private fun revokeChildren(
+        parentId: String,
+        revokedAt: Instant
+    ) {
+        apiKeyRepository.findByParentIdAndRevokedAtIsNull(parentId).forEach { child ->
+            child.revokedAt = revokedAt
+            apiKeyRepository.save(child)
+        }
     }
 
     /**
@@ -90,23 +105,57 @@ class ApiKeyService(
         if (request.name.isBlank()) {
             throw BusinessException("Device key name is required")
         }
-        val publicKey = Base64.getEncoder().encodeToString(DeviceAssertions.p256(request.publicKey).encoded)
+        return ApiKeyResponse(
+            saveDeviceBound(owner, request.name, request.publicKey, validatedScopes(emptyList())).toView()
+        )
+    }
+
+    /**
+     * Registers a home-screen widget's key under one of the caller's active device keys.
+     * The widget's key works without biometrics, so it carries only
+     * [AuthConstants.WIDGET], never a scope from the caller's token. A device holds one
+     * widget key: registering another revokes the previous one.
+     */
+    fun createWidget(request: WidgetKeyRequest): ApiKeyResponse {
+        val owner = systemUserService.getOrThrow()
+        if (request.name.isBlank()) {
+            throw BusinessException("Widget key name is required")
+        }
+        val parent = findOwnedOrThrow(request.deviceKeyId, owner.id)
+        if (parent.publicKey == null || parent.parentId != null || parent.revokedAt != null) {
+            throw BusinessException("A widget key must be registered under an active device key")
+        }
+        revokeChildren(parent.id, auditInstant())
+        return ApiKeyResponse(
+            saveDeviceBound(owner, request.name, request.publicKey, listOf(AuthConstants.WIDGET), parent.id).toView()
+        )
+    }
+
+    // Stores only the public half; the hash and prefix scheme let the assertion
+    // exchange treat device and widget keys alike.
+    private fun saveDeviceBound(
+        owner: SystemUser,
+        name: String,
+        encodedPublicKey: String,
+        scopes: Collection<String>,
+        parentId: String? = null
+    ): ApiKey {
+        val publicKey = Base64.getEncoder().encodeToString(DeviceAssertions.p256(encodedPublicKey).encoded)
         val keyHash = ApiKeyGenerator.hash("$DEVICE_HASH_DOMAIN$publicKey")
         if (apiKeyRepository.findByKeyHash(keyHash) != null) {
-            throw BusinessException("Device key is already registered")
+            throw BusinessException("This key is already registered")
         }
-        val saved =
-            apiKeyRepository.save(
-                ApiKey(
-                    owner = owner,
-                    name = request.name,
-                    prefix = "$DEVICE_PREFIX${keyHash.take(DEVICE_PREFIX_HASH_LENGTH)}",
-                    keyHash = keyHash,
-                    scopes = validatedScopes(emptyList()).joinToString(" "),
-                    publicKey = publicKey
-                )
+        return apiKeyRepository.save(
+            ApiKey(
+                owner = owner,
+                name = name,
+                prefix = "$DEVICE_PREFIX${keyHash.take(DEVICE_PREFIX_HASH_LENGTH)}",
+                keyHash = keyHash,
+                scopes = scopes.joinToString(" "),
+                publicKey = publicKey,
+                parentId = parentId
             )
-        return ApiKeyResponse(saved.toView())
+        )
     }
 
     /** The device key behind a valid, unspent assertion; the key must still be usable. */
@@ -137,6 +186,13 @@ class ApiKeyService(
 
     private fun usable(found: ApiKey): ApiKey {
         if (found.revokedAt != null) {
+            throw UnauthorizedException("API key has been revoked")
+        }
+        // A widget key never outlives its device key, however the device key was revoked.
+        val parentId = found.parentId
+        if (parentId != null &&
+            apiKeyRepository.findById(parentId).map { it.revokedAt == null }.orElse(false) != true
+        ) {
             throw UnauthorizedException("API key has been revoked")
         }
         if (!found.owner.active) {
@@ -228,7 +284,8 @@ class ApiKeyService(
         private const val SCOPE_PREFIX = "SCOPE_"
 
         // Scopes issuable via API key, each only to a caller whose token holds
-        // it. beancounter:admin and beancounter:system are never issuable this way.
+        // it. beancounter:admin and beancounter:system are never issuable this way, and
+        // beancounter:widget comes only from [createWidget].
         private val ISSUABLE_SCOPES =
             linkedSetOf(
                 AuthConstants.APP_NAME,

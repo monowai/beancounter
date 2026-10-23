@@ -102,6 +102,12 @@ auth:
   # too. JWKS fetch is lazy, so this adds no startup coupling.
   bc-issuer:
     uri: "http://localhost:9510/api/"
+  # Read routes a home-screen widget token (beancounter:widget only, no biometrics) may
+  # reach, as "<METHOD> <path>" inside the servlet context (/net-worth, not /api/net-worth).
+  # Everything else stays denied by default; each handler also allows the scope itself.
+  widget-routes:
+    - "GET /net-worth"
+    - "GET /aggregated"
 
 spring:
   application:

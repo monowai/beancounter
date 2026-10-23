@@ -7,12 +7,15 @@ import com.beancounter.auth.model.AuthConstants
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.bind.Bindable
+import org.springframework.boot.context.properties.bind.Binder
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.EnumerablePropertySource
 import org.springframework.core.env.Environment
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -20,6 +23,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.stereotype.Service
 import org.springframework.web.cors.CorsConfiguration
+import java.util.Locale
 
 /**
  * Spring-security config to support OAuth2/JWT for MVC endpoints
@@ -135,6 +139,19 @@ class WebAuthFilterConfig {
                         .requestMatchers("$actuatorPath/**")
                         .hasAnyAuthority(AuthConstants.SCOPE_ADMIN, AuthConstants.SCOPE_SYSTEM) // Admin or System users
                 }
+                // Widget tokens work without biometrics, so they reach only the read routes
+                // this service lists in auth.widget-routes. Each handler still narrows the
+                // scope with its own @PreAuthorize.
+                widgetRoutes().forEach { (method, path) ->
+                    auth
+                        .requestMatchers(method, path)
+                        .hasAnyAuthority(
+                            AuthConstants.SCOPE_WIDGET,
+                            AuthConstants.SCOPE_USER,
+                            AuthConstants.SCOPE_SYSTEM,
+                            AuthConstants.SCOPE_ADMIN
+                        )
+                }
                 // Deny by default: only known, scoped callers reach a controller,
                 // so one that forgets @PreAuthorize is not open to anyone.
                 auth
@@ -153,5 +170,50 @@ class WebAuthFilterConfig {
             }
         corsConfiguration.exposedHeaders = exposedHeaders
         return http.build()
+    }
+
+    /**
+     * `auth.widget-routes`: the read routes a widget token may reach, as `"<METHOD> <path>"` in
+     * servlet-context terms (`GET /net-worth`, not `/api/net-worth`). Bound with [Binder] so a
+     * YAML list and a comma-separated value both work.
+     */
+    private fun widgetRoutes(): List<Pair<HttpMethod, String>> =
+        Binder
+            .get(environment)
+            .bind("auth.widget-routes", Bindable.listOf(String::class.java))
+            .orElseGet { emptyList() }
+            .map { widgetRoute(it) }
+
+    companion object {
+        private val WHITESPACE = Regex("\\s+")
+
+        private val HTTP_METHODS =
+            setOf(
+                HttpMethod.GET,
+                HttpMethod.POST,
+                HttpMethod.PUT,
+                HttpMethod.PATCH,
+                HttpMethod.DELETE
+            )
+
+        /**
+         * Parses one `auth.widget-routes` entry. A malformed entry throws, so a typo fails
+         * startup instead of silently leaving a route closed or open.
+         */
+        fun widgetRoute(entry: String): Pair<HttpMethod, String> {
+            val parts = entry.trim().split(WHITESPACE)
+            require(parts.size == 2) { "auth.widget-routes entry must be '<METHOD> <path>': '$entry'" }
+            val method = HTTP_METHODS.firstOrNull { it.name() == parts[0].uppercase(Locale.ROOT) }
+            requireNotNull(method) { "auth.widget-routes entry has an unknown method: '$entry'" }
+            val path = parts[1]
+            require(path.startsWith("/")) { "auth.widget-routes path must start with '/': '$entry'" }
+            // A bare root or an Ant wildcard would open far more than the one route intended.
+            // Path variables such as {id} stay allowed.
+            require(path != "/") { "auth.widget-routes path must not be the bare root: '$entry'" }
+            require('*' !in path && '?' !in path) {
+                "auth.widget-routes path must not contain a wildcard: '$entry'"
+            }
+            return method to path
+        }
     }
 }

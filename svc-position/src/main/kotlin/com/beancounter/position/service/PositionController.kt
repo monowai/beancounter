@@ -299,6 +299,7 @@ class PositionController(
         value = ["/aggregated"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @Operation(
         summary = "Get aggregated positions across portfolios",
         description = """
@@ -380,6 +381,7 @@ class PositionController(
         value = ["/net-worth"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
     @Operation(
         summary = "Get the net worth headline across portfolios",
         description = """

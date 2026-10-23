@@ -188,6 +188,13 @@ class ApiKeyService(
         if (found.revokedAt != null) {
             throw UnauthorizedException("API key has been revoked")
         }
+        // A widget key never outlives its device key, however the device key was revoked.
+        val parentId = found.parentId
+        if (parentId != null &&
+            apiKeyRepository.findById(parentId).map { it.revokedAt == null }.orElse(false) != true
+        ) {
+            throw UnauthorizedException("API key has been revoked")
+        }
         if (!found.owner.active) {
             // Offboarded (deactivated) owners must not authenticate - a key
             // is never more alive than the SystemUser it belongs to.

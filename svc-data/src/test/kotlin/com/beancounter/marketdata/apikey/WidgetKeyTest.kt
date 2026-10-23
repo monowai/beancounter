@@ -290,6 +290,26 @@ internal class WidgetKeyTest {
     }
 
     @Test
+    fun `should refuse a widget key whose device key was revoked outside the revoke path`() {
+        val token = registeredToken("widget-orphan")
+        val parent = deviceKey(token)
+        val key = newKey()
+        val widget = widgetKey(token, parent, key)
+        val device = apiKeyRepository.findById(parent).orElseThrow()
+        device.revokedAt = Instant.now()
+        apiKeyRepository.save(device)
+
+        mockMvc
+            .perform(
+                post(TOKEN_ENDPOINT)
+                    .with(csrf())
+                    .with { request -> request.apply { this.remoteAddr = "10.11.0.9" } }
+                    .content(objectMapper.writeValueAsBytes(ApiKeyTokenRequest(assertion = assertion(key, widget))))
+                    .contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isUnauthorized)
+    }
+
+    @Test
     fun `should mint a widget token whose only scope is widget`() {
         val widget = widgetToken("widget-exchange", "10.11.0.1")
 

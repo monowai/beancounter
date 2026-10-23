@@ -39,6 +39,9 @@ import org.springframework.web.bind.annotation.RestController
 class PrivateAssetConfigController(
     private val configService: PrivateAssetConfigService
 ) {
+    @PreAuthorize(
+        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_WIDGET}', '${AuthConstants.SCOPE_SYSTEM}')"
+    )
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         summary = "Get all configs for current user's assets",

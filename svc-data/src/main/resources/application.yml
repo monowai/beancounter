@@ -119,6 +119,19 @@ auth:
   bc-issuer:
     uri: "http://localhost:9510/api/"
     signing-key: ""
+  # Read routes a home-screen widget token (beancounter:widget only, no biometrics) may
+  # reach, as "<METHOD> <path>" inside the servlet context (/net-worth, not /api/net-worth).
+  # Everything else stays denied by default; each handler also allows the scope itself.
+  widget-routes:
+    - "GET /portfolios"
+    - "GET /portfolios/{id}"
+    - "GET /trns/portfolio/{portfolioId}"
+    - "POST /prices"
+    - "POST /fx"
+    - "POST /classifications/bulk"
+    - "GET /assets/config"
+    - "GET /watchlist"
+    - "GET /watchlist/alerts"
 
 stream:
   enabled: true

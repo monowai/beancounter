@@ -170,13 +170,15 @@ class ClassificationController(
         @PathVariable assetId: String
     ): AssetHoldingsResponse = AssetHoldingsResponse(data = classificationService.getHoldings(assetId))
 
+    // A pure read. The widget scope is allowed because svc-position forwards the caller's JWT
+    // here to value net worth.
     @PostMapping(
         value = ["/bulk"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
     @PreAuthorize(
-        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_SYSTEM}')"
+        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_WIDGET}', '${AuthConstants.SCOPE_SYSTEM}')"
     )
     @Operation(
         summary = "Get classifications for multiple assets",

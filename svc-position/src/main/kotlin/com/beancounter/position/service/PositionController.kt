@@ -299,6 +299,10 @@ class PositionController(
         value = ["/aggregated"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
+    @PreAuthorize(
+        "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_WIDGET + "', '" +
+            AuthConstants.SCOPE_SYSTEM + "')"
+    )
     @Operation(
         summary = "Get aggregated positions across portfolios",
         description = """
@@ -379,6 +383,10 @@ class PositionController(
     @GetMapping(
         value = ["/net-worth"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @PreAuthorize(
+        "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_WIDGET + "', '" +
+            AuthConstants.SCOPE_SYSTEM + "')"
     )
     @Operation(
         summary = "Get the net worth headline across portfolios",

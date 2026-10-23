@@ -41,5 +41,8 @@ data class ApiKey(
     var lastUsedAt: Instant? = null,
     var revokedAt: Instant? = null,
     // Base64 SPKI of a device-bound P-256 key; null for a plain API key.
-    val publicKey: String? = null
+    val publicKey: String? = null,
+    // The device key a widget key was registered under; null for every other key.
+    // Revoking the parent revokes its children.
+    val parentId: String? = null
 )

@@ -14,6 +14,12 @@ object AuthConstants {
     const val AI = "$APP_NAME:ai"
     const val PREVIEW = "$APP_NAME:preview"
 
+    /**
+     * Carried alone by a home-screen widget's key, which works without biometrics. It reaches
+     * only the read routes a service lists in `auth.widget-routes`.
+     */
+    const val WIDGET = "$APP_NAME:widget"
+
     /** Added by the Auth0 post-login Action when the user's email address is confirmed. */
     const val VERIFIED = "$APP_NAME:verified"
 
@@ -23,6 +29,7 @@ object AuthConstants {
     const val SCOPE_ADMIN = "SCOPE_$ADMIN"
     const val SCOPE_AI = "SCOPE_$AI"
     const val SCOPE_PREVIEW = "SCOPE_$PREVIEW"
+    const val SCOPE_WIDGET = "SCOPE_$WIDGET"
     const val SCOPE_VERIFIED = "SCOPE_$VERIFIED"
 
     val authSystem = SystemUser(id = SYSTEM)

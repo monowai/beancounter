@@ -260,6 +260,12 @@ class PriceController(
             )
         )
 
+    // A cache-filling read: a miss fetches from the provider and stores it. The widget scope is
+    // allowed because svc-position forwards the caller's JWT here to value net worth.
+    @PreAuthorize(
+        "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_WIDGET + "', '" +
+            AuthConstants.SCOPE_SYSTEM + "')"
+    )
     @PostMapping
     @Operation(
         summary = "Get prices for multiple assets",

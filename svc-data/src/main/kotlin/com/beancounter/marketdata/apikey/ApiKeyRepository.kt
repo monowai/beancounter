@@ -22,4 +22,6 @@ interface ApiKeyRepository : CrudRepository<ApiKey, String> {
     ): List<ApiKey>
 
     fun findByKeyHash(keyHash: String?): ApiKey?
+
+    fun findByParentIdAndRevokedAtIsNull(parentId: String?): List<ApiKey>
 }

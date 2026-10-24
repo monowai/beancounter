@@ -2,16 +2,21 @@ package com.beancounter.position.service
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.NetWorth
 import com.beancounter.common.contracts.NetWorthClassification
 import com.beancounter.common.contracts.NetWorthPortfolio
+import com.beancounter.common.contracts.PriceAsset
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.CashUtils
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import com.beancounter.position.valuation.Valuation
@@ -32,14 +37,19 @@ import java.math.RoundingMode
  * - healthcareReserve: every MA sub-account balance, reported but not added.
  * - FX: one request per call carrying every distinct (source → target) pair;
  *   a missing rate fails fast rather than silently applying 1.0.
+ * - weekChange: current holdings against their close 7 days before, one stored-price read.
  */
 @Service
 class NetWorthService(
     private val valuationService: Valuation,
     private val assetConfigClient: AssetConfigClient,
     private val fxService: FxService,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val priceService: PriceService,
+    private val dateUtils: DateUtils
 ) {
+    private val cashUtils = CashUtils()
+
     fun calculate(
         portfolios: Collection<Portfolio>,
         asAt: String,
@@ -80,6 +90,7 @@ class NetWorthService(
         // Sum the rounded components so totalValue always reconciles with what is returned.
         val totalValue = money(holdingsValue).add(standaloneCompositeValue)
         val gainOnDay = money(gainOnDay(positions))
+        val weekChange = money(weekChange(positions, asAt))
 
         return NetWorth(
             asAt = asAt,
@@ -90,6 +101,8 @@ class NetWorthService(
             healthcareReserve = healthcareReserve,
             gainOnDay = gainOnDay,
             gainOnDayPercent = changePercentage(gainOnDay, totalValue),
+            weekChange = weekChange,
+            weekChangePercent = changePercentage(weekChange, totalValue),
             portfolioCount = portfolios.size,
             classificationBreakdown = classificationBreakdown(positions),
             portfolios = portfolioRows(portfolios, rates, totalValue)
@@ -174,6 +187,51 @@ class NetWorthService(
             .filter { it.priceData.changePercent.signum() != 0 }
             .fold(BigDecimal.ZERO) { acc, mv -> acc.add(mv.gainOnDay) }
 
+    /**
+     * Each priced, non-cash holding's PORTFOLIO value now less that value at its close 7 days
+     * before: value × (1 − then ÷ now), both closes in the asset's own currency. A holding with
+     * no close then (listed since, or never priced) moves nothing.
+     */
+    private fun weekChange(
+        positions: Positions,
+        asAt: String
+    ): BigDecimal {
+        val priced =
+            positions.positions.values.filter { position ->
+                !cashUtils.isCash(position.asset) &&
+                    position.moneyValues[Position.In.PORTFOLIO] != null &&
+                    (
+                        position.moneyValues[Position.In.TRADE]
+                            ?.priceData
+                            ?.close
+                            ?.signum() ?: 0
+                    ) > 0
+            }
+        if (priced.isEmpty()) return BigDecimal.ZERO
+        val weekAgo = dateUtils.getFormattedDate(asAt).minusDays(DAYS_IN_WEEK)
+        val request =
+            PriceRequest(
+                date = weekAgo.toString(),
+                assets = priced.map { PriceAsset(it.asset.market.code, it.asset.code, assetId = it.asset.id) },
+                currentMode = false
+            )
+        val then =
+            priceService
+                .getPrices(request, tokenService.bearerToken)
+                .data
+                .filter { it.close.signum() > 0 }
+                .associate { it.asset.id to it.close }
+        return priced.fold(BigDecimal.ZERO) { acc, position ->
+            val closeThen = then[position.asset.id] ?: return@fold acc
+            val closeNow =
+                position.moneyValues
+                    .getValue(Position.In.TRADE)
+                    .priceData.close
+            val valueNow = position.moneyValues.getValue(Position.In.PORTFOLIO).marketValue
+            acc.add(valueNow.subtract(valueNow.multiply(closeThen).divide(closeNow, RATIO_SCALE, RoundingMode.HALF_UP)))
+        }
+    }
+
     private fun classificationBreakdown(positions: Positions): List<NetWorthClassification> {
         val byGroup = mutableMapOf<String, BigDecimal>()
         for (position in positions.positions.values) {
@@ -236,6 +294,8 @@ class NetWorthService(
 
     companion object {
         private const val MONEY_SCALE = 2
+        private const val RATIO_SCALE = 8
+        private const val DAYS_IN_WEEK = 7L
         private const val DEFAULT_CONFIG_CURRENCY = "USD"
         private const val HEALTHCARE_RESERVE_CODE = "MA"
         private val ONE_HUNDRED = BigDecimal(100)

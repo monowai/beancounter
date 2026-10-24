@@ -24,6 +24,13 @@ data class NetWorth(
     val gainOnDay: BigDecimal = BigDecimal.ZERO,
     /** [gainOnDay] against the previous day's net worth, in percentage points. */
     val gainOnDayPercent: BigDecimal = BigDecimal.ZERO,
+    /**
+     * Rolling 7-day move of the current holdings: each priced holding's value now against its
+     * close 7 days before (the trading day on or before), at today's FX, as [gainOnDay] is.
+     */
+    val weekChange: BigDecimal = BigDecimal.ZERO,
+    /** [weekChange] against net worth 7 days before, in percentage points. */
+    val weekChangePercent: BigDecimal = BigDecimal.ZERO,
     val portfolioCount: Int = 0,
     /** Liquidity-group breakdown of held positions, sorted by value descending. */
     val classificationBreakdown: List<NetWorthClassification> = emptyList(),

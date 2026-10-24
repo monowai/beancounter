@@ -37,6 +37,10 @@ class LiveQuoteService(
             .ticker { clock.millis() * NANOS_PER_MILLI }
             .buildAsync()
 
+    /**
+     * Live quotes keyed by asset id, for assets whose market is in session now. An asset out of
+     * session, or one the provider cannot quote, is absent: read the stored close instead.
+     */
     fun quotes(assets: Collection<Asset>): Map<String, MarketData> {
         val now = ZonedDateTime.now(clock)
         val trading =
@@ -75,10 +79,11 @@ class LiveQuoteService(
 
     private fun load(assets: List<Asset>): Map<String, Optional<MarketData>> {
         val fetched =
-            assets
-                .groupBy { mdFactory.getMarketDataProvider(it.market) }
-                .flatMap { (provider, batch) -> fetch(provider, batch).entries }
-                .associate { it.key to it.value }
+            buildMap {
+                assets
+                    .groupBy { mdFactory.getMarketDataProvider(it.market) }
+                    .forEach { (provider, batch) -> putAll(fetch(provider, batch)) }
+            }
         return assets.associate { it.id to Optional.ofNullable(fetched[it.id]) }
     }
 

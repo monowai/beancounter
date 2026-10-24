@@ -88,7 +88,8 @@ class MarketDataService(
     @Transactional(readOnly = true)
     fun getLivePrices(priceRequest: PriceRequest): PriceResponse {
         val stored = getAssetPrices(priceRequest).data
-        val live = liveQuoteService.livePrices(stored.map { it.asset }, stored.associateBy { it.asset.id })
+        val storedById = stored.associateBy { it.asset.id }
+        val live = liveQuoteService.livePrices(storedById.values.map { it.asset }, storedById)
         return PriceResponse(stored.map { live[it.asset.id] ?: it })
     }
 

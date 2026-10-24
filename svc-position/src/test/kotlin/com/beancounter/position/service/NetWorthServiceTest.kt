@@ -2,21 +2,26 @@ package com.beancounter.position.service
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
+import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData
 import com.beancounter.common.model.Totals
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
@@ -31,12 +36,14 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Unit tests for [NetWorthService] — the server-side port of bc-view's
@@ -56,6 +63,9 @@ class NetWorthServiceTest {
     @Mock
     private lateinit var tokenService: TokenService
 
+    @Mock
+    private lateinit var priceService: PriceService
+
     private lateinit var netWorthService: NetWorthService
 
     private val sgd = Currency("SGD")
@@ -65,7 +75,8 @@ class NetWorthServiceTest {
 
     @BeforeEach
     fun setUp() {
-        netWorthService = NetWorthService(valuationService, assetConfigClient, fxService, tokenService)
+        netWorthService =
+            NetWorthService(valuationService, assetConfigClient, fxService, tokenService, priceService, DateUtils())
     }
 
     @Test
@@ -265,6 +276,105 @@ class NetWorthServiceTest {
         val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
 
         assertThat(result.gainOnDayPercent).isEqualByComparingTo("2.50")
+    }
+
+    /** A held position priced now at [closeNow] in its own currency, worth [marketValue] in SGD. */
+    private fun held(
+        code: String,
+        portfolio: Portfolio,
+        marketValue: String,
+        closeNow: String
+    ): Position =
+        position(TestHelpers.createTestAsset(code), portfolio, "SGD", marketValue).apply {
+            moneyValues[Position.In.TRADE] =
+                MoneyValues(usd).apply { priceData = PriceData().apply { close = BigDecimal(closeNow) } }
+        }
+
+    private fun stubWeekAgoCloses(vararg closes: Pair<Position, String>) {
+        whenever(tokenService.bearerToken).thenReturn(token)
+        whenever(priceService.getPrices(argThat<PriceRequest> { date == "2024-01-08" }, eq(token))).thenReturn(
+            PriceResponse(
+                closes.map { (position, close) ->
+                    MarketData(position.asset, priceDate = LocalDate.parse("2024-01-08"), close = BigDecimal(close))
+                }
+            )
+        )
+    }
+
+    @Test
+    fun `should report the 7 day change of current holdings against their close a week before`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        val position = held("weekly", portfolio, marketValue = "1100", closeNow = "110")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1100", position), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubWeekAgoCloses(position to "100")
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        // Worth 1100 now at 110, so 1000 at last week's 100: up 100 on 1000.
+        assertThat(result.weekChange).isEqualByComparingTo("100.00")
+        assertThat(result.weekChangePercent).isEqualByComparingTo("10.00")
+    }
+
+    @Test
+    fun `should leave a holding with no close a week before out of the 7 day change`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "2100")
+        val priced = held("priced-week", portfolio, marketValue = "1100", closeNow = "110")
+        val newer = held("listed-this-week", portfolio, marketValue = "1000", closeNow = "50")
+        stubAggregated(
+            listOf(portfolio),
+            positions(portfolio, "SGD", totalMarketValue = "2100", priced, newer),
+            "SGD"
+        )
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubWeekAgoCloses(priced to "100")
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.weekChange).isEqualByComparingTo("100.00")
+        assertThat(result.weekChangePercent).isEqualByComparingTo("5.00")
+    }
+
+    @Test
+    fun `should report the 7 day change as unknown when the week ago prices cannot be read`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        val position = held("week-outage", portfolio, marketValue = "1100", closeNow = "110")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1100", position), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        whenever(tokenService.bearerToken).thenReturn(token)
+        whenever(priceService.getPrices(any(), eq(token))).thenThrow(BusinessException("svc-data unavailable"))
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.holdingsValue).isEqualByComparingTo("1100")
+        assertThat(result.weekChange).isNull()
+        assertThat(result.weekChangePercent).isNull()
+    }
+
+    @Test
+    fun `should report the 7 day change as unknown when no holding has a week ago close`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        val position = held("week-unpriced", portfolio, marketValue = "1100", closeNow = "110")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1100", position), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubWeekAgoCloses()
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.weekChangePercent).isNull()
+    }
+
+    @Test
+    fun `should not ask for week ago prices when nothing held is priced`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1000")
+        val unpriced = position(TestHelpers.createTestAsset("unpriced-week"), portfolio, "SGD", marketValue = "1000")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1000", unpriced), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.weekChangePercent).isEqualByComparingTo("0")
+        verify(priceService, never()).getPrices(any(), any())
     }
 
     @Test

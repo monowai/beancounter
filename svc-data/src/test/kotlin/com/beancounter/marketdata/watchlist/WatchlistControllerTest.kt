@@ -42,6 +42,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -375,6 +376,38 @@ class WatchlistControllerTest {
 
         assertThat(read.path("price").decimalValue()).isEqualByComparingTo("120")
         assertThat(read.path("priceDate").asString()).isEqualTo(dateUtils.date.minusDays(1).toString())
+    }
+
+    /** Records, per provider live-quote call, whether a transaction was open around it. */
+    private fun recordTransactionOnQuote(): List<Boolean> {
+        val held = mutableListOf<Boolean>()
+        whenever(alphaPriceService.getQuotes(any())).thenAnswer {
+            held.add(TransactionSynchronizationManager.isActualTransactionActive())
+            emptyMap<String, MarketData>()
+        }
+        return held
+    }
+
+    @Test
+    fun `should not hold a transaction while the provider quotes an added item`() {
+        val held = recordTransactionOnQuote()
+
+        addItem(mapOf("assetId" to asset("WLTXADD").id, "addedPrice" to 10, "targetPrice" to 12))
+
+        assertThat(held).containsExactly(false)
+    }
+
+    @Test
+    fun `should not hold a transaction while the provider quotes an edited item`() {
+        val stock = asset("WLTXEDIT")
+        // Added at the provider close, so the add asks for no live quote and the edit's is not cached.
+        providerCloses[stock.code] = BigDecimal("10")
+        val itemId = addedId(mapOf("assetId" to stock.id))
+        val held = recordTransactionOnQuote()
+
+        call(patch(ITEM, itemId), tokenA, status().isOk, mapOf("targetPrice" to 15))
+
+        assertThat(held).containsExactly(false)
     }
 
     @Test

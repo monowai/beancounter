@@ -36,9 +36,11 @@ class PositionValuationService(
 ) {
     private val logger = LoggerFactory.getLogger(PositionValuationService::class.java)
 
+    /** [live] values at live (delayed) quotes while each market is in session. */
     fun value(
         positions: Positions,
-        assets: Collection<AssetInput>
+        assets: Collection<AssetInput>,
+        live: Boolean = false
     ): Positions {
         if (assets.isEmpty()) {
             return positions // Nothing to value
@@ -52,7 +54,7 @@ class PositionValuationService(
 
         val (priceResponse, fxResponse) =
             runBlockingTraced {
-                getValuationData(positions)
+                getValuationData(positions, live = live)
             }
 
         val tradeCurrency = tradeCurrency(positions)
@@ -334,7 +336,8 @@ class PositionValuationService(
 
     suspend fun getValuationData(
         positions: Positions,
-        token: String = config.tokenService.bearerToken
+        token: String = config.tokenService.bearerToken,
+        live: Boolean = false
     ): ValuationData =
         withContext(SentryContext()) {
             try {
@@ -351,10 +354,11 @@ class PositionValuationService(
                     )
                 val priceDeferred =
                     async {
-                        config.priceService.getPrices(
-                            priceRequest,
-                            token
-                        )
+                        if (live) {
+                            config.priceService.getLivePrices(priceRequest, token)
+                        } else {
+                            config.priceService.getPrices(priceRequest, token)
+                        }
                     }
                 val fxDeferred =
                     async {

@@ -295,6 +295,24 @@ class PriceController(
         @RequestBody priceRequest: PriceRequest
     ): PriceResponse = marketDataService.getAssetPrices(priceRequest)
 
+    // The widget's net worth reads this through svc-position, as it does POST /prices.
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
+    @PostMapping("/live")
+    @Operation(
+        summary = "Get live prices for multiple assets",
+        description = """
+            As POST /prices, but while an asset's market is in session its live or delayed quote
+            from the market provider (EODHD: 15-20 minutes delayed) replaces the stored close.
+            Quotes are display-only and never stored.
+        """
+    )
+    fun getLivePrices(
+        @Parameter(
+            description = "Price request containing multiple assets"
+        )
+        @RequestBody priceRequest: PriceRequest
+    ): PriceResponse = marketDataService.getLivePrices(priceRequest)
+
     @GetMapping("/refresh/{assetId}")
     @Operation(
         summary = "Refresh price for specific asset and date",

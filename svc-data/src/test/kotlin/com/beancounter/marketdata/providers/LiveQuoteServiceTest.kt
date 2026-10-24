@@ -21,10 +21,13 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Live quotes are fetched per provider in one call and reused for a minute, which is how often
- * the provider refreshes them.
+ * the provider refreshes them. Only markets in session are asked; concurrent reads share a fetch.
  */
 class LiveQuoteServiceTest {
     private var now = Instant.parse("2026-10-16T15:00:00Z")
@@ -107,4 +110,71 @@ class LiveQuoteServiceTest {
         assertThat(service.quotes(emptyList())).isEmpty()
         verify(provider, times(0)).getQuotes(any())
     }
+
+    @Test
+    fun `should not ask the provider for a market that is not in session`() {
+        // 2026-10-17 is a Saturday.
+        now = Instant.parse("2026-10-17T15:00:00Z")
+
+        assertThat(service.quotes(listOf(AAPL))).isEmpty()
+        verify(provider, times(0)).getQuotes(any())
+    }
+
+    @Test
+    fun `should share one provider call between concurrent reads`() {
+        val started = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val slow =
+            mock<MarketDataPriceProvider> {
+                on { getQuotes(any()) } doAnswer { invocation ->
+                    started.countDown()
+                    release.await(5, TimeUnit.SECONDS)
+                    invocation.getArgument<Collection<Asset>>(0).associate { it.id to quote(it) }
+                }
+            }
+        val factory = mock<MdFactory> { on { getMarketDataProvider(any<Market>()) } doReturn slow }
+        val shared = LiveQuoteService(factory, clock)
+        val pool = Executors.newFixedThreadPool(2)
+        try {
+            val first = pool.submit<Map<String, MarketData>> { shared.quotes(listOf(AAPL)) }
+            started.await(5, TimeUnit.SECONDS)
+            val second = pool.submit<Map<String, MarketData>> { shared.quotes(listOf(AAPL)) }
+            Thread.sleep(100)
+            release.countDown()
+
+            assertThat(first.get(5, TimeUnit.SECONDS).keys).containsExactly(AAPL.id)
+            assertThat(second.get(5, TimeUnit.SECONDS).keys).containsExactly(AAPL.id)
+            verify(slow, times(1)).getQuotes(any())
+        } finally {
+            pool.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `should show a live quote over an older stored close`() {
+        val stored = mapOf(AAPL.id to close(AAPL, "2026-10-15", "99"), MSFT.id to close(MSFT, "2026-10-15", "50"))
+
+        val prices = service.livePrices(listOf(AAPL, MSFT), stored)
+
+        assertThat(prices.getValue(AAPL.id).close).isEqualByComparingTo("101")
+        assertThat(prices.getValue(MSFT.id).close).isEqualByComparingTo("50")
+    }
+
+    @Test
+    fun `should keep a stored close that is newer than the live quote`() {
+        val stored = mapOf(AAPL.id to close(AAPL, "2026-10-17", "99"))
+
+        assertThat(service.livePrices(listOf(AAPL), stored).getValue(AAPL.id).close).isEqualByComparingTo("99")
+    }
+
+    @Test
+    fun `should quote an asset with no stored close`() {
+        assertThat(service.livePrices(listOf(AAPL), emptyMap()).getValue(AAPL.id).close).isEqualByComparingTo("101")
+    }
+
+    private fun close(
+        asset: Asset,
+        date: String,
+        price: String
+    ) = MarketData(asset = asset, priceDate = LocalDate.parse(date), close = BigDecimal(price))
 }

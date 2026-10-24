@@ -185,24 +185,9 @@ class WatchlistService(
             .data
             .firstOrNull { it.close.signum() > 0 }
 
-    /**
-     * The provider's live (delayed) quote where it is at least as recent as the stored close,
-     * else the stored close. A watchlist is read for the price now, not last night's close.
-     */
-    private fun livePrices(assets: Collection<Asset>): Map<String, MarketData> {
-        val stored = latestPrices(assets)
-        val quotes = liveQuoteService.quotes(assets.distinctBy { it.id })
-        return assets
-            .mapNotNull { asset ->
-                val close = stored[asset.id]
-                val quote =
-                    quotes[asset.id]?.takeIf {
-                        it.close.signum() > 0 &&
-                            (close == null || it.priceDate >= close.priceDate)
-                    }
-                (quote ?: close)?.let { asset.id to it }
-            }.toMap()
-    }
+    /** Live (delayed) prices over the stored closes: a watchlist is read for the price now. */
+    private fun livePrices(assets: Collection<Asset>): Map<String, MarketData> =
+        liveQuoteService.livePrices(assets, latestPrices(assets))
 
     /**
      * Latest close on or before today, ignoring rows without a positive close.

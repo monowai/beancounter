@@ -154,14 +154,15 @@ class ValuationService
             portfolios: Collection<Portfolio>,
             valuationDate: String,
             value: Boolean,
-            targetCurrencyCode: String?
+            targetCurrencyCode: String?,
+            live: Boolean
         ): PositionResponse {
             if (portfolios.isEmpty()) {
                 return PositionResponse()
             }
-            val cacheKey = buildCacheKey(portfolios, valuationDate, value, targetCurrencyCode)
+            val cacheKey = buildCacheKey(portfolios, valuationDate, value, targetCurrencyCode, live)
             return aggregatedValuationCache.get(cacheKey) {
-                computeAggregatedPositions(portfolios, valuationDate, value, targetCurrencyCode)
+                computeAggregatedPositions(portfolios, valuationDate, value, targetCurrencyCode, live)
             }
         }
 
@@ -175,7 +176,8 @@ class ValuationService
             portfolios: Collection<Portfolio>,
             valuationDate: String,
             value: Boolean,
-            targetCurrencyCode: String?
+            targetCurrencyCode: String?,
+            live: Boolean
         ): ValuationCacheKey? =
             try {
                 ValuationCacheKey.of(
@@ -183,7 +185,8 @@ class ValuationService
                     portfolios = portfolios,
                     valuationDate = valuationDate,
                     value = value,
-                    targetCurrencyCode = targetCurrencyCode
+                    targetCurrencyCode = targetCurrencyCode,
+                    live = live
                 )
             } catch (e: UnauthorizedException) {
                 log.debug("Valuation cache bypassed: unable to resolve caller subject ({})", e.javaClass.simpleName)
@@ -194,7 +197,8 @@ class ValuationService
             portfolios: Collection<Portfolio>,
             valuationDate: String,
             value: Boolean,
-            targetCurrencyCode: String?
+            targetCurrencyCode: String?,
+            live: Boolean
         ): PositionResponse {
             // Capture the security context to propagate to coroutines
             val securityContext = SecurityContextHolder.getContext()
@@ -284,7 +288,8 @@ class ValuationService
             return if (value) {
                 value(
                     positions = aggregated,
-                    skipMarketValueUpdate = true
+                    skipMarketValueUpdate = true,
+                    live = live
                 )
             } else {
                 PositionResponse(aggregated)
@@ -500,11 +505,13 @@ class ValuationService
          *
          * @param positions positions to value
          * @param skipMarketValueUpdate if true, don't send market value updates (used for aggregated positions)
+         * @param live value at live (delayed) quotes; never with a market value update
          * @return valued positions
          */
         private fun value(
             positions: Positions,
-            skipMarketValueUpdate: Boolean
+            skipMarketValueUpdate: Boolean,
+            live: Boolean = false
         ): PositionResponse {
             if (!positions.hasPositions()) {
                 return PositionResponse(positions)
@@ -520,7 +527,8 @@ class ValuationService
             val valuedPositions =
                 positionValuationService.value(
                     positions,
-                    assets.toList()
+                    assets.toList(),
+                    live
                 )
 
             // Enrich positions with classification data (sector/industry)
@@ -528,7 +536,7 @@ class ValuationService
 
             // Send market value updates for individual portfolio valuations (not aggregated)
             // Only update when viewing current positions ("today"), not historical
-            if (!skipMarketValueUpdate && dateUtils.isToday(positions.asAt)) {
+            if (!skipMarketValueUpdate && !live && dateUtils.isToday(positions.asAt)) {
                 sendMarketValueUpdate(valuedPositions)
             }
             return PositionResponse(valuedPositions)

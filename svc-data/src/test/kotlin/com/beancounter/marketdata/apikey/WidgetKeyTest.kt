@@ -385,6 +385,13 @@ internal class WidgetKeyTest {
         )
         call(
             widget,
+            post(
+                "/prices/live"
+            ).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(PriceRequest())),
+            status().isOk
+        )
+        call(
+            widget,
             post("/fx").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(FxRequest())),
             status().isOk
         )

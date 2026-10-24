@@ -127,6 +127,7 @@ auth:
     - "GET /portfolios/{id}"
     - "GET /trns/portfolio/{portfolioId}"
     - "POST /prices"
+    - "POST /prices/live"
     - "POST /fx"
     - "POST /classifications/bulk"
     - "GET /assets/config"
@@ -517,6 +518,7 @@ beancounter:
       - code: "ASX"
         name: "Australian Securities Exchange"
         timezoneId: "Australia/Sydney"
+        openTime: "10:00"
         currencyId: "AUD"
         aliases:
           mstack: "XASX"
@@ -538,6 +540,7 @@ beancounter:
       - code: "NZX"
         name: "New Zealand Exchange"
         timezoneId: "Pacific/Auckland"
+        openTime: "10:00"
         currencyId: "NZD"
         enricher: "FIGI,MSTACK"
         aliases:
@@ -551,6 +554,7 @@ beancounter:
         name: "Singapore Exchange"
         currencyId: "SGD"
         timezoneId: "Asia/Singapore"
+        openTime: "09:00"
         enricher: "FIGI,MSTACK"
         aliases:
           mstack: "SI"
@@ -563,7 +567,8 @@ beancounter:
         # UK assets priced in pence.
         currencyId: "GBP"
         timezoneId: "Europe/London"
-        # LSE closes 16:30 London; EODHD publishes EOD ~2-3h later.
+        # LSE trades 08:00-16:30 London; EODHD publishes EOD ~2-3h later.
+        openTime: "08:00"
         priceTime: "19:00"
         multiplier: 0.01
         aliases:
@@ -579,6 +584,7 @@ beancounter:
         # pence multiplier — otherwise the price is FX-converted as GBP and wrong.
         currencyId: "USD"
         timezoneId: "Europe/London"
+        openTime: "08:00"
         priceTime: "19:00"
         aliases:
           FIGI: "LN"
@@ -595,6 +601,7 @@ beancounter:
         name: "Euronext Amsterdam"
         currencyId: "EUR"
         timezoneId: "Europe/Amsterdam"
+        openTime: "09:00"
         aliases:
           FIGI: "NA"
           # EODHD codes Euronext Amsterdam as "AS" (verified via /api/exchanges-list).

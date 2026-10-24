@@ -61,7 +61,7 @@ internal class WidgetScopeMvcTest {
     @Test
     fun `should let a widget token read net worth`() {
         whenever(
-            netWorthService.calculate(any(), any(), any())
+            netWorthService.calculate(any(), any(), any(), any())
         ).thenReturn(NetWorth(asAt = "2024-01-15", currency = "SGD"))
 
         mockMvc
@@ -72,7 +72,7 @@ internal class WidgetScopeMvcTest {
 
     @Test
     fun `should let a widget token read aggregated positions`() {
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull()))
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
             .thenReturn(PositionResponse(TestHelpers.createTestPositions(portfolio)))
 
         mockMvc

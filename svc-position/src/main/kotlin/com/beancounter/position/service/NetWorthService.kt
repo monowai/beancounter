@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.NetWorthPortfolio
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
@@ -20,6 +21,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import com.beancounter.position.valuation.Valuation
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -90,7 +92,7 @@ class NetWorthService(
         // Sum the rounded components so totalValue always reconciles with what is returned.
         val totalValue = money(holdingsValue).add(standaloneCompositeValue)
         val gainOnDay = money(gainOnDay(positions))
-        val weekChange = money(weekChange(positions, asAt))
+        val weekChange = weekChange(positions, asAt)?.let(::money)
 
         return NetWorth(
             asAt = asAt,
@@ -102,7 +104,7 @@ class NetWorthService(
             gainOnDay = gainOnDay,
             gainOnDayPercent = changePercentage(gainOnDay, totalValue),
             weekChange = weekChange,
-            weekChangePercent = changePercentage(weekChange, totalValue),
+            weekChangePercent = weekChange?.let { changePercentage(it, totalValue) },
             portfolioCount = portfolios.size,
             classificationBreakdown = classificationBreakdown(positions),
             portfolios = portfolioRows(portfolios, rates, totalValue)
@@ -190,22 +192,21 @@ class NetWorthService(
     /**
      * Each priced, non-cash holding's PORTFOLIO value now less that value at its close 7 days
      * before: value × (1 − then ÷ now), both closes in the asset's own currency. A holding with
-     * no close then (listed since, or never priced) moves nothing.
+     * no close then (listed since, or never priced) moves nothing. Null when unknown: the read
+     * failed, or no holding came back priced. A secondary figure never fails the headline.
      */
     private fun weekChange(
         positions: Positions,
         asAt: String
-    ): BigDecimal {
+    ): BigDecimal? {
+        // Value now in PORTFOLIO terms and close now in the asset's own currency, read once.
         val priced =
-            positions.positions.values.filter { position ->
-                !cashUtils.isCash(position.asset) &&
-                    position.moneyValues[Position.In.PORTFOLIO] != null &&
-                    (
-                        position.moneyValues[Position.In.TRADE]
-                            ?.priceData
-                            ?.close
-                            ?.signum() ?: 0
-                    ) > 0
+            positions.positions.values.mapNotNull { position ->
+                if (cashUtils.isCash(position.asset)) return@mapNotNull null
+                val valueNow = position.moneyValues[Position.In.PORTFOLIO]?.marketValue
+                val closeNow = position.moneyValues[Position.In.TRADE]?.priceData?.close
+                if (valueNow == null || closeNow == null || closeNow.signum() <= 0) return@mapNotNull null
+                PricedHolding(position.asset, valueNow, closeNow)
             }
         if (priced.isEmpty()) return BigDecimal.ZERO
         val weekAgo = dateUtils.getFormattedDate(asAt).minusDays(DAYS_IN_WEEK)
@@ -216,21 +217,39 @@ class NetWorthService(
                 currentMode = false
             )
         val then =
-            priceService
-                .getPrices(request, tokenService.bearerToken)
-                .data
-                .filter { it.close.signum() > 0 }
-                .associate { it.asset.id to it.close }
-        return priced.fold(BigDecimal.ZERO) { acc, position ->
-            val closeThen = then[position.asset.id] ?: return@fold acc
-            val closeNow =
-                position.moneyValues
-                    .getValue(Position.In.TRADE)
-                    .priceData.close
-            val valueNow = position.moneyValues.getValue(Position.In.PORTFOLIO).marketValue
-            acc.add(valueNow.subtract(valueNow.multiply(closeThen).divide(closeNow, RATIO_SCALE, RoundingMode.HALF_UP)))
+            try {
+                priceService
+                    .getPrices(request, tokenService.bearerToken)
+                    .data
+                    .filter { it.close.signum() > 0 }
+                    .associate { it.asset.id to it.close }
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: RuntimeException
+            ) {
+                log.warn("7-day change unknown: week-ago prices for {} unavailable: {}", weekAgo, e.message)
+                return null
+            }
+        if (then.isEmpty()) {
+            log.debug("7-day change unknown: no week-ago close for {} holdings at {}", priced.size, weekAgo)
+            return null
+        }
+        return priced.fold(BigDecimal.ZERO) { acc, holding ->
+            val closeThen = then[holding.asset.id] ?: return@fold acc
+            val valueThen =
+                holding.valueNow
+                    .multiply(
+                        closeThen
+                    ).divide(holding.closeNow, RATIO_SCALE, RoundingMode.HALF_UP)
+            acc.add(holding.valueNow.subtract(valueThen))
         }
     }
+
+    private class PricedHolding(
+        val asset: Asset,
+        val valueNow: BigDecimal,
+        val closeNow: BigDecimal
+    )
 
     private fun classificationBreakdown(positions: Positions): List<NetWorthClassification> {
         val byGroup = mutableMapOf<String, BigDecimal>()
@@ -296,6 +315,7 @@ class NetWorthService(
         private const val MONEY_SCALE = 2
         private const val RATIO_SCALE = 8
         private const val DAYS_IN_WEEK = 7L
+        private val log = LoggerFactory.getLogger(NetWorthService::class.java)
         private const val DEFAULT_CONFIG_CURRENCY = "USD"
         private const val HEALTHCARE_RESERVE_CODE = "MA"
         private val ONE_HUNDRED = BigDecimal(100)

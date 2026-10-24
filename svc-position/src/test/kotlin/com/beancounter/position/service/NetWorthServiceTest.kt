@@ -336,6 +336,35 @@ class NetWorthServiceTest {
     }
 
     @Test
+    fun `should report the 7 day change as unknown when the week ago prices cannot be read`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        val position = held("week-outage", portfolio, marketValue = "1100", closeNow = "110")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1100", position), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        whenever(tokenService.bearerToken).thenReturn(token)
+        whenever(priceService.getPrices(any(), eq(token))).thenThrow(BusinessException("svc-data unavailable"))
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.holdingsValue).isEqualByComparingTo("1100")
+        assertThat(result.weekChange).isNull()
+        assertThat(result.weekChangePercent).isNull()
+    }
+
+    @Test
+    fun `should report the 7 day change as unknown when no holding has a week ago close`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        val position = held("week-unpriced", portfolio, marketValue = "1100", closeNow = "110")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1100", position), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubWeekAgoCloses()
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.weekChangePercent).isNull()
+    }
+
+    @Test
     fun `should not ask for week ago prices when nothing held is priced`() {
         val portfolio = portfolio("p1", "SGD", marketValue = "1000")
         val unpriced = position(TestHelpers.createTestAsset("unpriced-week"), portfolio, "SGD", marketValue = "1000")

@@ -121,7 +121,7 @@ class BrokerPositionServiceTest {
                 .asset.code
         ).isEqualTo("AAPL")
         verify(positionService).build(eq(testPortfolio), any<PositionRequest>())
-        verify(positionValuationService, never()).value(any(), any())
+        verify(positionValuationService, never()).value(any(), any(), any())
     }
 
     @Test
@@ -223,7 +223,7 @@ class BrokerPositionServiceTest {
             .thenReturn(TrnResponse(listOf(transaction)))
         whenever(positionService.build(eq(testPortfolio), any<PositionRequest>()))
             .thenReturn(PositionResponse(positions))
-        whenever(positionValuationService.value(any(), any()))
+        whenever(positionValuationService.value(any(), any(), any()))
             .thenReturn(positions)
 
         // When
@@ -231,7 +231,7 @@ class BrokerPositionServiceTest {
 
         // Then
         assertThat(result.data.positions).hasSize(1)
-        verify(positionValuationService).value(any(), any())
+        verify(positionValuationService).value(any(), any(), any())
     }
 
     @Test

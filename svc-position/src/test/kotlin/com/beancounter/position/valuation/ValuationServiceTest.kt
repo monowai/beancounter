@@ -44,6 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.capture
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -144,7 +145,7 @@ class ValuationServiceTest {
 
         // When positionValuationService.value() returns positions WITHOUT totals set
         // (this happens when no prices are fetched for zero-qty positions)
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         val result = valuationService.value(positions)
@@ -180,7 +181,7 @@ class ValuationServiceTest {
         baseTotals.irr = BigDecimal("0.15")
         positions.setTotal(Position.In.BASE, baseTotals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         val result = valuationService.value(positions)
@@ -651,7 +652,7 @@ class ValuationServiceTest {
         positions.setTotal(Position.In.PORTFOLIO, totals)
 
         whenever(positionService.build(any(), any())).thenReturn(PositionResponse(positions))
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When - request valuation with value=true
         val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = true)
@@ -659,6 +660,46 @@ class ValuationServiceTest {
         // Then - market value update should NOT be sent for aggregated positions
         verify(marketValueUpdateProducer, never()).sendMessage(any())
         assertThat(result.data.positions).isNotEmpty
+    }
+
+    @Test
+    fun `getAggregatedPositions keeps live and stored valuations apart in the cache`() {
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false, live = true)
+
+        verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
+    }
+
+    @Test
+    fun `getAggregatedPositions values at live prices without publishing market value`() {
+        val asset = TestHelpers.createTestAsset("AAPL", "US")
+        val trn =
+            TestHelpers.createTestTransaction(
+                asset = asset,
+                portfolio = portfolio,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("10"),
+                price = PRICE_150,
+                tradeDate = LocalDate.of(2024, 1, 15)
+            )
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(listOf(trn)))
+        val positions = Positions(portfolio)
+        positions.asAt = DateUtils.TODAY
+        positions.add(Position(asset, portfolio))
+        whenever(positionService.build(any(), any())).thenReturn(PositionResponse(positions))
+        // Only the live valuation is stubbed: a stored-close valuation answers null and fails.
+        whenever(positionValuationService.value(any(), any(), eq(true))).thenReturn(positions)
+
+        val result =
+            valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = true, live = true)
+
+        assertThat(result.data.positions).isNotEmpty
+        verify(marketValueUpdateProducer, never()).sendMessage(any())
     }
 
     @Test
@@ -914,7 +955,7 @@ class ValuationServiceTest {
         totals.marketValue = BigDecimal("1500.00")
         positions.setTotal(Position.In.PORTFOLIO, totals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         val result = valuationService.value(positions)
@@ -936,7 +977,7 @@ class ValuationServiceTest {
         position.quantityValues.purchased = BigDecimal("1000")
         positions.add(position)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         val result = valuationService.value(positions)
@@ -972,7 +1013,7 @@ class ValuationServiceTest {
             )
         whenever(classificationClient.getClassifications(any()))
             .thenReturn(BulkClassificationResponse(classifications))
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         val result = valuationService.value(positions)
@@ -1046,7 +1087,7 @@ class ValuationServiceTest {
 
         // Then - should return the same positions without calling valuation service
         assertThat(result.data).isEqualTo(positions)
-        verify(positionValuationService, never()).value(any(), any())
+        verify(positionValuationService, never()).value(any(), any(), any())
     }
 
     @Test
@@ -1084,7 +1125,7 @@ class ValuationServiceTest {
         baseTotals.irr = BigDecimal("0.12")
         positions.setTotal(Position.In.BASE, baseTotals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         valuationService.value(positions)
@@ -1137,7 +1178,7 @@ class ValuationServiceTest {
         baseTotals.marketValue = BigDecimal("14000.00")
         positions.setTotal(Position.In.BASE, baseTotals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         valuationService.value(positions)
@@ -1195,7 +1236,7 @@ class ValuationServiceTest {
         baseTotals.marketValue = BigDecimal("15000.00")
         positions.setTotal(Position.In.BASE, baseTotals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         valuationService.value(positions)
@@ -1231,7 +1272,7 @@ class ValuationServiceTest {
         baseTotals.marketValue = BigDecimal("1500.00")
         positions.setTotal(Position.In.BASE, baseTotals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         valuationService.value(positions)
@@ -1260,7 +1301,7 @@ class ValuationServiceTest {
         baseTotals.marketValue = BigDecimal("1500.00")
         positions.setTotal(Position.In.BASE, baseTotals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When
         valuationService.value(positions)
@@ -1290,7 +1331,7 @@ class ValuationServiceTest {
         baseTotals.marketValue = BigDecimal("1500.00")
         positions.setTotal(Position.In.BASE, baseTotals)
 
-        whenever(positionValuationService.value(any(), any())).thenReturn(positions)
+        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When - note: we call value() but historical dates don't trigger market value updates
         // So we test the parseValuationDate logic indirectly

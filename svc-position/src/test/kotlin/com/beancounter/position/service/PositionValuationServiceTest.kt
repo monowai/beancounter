@@ -121,6 +121,33 @@ class PositionValuationServiceTest {
     }
 
     @Test
+    fun `should ask for live prices when valuing live`() {
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("LiveAsset", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val positions =
+            TestHelpers.createTestPositions(
+                portfolio,
+                listOf(TestHelpers.createTestPosition(asset, portfolio))
+            )
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getLivePrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+        val moneyValues = MoneyValues(portfolio.currency)
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(moneyValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(moneyValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any())).thenReturn(moneyValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal.ZERO)
+        whenever(irrCalculator.calculate(any())).thenReturn(0.0)
+
+        valuationService.value(positions, assetInputs, live = true)
+
+        verify(priceService).getLivePrices(any(), any())
+    }
+
+    @Test
     fun `irrIsDefined requires at least two flows with a sign change`() {
         fun flows(vararg amounts: Double): com.beancounter.common.model.PeriodicCashFlows =
             com.beancounter.common.model.PeriodicCashFlows().apply {

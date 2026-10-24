@@ -43,14 +43,15 @@ class NetWorthService(
     fun calculate(
         portfolios: Collection<Portfolio>,
         asAt: String,
-        currency: String
+        currency: String,
+        live: Boolean = false
     ): NetWorth {
         val target = currency.trim().uppercase()
         val positions =
             if (portfolios.isEmpty()) {
                 Positions()
             } else {
-                valuationService.getAggregatedPositions(portfolios, asAt, true, target).data
+                valuationService.getAggregatedPositions(portfolios, asAt, true, target, live).data
             }
         val heldAssetIds =
             positions.positions.values

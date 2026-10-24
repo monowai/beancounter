@@ -27,7 +27,8 @@ data class ValuationCacheKey(
     val contextPortfolioId: String,
     val valuationDate: String,
     val value: Boolean,
-    val targetCurrencyCode: String?
+    val targetCurrencyCode: String?,
+    val live: Boolean = false
 ) {
     companion object {
         fun of(
@@ -35,7 +36,8 @@ data class ValuationCacheKey(
             portfolios: Collection<Portfolio>,
             valuationDate: String,
             value: Boolean,
-            targetCurrencyCode: String?
+            targetCurrencyCode: String?,
+            live: Boolean = false
         ): ValuationCacheKey =
             ValuationCacheKey(
                 subject = subject,
@@ -43,7 +45,8 @@ data class ValuationCacheKey(
                 contextPortfolioId = portfolios.first().id,
                 valuationDate = valuationDate,
                 value = value,
-                targetCurrencyCode = targetCurrencyCode?.uppercase()
+                targetCurrencyCode = targetCurrencyCode?.uppercase(),
+                live = live
             )
     }
 }

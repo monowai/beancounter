@@ -39,6 +39,22 @@ class PriceService(
             .body(PriceResponse::class.java)
             ?: throw BusinessException("Failed to get prices")
 
+    /** As [getPrices], with live (delayed) quotes over stored closes while a market is in session. */
+    @Retry(name = "bcData")
+    fun getLivePrices(
+        priceRequest: PriceRequest,
+        token: String = tokenService.bearerToken
+    ): PriceResponse =
+        restClient
+            .post()
+            .uri("/prices/live")
+            .header(HttpHeaders.AUTHORIZATION, token)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(priceRequest)
+            .retrieve()
+            .body(PriceResponse::class.java)
+            ?: throw BusinessException("Failed to get live prices")
+
     @Retry(name = "bcData")
     fun getBulkPrices(
         bulkPriceRequest: BulkPriceRequest,

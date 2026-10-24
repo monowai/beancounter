@@ -25,6 +25,7 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.time.LocalTime
 import java.time.ZoneOffset
 import java.util.TimeZone
 
@@ -91,6 +92,15 @@ class MarketServiceTest {
         val lon = marketService.getMarket("LON")
         assertThat(lon.currency.code).isEqualTo(GBP.code)
         assertThat(lon.getAlias("eodhd")).isEqualTo("LSE")
+    }
+
+    @Test
+    fun `should open each market at its own local time`() {
+        assertThat(marketService.getMarket("LON").openTime).isEqualTo(LocalTime.of(8, 0))
+        assertThat(marketService.getMarket("ASX").openTime).isEqualTo(LocalTime.of(10, 0))
+        assertThat(marketService.getMarket("NZX").openTime).isEqualTo(LocalTime.of(10, 0))
+        assertThat(marketService.getMarket("SGX").openTime).isEqualTo(LocalTime.of(9, 0))
+        assertThat(marketService.getMarket("NASDAQ").openTime).isEqualTo(LocalTime.of(9, 30))
     }
 
     @Test

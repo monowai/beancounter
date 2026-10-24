@@ -23,6 +23,16 @@ data class Market(
     val timezone: TimeZone = TimeZone.getTimeZone(timezoneId),
     @Transient
     var currency: Currency = Currency(currencyId),
+    /** When trading opens on the market's own clock. Live quotes are asked for from here. */
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "HH:mm"
+    )
+    val openTime: LocalTime =
+        LocalTime.of(
+            9,
+            30
+        ),
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "HH:mm"

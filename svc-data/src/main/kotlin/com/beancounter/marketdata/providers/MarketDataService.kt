@@ -32,7 +32,8 @@ class MarketDataService(
     private val priceProcessor: MarketDataPriceProcessor,
     private val priceService: PriceService,
     private val dateUtils: DateUtils,
-    private val mdFactory: MdFactory
+    private val mdFactory: MdFactory,
+    private val liveQuoteService: LiveQuoteService
 ) {
     fun backFill(
         assetId: String,
@@ -78,6 +79,17 @@ class MarketDataService(
     fun getAssetPrices(priceRequest: PriceRequest): PriceResponse {
         val withResolvedAssets = assetService.resolveAssets(priceRequest)
         return getPriceResponse(withResolvedAssets)
+    }
+
+    /**
+     * [getAssetPrices] for display now: each asset's live (delayed) quote over its stored close
+     * while its market is in session. Quotes are not persisted.
+     */
+    @Transactional(readOnly = true)
+    fun getLivePrices(priceRequest: PriceRequest): PriceResponse {
+        val stored = getAssetPrices(priceRequest).data
+        val live = liveQuoteService.livePrices(stored.map { it.asset }, stored.associateBy { it.asset.id })
+        return PriceResponse(stored.map { live[it.asset.id] ?: it })
     }
 
     @Transactional(readOnly = true)

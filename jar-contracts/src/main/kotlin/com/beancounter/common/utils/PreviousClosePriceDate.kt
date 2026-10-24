@@ -81,6 +81,20 @@ class PreviousClosePriceDate(
         )
     }
 
+    /**
+     * Whether [market] is trading at [now]: a trading day, from [Market.openTime] until
+     * [Market.priceTime], on the market's own clock. Outside it the stored close is as fresh
+     * as any live quote.
+     */
+    fun isInSession(
+        now: ZonedDateTime,
+        market: Market
+    ): Boolean {
+        val marketLocal = now.withZoneSameInstant(market.timezone.toZoneId())
+        val time = marketLocal.toLocalTime()
+        return isTradingDay(marketLocal, market) && time >= market.openTime && time < market.priceTime
+    }
+
     private fun getDaysToSubtract(
         market: Market,
         requestedDate: LocalDateTime,

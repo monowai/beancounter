@@ -25,6 +25,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -80,6 +81,9 @@ internal class PriceControllerTests
 
         @MockitoBean
         private lateinit var priceBackfillCoordinator: PriceBackfillCoordinator
+
+        @MockitoBean
+        private lateinit var liveQuoteService: LiveQuoteService
 
         @BeforeEach
         fun setUp() {
@@ -164,6 +168,47 @@ internal class PriceControllerTests
                     .andReturn()
                     .response.contentAsString
             val (data) = objectMapper.readValue(json, PriceResponse::class.java)
+
+            assertThat(data).hasSize(1)
+            assertThat(data.first().close).isEqualByComparingTo(mockPrice)
+        }
+
+        private fun livePrices(): Collection<MarketData> {
+            val json =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .post("/prices/live")
+                            .with(
+                                SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken())
+                            ).contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(objectMapper.writeValueAsString(PriceRequest(assets = listOf(PriceAsset(asset)))))
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+                    .response.contentAsString
+            return objectMapper.readValue(json, PriceResponse::class.java).data
+        }
+
+        @Test
+        fun `live prices show the live quote over the stored close`() {
+            val stored = MarketData(asset, close = mockPrice, priceDate = priceDate)
+            doReturn(PriceResponse(listOf(stored))).`when`(marketDataService).getAssetPrices(any())
+            val quote = MarketData(asset, close = BigDecimal("1010.00"), priceDate = priceDate.plusDays(1))
+            `when`(liveQuoteService.livePrices(any(), any())).thenReturn(mapOf(asset.id to quote))
+
+            val data = livePrices()
+
+            assertThat(data).hasSize(1)
+            assertThat(data.first().close).isEqualByComparingTo("1010.00")
+            assertThat(data.first().priceDate).isEqualTo(priceDate.plusDays(1))
+        }
+
+        @Test
+        fun `live prices fall back to the stored close when there is no live quote`() {
+            val stored = MarketData(asset, close = mockPrice, priceDate = priceDate)
+            doReturn(PriceResponse(listOf(stored))).`when`(marketDataService).getAssetPrices(any())
+
+            val data = livePrices()
 
             assertThat(data).hasSize(1)
             assertThat(data.first().close).isEqualByComparingTo(mockPrice)

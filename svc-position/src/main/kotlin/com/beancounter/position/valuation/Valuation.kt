@@ -42,13 +42,16 @@ interface Valuation {
      *   differs from the caller's target. PRIVATE / POLICY positions are
      *   most sensitive (constant `close=1`) because the round-trip rate
      *   product isn't exactly 1.0.
+     * @param live value at live (delayed) quotes while each market is in session. Display
+     *   only: an aggregate never publishes market value.
      * @return aggregated positions from all portfolios
      */
     fun getAggregatedPositions(
         portfolios: Collection<Portfolio>,
         valuationDate: String = DateUtils.TODAY,
         value: Boolean,
-        targetCurrencyCode: String? = null
+        targetCurrencyCode: String? = null,
+        live: Boolean = false
     ): PositionResponse
 
     /**

@@ -23,7 +23,10 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.cache.CacheManager
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
@@ -42,6 +45,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * The caller's watchlist (one per user): assets with no quantity. Exercised end to end through
@@ -49,7 +55,15 @@ import java.math.RoundingMode
  * its own assets and finds its items by id.
  */
 @SpringMvcDbTest
+@Import(WatchlistControllerTest.TradingHours::class)
 class WatchlistControllerTest {
+    /** Live quotes are only asked for in session: pin the clock to a weekday trading hour. */
+    @TestConfiguration
+    class TradingHours {
+        @Bean
+        fun clock(): Clock = Clock.fixed(Instant.parse("2026-10-21T15:00:00Z"), ZoneOffset.UTC)
+    }
+
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 

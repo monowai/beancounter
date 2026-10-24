@@ -368,13 +368,24 @@ class PositionController(
         @RequestParam(
             value = "currency",
             required = false
-        ) targetCurrency: String?
+        ) targetCurrency: String?,
+        @Parameter(
+            description =
+                "Value at live (delayed) quotes while each market is in session. Display only: " +
+                    "never published as market value.",
+            example = "true"
+        )
+        @RequestParam(
+            value = "live",
+            defaultValue = "false"
+        ) live: Boolean = false
     ): PositionResponse =
         valuationService.getAggregatedPositions(
             resolvePortfolios(ids, codes),
             asAt,
             value,
-            targetCurrency
+            targetCurrency,
+            live
         )
 
     @GetMapping(
@@ -444,7 +455,17 @@ class PositionController(
         @RequestParam(
             value = "currency",
             required = false
-        ) currency: String?
+        ) currency: String?,
+        @Parameter(
+            description =
+                "Value at live (delayed) quotes while each market is in session. Display only: " +
+                    "never published as market value.",
+            example = "true"
+        )
+        @RequestParam(
+            value = "live",
+            defaultValue = "false"
+        ) live: Boolean = false
     ): NetWorthResponse {
         if (currency.isNullOrBlank()) {
             throw BusinessException("currency is required")
@@ -455,7 +476,7 @@ class PositionController(
             throw NotFoundException("None of the requested portfolios are visible")
         }
         return NetWorthResponse(
-            data = netWorthService.calculate(portfolios, asAt, currency)
+            data = netWorthService.calculate(portfolios, asAt, currency, live)
         )
     }
 

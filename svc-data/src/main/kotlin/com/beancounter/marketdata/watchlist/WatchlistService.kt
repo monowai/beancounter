@@ -45,6 +45,8 @@ class WatchlistService(
     @Transactional(Transactional.TxType.SUPPORTS)
     fun get(owner: SystemUser): WatchlistView = view(itemRepository.findByOwnerIdOrderByAssetCode(owner.id))
 
+    // No transaction, as for get: the live quote calls the provider. The write is the single save below.
+    @Transactional(Transactional.TxType.SUPPORTS)
     fun addItem(
         owner: SystemUser,
         request: AddWatchlistItemRequest
@@ -100,6 +102,8 @@ class WatchlistService(
         item.directionUnverified = false
     }
 
+    // No transaction, as for get: the live quote calls the provider. The write is the single save below.
+    @Transactional(Transactional.TxType.SUPPORTS)
     fun updateItem(
         owner: SystemUser,
         itemId: String,

@@ -240,6 +240,13 @@ resilience4j:
         waitDurationInOpenState: 30s
         registerHealthIndicator: true
         recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+        # A 4xx from bc-data is the caller's fault (RestClientErrorHandler maps 401/403/404
+        # to these), not a dependency failure: it must not open the breaker every bc-data
+        # call shares. A run of 403s on the earmark read did exactly that on kauri.
+        ignoreExceptions:
+          - com.beancounter.common.exception.ForbiddenException
+          - com.beancounter.common.exception.UnauthorizedException
+          - com.beancounter.common.exception.NotFoundException
 
   retry:
     configs:

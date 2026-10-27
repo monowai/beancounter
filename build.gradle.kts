@@ -244,25 +244,15 @@ subprojects {
         // both main and test runtime; routed to the existing logback. BOM-managed.
         runtimeOnly("org.slf4j:jcl-over-slf4j")
 
-        // Security patch overrides for BOM-managed transitives (Snyk). Spring
-        // Boot 4.1.0 has no patch release yet, so pin fixed versions within the
-        // same patch line to avoid minor-version skew. Remove each once the
-        // managing BOM catches up.
+        // Security patch overrides for transitives the managing BOM has not
+        // caught up on (Snyk). Remove each once the BOM catches up.
         constraints {
-            // jackson-databind 2.x/3.x: Incorrect Authorization (CVE-2026-59889)
-            implementation("com.fasterxml.jackson.core:jackson-databind:2.21.5")
-            implementation("tools.jackson.core:jackson-databind:3.1.5")
-            // tomcat-embed-core: 6 CVEs incl. improper auth (CVE-2026-55955)
-            implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.24")
-            // logback-core: expression injection (CVE-2026-13006)
-            implementation("ch.qos.logback:logback-core:1.5.38")
-            implementation("ch.qos.logback:logback-classic:1.5.38")
-            // httpcore5-h2: unbounded resource allocation (CVE-2026-54428)
-            implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3")
             // handlebars: directory traversal (CVE-2026-55760); via cloud-contract
             implementation("com.github.jknack:handlebars:4.5.2")
+            // amqp-client: Boot 4.1.2 BOM still manages 5.30.0; via stream-binder-rabbit
+            implementation("com.rabbitmq:amqp-client:5.34.0")
             // guava: 2018 deserialization (CVE-2018-10237); via stub-runner (test)
-            implementation("com.google.guava:guava:33.6.0-jre")
+            implementation("com.google.guava:guava:${rootProject.libs.versions.guava.get()}")
         }
 
         // Common test dependencies

@@ -90,6 +90,20 @@ class TokenService(
         }
 
     /**
+     * True when the caller holds `beancounter:widget` and neither the user nor the system
+     * scope: a home-screen widget's device-bound token. It reaches only the routes a
+     * service lists in `auth.widget-routes`, so a service must not fan out on its behalf
+     * to routes that scope cannot reach.
+     */
+    val isWidgetToken: Boolean
+        get() {
+            val scopes = (jwt.token.getClaimAsString("scope") ?: "").split(" ")
+            return AuthConstants.WIDGET in scopes &&
+                AuthConstants.USER !in scopes &&
+                AuthConstants.SYSTEM !in scopes
+        }
+
+    /**
      * Token Constants
      */
     companion object {

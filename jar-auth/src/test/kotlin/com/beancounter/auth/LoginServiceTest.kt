@@ -2,6 +2,7 @@ package com.beancounter.auth
 
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.auth.client.LoginService
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions.assertThat
@@ -13,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.http.converter.autoconfigure.HttpMessageConvertersAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
@@ -91,6 +95,39 @@ class LoginServiceTest {
     fun `should handle account with no roles correctly`() {
         authUtilService.authenticateNoRoles(SystemUser())
         assertFalse(tokenService.isServiceToken)
+    }
+
+    // The token a home-screen widget really holds: the user's claims, scope beancounter:widget alone.
+    private fun authenticateWidget(): Jwt {
+        val user = authUtilService.authenticate(SystemUser(email = "widget@example.com")).token
+        val widget =
+            Jwt
+                .withTokenValue(user.tokenValue)
+                .headers { it.putAll(user.headers) }
+                .claims { it.putAll(user.claims) }
+                .claim("scope", AuthConstants.WIDGET)
+                .build()
+        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(widget)
+        return widget
+    }
+
+    @Test
+    fun `should identify a widget-only token`() {
+        authenticateWidget()
+        assertThat(tokenService.isWidgetToken).isTrue()
+        assertThat(tokenService.isServiceToken).isFalse()
+    }
+
+    @Test
+    fun `should not take a user or service token for a widget token`() {
+        authUtilService.authenticate(SystemUser(email = "test@example.com"))
+        assertThat(tokenService.isWidgetToken).isFalse()
+
+        authUtilService.authenticateM2M(SystemUser(email = ""))
+        assertThat(tokenService.isWidgetToken).isFalse()
+
+        authUtilService.authenticateNoRoles(SystemUser())
+        assertThat(tokenService.isWidgetToken).isFalse()
     }
 
     @Test

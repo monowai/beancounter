@@ -1340,4 +1340,72 @@ class ValuationServiceTest {
         // Then - historical dates don't send market value updates, so we verify no message sent
         verify(marketValueUpdateProducer, never()).sendMessage(any())
     }
+
+    // The real EarmarkService over the mocked TrnService, so the assertion lands on the
+    // bc-data read itself rather than on an EarmarkService mock.
+    private fun withRealEarmark(): ValuationService =
+        ValuationService(
+            positionValuationService,
+            trnService,
+            positionService,
+            marketValueUpdateProducer,
+            classificationClient,
+            fxRateService,
+            tokenService,
+            dateUtils,
+            EarmarkService(trnService)
+        )
+
+    private fun stubOneBuyPerPortfolio(vararg portfolios: Portfolio) {
+        val asset = TestHelpers.createTestAsset("ABC", "US")
+        portfolios.forEach { p ->
+            val trn =
+                TestHelpers.createTestTransaction(
+                    asset = asset,
+                    portfolio = p,
+                    trnType = TrnType.BUY,
+                    quantity = BigDecimal("10"),
+                    price = PRICE_150,
+                    tradeDate = LocalDate.of(2024, 1, 15)
+                )
+            whenever(trnService.query(argThat { id == p.id }, any<String>())).thenReturn(TrnResponse(listOf(trn)))
+        }
+        val positions = Positions(portfolios.first())
+        positions.add(Position(asset, portfolios.first()))
+        whenever(positionService.build(any(), any())).thenReturn(PositionResponse(positions))
+    }
+
+    @Test
+    fun `widget-scoped caller never reads proposed cash on a single portfolio valuation`() {
+        whenever(tokenService.isWidgetToken).thenReturn(true)
+        stubOneBuyPerPortfolio(portfolio)
+
+        withRealEarmark().getPositions(portfolio, DateUtils.TODAY, value = false)
+
+        verify(trnService, never()).queryProposedCash(any(), any())
+    }
+
+    @Test
+    fun `widget-scoped caller never reads proposed cash on an aggregated valuation`() {
+        whenever(tokenService.isWidgetToken).thenReturn(true)
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        stubOneBuyPerPortfolio(portfolio, portfolio2)
+
+        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+
+        verify(trnService, never()).queryProposedCash(any(), any())
+    }
+
+    @Test
+    fun `user-scoped caller still reads proposed cash for each portfolio`() {
+        whenever(tokenService.isWidgetToken).thenReturn(false)
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        stubOneBuyPerPortfolio(portfolio, portfolio2)
+        whenever(trnService.queryProposedCash(any(), any())).thenReturn(TrnResponse(emptyList()))
+
+        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+
+        verify(trnService).queryProposedCash(portfolio.id, DateUtils.TODAY)
+        verify(trnService).queryProposedCash(portfolio2.id, DateUtils.TODAY)
+    }
 }

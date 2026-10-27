@@ -128,8 +128,26 @@ class ValuationService
             }
             // Stamp signed earmarked cash-ccy quantity BEFORE market-value runs so
             // MarketValue can mint MoneyValues.earmarked from it per bucket.
-            earmarkService.stamp(portfolio, positionResponse.data, valuationDate)
+            stampEarmark(portfolio, positionResponse.data, valuationDate)
             return positionResponse
+        }
+
+        /**
+         * Earmarked cash is an overlay on the cash position, read from bc-data's
+         * proposed-cash route with the caller's own token. A home-screen widget's
+         * token carries only `beancounter:widget`, which has no right to that route
+         * (it is not in bc-data's `auth.widget-routes`), and the widget shows
+         * percentages only and never displays the overlay. So a widget-scoped
+         * valuation skips the read outright rather than taking a 403 per portfolio;
+         * enough of those once opened the shared bc-data circuit breaker.
+         */
+        private fun stampEarmark(
+            portfolio: Portfolio,
+            positions: Positions,
+            valuationDate: String
+        ) {
+            if (tokenService.isWidgetToken) return
+            earmarkService.stamp(portfolio, positions, valuationDate)
         }
 
         override fun getPositions(
@@ -240,7 +258,7 @@ class ValuationService
                         val built = positionService.build(portfolio, PositionRequest(portfolio.id, trns)).data
                         // Stamp each per-portfolio Positions with ITS own portfolio's
                         // proposed cash legs before the merge sums earmarkedQuantity.
-                        earmarkService.stamp(portfolio, built, valuationDate)
+                        stampEarmark(portfolio, built, valuationDate)
                         portfolio to built
                     }
                 }

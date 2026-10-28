@@ -81,6 +81,7 @@ jobs:
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        continue-on-error: true
         with:
           name: test-reports
           path: '*/build/reports/tests/'
@@ -97,6 +98,7 @@ jobs:
       - name: Upload coverage reports
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        continue-on-error: true
         with:
           name: coverage-reports
           path: '*/build/reports/jacoco/test/jacocoTestReport.xml'

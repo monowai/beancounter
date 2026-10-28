@@ -81,6 +81,7 @@ jobs:
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        continue-on-error: true # a report upload must not fail the build: artifact quota, outage
         with:
           name: test-reports
           path: '*/build/reports/tests/'
@@ -97,6 +98,7 @@ jobs:
       - name: Upload coverage reports
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        continue-on-error: true # a report upload must not fail the build: artifact quota, outage
         with:
           name: coverage-reports
           path: '*/build/reports/jacoco/test/jacocoTestReport.xml'
@@ -233,13 +235,17 @@ jobs:
       CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
     steps:
+      # The upload in build is best-effort, so the artifact may be missing.
       - name: Download coverage reports
+        id: download
+        continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: coverage-reports
 
       - name: List coverage reports
         id: reports
+        if: steps.download.outcome == 'success'
         run: echo "files=$(find . -name 'jacocoTestReport.xml' | paste -sd, -)" >> "$GITHUB_OUTPUT"
 
       - name: Report coverage to Codacy
@@ -287,10 +293,10 @@ jobs:
       # upload to Snyk fail the build.
       - name: Snyk test
         if: env.SNYK_TOKEN != ''
-        continue-on-error: true
+        continue-on-error: true # a report upload must not fail the build: artifact quota, outage
         run: snyk test --all-sub-projects --configuration-matching='^runtimeClasspath$' --severity-threshold=low
 
       - name: Snyk monitor
         if: env.SNYK_TOKEN != ''
-        continue-on-error: true
+        continue-on-error: true # a report upload must not fail the build: artifact quota, outage
         run: snyk monitor --all-sub-projects --configuration-matching='^runtimeClasspath$'

@@ -127,7 +127,7 @@ class ValuationService
             portfolio: Portfolio,
             valuationDate: String,
             trnResponse: TrnResponse,
-            proposedLegs: List<Trn>
+            legs: List<Trn>
         ): PositionResponse {
             val positionRequest =
                 PositionRequest(
@@ -148,7 +148,7 @@ class ValuationService
             }
             // Stamp signed earmarked cash-ccy quantity BEFORE market-value runs so
             // MarketValue can mint MoneyValues.earmarked from it per bucket.
-            earmarkService.stamp(positionResponse.data, proposedLegs)
+            earmarkService.stamp(positionResponse.data, legs)
             return positionResponse
         }
 
@@ -255,7 +255,7 @@ class ValuationService
             // Accumulating per portfolio keeps each split and cost basis local;
             // summing the results yields the correct aggregate.
             val perPortfolioPositions =
-                portfolioReads.mapNotNull { (portfolio, trnResponse, proposedLegs) ->
+                portfolioReads.mapNotNull { (portfolio, trnResponse, legs) ->
                     val trns = trnResponse.data.toTrns()
                     if (trns.isEmpty()) {
                         null
@@ -263,7 +263,7 @@ class ValuationService
                         val built = positionService.build(portfolio, PositionRequest(portfolio.id, trns)).data
                         // Stamp each per-portfolio Positions with ITS own portfolio's
                         // proposed cash legs before the merge sums earmarkedQuantity.
-                        earmarkService.stamp(built, proposedLegs)
+                        earmarkService.stamp(built, legs)
                         portfolio to built
                     }
                 }

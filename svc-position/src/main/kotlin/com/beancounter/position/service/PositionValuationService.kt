@@ -410,9 +410,9 @@ class PositionValuationService(
                     }
 
                 ValuationData(
-                    priceDeferred.await(),
-                    fxDeferred.await(),
-                    classificationDeferred.await()
+                    priceResponse = priceDeferred.await(),
+                    fxResponse = fxDeferred.await(),
+                    classifications = classificationDeferred.await()
                 )
             } catch (e: CancellationException) {
                 throw IllegalStateException(

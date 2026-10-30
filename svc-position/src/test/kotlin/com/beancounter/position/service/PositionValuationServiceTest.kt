@@ -2,28 +2,40 @@ package com.beancounter.position.service
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.PriceService
+import com.beancounter.common.contracts.AssetClassificationSummary
+import com.beancounter.common.contracts.BulkClassificationResponse
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.irr.IrrCalculator
+import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.utils.TestHelpers
 import com.beancounter.position.valuation.Gains
 import com.beancounter.position.valuation.MarketValue
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.security.authentication.TestingAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -58,6 +70,9 @@ class PositionValuationServiceTest {
     private lateinit var irrCalculator: IrrCalculator
 
     @Mock
+    private lateinit var classificationClient: ClassificationClient
+
+    @Mock
     private lateinit var calculationSupport: PositionCalculationSupport
 
     private lateinit var valuationService: PositionValuationService
@@ -66,6 +81,10 @@ class PositionValuationServiceTest {
 
     @BeforeEach
     fun setup() {
+        Mockito
+            .lenient()
+            .`when`(classificationClient.getClassifications(any()))
+            .thenReturn(BulkClassificationResponse())
         val gains = Gains()
         val config =
             PositionValuationConfig(
@@ -79,9 +98,102 @@ class PositionValuationServiceTest {
                 fxRateService,
                 tokenService,
                 DateUtils(),
-                irrCalculator
+                irrCalculator,
+                classificationClient
             )
         valuationService = PositionValuationService(config, calculationSupport)
+    }
+
+    @AfterEach
+    fun clearSecurityContext() {
+        SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `should fetch prices, rates and classifications concurrently as the caller`() {
+        val caller = TestingAuthenticationToken("caller", null)
+        SecurityContextHolder.getContext().authentication = caller
+        val asset = TestHelpers.createTestAsset("Asset1", US.code)
+        val positions =
+            TestHelpers.createTestPositions(
+                portfolio,
+                listOf(TestHelpers.createTestPosition(asset, portfolio))
+            )
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        val probe = ConcurrencyProbe(3)
+        whenever(priceService.getPrices(any(), any())).thenAnswer { probe.arrive(PriceResponse()) }
+        whenever(fxRateService.getRates(any(), any())).thenAnswer { probe.arrive(FxResponse()) }
+        whenever(classificationClient.getClassifications(any())).thenAnswer {
+            probe.arrive(BulkClassificationResponse())
+        }
+
+        runBlocking { valuationService.getValuationData(positions, "Token Value") }
+
+        assertThat(probe.allMet).isTrue()
+        assertThat(probe.callers).containsOnly(caller)
+    }
+
+    @Test
+    fun `should set Cash sector on cash assets`() {
+        val cashAsset = TestHelpers.createTestAsset("USD", "OFFM")
+        cashAsset.assetCategory = AssetCategory(id = AssetCategory.REPORT_CASH, name = "Cash")
+        val position = TestHelpers.createTestPosition(cashAsset, portfolio)
+
+        val result = valueWithoutPrices(position)
+
+        assertThat(
+            result.positions.values
+                .first()
+                .asset.sector
+        ).isEqualTo(AssetCategory.REPORT_CASH)
+    }
+
+    @Test
+    fun `should apply sector and industry from the classification service`() {
+        val equityAsset = TestHelpers.createTestAsset("AAPL", US.code)
+        equityAsset.assetCategory = AssetCategory(id = AssetCategory.REPORT_EQUITY, name = "Equity")
+        whenever(classificationClient.getClassifications(any())).thenReturn(
+            BulkClassificationResponse(
+                mapOf(
+                    equityAsset.id to
+                        AssetClassificationSummary(
+                            assetId = equityAsset.id,
+                            sector = "Information Technology",
+                            industry = "Consumer Electronics"
+                        )
+                )
+            )
+        )
+
+        val result = valueWithoutPrices(TestHelpers.createTestPosition(equityAsset, portfolio))
+
+        val equity =
+            result.positions.values
+                .first()
+                .asset
+        assertThat(equity.sector).isEqualTo("Information Technology")
+        assertThat(equity.industry).isEqualTo("Consumer Electronics")
+    }
+
+    private fun valueWithoutPrices(position: Position): Positions {
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(PriceResponse(emptyList()))
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+        val moneyValues = MoneyValues(portfolio.currency)
+        Mockito.lenient().`when`(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(moneyValues)
+        Mockito.lenient().`when`(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(moneyValues)
+        Mockito
+            .lenient()
+            .`when`(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
+            .thenReturn(moneyValues)
+        Mockito.lenient().`when`(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal.ZERO)
+        Mockito.lenient().`when`(irrCalculator.calculate(any())).thenReturn(0.0)
+        val asset = position.asset
+        return valuationService.value(
+            TestHelpers.createTestPositions(portfolio, listOf(position)),
+            setOf(TestHelpers.createTestAssetInput(asset.market.code, asset.code))
+        )
     }
 
     @Test

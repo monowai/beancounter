@@ -67,7 +67,7 @@ class EarmarkServiceTest {
             )
         )
 
-        service().stamp(portfolio, positions, "today")
+        service().let { it.stamp(positions, it.proposedLegs(portfolio, "today")) }
 
         assertThat(position.earmarkedQuantity)
             .describedAs("DEPOSIT 300 - WITHDRAWAL 100 = net +200")
@@ -91,7 +91,7 @@ class EarmarkServiceTest {
             )
         )
 
-        service().stamp(portfolio, positions, "today")
+        service().let { it.stamp(positions, it.proposedLegs(portfolio, "today")) }
 
         assertThat(usdPos.earmarkedQuantity).isEqualByComparingTo(BigDecimal("500"))
         assertThat(sgdPos.earmarkedQuantity).isEqualByComparingTo(BigDecimal("-250"))
@@ -109,7 +109,7 @@ class EarmarkServiceTest {
             TrnResponse(listOf(leg(usd, TrnType.DEPOSIT, BigDecimal("400"))))
         )
 
-        service().stamp(portfolio, positions, "today")
+        service().let { it.stamp(positions, it.proposedLegs(portfolio, "today")) }
 
         assertThat(cashPos.earmarkedQuantity).isEqualByComparingTo(BigDecimal("400"))
         assertThat(equityPos.earmarkedQuantity)
@@ -126,7 +126,7 @@ class EarmarkServiceTest {
         whenever(trnService.queryProposedCash(eq(portfolio.id), any()))
             .thenReturn(TrnResponse(emptyList()))
 
-        service().stamp(portfolio, positions, "today")
+        service().let { it.stamp(positions, it.proposedLegs(portfolio, "today")) }
 
         assertThat(position.earmarkedQuantity).isEqualByComparingTo(BigDecimal.ZERO)
     }
@@ -147,7 +147,7 @@ class EarmarkServiceTest {
             )
         )
 
-        service().stamp(portfolio, positions, "today")
+        service().let { it.stamp(positions, it.proposedLegs(portfolio, "today")) }
 
         assertThat(usdPos.earmarkedQuantity).isEqualByComparingTo(BigDecimal("100"))
         assertThat(positions.positions).hasSize(1) // EUR leg did not create a phantom position

@@ -2,7 +2,6 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
-import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.PositionRequest
@@ -11,7 +10,6 @@ import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnQuery
-import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
@@ -20,6 +18,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.PortfolioBreakdown
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.setMarketValue
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
@@ -27,9 +26,9 @@ import com.beancounter.common.utils.MathUtils
 import com.beancounter.position.service.MarketValueUpdateProducer
 import com.beancounter.position.service.PositionService
 import com.beancounter.position.service.PositionValuationService
+import com.beancounter.position.utils.runAs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -54,7 +53,6 @@ class ValuationService
         private val trnService: TrnService,
         private val positionService: PositionService,
         private val marketValueUpdateProducer: MarketValueUpdateProducer,
-        private val classificationClient: ClassificationClient,
         private val fxRateService: FxService,
         private val tokenService: TokenService,
         private val dateUtils: DateUtils,
@@ -72,10 +70,12 @@ class ValuationService
 
         override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
             val trnResponse = trnService.query(trnQuery) // Adhoc query
+            val valuationDate = trnQuery.tradeDate.toString()
             return buildPositions(
                 trnQuery.portfolio,
-                trnQuery.tradeDate.toString(),
-                trnResponse
+                valuationDate,
+                trnResponse,
+                proposedLegs(trnQuery.portfolio, valuationDate)
             )
         }
 
@@ -92,22 +92,42 @@ class ValuationService
             portfolio: Portfolio,
             valuationDate: String
         ): PositionResponse {
-            val trnResponse =
-                trnService.query(
-                    portfolio,
-                    valuationDate
-                )
+            val reads = readPortfolios(listOf(portfolio), valuationDate).single()
             return buildPositions(
                 portfolio,
                 valuationDate,
-                trnResponse
+                reads.trnResponse,
+                reads.proposedLegs
             )
+        }
+
+        /**
+         * Reads each portfolio's trns and proposed cash legs from bc-data, every
+         * call at once. Neither read depends on the other, and the clients block,
+         * so they only overlap on the IO pool, each bound to the caller.
+         */
+        private fun readPortfolios(
+            portfolios: Collection<Portfolio>,
+            valuationDate: String
+        ): List<PortfolioReads> {
+            val caller = SecurityContextHolder.getContext()
+            return runBlockingTraced(Dispatchers.IO) {
+                portfolios
+                    .map { portfolio ->
+                        Triple(
+                            portfolio,
+                            async { caller.runAs { trnService.query(portfolio, valuationDate) } },
+                            async { caller.runAs { proposedLegs(portfolio, valuationDate) } }
+                        )
+                    }.map { (portfolio, trns, legs) -> PortfolioReads(portfolio, trns.await(), legs.await()) }
+            }
         }
 
         private fun buildPositions(
             portfolio: Portfolio,
             valuationDate: String,
-            trnResponse: TrnResponse
+            trnResponse: TrnResponse,
+            legs: List<Trn>
         ): PositionResponse {
             val positionRequest =
                 PositionRequest(
@@ -128,7 +148,7 @@ class ValuationService
             }
             // Stamp signed earmarked cash-ccy quantity BEFORE market-value runs so
             // MarketValue can mint MoneyValues.earmarked from it per bucket.
-            stampEarmark(portfolio, positionResponse.data, valuationDate)
+            earmarkService.stamp(positionResponse.data, legs)
             return positionResponse
         }
 
@@ -141,14 +161,15 @@ class ValuationService
          * valuation skips the read outright rather than taking a 403 per portfolio;
          * enough of those once opened the shared bc-data circuit breaker.
          */
-        private fun stampEarmark(
+        private fun proposedLegs(
             portfolio: Portfolio,
-            positions: Positions,
             valuationDate: String
-        ) {
-            if (tokenService.isWidgetToken) return
-            earmarkService.stamp(portfolio, positions, valuationDate)
-        }
+        ): List<Trn> =
+            if (tokenService.isWidgetToken) {
+                emptyList()
+            } else {
+                earmarkService.proposedLegs(portfolio, valuationDate)
+            }
 
         override fun getPositions(
             portfolio: Portfolio,
@@ -218,26 +239,10 @@ class ValuationService
             targetCurrencyCode: String?,
             live: Boolean
         ): PositionResponse {
-            // Capture the security context to propagate to coroutines
-            val securityContext = SecurityContextHolder.getContext()
-
-            // Concurrently fetch transactions for all portfolios, retaining the
-            // portfolio each response belongs to so we can build a per-portfolio
-            // breakdown alongside the aggregated view.
-            val portfolioTransactions =
-                runBlockingTraced(Dispatchers.IO) {
-                    portfolios
-                        .map { portfolio ->
-                            async {
-                                SecurityContextHolder.setContext(securityContext)
-                                try {
-                                    portfolio to trnService.query(portfolio, valuationDate)
-                                } finally {
-                                    SecurityContextHolder.clearContext()
-                                }
-                            }
-                        }.awaitAll()
-                }
+            // Read every portfolio at once, retaining the portfolio each response
+            // belongs to so we can build a per-portfolio breakdown alongside the
+            // aggregated view.
+            val portfolioReads = readPortfolios(portfolios, valuationDate)
 
             // Accumulate each portfolio's positions INDEPENDENTLY, then sum them.
             //
@@ -250,7 +255,7 @@ class ValuationService
             // Accumulating per portfolio keeps each split and cost basis local;
             // summing the results yields the correct aggregate.
             val perPortfolioPositions =
-                portfolioTransactions.mapNotNull { (portfolio, trnResponse) ->
+                portfolioReads.mapNotNull { (portfolio, trnResponse, legs) ->
                     val trns = trnResponse.data.toTrns()
                     if (trns.isEmpty()) {
                         null
@@ -258,7 +263,7 @@ class ValuationService
                         val built = positionService.build(portfolio, PositionRequest(portfolio.id, trns)).data
                         // Stamp each per-portfolio Positions with ITS own portfolio's
                         // proposed cash legs before the merge sums earmarkedQuantity.
-                        stampEarmark(portfolio, built, valuationDate)
+                        earmarkService.stamp(built, legs)
                         portfolio to built
                     }
                 }
@@ -549,39 +554,12 @@ class ValuationService
                     live
                 )
 
-            // Enrich positions with classification data (sector/industry)
-            enrichWithClassifications(valuedPositions)
-
             // Send market value updates for individual portfolio valuations (not aggregated)
             // Only update when viewing current positions ("today"), not historical
             if (!skipMarketValueUpdate && !live && dateUtils.isToday(positions.asAt)) {
                 sendMarketValueUpdate(valuedPositions)
             }
             return PositionResponse(valuedPositions)
-        }
-
-        /**
-         * Enriches positions with sector/industry classification data from svc-data.
-         * Cash assets are always classified as "Cash" sector.
-         * Failures are logged but don't block the response - positions just lack classification data.
-         */
-        private fun enrichWithClassifications(positions: Positions) {
-            if (!positions.hasPositions()) return
-
-            val assetIds = positions.positions.values.map { it.asset.id }
-            val classifications = classificationClient.getClassifications(assetIds)
-
-            positions.positions.values.forEach { position ->
-                // Cash assets always have sector "Cash"
-                if (position.asset.effectiveReportCategory == AssetCategory.REPORT_CASH) {
-                    position.asset.sector = AssetCategory.REPORT_CASH
-                } else {
-                    classifications.data[position.asset.id]?.let { classification ->
-                        position.asset.sector = classification.sector
-                        position.asset.industry = classification.industry
-                    }
-                }
-            }
         }
 
         /**
@@ -646,3 +624,10 @@ class ValuationService
          */
         private fun parseValuationDate(asAt: String?): LocalDate = dateUtils.getDate(asAt ?: DateUtils.TODAY)
     }
+
+/** One portfolio's bc-data reads for a valuation. */
+private data class PortfolioReads(
+    val portfolio: Portfolio,
+    val trnResponse: TrnResponse,
+    val proposedLegs: List<Trn>
+)

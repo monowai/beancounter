@@ -2,10 +2,7 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
-import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.TrnService
-import com.beancounter.common.contracts.AssetClassificationSummary
-import com.beancounter.common.contracts.BulkClassificationResponse
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PositionResponse
@@ -31,8 +28,10 @@ import com.beancounter.position.accumulation.TrnBehaviourFactory
 import com.beancounter.position.service.MarketValueUpdateProducer
 import com.beancounter.position.service.PositionService
 import com.beancounter.position.service.PositionValuationService
+import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -49,6 +48,8 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.security.authentication.TestingAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -75,9 +76,6 @@ class ValuationServiceTest {
     private lateinit var marketValueUpdateProducer: MarketValueUpdateProducer
 
     @Mock
-    private lateinit var classificationClient: ClassificationClient
-
-    @Mock
     private lateinit var fxRateService: FxService
 
     @Mock
@@ -96,13 +94,6 @@ class ValuationServiceTest {
 
     @BeforeEach
     fun setup() {
-        // Default mock for classificationClient - returns empty response (lenient because not all tests use it)
-        Mockito
-            .lenient()
-            .`when`(
-                classificationClient.getClassifications(any())
-            ).thenReturn(BulkClassificationResponse())
-
         Mockito.lenient().`when`(tokenService.bearerToken).thenReturn("")
         // Default caller subject for the valuation cache key. Narrowing buildCacheKey's
         // catch to UnauthorizedException (see ValuationService) means an unstubbed mock
@@ -121,12 +112,16 @@ class ValuationServiceTest {
                 trnService,
                 positionService,
                 marketValueUpdateProducer,
-                classificationClient,
                 fxRateService,
                 tokenService,
                 dateUtils,
                 earmarkService
             )
+    }
+
+    @AfterEach
+    fun clearSecurityContext() {
+        SecurityContextHolder.clearContext()
     }
 
     @Test
@@ -300,7 +295,6 @@ class ValuationServiceTest {
                 trnService,
                 positionService,
                 marketValueUpdateProducer,
-                classificationClient,
                 fxRateService,
                 tokenService,
                 dateUtils,
@@ -853,7 +847,6 @@ class ValuationServiceTest {
                 trnService,
                 realPositionService,
                 marketValueUpdateProducer,
-                classificationClient,
                 fxRateService,
                 tokenService,
                 dateUtils,
@@ -963,67 +956,6 @@ class ValuationServiceTest {
         // Then - should NOT send market value update for historical dates
         verify(marketValueUpdateProducer, never()).sendMessage(any())
         assertThat(result.data).isEqualTo(positions)
-    }
-
-    @Test
-    fun `enrichWithClassifications sets Cash sector for cash assets`() {
-        // Given - positions with a cash asset
-        val positions = Positions(portfolio)
-        positions.asAt = DateUtils.TODAY
-
-        val cashAsset = TestHelpers.createTestAsset("USD", "OFFM")
-        cashAsset.assetCategory = AssetCategory(id = AssetCategory.REPORT_CASH, name = "Cash")
-        val position = Position(cashAsset, portfolio)
-        position.quantityValues.purchased = BigDecimal("1000")
-        positions.add(position)
-
-        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
-
-        // When
-        val result = valuationService.value(positions)
-
-        // Then - cash asset should have sector set to "Cash"
-        val cashPosition =
-            result.data.positions.values
-                .first()
-        assertThat(cashPosition.asset.sector).isEqualTo(AssetCategory.REPORT_CASH)
-    }
-
-    @Test
-    fun `enrichWithClassifications applies sector and industry from classification service`() {
-        // Given - positions with an equity asset
-        val positions = Positions(portfolio)
-        positions.asAt = DateUtils.TODAY
-
-        val equityAsset = TestHelpers.createTestAsset("AAPL", "US")
-        equityAsset.assetCategory = AssetCategory(id = AssetCategory.REPORT_EQUITY, name = "Equity")
-        val position = Position(equityAsset, portfolio)
-        position.quantityValues.purchased = BigDecimal.TEN
-        positions.add(position)
-
-        // Mock classification response
-        val classifications =
-            mapOf(
-                equityAsset.id to
-                    AssetClassificationSummary(
-                        assetId = equityAsset.id,
-                        sector = "Information Technology",
-                        industry = "Consumer Electronics"
-                    )
-            )
-        whenever(classificationClient.getClassifications(any()))
-            .thenReturn(BulkClassificationResponse(classifications))
-        whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
-
-        // When
-        val result = valuationService.value(positions)
-
-        // Then - equity should have sector and industry set from classifications
-        val equityPosition =
-            result.data.positions.values
-                .first()
-        assertThat(equityPosition.asset.sector).isEqualTo("Information Technology")
-        assertThat(equityPosition.asset.industry).isEqualTo("Consumer Electronics")
     }
 
     @Test
@@ -1341,6 +1273,32 @@ class ValuationServiceTest {
         verify(marketValueUpdateProducer, never()).sendMessage(any())
     }
 
+    @Test
+    fun `single portfolio valuation reads trns and proposed cash concurrently as the caller`() {
+        val caller = TestingAuthenticationToken("caller", null)
+        SecurityContextHolder.getContext().authentication = caller
+        val probe = ConcurrencyProbe(2)
+        stubOneBuyPerPortfolio(portfolio, probe = probe)
+        whenever(trnService.queryProposedCash(any(), any())).thenAnswer { probe.arrive(TrnResponse(emptyList())) }
+
+        withRealEarmark().getPositions(portfolio, DateUtils.TODAY, value = false)
+
+        assertThat(probe.allMet).isTrue()
+        assertThat(probe.callers).containsOnly(caller)
+    }
+
+    @Test
+    fun `aggregated valuation reads every portfolio's trns and proposed cash concurrently`() {
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        val probe = ConcurrencyProbe(4)
+        stubOneBuyPerPortfolio(portfolio, portfolio2, probe = probe)
+        whenever(trnService.queryProposedCash(any(), any())).thenAnswer { probe.arrive(TrnResponse(emptyList())) }
+
+        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+
+        assertThat(probe.allMet).isTrue()
+    }
+
     // The real EarmarkService over the mocked TrnService, so the assertion lands on the
     // bc-data read itself rather than on an EarmarkService mock.
     private fun withRealEarmark(): ValuationService =
@@ -1349,14 +1307,16 @@ class ValuationServiceTest {
             trnService,
             positionService,
             marketValueUpdateProducer,
-            classificationClient,
             fxRateService,
             tokenService,
             dateUtils,
             EarmarkService(trnService)
         )
 
-    private fun stubOneBuyPerPortfolio(vararg portfolios: Portfolio) {
+    private fun stubOneBuyPerPortfolio(
+        vararg portfolios: Portfolio,
+        probe: ConcurrencyProbe? = null
+    ) {
         val asset = TestHelpers.createTestAsset("ABC", "US")
         portfolios.forEach { p ->
             val trn =
@@ -1368,7 +1328,10 @@ class ValuationServiceTest {
                     price = PRICE_150,
                     tradeDate = LocalDate.of(2024, 1, 15)
                 )
-            whenever(trnService.query(argThat { id == p.id }, any<String>())).thenReturn(TrnResponse(listOf(trn)))
+            val response = TrnResponse(listOf(trn))
+            whenever(trnService.query(argThat { id == p.id }, any<String>())).thenAnswer {
+                probe?.arrive(response) ?: response
+            }
         }
         val positions = Positions(portfolios.first())
         positions.add(Position(asset, portfolios.first()))

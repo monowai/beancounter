@@ -3,6 +3,7 @@ package com.beancounter.position.valuation
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.CashUtils
@@ -28,26 +29,30 @@ class EarmarkService(
 ) {
     private val log = LoggerFactory.getLogger(EarmarkService::class.java)
 
-    fun stamp(
+    /**
+     * PROPOSED cash legs for [portfolio] as at [asAt]. Earmark is a supplementary
+     * overlay on the cash position; a failure to fetch the legs must never break
+     * the core valuation, so degrade to "no earmark" on any client/server error
+     * rather than propagating. The bc-data RestClient maps HTTP errors to BC
+     * RuntimeExceptions (NotFoundException etc.), so the catch is deliberately broad.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    fun proposedLegs(
         portfolio: Portfolio,
-        positions: Positions,
         asAt: String
+    ): List<Trn> =
+        try {
+            trnService.queryProposedCash(portfolio.id, asAt).data.toTrns()
+        } catch (e: RuntimeException) {
+            log.warn("Earmark skipped for {}: {}", portfolio.code, e.message)
+            emptyList()
+        }
+
+    fun stamp(
+        positions: Positions,
+        legs: List<Trn>
     ) {
-        if (!positions.hasPositions()) return
-        // Earmark is a supplementary overlay on the cash position; a failure to
-        // fetch the PROPOSED legs must never break the core valuation, so degrade
-        // to "no earmark" on any client/server error rather than propagating. The
-        // bc-data RestClient maps HTTP errors to BC RuntimeExceptions
-        // (NotFoundException etc.), so the catch is deliberately broad.
-        @Suppress("TooGenericExceptionCaught")
-        val legs =
-            try {
-                trnService.queryProposedCash(portfolio.id, asAt).data.toTrns()
-            } catch (e: RuntimeException) {
-                log.warn("Earmark skipped for {}: {}", portfolio.code, e.message)
-                return
-            }
-        if (legs.isEmpty()) return
+        if (!positions.hasPositions() || legs.isEmpty()) return
 
         // Signed net cash-ccy quantity per cash asset, keyed the same way
         // positions.positions is keyed (AssetKeyUtils.toKey) so lookups hit.

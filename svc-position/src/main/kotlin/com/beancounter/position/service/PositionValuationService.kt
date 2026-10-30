@@ -1,9 +1,11 @@
 package com.beancounter.position.service
 
+import com.beancounter.common.contracts.BulkClassificationResponse
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Position
@@ -12,13 +14,16 @@ import com.beancounter.common.model.Totals
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.position.model.ValuationData
+import com.beancounter.position.utils.runAs
 import io.sentry.Breadcrumb
 import io.sentry.Sentry
 import io.sentry.SentryLevel
 import io.sentry.kotlin.SentryContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import kotlin.coroutines.cancellation.CancellationException
@@ -52,7 +57,7 @@ class PositionValuationService(
             positions.asAt
         )
 
-        val (priceResponse, fxResponse) =
+        val (priceResponse, fxResponse, classifications) =
             runBlockingTraced {
                 getValuationData(positions, live = live)
             }
@@ -105,12 +110,33 @@ class PositionValuationService(
         baseTotals.irr = irr
         pfTotals.irr = irr
         tradeTotals.irr = irr
+        classify(positions, classifications)
 
         logger.trace(
             "Completed valuation of {} positions.",
             positions.positions.size
         )
         return positions
+    }
+
+    /**
+     * Applies sector/industry from svc-data. Cash assets are always the "Cash" sector.
+     * A failed classification read arrives empty, so positions just lack the data.
+     */
+    private fun classify(
+        positions: Positions,
+        classifications: BulkClassificationResponse
+    ) {
+        positions.positions.values.forEach { position ->
+            if (position.asset.effectiveReportCategory == AssetCategory.REPORT_CASH) {
+                position.asset.sector = AssetCategory.REPORT_CASH
+            } else {
+                classifications.data[position.asset.id]?.let { classification ->
+                    position.asset.sector = classification.sector
+                    position.asset.industry = classification.industry
+                }
+            }
+        }
     }
 
     private fun tradeCurrency(positions: Positions): Currency =
@@ -338,8 +364,11 @@ class PositionValuationService(
         positions: Positions,
         token: String = config.tokenService.bearerToken,
         live: Boolean = false
-    ): ValuationData =
-        withContext(SentryContext()) {
+    ): ValuationData {
+        // Blocking clients only overlap on the IO pool; runBlocking alone keeps every
+        // async on the request thread, one call after another.
+        val caller = SecurityContextHolder.getContext()
+        return withContext(SentryContext() + Dispatchers.IO) {
             try {
                 val fxRequest =
                     config.fxUtils.buildRequest(
@@ -354,26 +383,36 @@ class PositionValuationService(
                     )
                 val priceDeferred =
                     async {
-                        if (live) {
-                            config.priceService.getLivePrices(priceRequest, token)
-                        } else {
-                            config.priceService.getPrices(priceRequest, token)
+                        caller.runAs {
+                            if (live) {
+                                config.priceService.getLivePrices(priceRequest, token)
+                            } else {
+                                config.priceService.getPrices(priceRequest, token)
+                            }
                         }
                     }
                 val fxDeferred =
                     async {
-                        config.fxRateService.getRates(
-                            fxRequest,
-                            token
-                        )
+                        caller.runAs {
+                            config.fxRateService.getRates(
+                                fxRequest,
+                                token
+                            )
+                        }
+                    }
+                val classificationDeferred =
+                    async {
+                        caller.runAs {
+                            config.classificationClient.getClassifications(
+                                positions.positions.values.map { it.asset.id }
+                            )
+                        }
                     }
 
-                val prices = priceDeferred.await()
-                val rates = fxDeferred.await()
-
                 ValuationData(
-                    prices,
-                    rates
+                    priceDeferred.await(),
+                    fxDeferred.await(),
+                    classificationDeferred.await()
                 )
             } catch (e: CancellationException) {
                 throw IllegalStateException(
@@ -382,6 +421,7 @@ class PositionValuationService(
                 )
             }
         }
+    }
 
     private fun calculateIrrSafely(
         periodicCashFlows: PeriodicCashFlows,

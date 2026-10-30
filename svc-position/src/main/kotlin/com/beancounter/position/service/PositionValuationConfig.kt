@@ -2,6 +2,7 @@ package com.beancounter.position.service
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.irr.IrrCalculator
@@ -25,6 +26,7 @@ data class PositionValuationConfig(
     val tokenService: TokenService,
     val dateUtils: DateUtils,
     val irrCalculator: IrrCalculator,
+    val classificationClient: ClassificationClient,
     /**
      * Minimum holding period (in days) before using IRR (XIRR) instead of simple ROI.
      *

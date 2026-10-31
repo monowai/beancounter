@@ -10,6 +10,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.fx.FxRateService
+import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -29,6 +30,7 @@ class TrnAnalysisService(
     private val fxRateService: FxRateService,
     private val assetRepository: AssetRepository,
     private val classificationService: ClassificationService,
+    private val portfolioService: PortfolioService,
     private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(TrnAnalysisService::class.java)
@@ -108,6 +110,7 @@ class TrnAnalysisService(
                     TrnStatus.SETTLED
                 )
             } else {
+                requireAccess(portfolioIds)
                 trnRepository.findInvestmentsByPortfoliosAndDateRange(
                     portfolioIds,
                     startDate,
@@ -274,8 +277,17 @@ class TrnAnalysisService(
             val user = systemUserService.getOrThrow()
             trnRepository.findIncomeByOwnerAndDateRange(user, startDate, endDate, TrnStatus.SETTLED)
         } else {
+            requireAccess(portfolioIds)
             trnRepository.findIncomeByPortfoliosAndDateRange(portfolioIds, startDate, endDate, TrnStatus.SETTLED)
         }
+
+    /**
+     * [PortfolioService.find] per id, so an unknown or unauthorized portfolio
+     * rejects the whole request rather than returning a partial report.
+     */
+    private fun requireAccess(portfolioIds: List<String>) {
+        portfolioIds.forEach(portfolioService::find)
+    }
 
     private fun generateMonthRange(
         startMonth: YearMonth,

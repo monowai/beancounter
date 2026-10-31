@@ -15,6 +15,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.fx.FxRateService
+import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -40,7 +41,8 @@ class TrnAnalysisServiceIncomeTest {
             mock<SystemUserService>(),
             fxRateService,
             assetRepository,
-            mock<ClassificationService>()
+            mock<ClassificationService>(),
+            mock<PortfolioService>()
         )
 
     private val usd = Currency("USD")

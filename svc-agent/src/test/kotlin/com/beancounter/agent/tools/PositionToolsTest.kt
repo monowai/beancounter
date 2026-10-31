@@ -52,7 +52,7 @@ class PositionToolsTest {
     }
 
     @Test
-    fun `getAggregatedPositions delegates to client and scrubs without weight`() {
+    fun `getAggregatedPositions delegates to client and keeps the weight of each row`() {
         val client =
             mock<PositionClient> {
                 on { getAggregatedPositions(listOf("A", "B"), "today") } doReturn
@@ -62,9 +62,8 @@ class PositionToolsTest {
 
         val result = tools.getAggregatedPositions("A,B", "today")
 
-        assertThat(result.cols).doesNotContain("weight")
         assertThat(result.rows).hasSize(1)
-        assertThat(result.cols).contains("assetCode", "xirr", "category")
+        assertThat(result.cols).contains("assetCode", "xirr", "weight", "category")
     }
 
     @Test

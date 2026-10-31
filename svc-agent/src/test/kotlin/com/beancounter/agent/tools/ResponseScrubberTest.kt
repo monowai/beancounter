@@ -10,6 +10,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData
 import com.beancounter.common.model.Totals
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -162,56 +163,57 @@ class ResponseScrubberTest {
             .doesNotContain("roi", "yieldPercent", "tradeCurrency", "priceDate")
     }
 
-    @Test
-    fun `scrubAggregated drops weight column from cols and rows`() {
-        // Aggregated reviews collapse N portfolios into a single dataset
-        // for the LLM. The per-position portfolio weight is meaningless
-        // once positions are aggregated across portfolios (each position
-        // can have a different denominator), and the LLM was observed
-        // wasting tokens narrating per-portfolio breakdowns. Drop weight
-        // server-side so the input matches a single-portfolio view.
-        val asset = Asset(code = "AAPL", market = nasdaq, category = "Equity")
-        val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal("50")
+    private fun held(
+        code: String,
+        marketValue: String,
+        gainOnDay: String,
+        changePercent: String
+    ): Position {
+        val position = Position(Asset(code = code, market = nasdaq, category = "Equity"), portfolio)
+        position.quantityValues.purchased = BigDecimal("10")
         val money = position.getMoneyValues(Position.In.PORTFOLIO)
-        money.weight = BigDecimal("0.125")
-        money.irr = BigDecimal("0.14")
-        money.priceData =
-            PriceData(
-                priceDate = LocalDate.parse("2026-04-15"),
-                close = BigDecimal("178.50"),
-                changePercent = BigDecimal("0.012")
+        money.marketValue = BigDecimal(marketValue)
+        money.gainOnDay = BigDecimal(gainOnDay)
+        money.priceData = PriceData(close = BigDecimal("1"), changePercent = BigDecimal(changePercent))
+        return position
+    }
+
+    private fun scrubbed(vararg held: Position) =
+        scrubber.scrub(PositionResponse(Positions(portfolio).apply { held.forEach(::add) }))
+
+    @Test
+    fun `day change blends positions by value against yesterday's total`() {
+        val result =
+            scrubbed(
+                held("UP", "6300", "300", "0.05"),
+                held("DOWN", "3700", "-300", "-0.075")
             )
 
-        val positions = Positions(portfolio).apply { add(position) }
-        positions.asAt = "2026-04-16"
+        assertThat(result.dayChangePercent).isEqualTo(0.0)
 
-        val scrubbed = scrubber.scrubAggregated(PositionResponse(positions))
+        val gain = scrubbed(held("UP", "10500", "500", "0.05"), held("FLAT", "10000", "0", "0"))
+        assertThat(gain.dayChangePercent).isCloseTo(0.025, within(0.000001))
+    }
 
-        assertThat(scrubbed.cols).doesNotContain("weight")
-        assertThat(scrubbed.cols)
-            .containsExactly(
-                "assetCode",
-                "assetName",
-                "market",
-                "priceClose",
-                "changePercent",
-                "xirr",
-                "category",
-                "opened",
-                "lastTrade",
-                "lastDividend"
+    @Test
+    fun `day change ignores a stale gain on a position with no price move`() {
+        val result =
+            scrubbed(
+                held("UP", "10500", "500", "0.05"),
+                held("SHUT", "10000", "999", "0")
             )
-        val row = scrubbed.rows.single()
-        assertThat(row).hasSize(scrubbed.cols.size)
-        val codeIdx = scrubbed.cols.indexOf("assetCode")
-        val xirrIdx = scrubbed.cols.indexOf("xirr")
-        val categoryIdx = scrubbed.cols.indexOf("category")
-        val priceIdx = scrubbed.cols.indexOf("priceClose")
-        assertThat(row[codeIdx]).isEqualTo("AAPL")
-        assertThat(row[xirrIdx]).isEqualTo(0.14)
-        assertThat(row[categoryIdx]).isEqualTo("Equity")
-        assertThat(row[priceIdx]).isEqualTo(178.50)
+
+        assertThat(result.dayChangePercent).isCloseTo(0.025, within(0.000001))
+    }
+
+    @Test
+    fun `day change is unknown when no position moved`() {
+        assertThat(scrubbed(held("SHUT", "10000", "0", "0")).dayChangePercent).isNull()
+    }
+
+    @Test
+    fun `day change is unknown when there is no value to measure against`() {
+        assertThat(scrubbed(held("GONE", "0", "0", "0.01")).dayChangePercent).isNull()
     }
 
     @Test
@@ -272,9 +274,5 @@ class ResponseScrubberTest {
         assertThat(withClosed.rows.single { it[codeIdx] == "OLD" }[closedIdx]).isEqualTo(true)
         assertThat(withClosed.rows.single { it[codeIdx] == "OPEN" }[closedIdx]).isEqualTo(false)
         withClosed.rows.forEach { assertThat(it).hasSize(withClosed.cols.size) }
-
-        val aggregated = scrubber.scrubAggregated(response, includeClosed = true)
-        assertThat(aggregated.cols).doesNotContain("weight").contains("closed")
-        assertThat(aggregated.rows).hasSize(2)
     }
 }

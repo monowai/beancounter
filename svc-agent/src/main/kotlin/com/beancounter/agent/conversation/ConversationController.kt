@@ -53,8 +53,10 @@ class ConversationController(
         validate(turns)
         val ownerId = owner.id()
         request?.subject?.let { subject ->
+            require(subject.isNotBlank()) { "Subject cannot be blank" }
             require(subject.length <= MAX_SUBJECT_CHARS) { "Subject is longer than $MAX_SUBJECT_CHARS characters" }
             require(turns.isEmpty()) { "A subject's conversation cannot be seeded" }
+            require(!request.hidden) { "A subject's conversation cannot be hidden" }
             return service.findOrCreate(ownerId, subject).let {
                 ConversationSummaryResponse(
                     ConversationSummary(it.id, it.title, it.createdAt, it.updatedAt, it.kind)

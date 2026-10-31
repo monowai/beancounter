@@ -105,6 +105,16 @@ class ConversationControllerTest {
     }
 
     @Test
+    fun `should refuse a blank subject`() {
+        mockMvc.perform(seed("""{"subject":"  "}""")).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `should refuse a hidden conversation for a subject`() {
+        mockMvc.perform(seed("""{"subject":"portfolio-review|A|DBS","hidden":true}""")).andExpect(status().isBadRequest)
+    }
+
+    @Test
     fun `should create a conversation seeded with a prior exchange`() {
         val body =
             """{"turns":[

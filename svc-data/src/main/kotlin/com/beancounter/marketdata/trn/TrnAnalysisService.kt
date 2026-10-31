@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.common.contracts.FxRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
@@ -224,13 +225,15 @@ class TrnAnalysisService(
      * @param endMonth End month (default current month)
      * @param portfolioIds Optional list of portfolio IDs to filter by
      * @param groupBy Grouping option: "assetClass" (public API name for AccountingType category), "sector", "currency", or "market"
+     * @param targetCurrency Currency code every amount in the report is expressed in
      * @return MonthlyIncomeResponse with aggregated income data
      */
     fun getMonthlyIncome(
         months: Int = 12,
         endMonth: YearMonth = YearMonth.now(dateUtils.zoneId),
         portfolioIds: List<String> = emptyList(),
-        groupBy: String = "assetClass"
+        groupBy: String = "assetClass",
+        targetCurrency: String
     ): MonthlyIncomeResponse {
         val startMonth = endMonth.minusMonths((months - 1).toLong())
         val startDate = startMonth.atDay(1)
@@ -243,12 +246,23 @@ class TrnAnalysisService(
         val monthlyTotals = mutableMapOf<YearMonth, BigDecimal>()
         allMonths.forEach { monthlyTotals[it] = BigDecimal.ZERO }
 
+        val todayRates = getFxRates(transactions.filter { recordedRate(it, targetCurrency) == null }, targetCurrency)
+
         val groupData = mutableMapOf<String, GroupAggregation>()
         for (trn in transactions) {
-            aggregateTransaction(trn, allMonths, monthlyTotals, groupBy, assetMetaData, groupData)
+            val amount = incomeIn(targetCurrency, trn, todayRates)
+            aggregateTransaction(trn, amount, allMonths, monthlyTotals, groupBy, assetMetaData, groupData)
         }
 
-        return buildIncomeResponse(startMonth, endMonth, groupBy, allMonths, monthlyTotals, groupData)
+        return buildIncomeResponse(
+            startMonth,
+            endMonth,
+            groupBy,
+            targetCurrency,
+            allMonths,
+            monthlyTotals,
+            groupData
+        )
     }
 
     private fun fetchIncomeTransactions(
@@ -298,6 +312,7 @@ class TrnAnalysisService(
 
     private fun aggregateTransaction(
         trn: Trn,
+        amount: BigDecimal,
         allMonths: List<YearMonth>,
         monthlyTotals: MutableMap<YearMonth, BigDecimal>,
         groupBy: String,
@@ -305,7 +320,6 @@ class TrnAnalysisService(
         groupData: MutableMap<String, GroupAggregation>
     ) {
         val trnMonth = YearMonth.from(trn.tradeDate)
-        val amount = trn.tradeAmount
         val monthIndex = allMonths.indexOf(trnMonth)
 
         monthlyTotals[trnMonth] = monthlyTotals.getOrDefault(trnMonth, BigDecimal.ZERO).add(amount)
@@ -339,6 +353,7 @@ class TrnAnalysisService(
         startMonth: YearMonth,
         endMonth: YearMonth,
         groupBy: String,
+        currency: String,
         allMonths: List<YearMonth>,
         monthlyTotals: Map<YearMonth, BigDecimal>,
         groupData: Map<String, GroupAggregation>
@@ -363,6 +378,7 @@ class TrnAnalysisService(
         return MonthlyIncomeResponse(
             startMonth = startMonth.toString(),
             endMonth = endMonth.toString(),
+            currency = currency,
             totalIncome = totalIncome,
             groupBy = groupBy,
             months = monthlyDataList,
@@ -408,6 +424,42 @@ class TrnAnalysisService(
                 sector = classification?.sector
             )
         }
+    }
+
+    /**
+     * The rate stamped on the trn at trade date, when [targetCurrency] is one it records.
+     * A stamp of exactly 1 between different currencies means the rate was never computed.
+     */
+    private fun recordedRate(
+        trn: Trn,
+        targetCurrency: String
+    ): BigDecimal? {
+        val rate =
+            when (targetCurrency) {
+                trn.portfolio.currency.code -> trn.tradePortfolioRate
+                trn.portfolio.base.code -> trn.tradeBaseRate
+                else -> null
+            }
+        return rate?.takeUnless { it.compareTo(BigDecimal.ONE) == 0 }
+    }
+
+    /**
+     * Income in [targetCurrency], preferring the trade-date rate so past months stay stable and
+     * agree with position income. Fails rather than total amounts in unlike currencies.
+     */
+    private fun incomeIn(
+        targetCurrency: String,
+        trn: Trn,
+        todayRates: Map<String, BigDecimal>
+    ): BigDecimal {
+        val fromCurrency = trn.tradeCurrency.code
+        if (fromCurrency == targetCurrency) return trn.tradeAmount
+
+        val rate =
+            recordedRate(trn, targetCurrency)
+                ?: todayRates["$fromCurrency:$targetCurrency"]
+                ?: throw BusinessException("No FX rate from $fromCurrency to $targetCurrency")
+        return trn.tradeAmount.multiply(rate)
     }
 
     /**

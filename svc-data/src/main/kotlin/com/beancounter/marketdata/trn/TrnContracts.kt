@@ -111,6 +111,7 @@ data class TransactionSummaryResponse(
 data class MonthlyIncomeResponse(
     val startMonth: String,
     val endMonth: String,
+    val currency: String,
     val totalIncome: BigDecimal,
     val groupBy: String,
     val months: List<MonthlyIncomeData>,

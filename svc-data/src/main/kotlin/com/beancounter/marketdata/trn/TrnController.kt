@@ -13,6 +13,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.portfolio.PortfolioService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -58,7 +59,8 @@ class TrnController(
     var trnSettlementService: TrnSettlementService,
     var trnQueryService: TrnQueryService,
     var dateUtils: DateUtils,
-    var positionMoveService: PositionMoveService
+    var positionMoveService: PositionMoveService,
+    var portfolioService: PortfolioService
 ) {
     @GetMapping(
         value = ["/portfolio/{portfolioId}"],
@@ -548,7 +550,7 @@ class TrnController(
     ): TrnResponse =
         TrnResponse(
             trnQueryService.findAssetTrades(
-                query.portfolio,
+                portfolioService.find(query.portfolio.id),
                 query.assetId,
                 query.tradeDate
             )

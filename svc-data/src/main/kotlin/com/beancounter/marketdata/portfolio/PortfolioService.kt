@@ -107,6 +107,8 @@ class PortfolioService(
         return found.isPresent
     }
 
+    fun canView(portfolio: Portfolio): Boolean = accessControl.canView(portfolio)
+
     fun find(id: String): Portfolio {
         val found = portfolioRepository.findById(id)
         val portfolio =

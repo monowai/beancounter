@@ -34,7 +34,7 @@ class TrnFinder(
 
     fun getPortfolioTrn(trnId: String): Collection<Trn> {
         val trn = trnRepository.findById(trnId)
-        if (trn.isEmpty) {
+        if (trn.isEmpty || !portfolioService.canView(trn.get().portfolio)) {
             throw NotFoundException("Trn not found: $trnId")
         }
         val result = trn.map { transaction: Trn -> trnPostProcessor.postProcess(setOf(transaction)) }

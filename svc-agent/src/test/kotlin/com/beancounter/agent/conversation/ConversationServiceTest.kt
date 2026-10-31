@@ -382,4 +382,42 @@ class ConversationServiceTest {
         inFlight.end(id)
         assertThat(service.get(owner, id).pending).isFalse()
     }
+
+    @Test
+    fun `should return the owner's conversation for a subject instead of a second one`() {
+        val first = service.findOrCreate(owner, "portfolio-review|A|DBS,USV")
+        service.appendUser(owner, first.id, "review", deepThink = false)
+
+        val again = service.findOrCreate(owner, "portfolio-review|A|DBS,USV")
+
+        assertThat(again.id).isEqualTo(first.id)
+    }
+
+    @Test
+    fun `should keep a different selection of portfolios in its own conversation`() {
+        val first = service.findOrCreate(owner, "portfolio-review|A|DBS,USV")
+
+        val other = service.findOrCreate(owner, "portfolio-review|A|DBS")
+
+        assertThat(other.id).isNotEqualTo(first.id)
+    }
+
+    @Test
+    fun `should never share a subject's conversation between owners`() {
+        val mine = service.findOrCreate(owner, "portfolio-review|A|DBS")
+
+        val theirs = service.findOrCreate(stranger, "portfolio-review|A|DBS")
+
+        assertThat(theirs.id).isNotEqualTo(mine.id)
+    }
+
+    @Test
+    fun `should leave a free chat outside any subject`() {
+        val chat = service.create(owner)
+        service.appendUser(owner, chat.id, "hello", deepThink = false)
+
+        val review = service.findOrCreate(owner, "portfolio-review|A|DBS")
+
+        assertThat(review.id).isNotEqualTo(chat.id)
+    }
 }

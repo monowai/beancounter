@@ -33,7 +33,9 @@ class Conversation(
     val hidden: Boolean = false,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    var kind: ConversationKind = ConversationKind.CHAT
+    var kind: ConversationKind = ConversationKind.CHAT,
+    /** What the thread is about, when one thread belongs to it: a Portfolio Review's portfolios. */
+    val subject: String? = null
 )
 
 /**

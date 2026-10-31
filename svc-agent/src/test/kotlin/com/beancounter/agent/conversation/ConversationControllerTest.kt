@@ -1,5 +1,6 @@
 package com.beancounter.agent.conversation
 
+import com.jayway.jsonpath.JsonPath
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -84,6 +85,34 @@ class ConversationControllerTest {
             .with(jwt())
             .contentType(MediaType.APPLICATION_JSON)
             .content(body)
+
+    @Test
+    fun `should return the same conversation for the same subject`() {
+        fun idFor(body: String): String =
+            JsonPath.read(
+                mockMvc
+                    .perform(seed(body))
+                    .andExpect(status().isCreated)
+                    .andReturn()
+                    .response.contentAsString,
+                "$.data.id"
+            )
+
+        val first = idFor("""{"subject":"portfolio-review|A|DBS,USV"}""")
+
+        assertThat(idFor("""{"subject":"portfolio-review|A|DBS,USV"}""")).isEqualTo(first)
+        assertThat(idFor("""{"subject":"portfolio-review|A|DBS"}""")).isNotEqualTo(first)
+    }
+
+    @Test
+    fun `should refuse a blank subject`() {
+        mockMvc.perform(seed("""{"subject":"  "}""")).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `should refuse a hidden conversation for a subject`() {
+        mockMvc.perform(seed("""{"subject":"portfolio-review|A|DBS","hidden":true}""")).andExpect(status().isBadRequest)
+    }
 
     @Test
     fun `should create a conversation seeded with a prior exchange`() {

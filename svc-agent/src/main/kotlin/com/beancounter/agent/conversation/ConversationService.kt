@@ -37,6 +37,21 @@ class ConversationService(
         return conversations.save(Conversation(ownerId = ownerId, createdAt = now, updatedAt = now, hidden = hidden))
     }
 
+    /**
+     * The owner's conversation about [subject], started if there is none, so
+     * one subject has one thread. The newest wins if a race ever made two.
+     */
+    fun findOrCreate(
+        ownerId: String,
+        subject: String
+    ): Conversation =
+        conversations.findFirstByOwnerIdAndSubjectOrderByUpdatedAtDesc(ownerId, subject)
+            ?: clock.instant().let { now ->
+                conversations.save(
+                    Conversation(ownerId = ownerId, createdAt = now, updatedAt = now, subject = subject)
+                )
+            }
+
     /** Whether the owner's conversation [id] is kept out of the list. */
     @Transactional(readOnly = true)
     fun isHidden(

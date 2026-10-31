@@ -35,6 +35,7 @@ class ConversationController(
     private companion object {
         const val MAX_PAGE_SIZE = 100
         const val MAX_SEED_TURNS = 50
+        const val MAX_SUBJECT_CHARS = 512
     }
 
     @PostMapping
@@ -42,7 +43,8 @@ class ConversationController(
     @Operation(
         summary =
             "Start a conversation, empty or seeded with prior turns (max 50); it is listed once it holds a turn, " +
-                "unless hidden: a hidden conversation is never listed or titled and is read only by id"
+                "unless hidden: a hidden conversation is never listed or titled and is read only by id. " +
+                "With a subject, returns the caller's conversation for it, starting one if there is none"
     )
     fun create(
         @RequestBody(required = false) request: CreateConversationRequest?
@@ -50,6 +52,17 @@ class ConversationController(
         val turns = request?.turns.orEmpty()
         validate(turns)
         val ownerId = owner.id()
+        request?.subject?.let { subject ->
+            require(subject.isNotBlank()) { "Subject cannot be blank" }
+            require(subject.length <= MAX_SUBJECT_CHARS) { "Subject is longer than $MAX_SUBJECT_CHARS characters" }
+            require(turns.isEmpty()) { "A subject's conversation cannot be seeded" }
+            require(!request.hidden) { "A subject's conversation cannot be hidden" }
+            return service.findOrCreate(ownerId, subject).let {
+                ConversationSummaryResponse(
+                    ConversationSummary(it.id, it.title, it.createdAt, it.updatedAt, it.kind)
+                )
+            }
+        }
         val hidden = request?.hidden == true
         val conversation = service.create(ownerId, hidden)
         if (turns.isNotEmpty()) seed(ownerId, conversation.id, turns, hidden)
@@ -140,7 +153,9 @@ data class SeedTurn(
 data class CreateConversationRequest(
     val turns: List<SeedTurn> = emptyList(),
     /** Kept out of the list, read only by id: a one-off answer a client fetches once and deletes. */
-    val hidden: Boolean = false
+    val hidden: Boolean = false,
+    /** Find or start the one conversation about this, keyed by the client. */
+    val subject: String? = null
 )
 
 data class RenameConversationRequest(

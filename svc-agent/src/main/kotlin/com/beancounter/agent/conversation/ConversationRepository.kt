@@ -36,6 +36,11 @@ interface ConversationRepository : JpaRepository<Conversation, String> {
         pageable: Pageable
     ): List<Conversation>
 
+    fun findFirstByOwnerIdAndSubjectOrderByUpdatedAtDesc(
+        ownerId: String,
+        subject: String
+    ): Conversation?
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from Conversation c where c.id = :id")
     fun deleteOne(id: String): Int

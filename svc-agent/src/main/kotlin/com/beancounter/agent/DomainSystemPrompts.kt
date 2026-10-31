@@ -121,10 +121,14 @@ object DomainSystemPrompts {
         - `getPortfolio(code)` — metadata + XIRR by user-facing code.
         - `getAggregatedPositions(codes, asAt?)` — use whenever context
           carries plural `portfolioCodes`. Returns ONE merged dataset
-          across the listed portfolios, same columnar shape as
-          `getPositions` but WITHOUT `weight`. Treat as one combined
+          across the listed portfolios, same shape as `getPositions`;
+          `weight` is the share of the combined value. Treat as one combined
           portfolio: never call `getPositions` per code and stitch, never
           narrate per-portfolio breakdowns.
+        - `dayChangePercent` on both position tools — the whole book's move
+          today (decimal). Quote it, never recompute it. It counts only
+          positions that moved, so say so when markets were closed. Null
+          means no position moved.
         - `getPositions(code, asAt?)` — columnar: `cols` lists field names
           once, each `rows[i]` aligns to `cols`. Columns:
           - `assetCode`, `assetName`, `market` — public identifiers.

@@ -72,7 +72,7 @@ class PositionTools(
                     "Use this whenever the page context exposes `portfolioCodes` (plural). " +
                     "The response merges positions for the same asset across all listed " +
                     "portfolios — treat it as a single combined dataset and do NOT narrate " +
-                    "per-portfolio breakdowns; the `weight` column is intentionally absent."
+                    "per-portfolio breakdowns."
         ) portfolioCodes: String,
         @ToolParam(description = ASAT_DESC) asAt: String = DateUtils.TODAY,
         @ToolParam(description = INCLUDE_CLOSED_DESC) includeClosed: Boolean = false
@@ -82,7 +82,7 @@ class PositionTools(
                 .split(",")
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
-        return scrubber.scrubAggregated(
+        return scrubber.scrub(
             positionClient.getAggregatedPositions(codes, normaliseAsAt(asAt), includeValues = true),
             includeClosed = includeClosed
         )
@@ -127,7 +127,9 @@ class PositionTools(
                 "so every row represents an open holding and there is no " +
                 "`closed` column unless `includeClosed=true` was passed. " +
                 "The response also carries `portfolioCode`, `portfolioName`, " +
-                "`baseCurrency`, `asAt`, `mixedCurrencies`, and `overallIrr`. " +
+                "`baseCurrency`, `asAt`, `mixedCurrencies`, `overallIrr`, and " +
+                "`dayChangePercent` (whole book's move today, decimal; null when " +
+                "no position moved). Quote it; do not recompute it from rows. " +
                 "Show ratios as percentages when discussing performance. " +
                 "Never invent or request dollar amounts, ROI, dividend yield, or " +
                 "trade currency — they are not available in this tool."
@@ -139,9 +141,8 @@ class PositionTools(
                 "code is unique only within an owner."
         const val POSITIONS_AGGREGATED_DESC =
             "Get a SINGLE merged position dataset across the listed portfolios. " +
-                "Same columnar shape as getPositions BUT the `weight` column is " +
-                "absent — per-position portfolio weight has no single denominator " +
-                "once positions are aggregated. Use this tool whenever the page " +
+                "Same shape as getPositions; `weight` is each asset's share of the " +
+                "combined value. Use this tool whenever the page " +
                 "context carries `portfolioCodes` (plural); never loop getPositions " +
                 "per code and stitch the results yourself. The response represents " +
                 "ONE combined portfolio — do not narrate per-portfolio breakdowns."

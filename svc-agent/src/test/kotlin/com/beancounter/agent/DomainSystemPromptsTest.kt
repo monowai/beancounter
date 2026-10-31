@@ -227,6 +227,13 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `aggregated positions are described with weights and a day change to quote`() {
+        assertThat(DomainSystemPrompts.WEALTH)
+            .doesNotContain("WITHOUT `weight`")
+            .contains("dayChangePercent")
+    }
+
+    @Test
     fun `holding analysis reads the opening review and holding facts, and may cite that holding's figures`() {
         assertThat(DomainSystemPrompts.HOLDING_ANALYSIS)
             .contains("## Domain: Holding Analysis")

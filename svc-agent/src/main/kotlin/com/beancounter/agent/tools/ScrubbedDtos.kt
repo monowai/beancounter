@@ -4,8 +4,10 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 // Privacy-preserving projections of portfolio/position data sent to the LLM.
 // Absolute monetary amounts (market value, cost basis, unrealised/realised gain,
@@ -48,6 +50,9 @@ data class ScrubbedPortfolio(
  *                                    cleared on close, reset on reopen)
  *   lastTrade                      — ISO date of most recent transaction
  *   lastDividend                   — ISO date of most recent dividend
+ *
+ * `dayChangePercent` is the whole book's move today (0.012 = +1.2%): a ratio,
+ * so no balance reaches the LLM.
  */
 data class ScrubbedPositionResponse(
     val portfolioCode: String,
@@ -56,6 +61,7 @@ data class ScrubbedPositionResponse(
     val asAt: String,
     val mixedCurrencies: Boolean,
     val overallIrr: Double?,
+    val dayChangePercent: Double?,
     val cols: List<String> = COLS,
     val rows: List<List<Any?>>
 ) {
@@ -74,13 +80,6 @@ data class ScrubbedPositionResponse(
                 "lastTrade",
                 "lastDividend"
             )
-
-        // Aggregated reviews drop `weight` — once positions are merged across
-        // portfolios the per-position weight has no single denominator, and
-        // the LLM was burning tokens narrating per-portfolio breakdowns.
-        // The remaining columns match COLS in order so prompts can describe
-        // the schema once and reference both views.
-        val COLS_AGGREGATED: List<String> = COLS.filterNot { it == "weight" }
 
         /** Appended to whichever column set is in use when closed rows are requested. */
         const val CLOSED_COL = "closed"
@@ -111,22 +110,6 @@ class ResponseScrubber {
     fun scrub(
         response: PositionResponse,
         includeClosed: Boolean = false
-    ): ScrubbedPositionResponse = scrubInternal(response, includeWeight = true, includeClosed = includeClosed)
-
-    /**
-     * Aggregated-portfolio variant. Drops the `weight` column from both
-     * `cols` and every row — see [ScrubbedPositionResponse.COLS_AGGREGATED]
-     * for the rationale.
-     */
-    fun scrubAggregated(
-        response: PositionResponse,
-        includeClosed: Boolean = false
-    ): ScrubbedPositionResponse = scrubInternal(response, includeWeight = false, includeClosed = includeClosed)
-
-    private fun scrubInternal(
-        response: PositionResponse,
-        includeWeight: Boolean,
-        includeClosed: Boolean
     ): ScrubbedPositionResponse {
         val positions = response.data
         // Drop closed (zero-quantity) rows server-side so the LLM never sees
@@ -137,13 +120,8 @@ class ResponseScrubber {
         val rows =
             positions.positions.values
                 .filter { includeClosed || !it.isClosed() }
-                .map { scrubPositionRow(it, includeWeight, includeClosed) }
-        val baseCols =
-            if (includeWeight) {
-                ScrubbedPositionResponse.COLS
-            } else {
-                ScrubbedPositionResponse.COLS_AGGREGATED
-            }
+                .map { scrubPositionRow(it, includeClosed) }
+        val baseCols = ScrubbedPositionResponse.COLS
         return ScrubbedPositionResponse(
             portfolioCode = positions.portfolio.code,
             portfolioName = positions.portfolio.name,
@@ -154,16 +132,31 @@ class ResponseScrubber {
                 positions.totals[Position.In.PORTFOLIO]
                     ?.irr
                     ?.toNullableDouble(),
+            dayChangePercent = dayChangePercent(positions),
             cols = if (includeClosed) baseCols + ScrubbedPositionResponse.CLOSED_COL else baseCols,
             rows = rows
         )
+    }
+
+    /**
+     * The whole book's move today as a decimal: the day's gain over yesterday's
+     * value, in the PORTFOLIO bucket. A position only contributes a gain when
+     * its price moved. Null when nothing moved or there is no value to measure.
+     */
+    private fun dayChangePercent(positions: Positions): Double? {
+        val buckets = positions.positions.values.mapNotNull { it.moneyValues[Position.In.PORTFOLIO] }
+        val moved = buckets.filter { it.priceData.changePercent.signum() != 0 }
+        val value = buckets.fold(BigDecimal.ZERO) { acc, money -> acc.add(money.marketValue) }
+        val gain = moved.fold(BigDecimal.ZERO) { acc, money -> acc.add(money.gainOnDay) }
+        val yesterday = value.subtract(gain)
+        if (moved.isEmpty() || yesterday.signum() == 0) return null
+        return gain.divide(yesterday, DAY_CHANGE_SCALE, RoundingMode.HALF_UP).toDouble()
     }
 
     private fun Position.isClosed(): Boolean = quantityValues.getTotal().signum() == 0
 
     private fun scrubPositionRow(
         position: Position,
-        includeWeight: Boolean,
         includeClosed: Boolean
     ): List<Any?> {
         val portfolioBucket = position.moneyValues[Position.In.PORTFOLIO]
@@ -176,24 +169,18 @@ class ResponseScrubber {
                 asset.market.code,
                 price?.close?.toNullableDouble(),
                 price?.changePercent?.toNullableDouble(),
-                portfolioBucket?.irr?.toNullableDouble()
-            )
-        val weightCol: List<Any?> =
-            if (includeWeight) {
-                listOf(portfolioBucket?.weight?.toDouble() ?: 0.0)
-            } else {
-                emptyList()
-            }
-        val tail =
-            listOf(
+                portfolioBucket?.irr?.toNullableDouble(),
+                portfolioBucket?.weight?.toDouble() ?: 0.0,
                 asset.category,
                 position.dateValues.opened?.toString(),
                 position.dateValues.last?.toString(),
                 position.dateValues.lastDividend?.toString()
             )
         val closedCol: List<Any?> = if (includeClosed) listOf(position.isClosed()) else emptyList()
-        return base + weightCol + tail + closedCol
+        return base + closedCol
     }
 }
+
+private const val DAY_CHANGE_SCALE = 6
 
 private fun BigDecimal?.toNullableDouble(): Double? = this?.toDouble()

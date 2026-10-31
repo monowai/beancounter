@@ -107,6 +107,10 @@ class PortfolioService(
         return found.isPresent
     }
 
+    /**
+     * Whether the authenticated caller may view [portfolio]. Request threads
+     * only: stream consumers have no caller and use [findOrNull].
+     */
     fun canView(portfolio: Portfolio): Boolean = accessControl.canView(portfolio)
 
     fun find(id: String): Portfolio {

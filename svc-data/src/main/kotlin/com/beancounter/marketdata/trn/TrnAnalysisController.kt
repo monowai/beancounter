@@ -284,7 +284,11 @@ class TrnAnalysisController(
         @Parameter(
             description = "Grouping option: 'assetClass', 'sector', 'currency', or 'market'. Defaults to 'assetClass'.",
             example = "assetClass"
-        ) @RequestParam(required = false, defaultValue = "assetClass") groupBy: String
+        ) @RequestParam(required = false, defaultValue = "assetClass") groupBy: String,
+        @Parameter(
+            description = "Currency code every amount is expressed in. Required: trades differ in currency.",
+            example = "USD"
+        ) @RequestParam(required = true) currency: String
     ): MonthlyIncomeResponse {
         val end =
             if (endMonth != null) {
@@ -293,6 +297,6 @@ class TrnAnalysisController(
                 YearMonth.now(dateUtils.zoneId)
             }
         val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
-        return trnAnalysisService.getMonthlyIncome(months, end, portfolioIdList, groupBy)
+        return trnAnalysisService.getMonthlyIncome(months, end, portfolioIdList, groupBy, currency)
     }
 }

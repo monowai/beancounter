@@ -21,7 +21,6 @@ class TrnIoDefinitionTest {
     private val dateUtils = DateUtils()
     private val trnIoDefinition = TrnIoDefinition(dateUtils)
 
-    private val usd = Currency("USD")
     private val nzd = Currency("NZD")
     private val nasdaq = Market("NASDAQ")
     private val cashMarket = Market("CASH", "CASH")

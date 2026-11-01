@@ -3,7 +3,6 @@ package com.beancounter.marketdata.classification
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
-import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -28,7 +27,6 @@ class ClassificationControllerTest {
     private lateinit var classificationService: ClassificationService
     private lateinit var classificationRefreshService: ClassificationRefreshService
     private lateinit var assetRepository: AssetRepository
-    private lateinit var assetFinder: AssetFinder
     private lateinit var controller: ClassificationController
 
     private val market = Market(code = "NASDAQ", name = "NASDAQ")
@@ -42,14 +40,12 @@ class ClassificationControllerTest {
         classificationService = mock()
         classificationRefreshService = mock()
         assetRepository = mock()
-        assetFinder = mock()
         controller =
             ClassificationController(
                 classificationEnricher,
                 classificationService,
                 classificationRefreshService,
-                assetRepository,
-                assetFinder
+                assetRepository
             )
 
         whenever(classificationEnricher.canEnrich(any())).thenReturn(true)

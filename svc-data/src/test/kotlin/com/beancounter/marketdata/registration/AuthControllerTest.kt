@@ -66,9 +66,6 @@ class AuthControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @Value($$"${wiremock.server.port}")
-    private var wiremockPort: Int = 0
-
     @Test
     fun `should allow unauthenticated user to request token by password`() {
         val loginRequest =

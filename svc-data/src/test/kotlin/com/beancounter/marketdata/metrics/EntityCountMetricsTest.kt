@@ -88,8 +88,7 @@ class EntityCountMetricsTest {
                 brokerSettlementAccountRepository = brokerSettlementAccountRepository,
                 taxRateRepository = taxRateRepository,
                 privateAssetConfigRepository = privateAssetConfigRepository,
-                accountingTypeRepository = accountingTypeRepository,
-                breakdownRefreshMs = 300_000L
+                accountingTypeRepository = accountingTypeRepository
             )
         metrics.registerEntityGauges()
     }

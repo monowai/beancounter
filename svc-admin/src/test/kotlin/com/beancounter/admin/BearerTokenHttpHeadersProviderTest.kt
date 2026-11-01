@@ -142,7 +142,4 @@ class BearerTokenHttpHeadersProviderTest {
     }
 
     private fun <T> eq(value: T): T = org.mockito.ArgumentMatchers.eq(value) ?: value
-
-    @Suppress("UNUSED")
-    private val unused: Authentication? = null
 }

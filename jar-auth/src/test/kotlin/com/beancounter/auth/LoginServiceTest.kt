@@ -55,9 +55,6 @@ class LoginServiceTest {
     @Autowired
     private lateinit var loginService: LoginService
 
-    @Autowired
-    private lateinit var authConfig: AuthConfig
-
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 

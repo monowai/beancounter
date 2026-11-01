@@ -18,7 +18,6 @@ import io.micrometer.core.instrument.Tag
 import io.micrometer.core.instrument.Tags
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.CrudRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -49,9 +48,7 @@ class EntityCountMetrics(
     private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository,
     private val taxRateRepository: TaxRateRepository,
     private val privateAssetConfigRepository: PrivateAssetConfigRepository,
-    private val accountingTypeRepository: AccountingTypeRepository,
-    @Value("\${beancounter.metrics.entity-count.refresh-ms:300000}")
-    private val breakdownRefreshMs: Long
+    private val accountingTypeRepository: AccountingTypeRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

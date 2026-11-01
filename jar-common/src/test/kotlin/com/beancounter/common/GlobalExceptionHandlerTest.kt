@@ -25,8 +25,6 @@ class GlobalExceptionHandlerTest {
 
     private val message = "detail"
 
-    private val path = "path"
-
     @Test
     fun is_BadRequest() {
         assertThat(geh.handleBadRequest())

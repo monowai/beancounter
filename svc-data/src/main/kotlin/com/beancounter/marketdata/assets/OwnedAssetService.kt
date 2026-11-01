@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service
 @Transactional
 class OwnedAssetService(
     private val assetRepository: AssetRepository,
-    private val assetFinder: AssetFinder,
     private val systemUserService: SystemUserService,
     private val assetCategoryConfig: AssetCategoryConfig,
     private val accountingTypeService: AccountingTypeService,

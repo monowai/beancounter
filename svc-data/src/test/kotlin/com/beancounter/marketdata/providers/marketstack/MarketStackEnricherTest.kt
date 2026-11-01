@@ -3,9 +3,7 @@ package com.beancounter.marketdata.providers.marketstack
 import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.providers.marketstack.model.MarketStackExchangeData
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker
-import com.beancounter.marketdata.providers.marketstack.model.MarketStackTickerResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock

@@ -6,7 +6,6 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnDto
-import com.fasterxml.jackson.annotation.JsonInclude
 
 /**
  * Normalised transport envelope for a collection of transactions.

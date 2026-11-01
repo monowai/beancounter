@@ -68,7 +68,6 @@ class NetWorthServiceTest {
 
     private lateinit var netWorthService: NetWorthService
 
-    private val sgd = Currency("SGD")
     private val usd = Currency("USD")
     private val asAt = "2024-01-15"
     private val token = "bearer"

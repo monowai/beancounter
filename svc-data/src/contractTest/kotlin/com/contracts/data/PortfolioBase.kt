@@ -26,9 +26,6 @@ import java.util.Optional
  * Base class for Portfolio contracts.
  */
 class PortfolioBase : ContractVerifierBase() {
-    @Autowired
-    private lateinit var currencyService: CurrencyService
-
     @MockitoBean
     private lateinit var portfolioRepository: PortfolioRepository
 

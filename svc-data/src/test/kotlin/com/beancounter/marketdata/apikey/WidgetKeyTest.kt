@@ -9,12 +9,14 @@ import com.beancounter.common.contracts.ApiKeyResponse
 import com.beancounter.common.contracts.ApiKeyTokenRequest
 import com.beancounter.common.contracts.DeviceKeyRequest
 import com.beancounter.common.contracts.FxRequest
+import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.WidgetKeyRequest
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.nimbusds.jose.JWSAlgorithm
@@ -27,6 +29,8 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
@@ -75,6 +79,10 @@ internal class WidgetKeyTest {
 
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
+
+    // A cache miss on FX reaches the live provider. These tests prove the route gate, not rates.
+    @MockitoBean
+    private lateinit var fxRateService: FxRateService
 
     private fun registeredToken(id: String): Jwt =
         registerUser(
@@ -373,6 +381,7 @@ internal class WidgetKeyTest {
                 .data
                 .first()
         val widget = widgetToken("widget-net-worth-reads", "10.11.0.4", owner)
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
 
         call(widget, get("/portfolios"), status().isOk)
         call(widget, get("/trns/portfolio/${portfolio.id}"), status().isOk)

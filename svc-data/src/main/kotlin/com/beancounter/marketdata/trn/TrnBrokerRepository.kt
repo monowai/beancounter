@@ -16,7 +16,7 @@ import java.time.LocalDate
 @NoRepositoryBean
 interface TrnBrokerRepository {
     companion object {
-        /** JPQL IN-list of market codes that are never broker-tradeable (private/cash assets). */
+        // JPQL IN-list of market codes that are never broker-tradeable (private/cash assets).
         private const val EXCLUDED_MARKET_CODES = "'PRIVATE', 'CASH'"
     }
 

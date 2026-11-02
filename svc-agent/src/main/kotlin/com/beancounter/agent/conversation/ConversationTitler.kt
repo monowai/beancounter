@@ -89,7 +89,7 @@ class ConversationTitler(
 
 @Configuration
 class ConversationTitleScopeConfig {
-    /** A failed title must not cancel others; titles are a few small calls a day. */
+    // A failed title must not cancel others; titles are a few small calls a day.
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineName("conversation-title"))
 
     @Bean("conversationTitleScope")

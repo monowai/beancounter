@@ -373,7 +373,7 @@ class RetireServiceClient(
         private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
         private val MAP_ANY_TYPE = object : ParameterizedTypeReference<Map<String, Any?>>() {}
 
-        /** Wealth definition and ownership — nothing the model reasons about. */
+        // Wealth definition and ownership — nothing the model reasons about.
         private val PLAN_FIELDS_HIDDEN_FROM_MODEL =
             setOf(
                 "excludedPortfolioIds",

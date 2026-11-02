@@ -96,13 +96,11 @@ object EodhdSentimentParser {
         )
     }
 
-    /** Characters of a rejected body carried in the exception so a batch failure log is diagnosable. */
+    // Characters of a rejected body carried in the exception so a batch failure log is diagnosable.
     private const val PAYLOAD_EXCERPT = 120
 
-    /**
-     * Scale of `news_sentiment_daily.normalized` (`NUMERIC(6,4)`). Rounding at parse time keeps the
-     * stored-vs-incoming comparison in the upsert honest — otherwise a 5-decimal float from EODHD
-     * never equals the 4-decimal column value and every row is rewritten on every run.
-     */
+    // Scale of `news_sentiment_daily.normalized` (`NUMERIC(6,4)`). Rounding at parse time keeps the
+    // stored-vs-incoming comparison in the upsert honest — otherwise a 5-decimal float from EODHD
+    // never equals the 4-decimal column value and every row is rewritten on every run.
     private const val NORMALIZED_SCALE = 4
 }

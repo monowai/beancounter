@@ -11,16 +11,14 @@ import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 
-/**
- * Contract for [AgentScopeAuthorizer]:
- *
- *  | Caller scope            | any page | metered (weekly quota)              |
- *  |-------------------------|----------|-------------------------------------|
- *  | beancounter:ai          | allow    | never                               |
- *  | beancounter:system      | allow    | never                               |
- *  | beancounter:preview     | allow    | yes, except a one-off News query    |
- *  | beancounter:user (only) | DENY     | -                                   |
- */
+// Contract for AgentScopeAuthorizer:
+//
+//  | Caller scope            | any page | metered (weekly quota)              |
+//  |-------------------------|----------|-------------------------------------|
+//  | beancounter:ai          | allow    | never                               |
+//  | beancounter:system      | allow    | never                               |
+//  | beancounter:preview     | allow    | yes, except a one-off News query    |
+//  | beancounter:user (only) | DENY     | -                                   |
 private const val PAGE_ASSET_REVIEW = "Asset Review"
 private const val PAGE_NEWS_SENTIMENT = "News & Sentiment"
 private const val PAGE_PORTFOLIO_AI = "Portfolio AI Overview"

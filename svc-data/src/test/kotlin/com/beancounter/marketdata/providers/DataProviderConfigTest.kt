@@ -17,7 +17,7 @@ import java.time.LocalDate
  *   miss          — code absent from allowlist → not supported
  */
 internal class DataProviderConfigTest {
-    /** Minimal no-op implementation to exercise the interface default method. */
+    // Minimal no-op implementation to exercise the interface default method.
     private val config: DataProviderConfig =
         object : DataProviderConfig {
             override fun getBatchSize() = 1

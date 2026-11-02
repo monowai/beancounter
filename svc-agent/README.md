@@ -7,7 +7,7 @@ dependency-injected tool bean, and composes a response.
 
 ## Architecture
 
-```
+```text
                 ┌──────────────┐
                 │   chat.html  │  static UI, served from classpath
                 └──────┬───────┘

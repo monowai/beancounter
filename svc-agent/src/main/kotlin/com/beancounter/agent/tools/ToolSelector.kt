@@ -28,12 +28,12 @@ class ToolSelector(
     private val rebalanceTools: RebalanceTools,
     private val watchlistTools: WatchlistTools
 ) {
-    /** Wealth baseline — portfolios, positions (and one holding, open or sold), markets/FX, macro backdrop. */
+    // Wealth baseline — portfolios, positions (and one holding, open or sold), markets/FX, macro backdrop.
     private val wealthTools: List<Any> by lazy {
         listOf(portfolioTools, positionTools, holdingTools, marketTools, macroTools)
     }
 
-    /** Corporate events: one asset's history plus loading them for the caller's portfolios. */
+    // Corporate events: one asset's history plus loading them for the caller's portfolios.
     private val eventTools: List<Any> by lazy { listOf(assetEventTools, portfolioEventTools) }
 
     fun selectTools(context: Map<String, Any>?): Array<Any> =

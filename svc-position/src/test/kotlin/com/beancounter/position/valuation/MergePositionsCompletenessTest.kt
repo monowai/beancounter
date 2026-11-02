@@ -17,7 +17,7 @@ import kotlin.reflect.full.memberProperties
  * leaving the aggregated sell dialog without broker holdings.
  */
 class MergePositionsCompletenessTest {
-    /** Properties mergePositions carries into the aggregate. */
+    // Properties mergePositions carries into the aggregate.
     private val merged =
         setOf(
             "quantityValues", // mergeQuantities
@@ -29,7 +29,7 @@ class MergePositionsCompletenessTest {
             "earmarkedQuantity" // signed net PROPOSED cash-leg qty, summed in mergeQuantities
         )
 
-    /** Properties intentionally not merged. */
+    // Properties intentionally not merged.
     private val excluded =
         setOf(
             "asset", // aggregate identity — positions are keyed by it

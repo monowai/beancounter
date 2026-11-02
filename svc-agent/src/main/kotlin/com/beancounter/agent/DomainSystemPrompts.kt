@@ -13,10 +13,8 @@ package com.beancounter.agent
  * disclose providers) live in exactly one place.
  */
 object DomainSystemPrompts {
-    /**
-     * Shared opener for every domain prompt. Cheap enough to duplicate,
-     * but written once here so it can't drift between domains.
-     */
+    // Shared opener for every domain prompt. Cheap enough to duplicate,
+    // but written once here so it can't drift between domains.
     private val PREAMBLE =
         """
         # Beancounter Assistant

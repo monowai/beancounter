@@ -602,7 +602,7 @@ class AgentController(
         get() = environment.getProperty(AgentProvider.PROPERTY, AgentProvider.DEFAULT)
 
     // Anthropic-only feature: the per-call model override uses
-    // [AnthropicChatOptions]. For any other provider, skip the override and
+    // AnthropicChatOptions. For any other provider, skip the override and
     // let the configured ChatClient's default model run.
     private val anthropicActive: Boolean
         get() = provider == AgentProvider.ANTHROPIC

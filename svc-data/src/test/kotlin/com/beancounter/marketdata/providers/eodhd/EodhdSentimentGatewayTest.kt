@@ -57,6 +57,24 @@ internal class EodhdSentimentGatewayTest {
     }
 
     @Test
+    fun `getNews encodes reserved characters in caller supplied values`() {
+        wireMock.stubFor(
+            get(urlPathEqualTo("/api/news"))
+                .withQueryParam("s", equalTo("A&limit=1"))
+                .withQueryParam("from", equalTo("2026-09-25&x=y"))
+                .withQueryParam("limit", equalTo("5"))
+                .willReturn(
+                    aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody("[]")
+                        .withStatus(200)
+                )
+        )
+
+        assertThat(gateway.getNews("A&limit=1", 5, "2026-09-25&x=y", "demo")).isEmpty()
+    }
+
+    @Test
     fun `returns the sentiment body verbatim for the requested symbols and window`() {
         val body = """{"AAPL.US":[{"date":"2026-10-06","count":27,"normalized":0.8937}]}"""
         stub(body)

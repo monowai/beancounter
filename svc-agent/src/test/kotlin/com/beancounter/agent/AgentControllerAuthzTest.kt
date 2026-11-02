@@ -11,7 +11,7 @@ import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 
-// Contract for [AgentScopeAuthorizer]:
+// Contract for AgentScopeAuthorizer:
 //
 //  | Caller scope            | any page | metered (weekly quota)              |
 //  |-------------------------|----------|-------------------------------------|

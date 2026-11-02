@@ -15,7 +15,7 @@ class MathUtils private constructor() {
         private const val MONEY_SCALE = 2
 
         // Unit prices are not money amounts - unitised funds quote well beyond cents,
-        // so prices are capped rather than rounded to [MONEY_SCALE].
+        // so prices are capped rather than rounded to MONEY_SCALE.
         private const val PRICE_SCALE = 8
         private val mathContext = MathContext(10)
         private val numberUtils = NumberUtils()

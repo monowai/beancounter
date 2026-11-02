@@ -8,7 +8,6 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpRequest
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
-import org.springframework.http.client.ClientHttpResponse
 import org.springframework.http.client.reactive.ClientHttpConnector
 import org.springframework.http.client.reactive.ClientHttpRequestDecorator
 import org.springframework.http.client.reactive.JdkClientHttpConnector

@@ -50,9 +50,6 @@ class AssetExportImportTest {
     @Autowired
     private lateinit var systemUserService: Registration
 
-    @Autowired
-    private lateinit var assetIoDefinition: AssetIoDefinition
-
     private val testUserId = "export-import-test-user"
 
     @Test

@@ -14,7 +14,6 @@ import com.beancounter.common.contracts.ManualClassificationRequest
 import com.beancounter.common.contracts.ManualClassificationResponse
 import com.beancounter.common.contracts.SectorInfo
 import com.beancounter.common.contracts.SectorsResponse
-import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -43,8 +42,7 @@ class ClassificationController(
     private val classificationEnricher: ClassificationEnricher,
     private val classificationService: ClassificationService,
     private val classificationRefreshService: ClassificationRefreshService,
-    private val assetRepository: AssetRepository,
-    private val assetFinder: AssetFinder
+    private val assetRepository: AssetRepository
 ) {
     private val log = LoggerFactory.getLogger(ClassificationController::class.java)
 

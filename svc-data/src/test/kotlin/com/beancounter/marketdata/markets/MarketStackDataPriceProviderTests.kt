@@ -26,8 +26,7 @@ class MarketStackDataPriceProviderTests
     @Autowired
     constructor(
         private val mdFactory: MdFactory,
-        private val marketService: MarketService,
-        @MockitoBean private val jwtDecoder: JwtDecoder
+        private val marketService: MarketService
     ) {
         @Test
         fun `should set default market providers`() {

@@ -109,7 +109,6 @@ class CashAutoSettleServiceTest {
     private lateinit var invest: Portfolio
     private lateinit var aaplAsset: Asset
 
-    private val tenK = BigDecimal("10000.00")
     private val seedAmount = BigDecimal("50000.00")
 
     @BeforeEach

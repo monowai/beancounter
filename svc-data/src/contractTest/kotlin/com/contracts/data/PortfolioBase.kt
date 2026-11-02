@@ -10,7 +10,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.cash.CashService
-import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.`when`
@@ -26,9 +25,6 @@ import java.util.Optional
  * Base class for Portfolio contracts.
  */
 class PortfolioBase : ContractVerifierBase() {
-    @Autowired
-    private lateinit var currencyService: CurrencyService
-
     @MockitoBean
     private lateinit var portfolioRepository: PortfolioRepository
 

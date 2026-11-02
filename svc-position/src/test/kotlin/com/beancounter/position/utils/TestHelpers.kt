@@ -172,18 +172,6 @@ object TestHelpers {
     }
 
     /**
-     * Asserts that a position has the expected basic properties.
-     */
-    fun assertPositionProperties(
-        position: Position,
-        expectedAssetCode: String,
-        expectedPortfolioId: String
-    ) {
-        assertThat(position.asset.code).isEqualTo(expectedAssetCode)
-        assertThat(position.asset.id).isNotNull()
-    }
-
-    /**
      * Asserts that positions collection has the expected properties.
      */
     fun assertPositionsProperties(

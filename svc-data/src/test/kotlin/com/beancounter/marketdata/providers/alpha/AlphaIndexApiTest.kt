@@ -4,7 +4,6 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.AssetCategory
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.INDEX_MARKET_CODE

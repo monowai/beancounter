@@ -209,6 +209,7 @@ class WatchlistToolsTest {
     }
 
     @Test
+    @Suppress("SpreadOperator") // tools() takes varargs; test data only
     fun `should cap the brief and say so when the watchlist is long`() {
         val many = (1..WatchlistTools.MAX_ITEMS + 5).map { entry("A$it") }.toTypedArray()
 

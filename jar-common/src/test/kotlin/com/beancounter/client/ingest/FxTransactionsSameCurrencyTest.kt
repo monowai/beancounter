@@ -24,10 +24,8 @@ import java.math.BigDecimal
 class FxTransactionsSameCurrencyTest {
     private val usd = Currency("USD")
 
-    /**
-     * Stands in for a server that has no rate cached for the trade date — the state that
-     * makes this fail. Any call at all is the defect, so the fake refuses every one.
-     */
+    // Stands in for a server that has no rate cached for the trade date — the state that
+    // makes this fail. Any call at all is the defect, so the fake refuses every one.
     private val unreachableFxService =
         object : FxService {
             override fun getRates(

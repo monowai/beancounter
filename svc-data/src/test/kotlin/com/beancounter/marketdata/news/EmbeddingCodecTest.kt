@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
  */
 internal class EmbeddingCodecTest {
     @Test
+    @Suppress("SpreadOperator") // containsExactly takes varargs; test data only
     fun `round-trips a float vector through the byte encoding`() {
         val vector = floatArrayOf(0.1f, -0.2f, 3.5f, 0f, 128.25f)
 

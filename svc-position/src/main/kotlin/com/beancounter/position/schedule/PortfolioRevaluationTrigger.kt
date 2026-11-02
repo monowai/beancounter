@@ -34,12 +34,10 @@ class PortfolioRevaluationTrigger(
     @Value("\${revaluation.trigger.debounce:PT10M}") private val debounce: Duration,
     taskScheduler: TaskScheduler? = null
 ) {
-    /**
-     * Use the injected scheduler when one is on the classpath (kauri /
-     * Spring Boot's auto-configured `ThreadPoolTaskScheduler`); otherwise
-     * own a minimal one so the trigger works regardless of whether
-     * `@EnableScheduling` is active in this profile.
-     */
+    // Use the injected scheduler when one is on the classpath (kauri /
+    // Spring Boot's auto-configured `ThreadPoolTaskScheduler`); otherwise
+    // own a minimal one so the trigger works regardless of whether
+    // `@EnableScheduling` is active in this profile.
     private val scheduler: TaskScheduler = taskScheduler ?: defaultScheduler()
     private val ownsScheduler: Boolean = taskScheduler == null
     private val pending = AtomicReference<ScheduledFuture<*>?>()

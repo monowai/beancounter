@@ -36,7 +36,7 @@ adding a new market-data provider so the integration lands cleanly.
 
 ## Data flow
 
-```
+```text
 Provider ─► PriceAdapter ─► (refresh path: enrichWithPreviousClose,
                               CorporateEventEnricher)
                           ─► MarketDataRepo.save (raw OHLC + split)
@@ -46,6 +46,7 @@ Provider ─► PriceAdapter ─► (refresh path: enrichWithPreviousClose,
 ```
 
 `SplitAdjuster` accepts:
+
 - The raw `List<PricePoint>` from the repo.
 - An optional `List<SplitEvent>` from a provider's corporate-event
   service (Alpha Vantage today). This covers the case where a backfill
@@ -53,6 +54,7 @@ Provider ─► PriceAdapter ─► (refresh path: enrichWithPreviousClose,
   raw closes for the days leading up to a known ex-date.
 
 It returns a list where:
+
 - Pre-event OHLC and `previousClose` are divided by the cumulative
   factor of every event whose ex-date follows the row.
 - The ex-date row keeps its `close` as-stored (already on the new

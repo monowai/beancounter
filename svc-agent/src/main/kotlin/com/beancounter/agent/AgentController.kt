@@ -434,6 +434,9 @@ class AgentController(
         val tools = toolSelector.selectTools(turn.context)
         val modelId = chatModelSelector.selectFor(turn.context, turn.deepThink)
         val startMs = System.currentTimeMillis()
+
+        // ChatClient.tools(Object...) has no List overload
+        @Suppress("SpreadOperator")
         val promptSpec =
             clientFor(turn)
                 .prompt()
@@ -594,15 +597,13 @@ class AgentController(
             }
             ?: emptyList()
 
-    /** Selected provider: the `agent.provider` property, `deepseek` when absent. */
+    // Selected provider: the `agent.provider` property, `deepseek` when absent.
     private val provider: String
         get() = environment.getProperty(AgentProvider.PROPERTY, AgentProvider.DEFAULT)
 
-    /**
-     * Anthropic-only feature: the per-call model override uses
-     * [AnthropicChatOptions]. For any other provider, skip the override and
-     * let the configured ChatClient's default model run.
-     */
+    // Anthropic-only feature: the per-call model override uses
+    // [AnthropicChatOptions]. For any other provider, skip the override and
+    // let the configured ChatClient's default model run.
     private val anthropicActive: Boolean
         get() = provider == AgentProvider.ANTHROPIC
 
@@ -1340,6 +1341,8 @@ class AgentController(
         tools: Array<Any>,
         modelId: String
     ): ChatClient.StreamResponseSpec {
+        // ChatClient.tools(Object...) has no List overload
+        @Suppress("SpreadOperator")
         val promptSpec =
             clientFor(request)
                 .prompt()

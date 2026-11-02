@@ -234,14 +234,14 @@ class EodhdGateway(
         val (uri, vars) =
             if (from.isNullOrBlank()) {
                 "/api/news?api_token={apiKey}&s={symbol}&limit={limit}&fmt=json" to
-                    arrayOf<Any>(apiKey, symbol, limit)
+                    mapOf("apiKey" to apiKey, "symbol" to symbol, "limit" to limit)
             } else {
                 "/api/news?api_token={apiKey}&s={symbol}&limit={limit}&from={from}&fmt=json" to
-                    arrayOf<Any>(apiKey, symbol, limit, from)
+                    mapOf("apiKey" to apiKey, "symbol" to symbol, "limit" to limit, "from" to from)
             }
         return restClient
             .get()
-            .uri(uri, *vars)
+            .uri(uri, vars)
             .retrieve()
             .body<Array<EodhdNewsArticle>>()
             ?.toList()

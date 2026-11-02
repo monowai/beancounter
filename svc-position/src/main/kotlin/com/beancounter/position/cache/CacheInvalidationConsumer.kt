@@ -14,11 +14,9 @@ import java.util.function.Consumer
 class CacheInvalidationConsumer(
     private val cacheService: PerformanceCacheService
 ) {
-    /**
-     * Event-driven revaluation trigger, present only when
-     * `revaluation.trigger.enabled=true`. Optional so unit tests and the
-     * local dev profile don't have to wire it.
-     */
+    // Event-driven revaluation trigger, present only when
+    // `revaluation.trigger.enabled=true`. Optional so unit tests and the
+    // local dev profile don't have to wire it.
     private var revaluationTrigger: PortfolioRevaluationTrigger? = null
 
     @Autowired(required = false)

@@ -106,7 +106,7 @@ class RetireProjectionClient(
         displayCurrency: String
     ): Map<String, Any> =
         post(
-            mapOf("displayCurrency" to displayCurrency, "phases" to phases),
+            mapOf(DISPLAY_CURRENCY to displayCurrency, PHASES to phases),
             "Failed to run composite projection",
             "/composite/projection"
         )
@@ -119,7 +119,7 @@ class RetireProjectionClient(
         displayCurrency: String
     ): Map<String, Any> =
         post(
-            mapOf("displayCurrency" to displayCurrency, "phases" to phases),
+            mapOf(DISPLAY_CURRENCY to displayCurrency, PHASES to phases),
             "Failed to run composite scenarios",
             "/composite/scenarios"
         )
@@ -135,7 +135,7 @@ class RetireProjectionClient(
         iterations: Int = 1000
     ): Map<String, Any> =
         post(
-            mapOf("displayCurrency" to displayCurrency, "phases" to phases, "iterations" to iterations),
+            mapOf(DISPLAY_CURRENCY to displayCurrency, PHASES to phases, "iterations" to iterations),
             "Failed to run composite Monte Carlo",
             "/composite/monte-carlo"
         )
@@ -145,7 +145,7 @@ class RetireProjectionClient(
         body: MutableMap<String, Any>,
         displayCurrency: String?
     ): Map<String, Any> {
-        if (!displayCurrency.isNullOrBlank()) body["displayCurrency"] = displayCurrency
+        if (!displayCurrency.isNullOrBlank()) body[DISPLAY_CURRENCY] = displayCurrency
         return body
     }
 
@@ -165,4 +165,9 @@ class RetireProjectionClient(
             .retrieve()
             .body(JSON_MAP)
             ?: throw BusinessException(failure)
+
+    private companion object {
+        const val DISPLAY_CURRENCY = "displayCurrency"
+        const val PHASES = "phases"
+    }
 }

@@ -89,7 +89,7 @@ class AgentStreamController(
         // A refused turn (not owned, owner lookup failed) leaves no residue.
         conversationId?.let(inFlightTurns::begin)
         val pipeline =
-            try {
+            runCatching {
                 val subject = plan.opening
                 if (subject == null) {
                     val (turn, recorder) = turns.open(plan.request, plan.thread)
@@ -97,10 +97,8 @@ class AgentStreamController(
                 } else {
                     streams.openingPipeline(plan.request, subject, plan.thread, admitted.meter)
                 }
-            } catch (e: Exception) {
-                conversationId?.let(inFlightTurns::end)
-                throw e
-            }
+            }.onFailure { conversationId?.let(inFlightTurns::end) }
+                .getOrThrow()
         // doFinally sits inside the hot boundary, so it fires when the
         // pipeline itself completes or fails — after the record{} write that
         // ends it — and never on the subscriber's cancel. replay() keeps the

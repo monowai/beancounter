@@ -87,9 +87,10 @@ class AnswerStreams(
         turn: AgentQuery,
         recorder: TurnRecorder
     ): Flux<ServerSentEvent<String>> {
-        val (_, key, hit, meter) = admitted
+        val key = admitted.reviewKey
+        val hit = admitted.hit
         if (key != null && hit != null) return cachedPipeline(hit, key, recorder)
-        return answerPipeline(turn, turns.live(recorder, key, meter))
+        return answerPipeline(turn, turns.live(recorder, key, admitted.meter))
     }
 
     /**

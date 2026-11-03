@@ -79,7 +79,9 @@ class BlockingAnswers(
         asked: AgentQuery,
         admitted: Admission.Admitted
     ): ResponseEntity<AgentResponse> {
-        val (_, reviewKey, hit, meter) = admitted
+        val reviewKey = admitted.reviewKey
+        val hit = admitted.hit
+        val meter = admitted.meter
         val safeQuery = HtmlUtils.htmlEscape(asked.query)
         val (turn, conversationRecorder) = turns.open(asked, admitted.plan.thread)
         if (reviewKey != null && hit != null) {

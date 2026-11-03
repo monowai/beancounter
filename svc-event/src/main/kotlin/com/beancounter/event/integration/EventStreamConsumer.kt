@@ -2,7 +2,7 @@ package com.beancounter.event.integration
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.input.TrustedEventInput
-import com.beancounter.event.service.EventService
+import com.beancounter.event.service.EventDistribution
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -15,7 +15,7 @@ import java.util.function.Consumer
  */
 @Configuration
 class EventStreamConsumer(
-    private val eventService: EventService
+    private val eventDistribution: EventDistribution
 ) {
     private var loginService: LoginService? = null
     private val log = LoggerFactory.getLogger(EventStreamConsumer::class.java)
@@ -34,11 +34,11 @@ class EventStreamConsumer(
                 // Wrap in retry logic for M2M token expiry
                 currentLoginService.retryOnJwtExpiry {
                     currentLoginService.setAuthContext(currentLoginService.loginM2m())
-                    eventService.process(eventInput)
+                    eventDistribution.process(eventInput)
                 }
             } else {
                 // Auth disabled - process directly
-                eventService.process(eventInput)
+                eventDistribution.process(eventInput)
             }
         }
 }

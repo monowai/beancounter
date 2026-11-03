@@ -5,7 +5,8 @@ import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
-import com.beancounter.event.service.EventService
+import com.beancounter.event.service.CorporateEventStore
+import com.beancounter.event.service.EventDistribution
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -42,7 +43,8 @@ import org.springframework.web.bind.annotation.RestController
     description = "Endpoints for managing corporate actions (dividends, splits) and generating transactions"
 )
 class CorporateEventController(
-    private val eventService: EventService,
+    private val eventStore: CorporateEventStore,
+    private val eventDistribution: EventDistribution,
     private val dateUtils: DateUtils
 ) {
     @GetMapping(
@@ -78,7 +80,7 @@ class CorporateEventController(
             example = "event-123"
         )
         @PathVariable eventId: String
-    ): CorporateEventResponse = eventService[eventId]
+    ): CorporateEventResponse = eventStore[eventId]
 
     @PostMapping(
         value = ["/{eventId}"],
@@ -125,8 +127,8 @@ class CorporateEventController(
         )
         @RequestParam(required = false) payDate: String? = null
     ): CorporateEventResponse {
-        val event = eventService[eventId]
-        eventService.processEvent(event.data, payDate)
+        val event = eventStore[eventId]
+        eventDistribution.processEvent(event.data, payDate)
         return event
     }
 
@@ -164,7 +166,7 @@ class CorporateEventController(
             example = "AAPL"
         )
         @PathVariable assetId: String
-    ): CorporateEventResponses = eventService.getAssetEvents(assetId)
+    ): CorporateEventResponses = eventStore.getAssetEvents(assetId)
 
     @DeleteMapping(
         value = ["/asset/{assetId}"],
@@ -192,7 +194,7 @@ class CorporateEventController(
         )
         @PathVariable assetId: String
     ): Map<String, Any> {
-        val count = eventService.deleteForAsset(assetId)
+        val count = eventStore.deleteForAsset(assetId)
         return mapOf(
             "assetId" to assetId,
             "deleted" to count
@@ -225,7 +227,7 @@ class CorporateEventController(
     )
     fun createEvent(
         @RequestBody event: CorporateEvent
-    ): CorporateEventResponse = CorporateEventResponse(eventService.save(event))
+    ): CorporateEventResponse = CorporateEventResponse(eventStore.save(event))
 
     @GetMapping(
         value = ["/events/{assetId}"],
@@ -297,12 +299,12 @@ class CorporateEventController(
         @RequestParam(required = false) toDate: String? = null
     ): CorporateEventResponses {
         if (fromDate == null || toDate == null) {
-            return eventService.getAssetEvents(assetId)
+            return eventStore.getAssetEvents(assetId)
         }
         val startDate = dateUtils.getDate(fromDate)
         val endDate = dateUtils.getDate(toDate)
         val events =
-            eventService
+            eventStore
                 .findInRange(startDate, endDate)
                 .filter { it.assetId == assetId }
         return CorporateEventResponses(events)

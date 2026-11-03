@@ -4,7 +4,7 @@ import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.event.service.EventService
+import com.beancounter.event.service.EventDistribution
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -16,10 +16,10 @@ import java.math.BigDecimal
  */
 class EventStreamConsumerTest {
     @Test
-    fun `eventProcessor should call eventService process`() {
+    fun `eventProcessor should call eventDistribution process`() {
         // Given
-        val eventService = mock(EventService::class.java)
-        val consumer = EventStreamConsumer(eventService)
+        val eventDistribution = mock(EventDistribution::class.java)
+        val consumer = EventStreamConsumer(eventDistribution)
 
         val corporateEvent =
             CorporateEvent(
@@ -36,6 +36,6 @@ class EventStreamConsumerTest {
         consumer.eventProcessor().accept(eventInput)
 
         // Then
-        verify(eventService).process(eventInput)
+        verify(eventDistribution).process(eventInput)
     }
 }

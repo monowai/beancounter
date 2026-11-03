@@ -5,8 +5,8 @@ import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.BackFillService
+import com.beancounter.event.service.CorporateEventStore
 import com.beancounter.event.service.EventLoader
-import com.beancounter.event.service.EventService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -52,7 +52,7 @@ private const val AS_AT = "asAt"
 class CorporateEventIngestController(
     private val backFillService: BackFillService,
     private val eventLoader: EventLoader,
-    private val eventService: EventService,
+    private val eventStore: CorporateEventStore,
     private val portfolioService: PortfolioServiceClient,
     private val dateUtils: DateUtils
 ) {
@@ -314,6 +314,6 @@ class CorporateEventIngestController(
         val date = dateUtils.getDate(asAt)
         eventLoader.loadEventsForAsset(assetId, date)
         // Return all events for this asset after loading
-        return eventService.getAssetEvents(assetId)
+        return eventStore.getAssetEvents(assetId)
     }
 }

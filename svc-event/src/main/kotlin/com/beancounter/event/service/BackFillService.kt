@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service
 class BackFillService(
     private val portfolioService: PortfolioServiceClient,
     private val positionService: PositionService,
-    private val eventService: EventService,
+    private val eventStore: CorporateEventStore,
+    private val eventDistribution: EventDistribution,
     private val dateSplitter: DateSplitter,
     private val eventMetrics: EventMetrics
 ) {
@@ -47,13 +48,13 @@ class BackFillService(
                 }
             }
             val events =
-                eventService.find(
+                eventStore.find(
                     assets,
                     asAtDate
                 )
             for (event in events) {
                 log.trace("Publish events: ${events.size}, asAt: $asAtDate")
-                eventService.processEvent(event)
+                eventDistribution.processEvent(event)
                 eventCount += events.size
             }
         }

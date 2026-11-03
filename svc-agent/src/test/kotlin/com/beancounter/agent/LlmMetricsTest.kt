@@ -26,11 +26,13 @@ class LlmMetricsTest {
 
         // Should not throw despite no OTel javaagent attached in this JVM.
         metrics.capture(
-            modelId = "claude-haiku-4-5",
-            usage = DefaultUsage(100, 50, 150),
-            elapsedMs = 1234,
-            toolCount = 4,
-            mode = LlmMetrics.Mode.STREAM
+            ModelMeasure(
+                modelId = "claude-haiku-4-5",
+                usage = DefaultUsage(100, 50, 150),
+                elapsedMs = 1234,
+                toolCount = 4,
+                mode = LlmMetrics.Mode.STREAM
+            )
         )
     }
 
@@ -41,11 +43,13 @@ class LlmMetricsTest {
         // not blow up downstream.
         val metrics = LlmMetrics()
         metrics.capture(
-            modelId = null,
-            usage = DefaultUsage(10, 5, 15),
-            elapsedMs = 0,
-            toolCount = 1,
-            mode = LlmMetrics.Mode.CALL
+            ModelMeasure(
+                modelId = null,
+                usage = DefaultUsage(10, 5, 15),
+                elapsedMs = 0,
+                toolCount = 1,
+                mode = LlmMetrics.Mode.CALL
+            )
         )
     }
 
@@ -53,11 +57,13 @@ class LlmMetricsTest {
     fun `capture swallows null usage`() {
         val metrics = LlmMetrics()
         metrics.capture(
-            modelId = "claude-sonnet-4-6",
-            usage = null,
-            elapsedMs = 0,
-            toolCount = 0,
-            mode = LlmMetrics.Mode.CALL
+            ModelMeasure(
+                modelId = "claude-sonnet-4-6",
+                usage = null,
+                elapsedMs = 0,
+                toolCount = 0,
+                mode = LlmMetrics.Mode.CALL
+            )
         )
     }
 
@@ -77,11 +83,13 @@ class LlmMetricsTest {
         whenever(brokenUsage.promptTokens).thenThrow(RuntimeException("simulated"))
         val metrics = LlmMetrics()
         metrics.capture(
-            modelId = "x",
-            usage = brokenUsage,
-            elapsedMs = 0,
-            toolCount = 0,
-            mode = LlmMetrics.Mode.CALL
+            ModelMeasure(
+                modelId = "x",
+                usage = brokenUsage,
+                elapsedMs = 0,
+                toolCount = 0,
+                mode = LlmMetrics.Mode.CALL
+            )
         )
     }
 
@@ -107,11 +115,13 @@ class LlmMetricsTest {
 
         val metrics = LlmMetrics()
         metrics.capture(
-            modelId = "claude-haiku-4-5",
-            usage = DefaultUsage(100, 50, 150),
-            elapsedMs = 1234,
-            toolCount = 4,
-            mode = LlmMetrics.Mode.STREAM,
+            ModelMeasure(
+                modelId = "claude-haiku-4-5",
+                usage = DefaultUsage(100, 50, 150),
+                elapsedMs = 1234,
+                toolCount = 4,
+                mode = LlmMetrics.Mode.STREAM
+            ),
             span = span
         )
 
@@ -136,11 +146,13 @@ class LlmMetricsTest {
         val metrics = LlmMetrics(tracerFor(exporter))
 
         metrics.capture(
-            modelId = "deepseek-v4-flash",
-            usage = DefaultUsage(116608, 8601, 125209),
-            elapsedMs = 47142,
-            toolCount = 5,
-            mode = LlmMetrics.Mode.STREAM
+            ModelMeasure(
+                modelId = "deepseek-v4-flash",
+                usage = DefaultUsage(116608, 8601, 125209),
+                elapsedMs = 47142,
+                toolCount = 5,
+                mode = LlmMetrics.Mode.STREAM
+            )
         )
 
         val spans = exporter.finishedSpanItems
@@ -170,11 +182,13 @@ class LlmMetricsTest {
         val exporter = InMemorySpanExporter.create()
 
         LlmMetrics(tracerFor(exporter)).capture(
-            modelId = "deepseek-v4-flash",
-            usage = null,
-            elapsedMs = 900,
-            toolCount = 5,
-            mode = LlmMetrics.Mode.CALL
+            ModelMeasure(
+                modelId = "deepseek-v4-flash",
+                usage = null,
+                elapsedMs = 900,
+                toolCount = 5,
+                mode = LlmMetrics.Mode.CALL
+            )
         )
 
         val spans = exporter.finishedSpanItems
@@ -200,11 +214,13 @@ class LlmMetricsTest {
         val requestSpan = tracer.spanBuilder("POST /agent/query/stream").startSpan()
 
         LlmMetrics(tracer).capture(
-            modelId = "deepseek-v4-flash",
-            usage = DefaultUsage(10, 5, 15),
-            elapsedMs = 12,
-            toolCount = 5,
-            mode = LlmMetrics.Mode.STREAM,
+            ModelMeasure(
+                modelId = "deepseek-v4-flash",
+                usage = DefaultUsage(10, 5, 15),
+                elapsedMs = 12,
+                toolCount = 5,
+                mode = LlmMetrics.Mode.STREAM
+            ),
             span = requestSpan
         )
 
@@ -224,11 +240,13 @@ class LlmMetricsTest {
         endedRequestSpan.end()
 
         LlmMetrics(tracer).capture(
-            modelId = "deepseek-v4-flash",
-            usage = DefaultUsage(10, 5, 15),
-            elapsedMs = 12,
-            toolCount = 5,
-            mode = LlmMetrics.Mode.STREAM,
+            ModelMeasure(
+                modelId = "deepseek-v4-flash",
+                usage = DefaultUsage(10, 5, 15),
+                elapsedMs = 12,
+                toolCount = 5,
+                mode = LlmMetrics.Mode.STREAM
+            ),
             span = endedRequestSpan
         )
 
@@ -259,11 +277,13 @@ class LlmMetricsTest {
         )
 
         LlmMetrics().capture(
-            modelId = null,
-            usage = DefaultUsage(10, 5, 15),
-            elapsedMs = 0,
-            toolCount = 0,
-            mode = LlmMetrics.Mode.CALL,
+            ModelMeasure(
+                modelId = null,
+                usage = DefaultUsage(10, 5, 15),
+                elapsedMs = 0,
+                toolCount = 0,
+                mode = LlmMetrics.Mode.CALL
+            ),
             span = span
         )
 

@@ -27,7 +27,6 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
-import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.env.Environment
@@ -344,7 +343,13 @@ class AgentController(
         val userMessage = buildUserMessage(turn)
         val tools = toolSelector.selectTools(turn.context)
         val modelId = chatModelSelector.selectFor(turn.context, turn.deepThink)
-        val startMs = System.currentTimeMillis()
+        val call =
+            ModelCall(
+                modelId = modelId,
+                reportedModelId = modelId.takeIf { anthropicActive },
+                tools = tools.map { it.javaClass.simpleName },
+                query = HtmlUtils.htmlEscape(turn.query)
+            )
 
         // ChatClient.tools(Object...) has no List overload
         @Suppress("SpreadOperator")
@@ -361,7 +366,7 @@ class AgentController(
             } ?: promptSpec.call()
         val chatResponse = callResponse.chatResponse()
         val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: ""
-        logLlmInteraction(userMessage, tools, chatResponse, content, System.currentTimeMillis() - startMs, modelId)
+        llmMetrics.completed(call, chatResponse?.metadata?.usage, content.length.toLong(), LlmMetrics.Mode.CALL)
         return ModelAnswer(content, chatResponse?.result?.metadata?.finishReason, modelId)
     }
 
@@ -1095,43 +1100,12 @@ class AgentController(
         call: ModelCall,
         tally: StreamTally
     ): Flux<ServerSentEvent<String>> {
-        val elapsedMs = call.elapsedMs
-        val usage = tally.usage
-        // Token telemetry as OTel attributes on the captured request span
-        // (same span the http.server transaction owns). Same shape as the
-        // non-streaming path so dashboards can mix call+stream traffic.
-        // Only attribute the model tag when the per-call Anthropic override
-        // was applied — on ollama / openai the configured ChatClient picks
-        // the model and our selectedModelId would mislead the metric.
-        llmMetrics.capture(
-            modelId = call.reportedModelId,
-            usage = usage,
-            elapsedMs = elapsedMs,
-            toolCount = call.tools.size,
-            mode = LlmMetrics.Mode.STREAM,
-            span = call.span
-        )
-        if (log.isDebugEnabled) {
-            log.debug(
-                "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
-                    "prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
-                    "elapsed_ms={}, query=\"{}\"",
-                call.modelId,
-                tally.chars,
-                call.tools.size,
-                call.tools,
-                usage?.promptTokens ?: 0,
-                usage?.completionTokens ?: 0,
-                usage?.totalTokens ?: 0,
-                elapsedMs,
-                call.query.take(QUERY_LOG_CHARS)
-            )
-        }
+        llmMetrics.completed(call, tally.usage, tally.chars, LlmMetrics.Mode.STREAM)
         // Build via Jackson rather than string interpolation so a future
         // modelId / metric value containing a quote, backslash or newline can
         // never produce malformed SSE. `model` is only present where the
         // per-call override names what actually answered.
-        return Flux.just(donePayload(tally.chars, elapsedMs, call.reportedModelId))
+        return Flux.just(donePayload(tally.chars, call.elapsedMs, call.reportedModelId))
     }
 
     /** The `done` event closing a streamed turn: its size, how long it took, and what answered. */
@@ -1155,46 +1129,6 @@ class AgentController(
 
     private fun errorEvent(message: String): Flux<ServerSentEvent<String>> =
         Flux.just(ServerSentEvent.builder<String>(message).event("error").build())
-
-    private fun logLlmInteraction(
-        userMessage: String,
-        tools: Array<Any>,
-        chatResponse: ChatResponse?,
-        content: String,
-        elapsedMs: Long,
-        selectedModelId: String
-    ) {
-        val meta = chatResponse?.metadata
-        val usage = meta?.usage
-        // Sentry transaction measurements — runs even when DEBUG is off so
-        // production retains queryable token telemetry. Only tag the model
-        // when the per-call Anthropic override was applied; otherwise the
-        // selected id doesn't reflect the actual answering model.
-        llmMetrics.capture(
-            modelId = selectedModelId.takeIf { anthropicActive },
-            usage = usage,
-            elapsedMs = elapsedMs,
-            toolCount = tools.size,
-            mode = LlmMetrics.Mode.CALL
-        )
-        if (!log.isDebugEnabled) return
-        val promptPreview = userMessage.take(QUERY_LOG_CHARS).replace("\n", " ")
-        val toolNames = tools.map { it.javaClass.simpleName }
-        log.debug(
-            "LLM call: model={}, selected_model={}, prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
-                "tools={} {}, response_chars={}, elapsed_ms={}, prompt_preview=\"{}\"",
-            meta?.model ?: "unknown",
-            selectedModelId,
-            usage?.promptTokens ?: 0,
-            usage?.completionTokens ?: 0,
-            usage?.totalTokens ?: 0,
-            tools.size,
-            toolNames,
-            content.length,
-            elapsedMs,
-            promptPreview
-        )
-    }
 
     /**
      * Assemble the user message: a current-date stamp, optional page context, then the question.

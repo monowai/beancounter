@@ -27,6 +27,7 @@ import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import com.beancounter.position.composite.SubAccountDto
 import com.beancounter.position.utils.TestHelpers
+import com.beancounter.position.valuation.AggregateValuationRequest
 import com.beancounter.position.valuation.Valuation
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -95,7 +96,7 @@ class NetWorthServiceTest {
         assertThat(result.portfolioCount).isZero()
         assertThat(result.classificationBreakdown).isEmpty()
         assertThat(result.portfolios).isEmpty()
-        verify(valuationService, never()).getAggregatedPositions(any(), any(), any(), any(), any())
+        verify(valuationService, never()).getAggregatedPositions(any())
         verify(fxService, never()).getRates(any(), any())
     }
 
@@ -112,7 +113,9 @@ class NetWorthServiceTest {
         assertThat(result.holdingsValue).isEqualByComparingTo("37000")
         assertThat(result.totalValue).isEqualByComparingTo("37000")
         assertThat(result.portfolioCount).isEqualTo(1)
-        verify(valuationService).getAggregatedPositions(eq(listOf(portfolio)), eq(asAt), eq(true), eq("SGD"), eq(false))
+        verify(
+            valuationService
+        ).getAggregatedPositions(eq(AggregateValuationRequest(listOf(portfolio), asAt, true, "SGD", false)))
         verify(fxService, never()).getRates(any(), any())
     }
 
@@ -596,8 +599,11 @@ class NetWorthServiceTest {
         positions: Positions,
         currency: String
     ) {
-        whenever(valuationService.getAggregatedPositions(eq(portfolios), eq(asAt), eq(true), eq(currency), eq(false)))
-            .thenReturn(PositionResponse(positions))
+        whenever(
+            valuationService.getAggregatedPositions(
+                eq(AggregateValuationRequest(portfolios, asAt, true, currency, false))
+            )
+        ).thenReturn(PositionResponse(positions))
     }
 
     private fun stubRates(rates: Map<IsoCurrencyPair, String>) {

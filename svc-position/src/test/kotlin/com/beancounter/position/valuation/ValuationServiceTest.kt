@@ -204,7 +204,10 @@ class ValuationServiceTest {
         val portfolios = emptyList<Portfolio>()
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then
         assertThat(result.data.positions).isEmpty()
@@ -220,7 +223,10 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then
         assertThat(result.data.positions).isEmpty()
@@ -234,8 +240,12 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When - two back-to-back identical aggregated valuation requests
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - the second call is served from the cache; trnService is hit once
         verify(trnService, times(1)).query(portfolio, DateUtils.TODAY)
@@ -249,8 +259,12 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - different subjects with identical portfolio ids must both miss
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
@@ -270,8 +284,12 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When - targetCurrencyCode is null, so the context portfolio matters
-        valuationService.getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio2, portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio2, portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - both calls load fresh (two full loads, not a cache hit)
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
@@ -288,8 +306,12 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When - two back-to-back identical requests
-        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        bypassService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        bypassService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - both calls load fresh; nothing is cached
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
@@ -335,7 +357,10 @@ class ValuationServiceTest {
         whenever(positionService.build(any(), any())).thenReturn(positionResponse)
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then
         assertThat(result.data.positions).hasSize(2)
@@ -406,7 +431,10 @@ class ValuationServiceTest {
         ).thenReturn(PositionResponse(p2Positions))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then - the aggregate sums the two holdings (10 + 5)...
         val agg =
@@ -498,7 +526,10 @@ class ValuationServiceTest {
         ).thenReturn(PositionResponse(p2Positions))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then - per-broker quantities survive aggregation, same broker sums
         val agg =
@@ -582,7 +613,10 @@ class ValuationServiceTest {
         ).thenReturn(PositionResponse(p2Positions))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then - the aggregate nets to P1's 10 (P2 bought then sold 10)...
         val agg =
@@ -631,7 +665,10 @@ class ValuationServiceTest {
         whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When - request valuation with value=true
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = true)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = true)
+            )
 
         // Then - market value update should NOT be sent for aggregated positions
         verify(marketValueUpdateProducer, never()).sendMessage(any())
@@ -644,8 +681,12 @@ class ValuationServiceTest {
         whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(emptyList()))
 
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false, live = true)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false, live = true)
+        )
 
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
     }
@@ -672,7 +713,9 @@ class ValuationServiceTest {
         whenever(positionValuationService.value(any(), any(), eq(true))).thenReturn(positions)
 
         val result =
-            valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = true, live = true)
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = true, live = true)
+            )
 
         assertThat(result.data.positions).isNotEmpty
         verify(marketValueUpdateProducer, never()).sendMessage(any())
@@ -715,10 +758,7 @@ class ValuationServiceTest {
         // When - request aggregation in SGD
         val result =
             valuationService.getAggregatedPositions(
-                portfolios,
-                DateUtils.TODAY,
-                value = false,
-                targetCurrencyCode = "SGD"
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false, targetCurrencyCode = "SGD")
             )
 
         // Then - the aggregate reports in SGD and its PORTFOLIO bucket is
@@ -791,10 +831,7 @@ class ValuationServiceTest {
         // When - aggregate in USD
         val result =
             valuationService.getAggregatedPositions(
-                portfolios,
-                DateUtils.TODAY,
-                value = false,
-                targetCurrencyCode = "USD"
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false, targetCurrencyCode = "USD")
             )
 
         // Then - the PORTFOLIO bucket is USD and its cost is FX-converted, not raw NZD.
@@ -883,11 +920,7 @@ class ValuationServiceTest {
 
         // When - aggregate without valuation (no market data needed)
         val result =
-            service.getAggregatedPositions(
-                listOf(pfA, pfB),
-                DateUtils.TODAY,
-                value = false
-            )
+            service.getAggregatedPositions(AggregateValuationRequest(listOf(pfA, pfB), DateUtils.TODAY, value = false))
 
         // Then - the asset's split is recorded once per portfolio; merging the
         // raw transaction streams used to compound it (24 -> 186). Per-portfolio
@@ -1267,7 +1300,9 @@ class ValuationServiceTest {
         stubOneBuyPerPortfolio(portfolio, portfolio2, probe = probe)
         whenever(trnService.queryProposedCash(any(), any())).thenAnswer { probe.arrive(TrnResponse(emptyList())) }
 
-        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        withRealEarmark().getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
 
         assertThat(probe.allMet).isTrue()
     }
@@ -1335,7 +1370,9 @@ class ValuationServiceTest {
         val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
         stubOneBuyPerPortfolio(portfolio, portfolio2)
 
-        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        withRealEarmark().getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
 
         verify(trnService, never()).queryProposedCash(any(), any())
     }
@@ -1347,7 +1384,9 @@ class ValuationServiceTest {
         stubOneBuyPerPortfolio(portfolio, portfolio2)
         whenever(trnService.queryProposedCash(any(), any())).thenReturn(TrnResponse(emptyList()))
 
-        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        withRealEarmark().getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
 
         verify(trnService).queryProposedCash(portfolio.id, DateUtils.TODAY)
         verify(trnService).queryProposedCash(portfolio2.id, DateUtils.TODAY)

@@ -4,14 +4,18 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.NetWorth
+import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.StubbedTest
 import com.beancounter.position.utils.TestHelpers
+import com.beancounter.position.valuation.AggregateValuationRequest
 import com.beancounter.position.valuation.Valuation
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -72,13 +76,54 @@ internal class WidgetScopeMvcTest {
 
     @Test
     fun `should let a widget token read aggregated positions`() {
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(PositionResponse(TestHelpers.createTestPositions(portfolio)))
 
         mockMvc
             .perform(get("/aggregated").param("ids", portfolio.id).with(widget()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.portfolio.id").value(portfolio.id))
+    }
+
+    @Test
+    fun `should bind the aggregated query parameters into one valuation request`() {
+        whenever(portfolioServiceClient.portfolios).thenReturn(PortfoliosResponse(listOf(portfolio)))
+        whenever(valuationService.getAggregatedPositions(any()))
+            .thenReturn(PositionResponse(TestHelpers.createTestPositions(portfolio)))
+
+        mockMvc
+            .perform(
+                get("/aggregated")
+                    .param("codes", portfolio.code)
+                    .param("asAt", "2024-01-15")
+                    .param("value", "false")
+                    .param("currency", "sgd")
+                    .param("live", "true")
+                    .with(widget())
+            ).andExpect(status().isOk)
+
+        verify(valuationService).getAggregatedPositions(
+            AggregateValuationRequest(
+                listOf(portfolio),
+                "2024-01-15",
+                value = false,
+                targetCurrencyCode = "sgd",
+                live = true
+            )
+        )
+    }
+
+    @Test
+    fun `should bind net worth portfolio codes`() {
+        whenever(portfolioServiceClient.portfolios).thenReturn(PortfoliosResponse(listOf(portfolio)))
+        whenever(netWorthService.calculate(any(), any(), any(), any()))
+            .thenReturn(NetWorth(asAt = "2024-01-15", currency = "SGD"))
+
+        mockMvc
+            .perform(get("/net-worth").param("codes", portfolio.code).param("currency", "SGD").with(widget()))
+            .andExpect(status().isOk)
+
+        verify(netWorthService).calculate(eq(listOf(portfolio)), eq(DateUtils.TODAY), eq("SGD"), eq(false))
     }
 
     @Test

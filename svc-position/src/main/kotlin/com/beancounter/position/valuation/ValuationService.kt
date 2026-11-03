@@ -189,19 +189,12 @@ class ValuationService
          * every other caller of that key - see [AggregatedValuationCache]'s
          * read-only contract; callers must not mutate it.
          */
-        override fun getAggregatedPositions(
-            portfolios: Collection<Portfolio>,
-            valuationDate: String,
-            value: Boolean,
-            targetCurrencyCode: String?,
-            live: Boolean
-        ): PositionResponse {
-            if (portfolios.isEmpty()) {
+        override fun getAggregatedPositions(request: AggregateValuationRequest): PositionResponse {
+            if (request.portfolios.isEmpty()) {
                 return PositionResponse()
             }
-            val cacheKey = buildCacheKey(portfolios, valuationDate, value, targetCurrencyCode, live)
-            return aggregatedValuationCache.get(cacheKey) {
-                computeAggregatedPositions(portfolios, valuationDate, value, targetCurrencyCode, live)
+            return aggregatedValuationCache.get(cacheKey(request)) {
+                computeAggregatedPositions(request)
             }
         }
 
@@ -211,38 +204,20 @@ class ValuationService
          * subject can't be resolved - e.g. no authenticated SecurityContext -
          * rather than caching under a placeholder identity.
          */
-        private fun buildCacheKey(
-            portfolios: Collection<Portfolio>,
-            valuationDate: String,
-            value: Boolean,
-            targetCurrencyCode: String?,
-            live: Boolean
-        ): ValuationCacheKey? =
+        private fun cacheKey(request: AggregateValuationRequest): ValuationCacheKey? =
             try {
-                ValuationCacheKey.of(
-                    subject = tokenService.subject,
-                    portfolios = portfolios,
-                    valuationDate = valuationDate,
-                    value = value,
-                    targetCurrencyCode = targetCurrencyCode,
-                    live = live
-                )
+                ValuationCacheKey.of(tokenService.subject, request)
             } catch (e: UnauthorizedException) {
                 log.debug("Valuation cache bypassed: unable to resolve caller subject ({})", e.javaClass.simpleName)
                 null
             }
 
-        private fun computeAggregatedPositions(
-            portfolios: Collection<Portfolio>,
-            valuationDate: String,
-            value: Boolean,
-            targetCurrencyCode: String?,
-            live: Boolean
-        ): PositionResponse {
+        private fun computeAggregatedPositions(request: AggregateValuationRequest): PositionResponse {
+            val valuationDate = request.valuationDate
             // Read every portfolio at once, retaining the portfolio each response
             // belongs to so we can build a per-portfolio breakdown alongside the
             // aggregated view.
-            val portfolioReads = readPortfolios(portfolios, valuationDate)
+            val portfolioReads = readPortfolios(request.portfolios, valuationDate)
 
             // Accumulate each portfolio's positions INDEPENDENTLY, then sum them.
             //
@@ -272,22 +247,10 @@ class ValuationService
                 return PositionResponse()
             }
 
-            // Use the first portfolio as context for owner / ids. When the
-            // caller passes a [targetCurrencyCode] (the user-visible reporting
-            // currency), adopt it on the synthesised context portfolio so
-            // MarketValue prices each PORTFOLIO bucket directly against the
-            // target rather than via a lossy FX round-trip.
-            val baseContext = portfolios.first()
-            val contextPortfolio =
-                if (!targetCurrencyCode.isNullOrBlank() &&
-                    !baseContext.currency.code.equals(targetCurrencyCode, ignoreCase = true)
-                ) {
-                    baseContext.copy(
-                        currency = Currency(targetCurrencyCode.uppercase())
-                    )
-                } else {
-                    baseContext
-                }
+            // The request's context portfolio supplies owner / ids, in the
+            // target currency when one is requested, so MarketValue prices each
+            // PORTFOLIO bucket directly against it rather than via a lossy FX round-trip.
+            val contextPortfolio = request.contextPortfolio()
 
             // The cost buckets are accumulated in each source portfolio's own
             // currency. When the aggregate reports in a different currency (or
@@ -308,11 +271,11 @@ class ValuationService
 
             // Value the positions if requested.
             // Pass skipMarketValueUpdate=true since aggregated positions don't belong to a single portfolio.
-            return if (value) {
+            return if (request.value) {
                 value(
                     positions = aggregated,
                     skipMarketValueUpdate = true,
-                    live = live
+                    live = request.live
                 )
             } else {
                 PositionResponse(aggregated)

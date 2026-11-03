@@ -21,6 +21,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
+import com.beancounter.position.valuation.AggregateValuationRequest
 import com.beancounter.position.valuation.Valuation
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -65,7 +66,16 @@ class NetWorthService(
             if (portfolios.isEmpty()) {
                 Positions()
             } else {
-                valuationService.getAggregatedPositions(portfolios, asAt, true, target, live).data
+                valuationService
+                    .getAggregatedPositions(
+                        AggregateValuationRequest(
+                            portfolios,
+                            asAt,
+                            value = true,
+                            targetCurrencyCode = target,
+                            live = live
+                        )
+                    ).data
             }
         val heldAssetIds =
             positions.positions.values

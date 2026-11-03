@@ -12,6 +12,7 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.utils.TestHelpers
+import com.beancounter.position.valuation.AggregateValuationRequest
 import com.beancounter.position.valuation.Valuation
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -211,17 +212,28 @@ class PositionControllerTest {
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio, portfolio2))
 
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, valuationDate, true))
-            .thenReturn(testPositionResponse)
+        whenever(
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfoliosResponse.data, valuationDate, true)
+            )
+        ).thenReturn(testPositionResponse)
 
         // When
-        val result = positionController.aggregated(valuationDate, true, null, null, null)
+        val result =
+            positionController.aggregated(
+                valuationDate,
+                true,
+                PortfolioSelection(ids = null, codes = null),
+                null
+            )
 
         // Then
         assertThat(result).isNotNull()
         assertThat(result).isEqualTo(testPositionResponse)
         verify(portfolioServiceClient).portfolios
-        verify(valuationService).getAggregatedPositions(portfoliosResponse.data, valuationDate, true)
+        verify(
+            valuationService
+        ).getAggregatedPositions(AggregateValuationRequest(portfoliosResponse.data, valuationDate, true))
     }
 
     @Test
@@ -230,15 +242,26 @@ class PositionControllerTest {
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
 
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(portfoliosResponse.data, DateUtils.TODAY, true))
-            .thenReturn(testPositionResponse)
+        whenever(
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfoliosResponse.data, DateUtils.TODAY, true)
+            )
+        ).thenReturn(testPositionResponse)
 
         // When
-        val result = positionController.aggregated(DateUtils.TODAY, true, null, null, null)
+        val result =
+            positionController.aggregated(
+                DateUtils.TODAY,
+                true,
+                PortfolioSelection(ids = null, codes = null),
+                null
+            )
 
         // Then
         assertThat(result).isNotNull()
-        verify(valuationService).getAggregatedPositions(portfoliosResponse.data, DateUtils.TODAY, true)
+        verify(
+            valuationService
+        ).getAggregatedPositions(AggregateValuationRequest(portfoliosResponse.data, DateUtils.TODAY, true))
     }
 
     @Test
@@ -249,11 +272,20 @@ class PositionControllerTest {
         val emptyPositionResponse = PositionResponse()
 
         whenever(portfolioServiceClient.portfolios).thenReturn(emptyPortfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(emptyPortfoliosResponse.data, valuationDate, true))
-            .thenReturn(emptyPositionResponse)
+        whenever(
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(emptyPortfoliosResponse.data, valuationDate, true)
+            )
+        ).thenReturn(emptyPositionResponse)
 
         // When
-        val result = positionController.aggregated(valuationDate, true, null, null, null)
+        val result =
+            positionController.aggregated(
+                valuationDate,
+                true,
+                PortfolioSelection(ids = null, codes = null),
+                null
+            )
 
         // Then
         assertThat(result).isNotNull()
@@ -269,15 +301,18 @@ class PositionControllerTest {
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
         whenever(
             valuationService.getAggregatedPositions(
-                portfoliosResponse.data,
-                valuationDate,
-                true,
-                "SGD"
+                AggregateValuationRequest(portfoliosResponse.data, valuationDate, true, "SGD")
             )
         ).thenReturn(testPositionResponse)
 
         // When
-        val result = positionController.aggregated(valuationDate, true, null, null, "SGD")
+        val result =
+            positionController.aggregated(
+                valuationDate,
+                true,
+                PortfolioSelection(ids = null, codes = null),
+                "SGD"
+            )
 
         // Then
         assertThat(result).isNotNull()
@@ -296,15 +331,12 @@ class PositionControllerTest {
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
         whenever(
             valuationService.getAggregatedPositions(
-                portfoliosResponse.data,
-                valuationDate,
-                false,
-                "SGD"
+                AggregateValuationRequest(portfoliosResponse.data, valuationDate, false, "SGD")
             )
         ).thenReturn(testPositionResponse)
 
         // When - value=false means no valuations, so no conversion applicable
-        positionController.aggregated(valuationDate, false, null, null, "SGD")
+        positionController.aggregated(valuationDate, false, PortfolioSelection(ids = null, codes = null), "SGD")
 
         // Then
         verify(allocationService, org.mockito.kotlin.never())
@@ -326,21 +358,28 @@ class PositionControllerTest {
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio, portfolio2))
 
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
 
         // When - only request the test portfolio by its code
-        val result = positionController.aggregated(valuationDate, true, testPortfolio.code, null, null)
+        val result =
+            positionController.aggregated(
+                valuationDate,
+                true,
+                PortfolioSelection(ids = null, codes = testPortfolio.code),
+                null
+            )
 
         // Then
         assertThat(result).isNotNull()
         // Verify that only the filtered portfolio was passed
         verify(valuationService).getAggregatedPositions(
-            argThat { size == 1 && first().code == testPortfolio.code },
-            eq(valuationDate),
-            eq(true),
-            anyOrNull(),
-            any()
+            argThat {
+                portfolios.size == 1 &&
+                    portfolios.first().code == testPortfolio.code &&
+                    this.valuationDate == valuationDate &&
+                    value
+            }
         )
     }
 
@@ -353,21 +392,20 @@ class PositionControllerTest {
     @Test
     fun `aggregated resolves ids via per-id fetch ignoring codes when both supplied`() {
         whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
 
         positionController.aggregated(
             asAt = "2024-01-15",
             value = true,
-            codes = "SHOULD-IGNORE",
-            ids = "test-portfolio",
+            selection = PortfolioSelection(ids = "test-portfolio", codes = "SHOULD-IGNORE"),
             targetCurrency = null
         )
 
         verify(portfolioServiceClient).getPortfolioById("test-portfolio")
-        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull(), any())
-        assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+        val captor = org.mockito.kotlin.argumentCaptor<AggregateValuationRequest>()
+        verify(valuationService).getAggregatedPositions(captor.capture())
+        assertThat(captor.firstValue.portfolios.map { it.id }).containsExactly("test-portfolio")
     }
 
     @Test
@@ -378,20 +416,19 @@ class PositionControllerTest {
                 com.beancounter.common.exception
                     .BusinessException("Unable to find portfolio not-visible")
             )
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
 
         positionController.aggregated(
             asAt = "2024-01-15",
             value = true,
-            codes = null,
-            ids = "test-portfolio,not-visible",
+            selection = PortfolioSelection(ids = "test-portfolio,not-visible", codes = null),
             targetCurrency = null
         )
 
-        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull(), any())
-        assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+        val captor = org.mockito.kotlin.argumentCaptor<AggregateValuationRequest>()
+        verify(valuationService).getAggregatedPositions(captor.capture())
+        assertThat(captor.firstValue.portfolios.map { it.id }).containsExactly("test-portfolio")
     }
 
     /**
@@ -406,7 +443,7 @@ class PositionControllerTest {
         val portfolio2 = TestHelpers.createTestPortfolio("portfolio-2")
         whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
         whenever(portfolioServiceClient.getPortfolioById("portfolio-2")).thenReturn(portfolio2)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
             com.beancounter.common.contracts
@@ -417,9 +454,13 @@ class PositionControllerTest {
 
         verify(portfolioServiceClient).getPortfolioById("test-portfolio")
         verify(portfolioServiceClient).getPortfolioById("portfolio-2")
-        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull(), any())
-        assertThat(captor.firstValue.map { it.id }.toSet()).isEqualTo(setOf("test-portfolio", "portfolio-2"))
+        val captor = org.mockito.kotlin.argumentCaptor<AggregateValuationRequest>()
+        verify(valuationService).getAggregatedPositions(captor.capture())
+        assertThat(
+            captor.firstValue.portfolios
+                .map { it.id }
+                .toSet()
+        ).isEqualTo(setOf("test-portfolio", "portfolio-2"))
     }
 
     @Test
@@ -430,7 +471,7 @@ class PositionControllerTest {
                 com.beancounter.common.exception
                     .BusinessException("Unable to find portfolio not-visible")
             )
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
             com.beancounter.common.contracts
@@ -439,16 +480,16 @@ class PositionControllerTest {
 
         positionController.allocation(asAt = "2024-01-15", ids = "test-portfolio,not-visible", targetCurrency = null)
 
-        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull(), any())
-        assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+        val captor = org.mockito.kotlin.argumentCaptor<AggregateValuationRequest>()
+        verify(valuationService).getAggregatedPositions(captor.capture())
+        assertThat(captor.firstValue.portfolios.map { it.id }).containsExactly("test-portfolio")
     }
 
     @Test
     fun `allocation falls back to caller portfolios when no ids supplied`() {
         val portfoliosResponse = PortfoliosResponse(listOf(testPortfolio))
         whenever(portfolioServiceClient.portfolios).thenReturn(portfoliosResponse)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(
             com.beancounter.common.contracts
@@ -458,9 +499,9 @@ class PositionControllerTest {
         positionController.allocation(asAt = "2024-01-15", ids = null, targetCurrency = null)
 
         verify(portfolioServiceClient).portfolios
-        val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
-        verify(valuationService).getAggregatedPositions(captor.capture(), any(), any(), anyOrNull(), any())
-        assertThat(captor.firstValue.map { it.id }).containsExactly("test-portfolio")
+        val captor = org.mockito.kotlin.argumentCaptor<AggregateValuationRequest>()
+        verify(valuationService).getAggregatedPositions(captor.capture())
+        assertThat(captor.firstValue.portfolios.map { it.id }).containsExactly("test-portfolio")
     }
 
     @Test
@@ -474,7 +515,7 @@ class PositionControllerTest {
             com.beancounter.common.contracts
                 .AllocationResponse()
         )
-        verify(valuationService, never()).getAggregatedPositions(any(), any(), any(), anyOrNull(), any())
+        verify(valuationService, never()).getAggregatedPositions(any())
     }
 
     @Test
@@ -486,7 +527,7 @@ class PositionControllerTest {
             com.beancounter.common.contracts
                 .AllocationData(currency = "SGD")
         whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(usdAllocation)
         whenever(allocationService.convertCurrency(usdAllocation, "SGD", fxService, "2024-01-15"))
@@ -503,7 +544,7 @@ class PositionControllerTest {
             com.beancounter.common.contracts
                 .AllocationData(currency = "SGD")
         whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+        whenever(valuationService.getAggregatedPositions(any()))
             .thenReturn(testPositionResponse)
         whenever(allocationService.calculateAllocation(any(), any())).thenReturn(sgdAllocation)
 
@@ -517,7 +558,11 @@ class PositionControllerTest {
     fun `should return 400 when currency is missing`() {
         // BusinessException maps to HTTP 400 via GlobalExceptionHandler.
         assertThatThrownBy {
-            positionController.netWorth(asAt = "2024-01-15", codes = null, ids = null, currency = " ")
+            positionController.netWorth(
+                asAt = "2024-01-15",
+                selection = PortfolioSelection(ids = null, codes = null),
+                currency = " "
+            )
         }.isInstanceOf(BusinessException::class.java)
             .hasMessageContaining("currency")
 
@@ -531,7 +576,11 @@ class PositionControllerTest {
         whenever(netWorthService.calculate(any(), eq("2024-01-15"), eq("SGD"), any())).thenReturn(expected)
 
         val result =
-            positionController.netWorth(asAt = "2024-01-15", codes = null, ids = "test-portfolio", currency = "SGD")
+            positionController.netWorth(
+                asAt = "2024-01-15",
+                selection = PortfolioSelection(ids = "test-portfolio", codes = null),
+                currency = "SGD"
+            )
 
         assertThat(result.data).isEqualTo(expected)
         val captor = org.mockito.kotlin.argumentCaptor<Collection<Portfolio>>()
@@ -548,8 +597,7 @@ class PositionControllerTest {
         val result =
             positionController.netWorth(
                 asAt = "2024-01-15",
-                codes = null,
-                ids = "test-portfolio",
+                selection = PortfolioSelection(ids = "test-portfolio", codes = null),
                 currency = "SGD",
                 live = true
             )
@@ -560,15 +608,14 @@ class PositionControllerTest {
     @Test
     fun `should aggregate positions at live prices when asked`() {
         whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
-        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), eq(true)))
+        whenever(valuationService.getAggregatedPositions(argThat { live }))
             .thenReturn(testPositionResponse)
 
         val result =
             positionController.aggregated(
                 asAt = "2024-01-15",
                 value = true,
-                codes = null,
-                ids = "test-portfolio",
+                selection = PortfolioSelection(ids = "test-portfolio", codes = null),
                 targetCurrency = null,
                 live = true
             )
@@ -583,7 +630,11 @@ class PositionControllerTest {
             .thenThrow(BusinessException("Unable to find portfolio not-visible"))
 
         assertThatThrownBy {
-            positionController.netWorth(asAt = "2024-01-15", codes = null, ids = "not-visible", currency = "SGD")
+            positionController.netWorth(
+                asAt = "2024-01-15",
+                selection = PortfolioSelection(ids = "not-visible", codes = null),
+                currency = "SGD"
+            )
         }.isInstanceOf(NotFoundException::class.java)
             .hasMessageContaining("None of the requested portfolios are visible")
 

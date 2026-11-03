@@ -10,8 +10,8 @@ import com.beancounter.common.contracts.SectorExposureResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrustedTrnQuery
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.valuation.AggregateValuationRequest
 import com.beancounter.position.valuation.Valuation
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.slf4j.LoggerFactory
+import org.springdoc.core.annotations.ParameterObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -337,28 +337,7 @@ class PositionController(
             value = "value",
             defaultValue = "true"
         ) value: Boolean,
-        @Parameter(
-            description = "Comma-separated portfolio codes to include. If empty, all portfolios are included.",
-            example = "PORTFOLIO1,PORTFOLIO2"
-        )
-        @RequestParam(
-            value = "codes",
-            required = false
-        ) codes: String?,
-        @Parameter(
-            description =
-                "Comma-separated portfolio ids to include. Takes precedence over `codes`. " +
-                    "Per-id resolution via portfolioServiceClient.getPortfolioById delegates " +
-                    "visibility to svc-data's canView — so owner / accepted-share callers get " +
-                    "their portfolios and M2M callers get the SYSTEM short-circuit. Use this " +
-                    "when codes can collide across users (a shared-plan viewer may own a " +
-                    "portfolio with the same code as the plan owner's).",
-            example = "id-1,id-2"
-        )
-        @RequestParam(
-            value = "ids",
-            required = false
-        ) ids: String?,
+        @ParameterObject selection: PortfolioSelection,
         @Parameter(
             description =
                 "Target currency for PORTFOLIO-view values (e.g., SGD, NZD). " +
@@ -381,11 +360,7 @@ class PositionController(
         ) live: Boolean = false
     ): PositionResponse =
         valuationService.getAggregatedPositions(
-            resolvePortfolios(ids, codes),
-            asAt,
-            value,
-            targetCurrency,
-            live
+            AggregateValuationRequest(selection.resolve(portfolioServiceClient), asAt, value, targetCurrency, live)
         )
 
     @GetMapping(
@@ -432,22 +407,7 @@ class PositionController(
             value = "asAt",
             required = false
         ) asAt: String = DateUtils.TODAY,
-        @Parameter(
-            description = "Comma-separated portfolio codes to include. If empty, all portfolios are included.",
-            example = "PORTFOLIO1,PORTFOLIO2"
-        )
-        @RequestParam(
-            value = "codes",
-            required = false
-        ) codes: String?,
-        @Parameter(
-            description = "Comma-separated portfolio ids to include. Takes precedence over `codes`.",
-            example = "id-1,id-2"
-        )
-        @RequestParam(
-            value = "ids",
-            required = false
-        ) ids: String?,
+        @ParameterObject selection: PortfolioSelection,
         @Parameter(
             description = "Target display currency for every value in the response. Required.",
             example = "SGD"
@@ -470,47 +430,14 @@ class PositionController(
         if (currency.isNullOrBlank()) {
             throw BusinessException("currency is required")
         }
-        val portfolios = resolvePortfolios(ids, codes)
+        val portfolios = selection.resolve(portfolioServiceClient)
         // A headline figure must not quietly read as zero when every requested id was skipped.
-        if (!ids.isNullOrBlank() && portfolios.isEmpty()) {
+        if (selection.namesIds && portfolios.isEmpty()) {
             throw NotFoundException("None of the requested portfolios are visible")
         }
         return NetWorthResponse(
             data = netWorthService.calculate(portfolios, asAt, currency, live)
         )
-    }
-
-    /**
-     * Portfolio selection shared by the cross-portfolio endpoints. `ids`
-     * wins over `codes`: each id is fetched through svc-data so visibility
-     * is delegated to its canView (owners, accepted shares, M2M SYSTEM),
-     * and ids the caller cannot see are skipped. Codes filter the caller's
-     * own portfolio list; neither means everything.
-     */
-    private fun resolvePortfolios(
-        ids: String?,
-        codes: String?
-    ): Collection<Portfolio> {
-        if (!ids.isNullOrBlank()) {
-            return ids
-                .split(",")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .mapNotNull { id ->
-                    try {
-                        portfolioServiceClient.getPortfolioById(id)
-                    } catch (e: BusinessException) {
-                        log.debug("Skipping portfolio {} (not visible to caller): {}", id, e.message)
-                        null
-                    }
-                }
-        }
-        val allPortfolios = portfolioServiceClient.portfolios.data
-        if (codes.isNullOrBlank()) {
-            return allPortfolios
-        }
-        val codeSet = codes.split(",").map { it.trim() }.toSet()
-        return allPortfolios.filter { it.code in codeSet }
     }
 
     @GetMapping(
@@ -569,42 +496,11 @@ class PositionController(
             required = false
         ) targetCurrency: String?
     ): AllocationResponse {
-        // When `ids` is supplied, fetch each portfolio by id directly through
-        // svc-data rather than filtering the caller's `portfolios` list.
-        // The old filter silently dropped any id the caller couldn't see in
-        // their own portfolio list — fatal for M2M callers (svc-retire
-        // projecting a shared INDEPENDENCE_PLAN), whose `portfolios` is empty
-        // and whose intent is to read the plan owner's portfolios. The per-id
-        // path delegates visibility to svc-data's `canView()`, which returns
-        // true for `AuthConstants.SYSTEM` M2M tokens AND for owners / active
-        // shares of regular user tokens. Net effect: M2M with valid ids gets
-        // the owner's portfolios; user tokens behave identically to before
-        // for ids they could already see.
-        val selectedPortfolios: Collection<Portfolio> =
-            if (ids.isNullOrBlank()) {
-                portfolioServiceClient.portfolios.data
-            } else {
-                ids
-                    .split(",")
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
-                    .mapNotNull { id ->
-                        try {
-                            portfolioServiceClient.getPortfolioById(id)
-                        } catch (e: BusinessException) {
-                            // Only "not visible / not found" cases are
-                            // swallowed. Other failures (network, auth)
-                            // propagate so genuine problems aren't silently
-                            // treated as missing ids.
-                            log.debug(
-                                "Skipping portfolio {} (not visible to caller): {}",
-                                id,
-                                e.message
-                            )
-                            null
-                        }
-                    }
-            }
+        // When `ids` is supplied, each portfolio is fetched by id through svc-data
+        // rather than filtered from the caller's own `portfolios` list. M2M callers
+        // (svc-retire projecting a shared INDEPENDENCE_PLAN) have an empty list and
+        // read the plan owner's portfolios; svc-data's `canView()` decides visibility.
+        val selectedPortfolios = PortfolioSelection(ids = ids).resolve(portfolioServiceClient)
 
         if (selectedPortfolios.isEmpty()) {
             return AllocationResponse()
@@ -612,10 +508,7 @@ class PositionController(
 
         val positions =
             valuationService.getAggregatedPositions(
-                selectedPortfolios,
-                asAt,
-                true,
-                targetCurrency
+                AggregateValuationRequest(selectedPortfolios, asAt, value = true, targetCurrencyCode = targetCurrency)
             )
 
         val allocation = allocationService.calculateAllocation(positions.data)
@@ -697,17 +590,11 @@ class PositionController(
 
         val positions =
             valuationService.getAggregatedPositions(
-                selectedPortfolios,
-                asAt,
-                true
+                AggregateValuationRequest(selectedPortfolios, asAt, value = true)
             )
 
         return SectorExposureResponse(
             data = sectorExposureService.calculateSectorExposure(positions.data)
         )
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

@@ -115,7 +115,8 @@ object SplitAdjuster {
 
     /**
      * Rebases an ex-date row onto the post-split basis when its close looks unadjusted: more
-     * than twice the post-split level implied by the raw [previousClose].
+     * than twice the post-split level implied by the raw [previousClose]. Mutates [marketData]
+     * in place. [split] must be positive; the caller passes it only on a split ex-date.
      */
     fun rebaseUnadjustedOhlc(
         marketData: MarketData,

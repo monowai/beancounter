@@ -23,6 +23,7 @@ class MarketHolidays {
         private const val JUNETEENTH_FIRST_YEAR = 2021
         private const val CHRISTMAS_DAY = 25
         private const val BOXING_DAY = 26
+        private const val FIRST_OCCURRENCE = 1
         private const val THIRD_OCCURRENCE = 3
         private const val FOURTH_OCCURRENCE = 4
         private const val LAST_OCCURRENCE = -1
@@ -33,7 +34,7 @@ class MarketHolidays {
                 Triple(Month.JANUARY, DayOfWeek.MONDAY, THIRD_OCCURRENCE), // MLK Day
                 Triple(Month.FEBRUARY, DayOfWeek.MONDAY, THIRD_OCCURRENCE), // Presidents Day
                 Triple(Month.MAY, DayOfWeek.MONDAY, LAST_OCCURRENCE), // Memorial Day
-                Triple(Month.SEPTEMBER, DayOfWeek.MONDAY, 1), // Labor Day
+                Triple(Month.SEPTEMBER, DayOfWeek.MONDAY, FIRST_OCCURRENCE), // Labor Day
                 Triple(Month.NOVEMBER, DayOfWeek.THURSDAY, FOURTH_OCCURRENCE) // Thanksgiving
             )
         private val DAYS_IN_WEEK = DayOfWeek.entries.size

@@ -22,10 +22,6 @@ interface AgentUsageRepository : JpaRepository<AgentUsage, String> {
     /** Every owner with a turn answered after [since]. */
     @Query("select distinct u.ownerId from AgentUsage u where u.usedAt > :since")
     fun ownersActiveAfter(since: Instant): List<String>
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("delete from AgentUsage u where u.ownerId = :ownerId")
-    fun deleteOfOwner(ownerId: String): Int
 }
 
 interface AgentQuotaLimitRepository : JpaRepository<AgentQuotaLimit, String>

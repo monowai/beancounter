@@ -83,6 +83,9 @@ class AgentQuotaTest {
     private lateinit var quota: AgentQuota
 
     @Autowired
+    private lateinit var usageRows: AgentUsageRepository
+
+    @Autowired
     private lateinit var conversations: ConversationService
 
     @Autowired
@@ -103,7 +106,7 @@ class AgentQuotaTest {
 
     @BeforeEach
     fun reset() {
-        quota.forget(me)
+        usageRows.deleteAll()
         quota.clearLimit(me)
         reviewRows.deleteAll()
         conversations.deleteAll(me)
@@ -385,7 +388,6 @@ class AgentQuotaTest {
     @Test
     fun `the overview should list users with use or an override, and the default`() {
         val other = "quota-other"
-        quota.forget(other)
         quota.clearLimit(other)
         ask(chat)
         quota.setUnlimited(other)

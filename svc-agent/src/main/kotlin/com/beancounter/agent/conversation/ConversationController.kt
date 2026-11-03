@@ -94,7 +94,7 @@ class ConversationController(
     ) {
         turns.forEach {
             if (it.role == ROLE_USER) {
-                service.appendUser(ownerId, id, it.content, it.deepThink, it.label)
+                service.appendUser(ownerId, id, Question(it.content, it.deepThink, it.label))
             } else {
                 service.appendAssistant(ownerId, id, it.content, null)
             }
@@ -102,7 +102,7 @@ class ConversationController(
         if (hidden) return
         val answer = turns.lastOrNull { it.role == ROLE_ASSISTANT } ?: return
         val questions = turns.filter { it.role == ROLE_USER }.map { it.label ?: it.content }
-        titler.suggest(ownerId, id, service.titleOf(ownerId, id), questions, answer.content)
+        titler.suggest(ownerId, id, TitleSeed(service.titleOf(ownerId, id), questions), answer.content)
     }
 
     @GetMapping

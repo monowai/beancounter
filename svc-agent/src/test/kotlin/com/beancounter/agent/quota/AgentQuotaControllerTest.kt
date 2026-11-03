@@ -39,6 +39,9 @@ class AgentQuotaControllerTest {
     @Autowired
     private lateinit var quota: AgentQuota
 
+    @Autowired
+    private lateinit var usageRows: AgentUsageRepository
+
     @MockitoBean
     private lateinit var owner: ConversationOwner
 
@@ -63,10 +66,8 @@ class AgentQuotaControllerTest {
     @BeforeEach
     fun actAsMe() {
         whenever(owner.id()).thenReturn(me)
-        listOf(me, other).forEach {
-            quota.forget(it)
-            quota.clearLimit(it)
-        }
+        usageRows.deleteAll()
+        listOf(me, other).forEach(quota::clearLimit)
     }
 
     @Test

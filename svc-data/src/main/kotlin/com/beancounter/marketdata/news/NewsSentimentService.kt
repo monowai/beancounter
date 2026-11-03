@@ -154,30 +154,42 @@ class NewsSentimentService(
         if (unmatched.isNotEmpty()) {
             log.warn("Sentiment batch returned symbols matching no requested asset: {}", unmatched)
         }
-        parsed.forEach { (symbol, points) ->
-            bySymbol[symbol].orEmpty().forEach { asset ->
-                points.filter { it.date >= from }.forEach { point ->
-                    val key = asset.id to point.date
-                    val row = existing[key]
-                    if (row == null) {
-                        val created =
-                            NewsSentimentDaily(asset.id, point.date, symbol, point.count, point.normalized, fetchedAt)
-                        existing[key] = created
-                        toSave += created
-                    } else if (changed(row, point)) {
-                        // Unchanged rows are left alone — fetchedAt included — so a quiet day costs no UPDATE.
-                        row.symbol = symbol
-                        row.articleCount = point.count
-                        row.normalized = point.normalized
-                        row.fetchedAt = fetchedAt
-                        toSave += row
-                    }
-                }
+        incoming(bySymbol, parsed, from).forEach { (assetId, symbol, point) ->
+            val key = assetId to point.date
+            val row = existing[key]
+            if (row == null) {
+                val created = NewsSentimentDaily(assetId, point.date, symbol, point.count, point.normalized, fetchedAt)
+                existing[key] = created
+                toSave += created
+            } else if (changed(row, point)) {
+                // Unchanged rows are left alone — fetchedAt included — so a quiet day costs no UPDATE.
+                row.symbol = symbol
+                row.articleCount = point.count
+                row.normalized = point.normalized
+                row.fetchedAt = fetchedAt
+                toSave += row
             }
         }
         repo.saveAll(toSave)
         return toSave.size
     }
+
+    /** One sentiment point per requested asset, on or after [from]. */
+    private fun incoming(
+        bySymbol: Map<String, List<Asset>>,
+        parsed: Map<String, List<SentimentPoint>>,
+        from: LocalDate
+    ): List<Incoming> =
+        parsed.flatMap { (symbol, points) ->
+            val fresh = points.filter { it.date >= from }
+            bySymbol[symbol].orEmpty().flatMap { asset -> fresh.map { Incoming(asset.id, symbol, it) } }
+        }
+
+    private data class Incoming(
+        val assetId: String,
+        val symbol: String,
+        val point: SentimentPoint
+    )
 
     private fun changed(
         row: NewsSentimentDaily,

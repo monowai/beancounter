@@ -3,7 +3,6 @@ package com.beancounter.agent.clients
 import com.beancounter.auth.TokenService
 import com.beancounter.common.exception.BusinessException
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
@@ -11,7 +10,7 @@ import org.springframework.web.client.RestClient
 /**
  * Thin read-only client for svc-rebalance's public REST API.
  *
- * Same pattern as [RetireServiceClient] — auth forwarded via
+ * Same pattern as [RetirePlansClient] — auth forwarded via
  * [TokenService.bearerToken], return types kept generic so we aren't
  * duplicating DTO definitions from a sibling repository. Read-only methods
  * only; creating/updating/approving plans is deliberately left out so the
@@ -30,7 +29,7 @@ class RebalanceServiceClient(
             .uri("/models")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE)
+            .body(JSON_MAP)
             ?: throw BusinessException("Failed to retrieve rebalance models")
 
     /** `GET /models/{modelId}` — a single investment model. */
@@ -40,7 +39,7 @@ class RebalanceServiceClient(
             .uri("/models/{modelId}", modelId)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE)
+            .body(JSON_MAP)
             ?: throw BusinessException("Failed to retrieve rebalance model $modelId")
 
     /** `GET /models/{modelId}/plans` — all plans (DRAFT + approved versions) for a model. */
@@ -50,7 +49,7 @@ class RebalanceServiceClient(
             .uri("/models/{modelId}/plans", modelId)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE)
+            .body(JSON_MAP)
             ?: throw BusinessException("Failed to retrieve rebalance plans for model $modelId")
 
     /** `GET /models/{modelId}/plans/approved` — the latest approved plan for a model. */
@@ -60,7 +59,7 @@ class RebalanceServiceClient(
             .uri("/models/{modelId}/plans/approved", modelId)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE)
+            .body(JSON_MAP)
             ?: throw BusinessException("Failed to retrieve approved plan for model $modelId")
 
     /** `GET /models/{modelId}/plans/{planId}` — a specific plan version. */
@@ -73,10 +72,6 @@ class RebalanceServiceClient(
             .uri("/models/{modelId}/plans/{planId}", modelId, planId)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE)
+            .body(JSON_MAP)
             ?: throw BusinessException("Failed to retrieve plan $planId for model $modelId")
-
-    companion object {
-        private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
-    }
 }

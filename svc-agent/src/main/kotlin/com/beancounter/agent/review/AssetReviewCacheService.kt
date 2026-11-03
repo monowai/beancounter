@@ -6,14 +6,14 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionDefinition
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Clock
 import java.time.Duration
 
 /**
  * The [AssetReviewCache] in the agent database, so cached reviews survive
- * restarts and deploys. A review is served only on its own [AssetReviewKey.reviewDate]
+ * restarts and deploys. Never throws: a failed read is a miss and a failed
+ * store is logged. A review is served only on its own [AssetReviewKey.reviewDate]
  * and while younger than `beancounter.agent.review-cache.max-age`. After each
  * store, reviews dated more than [KEEP_DAYS] days back are cleared. Reads are
  * plain repository reads; every write runs in a transaction of its own. Two first requests
@@ -40,28 +40,60 @@ class AssetReviewCacheService(
             propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
         }
 
-    @Transactional(readOnly = true)
+    // Reads run in a template, not under @Transactional, so a failed read is
+    // caught outside its transaction instead of poisoning it rollback-only.
+    private val reads = TransactionTemplate(transactionManager).apply { isReadOnly = true }
+
+    /** A failed read is a miss: the review is asked of the model instead. */
     override fun find(key: AssetReviewKey): String? {
         if (!enabled) return null
-        val review = existing(key) ?: return null
-        if (review.createdAt.isBefore(clock.instant().minus(maxAge))) return null
-        return review.content
+        return try {
+            reads.execute { fresh(key) }
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("Asset review cache read failed: {}", e.message)
+            null
+        }
     }
 
+    /** A failed store is logged, never allowed to cost the caller the answer it was keeping. */
     override fun store(
         key: AssetReviewKey,
         content: String
     ) {
         if (!enabled || content.isBlank()) return
         try {
+            save(key, content)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("Failed to cache asset review {}:{}: {}", key.market, key.ticker, e.message)
+            return
+        }
+        purge(key)
+    }
+
+    private fun fresh(key: AssetReviewKey): String? {
+        val review = existing(key) ?: return null
+        if (review.createdAt.isBefore(clock.instant().minus(maxAge))) return null
+        return review.content
+    }
+
+    private fun save(
+        key: AssetReviewKey,
+        content: String
+    ) {
+        try {
             transaction.executeWithoutResult { write(key, content) }
         } catch (e: DataIntegrityViolationException) {
             // Retry only a lost insert race: the other request's row now exists to update.
-            // Anything else is a real data error and propagates.
+            // Anything else is a real data error.
             if (transaction.execute { existing(key) } == null) throw e
             transaction.executeWithoutResult { write(key, content) }
         }
-        purge(key)
     }
 
     /** Best effort, after the write: clearing old days never costs the review just stored. */

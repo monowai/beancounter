@@ -285,10 +285,11 @@ class AssetController(
     ): AssetResponse = AssetResponse(assetService.enrich(assetFinder.find(assetId)))
 
     @PostMapping(value = ["/price/refresh"])
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
     @Operation(
         summary = "Refresh prices for all assets",
         description = """
-            Triggers a price refresh for all assets in the system.
+            Triggers a price refresh for all assets in the system. Requires admin scope.
             This is a background operation that updates market prices.
 
             Use this to:
@@ -682,8 +683,10 @@ class AssetController(
         description = """
             Updates the status of an asset (Active/Inactive).
             Use this to deactivate delisted assets so they are excluded from price refresh.
+            Requires admin scope: the status applies to every user of the asset.
         """
     )
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
     @ApiResponses(
         value = [
             ApiResponse(

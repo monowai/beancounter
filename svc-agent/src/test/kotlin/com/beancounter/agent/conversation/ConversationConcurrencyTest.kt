@@ -58,7 +58,7 @@ class ConversationConcurrencyTest {
             pool.submit {
                 start.await()
                 repeat(turnsEach) { t ->
-                    runCatching { service.appendUser(owner, id, "w$w-$t", false) }.onFailure { failures.add(it) }
+                    runCatching { service.appendUser(owner, id, Question("w$w-$t")) }.onFailure { failures.add(it) }
                 }
             }
         }

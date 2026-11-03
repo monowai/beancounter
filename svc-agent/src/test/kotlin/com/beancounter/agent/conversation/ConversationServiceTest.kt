@@ -86,7 +86,7 @@ class ConversationServiceTest {
     @Test
     fun `should record user and assistant turns in order and reload them`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "How is my portfolio?", deepThink = true)
+        service.appendUser(owner, id, Question("How is my portfolio?", deepThink = true))
         service.appendAssistant(owner, id, "Up 2% this week.", error = null)
 
         val detail = service.get(owner, id)
@@ -99,21 +99,52 @@ class ConversationServiceTest {
     @Test
     fun `should start every conversation as a plain chat`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "How is my portfolio?", false)
+        service.appendUser(owner, id, Question("How is my portfolio?"))
 
         assertThat(service.get(owner, id).kind).isEqualTo(ConversationKind.CHAT)
         assertThat(service.list(owner, 0, 10).single().kind).isEqualTo(ConversationKind.CHAT)
     }
 
     @Test
+    fun `should open a turn with the history before it and seed a title only until the first answer`() {
+        val id = service.create(owner).id
+
+        val first =
+            service.openTurn(
+                owner,
+                id,
+                Question("Full prompt", label = "Index funds"),
+                ConversationKind.CHAT,
+                6
+            )
+        service.appendAssistant(owner, id, "They track an index.", null)
+        val second = service.openTurn(owner, id, Question("And bonds?"), ConversationKind.CHAT, 6)
+
+        assertThat(first.history).isEmpty()
+        assertThat(first.titleSeed).isEqualTo(TitleSeed("Index funds", listOf("Index funds")))
+        assertThat(second.history.map { it.content }).containsExactly("Full prompt", "They track an index.")
+        assertThat(second.titleSeed).isNull()
+    }
+
+    @Test
+    fun `should not seed a title for a hidden conversation`() {
+        val id = service.create(owner, hidden = true).id
+
+        val opened = service.openTurn(owner, id, Question("How is my portfolio?"), ConversationKind.CHAT, 6)
+
+        assertThat(opened.titleSeed).isNull()
+        assertThat(service.get(owner, id).messages.map { it.content }).containsExactly("How is my portfolio?")
+    }
+
+    @Test
     fun `should take its kind from the first turn and keep it`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "Analyse my holding", false, kind = ConversationKind.HOLDING_ANALYSIS)
+        service.appendUser(owner, id, Question("Analyse my holding"), kind = ConversationKind.HOLDING_ANALYSIS)
         service.appendAssistant(owner, id, "Sized at a tenth of the book.", null)
-        service.appendUser(owner, id, "And the review?", false, kind = ConversationKind.ASSET_REVIEW)
+        service.appendUser(owner, id, Question("And the review?"), kind = ConversationKind.ASSET_REVIEW)
 
         assertThat(service.get(owner, id).kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
-        assertThat(service.kindOf(owner, id)).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
+        assertThat(service.stateOf(owner, id).kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
         assertThat(service.list(owner, 0, 10).single().kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
     }
 
@@ -133,17 +164,17 @@ class ConversationServiceTest {
     @Test
     fun `should not turn a chat into a review after its first turn`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "What is an ETF?", false)
-        service.appendUser(owner, id, "Review it", false, kind = ConversationKind.ASSET_REVIEW)
+        service.appendUser(owner, id, Question("What is an ETF?"))
+        service.appendUser(owner, id, Question("Review it"), kind = ConversationKind.ASSET_REVIEW)
 
-        assertThat(service.kindOf(owner, id)).isEqualTo(ConversationKind.CHAT)
+        assertThat(service.stateOf(owner, id).kind).isEqualTo(ConversationKind.CHAT)
     }
 
     @Test
     fun `should title a conversation provisionally from its first user message`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
-        service.appendUser(owner, id, "And bonds?", false)
+        service.appendUser(owner, id, Question("In one sentence, what is an index fund?"))
+        service.appendUser(owner, id, Question("And bonds?"))
 
         assertThat(service.titleOf(owner, id)).isEqualTo("Index fund")
     }
@@ -152,7 +183,7 @@ class ConversationServiceTest {
     fun `should keep a display label beside the question and title the conversation from it`() {
         val id = service.create(owner).id
         val canned = "Summarise recent news and sentiment for NATO on LSE. Respond in markdown with sections..."
-        service.appendUser(owner, id, canned, false, label = "News & Sentiment — NATO")
+        service.appendUser(owner, id, Question(canned, false, label = "News & Sentiment — NATO"))
 
         val first = service.get(owner, id).messages.first()
         assertThat(first.content).isEqualTo(canned)
@@ -164,7 +195,7 @@ class ConversationServiceTest {
     fun `should clip an over-long label rather than fail the turn`() {
         val id = service.create(owner).id
 
-        service.appendUser(owner, id, "prompt", false, label = "L".repeat(500))
+        service.appendUser(owner, id, Question("prompt", false, label = "L".repeat(500)))
 
         assertThat(
             service
@@ -178,7 +209,7 @@ class ConversationServiceTest {
     @Test
     fun `should replace a provisional title with a generated one`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
+        service.appendUser(owner, id, Question("In one sentence, what is an index fund?"))
 
         val applied =
             service.applyGeneratedTitle(
@@ -195,7 +226,7 @@ class ConversationServiceTest {
     @Test
     fun `should never overwrite a title the user chose`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
+        service.appendUser(owner, id, Question("In one sentence, what is an index fund?"))
         service.rename(owner, id, "My notes")
 
         val applied =
@@ -213,12 +244,12 @@ class ConversationServiceTest {
     @Test
     fun `should list only the caller's conversations, most recently active first`() {
         val older = service.create(owner).id
-        service.appendUser(owner, older, "first", false)
+        service.appendUser(owner, older, Question("first"))
         clock.advance(Duration.ofMinutes(5))
         val newer = service.create(owner).id
-        service.appendUser(owner, newer, "second", false)
+        service.appendUser(owner, newer, Question("second"))
         clock.advance(Duration.ofMinutes(5))
-        service.appendUser(owner, older, "older one, revisited", false)
+        service.appendUser(owner, older, Question("older one, revisited"))
         service.create(stranger)
 
         val listed = service.list(owner, page = 0, size = 20)
@@ -229,7 +260,7 @@ class ConversationServiceTest {
     @Test
     fun `should keep a hidden conversation out of the list but return it by id`() {
         val id = service.create(owner, hidden = true).id
-        service.appendUser(owner, id, "Review VOO", false)
+        service.appendUser(owner, id, Question("Review VOO"))
         service.appendAssistant(owner, id, "An S&P 500 ETF.", null)
 
         assertThat(service.list(owner, page = 0, size = 20)).isEmpty()
@@ -248,7 +279,7 @@ class ConversationServiceTest {
         val id = service.create(owner).id
 
         assertThatThrownBy { service.get(stranger, id) }.isInstanceOf(NotFoundException::class.java)
-        assertThatThrownBy { service.appendUser(stranger, id, "hi", false) }
+        assertThatThrownBy { service.appendUser(stranger, id, Question("hi")) }
             .isInstanceOf(NotFoundException::class.java)
         assertThatThrownBy { service.delete(stranger, id) }.isInstanceOf(NotFoundException::class.java)
         assertThat(service.get(owner, id).id).isEqualTo(id)
@@ -258,13 +289,13 @@ class ConversationServiceTest {
     fun `should replay history without failed answers, capped to the trailing turns`() {
         val id = service.create(owner).id
         repeat(4) { i ->
-            service.appendUser(owner, id, "q$i", false)
+            service.appendUser(owner, id, Question("q$i"))
             service.appendAssistant(owner, id, "a$i", error = null)
         }
-        service.appendUser(owner, id, "q4", false)
+        service.appendUser(owner, id, Question("q4"))
         service.appendAssistant(owner, id, "", error = "provider-rate")
 
-        val history = service.history(owner, id, maxTurns = 4)
+        val history = service.openTurn(owner, id, Question("next"), ConversationKind.CHAT, maxHistory = 4).history
 
         // The unanswered q4 stays, so "try again" still has its question.
         assertThat(history).containsExactly(
@@ -278,7 +309,7 @@ class ConversationServiceTest {
     @Test
     fun `should keep a failed turn's error code for display after reload`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "q", false)
+        service.appendUser(owner, id, Question("q"))
         service.appendAssistant(owner, id, "", error = "provider-quota")
 
         assertThat(
@@ -293,7 +324,7 @@ class ConversationServiceTest {
     @Test
     fun `should rename a conversation`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "q", false)
+        service.appendUser(owner, id, Question("q"))
 
         service.rename(owner, id, "Runway questions")
 
@@ -303,7 +334,7 @@ class ConversationServiceTest {
     @Test
     fun `should reject a blank title`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "q", false)
+        service.appendUser(owner, id, Question("q"))
 
         assertThatThrownBy { service.rename(owner, id, "   ") }.isInstanceOf(IllegalArgumentException::class.java)
     }
@@ -311,7 +342,7 @@ class ConversationServiceTest {
     @Test
     fun `should store a generated title without surrounding space`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "In one sentence, what is an index fund?", false)
+        service.appendUser(owner, id, Question("In one sentence, what is an index fund?"))
 
         service.applyGeneratedTitle(owner, id, provisional = "Index fund", generated = "  Index Fund Basics  ")
 
@@ -321,7 +352,7 @@ class ConversationServiceTest {
     @Test
     fun `should delete a conversation and its messages`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "q", false)
+        service.appendUser(owner, id, Question("q"))
 
         service.delete(owner, id)
 
@@ -331,9 +362,9 @@ class ConversationServiceTest {
 
     @Test
     fun `should delete every conversation an owner has, leaving others untouched`() {
-        repeat(2) { service.appendUser(owner, service.create(owner).id, "q", false) }
+        repeat(2) { service.appendUser(owner, service.create(owner).id, Question("q")) }
         val kept = service.create(stranger).id
-        service.appendUser(stranger, kept, "q", false)
+        service.appendUser(stranger, kept, Question("q"))
 
         val deleted = service.deleteAll(owner)
 
@@ -345,10 +376,10 @@ class ConversationServiceTest {
     @Test
     fun `should purge conversations idle beyond the retention window`() {
         val stale = service.create(owner).id
-        service.appendUser(owner, stale, "old", false)
+        service.appendUser(owner, stale, Question("old"))
         clock.advance(Duration.ofDays(91))
         val fresh = service.create(owner).id
-        service.appendUser(owner, fresh, "new", false)
+        service.appendUser(owner, fresh, Question("new"))
 
         val purged = service.purgeIdleLongerThan(Duration.ofDays(90))
 
@@ -360,7 +391,7 @@ class ConversationServiceTest {
     @Test
     fun `get should report pending only while a turn is in flight`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "How is my portfolio?", false)
+        service.appendUser(owner, id, Question("How is my portfolio?"))
 
         inFlight.begin(id)
         assertThat(service.get(owner, id).pending).isTrue()
@@ -372,7 +403,7 @@ class ConversationServiceTest {
     @Test
     fun `get should stay pending until the last overlapping turn ends`() {
         val id = service.create(owner).id
-        service.appendUser(owner, id, "How is my portfolio?", false)
+        service.appendUser(owner, id, Question("How is my portfolio?"))
 
         inFlight.begin(id)
         inFlight.begin(id)
@@ -386,7 +417,7 @@ class ConversationServiceTest {
     @Test
     fun `should return the owner's conversation for a subject instead of a second one`() {
         val first = service.findOrCreate(owner, "portfolio-review|A|DBS,USV")
-        service.appendUser(owner, first.id, "review", deepThink = false)
+        service.appendUser(owner, first.id, Question("review"))
 
         val again = service.findOrCreate(owner, "portfolio-review|A|DBS,USV")
 
@@ -414,7 +445,7 @@ class ConversationServiceTest {
     @Test
     fun `should leave a free chat outside any subject`() {
         val chat = service.create(owner)
-        service.appendUser(owner, chat.id, "hello", deepThink = false)
+        service.appendUser(owner, chat.id, Question("hello"))
 
         val review = service.findOrCreate(owner, "portfolio-review|A|DBS")
 

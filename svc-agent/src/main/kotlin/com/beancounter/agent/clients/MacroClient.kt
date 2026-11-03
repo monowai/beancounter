@@ -2,7 +2,6 @@ package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
@@ -28,7 +27,7 @@ class MacroClient(
             .uri("/macro/indicators?lookbackDays={lookbackDays}", mapOf("lookbackDays" to lookbackDays))
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE) ?: emptyMap()
+            .body(JSON_MAP) ?: emptyMap()
 
     /**
      * Market-implied Fed rate-decision odds. svc-data's controller returns HTTP 204 No Content
@@ -44,10 +43,6 @@ class MacroClient(
             .uri("/macro/rate-expectations")
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .toEntity(MAP_TYPE)
+            .toEntity(JSON_MAP)
             .body
-
-    companion object {
-        private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
-    }
 }

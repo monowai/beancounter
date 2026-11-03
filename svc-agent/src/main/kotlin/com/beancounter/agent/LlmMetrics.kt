@@ -47,35 +47,49 @@ class LlmMetrics(
     private val log = LoggerFactory.getLogger(LlmMetrics::class.java)
 
     fun capture(
-        modelId: String?,
-        usage: Usage?,
-        elapsedMs: Long,
-        toolCount: Int,
-        mode: Mode,
+        measure: ModelMeasure,
         span: Span = Span.current()
     ) {
         @Suppress("TooGenericExceptionCaught")
         try {
-            if (!modelId.isNullOrBlank()) span.setAttribute(ATTR_MODEL, modelId)
-            span.setAttribute(ATTR_TOOLS, toolCount.toLong())
-            span.setAttribute(ATTR_MODE, mode.tag)
-            span.setAttribute(ATTR_ELAPSED_MS, elapsedMs)
-            usage?.promptTokens?.toLong()?.let {
-                span.setAttribute(ATTR_PROMPT_TOKENS, it)
-            }
-            usage?.completionTokens?.toLong()?.let {
-                span.setAttribute(ATTR_COMPLETION_TOKENS, it)
-            }
-            usage?.totalTokens?.toLong()?.let {
-                span.setAttribute(ATTR_TOTAL_TOKENS, it)
-            }
+            measure.writeTo(span, genAi = false)
             // Last: the span this class owns. Ordered after the ambient writes
             // so a tracer problem can only cost us the new surface, never the
             // decoration that was already there.
-            emitSpan(modelId, usage, elapsedMs, toolCount, mode, span)
+            emitSpan(measure, span)
         } catch (e: Exception) {
             log.debug("LlmMetrics.capture failed: {}", e.message)
         }
+    }
+
+    /**
+     * A finished model [call]: its [ModelMeasure] captured on the call's
+     * pinned span and, at debug, the call logged with the [chars] it answered.
+     */
+    fun completed(
+        call: ModelCall,
+        usage: Usage?,
+        chars: Long,
+        mode: Mode
+    ) {
+        val measure = ModelMeasure(call.reportedModelId, usage, call.elapsedMs, call.tools.size, mode)
+        capture(measure, call.span)
+        if (!log.isDebugEnabled) return
+        log.debug(
+            "LLM {}: selected_model={}, response_chars={}, tools={} {}, " +
+                "prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
+                "elapsed_ms={}, query=\"{}\"",
+            mode.tag,
+            call.modelId,
+            chars,
+            call.tools.size,
+            call.tools,
+            usage?.promptTokens ?: 0,
+            usage?.completionTokens ?: 0,
+            usage?.totalTokens ?: 0,
+            measure.elapsedMs,
+            call.query.take(QUERY_LOG_CHARS)
+        )
     }
 
     /**
@@ -124,11 +138,7 @@ class LlmMetrics(
      * names, so adding one surface doesn't blind the other.
      */
     private fun emitSpan(
-        modelId: String?,
-        usage: Usage?,
-        elapsedMs: Long,
-        toolCount: Int,
-        mode: Mode,
+        measure: ModelMeasure,
         parent: Span
     ) {
         val builder = tracer.spanBuilder(SPAN_NAME)
@@ -145,25 +155,7 @@ class LlmMetrics(
         if (parent.isRecording) builder.setParent(Context.current().with(parent))
         val span = builder.startSpan()
         try {
-            if (!modelId.isNullOrBlank()) {
-                span.setAttribute(ATTR_MODEL, modelId)
-                span.setAttribute(ATTR_GENAI_MODEL, modelId)
-            }
-            span.setAttribute(ATTR_TOOLS, toolCount.toLong())
-            span.setAttribute(ATTR_MODE, mode.tag)
-            span.setAttribute(ATTR_ELAPSED_MS, elapsedMs)
-            usage?.promptTokens?.toLong()?.let {
-                span.setAttribute(ATTR_PROMPT_TOKENS, it)
-                span.setAttribute(ATTR_GENAI_INPUT_TOKENS, it)
-            }
-            usage?.completionTokens?.toLong()?.let {
-                span.setAttribute(ATTR_COMPLETION_TOKENS, it)
-                span.setAttribute(ATTR_GENAI_OUTPUT_TOKENS, it)
-            }
-            usage?.totalTokens?.toLong()?.let {
-                span.setAttribute(ATTR_TOTAL_TOKENS, it)
-                span.setAttribute(ATTR_GENAI_TOTAL_TOKENS, it)
-            }
+            measure.writeTo(span, genAi = true)
         } finally {
             span.end()
         }
@@ -177,30 +169,78 @@ class LlmMetrics(
     }
 
     companion object {
-        private const val ATTR_MODEL = "agent.model"
-        private const val ATTR_TOOLS = "agent.tools"
-        private const val ATTR_MODE = "agent.mode"
-        private const val ATTR_ELAPSED_MS = "agent.elapsed_ms"
-        private const val ATTR_CACHED = "agent.cached"
+        internal const val ATTR_MODEL = "agent.model"
+        internal const val ATTR_TOOLS = "agent.tools"
+        internal const val ATTR_MODE = "agent.mode"
+        internal const val ATTR_ELAPSED_MS = "agent.elapsed_ms"
+        internal const val ATTR_CACHED = "agent.cached"
 
         // Tokens use the `llm.*` namespace so Sentry's GenAI dashboards
         // and the standard `has:llm.total_tokens` event filter pick them
         // up without further config.
-        private const val ATTR_PROMPT_TOKENS = "llm.prompt_tokens"
-        private const val ATTR_COMPLETION_TOKENS = "llm.completion_tokens"
-        private const val ATTR_TOTAL_TOKENS = "llm.total_tokens"
+        internal const val ATTR_PROMPT_TOKENS = "llm.prompt_tokens"
+        internal const val ATTR_COMPLETION_TOKENS = "llm.completion_tokens"
+        internal const val ATTR_TOTAL_TOKENS = "llm.total_tokens"
 
         // OTel GenAI semantic-convention names. Sentry's AI views key off
         // these, and they are what any other OTel-aware backend would expect.
-        private const val ATTR_GENAI_MODEL = "gen_ai.request.model"
-        private const val ATTR_GENAI_INPUT_TOKENS = "gen_ai.usage.input_tokens"
-        private const val ATTR_GENAI_OUTPUT_TOKENS = "gen_ai.usage.output_tokens"
-        private const val ATTR_GENAI_TOTAL_TOKENS = "gen_ai.usage.total_tokens"
+        internal const val ATTR_GENAI_MODEL = "gen_ai.request.model"
+        internal const val ATTR_GENAI_INPUT_TOKENS = "gen_ai.usage.input_tokens"
+        internal const val ATTR_GENAI_OUTPUT_TOKENS = "gen_ai.usage.output_tokens"
+        internal const val ATTR_GENAI_TOTAL_TOKENS = "gen_ai.usage.total_tokens"
+
+        // Leading chars of the user's question kept in a debug line — enough
+        // to identify the request without shipping the whole question.
+        private const val QUERY_LOG_CHARS = 120
 
         /** Instrumentation scope for the tracer this class emits under. */
         const val INSTRUMENTATION_SCOPE = "bc-agent-llm"
 
         /** Name of the span carrying per-call LLM telemetry. */
         const val SPAN_NAME = "agent.llm"
+    }
+}
+
+/**
+ * What one model call cost: the model that answered (null where the
+ * configured client picked it, so the selected id would mislead), its token
+ * [usage], how long it took, how many tools it was offered, and how it was
+ * called.
+ */
+data class ModelMeasure(
+    val modelId: String?,
+    val usage: Usage?,
+    val elapsedMs: Long,
+    val toolCount: Int,
+    val mode: LlmMetrics.Mode
+) {
+    /**
+     * Write this measure onto [span]. Tokens go under the `llm.*` names, and
+     * with [genAi] also under the OTel GenAI `gen_ai.*` names, so adding one
+     * surface doesn't blind the other.
+     */
+    fun writeTo(
+        span: Span,
+        genAi: Boolean
+    ) {
+        if (!modelId.isNullOrBlank()) {
+            span.setAttribute(LlmMetrics.ATTR_MODEL, modelId)
+            if (genAi) span.setAttribute(LlmMetrics.ATTR_GENAI_MODEL, modelId)
+        }
+        span.setAttribute(LlmMetrics.ATTR_TOOLS, toolCount.toLong())
+        span.setAttribute(LlmMetrics.ATTR_MODE, mode.tag)
+        span.setAttribute(LlmMetrics.ATTR_ELAPSED_MS, elapsedMs)
+        usage?.promptTokens?.toLong()?.let {
+            span.setAttribute(LlmMetrics.ATTR_PROMPT_TOKENS, it)
+            if (genAi) span.setAttribute(LlmMetrics.ATTR_GENAI_INPUT_TOKENS, it)
+        }
+        usage?.completionTokens?.toLong()?.let {
+            span.setAttribute(LlmMetrics.ATTR_COMPLETION_TOKENS, it)
+            if (genAi) span.setAttribute(LlmMetrics.ATTR_GENAI_OUTPUT_TOKENS, it)
+        }
+        usage?.totalTokens?.toLong()?.let {
+            span.setAttribute(LlmMetrics.ATTR_TOTAL_TOKENS, it)
+            if (genAi) span.setAttribute(LlmMetrics.ATTR_GENAI_TOTAL_TOKENS, it)
+        }
     }
 }

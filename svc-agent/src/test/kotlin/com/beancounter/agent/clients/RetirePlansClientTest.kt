@@ -17,20 +17,20 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.web.client.RestClient
 
 /**
- * Drives [RetireServiceClient] against a [MockRestServiceServer] so the shape handed to the
+ * Drives [RetirePlansClient] against a [MockRestServiceServer] so the shape handed to the
  * model is pinned without standing up svc-retire. Mirrors [MacroClientTest].
  *
  * The vocabulary under test: svc-retire's `IndependencePlan` is the user's whole Plan (a
  * journey), and the ids inside its `phases` are phase ids — the `/plans` resources.
  */
-class RetireServiceClientTest {
+class RetirePlansClientTest {
     private val tokenService = mock<TokenService> { on { bearerToken } doReturn BEARER }
     private val dateUtils = DateUtils()
 
-    private fun clientWithServer(): Pair<RetireServiceClient, MockRestServiceServer> {
+    private fun clientWithServer(): Pair<RetirePlansClient, MockRestServiceServer> {
         val builder = RestClient.builder().baseUrl(BASE_URL)
         val server = MockRestServiceServer.bindTo(builder).build()
-        return RetireServiceClient(builder.build(), tokenService, dateUtils) to server
+        return RetirePlansClient(builder.build(), tokenService, dateUtils) to server
     }
 
     private fun MockRestServiceServer.respondTo(

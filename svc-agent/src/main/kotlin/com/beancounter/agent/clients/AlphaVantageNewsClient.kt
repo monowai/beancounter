@@ -2,7 +2,6 @@ package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
@@ -38,7 +37,7 @@ class AlphaVantageNewsClient(
             .uri(uri, params)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE) ?: emptyMap()
+            .body(JSON_MAP) ?: emptyMap()
     }
 
     /**
@@ -61,7 +60,7 @@ class AlphaVantageNewsClient(
             .uri(uri, params)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE) ?: emptyMap()
+            .body(JSON_MAP) ?: emptyMap()
     }
 
     /**
@@ -76,10 +75,6 @@ class AlphaVantageNewsClient(
             .uri("/news/topic?topics={topics}", params)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(MAP_TYPE) ?: emptyMap()
-    }
-
-    companion object {
-        private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
+            .body(JSON_MAP) ?: emptyMap()
     }
 }

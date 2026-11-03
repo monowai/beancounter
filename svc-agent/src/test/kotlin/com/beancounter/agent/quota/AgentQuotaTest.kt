@@ -1,10 +1,11 @@
 package com.beancounter.agent.quota
 
-import com.beancounter.agent.AgentController
+import com.beancounter.agent.AgentEndpoints
 import com.beancounter.agent.AgentQuery
 import com.beancounter.agent.ChatModelSelector
 import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
+import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationService
@@ -82,6 +83,9 @@ class AgentQuotaTest {
     private lateinit var quota: AgentQuota
 
     @Autowired
+    private lateinit var usageRows: AgentUsageRepository
+
+    @Autowired
     private lateinit var conversations: ConversationService
 
     @Autowired
@@ -102,7 +106,7 @@ class AgentQuotaTest {
 
     @BeforeEach
     fun reset() {
-        quota.forget(me)
+        usageRows.deleteAll()
         quota.clearLimit(me)
         reviewRows.deleteAll()
         conversations.deleteAll(me)
@@ -134,24 +138,16 @@ class AgentQuotaTest {
             TestingAuthenticationToken("user", "n/a", authorities.map(::SimpleGrantedAuthority))
     }
 
-    private fun controller(): AgentController =
-        AgentController(
-            client,
-            null,
-            null,
-            mock<ServiceHealthChecker>(),
-            mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
-            mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
-            mock<ChatModelSelector> { on { selectFor(anyOrNull(), any()) } doAnswer { "model" } },
-            MockEnvironment(),
-            ObjectMapper(),
-            LlmMetrics(),
-            AgentScopeAuthorizer(),
-            conversations,
-            owner,
-            mock<ConversationTitler>(),
-            InFlightTurns(),
-            clock,
+    private fun controller(): AgentEndpoints =
+        agentEndpoints(
+            chatClient = client,
+            toolSelector = mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
+            systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
+            chatModelSelector = mock<ChatModelSelector> { on { selectFor(anyOrNull(), any()) } doAnswer { "model" } },
+            scopeAuthorizer = AgentScopeAuthorizer(),
+            conversations = conversations,
+            conversationOwner = owner,
+            clock = clock,
             reviewCache = reviews,
             quota = quota
         )
@@ -392,7 +388,6 @@ class AgentQuotaTest {
     @Test
     fun `the overview should list users with use or an override, and the default`() {
         val other = "quota-other"
-        quota.forget(other)
         quota.clearLimit(other)
         ask(chat)
         quota.setUnlimited(other)

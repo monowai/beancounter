@@ -108,6 +108,7 @@ class SharedBehaviourContractTest {
         behaviour.accumulate(trn(trnType, BigDecimal("50"), BigDecimal("600")), positions, position)
 
         assertThat(position.dateValues.closed).isEqualTo(tradeDate)
+        assertAccrued(position.field { it.realisedGain }, amount)
         assertThat(position.field { it.costValue }).allSatisfy {
             assertThat(it).isEqualByComparingTo(BigDecimal.ZERO)
         }

@@ -17,7 +17,7 @@ import java.math.BigDecimal
  */
 abstract class DisposalBehaviour(
     currencyResolver: CurrencyResolver,
-    val averageCost: AverageCost
+    private val averageCost: AverageCost
 ) : BaseAccumulationStrategy(currencyResolver) {
     override fun accumulate(
         trn: Trn,

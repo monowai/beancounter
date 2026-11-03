@@ -47,8 +47,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.util.retry.Retry
 import tools.jackson.databind.ObjectMapper
-import java.net.ConnectException
-import java.nio.channels.UnresolvedAddressException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -114,72 +112,15 @@ class AgentController(
         const val THINKING_MAX_TOKENS = 16384
         const val THINKING_BUDGET_TOKENS = 4096L
 
-        // Stable client-facing failure codes. bc-view keys its copy off these
-        // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
-        // The set: no-llm, provider-quota, provider-rate, provider-timeout,
-        // agent-error, answer-truncated, empty-answer, not-held, ai-quota,
-        // email-unverified, ai-disabled.
-        const val NO_LLM = "no-llm"
-
-        /** The caller has used this week's AI turns ([com.beancounter.agent.quota.AgentQuota]). */
-        const val AI_QUOTA = "ai-quota"
-
-        /** An administrator has turned AI off for the caller (a weekly limit of 0). */
-        const val AI_DISABLED = "ai-disabled"
-
-        /** The caller has not confirmed their email address, so is served cached Asset Reviews only. */
-        const val EMAIL_UNVERIFIED = "email-unverified"
-
         const val QUERY_REQUIRED = "A query is required for this page"
 
         // Escapes markup only: a label's dash is not an entity.
         const val UTF_8 = "UTF-8"
-        const val PROVIDER_QUOTA = "provider-quota"
-        const val PROVIDER_RATE = "provider-rate"
-        const val PROVIDER_TIMEOUT = "provider-timeout"
-        const val AGENT_ERROR = "agent-error"
-
-        /**
-         * A Holding Analysis of an asset the portfolio does not hold, or of a
-         * portfolio the caller cannot see — one code, so neither is revealed.
-         */
-        const val NOT_HELD = "not-held"
-
-        /**
-         * The turn ended on a token cap with nothing to show for it — on the
-         * Independence domain this is the context window filling with tool
-         * results (a full year-by-year projection runs to tens of thousands of
-         * tokens), leaving no output budget for the answer itself.
-         */
-        const val ANSWER_TRUNCATED = "answer-truncated"
-
-        /** The turn ended normally but produced no answer text. */
-        const val EMPTY_ANSWER = "empty-answer"
-
-        // Finish reasons that mean "stopped because it ran out of room", as
-        // opposed to "finished what it had to say". DeepSeek/OpenAI say
-        // "length"; Anthropic says "max_tokens".
-        val TRUNCATION_FINISH_REASONS = setOf("length", "max_tokens")
 
         // Leading chars of the user's question kept in a log line — enough to
         // identify the request in kauri's logs without shipping the whole
         // question (which can carry page context the user typed).
         const val QUERY_LOG_CHARS = 120
-
-        const val BAD_REQUEST = 400
-        const val FORBIDDEN = 403
-        const val NOT_FOUND = 404
-        const val PAYMENT_REQUIRED = 402
-        const val TOO_MANY_REQUESTS = 429
-        const val INTERNAL_ERROR = 500
-        const val UNPROCESSABLE_CONTENT = 422
-        const val GATEWAY_TIMEOUT = 504
-
-        // Only a status at the very start of the message is trusted — that is
-        // where Spring AI's "<status> - <body>" puts it. Digit boundaries stop
-        // a number inside a tool result from reading as a status.
-        val LEADING_HTTP_STATUS = Regex("""^\s*(\d{3})(?!\d)""")
-        const val CAUSE_CHAIN_DEPTH = 5
 
         // Finish reasons that mark a turn as narration-before-tool-calls,
         // lower-cased for case-insensitive matching in sseEventsFor. The
@@ -280,11 +221,6 @@ class AgentController(
         ) : Opening
     }
 
-    /** A turn that could not be answered, carrying the stable code it fails with. */
-    private class UnansweredTurn(
-        val code: String
-    ) : RuntimeException(code)
-
     /** The caller's conversation a request names: its owner, and what it already is. */
     private data class ConversationThread(
         val ownerId: String,
@@ -357,7 +293,7 @@ class AgentController(
         try {
             val facts = holdings.find(subject)
             if (facts == null) {
-                Opening.Failed(NOT_HELD)
+                Opening.Failed(TurnFailure.NOT_HELD)
             } else {
                 val reviewDate = LocalDate.now(clock)
                 val review = assetReview(subject.asset, reviewDate, request)
@@ -373,7 +309,7 @@ class AgentController(
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
-            val code = classifyError(e)
+            val code = TurnFailure.classify(e)
             log.error("Holding analysis could not open ({}): {}", code, e.message, e)
             Opening.Failed(code)
         }
@@ -401,7 +337,7 @@ class AgentController(
         val hit = cachedReview(key, request.refresh)
         if (hit != null) return hit
         val answer = ask(turn)
-        if (answer.content.isBlank()) throw UnansweredTurn(emptyAnswerCode(answer.finishReason))
+        if (answer.content.isBlank()) throw UnansweredTurn(TurnFailure.emptyAnswerCode(answer.finishReason))
         try {
             reviewCache.store(key, answer.content)
         } catch (
@@ -457,11 +393,11 @@ class AgentController(
         code: String
     ): ResponseEntity<AgentResponse> =
         ResponseEntity
-            .status(statusFor(code))
+            .status(TurnFailure.statusFor(code))
             .body(
                 AgentResponse(
                     query = safeQuery,
-                    response = messageFor(code),
+                    response = TurnFailure.messageFor(code),
                     timestamp = Instant.now().toString(),
                     error = code
                 )
@@ -712,7 +648,7 @@ class AgentController(
                         "No LLM is configured. Set ${AgentProvider.PROPERTY} to '${AgentProvider.DEEPSEEK}', " +
                             "'${AgentProvider.ANTHROPIC}', '${AgentProvider.OPENAI}', or '${AgentProvider.OLLAMA}'.",
                     timestamp = Instant.now().toString(),
-                    error = NO_LLM
+                    error = TurnFailure.NO_LLM
                 )
             )
 
@@ -784,7 +720,7 @@ class AgentController(
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
-            val errorCode = classifyError(e)
+            val errorCode = TurnFailure.classify(e)
             log.error("Agent query failed ({}): {}", errorCode, e.message, e)
             recordQuietly { recorder.failed(errorCode) }
             failure(safeQuery, errorCode)
@@ -803,7 +739,7 @@ class AgentController(
         // filled with tool results). Answering with a blank body left every
         // caller rendering an empty response and no reason for it.
         if (content.isBlank()) {
-            val code = emptyAnswerCode(answer.finishReason)
+            val code = TurnFailure.emptyAnswerCode(answer.finishReason)
             log.warn(
                 "Agent query produced no answer: code={}, model={}, query=\"{}\"",
                 code,
@@ -871,7 +807,7 @@ class AgentController(
         // A code, not prose: the streaming path's error payload is a contract
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
-        if (chatClient == null) return errorEvent(NO_LLM)
+        if (chatClient == null) return errorEvent(TurnFailure.NO_LLM)
         val reviewKey = if (plan.opening == null) reviewKeyFor(body, plan.request, plan.thread) else null
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         val meter = meterFor(body, plan)
@@ -956,7 +892,7 @@ class AgentController(
                     }
                 }
             }.onErrorResume { e ->
-                val code = classifyError(e)
+                val code = TurnFailure.classify(e)
                 log.error("Holding analysis stream failed ({}): {}", code, e.message, e)
                 errorEvent(code)
             }.contextCapture()
@@ -1003,10 +939,10 @@ class AgentController(
      */
     private fun refusalFor(meter: String?): String? =
         when {
-            !scopeAuthorizer.verified() -> EMAIL_UNVERIFIED
+            !scopeAuthorizer.verified() -> TurnFailure.EMAIL_UNVERIFIED
             meter == null -> null
-            quota.disabled(meter) -> AI_DISABLED
-            !quota.allows(meter) -> AI_QUOTA
+            quota.disabled(meter) -> TurnFailure.AI_DISABLED
+            !quota.allows(meter) -> TurnFailure.AI_QUOTA
             else -> null
         }
 
@@ -1075,176 +1011,9 @@ class AgentController(
                 // "agent-error" when the failure is something the user can
                 // act on (e.g. provider quota, rate limit).
                 log.error("Agent stream failed: {}", e.message, e)
-                val code = classifyError(e)
+                val code = TurnFailure.classify(e)
                 record { recorder.failed(code) }.thenMany(errorEvent(code))
             }.contextCapture()
-
-    /**
-     * Map an upstream exception into a stable, opaque error code, used by both
-     * transports. The client renders a friendly message keyed off the code;
-     * the raw exception text never reaches the client.
-     *
-     *   `provider-quota`   — The LLM account has no credit left. Anthropic
-     *                        says so with HTTP 400 + "credit balance";
-     *                        DeepSeek with HTTP 402 + "Insufficient Balance".
-     *                        Nothing the caller does can clear it — an admin
-     *                        has to top the account up.
-     *   `provider-rate`    — Provider rate-limited the request (HTTP 429).
-     *   `provider-timeout` — Upstream took too long.
-     *   `agent-error`      — Anything else.
-     *
-     * Both the exception and its causes are inspected: Reactor and Spring AI
-     * re-wrap the provider error on the way out, so the status is often one or
-     * two levels down.
-     */
-    internal fun classifyError(e: Throwable): String {
-        if (e is UnansweredTurn) return e.code
-        val chain = causeChain(e)
-        val message = chain.joinToString(" | ") { it.message.orEmpty() }
-        val statuses = chain.mapNotNull(::httpStatusOf)
-        return when {
-            isOutOfCredit(chain, message, statuses) -> PROVIDER_QUOTA
-            isRateLimited(message, statuses) -> PROVIDER_RATE
-            isTimedOut(chain, message) -> PROVIDER_TIMEOUT
-            else -> AGENT_ERROR
-        }
-    }
-
-    private fun isOutOfCredit(
-        chain: List<Throwable>,
-        message: String,
-        statuses: List<Int>
-    ): Boolean {
-        // Distinctive phrases are matched across the whole chain — no other
-        // failure says "credit balance" or "insufficient balance".
-        val isCreditBalance = message.contains("credit balance", ignoreCase = true)
-        val isOutOfCredit =
-            message.contains("insufficient balance", ignoreCase = true) ||
-                message.contains("insufficient_quota", ignoreCase = true)
-        // "billing" is not distinctive enough for that, and neither is a bare
-        // "400". Anthropic's billing rejection is only trusted when one
-        // exception carries both — otherwise a "billing" in a tool result and
-        // a 400 from an unrelated wrapper would combine into a false quota.
-        val isBilling400 =
-            chain.any { cause ->
-                httpStatusOf(cause) == BAD_REQUEST &&
-                    cause.message.orEmpty().contains("billing", ignoreCase = true)
-            }
-        return statuses.contains(PAYMENT_REQUIRED) || isCreditBalance || isBilling400 || isOutOfCredit
-    }
-
-    // Likewise a bare "429": the status is read from where it is trusted,
-    // and the wording covers providers that report it in prose.
-    private fun isRateLimited(
-        message: String,
-        statuses: List<Int>
-    ): Boolean =
-        statuses.contains(TOO_MANY_REQUESTS) ||
-            message.contains("too many requests", ignoreCase = true) ||
-            message.contains("rate limit", ignoreCase = true) ||
-            message.contains("rate_limit", ignoreCase = true)
-
-    private fun isTimedOut(
-        chain: List<Throwable>,
-        message: String
-    ): Boolean =
-        chain.any { it is java.util.concurrent.TimeoutException } ||
-            message.contains("timed out", ignoreCase = true) ||
-            message.contains("timeout", ignoreCase = true)
-
-    /** The exception plus its causes, depth-capped so a cyclic chain can't hang us. */
-    private fun causeChain(e: Throwable): List<Throwable> =
-        generateSequence(e) { current -> current.cause?.takeIf { it !== current } }
-            .take(CAUSE_CHAIN_DEPTH)
-            .toList()
-
-    /**
-     * The provider's HTTP status, where it is actually knowable. WebClient
-     * (streaming path) carries it as a typed field; Spring AI's blocking error
-     * handler only formats it as `"<status> - <body>"`, so it is read back from
-     * the head of the message. Anything else yields null rather than a guess —
-     * a status scraped from anywhere in the text would match numbers that are
-     * part of a tool result.
-     */
-    private fun httpStatusOf(e: Throwable): Int? =
-        when (e) {
-            is org.springframework.web.reactive.function.client.WebClientResponseException -> {
-                e.statusCode.value()
-            }
-            else -> {
-                LEADING_HTTP_STATUS
-                    .find(e.message.orEmpty())
-                    ?.groupValues
-                    ?.get(1)
-                    ?.toIntOrNull()
-            }
-        }
-
-    /**
-     * HTTP status for a failed blocking `/query`, so the browser can tell an
-     * administrative outage from a broken request without parsing prose.
-     * 402 is passed straight through: it means the same thing to us as it does
-     * to the provider — the account behind the feature needs topping up.
-     */
-    private fun statusFor(errorCode: String): Int =
-        when (errorCode) {
-            PROVIDER_QUOTA -> PAYMENT_REQUIRED
-            PROVIDER_RATE, AI_QUOTA -> TOO_MANY_REQUESTS
-            PROVIDER_TIMEOUT -> GATEWAY_TIMEOUT
-            // Not a server fault: the request was well-formed, the provider
-            // call succeeded, and the model finished — it just produced no
-            // answer, usually because tool results filled its context window.
-            // 500 would read as "bc-agent broke" and page on a condition only
-            // a narrower question can fix. The streaming path reports the same
-            // codes over a 200 SSE stream; the code, not the status, is the
-            // contract both transports share.
-            ANSWER_TRUNCATED, EMPTY_ANSWER -> UNPROCESSABLE_CONTENT
-            NOT_HELD -> NOT_FOUND
-            EMAIL_UNVERIFIED, AI_DISABLED -> FORBIDDEN
-            else -> INTERNAL_ERROR
-        }
-
-    /**
-     * Fallback prose for clients that render the body instead of keying off
-     * [AgentResponse.error]. Deliberately says whose problem it is; the rich
-     * copy lives in the UI, next to the retry affordances.
-     */
-    private fun messageFor(errorCode: String): String =
-        when (errorCode) {
-            PROVIDER_QUOTA -> {
-                "AI features are paused: the AI provider account has run out of credit. " +
-                    "This is a service administration issue, not a problem with your request. " +
-                    "Please try again once the balance has been topped up."
-            }
-            PROVIDER_RATE -> {
-                "The AI provider is rate-limiting requests. Please wait a moment and try again."
-            }
-            PROVIDER_TIMEOUT -> {
-                "The AI provider took too long to respond. Please try again."
-            }
-            ANSWER_TRUNCATED -> {
-                "The question needed more data than the AI can hold at once, so it ran out of room " +
-                    "before answering. Try asking about one plan, phase or holding at a time."
-            }
-            EMPTY_ANSWER -> {
-                "The AI finished without producing an answer. Please try again, or rephrase the question."
-            }
-            NOT_HELD -> {
-                "No holding of this asset found in that portfolio."
-            }
-            AI_QUOTA -> {
-                "You have used this week's AI questions. Each one frees up seven days after it was asked."
-            }
-            AI_DISABLED -> {
-                "AI is turned off for your account. Ask the administrator to turn it back on."
-            }
-            EMAIL_UNVERIFIED -> {
-                "Confirm your email address to ask the AI. Cached Asset Reviews are still available."
-            }
-            else -> {
-                "The agent failed to process the request."
-            }
-        }
 
     private fun runStream(
         request: AgentQuery,
@@ -1328,7 +1097,7 @@ class AgentController(
             tokenEvents.retryWhen(
                 Retry
                     .backoff(STREAM_RETRY_ATTEMPTS, STREAM_RETRY_MIN_BACKOFF)
-                    .filter { e -> totalChars.get() == 0L && isTransientConnectivity(e) }
+                    .filter { e -> totalChars.get() == 0L && TurnFailure.isTransientConnectivity(e) }
                     // Surface the original cause, not Reactor's RetryExhausted
                     // wrapper, so classifyError still maps it accurately.
                     .onRetryExhaustedThrow { _, signal -> signal.failure() }
@@ -1344,7 +1113,7 @@ class AgentController(
                     val content = answer.toString()
                     record { recorder.answered(content) }.thenMany(Flux.empty())
                 } else {
-                    val code = emptyAnswerCode(lastFinishReason.get())
+                    val code = TurnFailure.emptyAnswerCode(lastFinishReason.get())
                     log.warn(
                         "Agent stream produced no answer: code={}, finish_reason={}, model={}, query=\"{}\"",
                         code,
@@ -1356,30 +1125,6 @@ class AgentController(
                 }
             }
         return retriedTokens.concatWith(emptyAnswerEvent).concatWith(doneEvent)
-    }
-
-    /**
-     * Why a turn ended with no answer text. `length`/`max_tokens` mean the
-     * model ran out of room — on the heavy domains that is the context window
-     * being consumed by tool results, which is actionable (ask something
-     * narrower) in a way that a bare "something went wrong" is not.
-     */
-    private fun emptyAnswerCode(finishReason: String?): String =
-        if (finishReason?.lowercase() in TRUNCATION_FINISH_REASONS) ANSWER_TRUNCATED else EMPTY_ANSWER
-
-    /**
-     * True when the failure is a transient network/connectivity error worth
-     * retrying — a connection or DNS-resolution failure anywhere in the cause
-     * chain. Deterministic provider errors (4xx, rate limits) are excluded so
-     * we don't retry the inevitable.
-     */
-    internal fun isTransientConnectivity(error: Throwable): Boolean {
-        var cause: Throwable? = error
-        while (cause != null) {
-            if (cause is ConnectException || cause is UnresolvedAddressException) return true
-            cause = cause.cause
-        }
-        return false
     }
 
     /**

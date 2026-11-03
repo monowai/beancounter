@@ -82,27 +82,6 @@ private fun transientConnectError(): Throwable {
 }
 
 /**
- * DeepSeek's out-of-credit failure on the blocking path. Spring AI's
- * `RetryUtils.DEFAULT_RESPONSE_ERROR_HANDLER` formats every non-2xx as
- * `"<status> - <body>"`, so the HTTP status only ever reaches us as the leading
- * token of the message.
- */
-private fun outOfCreditSync(): Throwable =
-    RuntimeException(
-        "402 - {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\"," +
-            "\"param\":null,\"code\":\"invalid_request_error\"}}"
-    )
-
-/**
- * The same provider failure on the streaming path, which goes through WebClient
- * and therefore surfaces a typed [org.springframework.web.reactive.function.client.WebClientResponseException]
- * with a differently shaped message. Both shapes must classify identically.
- */
-private fun outOfCreditStream(): Throwable =
-    org.springframework.web.reactive.function.client.WebClientResponseException
-        .create(402, "Payment Required", org.springframework.http.HttpHeaders(), ByteArray(0), null)
-
-/**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
  * Spring AI tool calling, which is exercised end-to-end against a real LLM —
  * not in a unit test. Here we only check the controller's contract: health
@@ -814,88 +793,6 @@ class AgentControllerTest {
         assertThat(events[0].event()).isEqualTo(EVENT_ERROR)
         assertThat(events[0].data()).isEqualTo(OPAQUE_ERROR)
         assertThat(events[0].data()).doesNotContain("boom")
-    }
-
-    @Test
-    fun `classifyError returns provider-quota for Anthropic credit balance errors`() {
-        val anthropicQuota =
-            RuntimeException(
-                "Response exception, Status: [400 BAD_REQUEST], " +
-                    "Body:[{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\"," +
-                    "\"message\":\"Your credit balance is too low to access the Anthropic API.\"}}]"
-            )
-        assertThat(controller().classifyError(anthropicQuota))
-            .isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError returns provider-quota for a DeepSeek 402 on either transport`() {
-        // DeepSeek answers an empty balance with HTTP 402 / "Insufficient
-        // Balance" — nothing like Anthropic's 400 + "credit balance" text, so
-        // the original body-string match classified it as a generic
-        // agent-error and the UI told the user their request had failed.
-        assertThat(controller().classifyError(outOfCreditSync()))
-            .isEqualTo("provider-quota")
-        assertThat(controller().classifyError(outOfCreditStream()))
-            .isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError finds the provider failure through a wrapper exception`() {
-        // Reactor and Spring AI both re-wrap the provider error before it
-        // reaches onErrorResume, so classification has to read the cause chain.
-        val wrapped = IllegalStateException("stream failed", outOfCreditStream())
-
-        assertThat(controller().classifyError(wrapped)).isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError does not read a 402 out of an unrelated number`() {
-        assertThat(controller().classifyError(RuntimeException("tool returned 11402 rows")))
-            .isEqualTo(OPAQUE_ERROR)
-    }
-
-    @Test
-    fun `classifyError needs one exception to carry both the 400 and the billing text`() {
-        // Scanning the joined cause chain would combine a "billing" mentioned
-        // in a tool result with a 400 raised somewhere else and call it a
-        // quota failure.
-        val split =
-            RuntimeException(
-                "tool result: monthly billing summary",
-                RuntimeException("400 - {\"error\":{\"message\":\"model does not exist\"}}")
-            )
-        assertThat(controller().classifyError(split)).isEqualTo(OPAQUE_ERROR)
-
-        // The genuine Anthropic shape — one exception, both signals — still
-        // classifies.
-        val anthropicBilling =
-            RuntimeException("400 - {\"error\":{\"message\":\"Please check your Plans & Billing page.\"}}")
-        assertThat(controller().classifyError(anthropicBilling)).isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError returns provider-rate for HTTP 429 and rate-limit text`() {
-        assertThat(controller().classifyError(RuntimeException("HTTP 429 Too Many Requests")))
-            .isEqualTo("provider-rate")
-        assertThat(controller().classifyError(RuntimeException("anthropic.rate_limit_exceeded")))
-            .isEqualTo("provider-rate")
-    }
-
-    @Test
-    fun `classifyError returns provider-timeout for TimeoutException and timeout text`() {
-        assertThat(controller().classifyError(java.util.concurrent.TimeoutException()))
-            .isEqualTo("provider-timeout")
-        assertThat(controller().classifyError(RuntimeException("Read timed out")))
-            .isEqualTo("provider-timeout")
-    }
-
-    @Test
-    fun `classifyError falls back to agent-error for unknown failures`() {
-        assertThat(controller().classifyError(RuntimeException("something exploded")))
-            .isEqualTo(OPAQUE_ERROR)
-        assertThat(controller().classifyError(RuntimeException(null as String?)))
-            .isEqualTo(OPAQUE_ERROR)
     }
 
     @Test

@@ -10,6 +10,8 @@
 # - Test source sets also cover contractTest and testFixtures.
 # - LargeClass, LongMethod, LongParameterList, MaxLineLength: excluded from tests.
 # - StringLiteralDuplication: on for production code, excluded from tests.
+# - ReturnCount: guard clauses (an early return at the top of a function) do not
+#   count toward the limit of 2.
 # - UnusedPrivateProperty: ignores @MockitoBean fields, which a Spring context may
 #   need even when no test reads them.
 #
@@ -715,7 +717,7 @@ style:
       - 'equals'
     excludeLabeled: false
     excludeReturnFromLambda: true
-    excludeGuardClauses: false
+    excludeGuardClauses: true
   SafeCast:
     active: true
   SerialVersionUIDInSerializableClass:

@@ -2,12 +2,10 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.PRIVATE_MARKET
 import com.beancounter.marketdata.assets.AssetFinder
-import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,20 +26,26 @@ import java.util.Optional
  * `findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc` path was removed because
  * it caused /api/prices/bulk to time out on the "ALL" wealth chart (incident 2026-05-18).
  */
-class BulkPriceServiceTest {
-    private lateinit var priceService: PriceService
+class PriceHistoryReaderBulkTest {
+    private lateinit var priceHistoryReader: PriceHistoryReader
     private lateinit var marketDataRepo: MarketDataRepo
     private val assetFinder = mock(AssetFinder::class.java)
+    private val eventServiceFacade = mock(EventServiceFacade::class.java)
 
     @BeforeEach
     fun setUp() {
         marketDataRepo = mock(MarketDataRepo::class.java)
-        priceService = PriceService(marketDataRepo, CashUtils(), assetFinder, mock(ConflictTolerantWriter::class.java))
+        priceHistoryReader =
+            PriceHistoryReader(
+                marketDataRepo,
+                assetFinder,
+                PriceSplits(marketDataRepo, assetFinder, eventServiceFacade)
+            )
     }
 
     @Test
     fun `getBulkMarketData returns empty map for empty inputs`() {
-        val result = priceService.getBulkMarketData(emptyList(), emptyList())
+        val result = priceHistoryReader.getBulkMarketData(emptyList(), emptyList())
         assertThat(result).isEmpty()
     }
 
@@ -60,7 +64,7 @@ class BulkPriceServiceTest {
         whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
             .thenReturn(listOf(md1, md2, md3, md4))
 
-        val result = priceService.getBulkMarketData(assets, dates)
+        val result = priceHistoryReader.getBulkMarketData(assets, dates)
 
         assertThat(result).hasSize(2)
         assertThat(result["2024-01-15"]).hasSize(2)
@@ -79,7 +83,7 @@ class BulkPriceServiceTest {
         whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
             .thenReturn(listOf(fridayMd))
 
-        val result = priceService.getBulkMarketData(assets, dates)
+        val result = priceHistoryReader.getBulkMarketData(assets, dates)
 
         assertThat(result).hasSize(1)
         assertThat(result["2024-01-13"]).hasSize(1)
@@ -100,7 +104,7 @@ class BulkPriceServiceTest {
         whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
             .thenReturn(listOf(fallbackMd, exactMd))
 
-        val result = priceService.getBulkMarketData(assets, dates)
+        val result = priceHistoryReader.getBulkMarketData(assets, dates)
 
         assertThat(result).hasSize(2)
         assertThat(result["2024-01-15"]).hasSize(1)
@@ -131,7 +135,7 @@ class BulkPriceServiceTest {
         whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
             .thenReturn(listOf(pre, ex, post))
 
-        val result = priceService.getBulkMarketData(assets, dates)
+        val result = priceHistoryReader.getBulkMarketData(assets, dates)
 
         assertThat(result["2020-08-28"]!![0].close)
             .isEqualByComparingTo(BigDecimal("125.00"))
@@ -146,8 +150,6 @@ class BulkPriceServiceTest {
         // The bulk read is DB-only. Asking the provider for split events per asset made a
         // cold wealth page fire two EODHD calls per asset inside this transaction and
         // stall past svc-position's 60s read timeout (kauri, 2026-10-03).
-        val eventServiceFacade = mock(EventServiceFacade::class.java)
-        priceService.setEventServiceFacade(eventServiceFacade)
         val preSplit = LocalDate.of(2020, 8, 28)
         val exDate = LocalDate.of(2020, 8, 31)
         val pre = MarketData(asset = AAPL, priceDate = preSplit, close = BigDecimal("500.00"))
@@ -158,7 +160,7 @@ class BulkPriceServiceTest {
         whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(listOf(AAPL)), any(), any()))
             .thenReturn(listOf(pre, ex))
 
-        val result = priceService.getBulkMarketData(listOf(AAPL), listOf(preSplit, exDate))
+        val result = priceHistoryReader.getBulkMarketData(listOf(AAPL), listOf(preSplit, exDate))
 
         assertThat(result["2020-08-28"]!![0].close).isEqualByComparingTo(BigDecimal("125.00"))
         verifyNoInteractions(eventServiceFacade)
@@ -173,7 +175,7 @@ class BulkPriceServiceTest {
         whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
             .thenReturn(emptyList())
 
-        val result = priceService.getBulkMarketData(assets, listOf(date))
+        val result = priceHistoryReader.getBulkMarketData(assets, listOf(date))
 
         assertThat(result).hasSize(1)
         assertThat(result["2024-01-01"]).isEmpty()
@@ -205,7 +207,7 @@ class BulkPriceServiceTest {
             )
         ).thenReturn(Optional.of(oldPrice))
 
-        val result = priceService.getBulkMarketData(assets, dates)
+        val result = priceHistoryReader.getBulkMarketData(assets, dates)
 
         assertThat(result["2024-01-15"]).hasSize(1)
         assertThat(result["2024-01-15"]!![0].close).isEqualByComparingTo(BigDecimal("500000"))
@@ -223,7 +225,7 @@ class BulkPriceServiceTest {
         whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(assets), any(), any()))
             .thenReturn(emptyList())
 
-        val result = priceService.getBulkMarketData(assets, listOf(requestDate))
+        val result = priceHistoryReader.getBulkMarketData(assets, listOf(requestDate))
 
         assertThat(result["2024-01-15"]).isEmpty()
         verify(

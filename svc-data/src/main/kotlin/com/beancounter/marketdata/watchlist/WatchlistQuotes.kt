@@ -7,9 +7,11 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
+import com.beancounter.marketdata.providers.DayChange
 import com.beancounter.marketdata.providers.LiveQuoteService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceService
+import com.beancounter.marketdata.providers.PriceSplits
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -23,6 +25,8 @@ import java.time.LocalDate
 @Service
 class WatchlistQuotes(
     private val priceService: PriceService,
+    private val priceSplits: PriceSplits,
+    private val dayChange: DayChange,
     private val marketDataService: MarketDataService,
     private val liveQuoteService: LiveQuoteService,
     private val dateUtils: DateUtils
@@ -59,7 +63,7 @@ class WatchlistQuotes(
         val fetched =
             fetchPrice(asset)
                 ?: throw BusinessException("No price is available for asset ${asset.id}; supply addedPrice")
-        return priceService.enrichedCopy(fetched)
+        return dayChange.enrichedCopy(fetched)
     }
 
     /**
@@ -128,7 +132,7 @@ class WatchlistQuotes(
                 .associate { assetItems ->
                     assetItems.first().asset to assetItems.flatMap { listOfNotNull(it.addedOn, it.targetOn) }
                 }
-        val byAsset = priceService.splitFactorsAfter(datesByAsset, dateUtils.date)
+        val byAsset = priceSplits.splitFactorsAfter(datesByAsset, dateUtils.date)
         return items.associate { it.id to byAsset.getValue(it.asset.id) }
     }
 }

@@ -8,6 +8,7 @@ import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.PriceService
+import com.beancounter.marketdata.providers.PriceSplits
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -34,6 +35,7 @@ class WatchlistAlertService(
     private val itemRepository: WatchlistItemRepository,
     private val alertRepository: WatchlistAlertRepository,
     private val priceService: PriceService,
+    private val priceSplits: PriceSplits,
     private val dateUtils: DateUtils,
     transactionManager: PlatformTransactionManager
 ) {
@@ -182,13 +184,13 @@ class WatchlistAlertService(
 
     /**
      * Split factors to today, per asset and date, batched across every asset in one read
-     * (see [PriceService.splitFactorsAfter]).
+     * (see [PriceSplits.splitFactorsAfter]).
      */
     private fun splitFactors(
         datesByAsset: List<Pair<Asset, List<LocalDate>>>,
         today: LocalDate
     ): Map<String, Map<LocalDate, BigDecimal>> =
-        priceService.splitFactorsAfter(
+        priceSplits.splitFactorsAfter(
             datesByAsset
                 .groupBy { it.first.id }
                 .values

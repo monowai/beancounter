@@ -14,8 +14,8 @@ import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.cash.CashService
+import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.providers.PriceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,7 +47,7 @@ class RealEstateAssetTest {
     private lateinit var assetCategoryConfig: AssetCategoryConfig
 
     @Autowired
-    private lateinit var priceService: PriceService
+    private lateinit var marketDataRepo: MarketDataRepo
 
     @Autowired
     private lateinit var systemUserService: Registration
@@ -120,7 +120,7 @@ class RealEstateAssetTest {
 
         // Price Flow
         val marketData =
-            priceService.getMarketData(
+            marketDataRepo.findByAssetIdAndPriceDate(
                 reAsset!!.id,
                 dateUtils.date
             )

@@ -2,7 +2,6 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -10,8 +9,6 @@ import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.persistence.ConflictTolerantWriter
-import com.beancounter.marketdata.providers.alpha.AlphaEventService
-import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -40,12 +37,8 @@ class PriceServiceTest {
     private lateinit var eventProducer: EventProducer
     private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
     private val assetFinder = mock(AssetFinder::class.java)
+    private val eventServiceFacade = mock(EventServiceFacade::class.java)
     private val asset = Asset(code = "1", market = NASDAQ)
-    private val privateAsset =
-        Asset(
-            code = "HOUSE",
-            market = Market(PrivateMarketDataProvider.ID)
-        )
 
     @BeforeEach
     fun setUp() {
@@ -65,103 +58,17 @@ class PriceServiceTest {
                 val rows = invocation.getArgument<List<MarketData>>(1)
                 repo.saveAll(rows).toList()
             }
-        priceService = PriceService(marketDataRepo, cashUtils, assetFinder, conflictTolerantWriter)
-        priceService.setEventWriter(eventProducer)
-        priceService.setCacheInvalidationProducer(cacheInvalidationProducer)
-        `when`(assetFinder.find(asset.id)).thenReturn(asset)
-        `when`(assetFinder.find(privateAsset.id)).thenReturn(privateAsset)
-    }
-
-    @Test
-    fun `should invalidate the price cache when a new private market price is written`() {
-        val priceDate = LocalDate.of(2026, 3, 31)
-        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
-            .thenReturn(Optional.empty())
-        `when`(marketDataRepo.save(any<MarketData>())).thenAnswer { it.arguments[0] }
-
-        val result =
-            priceService.getMarketData(
-                privateAsset.id,
-                priceDate,
-                BigDecimal("250000.00")
+        `when`(eventServiceFacade.getEvents(any())).thenReturn(PriceResponse())
+        val priceSplits = PriceSplits(marketDataRepo, assetFinder, eventServiceFacade, cacheInvalidationProducer)
+        priceService =
+            PriceService(
+                marketDataRepo,
+                cashUtils,
+                conflictTolerantWriter,
+                DayChange(marketDataRepo, priceSplits),
+                eventProducer,
+                cacheInvalidationProducer
             )
-
-        assertThat(result).isPresent
-        val assetCaptor = argumentCaptor<String>()
-        val dateCaptor = argumentCaptor<LocalDate>()
-        verify(cacheInvalidationProducer)
-            .sendPriceHistoryEvent(assetCaptor.capture(), dateCaptor.capture())
-        assertThat(assetCaptor.firstValue).isEqualTo(privateAsset.id)
-        assertThat(dateCaptor.firstValue).isEqualTo(priceDate)
-    }
-
-    @Test
-    fun `should invalidate the price cache when an existing private market price is revalued`() {
-        val priceDate = LocalDate.of(2026, 3, 31)
-        val existing =
-            MarketData(
-                asset = privateAsset,
-                priceDate = priceDate,
-                close = BigDecimal("200000.00"),
-                source = "USER"
-            )
-        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
-            .thenReturn(Optional.of(existing))
-        `when`(marketDataRepo.save(any<MarketData>())).thenAnswer { it.arguments[0] }
-
-        val result =
-            priceService.getMarketData(
-                privateAsset.id,
-                priceDate,
-                BigDecimal("250000.00")
-            )
-
-        assertThat(result).isPresent
-        assertThat(result.get().close).isEqualByComparingTo(BigDecimal("250000.00"))
-        val assetCaptor = argumentCaptor<String>()
-        val dateCaptor = argumentCaptor<LocalDate>()
-        verify(cacheInvalidationProducer)
-            .sendPriceHistoryEvent(assetCaptor.capture(), dateCaptor.capture())
-        assertThat(assetCaptor.firstValue).isEqualTo(privateAsset.id)
-        assertThat(dateCaptor.firstValue).isEqualTo(priceDate)
-    }
-
-    @Test
-    fun `should not invalidate the price cache when a private market read writes nothing`() {
-        val priceDate = LocalDate.of(2026, 3, 31)
-        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
-            .thenReturn(Optional.empty())
-
-        // No closePrice supplied — this is a plain read, not a revaluation.
-        val result = priceService.getMarketData(privateAsset.id, priceDate)
-
-        assertThat(result).isEmpty
-        verify(marketDataRepo, never()).save(any<MarketData>())
-        verify(cacheInvalidationProducer, never()).sendPriceHistoryEvent(any(), any())
-    }
-
-    @Test
-    fun `test getMarketData with existing data`() {
-        val date = LocalDate.now()
-        val marketData = MarketData(asset, date, BigDecimal.TEN)
-
-        `when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)).thenReturn(Optional.of(marketData))
-
-        val result = priceService.getMarketData(asset.id, date)
-
-        assertTrue(result.isPresent)
-        assertEquals(marketData, result.get())
-    }
-
-    @Test
-    fun `test getMarketData with non-existing data`() {
-        val date = LocalDate.now()
-
-        `when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)).thenReturn(Optional.empty())
-
-        val result = priceService.getMarketData(asset.id, date)
-
-        assertFalse(result.isPresent)
     }
 
     @Test
@@ -189,15 +96,6 @@ class PriceServiceTest {
         priceService.purge()
 
         verify(marketDataRepo, times(1)).deleteAll()
-    }
-
-    @Test
-    fun `test purge specific market data`() {
-        val marketData = MarketData(asset, LocalDate.now(), BigDecimal.TEN)
-
-        priceService.purge(marketData)
-
-        verify(marketDataRepo, times(1)).deleteById(marketData.id)
     }
 
     @Test
@@ -324,10 +222,10 @@ class PriceServiceTest {
     }
 
     @Test
-    fun `should stamp ex-date split from Alpha when provider omits the flag`() {
+    fun `should stamp ex-date split from the event provider when the price provider omits the flag`() {
         // Given: MarketStack-style ex-date row — close already on the post-split
         // basis, no split flag on the row, no previousClose supplied. The
-        // Alpha-backed events feed knows the 6:1 split happened today.
+        // events feed knows the 6:1 split happened today.
         val today = LocalDate.of(2026, 4, 21)
         val yesterday = LocalDate.of(2026, 4, 20)
 
@@ -345,8 +243,7 @@ class PriceServiceTest {
                 close = BigDecimal("492.58")
             )
 
-        val alphaEventService = mock(AlphaEventService::class.java)
-        `when`(alphaEventService.getEvents(asset)).thenReturn(
+        `when`(eventServiceFacade.getEvents(asset.id)).thenReturn(
             PriceResponse(
                 listOf(
                     MarketData(
@@ -359,7 +256,6 @@ class PriceServiceTest {
                 )
             )
         )
-        priceService.setAlphaEventService(alphaEventService)
 
         `when`(cashUtils.isCash(asset)).thenReturn(false)
         `when`(marketDataRepo.countByAssetIdAndPriceDate(asset.id, today)).thenReturn(0L)
@@ -370,7 +266,7 @@ class PriceServiceTest {
 
         val saved = priceService.handle(PriceResponse(listOf(todayMarketData))).toList()
 
-        // Split flag stamped from Alpha so SplitAdjuster recognises the ex-date.
+        // Split flag stamped from the events feed so SplitAdjuster recognises the ex-date.
         assertThat(saved[0].split).isEqualByComparingTo("6")
         // previousClose rebased onto post-split basis (492.58 / 6 ≈ 82.0967)
         assertThat(saved[0].previousClose)

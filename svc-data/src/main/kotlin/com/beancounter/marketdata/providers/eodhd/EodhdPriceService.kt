@@ -8,8 +8,8 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
+import com.beancounter.marketdata.providers.DayChange
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
-import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
@@ -313,7 +313,7 @@ class EodhdPriceService(
             changePercent =
                 quote.changePercent
                     .asDecimal()
-                    ?.divide(HUNDRED, PriceService.CHANGE_PERCENT_SCALE, RoundingMode.HALF_UP)
+                    ?.divide(HUNDRED, DayChange.CHANGE_PERCENT_SCALE, RoundingMode.HALF_UP)
                     ?: BigDecimal.ZERO,
             // MarketData.volume is Int; clamp as EodhdAdapter does rather than wrap.
             volume =

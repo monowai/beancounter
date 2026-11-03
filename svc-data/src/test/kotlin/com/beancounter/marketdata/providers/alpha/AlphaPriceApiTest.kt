@@ -21,9 +21,9 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.event.EventProducer
+import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.API
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_ASSET
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_CLOSE
@@ -117,7 +117,7 @@ internal class AlphaPriceApiTest {
     private lateinit var alphaConfig: AlphaConfig
 
     @Autowired
-    private lateinit var priceService: PriceService
+    private lateinit var marketDataRepo: MarketDataRepo
 
     @MockitoBean
     private lateinit var cashTrnServices: CashTrnServices
@@ -309,7 +309,7 @@ internal class AlphaPriceApiTest {
         val asset = data[P_KEY]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult =
-            priceService.getMarketData(
+            marketDataRepo.findByAssetIdAndPriceDate(
                 asset.id,
                 DateUtils().date
             )
@@ -323,7 +323,6 @@ internal class AlphaPriceApiTest {
 
     @Test
     fun is_BackFillWritingDividendEvent() {
-        priceService.setEventWriter(mockEventProducer)
         val assetCode = "KMI"
         mockSearchResponse(
             assetCode,

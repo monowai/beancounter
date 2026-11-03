@@ -7,6 +7,7 @@ import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -90,7 +91,7 @@ class MarketStackEnricher(
         id: String,
         market: Market,
         assetInput: AssetInput,
-        ticker: com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker
+        ticker: MarketStackTicker
     ): Asset {
         val marketAlias = market.getAlias(MarketStackService.ID)
         val priceSymbol =
@@ -129,9 +130,9 @@ class MarketStackEnricher(
      *    are rejected as ambiguous; the caller then falls back to the market-alias code path.
      */
     internal fun pickTicker(
-        tickers: List<com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker>,
+        tickers: List<MarketStackTicker>,
         code: String
-    ): com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker? {
+    ): MarketStackTicker? {
         val exact =
             tickers.firstOrNull { t ->
                 t.symbol.substringBefore(".").equals(code, ignoreCase = true)

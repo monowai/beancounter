@@ -67,10 +67,7 @@ class PriceBackfillCoordinator(
             log.debug("Backfill skipped — blank assetId")
             return false
         }
-        if (!claim(assetId)) {
-            return false
-        }
-        return launchBackfill(assetId, fromDate)
+        return claim(assetId) && launchBackfill(assetId, fromDate)
     }
 
     /**

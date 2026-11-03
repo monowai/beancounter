@@ -11,7 +11,6 @@ import org.springframework.messaging.MessagingException
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.time.LocalDate
 
 /**
  * Publishes a portfolio's market value to bc-data after a valuation, which stores
@@ -39,7 +38,7 @@ class MarketValueUpdateProducer(
         val marketValue = baseTotals?.marketValue ?: BigDecimal.ZERO
         val irr = baseTotals?.irr ?: BigDecimal.ZERO
         val gainOnDay = gainOnDay(valued)
-        val valuedAt = valuationDate(valued.asAt)
+        val valuedAt = dateUtils.getDate(valued.asAt)
 
         log.trace(
             "Sending MV update: portfolio={}, base={}, marketValue={}, gainOnDay={}, valuedAt={}",
@@ -81,7 +80,4 @@ class MarketValueUpdateProducer(
                     .mapNotNull { it.moneyValues[Position.In.BASE]?.marketValue }
                     .fold(BigDecimal.ZERO) { acc, value -> acc.add(value) }
             }
-
-    /** Today when [asAt] is "today" or null, otherwise the parsed date. */
-    private fun valuationDate(asAt: String?): LocalDate = dateUtils.getDate(asAt ?: DateUtils.TODAY)
 }

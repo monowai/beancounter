@@ -41,7 +41,15 @@ class UserPreferencesService(
         request: UserPreferencesRequest
     ): UserPreferences {
         val preferences = getOrCreate(owner)
-        request.preferredName?.let { preferences.preferredName = it }
+        applyDisplay(preferences, request)
+        applyPersonal(preferences, request)
+        return userPreferencesRepository.save(preferences)
+    }
+
+    private fun applyDisplay(
+        preferences: UserPreferences,
+        request: UserPreferencesRequest
+    ) {
         request.defaultHoldingsView?.let { preferences.defaultHoldingsView = it }
         request.defaultValueIn?.let { preferences.defaultValueIn = it }
         request.defaultGroupBy?.let { preferences.defaultGroupBy = it }
@@ -51,12 +59,18 @@ class UserPreferencesService(
         request.enableTwr?.let { preferences.enableTwr = it }
         request.milestoneMode?.let { preferences.milestoneMode = it }
         request.autoSettle?.let { preferences.autoSettle = it }
+    }
+
+    private fun applyPersonal(
+        preferences: UserPreferences,
+        request: UserPreferencesRequest
+    ) {
+        request.preferredName?.let { preferences.preferredName = it }
         request.yearOfBirth?.let { preferences.yearOfBirth = it }
         request.monthOfBirth?.let { preferences.monthOfBirth = it }
         request.targetIndependenceAge?.let { preferences.targetIndependenceAge = it }
         request.lifeExpectancy?.let { preferences.lifeExpectancy = it }
         request.defaultPayslipPortfolioId?.let { preferences.defaultPayslipPortfolioId = it }
         request.defaultPayslipCashAssetId?.let { preferences.defaultPayslipCashAssetId = it }
-        return userPreferencesRepository.save(preferences)
     }
 }

@@ -103,13 +103,11 @@ class PrivateAssetConfigService(
         validateSubAccountCodes(request.subAccounts)
         validateTaxTreatment(request)
 
-        val existing = configRepository.findById(assetId).orElse(null)
-        val config =
-            if (existing != null) {
-                updateExistingConfig(existing, assetId, request)
-            } else {
-                createNewConfig(assetId, request)
-            }
+        // A new config starts from the entity defaults and takes the request like an update.
+        val existing =
+            configRepository.findById(assetId).orElse(null)
+                ?: PrivateAssetConfig(assetId = assetId, createdDate = dateUtils.date)
+        val config = mergeRequest(existing, assetId, request)
 
         val saved = configRepository.save(config)
         logSavedConfig(assetId, saved)
@@ -163,9 +161,9 @@ class PrivateAssetConfigService(
         }
 
     /**
-     * Update an existing config by merging request values with current values.
+     * Merge request values over the config's current values.
      */
-    private fun updateExistingConfig(
+    private fun mergeRequest(
         existing: PrivateAssetConfig,
         assetId: String,
         request: PrivateAssetConfigRequest
@@ -245,51 +243,6 @@ class PrivateAssetConfigService(
         )
 
     /**
-     * Create a new config with request values and sensible defaults.
-     */
-    private fun createNewConfig(
-        assetId: String,
-        request: PrivateAssetConfigRequest
-    ): PrivateAssetConfig =
-        PrivateAssetConfig(
-            assetId = assetId,
-            monthlyRentalIncome = resolveRentalIncome(request, BigDecimal.ZERO),
-            rentalCurrency = request.rentalCurrency ?: "NZD",
-            countryCode = request.countryCode?.uppercase() ?: "NZ",
-            monthlyManagementFee = request.monthlyManagementFee ?: BigDecimal.ZERO,
-            managementFeePercent = request.managementFeePercent ?: BigDecimal.ZERO,
-            monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: BigDecimal.ZERO,
-            annualPropertyTax = request.annualPropertyTax ?: BigDecimal.ZERO,
-            annualInsurance = request.annualInsurance ?: BigDecimal.ZERO,
-            monthlyOtherExpenses = request.monthlyOtherExpenses ?: BigDecimal.ZERO,
-            deductIncomeTax = request.deductIncomeTax ?: false,
-            isPrimaryResidence = request.isPrimaryResidence ?: false,
-            liquidationPriority = request.liquidationPriority ?: 100,
-            transactionDayOfMonth = request.transactionDayOfMonth ?: 1,
-            creditAccountId = request.creditAccountId,
-            autoGenerateTransactions = request.autoGenerateTransactions ?: false,
-            expectedReturnRate = request.expectedReturnRate,
-            payoutAge = request.payoutAge,
-            monthlyPayoutAmount = request.monthlyPayoutAmount,
-            lumpSum = request.lumpSum ?: false,
-            monthlyContribution = request.monthlyContribution,
-            contributionFrequency = request.contributionFrequency ?: ContributionFrequency.MONTHLY,
-            isPension = request.isPension ?: false,
-            policyType = request.policyType,
-            lockedUntilDate = request.lockedUntilDate,
-            cpfLifePlan = request.cpfLifePlan,
-            cpfPayoutStartAge = request.cpfPayoutStartAge,
-            taxTreatment = request.taxTreatment?.let { TaxTreatment.valueOf(it) },
-            employeeDeferralPercent = request.employeeDeferralPercent,
-            employerMatchPercent = request.employerMatchPercent,
-            employerMatchCapPercent = request.employerMatchCapPercent,
-            withdrawalTaxRate = request.withdrawalTaxRate,
-            subAccounts = toSubAccountEntities(assetId, request.subAccounts),
-            createdDate = dateUtils.date,
-            updatedDate = dateUtils.date
-        )
-
-    /**
      * Validate that sub-account codes are unique within the request.
      */
     private fun validateSubAccountCodes(subAccounts: List<SubAccountRequest>?) {
@@ -354,28 +307,6 @@ class PrivateAssetConfigService(
             }
         config.subAccounts.clear()
         config.subAccounts.addAll(updatedSubAccounts)
-    }
-
-    /**
-     * Convert sub-account requests to entities for new configs.
-     */
-    private fun toSubAccountEntities(
-        assetId: String,
-        subAccounts: List<SubAccountRequest>?
-    ): MutableList<PrivateAssetSubAccount> {
-        if (subAccounts.isNullOrEmpty()) return mutableListOf()
-        return subAccounts
-            .map { req ->
-                PrivateAssetSubAccount(
-                    assetId = assetId,
-                    code = req.code.uppercase(),
-                    displayName = req.displayName,
-                    balance = req.balance,
-                    expectedReturnRate = req.expectedReturnRate,
-                    feeRate = req.feeRate,
-                    liquid = req.liquid
-                )
-            }.toMutableList()
     }
 
     /**

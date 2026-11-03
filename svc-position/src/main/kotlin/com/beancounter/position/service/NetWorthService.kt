@@ -2,32 +2,24 @@ package com.beancounter.position.service
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
-import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.NetWorth
 import com.beancounter.common.contracts.NetWorthClassification
 import com.beancounter.common.contracts.NetWorthPortfolio
-import com.beancounter.common.contracts.PriceAsset
-import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
-import com.beancounter.common.utils.CashUtils
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import com.beancounter.position.valuation.AggregateValuationRequest
 import com.beancounter.position.valuation.Valuation
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.LocalDate
 
 /**
  * Server-side Net Worth headline — the derivation bc-view's
@@ -42,7 +34,7 @@ import java.time.LocalDate
  * - healthcareReserve: every MA sub-account balance, reported but not added.
  * - FX: one request per call carrying every distinct (source → target) pair;
  *   a missing rate fails fast rather than silently applying 1.0.
- * - weekChange: current holdings against their close 7 days before, one stored-price read.
+ * - weekChange: see [WeekChange].
  */
 @Service
 class NetWorthService(
@@ -50,11 +42,8 @@ class NetWorthService(
     private val assetConfigClient: AssetConfigClient,
     private val fxService: FxService,
     private val tokenService: TokenService,
-    private val priceService: PriceService,
-    private val dateUtils: DateUtils
+    private val weekChange: WeekChange
 ) {
-    private val cashUtils = CashUtils()
-
     fun calculate(
         portfolios: Collection<Portfolio>,
         asAt: String,
@@ -81,7 +70,7 @@ class NetWorthService(
             positions.positions.values
                 .map { it.asset.id }
                 .toSet()
-        val composite = compositeTotals(assetConfigClient.findAll(), heldAssetIds)
+        val composite = CompositeTotals.of(assetConfigClient.findAll(), heldAssetIds)
 
         val sourceCurrencies =
             buildSet {
@@ -104,7 +93,7 @@ class NetWorthService(
         // Sum the rounded components so totalValue always reconciles with what is returned.
         val totalValue = money(holdingsValue).add(standaloneCompositeValue)
         val gainOnDay = money(gainOnDay(positions))
-        val weekChange = weekChange(positions, asAt)?.let(::money)
+        val weekChange = weekChange.of(positions, asAt)?.let(::money)
 
         return NetWorth(
             asAt = asAt,
@@ -123,37 +112,44 @@ class NetWorthService(
         )
     }
 
+    /**
+     * Composite (CPF / pension) sub-account balances by currency: the healthcare
+     * [reserve], reported but never added, and the [standalone] balances of configs
+     * whose parent asset no selected portfolio holds.
+     */
     private class CompositeTotals(
         val standalone: Map<String, BigDecimal>,
         val reserve: Map<String, BigDecimal>
-    )
-
-    private fun compositeTotals(
-        configs: List<PrivateAssetConfigDto>,
-        heldAssetIds: Set<String>
-    ): CompositeTotals {
-        val standalone = mutableMapOf<String, BigDecimal>()
-        val reserve = mutableMapOf<String, BigDecimal>()
-        for (config in configs) {
-            if (config.subAccounts.isEmpty()) continue
-            val currency =
-                config.rentalCurrency
-                    .orEmpty()
-                    .ifBlank { DEFAULT_CONFIG_CURRENCY }
-                    .uppercase()
-            val (reserveBalance, nonReserveBalance) =
-                config.subAccounts
-                    .filter { it.balance.signum() != 0 }
-                    .partition { it.code == HEALTHCARE_RESERVE_CODE }
-                    .let { (ma, other) -> sum(ma.map { it.balance }) to sum(other.map { it.balance }) }
-            if (reserveBalance.signum() > 0) {
-                reserve.merge(currency, reserveBalance, BigDecimal::add)
-            }
-            if (nonReserveBalance.signum() > 0 && config.assetId !in heldAssetIds) {
-                standalone.merge(currency, nonReserveBalance, BigDecimal::add)
+    ) {
+        companion object {
+            fun of(
+                configs: List<PrivateAssetConfigDto>,
+                heldAssetIds: Set<String>
+            ): CompositeTotals {
+                val standalone = mutableMapOf<String, BigDecimal>()
+                val reserve = mutableMapOf<String, BigDecimal>()
+                for (config in configs) {
+                    if (config.subAccounts.isEmpty()) continue
+                    val currency =
+                        config.rentalCurrency
+                            .orEmpty()
+                            .ifBlank { DEFAULT_CONFIG_CURRENCY }
+                            .uppercase()
+                    val (reserveBalance, nonReserveBalance) =
+                        config.subAccounts
+                            .filter { it.balance.signum() != 0 }
+                            .partition { it.code == HEALTHCARE_RESERVE_CODE }
+                            .let { (ma, other) -> sum(ma.map { it.balance }) to sum(other.map { it.balance }) }
+                    if (reserveBalance.signum() > 0) {
+                        reserve.merge(currency, reserveBalance, BigDecimal::add)
+                    }
+                    if (nonReserveBalance.signum() > 0 && config.assetId !in heldAssetIds) {
+                        standalone.merge(currency, nonReserveBalance, BigDecimal::add)
+                    }
+                }
+                return CompositeTotals(standalone, reserve)
             }
         }
-        return CompositeTotals(standalone, reserve)
     }
 
     /**
@@ -200,82 +196,6 @@ class NetWorthService(
             .mapNotNull { it.moneyValues[Position.In.PORTFOLIO] }
             .filter { it.priceData.changePercent.signum() != 0 }
             .fold(BigDecimal.ZERO) { acc, mv -> acc.add(mv.gainOnDay) }
-
-    /**
-     * Each priced, non-cash holding's PORTFOLIO value now less that value at its close 7 days
-     * before: value × (1 − then ÷ now), both closes in the asset's own currency. A holding with
-     * no close then (listed since, or never priced) moves nothing. Null when unknown: the read
-     * failed, or no holding came back priced. A secondary figure never fails the headline.
-     */
-    private fun weekChange(
-        positions: Positions,
-        asAt: String
-    ): BigDecimal? {
-        // Value now in PORTFOLIO terms and close now in the asset's own currency, read once.
-        val priced =
-            positions.positions.values.mapNotNull { position ->
-                if (cashUtils.isCash(position.asset)) return@mapNotNull null
-                val valueNow = position.moneyValues[Position.In.PORTFOLIO]?.marketValue
-                val closeNow = position.moneyValues[Position.In.TRADE]?.priceData?.close
-                if (valueNow == null || closeNow == null || closeNow.signum() <= 0) return@mapNotNull null
-                PricedHolding(position.asset, valueNow, closeNow)
-            }
-        if (priced.isEmpty()) return BigDecimal.ZERO
-        val weekAgo = dateUtils.getFormattedDate(asAt).minusDays(DAYS_IN_WEEK)
-        val then = weekAgoCloses(priced, weekAgo)
-        return when {
-            then == null -> {
-                null
-            }
-            then.isEmpty() -> {
-                log.debug("7-day change unknown: no week-ago close for {} holdings at {}", priced.size, weekAgo)
-                null
-            }
-            else -> {
-                priced.fold(BigDecimal.ZERO) { acc, holding ->
-                    val closeThen = then[holding.asset.id] ?: return@fold acc
-                    val valueThen =
-                        holding.valueNow
-                            .multiply(
-                                closeThen
-                            ).divide(holding.closeNow, RATIO_SCALE, RoundingMode.HALF_UP)
-                    acc.add(holding.valueNow.subtract(valueThen))
-                }
-            }
-        }
-    }
-
-    /** Positive closes by asset id on [weekAgo]; null when the prices cannot be read. */
-    private fun weekAgoCloses(
-        priced: List<PricedHolding>,
-        weekAgo: LocalDate
-    ): Map<String, BigDecimal>? {
-        val request =
-            PriceRequest(
-                date = weekAgo.toString(),
-                assets = priced.map { PriceAsset(it.asset.market.code, it.asset.code, assetId = it.asset.id) },
-                currentMode = false
-            )
-        return try {
-            priceService
-                .getPrices(request, tokenService.bearerToken)
-                .data
-                .filter { it.close.signum() > 0 }
-                .associate { it.asset.id to it.close }
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: RuntimeException
-        ) {
-            log.warn("7-day change unknown: week-ago prices for {} unavailable: {}", weekAgo, e.message)
-            null
-        }
-    }
-
-    private class PricedHolding(
-        val asset: Asset,
-        val valueNow: BigDecimal,
-        val closeNow: BigDecimal
-    )
 
     private fun classificationBreakdown(positions: Positions): List<NetWorthClassification> {
         val byGroup = mutableMapOf<String, BigDecimal>()
@@ -333,15 +253,10 @@ class NetWorthService(
             value.multiply(HUNDRED).divide(total, MONEY_SCALE, RoundingMode.HALF_UP)
         }
 
-    private fun sum(values: Collection<BigDecimal>): BigDecimal = values.fold(BigDecimal.ZERO, BigDecimal::add)
-
     private fun money(value: BigDecimal): BigDecimal = value.setScale(MONEY_SCALE, RoundingMode.HALF_UP)
 
     companion object {
         private const val MONEY_SCALE = 2
-        private const val RATIO_SCALE = 8
-        private const val DAYS_IN_WEEK = 7L
-        private val log = LoggerFactory.getLogger(NetWorthService::class.java)
         private const val DEFAULT_CONFIG_CURRENCY = "USD"
         private const val HEALTHCARE_RESERVE_CODE = "MA"
 
@@ -372,3 +287,5 @@ class NetWorthService(
             }
     }
 }
+
+private fun sum(values: Collection<BigDecimal>): BigDecimal = values.fold(BigDecimal.ZERO, BigDecimal::add)

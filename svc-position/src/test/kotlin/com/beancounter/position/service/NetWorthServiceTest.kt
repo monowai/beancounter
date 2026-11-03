@@ -76,7 +76,13 @@ class NetWorthServiceTest {
     @BeforeEach
     fun setUp() {
         netWorthService =
-            NetWorthService(valuationService, assetConfigClient, fxService, tokenService, priceService, DateUtils())
+            NetWorthService(
+                valuationService,
+                assetConfigClient,
+                fxService,
+                tokenService,
+                WeekChange(priceService, tokenService, DateUtils())
+            )
     }
 
     @Test

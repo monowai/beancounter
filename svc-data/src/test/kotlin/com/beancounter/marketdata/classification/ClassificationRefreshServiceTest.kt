@@ -28,6 +28,7 @@ import java.util.Optional
 class ClassificationRefreshServiceTest {
     private lateinit var assetRepository: AssetRepository
     private lateinit var classificationEnricher: ClassificationEnricher
+    private lateinit var classificationService: ClassificationService
 
     private val testMarket = Market(code = "NASDAQ", name = "NASDAQ")
 
@@ -37,6 +38,7 @@ class ClassificationRefreshServiceTest {
     ) = ClassificationRefreshService(
         assetRepository,
         enricher,
+        classificationService,
         staleAfterDays = 7,
         batchLimit = batchLimit
     )
@@ -67,6 +69,7 @@ class ClassificationRefreshServiceTest {
     fun setUp() {
         assetRepository = mock()
         classificationEnricher = mock()
+        classificationService = mock()
         whenever(classificationEnricher.providerFor(any())).thenReturn(classificationEnricher)
         whenever(assetRepository.save(any<Asset>())).thenAnswer { it.getArgument<Asset>(0) }
     }
@@ -324,5 +327,55 @@ class ClassificationRefreshServiceTest {
         verify(assetRepository, times(3)).save(saved.capture())
         assertThat(saved.allValues.map { it.id })
             .containsExactlyInAnyOrder("etf-enriched", "etf-nodata", "etf-failed")
+    }
+
+    @Test
+    fun `backfill stamps checked-at on the assets it enriches`() {
+        val asset = etf("etf-1")
+        whenever(assetRepository.findAll()).thenReturn(listOf(asset))
+        whenever(classificationEnricher.canEnrich(any())).thenReturn(true)
+        whenever(classificationEnricher.isEtf(any())).thenReturn(true)
+        whenever(classificationEnricher.enrichClassification(asset)).thenReturn(EnrichmentResult.ENRICHED)
+
+        val result = service().backfill(null, 100)
+
+        assertThat(result.processed).isEqualTo(1)
+        assertThat(result.errors).isEqualTo(0)
+        assertThat(asset.classificationCheckedAt).isNotNull()
+    }
+
+    @Test
+    fun `backfill skips assets that are already classified`() {
+        val classified = etf("etf-classified")
+        val bare = etf("etf-bare")
+        whenever(assetRepository.findAll()).thenReturn(listOf(classified, bare))
+        whenever(classificationEnricher.canEnrich(any())).thenReturn(true)
+        whenever(classificationEnricher.isEtf(any())).thenReturn(true)
+        whenever(classificationService.isClassified("etf-classified", true)).thenReturn(true)
+        whenever(classificationEnricher.enrichClassification(bare)).thenReturn(EnrichmentResult.ENRICHED)
+
+        val result = service().backfill(null, 100)
+
+        assertThat(result.total).isEqualTo(1)
+        assertThat(classified.classificationCheckedAt).isNull()
+        assertThat(bare.classificationCheckedAt).isNotNull()
+    }
+
+    @Test
+    fun `backfill counts NO_DATA and RATE_LIMITED separately from processed and errors`() {
+        val noData = etf("etf-nodata")
+        val rateLimited = etf("etf-ratelimited")
+        whenever(assetRepository.findAll()).thenReturn(listOf(noData, rateLimited))
+        whenever(classificationEnricher.canEnrich(any())).thenReturn(true)
+        whenever(classificationEnricher.isEtf(any())).thenReturn(true)
+        whenever(classificationEnricher.enrichClassification(noData)).thenReturn(EnrichmentResult.NO_DATA)
+        whenever(classificationEnricher.enrichClassification(rateLimited)).thenReturn(EnrichmentResult.RATE_LIMITED)
+
+        val result = service().backfill(null, 100)
+
+        assertThat(result.processed).isEqualTo(0)
+        assertThat(result.errors).isEqualTo(0)
+        assertThat(result.noData).isEqualTo(1)
+        assertThat(result.rateLimited).isEqualTo(1)
     }
 }

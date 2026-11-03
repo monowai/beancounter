@@ -3,6 +3,7 @@ package com.beancounter.marketdata.classification
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.ClassificationLevel
+import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
 import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service
  *
  * Parallel to [AlphaClassificationEnricher]. EODHD returns Morningstar-style sector names which
  * [SectorNormalizer] maps onto the canonical GICS names shared across providers. Stored under the
- * dedicated EODHD [com.beancounter.common.model.ClassificationStandard], so EODHD and AlphaVantage
+ * dedicated EODHD [ClassificationStandard], so EODHD and AlphaVantage
  * exposures coexist per asset without clobbering each other.
  */
 @Service
@@ -26,6 +27,8 @@ class EodhdClassificationEnricher(
     private val eodhdConfig: EodhdConfig,
     private val eodhdProxy: EodhdProxy,
     private val classificationService: ClassificationService,
+    private val taxonomy: ClassificationTaxonomy,
+    private val fundLookThrough: FundLookThrough,
     private val dateUtils: DateUtils = DateUtils()
 ) : ClassificationEnricher {
     private val log = LoggerFactory.getLogger(EodhdClassificationEnricher::class.java)
@@ -81,40 +84,13 @@ class EodhdClassificationEnricher(
             return EnrichmentResult.NO_DATA
         }
 
-        val standard = classificationService.getEodhdStandard()
-
-        val sectorItem =
-            classificationService.getOrCreateItem(
-                standard = standard,
-                level = ClassificationLevel.SECTOR,
-                rawCode = general.sector
-            )
-
-        classificationService.classifyAsset(
+        classificationService.classify(
             asset = asset,
-            standard = standard,
-            item = sectorItem,
-            level = ClassificationLevel.SECTOR,
+            standardKey = ClassificationStandard.EODHD,
+            sector = general.sector,
+            industry = general.industry,
             source = AssetClassification.SOURCE_EODHD
         )
-
-        if (!general.industry.isNullOrBlank()) {
-            val industryItem =
-                classificationService.getOrCreateItem(
-                    standard = standard,
-                    level = ClassificationLevel.INDUSTRY,
-                    name = general.industry,
-                    parent = sectorItem
-                )
-
-            classificationService.classifyAsset(
-                asset = asset,
-                standard = standard,
-                item = industryItem,
-                level = ClassificationLevel.INDUSTRY,
-                source = AssetClassification.SOURCE_EODHD
-            )
-        }
 
         log.info("Classified ${asset.code} as ${general.sector} / ${general.industry ?: "N/A"}")
         return EnrichmentResult.ENRICHED
@@ -129,8 +105,8 @@ class EodhdClassificationEnricher(
             return EnrichmentResult.NO_DATA
         }
 
-        val standard = classificationService.getEodhdStandard()
-        classificationService.clearExposures(asset.id)
+        val standard = taxonomy.providerStandard(ClassificationStandard.EODHD)
+        fundLookThrough.clearExposures(asset.id)
 
         var sectorCount = 0
         for ((sectorName, weightData) in sectorWeights) {
@@ -140,13 +116,13 @@ class EodhdClassificationEnricher(
             }
 
             val sectorItem =
-                classificationService.getOrCreateItem(
+                taxonomy.getOrCreateItem(
                     standard = standard,
                     level = ClassificationLevel.SECTOR,
                     rawCode = sectorName
                 )
 
-            classificationService.addExposure(
+            fundLookThrough.addExposure(
                 asset = asset,
                 standard = standard,
                 item = sectorItem,

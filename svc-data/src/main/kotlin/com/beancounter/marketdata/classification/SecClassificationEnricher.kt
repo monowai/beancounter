@@ -3,7 +3,7 @@ package com.beancounter.marketdata.classification
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.AssetFundamentals
-import com.beancounter.common.model.ClassificationLevel
+import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.sec.SecFundamentalsParser
@@ -31,7 +31,7 @@ import tools.jackson.databind.ObjectMapper
  * whose ticker is in the SEC company index (the index is cached, so the lookup is cheap). ETFs
  * and unlisted tickers are declined rather than answered NO_DATA, so a chain of `sec,alpha`
  * hands them to the next enricher instead of parking them. Stored under the dedicated SEC
- * [com.beancounter.common.model.ClassificationStandard], like the other providers. HTTP 429 and
+ * [ClassificationStandard], like the other providers. HTTP 429 and
  * 403 (SEC's throttle response) and our own `sec` limiter tripping map to RATE_LIMITED so the
  * asset is retried first on the next run; any other HTTP or parse failure is FAILED.
  */
@@ -141,38 +141,13 @@ class SecClassificationEnricher(
             return EnrichmentResult.NO_DATA
         }
         val industry = submissions.path("sicDescription").asString()
-        val standard = classificationService.getSecStandard()
-
-        val sectorItem =
-            classificationService.getOrCreateItem(
-                standard = standard,
-                level = ClassificationLevel.SECTOR,
-                rawCode = sector
-            )
-        classificationService.classifyAsset(
+        classificationService.classify(
             asset = asset,
-            standard = standard,
-            item = sectorItem,
-            level = ClassificationLevel.SECTOR,
+            standardKey = ClassificationStandard.SEC,
+            sector = sector,
+            industry = industry,
             source = AssetClassification.SOURCE_SEC
         )
-
-        if (industry.isNotBlank()) {
-            val industryItem =
-                classificationService.getOrCreateItem(
-                    standard = standard,
-                    level = ClassificationLevel.INDUSTRY,
-                    name = industry,
-                    parent = sectorItem
-                )
-            classificationService.classifyAsset(
-                asset = asset,
-                standard = standard,
-                item = industryItem,
-                level = ClassificationLevel.INDUSTRY,
-                source = AssetClassification.SOURCE_SEC
-            )
-        }
         log.info("Classified {} as {} / {} (SIC {})", asset.code, sector, industry.ifBlank { "N/A" }, sic)
         return EnrichmentResult.ENRICHED
     }

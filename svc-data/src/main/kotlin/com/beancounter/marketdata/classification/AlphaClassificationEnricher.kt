@@ -27,6 +27,8 @@ class AlphaClassificationEnricher(
     private val alphaConfig: AlphaConfig,
     private val alphaProxy: AlphaProxy,
     private val classificationService: ClassificationService,
+    private val taxonomy: ClassificationTaxonomy,
+    private val fundLookThrough: FundLookThrough,
     private val dateUtils: DateUtils = DateUtils()
 ) : ClassificationEnricher {
     private val log = LoggerFactory.getLogger(AlphaClassificationEnricher::class.java)
@@ -103,42 +105,13 @@ class AlphaClassificationEnricher(
             return EnrichmentResult.NO_DATA
         }
 
-        val standard = classificationService.getAlphaStandard()
-
-        // Create sector classification - rawCode from API is normalized to display name
-        val sectorItem =
-            classificationService.getOrCreateItem(
-                standard = standard,
-                level = ClassificationLevel.SECTOR,
-                rawCode = overview.sector
-            )
-
-        classificationService.classifyAsset(
+        classificationService.classify(
             asset = asset,
-            standard = standard,
-            item = sectorItem,
-            level = ClassificationLevel.SECTOR,
+            standardKey = ClassificationStandard.ALPHA,
+            sector = overview.sector,
+            industry = overview.industry,
             source = AssetClassification.SOURCE_ALPHA_OVERVIEW
         )
-
-        // Create industry classification if available
-        if (!overview.industry.isNullOrBlank()) {
-            val industryItem =
-                classificationService.getOrCreateItem(
-                    standard = standard,
-                    level = ClassificationLevel.INDUSTRY,
-                    name = overview.industry,
-                    parent = sectorItem
-                )
-
-            classificationService.classifyAsset(
-                asset = asset,
-                standard = standard,
-                item = industryItem,
-                level = ClassificationLevel.INDUSTRY,
-                source = AssetClassification.SOURCE_ALPHA_OVERVIEW
-            )
-        }
 
         log.info("Classified ${asset.code} as ${overview.sector} / ${overview.industry ?: "N/A"}")
         return EnrichmentResult.ENRICHED
@@ -178,7 +151,7 @@ class AlphaClassificationEnricher(
             return EnrichmentResult.NO_DATA
         }
 
-        val standard = classificationService.getAlphaStandard()
+        val standard = taxonomy.providerStandard(ClassificationStandard.ALPHA)
 
         val sectorCount = if (hasSectors) addSectorExposures(asset, standard, profile.sectors) else 0
         val holdingCount = if (hasHoldings) addTopHoldings(asset, profile.holdings) else 0
@@ -203,7 +176,7 @@ class AlphaClassificationEnricher(
         standard: ClassificationStandard,
         sectors: List<AlphaEtfSector>
     ): Int {
-        classificationService.clearExposures(asset.id)
+        fundLookThrough.clearExposures(asset.id)
         var sectorCount = 0
         for (sectorData in sectors) {
             val weight = sectorData.weight.toBigDecimalOrNull()
@@ -211,12 +184,12 @@ class AlphaClassificationEnricher(
                 continue
             }
             val sectorItem =
-                classificationService.getOrCreateItem(
+                taxonomy.getOrCreateItem(
                     standard = standard,
                     level = ClassificationLevel.SECTOR,
                     rawCode = sectorData.sector
                 )
-            classificationService.addExposure(
+            fundLookThrough.addExposure(
                 asset = asset,
                 standard = standard,
                 item = sectorItem,
@@ -240,7 +213,7 @@ class AlphaClassificationEnricher(
         asset: Asset,
         holdings: List<AlphaEtfHolding>
     ): Int {
-        classificationService.clearHoldings(asset.id)
+        fundLookThrough.clearHoldings(asset.id)
         val seenSymbols = mutableSetOf<String>()
         var holdingCount = 0
         for (holdingData in holdings) {
@@ -258,7 +231,7 @@ class AlphaClassificationEnricher(
             }
             // Persist the normalized form: the unique constraint is case-sensitive, so
             // storing raw casing would let the same ticker land twice across runs.
-            classificationService.addHolding(
+            fundLookThrough.addHolding(
                 asset = asset,
                 symbol = normalizedSymbol,
                 name = holdingData.description,

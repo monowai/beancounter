@@ -9,12 +9,14 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.irr.IrrCalculator
+import com.beancounter.position.irr.TwrCalculator
+import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 
 /**
- * Pure composition step behind [PerformanceService.composeAggregate]. Combines per-portfolio TWR
+ * Pure composition step behind [PerformanceService.aggregate]. Combines per-portfolio TWR
  * series into a single composite series in a display currency. No IO.
  *
  * Algorithm (chained sub-period composite, GIPS):
@@ -31,7 +33,8 @@ import java.time.LocalDate
  * `investmentGain`) are baselined against the first union point, so
  * `series[0]` reports zero for them.
  */
-internal class AggregatePerformanceComposer(
+@Component
+class AggregatePerformanceComposer(
     private val irrCalculator: IrrCalculator
 ) {
     fun compose(
@@ -78,7 +81,7 @@ internal class AggregatePerformanceComposer(
                             date = p.date,
                             growthFactor =
                                 p.growthOf1000
-                                    .divide(GROWTH_BASE, GROWTH_FACTOR_SCALE, RoundingMode.HALF_UP),
+                                    .divide(TwrCalculator.GROWTH_BASE, GROWTH_FACTOR_SCALE, RoundingMode.HALF_UP),
                             mv = p.marketValue.multiply(rate),
                             contrib = p.netContributions.multiply(rate),
                             divs = p.cumulativeDividends.multiply(rate)
@@ -168,7 +171,11 @@ internal class AggregatePerformanceComposer(
                 .subtract(periodContrib)
         return AggregatedPerformanceDataPoint(
             date = date,
-            growthOf1000 = cumFactor.multiply(GROWTH_BASE).setScale(GROWTH_OF_1000_SCALE, RoundingMode.HALF_UP),
+            growthOf1000 =
+                cumFactor
+                    .multiply(
+                        TwrCalculator.GROWTH_BASE
+                    ).setScale(GROWTH_OF_1000_SCALE, RoundingMode.HALF_UP),
             cumulativeReturn =
                 cumFactor
                     .subtract(BigDecimal.ONE)
@@ -233,7 +240,6 @@ internal class AggregatePerformanceComposer(
     )
 
     private companion object {
-        val GROWTH_BASE: BigDecimal = PerformanceService.GROWTH_BASE
         const val GROWTH_FACTOR_SCALE = 8
         const val SUB_PERIOD_RETURN_SCALE = 10
         const val GROWTH_OF_1000_SCALE = 4

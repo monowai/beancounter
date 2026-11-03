@@ -127,7 +127,7 @@ class PerformanceServiceTest {
                 )
             )
 
-        val dates = performanceService.determineValuationDates(transactions, startDate, endDate)
+        val dates = SnapshotReplayer(accumulator, TwrBoundary()).valuationDates(transactions, startDate, endDate)
 
         // Should include: startDate, cashFlow dates (Jan 15, Feb 20), monthly (Feb 1), endDate
         assertThat(dates).contains(startDate)
@@ -140,19 +140,19 @@ class PerformanceServiceTest {
 
     @Test
     fun `BUY and SELL are not external cash flows`() {
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.BUY)).isFalse()
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.SELL)).isFalse()
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.DIVI)).isFalse()
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.SPLIT)).isFalse()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.BUY)).isFalse()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.SELL)).isFalse()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.DIVI)).isFalse()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.SPLIT)).isFalse()
     }
 
     @Test
     fun `DEPOSIT, WITHDRAWAL, INCOME, DEDUCTION are external cash flows`() {
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.DEPOSIT)).isTrue()
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.WITHDRAWAL)).isTrue()
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.INCOME)).isTrue()
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.DEDUCTION)).isTrue()
-        assertThat(PerformanceService.isExternalCashFlow(TrnType.EXPENSE)).isTrue()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.DEPOSIT)).isTrue()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.WITHDRAWAL)).isTrue()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.INCOME)).isTrue()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.DEDUCTION)).isTrue()
+        assertThat(TwrBoundary.isExternalCashFlow(TrnType.EXPENSE)).isTrue()
     }
 
     @Test
@@ -178,7 +178,7 @@ class PerformanceServiceTest {
             )
 
         val transactions = listOf(deposit, withdrawal)
-        val dates = performanceService.determineValuationDates(transactions, startDate, endDate)
+        val dates = SnapshotReplayer(accumulator, TwrBoundary()).valuationDates(transactions, startDate, endDate)
 
         // Withdrawal date should still be detected as an external cash flow date
         assertThat(dates).contains(LocalDate.of(2024, 1, 15))

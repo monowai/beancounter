@@ -8,6 +8,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.cache.NoOpPerformanceCacheService
 import com.beancounter.position.cache.PerformanceCacheService
+import com.beancounter.position.cache.PerformanceSnapshotCache
 import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
 
@@ -24,15 +25,14 @@ internal fun performanceService(
     cacheService: PerformanceCacheService = NoOpPerformanceCacheService(),
     twrCalculator: TwrCalculator = TwrCalculator(),
     dateUtils: DateUtils = DateUtils()
-): PerformanceService =
-    PerformanceService(
-        trnService = trnService,
-        accumulator = accumulator,
-        priceService = priceService,
-        fxRateService = fxRateService,
+): PerformanceService {
+    val boundary = TwrBoundary()
+    return PerformanceService(
+        inputs = PerformanceInputs(trnService, priceService, fxRateService, tokenService, boundary),
+        replayer = SnapshotReplayer(accumulator, boundary),
+        snapshotCache = PerformanceSnapshotCache(cacheService),
         twrCalculator = twrCalculator,
-        irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
-        dateUtils = dateUtils,
-        tokenService = tokenService,
-        cacheService = cacheService
+        aggregateComposer = AggregatePerformanceComposer(IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils)),
+        dateUtils = dateUtils
     )
+}

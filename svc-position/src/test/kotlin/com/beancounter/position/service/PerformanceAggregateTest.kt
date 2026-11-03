@@ -35,11 +35,11 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * Unit tests for [PerformanceService.composeAggregate] — the pure composition
+ * Unit tests for [AggregatePerformanceComposer.compose] — the pure composition
  * step that combines per-portfolio TWR series into a single display-currency
  * series with chained sub-period AUM-weighted composite TWR.
  *
- * Tests call `composeAggregate` directly with curated `PerformanceData`
+ * Tests call `compose` directly with curated `PerformanceData`
  * inputs, bypassing transaction / price / FX clients. The wider `aggregate`
  * method is covered separately at the controller level.
  */
@@ -64,6 +64,8 @@ class PerformanceAggregateTest {
     private lateinit var cacheService: PerformanceCacheService
 
     private lateinit var service: PerformanceService
+
+    private val composer = AggregatePerformanceComposer(IrrCalculator(minHoldingDays = 365, dateUtils = DateUtils()))
 
     private val usd = Currency("USD")
     private val nzd = Currency("NZD")
@@ -123,7 +125,7 @@ class PerformanceAggregateTest {
     @Test
     fun `empty portfolio list returns empty series`() {
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = emptyList(),
                 displayCurrency = usd,
                 fxRates = emptyMap()
@@ -142,7 +144,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(usd, series)),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE)
@@ -177,7 +179,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio =
                     listOf(
                         p1 to PerformanceData(usd, p1Series),
@@ -218,7 +220,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio =
                     listOf(
                         p1 to PerformanceData(usd, p1Series),
@@ -254,7 +256,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(usd, series)),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE)
@@ -287,7 +289,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio =
                     listOf(
                         p1 to PerformanceData(usd, p1Series),
@@ -311,7 +313,7 @@ class PerformanceAggregateTest {
     fun `empty per-portfolio series produces empty result`() {
         val p = portfolio("P1", usd)
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(usd, emptyList())),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE)
@@ -333,7 +335,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(nzd, series)),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE) // NZD missing
@@ -350,7 +352,7 @@ class PerformanceAggregateTest {
         // Boundary: cache may have only the synthesized anchor (no later data).
         val p = portfolio("P1", usd)
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio =
                     listOf(
                         p to
@@ -393,7 +395,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio =
                     listOf(
                         p1 to PerformanceData(usd, p1Series),
@@ -523,7 +525,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio =
                     listOf(
                         pUsd to PerformanceData(usd, usdSeries),
@@ -557,7 +559,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(usd, series)),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE)
@@ -582,7 +584,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(usd, series)),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE)
@@ -613,7 +615,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio =
                     listOf(
                         p1 to PerformanceData(usd, seriesP1),
@@ -642,7 +644,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(usd, series)),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE)
@@ -656,7 +658,7 @@ class PerformanceAggregateTest {
     @Test
     fun `xirr is null when no portfolios produce flows`() {
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = emptyList(),
                 displayCurrency = usd,
                 fxRates = emptyMap()
@@ -681,7 +683,7 @@ class PerformanceAggregateTest {
             )
 
         val result =
-            service.composeAggregate(
+            composer.compose(
                 perPortfolio = listOf(p to PerformanceData(usd, series)),
                 displayCurrency = usd,
                 fxRates = mapOf("USD" to BigDecimal.ONE)

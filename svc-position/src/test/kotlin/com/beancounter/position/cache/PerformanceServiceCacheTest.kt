@@ -261,7 +261,7 @@ class PerformanceServiceCacheTest {
                 )
             )
 
-        val result = performanceService.anchorToStartDate(cached, startDate)
+        val result = PerformanceSnapshotCache(cacheService).anchorToStartDate(cached, startDate)
 
         // Exact anchor exists: no synthesis. Result starts at startDate, drops
         // the older snapshot, retains the rest as-is.
@@ -311,7 +311,7 @@ class PerformanceServiceCacheTest {
                 )
             )
 
-        val result = performanceService.anchorToStartDate(cached, startDate)
+        val result = PerformanceSnapshotCache(cacheService).anchorToStartDate(cached, startDate)
 
         assertThat(result).hasSize(2)
         assertThat(result.first().valuationDate).isEqualTo(startDate)
@@ -340,7 +340,7 @@ class PerformanceServiceCacheTest {
                 )
             )
 
-        val result = performanceService.anchorToStartDate(cached, startDate)
+        val result = PerformanceSnapshotCache(cacheService).anchorToStartDate(cached, startDate)
 
         // No prior snapshot to carry forward; returns the onOrAfter subset
         // without synthesising an anchor.

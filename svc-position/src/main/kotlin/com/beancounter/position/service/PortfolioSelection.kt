@@ -32,7 +32,7 @@ data class PortfolioSelection(
     val codes: String? = null
 ) {
     /** Whether the caller named portfolios by id. */
-    val namesIds: Boolean get() = !ids.isNullOrBlank()
+    fun namesIds(): Boolean = !ids.isNullOrBlank()
 
     fun resolve(portfolioServiceClient: PortfolioServiceClient): Collection<Portfolio> {
         if (!ids.isNullOrBlank()) {

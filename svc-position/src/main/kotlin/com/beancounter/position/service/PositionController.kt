@@ -432,7 +432,7 @@ class PositionController(
         }
         val portfolios = selection.resolve(portfolioServiceClient)
         // A headline figure must not quietly read as zero when every requested id was skipped.
-        if (selection.namesIds && portfolios.isEmpty()) {
+        if (selection.namesIds() && portfolios.isEmpty()) {
             throw NotFoundException("None of the requested portfolios are visible")
         }
         return NetWorthResponse(

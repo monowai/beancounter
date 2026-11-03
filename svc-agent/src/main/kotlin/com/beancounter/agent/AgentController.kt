@@ -71,7 +71,7 @@ class AgentController(
     @Autowired(required = false) private val chatClient: ChatClient?,
     @Autowired(required = false)
     @Qualifier("fastChatClient")
-    private val fastChatClient: ChatClient? = null,
+    private val fastChatClient: ChatClient?,
     @Autowired(required = false) private val anthropicCacheOptions: AnthropicCacheOptions?,
     private val healthChecker: ServiceHealthChecker,
     private val toolSelector: ToolSelector,
@@ -88,14 +88,10 @@ class AgentController(
     // UTC clock for stamping the current date onto each user message. Defaulted so Spring wires it
     // without a Clock bean; overridden in tests for a fixed date.
     private val clock: Clock = Clock.systemUTC(),
-    // Defaulted like the clock, so the tests that build the controller by hand need not pass it.
-    private val pageQuerySelector: PageQuerySelector = PageQuerySelector(),
-    // Defaulted like the clock: the hand-built controllers in tests cache nothing.
-    private val reviewCache: AssetReviewCache = AssetReviewCache.NONE,
-    // Defaulted like the clock: the hand-built controllers in tests hold nothing.
-    private val holdings: HoldingFactsSource = HoldingFactsSource.NONE,
-    // Defaulted like the clock: the hand-built controllers in tests meter nothing.
-    private val quota: TurnQuota = TurnQuota.NONE
+    private val pageQuerySelector: PageQuerySelector,
+    private val reviewCache: AssetReviewCache,
+    private val holdings: HoldingFactsSource,
+    private val quota: TurnQuota
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 

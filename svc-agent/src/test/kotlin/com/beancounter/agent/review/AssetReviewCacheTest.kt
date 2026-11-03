@@ -6,6 +6,7 @@ import com.beancounter.agent.ChatModelSelector
 import com.beancounter.agent.ChatTurn
 import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
+import com.beancounter.agent.agentController
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationService
@@ -116,23 +117,15 @@ class AssetReviewCacheTest {
         reviewCache: AssetReviewCache = cache,
         environment: MockEnvironment = MockEnvironment()
     ): AgentController =
-        AgentController(
-            client,
-            null,
-            null,
-            mock<ServiceHealthChecker>(),
-            mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
-            mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
-            modelSelector,
-            environment,
-            ObjectMapper(),
-            LlmMetrics(),
-            mock<AgentScopeAuthorizer> { on { verified() } doAnswer { true } },
-            conversations,
-            owner,
-            mock<ConversationTitler>(),
-            InFlightTurns(),
-            clock,
+        agentController(
+            chatClient = client,
+            toolSelector = mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
+            systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
+            chatModelSelector = modelSelector,
+            environment = environment,
+            conversations = conversations,
+            conversationOwner = owner,
+            clock = clock,
             reviewCache = reviewCache
         )
 

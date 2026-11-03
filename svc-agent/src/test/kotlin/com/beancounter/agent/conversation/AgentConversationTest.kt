@@ -7,6 +7,7 @@ import com.beancounter.agent.ChatTurn
 import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
 import com.beancounter.agent.ToolTurnBoundaryAdvisor
+import com.beancounter.agent.agentController
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
@@ -99,22 +100,15 @@ class AgentConversationTest {
     }
 
     private fun controller(conversations: ConversationService = service): AgentController =
-        AgentController(
-            client,
-            null,
-            null,
-            mock<ServiceHealthChecker>(),
-            mock<ToolSelector> { on { selectTools(anyOrNull()) } doReturn arrayOf() },
-            mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doReturn "prompt" },
-            mock<ChatModelSelector> { on { selectFor(anyOrNull(), any()) } doReturn "model" },
-            MockEnvironment(),
-            ObjectMapper(),
-            LlmMetrics(),
-            mock<AgentScopeAuthorizer> { on { verified() } doReturn true },
-            conversations,
-            owner,
-            ConversationTitler(null, client, conversations, titleScope),
-            inFlight
+        agentController(
+            chatClient = client,
+            toolSelector = mock<ToolSelector> { on { selectTools(anyOrNull()) } doReturn arrayOf() },
+            systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doReturn "prompt" },
+            chatModelSelector = mock<ChatModelSelector> { on { selectFor(anyOrNull(), any()) } doReturn "model" },
+            conversations = conversations,
+            conversationOwner = owner,
+            conversationTitler = ConversationTitler(null, client, conversations, titleScope),
+            inFlightTurns = inFlight
         )
 
     private fun chunk(

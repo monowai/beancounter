@@ -152,27 +152,15 @@ class AgentControllerTest {
         scopeAuthorizer: AgentScopeAuthorizer = permissiveAuthorizer,
         clock: java.time.Clock = java.time.Clock.systemUTC()
     ): AgentController =
-        AgentController(
-            chatClient,
-            null, // fastChatClient (non-thinking) — routing not exercised by these unit tests
-            // anthropicCacheOptions is optional; null is fine — the controller
-            // gracefully omits .cacheOptions when the bean isn't present.
-            null,
-            healthChecker,
-            toolSelector,
-            systemPromptSelector,
-            chatModelSelector,
-            environment,
-            ObjectMapper(),
-            LlmMetrics(),
-            scopeAuthorizer,
-            // Stateless requests only here; conversation recording is covered
-            // against a real store in AgentConversationTest.
-            mock(),
-            mock(),
-            mock(),
-            InFlightTurns(),
-            clock
+        agentController(
+            chatClient = chatClient,
+            healthChecker = healthChecker,
+            toolSelector = toolSelector,
+            systemPromptSelector = systemPromptSelector,
+            chatModelSelector = chatModelSelector,
+            environment = environment,
+            scopeAuthorizer = scopeAuthorizer,
+            clock = clock
         )
 
     private fun stubChecker(): ServiceHealthChecker =
@@ -280,22 +268,15 @@ class AgentControllerTest {
                 on { selectFor(anyOrNull(), any()) } doReturn "test-model-id"
                 on { reasonsFor(anyOrNull()) } doReturn reasons
             }
-        return AgentController(
-            thinking,
-            fast,
-            null,
-            stubChecker(),
-            toolSelector,
-            systemPromptSelector,
-            selector,
-            MockEnvironment().withProperty("agent.provider", "deepseek"),
-            ObjectMapper(),
-            LlmMetrics(),
-            permissiveAuthorizer,
-            mock(),
-            mock(),
-            mock(),
-            InFlightTurns()
+        return agentController(
+            chatClient = thinking,
+            fastChatClient = fast,
+            healthChecker = stubChecker(),
+            toolSelector = toolSelector,
+            systemPromptSelector = systemPromptSelector,
+            chatModelSelector = selector,
+            environment = MockEnvironment().withProperty("agent.provider", "deepseek"),
+            scopeAuthorizer = permissiveAuthorizer
         )
     }
 
@@ -413,22 +394,16 @@ class AgentControllerTest {
             }
         val owner = mock<com.beancounter.agent.conversation.ConversationOwner> { on { id() } doReturn "me" }
         val ctrl =
-            AgentController(
-                client,
-                null,
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                environment,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                conversations,
-                owner,
-                mock(),
-                InFlightTurns()
+            agentController(
+                chatClient = client,
+                healthChecker = stubChecker(),
+                toolSelector = toolSelector,
+                systemPromptSelector = systemPromptSelector,
+                chatModelSelector = chatModelSelector,
+                environment = environment,
+                scopeAuthorizer = permissiveAuthorizer,
+                conversations = conversations,
+                conversationOwner = owner
             )
 
         val response = ctrl.query(AgentQuery("How am I doing?", conversationId = "c1"))
@@ -1061,22 +1036,14 @@ class AgentControllerTest {
     fun `buildOptions on deepseek provider returns DeepSeekChatOptions with model + maxTokens`() {
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
+            agentController(
+                chatClient = null,
+                healthChecker = stubChecker(),
+                toolSelector = toolSelector,
+                systemPromptSelector = systemPromptSelector,
+                chatModelSelector = chatModelSelector,
+                environment = env,
+                scopeAuthorizer = permissiveAuthorizer
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
         val opts = ctrl.buildOptions("deepseek-flash", deepThink = false)?.build()
@@ -1090,22 +1057,14 @@ class AgentControllerTest {
     fun `buildOptions on deepseek provider with deepThink raises maxTokens to 16k`() {
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
+            agentController(
+                chatClient = null,
+                healthChecker = stubChecker(),
+                toolSelector = toolSelector,
+                systemPromptSelector = systemPromptSelector,
+                chatModelSelector = chatModelSelector,
+                environment = env,
+                scopeAuthorizer = permissiveAuthorizer
             )
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
@@ -1124,22 +1083,14 @@ class AgentControllerTest {
         // `length` with zero answer text — prompt was only 27k of a 1M window.
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
+            agentController(
+                chatClient = null,
+                healthChecker = stubChecker(),
+                toolSelector = toolSelector,
+                systemPromptSelector = systemPromptSelector,
+                chatModelSelector = chatModelSelector,
+                environment = env,
+                scopeAuthorizer = permissiveAuthorizer
             )
         val opts =
             (
@@ -1158,22 +1109,14 @@ class AgentControllerTest {
         // The Chat FAB defaults to low effort; an explicit deep-think turn must not.
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
         val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
+            agentController(
+                chatClient = null,
+                healthChecker = stubChecker(),
+                toolSelector = toolSelector,
+                systemPromptSelector = systemPromptSelector,
+                chatModelSelector = chatModelSelector,
+                environment = env,
+                scopeAuthorizer = permissiveAuthorizer
             )
         val opts =
             (
@@ -1218,22 +1161,14 @@ class AgentControllerTest {
     fun `buildOptions on ollama provider returns null for default model fallback`() {
         val env = MockEnvironment().withProperty("agent.provider", "ollama")
         val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
+            agentController(
+                chatClient = null,
+                healthChecker = stubChecker(),
+                toolSelector = toolSelector,
+                systemPromptSelector = systemPromptSelector,
+                chatModelSelector = chatModelSelector,
+                environment = env,
+                scopeAuthorizer = permissiveAuthorizer
             )
         assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
     }

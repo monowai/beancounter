@@ -8,7 +8,6 @@ import java.time.Month
  * LSE (England & Wales) bank holidays, including weekend-substitute days.
  */
 internal object LseHolidays {
-    private const val CHRISTMAS_DAY = 25
     private const val BOXING_DAY = 26
 
     fun isHoliday(date: LocalDate): Boolean = holidays(date.year).contains(date)

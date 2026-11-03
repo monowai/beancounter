@@ -12,7 +12,6 @@ internal object NyseHolidays {
     private const val INDEPENDENCE_DAY = 4
     private const val JUNETEENTH_DAY = 19
     private const val JUNETEENTH_FIRST_YEAR = 2021
-    private const val CHRISTMAS_DAY = 25
     private const val FIRST_OCCURRENCE = 1
     private const val THIRD_OCCURRENCE = 3
     private const val FOURTH_OCCURRENCE = 4

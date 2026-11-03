@@ -2,6 +2,9 @@ package com.beancounter.common.utils
 
 import java.time.LocalDate
 
+/** Day of December both NYSE and LSE close for Christmas. */
+internal const val CHRISTMAS_DAY = 25
+
 /**
  * Calculate Easter Sunday using the Anonymous Gregorian algorithm.
  * The suppression covers its published coefficients, which have no individual meaning to name.

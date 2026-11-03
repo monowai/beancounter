@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PricePoint
+import com.beancounter.common.model.MarketData
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -111,6 +112,26 @@ object SplitAdjuster {
             .filterKeys { it.isAfter(after) }
             .values
             .fold(BigDecimal.ONE) { factor, eventFactor -> factor.multiply(eventFactor) }
+
+    /**
+     * Rebases an ex-date row onto the post-split basis when its close looks unadjusted: more
+     * than twice the post-split level implied by the raw [previousClose].
+     */
+    fun rebaseUnadjustedOhlc(
+        marketData: MarketData,
+        previousClose: BigDecimal,
+        split: BigDecimal
+    ) {
+        val closeLooksUnadjusted =
+            previousClose.signum() > 0 &&
+                marketData.close > previousClose.divide(split, SCALE, ROUNDING).multiply(BigDecimal.TWO)
+        if (closeLooksUnadjusted) {
+            marketData.close = divideIfPositive(marketData.close, split)
+            marketData.open = divideIfPositive(marketData.open, split)
+            marketData.high = divideIfPositive(marketData.high, split)
+            marketData.low = divideIfPositive(marketData.low, split)
+        }
+    }
 
     /**
      * Unified ex-date -> factor map: explicit [events] plus `split` column transitions.

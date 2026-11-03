@@ -357,31 +357,7 @@ class PriceService(
             }
 
         if (isSplitExDate) {
-            // Close looks unadjusted when it's more than 2× the expected post-split level
-            // derived from yesterday's raw close. Rebase OHLC onto the post-split basis.
-            val closeLooksUnadjusted =
-                previousDayData.close.compareTo(BigDecimal.ZERO) > 0 &&
-                    marketData.close.compareTo(
-                        previousDayData.close
-                            .divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
-                            .multiply(BigDecimal("2"))
-                    ) > 0
-            if (closeLooksUnadjusted) {
-                marketData.close =
-                    marketData.close.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
-                if (marketData.open.compareTo(BigDecimal.ZERO) > 0) {
-                    marketData.open =
-                        marketData.open.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
-                }
-                if (marketData.high.compareTo(BigDecimal.ZERO) > 0) {
-                    marketData.high =
-                        marketData.high.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
-                }
-                if (marketData.low.compareTo(BigDecimal.ZERO) > 0) {
-                    marketData.low =
-                        marketData.low.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
-                }
-            }
+            SplitAdjuster.rebaseUnadjustedOhlc(marketData, previousDayData.close, split)
         }
 
         val splitAdjustedPreviousClose =

@@ -57,26 +57,7 @@ class TrnInputMapper(
         val broker = getBroker(trnInput, existing)
         val asset = getAsset(trnInput, existing)
 
-        // A broker was supplied but no explicit settlement account/currency —
-        // default the settlement currency to the trade currency so
-        // CashTrnServices.getCashAsset can resolve the broker's per-currency
-        // settlement account. Without this, brokerId-only SELL/BUY/etc saves
-        // resolve cashAsset = null and CashAutoSettleService silently skips
-        // the compensating transfer (#1040). FX_BUY is excluded — its cash
-        // leg currency is the SOLD currency, not the trade (bought) currency,
-        // so defaulting here would corrupt it.
-        val effectiveCashCurrency =
-            if (trnInput.cashCurrency.isNullOrEmpty() &&
-                trnInput.cashAssetId.isNullOrEmpty() &&
-                broker != null &&
-                TrnType.isCashImpacted(trnInput.trnType) &&
-                !TrnType.isCash(trnInput.trnType) &&
-                trnInput.trnType != TrnType.FX_BUY
-            ) {
-                resolveTradeCurrency(asset, trnInput.tradeCurrency).code
-            } else {
-                trnInput.cashCurrency
-            }
+        val effectiveCashCurrency = effectiveCashCurrency(trnInput, asset, broker)
 
         // Preserve existing cashAsset if no new one is provided (similar to broker handling)
         val cashAsset =
@@ -88,41 +69,11 @@ class TrnInputMapper(
                     portfolio.owner.id,
                     broker?.id
                 ) ?: existing?.cashAsset
-        var cashCurrency: Currency? = null
-        if (cashAsset != null) {
-            cashCurrency =
-                when {
-                    // Use explicitly provided cashCurrency
-                    !trnInput.cashCurrency.isNullOrEmpty() -> currencyService.getCode(trnInput.cashCurrency!!)
-                    // Preserve existing cashCurrency when patching
-                    existing?.cashCurrency != null -> existing.cashCurrency
-                    // Use the cash asset's class currency
-                    else -> cashAsset.accountingType?.currency ?: cashAsset.market.currency
-                }
-        }
+        val cashCurrency = cashAsset?.let { resolveCashCurrency(trnInput, it, existing) }
         val tradeAmount = tradeCalculator.amount(trnInput)
         val tradeCashRate = tradeCalculator.cashFxRate(tradeAmount, trnInput)
 
-        // COST_ADJUST has no quantity impact - keep it as zero
-        val rawQuantity =
-            if (trnInput.trnType == TrnType.COST_ADJUST) {
-                BigDecimal.ZERO
-            } else if (trnInput.quantity == BigDecimal.ZERO) {
-                tradeAmount
-            } else {
-                trnInput.quantity
-            }
-        // Enforce correct sign for cash transactions based on type
-        val quantity =
-            if (TrnType.isCash(trnInput.trnType)) {
-                if (TrnType.isCashCredited(trnInput.trnType)) {
-                    rawQuantity.abs()
-                } else {
-                    rawQuantity.abs().negate()
-                }
-            } else {
-                rawQuantity
-            }
+        val quantity = signedQuantity(trnInput, tradeAmount)
         val cashAmount =
             cashTrnServices.getCashImpact(
                 trnInput,
@@ -156,6 +107,67 @@ class TrnInputMapper(
             modelId = trnInput.modelId ?: existing?.modelId,
             subAccounts = trnInput.subAccounts ?: existing?.subAccounts
         )
+    }
+
+    /**
+     * A broker was supplied but no explicit settlement account/currency —
+     * default the settlement currency to the trade currency so
+     * CashTrnServices.getCashAsset can resolve the broker's per-currency
+     * settlement account. Without this, brokerId-only SELL/BUY/etc saves
+     * resolve cashAsset = null and CashAutoSettleService silently skips
+     * the compensating transfer (#1040). FX_BUY is excluded — its cash
+     * leg currency is the SOLD currency, not the trade (bought) currency,
+     * so defaulting here would corrupt it.
+     */
+    private fun effectiveCashCurrency(
+        trnInput: TrnInput,
+        asset: Asset,
+        broker: Broker?
+    ): String? {
+        val noSettlementNamed = trnInput.cashCurrency.isNullOrEmpty() && trnInput.cashAssetId.isNullOrEmpty()
+        val type = trnInput.trnType
+        val settlesTrade = TrnType.isCashImpacted(type) && !TrnType.isCash(type) && type != TrnType.FX_BUY
+        return if (noSettlementNamed && broker != null && settlesTrade) {
+            resolveTradeCurrency(asset, trnInput.tradeCurrency).code
+        } else {
+            trnInput.cashCurrency
+        }
+    }
+
+    private fun resolveCashCurrency(
+        trnInput: TrnInput,
+        cashAsset: Asset,
+        existing: Trn?
+    ): Currency? =
+        when {
+            // Use explicitly provided cashCurrency
+            !trnInput.cashCurrency.isNullOrEmpty() -> currencyService.getCode(trnInput.cashCurrency!!)
+            // Preserve existing cashCurrency when patching
+            existing?.cashCurrency != null -> existing.cashCurrency
+            // Use the cash asset's class currency
+            else -> cashAsset.accountingType?.currency ?: cashAsset.market.currency
+        }
+
+    /**
+     * COST_ADJUST has no quantity impact, a zero quantity defaults to [tradeAmount], and a cash
+     * transaction's sign follows its type.
+     */
+    private fun signedQuantity(
+        trnInput: TrnInput,
+        tradeAmount: BigDecimal
+    ): BigDecimal {
+        val type = trnInput.trnType
+        val rawQuantity =
+            when {
+                type == TrnType.COST_ADJUST -> BigDecimal.ZERO
+                trnInput.quantity == BigDecimal.ZERO -> tradeAmount
+                else -> trnInput.quantity
+            }
+        return when {
+            !TrnType.isCash(type) -> rawQuantity
+            TrnType.isCashCredited(type) -> rawQuantity.abs()
+            else -> rawQuantity.abs().negate()
+        }
     }
 
     /**

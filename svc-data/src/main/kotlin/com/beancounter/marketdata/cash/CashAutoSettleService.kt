@@ -66,13 +66,7 @@ class CashAutoSettleService(
     private val log = LoggerFactory.getLogger(CashAutoSettleService::class.java)
 
     fun emitCompensatingTransfer(trade: Trn): AutoSettleResult {
-        if (trade.trnType !in triggerTypes) return AutoSettleResult()
-
-        val masterId =
-            trade.portfolio.cashPortfolioId
-                ?: trade.portfolio.owner.cashPortfolioId
-                ?: return AutoSettleResult()
-        if (masterId == trade.portfolio.id) return AutoSettleResult()
+        val masterId = fundingPortfolioId(trade) ?: return AutoSettleResult()
 
         // A funding portfolio IS configured, so from here on a skip is
         // surfaced as a warning rather than silently swallowed — the user
@@ -189,6 +183,16 @@ class CashAutoSettleService(
             AUTO_PROVIDER,
             parentCallerId
         )
+    }
+
+    /**
+     * The funding portfolio that settles [trade]'s cash, or null when the trade type does not
+     * auto-settle, no funding portfolio is configured, or the trade sits in the funding portfolio.
+     */
+    private fun fundingPortfolioId(trade: Trn): String? {
+        val portfolio = trade.portfolio
+        val masterId = portfolio.cashPortfolioId ?: portfolio.owner.cashPortfolioId
+        return masterId.takeIf { trade.trnType in triggerTypes && it != portfolio.id }
     }
 
     private fun autoCallerRef(batch: String) =

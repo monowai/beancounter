@@ -15,7 +15,7 @@ data class AssetReviewKey(
     val model: String
 )
 
-/** Serves and stores canned Asset Reviews. */
+/** Serves and stores canned Asset Reviews. Never throws: a failed read is a miss, a failed store is logged. */
 interface AssetReviewCache {
     /** False when reviews are never cached, so a caller need not build a key. */
     val enabled: Boolean

@@ -79,6 +79,9 @@ class AssetReviewCacheTest {
     @Autowired
     private lateinit var clock: SteppingClock
 
+    @Autowired
+    private lateinit var transactionManager: org.springframework.transaction.PlatformTransactionManager
+
     private var me = "owner-me"
     private val owner = mock<ConversationOwner> { on { id() } doAnswer { me } }
     private val request = mock<ChatClient.ChatClientRequestSpec>(defaultAnswer = org.mockito.Answers.RETURNS_SELF)
@@ -467,18 +470,14 @@ class AssetReviewCacheTest {
     }
 
     @Test
-    fun `a failure to store the review should not cost the caller the answer`() {
-        val failing =
-            object : AssetReviewCache {
-                override val enabled = true
-
-                override fun find(key: AssetReviewKey): String? = null
-
-                override fun store(
-                    key: AssetReviewKey,
-                    content: String
-                ): Unit = throw org.springframework.dao.DataIntegrityViolationException("uk_asset_review_cache")
+    fun `a failure to read or store the review should not cost the caller the answer`() {
+        val broken =
+            mock<AssetReviewRepository> {
+                on { findByMarketAndTickerAndReviewDateAndModel(any(), any(), any(), any()) } doAnswer {
+                    throw org.springframework.dao.DataAccessResourceFailureException("agent database unavailable")
+                }
             }
+        val failing = AssetReviewCacheService(broken, transactionManager, clock, true, Duration.ofHours(8))
 
         val events =
             controller(failing)

@@ -46,6 +46,8 @@ fun agentController(
 ): AgentController {
     val routing = ModelRouting(chatClient, fastChatClient, null, chatModelSelector, environment)
     val metrics = LlmMetrics()
+    val planner = TurnPlanner(pageQuerySelector, conversations, conversationOwner, reviewCache, routing, clock)
+    val metering = TurnMetering(scopeAuthorizer, conversationOwner, quota)
     return AgentController(
         routing = routing,
         healthChecker = healthChecker,
@@ -53,14 +55,15 @@ fun agentController(
         objectMapper = ObjectMapper(),
         llmMetrics = metrics,
         scopeAuthorizer = scopeAuthorizer,
+        admission = TurnAdmission(planner, metering, routing),
+        planner = planner,
+        metering = metering,
         conversations = conversations,
-        conversationOwner = conversationOwner,
         conversationTitler = conversationTitler,
         inFlightTurns = inFlightTurns,
         clock = clock,
         pageQuerySelector = pageQuerySelector,
         reviewCache = reviewCache,
-        holdings = holdings,
-        quota = quota
+        holdings = holdings
     )
 }

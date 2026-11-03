@@ -1,8 +1,6 @@
 package com.beancounter.agent
 
 import com.beancounter.agent.config.AgentScopeAuthorizer
-import com.beancounter.agent.conversation.ConversationKind
-import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationRecorder
 import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationTitler
@@ -11,13 +9,9 @@ import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.holding.HoldingFactsSource
-import com.beancounter.agent.quota.QuotaRecorder
-import com.beancounter.agent.quota.TurnQuota
 import com.beancounter.agent.review.AssetReviewCache
 import com.beancounter.agent.review.AssetReviewKey
 import com.beancounter.agent.review.ReviewCachingRecorder
-import com.beancounter.agent.tools.ToolSelector
-import com.beancounter.common.exception.BusinessException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
@@ -63,16 +57,17 @@ class AgentController(
     private val objectMapper: ObjectMapper,
     private val llmMetrics: LlmMetrics,
     private val scopeAuthorizer: AgentScopeAuthorizer,
+    private val admission: TurnAdmission,
+    private val planner: TurnPlanner,
+    private val metering: TurnMetering,
     private val conversations: ConversationService,
-    private val conversationOwner: ConversationOwner,
     private val conversationTitler: ConversationTitler,
     private val inFlightTurns: InFlightTurns,
     // Dates a review's cache key. Defaulted so Spring wires it without a Clock bean; fixed in tests.
     private val clock: Clock = Clock.systemUTC(),
     private val pageQuerySelector: PageQuerySelector,
     private val reviewCache: AssetReviewCache,
-    private val holdings: HoldingFactsSource,
-    private val quota: TurnQuota
+    private val holdings: HoldingFactsSource
 ) {
     private val log = LoggerFactory.getLogger(AgentController::class.java)
 
@@ -83,8 +78,6 @@ class AgentController(
         const val STREAM_RETRY_ATTEMPTS = 2L
         val STREAM_RETRY_MIN_BACKOFF: Duration = Duration.ofMillis(250)
 
-        const val QUERY_REQUIRED = "A query is required for this page"
-
         // Escapes markup only: a label's dash is not an entity.
         const val UTF_8 = "UTF-8"
 
@@ -92,20 +85,6 @@ class AgentController(
         // identify the request in kauri's logs without shipping the whole
         // question (which can carry page context the user typed).
         const val QUERY_LOG_CHARS = 120
-    }
-
-    /**
-     * The question this turn asks: the caller's own when it sent one, else the
-     * page's canned question ([PageQuerySelector]), stored under the page's name
-     * when the caller gave no label. A page with no canned question needs the
-     * caller to ask something — a 400 otherwise.
-     */
-    internal fun withQuestion(request: AgentQuery): AgentQuery {
-        if (request.query.isNotBlank()) return request
-        val canned =
-            pageQuerySelector.queryFor(request.context)
-                ?: throw BusinessException(QUERY_REQUIRED)
-        return request.copy(query = canned.question, label = request.label ?: canned.label)
     }
 
     /**
@@ -163,63 +142,6 @@ class AgentController(
         ) : Opening
     }
 
-    /** The caller's conversation a request names: its owner, and what it already is. */
-    private data class ConversationThread(
-        val ownerId: String,
-        val id: String,
-        val kind: ConversationKind,
-        val hasTurns: Boolean
-    )
-
-    /**
-     * How one request is answered: [request] is the turn to ask, or, when
-     * [opening] is set, the start of a Holding Analysis whose question is
-     * built from that subject by [holdingOpening].
-     */
-    private data class Plan(
-        val request: AgentQuery,
-        val opening: HoldingAnalysisSubject?,
-        val thread: ConversationThread?
-    )
-
-    /** The conversation [body] names, resolved for the caller, or null for a stateless request. */
-    private fun threadOf(body: AgentQuery): ConversationThread? {
-        val id = body.conversationId ?: return null
-        val ownerId = conversationOwner.id()
-        val state = conversations.stateOf(ownerId, id)
-        return ConversationThread(ownerId, id, state.kind, state.hasTurns)
-    }
-
-    /**
-     * Plan [body]. A Holding Analysis is routed by its conversation as much
-     * as by its page: a turn in a Holding Analysis conversation that has begun
-     * is a follow-up, answered with the Holding Analysis prompt and tools
-     * whatever page it names, and asks the caller's own question; only a blank
-     * question that starts a conversation (or a stateless request) opens one.
-     * Its context is the subject's canonical one, so nothing else a caller
-     * sent (figures included) reaches the prompt. Refused with a 400: a
-     * malformed subject ([PageQuerySelector.INVALID_HOLDING_ANALYSIS]), one
-     * asked inside an Asset Review conversation — about the asset alone —
-     * ([PageQuerySelector.HOLDING_IN_ASSET_REVIEW]), and a blank question that
-     * would open nothing. Any other page is planned as [withQuestion] and
-     * [canonical] make it.
-     */
-    private fun planFor(body: AgentQuery): Plan {
-        val thread = threadOf(body)
-        val subject = pageQuerySelector.holdingAnalysisSubject(body.context)
-        if (subject != null && thread?.kind == ConversationKind.ASSET_REVIEW) {
-            throw BusinessException(PageQuerySelector.HOLDING_IN_ASSET_REVIEW)
-        }
-        val followUp = thread?.kind == ConversationKind.HOLDING_ANALYSIS && thread.hasTurns
-        if (subject == null && !followUp) return Plan(withQuestion(canonical(body)), null, thread)
-        val context =
-            subject?.let(pageQuerySelector::holdingAnalysisContext)
-                ?: mapOf("page" to PageQueries.HOLDING_ANALYSIS)
-        val opens = body.query.isBlank() && body.history.isNullOrEmpty() && thread?.hasTurns != true
-        if (body.query.isBlank() && !opens) throw BusinessException(QUERY_REQUIRED)
-        return Plan(body.copy(context = context), if (opens) subject else null, thread)
-    }
-
     /**
      * The opening turn of a Holding Analysis. The caller's holding is read
      * first, server side with their own credentials, so a holding they do not
@@ -268,7 +190,7 @@ class AgentController(
         request: AgentQuery
     ): String {
         val turn =
-            withQuestion(
+            planner.withQuestion(
                 AgentQuery(
                     context = pageQuerySelector.assetReviewContext(asset),
                     think = request.think,
@@ -276,18 +198,11 @@ class AgentController(
                 )
             )
         val key = AssetReviewKey(asset.market, asset.ticker, reviewDate, routing.answeringModel(turn))
-        val hit = cachedReview(key, request.refresh)
+        val hit = planner.cachedReview(key, request.refresh)
         if (hit != null) return hit
         val answer = prompts.ask(turn)
         if (answer.content.isBlank()) throw UnansweredTurn(TurnFailure.emptyAnswerCode(answer.finishReason))
-        try {
-            reviewCache.store(key, answer.content)
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.warn("Failed to cache asset review {}:{}: {}", key.market, key.ticker, e.message)
-        }
+        reviewCache.store(key, answer.content)
         return answer.content
     }
 
@@ -306,82 +221,6 @@ class AgentController(
                     error = code
                 )
             )
-
-    /**
-     * A canned Asset Review that may be shared, rebuilt from its cache key
-     * alone: the page, ticker and market, with the server's label. A shared
-     * answer reaches every user, so caller-supplied context (`assetName`, any
-     * other key) and label must never shape its prompt. Anything else is
-     * returned as sent.
-     */
-    private fun canonical(body: AgentQuery): AgentQuery {
-        if (!reviewCache.enabled || body.query.isNotBlank() || !body.history.isNullOrEmpty()) return body
-        val subject = pageQuerySelector.assetReviewSubject(body.context) ?: return body
-        return body.copy(context = pageQuerySelector.assetReviewContext(subject), label = null)
-    }
-
-    /**
-     * Where this turn's canned Asset Review is cached, or null when it is not
-     * one: the caller asked nothing of its own and neither the request nor the
-     * conversation carries earlier turns. Read before the turn is recorded, so
-     * a cache hit is known before the quota is asked. A free-form question or a follow-up
-     * is always answered live. The review reads no user data (see
-     * [ToolSelector]), so it is keyed by the asset alone, the date stamped
-     * into the prompt, and the model that answers — never by the caller.
-     */
-    private fun reviewKeyFor(
-        body: AgentQuery,
-        turn: AgentQuery,
-        thread: ConversationThread?
-    ): AssetReviewKey? {
-        if (!reviewCache.enabled) return null
-        if (body.query.isNotBlank() || !body.history.isNullOrEmpty() || thread?.hasTurns == true) return null
-        val subject = pageQuerySelector.assetReviewSubject(turn.context) ?: return null
-        return AssetReviewKey(
-            market = subject.market,
-            ticker = subject.ticker,
-            reviewDate = LocalDate.now(clock),
-            model = routing.answeringModel(turn)
-        )
-    }
-
-    /**
-     * The cached answer for [key], or null on a miss or when the caller asked
-     * to [AgentQuery.refresh] it. A failed read is a miss.
-     */
-    private fun cachedReview(
-        key: AssetReviewKey,
-        refresh: Boolean
-    ): String? {
-        val hit =
-            if (refresh) {
-                null
-            } else {
-                try {
-                    reviewCache.find(key)
-                } catch (
-                    @Suppress("TooGenericExceptionCaught")
-                    e: Exception
-                ) {
-                    log.warn("Asset review cache read failed: {}", e.message)
-                    null
-                }
-            }
-        log.debug(
-            "Asset review cache {} for {}:{} on {}",
-            if (refresh) {
-                "refresh"
-            } else if (hit == null) {
-                "miss"
-            } else {
-                "hit"
-            },
-            key.market,
-            key.ticker,
-            key.reviewDate
-        )
-        return hit
-    }
 
     /**
      * Record a blocking-path turn. Like [record], a failure to save is logged,
@@ -430,16 +269,10 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): ResponseEntity<AgentResponse> {
         scopeAuthorizer.authorize()
-        val plan = planFor(body)
-        if (!routing.available) return noLlm(plan.request)
-        val reviewKey = if (plan.opening == null) reviewKeyFor(body, plan.request, plan.thread) else null
-        val hit = reviewKey?.let { cachedReview(it, body.refresh) }
-        val meter = meterFor(body, plan)
-        val refused = if (hit == null) refusalFor(meter) else null
-        return if (refused != null) {
-            failure(HtmlUtils.htmlEscape(openingLabel(plan.request, plan), UTF_8), refused)
-        } else {
-            answerQuery(plan, reviewKey, hit, meter)
+        return when (val admission = admission.admit(body)) {
+            is Admission.NoLlm -> noLlm(admission.request)
+            is Admission.Refused -> failure(HtmlUtils.htmlEscape(admission.label, UTF_8), admission.code)
+            is Admission.Admitted -> answerQuery(admission)
         }
     }
 
@@ -459,34 +292,28 @@ class AgentController(
             )
 
     /** A `/query` turn the caller may run: its opening built first, when it has one. */
-    private fun answerQuery(
-        plan: Plan,
-        reviewKey: AssetReviewKey?,
-        hit: String?,
-        meter: String?
-    ): ResponseEntity<AgentResponse> {
+    private fun answerQuery(admitted: Admission.Admitted): ResponseEntity<AgentResponse> {
+        val plan = admitted.plan
         val request = plan.request
         return when (val opening = plan.opening?.let { holdingOpening(request, it) } ?: Opening.Ready(request)) {
             // Echo what the caller asked about: the opening question was never built.
             is Opening.Failed -> {
-                failure(HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8), opening.code)
+                failure(HtmlUtils.htmlEscape(plan.label, UTF_8), opening.code)
             }
             is Opening.Ready -> {
-                answerTurn(opening.turn, plan.thread, reviewKey, hit, meter)
+                answerTurn(opening.turn, admitted)
             }
         }
     }
 
-    /** [asked], recorded in its conversation, answered from the cache [hit] or live. */
+    /** [asked], recorded in its conversation, answered from the cached review or live. */
     private fun answerTurn(
         asked: AgentQuery,
-        thread: ConversationThread?,
-        reviewKey: AssetReviewKey?,
-        hit: String?,
-        meter: String?
+        admitted: Admission.Admitted
     ): ResponseEntity<AgentResponse> {
+        val (_, reviewKey, hit, meter) = admitted
         val safeQuery = HtmlUtils.htmlEscape(asked.query)
-        val (turn, conversationRecorder) = openTurn(asked, thread)
+        val (turn, conversationRecorder) = openTurn(asked, admitted.plan.thread)
         if (reviewKey != null && hit != null) {
             // No model runs: the stored answer is recorded as a live one would be, and not counted.
             llmMetrics.cached(LlmMetrics.Mode.CALL, reviewKey.model)
@@ -501,7 +328,7 @@ class AgentController(
             )
         }
         val recorder =
-            metered(
+            metering.metered(
                 reviewKey?.let { ReviewCachingRecorder(conversationRecorder, reviewCache, it) } ?: conversationRecorder,
                 meter
             )
@@ -609,29 +436,22 @@ class AgentController(
         @RequestBody body: AgentQuery
     ): Flux<ServerSentEvent<String>> {
         scopeAuthorizer.authorize()
-        val plan = planFor(body)
-        // A code, not prose: the streaming path's error payload is a contract
-        // the UI renders copy from, and `/query` already answers this case
-        // with the same NO_LLM code.
-        if (!routing.available) return errorEvent(TurnFailure.NO_LLM)
-        val reviewKey = if (plan.opening == null) reviewKeyFor(body, plan.request, plan.thread) else null
-        val hit = reviewKey?.let { cachedReview(it, body.refresh) }
-        val meter = meterFor(body, plan)
-        // Refused before the question is recorded: an exhausted caller leaves no residue.
-        val refused = if (hit == null) refusalFor(meter) else null
-        return if (refused != null) errorEvent(refused) else turnStream(plan, reviewKey, hit, meter)
+        return when (val admission = admission.admit(body)) {
+            // A code, not prose: the streaming path's error payload is a contract
+            // the UI renders copy from, and `/query` already answers this case
+            // with the same NO_LLM code.
+            is Admission.NoLlm -> errorEvent(TurnFailure.NO_LLM)
+            is Admission.Refused -> errorEvent(admission.code)
+            is Admission.Admitted -> turnStream(admission)
+        }
     }
 
     /**
      * The pipeline for a turn [stream] has let run: cold for a stateless
      * request, hot and connected here for a conversation (see [stream]).
      */
-    private fun turnStream(
-        plan: Plan,
-        reviewKey: AssetReviewKey?,
-        hit: String?,
-        meter: String?
-    ): Flux<ServerSentEvent<String>> {
+    private fun turnStream(admitted: Admission.Admitted): Flux<ServerSentEvent<String>> {
+        val plan = admitted.plan
         val conversationId = plan.thread?.id
         // Pending before the question is committed: openTurn writes the user
         // row in its own transaction, and a GET landing between that commit
@@ -643,9 +463,9 @@ class AgentController(
                 val subject = plan.opening
                 if (subject == null) {
                     val (turn, recorder) = openTurn(plan.request, plan.thread)
-                    pipelineFor(reviewKey, hit, turn, recorder, meter)
+                    pipelineFor(admitted, turn, recorder)
                 } else {
-                    openingPipeline(plan.request, subject, plan.thread, meter)
+                    openingPipeline(plan.request, subject, plan.thread, admitted.meter)
                 }
             } catch (e: Exception) {
                 conversationId?.let(inFlightTurns::end)
@@ -694,7 +514,7 @@ class AgentController(
                     }
                     is Opening.Ready -> {
                         val (turn, recorder) = openTurn(opening.turn, thread)
-                        answerPipeline(turn, metered(recorder, meter))
+                        answerPipeline(turn, metering.metered(recorder, meter))
                     }
                 }
             }.onErrorResume { e ->
@@ -703,60 +523,21 @@ class AgentController(
                 errorEvent(code)
             }.contextCapture()
 
-    /** What a Holding Analysis opening is stored under: the caller's label, else the subject's. */
-    private fun openingLabel(
-        request: AgentQuery,
-        plan: Plan
-    ): String = request.label ?: plan.opening?.let { PageQueries.holdingAnalysisLabel(it.ticker) } ?: request.query
-
     /**
-     * A canned Asset Review answered from the cache [hit] when one is fresh,
-     * uncounted; else live, keeping a successful answer under [key] for next
-     * time and counting it against [meter].
+     * A canned Asset Review answered from the cached review when one is fresh,
+     * uncounted; else live, keeping a successful answer under its key for next
+     * time and counting it against the caller's meter.
      */
     private fun pipelineFor(
-        key: AssetReviewKey?,
-        hit: String?,
+        admitted: Admission.Admitted,
         turn: AgentQuery,
-        recorder: TurnRecorder,
-        meter: String?
+        recorder: TurnRecorder
     ): Flux<ServerSentEvent<String>> {
+        val (_, key, hit, meter) = admitted
         if (key != null && hit != null) return cachedPipeline(hit, key, recorder)
         val live = key?.let { ReviewCachingRecorder(recorder, reviewCache, it) } ?: recorder
-        return answerPipeline(turn, metered(live, meter))
+        return answerPipeline(turn, metering.metered(live, meter))
     }
-
-    /**
-     * Who [body]'s turn is counted against: the caller's `SystemUser.id` when
-     * metered ([AgentScopeAuthorizer.metered]), else null. Read on the request
-     * thread, where the owner lookup has the caller's token.
-     */
-    private fun meterFor(
-        body: AgentQuery,
-        plan: Plan
-    ): String? = if (scopeAuthorizer.metered(body)) plan.thread?.ownerId ?: conversationOwner.id() else null
-
-    /**
-     * Why a live turn is refused, or null to run it: an unconfirmed email
-     * address first, then a metered caller an administrator has disabled, then
-     * one with no turn left this week. A free one-off News lookup is never
-     * metered, so it needs no caller identity and is not refused for either.
-     * Asked only on an Asset Review cache miss: a hit is served free to anyone.
-     */
-    private fun refusalFor(meter: String?): String? =
-        when {
-            !scopeAuthorizer.verified() -> TurnFailure.EMAIL_UNVERIFIED
-            meter == null -> null
-            quota.disabled(meter) -> TurnFailure.AI_DISABLED
-            !quota.allows(meter) -> TurnFailure.AI_QUOTA
-            else -> null
-        }
-
-    /** [recorder], counting an answered turn against [meter] when metered. */
-    private fun metered(
-        recorder: TurnRecorder,
-        meter: String?
-    ): TurnRecorder = meter?.let { QuotaRecorder(recorder, quota, it) } ?: recorder
 
     /**
      * Stream a cached review the way a live answer ends: its text as a token,

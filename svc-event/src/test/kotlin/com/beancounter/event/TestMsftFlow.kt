@@ -10,7 +10,7 @@ import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.event.integration.PositionGateway
-import com.beancounter.event.service.EventService
+import com.beancounter.event.service.EventDistribution
 import com.beancounter.event.service.PositionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -37,7 +37,7 @@ class TestMsftFlow {
     private lateinit var positionGateway: PositionGateway
 
     @Autowired
-    private lateinit var eventService: EventService
+    private lateinit var eventDistribution: EventDistribution
 
     @Autowired
     private lateinit var positionService: PositionService
@@ -94,7 +94,7 @@ class TestMsftFlow {
 
         positionService.setTokenService(tokenService)
         positionService.setPortfolioClientService(mockPortfolioServiceClient)
-        val results = eventService.process(trustedEvent)
+        val results = eventDistribution.process(trustedEvent)
         assertThat(results).isEmpty()
     }
 }

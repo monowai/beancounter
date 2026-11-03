@@ -21,7 +21,10 @@ import org.mockito.kotlin.whenever
 @ExtendWith(MockitoExtension::class)
 class EventScheduleTest {
     @Mock
-    private lateinit var eventService: EventService
+    private lateinit var eventStore: CorporateEventStore
+
+    @Mock
+    private lateinit var eventDistribution: EventDistribution
 
     @Mock
     private lateinit var eventLoader: EventLoader
@@ -39,7 +42,7 @@ class EventScheduleTest {
 
     @BeforeEach
     fun setUp() {
-        eventSchedule = EventSchedule(eventService, eventLoader, dateUtils)
+        eventSchedule = EventSchedule(eventStore, eventDistribution, eventLoader, dateUtils)
         eventSchedule.setLoginService(loginService)
     }
 
@@ -71,7 +74,7 @@ class EventScheduleTest {
     @Test
     fun `loadNewEvents should skip when loginService is null`() {
         // Given: no login service
-        val scheduleWithoutLogin = EventSchedule(eventService, eventLoader, dateUtils)
+        val scheduleWithoutLogin = EventSchedule(eventStore, eventDistribution, eventLoader, dateUtils)
 
         // When
         scheduleWithoutLogin.loadNewEvents()

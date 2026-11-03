@@ -55,7 +55,7 @@ class EventLoaderTest {
     private lateinit var priceService: PriceService
 
     @MockitoBean
-    private lateinit var eventService: EventService
+    private lateinit var eventStore: CorporateEventStore
 
     @MockitoBean
     private lateinit var dateSplitter: DateSplitter
@@ -95,7 +95,7 @@ class EventLoaderTest {
             )
         val serviceConfig =
             EventLoaderServiceConfig(
-                eventService = eventService,
+                eventStore = eventStore,
                 priceService = priceService,
                 backFillService = backFillService,
                 positionService = positionService
@@ -130,7 +130,7 @@ class EventLoaderTest {
             )
         val serviceConfig =
             EventLoaderServiceConfig(
-                eventService = eventService,
+                eventStore = eventStore,
                 priceService = priceService,
                 backFillService = backFillService,
                 positionService = positionService

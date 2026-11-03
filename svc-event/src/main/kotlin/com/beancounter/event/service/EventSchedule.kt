@@ -15,7 +15,8 @@ private const val EVENT_LOOKBACK_DAYS = 5L
  */
 @Service
 class EventSchedule(
-    private val eventService: EventService,
+    private val eventStore: CorporateEventStore,
+    private val eventDistribution: EventDistribution,
     private val eventLoader: EventLoader,
     private val dateUtils: DateUtils
 ) {
@@ -50,10 +51,10 @@ class EventSchedule(
 
             log.debug("Processing events from $start to $end")
 
-            val events = eventService.findInRange(start, end)
+            val events = eventStore.findInRange(start, end)
 
             events.forEach { event ->
-                eventService.processEvent(event)
+                eventDistribution.processEvent(event)
             }
 
             if (events.isEmpty()) {

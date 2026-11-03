@@ -32,7 +32,7 @@ class EventLoader(
 ) {
     private val portfolioService = config.sharedConfig.portfolioService
     private val positionService = config.serviceConfig.positionService
-    private val eventService = config.serviceConfig.eventService
+    private val eventStore = config.serviceConfig.eventStore
     private val priceService = config.serviceConfig.priceService
     private val backFillService = config.serviceConfig.backFillService
     private val dateSplitter = config.authConfig.dateSplitter
@@ -146,7 +146,7 @@ class EventLoader(
             // Check if event falls within the window (date - daysToAdd to date + daysToAdd inclusive)
             if (!eventDate.isBefore(windowStart) && !eventDate.isAfter(windowEnd)) {
                 eventCount++
-                eventService.save(
+                eventStore.save(
                     CorporateEvent(
                         trnType = if (isSplit(priceResponse)) TrnType.SPLIT else TrnType.DIVI,
                         recordDate = priceResponse.priceDate,

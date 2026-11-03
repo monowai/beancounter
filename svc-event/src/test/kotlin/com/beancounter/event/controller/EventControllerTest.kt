@@ -9,7 +9,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.Constants.Companion.ALPHA
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
-import com.beancounter.event.service.EventService
+import com.beancounter.event.service.CorporateEventStore
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import org.assertj.core.api.Assertions.assertThat
@@ -51,7 +51,7 @@ internal class EventControllerTest {
     private lateinit var jwtDecoder: JwtDecoder
 
     @Autowired
-    private lateinit var eventService: EventService
+    private lateinit var eventStore: CorporateEventStore
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -104,7 +104,7 @@ internal class EventControllerTest {
                 assetId = "ABC123",
                 rate = BigDecimal("0.1234")
             )
-        event = eventService.save(event)
+        event = eventStore.save(event)
         assertThat(event).hasFieldOrProperty("id")
 
         // Find By event.id
@@ -224,20 +224,20 @@ internal class EventControllerTest {
                 assetId = "assetId",
                 rate = BigDecimal("2.3400")
             )
-        val saved = eventService.save(event)
+        val saved = eventStore.save(event)
         assertThat(saved.id).isNotNull
 
         // Check that the saved event's ID matches a new save attempt (assuming idempotency)
-        val newSaved = eventService.save(event)
+        val newSaved = eventStore.save(event)
         assertThat(newSaved.id).isEqualTo(saved.id)
 
-        assertThat(eventService.forAsset(event.assetId))
+        assertThat(eventStore.forAsset(event.assetId))
             .isNotNull
             .hasSize(1)
 
         // Check it can be found within a date range
         val events =
-            eventService
+            eventStore
                 .findInRange(
                     event.recordDate.minusDays(2),
                     event.recordDate

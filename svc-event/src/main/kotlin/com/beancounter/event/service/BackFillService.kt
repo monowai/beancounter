@@ -1,8 +1,8 @@
 package com.beancounter.event.service
 
+import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.common.DateSplitter
-import com.beancounter.event.config.BackFillServiceConfig
 import com.beancounter.event.metrics.EventMetrics
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -12,16 +12,13 @@ import org.springframework.stereotype.Service
  */
 @Service
 class BackFillService(
-    config: BackFillServiceConfig,
+    private val portfolioService: PortfolioServiceClient,
+    private val positionService: PositionService,
+    private val eventStore: CorporateEventStore,
+    private val eventDistribution: EventDistribution,
+    private val dateSplitter: DateSplitter,
     private val eventMetrics: EventMetrics
 ) {
-    private val portfolioService = config.sharedConfig.portfolioService
-    private val positionService = config.positionService
-    private val eventService = config.eventService
-    private val tokenService = config.tokenService
-    private val dateUtils = config.sharedConfig.dateUtils
-
-    private val dateSplitter = DateSplitter(dateUtils)
     private val log = LoggerFactory.getLogger(BackFillService::class.java)
 
     fun backFillEvents(
@@ -35,10 +32,7 @@ class BackFillService(
                 toDate
             )
         val portfolio =
-            portfolioService.getPortfolioById(
-                portfolioId,
-                tokenService.bearerToken
-            )
+            portfolioService.getPortfolioById(portfolioId)
         log.debug("BackFill code: ${portfolio.code}, id: ${portfolio.id}")
         var eventCount = 0
         for (asAtDate in dates) {
@@ -54,13 +48,13 @@ class BackFillService(
                 }
             }
             val events =
-                eventService.find(
+                eventStore.find(
                     assets,
                     asAtDate
                 )
             for (event in events) {
                 log.trace("Publish events: ${events.size}, asAt: $asAtDate")
-                eventService.processEvent(event)
+                eventDistribution.processEvent(event)
                 eventCount += events.size
             }
         }

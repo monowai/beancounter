@@ -1,7 +1,8 @@
 package com.beancounter.agent.tools
 
 import com.beancounter.agent.clients.CompositePhaseInput
-import com.beancounter.agent.clients.RetireServiceClient
+import com.beancounter.agent.clients.RetirePlansClient
+import com.beancounter.agent.clients.RetireProjectionClient
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Service
@@ -20,7 +21,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class RetireTools(
-    private val retireServiceClient: RetireServiceClient,
+    private val plans: RetirePlansClient,
+    private val projections: RetireProjectionClient,
     /**
      * Shrinks the compute tools' year-by-year payloads before they enter the
      * conversation — see [ProjectionCompactor] for the measured failure that
@@ -29,28 +31,28 @@ class RetireTools(
     private val compactor: ProjectionCompactor
 ) {
     @Tool(description = SETTINGS_DESC)
-    fun getIndependenceSettings(): Map<String, Any?> = retireServiceClient.getIndependenceSettings()
+    fun getIndependenceSettings(): Map<String, Any?> = plans.getIndependenceSettings()
 
     @Tool(description = LIST_INDEPENDENCE_PLANS_DESC)
-    fun listIndependencePlans(): Map<String, Any?> = retireServiceClient.listIndependencePlans()
+    fun listIndependencePlans(): Map<String, Any?> = plans.listIndependencePlans()
 
     @Tool(description = LIST_DESC)
-    fun listRetirementPlans(): Map<String, Any> = retireServiceClient.listPlans()
+    fun listRetirementPlans(): Map<String, Any> = plans.listPlans()
 
     @Tool(description = GET_PLAN_DESC)
     fun getRetirementPlan(
         @ToolParam(description = PHASE_ID_PARAM) planId: String
-    ): Map<String, Any> = retireServiceClient.getPlan(planId)
+    ): Map<String, Any> = plans.getPlan(planId)
 
     @Tool(description = EXPENSES_DESC)
     fun getRetirementPlanExpenses(
         @ToolParam(description = PHASE_ID_PARAM) planId: String
-    ): Map<String, Any> = retireServiceClient.getPlanWithExpenses(planId)
+    ): Map<String, Any> = plans.getPlanWithExpenses(planId)
 
     @Tool(description = CONTRIBUTIONS_DESC)
     fun getRetirementPlanContributions(
         @ToolParam(description = PHASE_ID_PARAM) planId: String
-    ): Map<String, Any> = retireServiceClient.getContributions(planId)
+    ): Map<String, Any> = plans.getContributions(planId)
 
     @Tool(description = FINANCIALS_DESC)
     fun getRetirementFinancials(
@@ -61,7 +63,7 @@ class RetireTools(
                     "Omit to use the plan's native currency.",
             required = false
         ) displayCurrency: String? = null
-    ): Map<String, Any> = retireServiceClient.getFinancials(planId, displayCurrency)
+    ): Map<String, Any> = plans.getFinancials(planId, displayCurrency)
 
     // -------- Compute tools (side-effect free) --------
     //
@@ -77,7 +79,7 @@ class RetireTools(
             description = "Optional ISO currency to convert results into; omit for plan's native currency.",
             required = false
         ) displayCurrency: String? = null
-    ): Map<String, Any> = compact(retireServiceClient.runProjection(planId, displayCurrency))
+    ): Map<String, Any> = compact(projections.runProjection(planId, displayCurrency))
 
     @Tool(description = SCENARIOS_DESC)
     fun runRetirementScenarios(
@@ -86,7 +88,7 @@ class RetireTools(
             description = "Optional ISO currency to convert results into; omit for plan's native currency.",
             required = false
         ) displayCurrency: String? = null
-    ): Map<String, Any> = compact(retireServiceClient.runScenarios(planId, displayCurrency))
+    ): Map<String, Any> = compact(projections.runScenarios(planId, displayCurrency))
 
     @Tool(description = MONTE_CARLO_DESC)
     fun runRetirementMonteCarlo(
@@ -109,7 +111,7 @@ class RetireTools(
         ) displayCurrency: String? = null
     ): Map<String, Any> =
         compact(
-            retireServiceClient.runMonteCarlo(planId, iterations ?: DEFAULT_MONTE_CARLO_ITERATIONS, displayCurrency)
+            projections.runMonteCarlo(planId, iterations ?: DEFAULT_MONTE_CARLO_ITERATIONS, displayCurrency)
         )
 
     @Tool(description = COMPOSITE_PROJECTION_DESC)
@@ -125,7 +127,7 @@ class RetireTools(
                 "ISO currency the combined projection should be reported in " +
                     "(e.g. 'USD', 'SGD'). Required."
         ) displayCurrency: String
-    ): Map<String, Any> = compact(retireServiceClient.runCompositeProjection(phases, displayCurrency))
+    ): Map<String, Any> = compact(projections.runCompositeProjection(phases, displayCurrency))
 
     @Tool(description = COMPOSITE_SCENARIOS_DESC)
     fun runCompositeRetirementScenarios(
@@ -135,7 +137,7 @@ class RetireTools(
                     "null on the final phase."
         ) phases: List<CompositePhaseInput>,
         @ToolParam(description = "ISO currency to report the scenarios in.") displayCurrency: String
-    ): Map<String, Any> = compact(retireServiceClient.runCompositeScenarios(phases, displayCurrency))
+    ): Map<String, Any> = compact(projections.runCompositeScenarios(phases, displayCurrency))
 
     @Tool(description = COMPOSITE_MONTE_CARLO_DESC)
     fun runCompositeRetirementMonteCarlo(
@@ -155,7 +157,7 @@ class RetireTools(
         ) iterations: Int? = null
     ): Map<String, Any> =
         compact(
-            retireServiceClient.runCompositeMonteCarlo(
+            projections.runCompositeMonteCarlo(
                 phases,
                 displayCurrency,
                 iterations ?: DEFAULT_MONTE_CARLO_ITERATIONS

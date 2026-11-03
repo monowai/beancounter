@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClient
 /**
  * Thin read-only client for svc-rebalance's public REST API.
  *
- * Same pattern as [RetireServiceClient] — auth forwarded via
+ * Same pattern as [RetirePlansClient] — auth forwarded via
  * [TokenService.bearerToken], return types kept generic so we aren't
  * duplicating DTO definitions from a sibling repository. Read-only methods
  * only; creating/updating/approving plans is deliberately left out so the

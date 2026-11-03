@@ -12,7 +12,10 @@ import java.text.ParseException
  */
 class MathUtils private constructor() {
     companion object {
+        @JvmField
         val HUNDRED: BigDecimal = BigDecimal(100)
+
+        @JvmField
         val MONTHS_PER_YEAR: BigDecimal = BigDecimal(12)
 
         private const val MONEY_SCALE = 2

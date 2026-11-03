@@ -93,13 +93,7 @@ class ShareSightTradeAdapter(
     }
 
     private fun extractComment(row: List<String>): String? =
-        if (row.size ==
-            COMMENTS + 1
-        ) {
-            nullSafe(row[COMMENTS])
-        } else {
-            null
-        }
+        if (row.size == COMMENTS + 1) nullSafe(row[COMMENTS]) else null
 
     private fun resolveAssetSafely(row: List<String>): Asset {
         val asset = resolveAsset(row)

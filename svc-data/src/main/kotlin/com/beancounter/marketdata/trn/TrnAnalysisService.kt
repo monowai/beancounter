@@ -125,12 +125,11 @@ class TrnAnalysisService(
             return BigDecimal.ZERO
         }
 
-        val fxRates = getFxRates(transactions, targetCurrency)
+        val todayRates = todayRatesFor(transactions, targetCurrency)
 
-        // Sum with conversion
         var total = BigDecimal.ZERO
         for (trn in transactions) {
-            val convertedAmount = convertAmount(trn, targetCurrency, fxRates)
+            val convertedAmount = tradeAmountIn(trn, targetCurrency, todayRates)
 
             // BUY is positive, SELL is negative (ADD excluded - represents transfers)
             total =
@@ -180,14 +179,13 @@ class TrnAnalysisService(
             )
         }
 
-        val fxRates = getFxRates(transactions, targetCurrency)
+        val todayRates = todayRatesFor(transactions, targetCurrency)
 
-        // Sum purchases and sales separately with conversion
         var totalPurchases = BigDecimal.ZERO
         var totalSales = BigDecimal.ZERO
 
         for (trn in transactions) {
-            val convertedAmount = convertAmount(trn, targetCurrency, fxRates)
+            val convertedAmount = tradeAmountIn(trn, targetCurrency, todayRates)
 
             when (trn.trnType) {
                 TrnType.BUY -> {
@@ -251,11 +249,11 @@ class TrnAnalysisService(
         val monthlyTotals = mutableMapOf<YearMonth, BigDecimal>()
         allMonths.forEach { monthlyTotals[it] = BigDecimal.ZERO }
 
-        val todayRates = getFxRates(transactions.filter { recordedRate(it, targetCurrency) == null }, targetCurrency)
+        val todayRates = todayRatesFor(transactions, targetCurrency)
 
         val groupData = mutableMapOf<String, GroupAggregation>()
         for (trn in transactions) {
-            val amount = incomeIn(targetCurrency, trn, todayRates)
+            val amount = tradeAmountIn(trn, targetCurrency, todayRates)
             aggregateTransaction(trn, amount, allMonths, monthlyTotals, groupBy, assetMetaData, groupData)
         }
 
@@ -458,12 +456,12 @@ class TrnAnalysisService(
     }
 
     /**
-     * Income in [targetCurrency], preferring the trade-date rate so past months stay stable and
-     * agree with position income. Fails rather than total amounts in unlike currencies.
+     * The trn's trade amount in [targetCurrency], preferring the trade-date rate so past months
+     * stay stable and agree with positions. Fails rather than total amounts in unlike currencies.
      */
-    private fun incomeIn(
-        targetCurrency: String,
+    private fun tradeAmountIn(
         trn: Trn,
+        targetCurrency: String,
         todayRates: Map<String, BigDecimal>
     ): BigDecimal {
         val fromCurrency = trn.tradeCurrency.code
@@ -477,14 +475,15 @@ class TrnAnalysisService(
     }
 
     /**
-     * Get FX rates for converting transaction amounts to target currency.
+     * Today's rates to [targetCurrency], fetched only for trns without a usable recorded rate.
      */
-    private fun getFxRates(
+    private fun todayRatesFor(
         transactions: Iterable<Trn>,
         targetCurrency: String
     ): Map<String, BigDecimal> {
         val currenciesNeeded =
             transactions
+                .filter { recordedRate(it, targetCurrency) == null }
                 .map { it.tradeCurrency.code }
                 .filter { it != targetCurrency }
                 .distinct()
@@ -498,26 +497,6 @@ class TrnAnalysisService(
             }
         } else {
             emptyMap()
-        }
-    }
-
-    /**
-     * Convert a transaction amount to the target currency.
-     */
-    private fun convertAmount(
-        trn: Trn,
-        targetCurrency: String,
-        fxRates: Map<String, BigDecimal>
-    ): BigDecimal {
-        val amount = trn.tradeAmount
-        val fromCurrency = trn.tradeCurrency.code
-
-        return if (fromCurrency == targetCurrency) {
-            amount
-        } else {
-            val rateKey = "$fromCurrency:$targetCurrency"
-            val rate = fxRates[rateKey] ?: BigDecimal.ONE
-            amount.multiply(rate)
         }
     }
 }

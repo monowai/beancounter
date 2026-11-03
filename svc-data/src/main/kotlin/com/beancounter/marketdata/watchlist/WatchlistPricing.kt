@@ -22,5 +22,11 @@ internal fun rebase(
         price.divide(factor, PRICE_SCALE, RoundingMode.HALF_UP)
     }
 
+/** [numerator] as a fraction of [denominator], at [PRICE_SCALE]. */
+internal fun fraction(
+    numerator: BigDecimal,
+    denominator: BigDecimal
+): BigDecimal = numerator.divide(denominator, PRICE_SCALE, RoundingMode.HALF_UP)
+
 /** The currency watchlist amounts are reported in: the asset's market currency. */
 internal fun Asset.watchlistCurrency(): Currency = accountingType?.currency ?: market.currency

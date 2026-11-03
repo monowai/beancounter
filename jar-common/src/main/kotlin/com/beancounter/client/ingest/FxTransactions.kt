@@ -31,7 +31,7 @@ class FxTransactions(
         trn: TrnInput
     ): FxRequest {
         val tradeDate = trn.tradeDate.toString()
-        val fxRequest = getFxRequest(HashMap(), tradeDate)
+        val fxRequest = FxRequest(tradeDate, mutableSetOf())
         fxRequest.addTradePf(
             pair(Currency(trn.tradeCurrency), portfolio.currency, trn.tradePortfolioRate)
         )
@@ -95,15 +95,6 @@ class FxTransactions(
             return IsoCurrencyPair(from = from.code, to = to.code)
         }
         return null
-    }
-
-    private fun getFxRequest(
-        fxRequests: MutableMap<String?, FxRequest>,
-        tradeDate: String
-    ): FxRequest {
-        val fxRequest = FxRequest(tradeDate, mutableSetOf())
-        fxRequests[tradeDate] = fxRequest
-        return fxRequest
     }
 
     fun needsRates(trnInput: TrnInput): Boolean =
@@ -172,7 +163,7 @@ class FxTransactions(
     ): BigDecimal {
         if (pair != null && numberUtils.isUnset(current)) {
             return data.rates[pair]?.rate
-                ?: throw IllegalStateException("FX rate missing for $pair")
+                ?: throw BusinessException("Missing FX rate for $pair")
         }
         return if (numberUtils.isUnset(current)) BigDecimal.ONE else current
     }

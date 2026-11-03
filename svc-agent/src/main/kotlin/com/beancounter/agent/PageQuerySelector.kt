@@ -58,14 +58,18 @@ class PageQuerySelector {
     fun assetReviewSubject(context: Map<String, Any>?): AssetReviewSubject? {
         val fields = context.orEmpty()
         if (CannedPage.of(fields) != CannedPage.ASSET_REVIEW) return null
+        return plainSubject(fields[TICKERS], fields[MARKET_KEY] ?: "")
+    }
+
+    /** [rawTicker] and [rawMarket] as a subject, or null unless both are text and plain symbols. */
+    private fun plainSubject(
+        rawTicker: Any?,
+        rawMarket: Any
+    ): AssetReviewSubject? {
         // Text only: a non-string market would route differently once rebuilt as text (isFxPair).
-        val rawTicker = fields["tickers"] as? String ?: return null
-        val rawMarket = fields["market"] ?: ""
-        if (rawMarket !is String) return null
-        val ticker = rawTicker.trim().uppercase()
-        val market = rawMarket.trim().uppercase()
-        if (!TICKER.matches(ticker) || !MARKET.matches(market)) return null
-        return AssetReviewSubject(ticker, market)
+        if (rawTicker !is String || rawMarket !is String) return null
+        return AssetReviewSubject(rawTicker.trim().uppercase(), rawMarket.trim().uppercase())
+            .takeIf { TICKER.matches(it.ticker) && MARKET.matches(it.market) }
     }
 
     /**
@@ -75,8 +79,8 @@ class PageQuerySelector {
     fun assetReviewContext(subject: AssetReviewSubject): Map<String, Any> =
         buildMap {
             put("page", PageQueries.ASSET_REVIEW)
-            put("tickers", subject.ticker)
-            if (subject.market.isNotEmpty()) put("market", subject.market)
+            put(TICKERS, subject.ticker)
+            if (subject.market.isNotEmpty()) put(MARKET_KEY, subject.market)
         }
 
     /**
@@ -93,7 +97,7 @@ class PageQuerySelector {
         val asset =
             assetReviewSubject(fields + ("page" to PageQueries.ASSET_REVIEW))
                 ?: throw BusinessException(INVALID_HOLDING_ANALYSIS)
-        if (isFxPair(mapOf("market" to asset.market))) throw BusinessException(INVALID_HOLDING_ANALYSIS)
+        if (isFxPair(mapOf(MARKET_KEY to asset.market))) throw BusinessException(INVALID_HOLDING_ANALYSIS)
         val portfolioCode =
             (fields["portfolioCode"] as? String)
                 ?.trim()
@@ -107,8 +111,8 @@ class PageQuerySelector {
     fun holdingAnalysisContext(subject: HoldingAnalysisSubject): Map<String, Any> =
         buildMap {
             put("page", PageQueries.HOLDING_ANALYSIS)
-            put("tickers", subject.ticker)
-            if (subject.market.isNotEmpty()) put("market", subject.market)
+            put(TICKERS, subject.ticker)
+            if (subject.market.isNotEmpty()) put(MARKET_KEY, subject.market)
             put("portfolioCode", subject.portfolioCode)
         }
 
@@ -121,11 +125,11 @@ class PageQuerySelector {
         }
 
     private fun assetReview(fields: Map<String, Any>): CannedQuery? {
-        val ticker = text(fields, "tickers")
+        val ticker = text(fields, TICKERS)
         if (ticker.isEmpty()) return null
         return CannedQuery(
             PageQueries.ASSET_REVIEW,
-            PageQueries.assetReview(ticker, text(fields, "assetName"), text(fields, "market"))
+            PageQueries.assetReview(ticker, text(fields, "assetName"), text(fields, MARKET_KEY))
         )
     }
 
@@ -140,6 +144,10 @@ class PageQuerySelector {
 
         /** The 400 a Holding Analysis asked inside an Asset Review conversation gets. Also a contract. */
         const val HOLDING_IN_ASSET_REVIEW = "holding-analysis-in-asset-review"
+
+        // Page-context keys the selector reads and writes.
+        private const val TICKERS = "tickers"
+        private const val MARKET_KEY = "market"
 
         // Listing symbols as markets quote them: BRK.B, BRK-B, ^GSPC (caret leads only), NZDSGD, D05.
         private val TICKER = Regex("^\\^?[A-Z0-9][A-Z0-9.\\-]{0,31}$")

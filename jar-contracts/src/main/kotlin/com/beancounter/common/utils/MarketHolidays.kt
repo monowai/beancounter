@@ -144,23 +144,14 @@ class MarketHolidays {
      * Observed holidays - when a fixed holiday falls on a weekend,
      * markets close on the nearest weekday.
      */
-    private fun isObservedHoliday(date: LocalDate): Boolean {
-        val dayOfWeek = date.dayOfWeek
-
-        // Friday observation of Saturday holiday
-        if (dayOfWeek == DayOfWeek.FRIDAY) {
-            val saturday = date.plusDays(1)
-            if (isFixedHoliday(saturday)) return true
+    private fun isObservedHoliday(date: LocalDate): Boolean =
+        when (date.dayOfWeek) {
+            // Friday observation of Saturday holiday
+            DayOfWeek.FRIDAY -> isFixedHoliday(date.plusDays(1))
+            // Monday observation of Sunday holiday
+            DayOfWeek.MONDAY -> isFixedHoliday(date.minusDays(1))
+            else -> false
         }
-
-        // Monday observation of Sunday holiday
-        if (dayOfWeek == DayOfWeek.MONDAY) {
-            val sunday = date.minusDays(1)
-            if (isFixedHoliday(sunday)) return true
-        }
-
-        return false
-    }
 
     /**
      * Floating holidays that occur on specific weekdays.

@@ -54,14 +54,13 @@ class OtelTraceIdFilter : OncePerRequestFilter() {
         if (otelContext.isValid) {
             return Triple(otelContext.traceId, otelContext.spanId, "OTel")
         }
+        return sentryTraceContext()
+    }
 
-        // Fall back to Sentry context
-        val sentrySpan = Sentry.getSpan()
-        if (sentrySpan != null) {
-            val sentryTrace = sentrySpan.toSentryTrace()
-            return Triple(sentryTrace.traceId.toString(), sentryTrace.spanId.toString(), "Sentry")
-        }
-
-        return Triple("", "", "none")
+    /** Sentry's trace context, the fallback when no OTel span is active. */
+    private fun sentryTraceContext(): Triple<String, String, String> {
+        val sentrySpan = Sentry.getSpan() ?: return Triple("", "", "none")
+        val sentryTrace = sentrySpan.toSentryTrace()
+        return Triple(sentryTrace.traceId.toString(), sentryTrace.spanId.toString(), "Sentry")
     }
 }

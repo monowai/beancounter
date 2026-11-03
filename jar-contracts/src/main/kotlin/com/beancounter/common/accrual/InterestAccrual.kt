@@ -71,14 +71,20 @@ class InterestAccrual {
         convention: DayCountConvention = DayCountConvention.ACT_365_FIXED
     ): BigDecimal {
         require(totalMonths >= 0) { "totalMonths must be non-negative, got $totalMonths" }
-        if (monthlyPayment <= BigDecimal.ZERO || totalMonths == 0) {
-            return BigDecimal.ZERO
-        }
-        if (annualRate <= BigDecimal.ZERO) {
-            return monthlyPayment.multiply(BigDecimal(totalMonths))
-        }
         @Suppress("UNUSED_VARIABLE")
         val unused = convention
+        return when {
+            monthlyPayment <= BigDecimal.ZERO || totalMonths == 0 -> BigDecimal.ZERO
+            annualRate <= BigDecimal.ZERO -> monthlyPayment.multiply(BigDecimal(totalMonths))
+            else -> compoundedAnnuity(monthlyPayment, annualRate, totalMonths)
+        }
+    }
+
+    private fun compoundedAnnuity(
+        monthlyPayment: BigDecimal,
+        annualRate: BigDecimal,
+        totalMonths: Int
+    ): BigDecimal {
         val monthlyRate = annualRate.divide(MONTHS_PER_YEAR, SCALE, RoundingMode.HALF_UP)
         val growthFactor = BigDecimal.ONE.add(monthlyRate).pow(totalMonths)
         val numerator = growthFactor.subtract(BigDecimal.ONE)

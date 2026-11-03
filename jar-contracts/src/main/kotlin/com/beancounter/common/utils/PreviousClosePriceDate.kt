@@ -138,10 +138,6 @@ class PreviousClosePriceDate(
 
         // Holidays resolve against the market's own exchange calendar
         // (London → UK, otherwise US). A null market keeps the US default.
-        if (marketHolidays.isHoliday(dateTime.toLocalDate(), market?.timezone?.toZoneId())) {
-            return false
-        }
-
-        return true
+        return !marketHolidays.isHoliday(dateTime.toLocalDate(), market?.timezone?.toZoneId())
     }
 }

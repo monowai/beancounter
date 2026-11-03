@@ -1,12 +1,13 @@
 package com.beancounter.agent.holding
 
-import com.beancounter.agent.AgentController
+import com.beancounter.agent.AgentEndpoints
 import com.beancounter.agent.AgentQuery
 import com.beancounter.agent.ChatModelSelector
 import com.beancounter.agent.DomainSystemPrompts
 import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.PageQuerySelector
 import com.beancounter.agent.SystemPromptSelector
+import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.client.PositionClient
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationKind
@@ -209,27 +210,17 @@ class HoldingAnalysisTest {
     private fun controller(
         reviewCache: com.beancounter.agent.review.AssetReviewCache = cache,
         holdings: HoldingFactsSource = HoldingFactsReader(positionClient)
-    ): AgentController =
-        AgentController(
-            client,
-            null,
-            null,
-            mock<ServiceHealthChecker>(),
-            toolSelector,
-            SystemPromptSelector(),
-            modelSelector,
-            MockEnvironment(),
-            ObjectMapper(),
-            LlmMetrics(),
-            mock<AgentScopeAuthorizer> { on { verified() } doAnswer { true } },
-            conversations,
-            owner,
-            mock<ConversationTitler>(),
-            InFlightTurns(),
-            clock,
-            PageQuerySelector(),
-            reviewCache,
-            holdings
+    ): AgentEndpoints =
+        agentEndpoints(
+            chatClient = client,
+            toolSelector = toolSelector,
+            systemPromptSelector = SystemPromptSelector(),
+            chatModelSelector = modelSelector,
+            conversations = conversations,
+            conversationOwner = owner,
+            clock = clock,
+            reviewCache = reviewCache,
+            holdings = holdings
         )
 
     private fun chunk(

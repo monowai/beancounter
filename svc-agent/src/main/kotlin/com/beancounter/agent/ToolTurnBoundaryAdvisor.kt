@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * that carries tool calls — the ONLY place a `tool_calls` / `tool_use` finish
  * reason ever appears — is therefore removed before it reaches
  * `ChatClient…stream().chatResponse()`. Code downstream that keys off that finish
- * reason (see [AgentController.sseEventsFor]) never sees it, no matter what the
+ * reason (see [StreamTally.eventsFor]) never sees it, no matter what the
  * provider sent.
  *
  * [ToolCallingAdvisor.internalStream] gives each turn its own `chainCopy` and
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * deltas across several elements, Anthropic emits one terminal `message_delta`
  * element — either way, [getOrder] means we run once per turn and see them all,
  * and only need to have observed ONE tool-call-carrying element to mark the
- * boundary. [AgentController.sseEventsFor] turns the synthetic element into the
+ * boundary. [StreamTally.eventsFor] turns the synthetic element into the
  * SSE `reset` event that tells the frontend to drop narration buffered before
  * the tool calls.
  */
@@ -49,7 +49,7 @@ class ToolTurnBoundaryAdvisor : StreamAdvisor {
     companion object {
         /**
          * The finish reason stamped on the synthetic boundary element.
-         * [AgentController.TOOL_TURN_FINISH_REASONS] must contain this value
+         * [StreamTally]'s tool-turn finish reasons must contain this value
          * for the element to become an SSE `reset` event — it references this
          * constant so the contract has a single source of truth.
          */

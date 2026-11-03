@@ -52,13 +52,6 @@ class ConversationService(
                 )
             }
 
-    /** Whether the owner's conversation [id] is kept out of the list. */
-    @Transactional(readOnly = true)
-    fun isHidden(
-        ownerId: String,
-        id: String
-    ): Boolean = owned(ownerId, id).hidden
-
     @Transactional(readOnly = true)
     fun list(
         ownerId: String,
@@ -89,13 +82,6 @@ class ConversationService(
         )
     }
 
-    /** What the owner's conversation [id] is. */
-    @Transactional(readOnly = true)
-    fun kindOf(
-        ownerId: String,
-        id: String
-    ): ConversationKind = owned(ownerId, id).kind
-
     /** What the owner's conversation [id] is, and whether it holds a turn yet. */
     @Transactional(readOnly = true)
     fun stateOf(
@@ -111,16 +97,33 @@ class ConversationService(
     fun appendUser(
         ownerId: String,
         id: String,
-        content: String,
-        deepThink: Boolean,
-        label: String? = null,
+        question: Question,
         kind: ConversationKind = ConversationKind.CHAT
-    ): ConversationMessage {
+    ): ConversationMessage = ask(locked(ownerId, id), question, kind)
+
+    /**
+     * Open a turn in one transaction: the replayable [history] before it,
+     * [question] recorded, and — while the conversation has no answer and is
+     * listed — the seed its first answer is titled from.
+     */
+    fun openTurn(
+        ownerId: String,
+        id: String,
+        question: Question,
+        kind: ConversationKind,
+        maxHistory: Int
+    ): OpenedTurn {
         val conversation = locked(ownerId, id)
-        if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(label ?: content)
-        if (!messages.existsByConversationId(id)) conversation.kind = kind
-        // Caller-supplied display text: clip to the column rather than fail the turn.
-        return append(conversation, ROLE_USER, content, deepThink, null, label?.take(LABEL_MAX_CHARS))
+        val stored = replayable(id, maxHistory)
+        ask(conversation, question, kind)
+        // A hidden conversation is never listed, so a title would be an LLM call for nothing.
+        val awaitingTitle = stored.none { it.role == ROLE_ASSISTANT } && !conversation.hidden
+        val seed =
+            TitleSeed(
+                conversation.title,
+                stored.filter { it.role == ROLE_USER }.map { it.content } + question.subject
+            )
+        return OpenedTurn(stored, seed.takeIf { awaitingTitle })
     }
 
     fun appendAssistant(
@@ -129,25 +132,6 @@ class ConversationService(
         content: String,
         error: String?
     ): ConversationMessage = append(locked(ownerId, id), ROLE_ASSISTANT, content, false, error, null)
-
-    /**
-     * Prior turns to replay to the model, oldest first: the trailing [maxTurns]
-     * that the model actually said or was asked. Failed turns are left out —
-     * the model never said that text.
-     */
-    @Transactional(readOnly = true)
-    fun history(
-        ownerId: String,
-        id: String,
-        maxTurns: Int
-    ): List<ChatTurn> {
-        owned(ownerId, id)
-        return messages
-            .findByConversationIdOrderBySeq(id)
-            .filter { it.error == null && it.content.isNotEmpty() }
-            .takeLast(maxTurns)
-            .map { ChatTurn(it.role, it.content) }
-    }
 
     @Transactional(readOnly = true)
     fun titleOf(
@@ -196,6 +180,39 @@ class ConversationService(
         messages.deleteOfIdleSince(cutoff)
         return conversations.deleteIdleSince(cutoff)
     }
+
+    private fun ask(
+        conversation: Conversation,
+        question: Question,
+        kind: ConversationKind
+    ): ConversationMessage {
+        if (conversation.title.isBlank()) conversation.title = ConversationTitles.provisional(question.subject)
+        if (!messages.existsByConversationId(conversation.id)) conversation.kind = kind
+        // Caller-supplied display text: clip to the column rather than fail the turn.
+        return append(
+            conversation,
+            ROLE_USER,
+            question.content,
+            question.deepThink,
+            null,
+            question.label?.take(LABEL_MAX_CHARS)
+        )
+    }
+
+    /**
+     * Prior turns to replay to the model, oldest first: the trailing [maxTurns]
+     * that the model actually said or was asked. Failed turns are left out —
+     * the model never said that text.
+     */
+    private fun replayable(
+        id: String,
+        maxTurns: Int
+    ): List<ChatTurn> =
+        messages
+            .findByConversationIdOrderBySeq(id)
+            .filter { it.error == null && it.content.isNotEmpty() }
+            .takeLast(maxTurns)
+            .map { ChatTurn(it.role, it.content) }
 
     private fun clip(title: String): String = title.trim().take(TITLE_MAX_CHARS).trimEnd()
 

@@ -40,12 +40,11 @@ class ConversationTitler(
                 "Title Case, no quotes, no trailing punctuation."
     }
 
-    /** Title [conversationId] from its [questions] and first [answer]; no-op without a model. */
+    /** Title [conversationId] from its [seed] questions and first [answer]; no-op without a model. */
     fun suggest(
         ownerId: String,
         conversationId: String,
-        provisional: String,
-        questions: List<String>,
+        seed: TitleSeed,
         answer: String
     ): Job? {
         val client = fastChatClient ?: chatClient ?: return null
@@ -56,11 +55,11 @@ class ConversationTitler(
                         client
                             .prompt()
                             .system(SYSTEM)
-                            .user(prompt(questions, answer))
+                            .user(prompt(seed.questions, answer))
                             .call()
                             .content()
                     )
-                if (title != null) service.applyGeneratedTitle(ownerId, conversationId, provisional, title)
+                if (title != null) service.applyGeneratedTitle(ownerId, conversationId, seed.provisional, title)
             } catch (
                 @Suppress("TooGenericExceptionCaught")
                 e: Exception

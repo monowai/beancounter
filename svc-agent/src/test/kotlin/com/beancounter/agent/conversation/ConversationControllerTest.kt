@@ -62,7 +62,7 @@ class ConversationControllerTest {
         question: String
     ): String {
         val id = service.create(ownerId).id
-        service.appendUser(ownerId, id, question, false)
+        service.appendUser(ownerId, id, Question(question))
         service.appendAssistant(ownerId, id, "answer to $question", null)
         return id
     }
@@ -146,7 +146,7 @@ class ConversationControllerTest {
     fun `should expose each conversation's kind`() {
         val chat = seeded(me, "How is my portfolio?")
         val review = service.create(me).id
-        service.appendUser(me, review, "Analyse NATO", false, kind = ConversationKind.HOLDING_ANALYSIS)
+        service.appendUser(me, review, Question("Analyse NATO"), kind = ConversationKind.HOLDING_ANALYSIS)
 
         mockMvc
             .perform(get("/agent/conversations/$review").with(jwt()))
@@ -205,8 +205,7 @@ class ConversationControllerTest {
         verify(titler).suggest(
             eq(me),
             org.mockito.kotlin.any(),
-            eq("Asset Review ACME"),
-            eq(listOf("Asset Review: ACME")),
+            eq(TitleSeed("Asset Review ACME", listOf("Asset Review: ACME"))),
             eq("The answer")
         )
     }
@@ -226,7 +225,7 @@ class ConversationControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.length()").value(0))
         // Never listed, so never worth a title.
-        verify(titler, never()).suggest(any(), any(), any(), any(), any())
+        verify(titler, never()).suggest(any(), any(), any(), any())
     }
 
     @Test

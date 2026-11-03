@@ -1,17 +1,19 @@
 package com.beancounter.agent.review
 
-import com.beancounter.agent.AgentController
+import com.beancounter.agent.AgentEndpoints
 import com.beancounter.agent.AgentQuery
 import com.beancounter.agent.ChatModelSelector
 import com.beancounter.agent.ChatTurn
 import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
+import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationServiceTest
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
+import com.beancounter.agent.conversation.Question
 import com.beancounter.agent.conversation.SteppingClock
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
@@ -78,6 +80,9 @@ class AssetReviewCacheTest {
     @Autowired
     private lateinit var clock: SteppingClock
 
+    @Autowired
+    private lateinit var transactionManager: org.springframework.transaction.PlatformTransactionManager
+
     private var me = "owner-me"
     private val owner = mock<ConversationOwner> { on { id() } doAnswer { me } }
     private val request = mock<ChatClient.ChatClientRequestSpec>(defaultAnswer = org.mockito.Answers.RETURNS_SELF)
@@ -115,24 +120,16 @@ class AssetReviewCacheTest {
     private fun controller(
         reviewCache: AssetReviewCache = cache,
         environment: MockEnvironment = MockEnvironment()
-    ): AgentController =
-        AgentController(
-            client,
-            null,
-            null,
-            mock<ServiceHealthChecker>(),
-            mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
-            mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
-            modelSelector,
-            environment,
-            ObjectMapper(),
-            LlmMetrics(),
-            mock<AgentScopeAuthorizer> { on { verified() } doAnswer { true } },
-            conversations,
-            owner,
-            mock<ConversationTitler>(),
-            InFlightTurns(),
-            clock,
+    ): AgentEndpoints =
+        agentEndpoints(
+            chatClient = client,
+            toolSelector = mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
+            systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
+            chatModelSelector = modelSelector,
+            environment = environment,
+            conversations = conversations,
+            conversationOwner = owner,
+            clock = clock,
             reviewCache = reviewCache
         )
 
@@ -318,7 +315,7 @@ class AssetReviewCacheTest {
     @Test
     fun `a review asked inside a conversation with earlier turns should never be cached`() {
         val id = conversations.create(me).id
-        conversations.appendUser(me, id, "What is NATO?", false)
+        conversations.appendUser(me, id, Question("What is NATO?"))
         conversations.appendAssistant(me, id, "An ETF.", null)
 
         streamed(review(conversationId = id))
@@ -474,18 +471,14 @@ class AssetReviewCacheTest {
     }
 
     @Test
-    fun `a failure to store the review should not cost the caller the answer`() {
-        val failing =
-            object : AssetReviewCache {
-                override val enabled = true
-
-                override fun find(key: AssetReviewKey): String? = null
-
-                override fun store(
-                    key: AssetReviewKey,
-                    content: String
-                ): Unit = throw org.springframework.dao.DataIntegrityViolationException("uk_asset_review_cache")
+    fun `a failure to read or store the review should not cost the caller the answer`() {
+        val broken =
+            mock<AssetReviewRepository> {
+                on { findByMarketAndTickerAndReviewDateAndModel(any(), any(), any(), any()) } doAnswer {
+                    throw org.springframework.dao.DataAccessResourceFailureException("agent database unavailable")
+                }
             }
+        val failing = AssetReviewCacheService(broken, transactionManager, clock, true, Duration.ofHours(8))
 
         val events =
             controller(failing)

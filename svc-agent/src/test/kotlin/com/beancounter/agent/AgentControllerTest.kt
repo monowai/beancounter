@@ -1,9 +1,5 @@
 package com.beancounter.agent
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.read.ListAppender
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.health.AgentHealthResponse
@@ -19,7 +15,6 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.UserMessage
@@ -82,27 +77,6 @@ private fun transientConnectError(): Throwable {
 }
 
 /**
- * DeepSeek's out-of-credit failure on the blocking path. Spring AI's
- * `RetryUtils.DEFAULT_RESPONSE_ERROR_HANDLER` formats every non-2xx as
- * `"<status> - <body>"`, so the HTTP status only ever reaches us as the leading
- * token of the message.
- */
-private fun outOfCreditSync(): Throwable =
-    RuntimeException(
-        "402 - {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\"," +
-            "\"param\":null,\"code\":\"invalid_request_error\"}}"
-    )
-
-/**
- * The same provider failure on the streaming path, which goes through WebClient
- * and therefore surfaces a typed [org.springframework.web.reactive.function.client.WebClientResponseException]
- * with a differently shaped message. Both shapes must classify identically.
- */
-private fun outOfCreditStream(): Throwable =
-    org.springframework.web.reactive.function.client.WebClientResponseException
-        .create(402, "Payment Required", org.springframework.http.HttpHeaders(), ByteArray(0), null)
-
-/**
  * Unit tests for [AgentController]. The agent's actual behaviour is provided by
  * Spring AI tool calling, which is exercised end-to-end against a real LLM —
  * not in a unit test. Here we only check the controller's contract: health
@@ -151,27 +125,24 @@ class AgentControllerTest {
         healthChecker: ServiceHealthChecker = stubChecker(),
         scopeAuthorizer: AgentScopeAuthorizer = permissiveAuthorizer,
         clock: java.time.Clock = java.time.Clock.systemUTC()
-    ): AgentController =
-        AgentController(
-            chatClient,
-            null, // fastChatClient (non-thinking) — routing not exercised by these unit tests
-            // anthropicCacheOptions is optional; null is fine — the controller
-            // gracefully omits .cacheOptions when the bean isn't present.
-            null,
-            healthChecker,
+    ): AgentEndpoints =
+        agentEndpoints(
+            chatClient = chatClient,
+            healthChecker = healthChecker,
+            toolSelector = toolSelector,
+            systemPromptSelector = systemPromptSelector,
+            chatModelSelector = chatModelSelector,
+            environment = environment,
+            scopeAuthorizer = scopeAuthorizer,
+            clock = clock
+        )
+
+    private fun prompts(clock: java.time.Clock = java.time.Clock.systemUTC()): TurnPrompts =
+        TurnPrompts(
             toolSelector,
             systemPromptSelector,
-            chatModelSelector,
-            environment,
-            ObjectMapper(),
+            ModelRouting(null, null, null, chatModelSelector, environment),
             LlmMetrics(),
-            scopeAuthorizer,
-            // Stateless requests only here; conversation recording is covered
-            // against a real store in AgentConversationTest.
-            mock(),
-            mock(),
-            mock(),
-            InFlightTurns(),
             clock
         )
 
@@ -217,9 +188,9 @@ class AgentControllerTest {
         val question = "how is the market today?"
 
         val withContext =
-            controller(clock = fixed)
+            prompts(fixed)
                 .buildUserMessage(AgentQuery(question, context = mapOf("portfolioCode" to "VOO")))
-        val withoutContext = controller(clock = fixed).buildUserMessage(AgentQuery(question))
+        val withoutContext = prompts(fixed).buildUserMessage(AgentQuery(question))
 
         assertThat(withContext).contains("2026-06-06")
         assertThat(withContext).contains("portfolioCode: VOO")
@@ -274,28 +245,21 @@ class AgentControllerTest {
         thinking: ChatClient,
         fast: ChatClient,
         reasons: Boolean
-    ): AgentController {
+    ): AgentEndpoints {
         val selector =
             mock<ChatModelSelector> {
                 on { selectFor(anyOrNull(), any()) } doReturn "test-model-id"
                 on { reasonsFor(anyOrNull()) } doReturn reasons
             }
-        return AgentController(
-            thinking,
-            fast,
-            null,
-            stubChecker(),
-            toolSelector,
-            systemPromptSelector,
-            selector,
-            MockEnvironment().withProperty("agent.provider", "deepseek"),
-            ObjectMapper(),
-            LlmMetrics(),
-            permissiveAuthorizer,
-            mock(),
-            mock(),
-            mock(),
-            InFlightTurns()
+        return agentEndpoints(
+            chatClient = thinking,
+            fastChatClient = fast,
+            healthChecker = stubChecker(),
+            toolSelector = toolSelector,
+            systemPromptSelector = systemPromptSelector,
+            chatModelSelector = selector,
+            environment = MockEnvironment().withProperty("agent.provider", "deepseek"),
+            scopeAuthorizer = permissiveAuthorizer
         )
     }
 
@@ -325,7 +289,14 @@ class AgentControllerTest {
 
     @Test
     fun `buildOptions gives a reasoning turn the thinking budget`() {
-        val ctrl = routing(answering("x"), answering("y"), reasons = true)
+        val ctrl =
+            ModelRouting(
+                null,
+                null,
+                null,
+                chatModelSelector,
+                MockEnvironment().withProperty("agent.provider", "deepseek")
+            )
 
         val opts =
             (
@@ -400,8 +371,12 @@ class AgentControllerTest {
         whenever(callResponse.content()).thenReturn("Up 2%.")
         val conversations =
             mock<com.beancounter.agent.conversation.ConversationService> {
-                on { history(any(), any(), any()) } doReturn emptyList()
-                on { titleOf(any(), any()) } doReturn "Portfolio"
+                on { openTurn(any(), any(), any(), any(), any()) } doReturn
+                    com.beancounter.agent.conversation.OpenedTurn(
+                        emptyList(),
+                        com.beancounter.agent.conversation
+                            .TitleSeed("Portfolio", listOf("How am I doing?"))
+                    )
                 on { stateOf(any(), any()) } doReturn
                     com.beancounter.agent.conversation.ConversationState(
                         com.beancounter.agent.conversation.ConversationKind.CHAT,
@@ -413,22 +388,16 @@ class AgentControllerTest {
             }
         val owner = mock<com.beancounter.agent.conversation.ConversationOwner> { on { id() } doReturn "me" }
         val ctrl =
-            AgentController(
-                client,
-                null,
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                environment,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                conversations,
-                owner,
-                mock(),
-                InFlightTurns()
+            agentEndpoints(
+                chatClient = client,
+                healthChecker = stubChecker(),
+                toolSelector = toolSelector,
+                systemPromptSelector = systemPromptSelector,
+                chatModelSelector = chatModelSelector,
+                environment = environment,
+                scopeAuthorizer = permissiveAuthorizer,
+                conversations = conversations,
+                conversationOwner = owner
             )
 
         val response = ctrl.query(AgentQuery("How am I doing?", conversationId = "c1"))
@@ -562,92 +531,6 @@ class AgentControllerTest {
         assertThat(events[0].data()).isEqualTo("Hello")
         assertThat(events[1].data()).isEqualTo(" world")
         assertThat(events[2].event()).isEqualTo(EVENT_DONE)
-    }
-
-    @Test
-    fun `should emit token event for narration text with no finish reason`() {
-        val events = controller().sseEventsFor("Hello", null)
-
-        assertThat(events).hasSize(1)
-        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
-        assertThat(events[0].data()).isEqualTo("Hello")
-    }
-
-    @Test
-    fun `should append reset event when turn finishes with tool calls`() {
-        val events = controller().sseEventsFor("Let me gather that data...", "TOOL_CALLS")
-
-        assertThat(events).hasSize(2)
-        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
-        assertThat(events[0].data()).isEqualTo("Let me gather that data...")
-        assertThat(events[1].event()).isEqualTo(EVENT_RESET)
-    }
-
-    @Test
-    fun `should append reset event when turn finishes with anthropic tool use`() {
-        // Anthropic (svc-agent's default provider — model.chat: anthropic) sets
-        // finishReason from StopReason.toString(), whose wire value for a
-        // tool-calling turn is "tool_use", not "tool_calls". Without matching
-        // this, the preamble bug survives on the default routing path.
-        val events = controller().sseEventsFor("Let me check that...", "tool_use")
-
-        assertThat(events).hasSize(2)
-        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
-        assertThat(events[0].data()).isEqualTo("Let me check that...")
-        assertThat(events[1].event()).isEqualTo(EVENT_RESET)
-    }
-
-    @Test
-    fun `should not emit reset and keep streaming for unknown finish reason`() {
-        // A provider/Spring AI version bump could change the tool-turn wire
-        // value without this code noticing — the safe default is to keep
-        // streaming and not fire a false reset. AgentController.log.warn
-        // covers the observability side (not asserted here — see PR review).
-        val events = controller().sseEventsFor("Some narration.", "banana")
-
-        assertThat(events).hasSize(1)
-        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
-        assertThat(events[0].data()).isEqualTo("Some narration.")
-    }
-
-    @Test
-    fun `should emit only reset for empty metadata-only tool-call chunk`() {
-        // Case-insensitive: DeepSeek emits "TOOL_CALLS" but the check must also
-        // match lowercase, e.g. an OpenAI-style finish reason.
-        val events = controller().sseEventsFor("", "tool_calls")
-
-        assertThat(events).hasSize(1)
-        assertThat(events[0].event()).isEqualTo(EVENT_RESET)
-    }
-
-    @Test
-    fun `should not emit reset when turn finishes with stop`() {
-        val events = controller().sseEventsFor("Final answer.", "STOP")
-
-        assertThat(events).hasSize(1)
-        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
-        assertThat(events[0].data()).isEqualTo("Final answer.")
-    }
-
-    @Test
-    fun `should return empty list and not warn for blank text and blank finish reason`() {
-        // DeepSeekChatModel maps an absent finish_reason to "" on EVERY streamed
-        // chunk (not once per turn) — a blank reason must be treated the same as
-        // null, or this warns dozens of times a second in production.
-        lateinit var events: List<org.springframework.http.codec.ServerSentEvent<String>>
-        val warnings = captureWarnings { events = controller().sseEventsFor("", "") }
-
-        assertThat(events).isEmpty()
-        assertThat(warnings).isEmpty()
-    }
-
-    @Test
-    fun `should emit exactly one token event for text with a blank finish reason`() {
-        val events = controller().sseEventsFor("hi", "")
-
-        assertThat(events).hasSize(1)
-        assertThat(events[0].event()).isEqualTo(EVENT_TOKEN)
-        assertThat(events[0].data()).isEqualTo("hi")
     }
 
     @Test
@@ -842,88 +725,6 @@ class AgentControllerTest {
     }
 
     @Test
-    fun `classifyError returns provider-quota for Anthropic credit balance errors`() {
-        val anthropicQuota =
-            RuntimeException(
-                "Response exception, Status: [400 BAD_REQUEST], " +
-                    "Body:[{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\"," +
-                    "\"message\":\"Your credit balance is too low to access the Anthropic API.\"}}]"
-            )
-        assertThat(controller().classifyError(anthropicQuota))
-            .isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError returns provider-quota for a DeepSeek 402 on either transport`() {
-        // DeepSeek answers an empty balance with HTTP 402 / "Insufficient
-        // Balance" — nothing like Anthropic's 400 + "credit balance" text, so
-        // the original body-string match classified it as a generic
-        // agent-error and the UI told the user their request had failed.
-        assertThat(controller().classifyError(outOfCreditSync()))
-            .isEqualTo("provider-quota")
-        assertThat(controller().classifyError(outOfCreditStream()))
-            .isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError finds the provider failure through a wrapper exception`() {
-        // Reactor and Spring AI both re-wrap the provider error before it
-        // reaches onErrorResume, so classification has to read the cause chain.
-        val wrapped = IllegalStateException("stream failed", outOfCreditStream())
-
-        assertThat(controller().classifyError(wrapped)).isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError does not read a 402 out of an unrelated number`() {
-        assertThat(controller().classifyError(RuntimeException("tool returned 11402 rows")))
-            .isEqualTo(OPAQUE_ERROR)
-    }
-
-    @Test
-    fun `classifyError needs one exception to carry both the 400 and the billing text`() {
-        // Scanning the joined cause chain would combine a "billing" mentioned
-        // in a tool result with a 400 raised somewhere else and call it a
-        // quota failure.
-        val split =
-            RuntimeException(
-                "tool result: monthly billing summary",
-                RuntimeException("400 - {\"error\":{\"message\":\"model does not exist\"}}")
-            )
-        assertThat(controller().classifyError(split)).isEqualTo(OPAQUE_ERROR)
-
-        // The genuine Anthropic shape — one exception, both signals — still
-        // classifies.
-        val anthropicBilling =
-            RuntimeException("400 - {\"error\":{\"message\":\"Please check your Plans & Billing page.\"}}")
-        assertThat(controller().classifyError(anthropicBilling)).isEqualTo("provider-quota")
-    }
-
-    @Test
-    fun `classifyError returns provider-rate for HTTP 429 and rate-limit text`() {
-        assertThat(controller().classifyError(RuntimeException("HTTP 429 Too Many Requests")))
-            .isEqualTo("provider-rate")
-        assertThat(controller().classifyError(RuntimeException("anthropic.rate_limit_exceeded")))
-            .isEqualTo("provider-rate")
-    }
-
-    @Test
-    fun `classifyError returns provider-timeout for TimeoutException and timeout text`() {
-        assertThat(controller().classifyError(java.util.concurrent.TimeoutException()))
-            .isEqualTo("provider-timeout")
-        assertThat(controller().classifyError(RuntimeException("Read timed out")))
-            .isEqualTo("provider-timeout")
-    }
-
-    @Test
-    fun `classifyError falls back to agent-error for unknown failures`() {
-        assertThat(controller().classifyError(RuntimeException("something exploded")))
-            .isEqualTo(OPAQUE_ERROR)
-        assertThat(controller().classifyError(RuntimeException(null as String?)))
-            .isEqualTo(OPAQUE_ERROR)
-    }
-
-    @Test
     fun `stream emits an error event when the upstream Flux fails`() {
         val request =
             mock<ChatClient.ChatClientRequestSpec>(
@@ -1060,24 +861,7 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on deepseek provider returns DeepSeekChatOptions with model + maxTokens`() {
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
         val opts = ctrl.buildOptions("deepseek-flash", deepThink = false)?.build()
         assertThat(opts).isInstanceOf(org.springframework.ai.deepseek.DeepSeekChatOptions::class.java)
@@ -1089,24 +873,7 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on deepseek provider with deepThink raises maxTokens to 16k`() {
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
             (
@@ -1123,24 +890,7 @@ class AgentControllerTest {
         // the whole 4096 output budget on reasoning_content and finished on
         // `length` with zero answer text — prompt was only 27k of a 1M window.
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         val opts =
             (
                 ctrl.buildOptions("deepseek-flash", deepThink = false, think = true)
@@ -1157,24 +907,7 @@ class AgentControllerTest {
     fun `buildOptions on deepseek provider with think and deepThink keeps high reasoning effort`() {
         // The Chat FAB defaults to low effort; an explicit deep-think turn must not.
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         val opts =
             (
                 ctrl.buildOptions("deepseek-v4-pro", deepThink = true, think = true)
@@ -1187,7 +920,7 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on anthropic default with deepThink enables thinking`() {
         // agent.provider=anthropic (set on the shared environment) → real Anthropic surface.
-        val ctrl = controller()
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, environment)
         val opts =
             (
                 ctrl.buildOptions("claude-opus-4-7", deepThink = true)
@@ -1203,7 +936,7 @@ class AgentControllerTest {
 
     @Test
     fun `buildOptions on anthropic default without deepThink omits thinking`() {
-        val ctrl = controller()
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, environment)
         val opts =
             (
                 ctrl.buildOptions("claude-haiku-4-5-20251001", deepThink = false)
@@ -1217,31 +950,14 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on ollama provider returns null for default model fallback`() {
         val env = MockEnvironment().withProperty("agent.provider", "ollama")
-        val ctrl =
-            AgentController(
-                null,
-                null, // fastChatClient
-                null,
-                stubChecker(),
-                toolSelector,
-                systemPromptSelector,
-                chatModelSelector,
-                env,
-                ObjectMapper(),
-                LlmMetrics(),
-                permissiveAuthorizer,
-                mock(),
-                mock(),
-                mock(),
-                InFlightTurns()
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
     }
 
     @Test
     fun `system prompt is the domain prompt alone on a first turn`() {
-        assertThat(controller().systemPromptFor(AgentQuery("hi"))).isEqualTo("test-system-prompt")
-        assertThat(controller().systemPromptFor(AgentQuery("hi", history = emptyList())))
+        assertThat(prompts().systemPromptFor(AgentQuery("hi"))).isEqualTo("test-system-prompt")
+        assertThat(prompts().systemPromptFor(AgentQuery("hi", history = emptyList())))
             .isEqualTo("test-system-prompt")
     }
 
@@ -1259,7 +975,7 @@ class AgentControllerTest {
                     )
             )
 
-        val prompt = controller().systemPromptFor(followUp)
+        val prompt = prompts().systemPromptFor(followUp)
 
         assertThat(prompt).startsWith("test-system-prompt")
         assertThat(prompt).endsWith(DomainSystemPrompts.FOLLOW_UP)
@@ -1267,12 +983,12 @@ class AgentControllerTest {
 
     @Test
     fun `historyMessages returns empty list when history is null`() {
-        assertThat(controller().historyMessages(AgentQuery("hi"))).isEmpty()
+        assertThat(prompts().historyMessages(AgentQuery("hi"))).isEmpty()
     }
 
     @Test
     fun `historyMessages returns empty list when history is empty`() {
-        assertThat(controller().historyMessages(AgentQuery("hi", history = emptyList()))).isEmpty()
+        assertThat(prompts().historyMessages(AgentQuery("hi", history = emptyList()))).isEmpty()
     }
 
     @Test
@@ -1284,7 +1000,7 @@ class AgentControllerTest {
                 ChatTurn("user", "Kiwi")
             )
 
-        val messages = controller().historyMessages(AgentQuery("hi", history = history))
+        val messages = prompts().historyMessages(AgentQuery("hi", history = history))
 
         assertThat(messages).containsExactly(
             UserMessage("what's my NZD exposure?"),
@@ -1297,7 +1013,7 @@ class AgentControllerTest {
     fun `historyMessages truncates to the trailing 6 turns`() {
         val history = (1..10).map { ChatTurn("user", "turn $it") }
 
-        val messages = controller().historyMessages(AgentQuery("hi", history = history))
+        val messages = prompts().historyMessages(AgentQuery("hi", history = history))
 
         assertThat(messages).hasSize(6)
         assertThat(messages).containsExactly(
@@ -1350,18 +1066,5 @@ class AgentControllerTest {
         org.mockito.kotlin
             .verify(request)
             .messages(listOf(UserMessage("earlier question")))
-    }
-
-    /** Mirrors AlphaClassificationEnricherTest's captureWarnings pattern. */
-    private fun captureWarnings(block: () -> Unit): List<String> {
-        val appender = ListAppender<ILoggingEvent>().apply { start() }
-        val logger = LoggerFactory.getLogger(AgentController::class.java) as Logger
-        logger.addAppender(appender)
-        try {
-            block()
-        } finally {
-            logger.detachAppender(appender)
-        }
-        return appender.list.filter { it.level == Level.WARN }.map { it.formattedMessage }
     }
 }

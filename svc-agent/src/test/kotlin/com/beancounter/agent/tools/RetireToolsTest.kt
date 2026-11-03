@@ -1,6 +1,7 @@
 package com.beancounter.agent.tools
 
-import com.beancounter.agent.clients.RetireServiceClient
+import com.beancounter.agent.clients.RetirePlansClient
+import com.beancounter.agent.clients.RetireProjectionClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
@@ -16,8 +17,9 @@ import java.math.BigDecimal
  * pass through [ProjectionCompactor] while the small read tools stay verbatim.
  */
 internal class RetireToolsTest {
-    private val client = mock<RetireServiceClient>()
-    private val tools = RetireTools(client, ProjectionCompactor())
+    private val plans = mock<RetirePlansClient>()
+    private val projections = mock<RetireProjectionClient>()
+    private val tools = RetireTools(plans, projections, ProjectionCompactor())
 
     private fun projectionWith(years: Int): Map<String, Any> =
         mapOf(
@@ -35,7 +37,7 @@ internal class RetireToolsTest {
 
     @Test
     fun `projection results are compacted before the LLM sees them`() {
-        whenever(client.runProjection("plan-1", null)) doReturn projectionWith(40)
+        whenever(projections.runProjection("plan-1", null)) doReturn projectionWith(40)
 
         val result = tools.runRetirementProjection("plan-1")
 
@@ -48,7 +50,7 @@ internal class RetireToolsTest {
 
     @Test
     fun `scenario results are compacted`() {
-        whenever(client.runScenarios("plan-1", "NZD")) doReturn
+        whenever(projections.runScenarios("plan-1", "NZD")) doReturn
             mapOf("scenarios" to listOf(mapOf("name" to "base") + projectionWith(30)))
 
         val result = tools.runRetirementScenarios("plan-1", "NZD")
@@ -59,7 +61,7 @@ internal class RetireToolsTest {
 
     @Test
     fun `monte carlo results are compacted`() {
-        whenever(client.runMonteCarlo("plan-1", 1000, null)) doReturn projectionWith(45)
+        whenever(projections.runMonteCarlo("plan-1", 1000, null)) doReturn projectionWith(45)
 
         val result = tools.runRetirementMonteCarlo("plan-1")
 
@@ -71,14 +73,14 @@ internal class RetireToolsTest {
         // Small, and every field is one the model may need verbatim — compacting
         // here would cost clarity and save nothing.
         val plan = mapOf("planId" to "plan-1", "name" to "Retire at 61", "currency" to "NZD")
-        whenever(client.getPlan("plan-1")) doReturn plan
+        whenever(plans.getPlan("plan-1")) doReturn plan
 
         assertThat(tools.getRetirementPlan("plan-1")).isEqualTo(plan)
     }
 
     @Test
     fun `independence plans are listed straight from the client`() {
-        val plans =
+        val journeys =
             mapOf<String, Any?>(
                 "data" to
                     listOf(
@@ -89,9 +91,9 @@ internal class RetireToolsTest {
                         )
                     )
             )
-        whenever(client.listIndependencePlans()) doReturn plans
+        whenever(plans.listIndependencePlans()) doReturn journeys
 
-        assertThat(tools.listIndependencePlans()).isEqualTo(plans)
+        assertThat(tools.listIndependencePlans()).isEqualTo(journeys)
     }
 
     @Test

@@ -113,12 +113,6 @@ class AgentQuota(
         limits.deleteById(ownerId)
         return statusOf(ownerId)
     }
-
-    /** Drop every turn counted against [ownerId]. */
-    @Transactional
-    fun forget(ownerId: String) {
-        usage.deleteOfOwner(ownerId)
-    }
 }
 
 /** The configured [defaultLimit], and [users] keyed by `SystemUser.id`; a user absent from it is on the default. */

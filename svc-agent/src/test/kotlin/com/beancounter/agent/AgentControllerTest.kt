@@ -280,7 +280,14 @@ class AgentControllerTest {
 
     @Test
     fun `buildOptions gives a reasoning turn the thinking budget`() {
-        val ctrl = routing(answering("x"), answering("y"), reasons = true)
+        val ctrl =
+            ModelRouting(
+                null,
+                null,
+                null,
+                chatModelSelector,
+                MockEnvironment().withProperty("agent.provider", "deepseek")
+            )
 
         val opts =
             (
@@ -841,16 +848,7 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on deepseek provider returns DeepSeekChatOptions with model + maxTokens`() {
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            agentController(
-                chatClient = null,
-                healthChecker = stubChecker(),
-                toolSelector = toolSelector,
-                systemPromptSelector = systemPromptSelector,
-                chatModelSelector = chatModelSelector,
-                environment = env,
-                scopeAuthorizer = permissiveAuthorizer
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build it to assert.
         val opts = ctrl.buildOptions("deepseek-flash", deepThink = false)?.build()
         assertThat(opts).isInstanceOf(org.springframework.ai.deepseek.DeepSeekChatOptions::class.java)
@@ -862,16 +860,7 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on deepseek provider with deepThink raises maxTokens to 16k`() {
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            agentController(
-                chatClient = null,
-                healthChecker = stubChecker(),
-                toolSelector = toolSelector,
-                systemPromptSelector = systemPromptSelector,
-                chatModelSelector = chatModelSelector,
-                environment = env,
-                scopeAuthorizer = permissiveAuthorizer
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         // Spring AI 2.0: buildOptions returns a ChatOptions.Builder; build() it.
         val opts =
             (
@@ -888,16 +877,7 @@ class AgentControllerTest {
         // the whole 4096 output budget on reasoning_content and finished on
         // `length` with zero answer text — prompt was only 27k of a 1M window.
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            agentController(
-                chatClient = null,
-                healthChecker = stubChecker(),
-                toolSelector = toolSelector,
-                systemPromptSelector = systemPromptSelector,
-                chatModelSelector = chatModelSelector,
-                environment = env,
-                scopeAuthorizer = permissiveAuthorizer
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         val opts =
             (
                 ctrl.buildOptions("deepseek-flash", deepThink = false, think = true)
@@ -914,16 +894,7 @@ class AgentControllerTest {
     fun `buildOptions on deepseek provider with think and deepThink keeps high reasoning effort`() {
         // The Chat FAB defaults to low effort; an explicit deep-think turn must not.
         val env = MockEnvironment().withProperty("agent.provider", "deepseek")
-        val ctrl =
-            agentController(
-                chatClient = null,
-                healthChecker = stubChecker(),
-                toolSelector = toolSelector,
-                systemPromptSelector = systemPromptSelector,
-                chatModelSelector = chatModelSelector,
-                environment = env,
-                scopeAuthorizer = permissiveAuthorizer
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         val opts =
             (
                 ctrl.buildOptions("deepseek-v4-pro", deepThink = true, think = true)
@@ -936,7 +907,7 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on anthropic default with deepThink enables thinking`() {
         // agent.provider=anthropic (set on the shared environment) → real Anthropic surface.
-        val ctrl = controller()
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, environment)
         val opts =
             (
                 ctrl.buildOptions("claude-opus-4-7", deepThink = true)
@@ -952,7 +923,7 @@ class AgentControllerTest {
 
     @Test
     fun `buildOptions on anthropic default without deepThink omits thinking`() {
-        val ctrl = controller()
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, environment)
         val opts =
             (
                 ctrl.buildOptions("claude-haiku-4-5-20251001", deepThink = false)
@@ -966,16 +937,7 @@ class AgentControllerTest {
     @Test
     fun `buildOptions on ollama provider returns null for default model fallback`() {
         val env = MockEnvironment().withProperty("agent.provider", "ollama")
-        val ctrl =
-            agentController(
-                chatClient = null,
-                healthChecker = stubChecker(),
-                toolSelector = toolSelector,
-                systemPromptSelector = systemPromptSelector,
-                chatModelSelector = chatModelSelector,
-                environment = env,
-                scopeAuthorizer = permissiveAuthorizer
-            )
+        val ctrl = ModelRouting(null, null, null, chatModelSelector, env)
         assertThat(ctrl.buildOptions("anything", deepThink = true)).isNull()
     }
 

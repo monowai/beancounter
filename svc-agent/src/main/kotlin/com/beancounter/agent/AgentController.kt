@@ -21,15 +21,10 @@ import com.beancounter.common.exception.BusinessException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
-import org.springframework.ai.anthropic.AnthropicCacheOptions
-import org.springframework.ai.anthropic.AnthropicChatOptions
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -62,16 +57,10 @@ import java.time.LocalDate
 @RequestMapping("/agent")
 @Tag(name = "Agent", description = "Natural-language Beancounter assistant")
 class AgentController(
-    @Autowired(required = false) private val chatClient: ChatClient?,
-    @Autowired(required = false)
-    @Qualifier("fastChatClient")
-    private val fastChatClient: ChatClient?,
-    @Autowired(required = false) private val anthropicCacheOptions: AnthropicCacheOptions?,
+    private val routing: ModelRouting,
     private val healthChecker: ServiceHealthChecker,
     private val toolSelector: ToolSelector,
     private val systemPromptSelector: SystemPromptSelector,
-    private val chatModelSelector: ChatModelSelector,
-    private val environment: Environment,
     private val objectMapper: ObjectMapper,
     private val llmMetrics: LlmMetrics,
     private val scopeAuthorizer: AgentScopeAuthorizer,
@@ -100,13 +89,6 @@ class AgentController(
         // turns — bounds the tokens a single request can push into the
         // prompt regardless of what the client sends.
         const val MAX_HISTORY_TURNS = 6
-
-        // DeepSeek output caps. In thinking mode `max_tokens` covers
-        // reasoning_content plus the answer, so a thinking turn needs the
-        // deep-tier headroom; the non-thinking fast client keeps the small cap.
-        const val FAST_MAX_TOKENS = 4096
-        const val THINKING_MAX_TOKENS = 16384
-        const val THINKING_BUDGET_TOKENS = 4096L
 
         const val QUERY_REQUIRED = "A query is required for this page"
 
@@ -310,7 +292,7 @@ class AgentController(
                     deepThink = request.deepThink
                 )
             )
-        val key = AssetReviewKey(asset.market, asset.ticker, reviewDate, answeringModel(turn))
+        val key = AssetReviewKey(asset.market, asset.ticker, reviewDate, routing.answeringModel(turn))
         val hit = cachedReview(key, request.refresh)
         if (hit != null) return hit
         val answer = ask(turn)
@@ -342,33 +324,35 @@ class AgentController(
     private fun ask(turn: AgentQuery): ModelAnswer {
         val userMessage = buildUserMessage(turn)
         val tools = toolSelector.selectTools(turn.context)
-        val modelId = chatModelSelector.selectFor(turn.context, turn.deepThink)
-        val call =
-            ModelCall(
-                modelId = modelId,
-                reportedModelId = modelId.takeIf { anthropicActive },
-                tools = tools.map { it.javaClass.simpleName },
-                query = HtmlUtils.htmlEscape(turn.query)
-            )
+        val model = routing.modelFor(turn)
+        val call = modelCall(turn, model, tools)
 
         // ChatClient.tools(Object...) has no List overload
         @Suppress("SpreadOperator")
         val promptSpec =
-            clientFor(turn)
+            model.client
                 .prompt()
                 .system(systemPromptFor(turn))
                 .messages(historyMessages(turn))
                 .user(userMessage)
                 .tools(*tools)
-        val callResponse =
-            buildOptions(modelId, turn.deepThink, thinks(turn))?.let { opts ->
-                promptSpec.options(opts).call()
-            } ?: promptSpec.call()
+        val callResponse = model.options?.let { promptSpec.options(it).call() } ?: promptSpec.call()
         val chatResponse = callResponse.chatResponse()
         val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: ""
         llmMetrics.completed(call, chatResponse?.metadata?.usage, content.length.toLong(), LlmMetrics.Mode.CALL)
-        return ModelAnswer(content, chatResponse?.result?.metadata?.finishReason, modelId)
+        return ModelAnswer(content, chatResponse?.result?.metadata?.finishReason, model.modelId)
     }
+
+    private fun modelCall(
+        turn: AgentQuery,
+        model: TurnModel,
+        tools: Array<Any>
+    ) = ModelCall(
+        modelId = model.modelId,
+        reportedModelId = model.reportedModelId,
+        tools = tools.map { it.javaClass.simpleName },
+        query = HtmlUtils.htmlEscape(turn.query)
+    )
 
     /** A failed `/query`, in the shape every failure takes. */
     private fun failure(
@@ -420,18 +404,9 @@ class AgentController(
             market = subject.market,
             ticker = subject.ticker,
             reviewDate = LocalDate.now(clock),
-            model = answeringModel(turn)
+            model = routing.answeringModel(turn)
         )
     }
-
-    /**
-     * The model that actually answers [turn]: the selected tier where the
-     * per-call override applies ([buildOptions]: Anthropic and DeepSeek, where
-     * `deepThink` selects the deep tier's model), else the provider's own
-     * configured model, named by the provider since every tier gets it.
-     */
-    private fun answeringModel(turn: AgentQuery): String =
-        if (anthropicActive || deepseekActive) chatModelSelector.selectFor(turn.context, turn.deepThink) else provider
 
     /**
      * The cached answer for [key], or null on a miss or when the caller asked
@@ -513,79 +488,6 @@ class AgentController(
             }
             ?: emptyList()
 
-    // Selected provider: the `agent.provider` property, `deepseek` when absent.
-    private val provider: String
-        get() = environment.getProperty(AgentProvider.PROPERTY, AgentProvider.DEFAULT)
-
-    // Anthropic-only feature: the per-call model override uses
-    // AnthropicChatOptions. For any other provider, skip the override and
-    // let the configured ChatClient's default model run.
-    private val anthropicActive: Boolean
-        get() = provider == AgentProvider.ANTHROPIC
-
-    private val deepseekActive: Boolean
-        get() = provider == AgentProvider.DEEPSEEK
-
-    /**
-     * Build per-call ChatOptions for the active LLM surface.
-     *
-     * Returns `null` for surfaces that don't support a per-call model override
-     * (Ollama / OpenAI), in which case the ChatClient's configured default
-     * model answers and tier escalation is silently ignored.
-     *
-     * `deepThink` raises `maxTokens` so the deep tier (deepseek-v4-pro /
-     * claude-opus-*) has headroom for chain-of-thought + final answer; on the
-     * Anthropic surface it also explicitly enables thinking with a 4k budget
-     * (Claude 4 has thinking on by default; setting it explicitly documents
-     * intent and lets the budget be tuned).
-     *
-     * `think` (the interactive Chat FAB) routes to DeepSeek's thinking client,
-     * where `max_tokens` caps reasoning_content *and* the answer together —
-     * DeepSeek's own default in thinking mode is 64k. Under the fast-tier 4k
-     * cap a v4-flash turn on kauri spent the whole budget reasoning about a
-     * 27k-token prompt and finished on `length` with no answer at all, so a
-     * thinking turn gets the same headroom as the deep tier.
-     *
-     * The thinking client defaults every request to `reasoning_effort: low`
-     * (beancounter#1128); a `think` + `deepThink` turn pins `high` here so the
-     * deep tier keeps full effort. Effort is never set without `think` — any
-     * value re-enables thinking on the fast client. Callers pass [thinks], so
-     * `think` is also true for a SMART page's pre-canned prompt: such a turn
-     * reasons at low effort, or at high effort on the deep tier.
-     */
-    internal fun buildOptions(
-        modelId: String,
-        deepThink: Boolean,
-        think: Boolean = false
-    ): org.springframework.ai.chat.prompt.ChatOptions.Builder<*>? =
-        when {
-            anthropicActive -> {
-                val b = AnthropicChatOptions.builder().model(modelId)
-                anthropicCacheOptions?.let(b::cacheOptions)
-                if (deepThink) {
-                    b
-                        .maxTokens(THINKING_MAX_TOKENS)
-                        // Spring AI 2.0: the two-arg thinking(type, budget) is
-                        // gone; thinkingEnabled(budgetTokens) is the explicit
-                        // enable + budget call (4k budget preserved).
-                        .thinkingEnabled(THINKING_BUDGET_TOKENS)
-                }
-                b
-            }
-            deepseekActive -> {
-                val b =
-                    org.springframework.ai.deepseek.DeepSeekChatOptions
-                        .builder()
-                        .model(modelId)
-                        .maxTokens(if (deepThink || think) THINKING_MAX_TOKENS else FAST_MAX_TOKENS)
-                if (deepThink && think) b.reasoningEffortHigh()
-                b
-            }
-            else -> {
-                null
-            }
-        }
-
     @GetMapping("/health")
     @Operation(
         summary = "Traffic-light health check for the agent and its downstream services.",
@@ -593,7 +495,7 @@ class AgentController(
             "Pings actuator/health on bc-data, bc-position and bc-event, and reports " +
                 "whether a Spring AI ChatClient is configured. Unauthenticated."
     )
-    fun health(): AgentHealthResponse = healthChecker.check(llmAvailable = chatClient != null)
+    fun health(): AgentHealthResponse = healthChecker.check(llmAvailable = routing.available)
 
     @PostMapping("/query")
     @Operation(
@@ -608,7 +510,7 @@ class AgentController(
     ): ResponseEntity<AgentResponse> {
         scopeAuthorizer.authorize()
         val plan = planFor(body)
-        if (chatClient == null) return noLlm(plan.request)
+        if (!routing.available) return noLlm(plan.request)
         val reviewKey = if (plan.opening == null) reviewKeyFor(body, plan.request, plan.thread) else null
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         val meter = meterFor(body, plan)
@@ -790,7 +692,7 @@ class AgentController(
         // A code, not prose: the streaming path's error payload is a contract
         // the UI renders copy from, and `/query` already answers this case
         // with the same NO_LLM code.
-        if (chatClient == null) return errorEvent(TurnFailure.NO_LLM)
+        if (!routing.available) return errorEvent(TurnFailure.NO_LLM)
         val reviewKey = if (plan.opening == null) reviewKeyFor(body, plan.request, plan.thread) else null
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         val meter = meterFor(body, plan)
@@ -956,7 +858,7 @@ class AgentController(
                     donePayload(
                         content.length.toLong(),
                         System.currentTimeMillis() - startMs,
-                        key.model.takeIf { anthropicActive },
+                        routing.reported(key.model),
                         cached = true
                     )
                 )
@@ -1001,17 +903,11 @@ class AgentController(
         recorder: TurnRecorder
     ): Flux<ServerSentEvent<String>> {
         val tools = toolSelector.selectTools(request.context)
-        val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
-        val call =
-            ModelCall(
-                modelId = modelId,
-                reportedModelId = modelId.takeIf { anthropicActive },
-                tools = tools.map { it.javaClass.simpleName },
-                query = HtmlUtils.htmlEscape(request.query)
-            )
+        val model = routing.modelFor(request)
+        val call = modelCall(request, model, tools)
         val tally = StreamTally()
         val tokenEvents =
-            buildStreamSpec(request, tools, modelId)
+            buildStreamSpec(request, tools, model)
                 .chatResponse()
                 .concatMap { resp -> Flux.fromIterable(tally.accept(resp)) }
         // Transient connectivity blips (e.g. a sub-second DNS failure resolving
@@ -1060,40 +956,21 @@ class AgentController(
         return record { recorder.failed(code) }.thenMany(errorEvent(code))
     }
 
-    /**
-     * Pick the LLM client for this request. Pre-canned prompts (the default,
-     * `think=false`) use the non-thinking [fastChatClient] for lowest latency,
-     * except on the SMART pages, which reason at low effort; the interactive
-     * Chat FAB sets `think=true` to keep DeepSeek thinking mode.
-     * Falls back to the thinking client if no fast client is configured.
-     * Callers guard `chatClient != null` first, so the result is non-null.
-     */
-    private fun clientFor(request: AgentQuery): ChatClient =
-        (if (thinks(request)) chatClient else fastChatClient ?: chatClient)!!
-
-    /**
-     * Whether this turn thinks: asked for (the Chat FAB), or a SMART page's pre-canned prompt,
-     * which reasons at the thinking client's low effort ([ChatModelSelector.reasonsFor]).
-     */
-    private fun thinks(request: AgentQuery): Boolean = request.think || chatModelSelector.reasonsFor(request.context)
-
     private fun buildStreamSpec(
         request: AgentQuery,
         tools: Array<Any>,
-        modelId: String
+        model: TurnModel
     ): ChatClient.StreamResponseSpec {
         // ChatClient.tools(Object...) has no List overload
         @Suppress("SpreadOperator")
         val promptSpec =
-            clientFor(request)
+            model.client
                 .prompt()
                 .system(systemPromptFor(request))
                 .messages(historyMessages(request))
                 .user(buildUserMessage(request))
                 .tools(*tools)
-        return buildOptions(modelId, request.deepThink, thinks(request))?.let { opts ->
-            promptSpec.options(opts).stream()
-        } ?: promptSpec.stream()
+        return model.options?.let { promptSpec.options(it).stream() } ?: promptSpec.stream()
     }
 
     private fun doneEvent(

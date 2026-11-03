@@ -45,14 +45,10 @@ fun agentController(
     quota: TurnQuota = TurnQuota.NONE
 ): AgentController =
     AgentController(
-        chatClient = chatClient,
-        fastChatClient = fastChatClient,
-        anthropicCacheOptions = null,
+        routing = ModelRouting(chatClient, fastChatClient, null, chatModelSelector, environment),
         healthChecker = healthChecker,
         toolSelector = toolSelector,
         systemPromptSelector = systemPromptSelector,
-        chatModelSelector = chatModelSelector,
-        environment = environment,
         objectMapper = ObjectMapper(),
         llmMetrics = LlmMetrics(),
         scopeAuthorizer = scopeAuthorizer,

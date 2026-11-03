@@ -7,6 +7,7 @@ import com.beancounter.marketdata.assets.AccountingTypeService
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -41,11 +42,20 @@ class MarketStackEnricher(
         assetInput: AssetInput
     ): Asset {
         val micCode = marketStackMicCodes[market.code.uppercase()]
-        if (micCode == null) {
+        return if (micCode == null) {
             log.debug("No MarketStack MIC code for market ${market.code}, using default enricher")
-            return defaultEnricher.enrich(id, market, assetInput)
+            defaultEnricher.enrich(id, market, assetInput)
+        } else {
+            enrichFromMarketStack(id, market, assetInput, micCode)
         }
+    }
 
+    private fun enrichFromMarketStack(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+        micCode: String
+    ): Asset {
         // Only the provider call is guarded. currencyService and accountingTypeService are
         // both @Transactional, and a broad catch spanning them swallowed exceptions that
         // had already marked this transaction rollback-only — the enrich "recovered" and
@@ -74,7 +84,15 @@ class MarketStackEnricher(
             log.debug("No MarketStack ticker found for ${assetInput.code} on ${market.code}")
             return defaultEnricher.enrich(id, market, assetInput)
         }
+        return toAsset(id, market, assetInput, ticker)
+    }
 
+    private fun toAsset(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+        ticker: MarketStackTicker
+    ): Asset {
         val marketAlias = market.getAlias(MarketStackService.ID)
         val priceSymbol =
             if (!marketAlias.isNullOrEmpty()) {
@@ -112,9 +130,9 @@ class MarketStackEnricher(
      *    are rejected as ambiguous; the caller then falls back to the market-alias code path.
      */
     internal fun pickTicker(
-        tickers: List<com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker>,
+        tickers: List<MarketStackTicker>,
         code: String
-    ): com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker? {
+    ): MarketStackTicker? {
         val exact =
             tickers.firstOrNull { t ->
                 t.symbol.substringBefore(".").equals(code, ignoreCase = true)

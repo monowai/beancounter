@@ -22,33 +22,37 @@ class AuthProviders(
     fun capture(
         result: SystemUser,
         jwt: Jwt
-    ): SystemUser {
-        if (tokenService.isGoogle() && result.googleId.isBlank()) {
-            // Capture google Id.
-            return systemUserRepository.save(
-                SystemUser(
-                    result.id,
-                    result.email,
-                    result.active,
-                    result.auth0,
-                    subjectOf(jwt),
-                    result.since
+    ): SystemUser =
+        when {
+            tokenService.isGoogle() && result.googleId.isBlank() -> {
+                // Capture google Id.
+                systemUserRepository.save(
+                    SystemUser(
+                        result.id,
+                        result.email,
+                        result.active,
+                        result.auth0,
+                        subjectOf(jwt),
+                        result.since
+                    )
                 )
-            )
-        } else if (tokenService.isAuth0() && result.auth0.isBlank()) {
-            return systemUserRepository.save(
-                SystemUser(
-                    result.id,
-                    result.email,
-                    result.active,
-                    subjectOf(jwt),
-                    result.googleId,
-                    result.since
+            }
+            tokenService.isAuth0() && result.auth0.isBlank() -> {
+                systemUserRepository.save(
+                    SystemUser(
+                        result.id,
+                        result.email,
+                        result.active,
+                        subjectOf(jwt),
+                        result.googleId,
+                        result.since
+                    )
                 )
-            )
+            }
+            else -> {
+                result
+            }
         }
-        return result
-    }
 
     /**
      * A missing or blank `sub` claim is an authentication failure (401), not a

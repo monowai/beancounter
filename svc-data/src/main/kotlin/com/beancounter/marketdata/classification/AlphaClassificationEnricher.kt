@@ -75,19 +75,29 @@ class AlphaClassificationEnricher(
     private fun enrichEquity(asset: Asset): EnrichmentResult {
         val symbol = alphaConfig.getPriceCode(asset)
         val response = alphaProxy.getOverview(symbol, apiKey)
-
-        if (isRateLimited(response)) {
-            log.warn("AlphaVantage rate limit hit while enriching $symbol")
-            return EnrichmentResult.RATE_LIMITED
+        return when {
+            isRateLimited(response) -> {
+                rateLimited(symbol)
+            }
+            isErrorBody(response) -> {
+                logNoData(asset, symbol, "OVERVIEW returned an error or empty body")
+                EnrichmentResult.FAILED
+            }
+            else -> {
+                classifyOverview(
+                    asset,
+                    symbol,
+                    objectMapper.readValue(response, AlphaOverviewResponse::class.java)
+                )
+            }
         }
+    }
 
-        if (response.isBlank() || response.contains("Error")) {
-            logNoData(asset, symbol, "OVERVIEW returned an error or empty body")
-            return EnrichmentResult.FAILED
-        }
-
-        val overview = objectMapper.readValue(response, AlphaOverviewResponse::class.java)
-
+    private fun classifyOverview(
+        asset: Asset,
+        symbol: String,
+        overview: AlphaOverviewResponse
+    ): EnrichmentResult {
         if (overview.sector.isNullOrBlank()) {
             logNoData(asset, symbol, "OVERVIEW carried no Sector")
             return EnrichmentResult.NO_DATA
@@ -137,19 +147,29 @@ class AlphaClassificationEnricher(
     private fun enrichEtf(asset: Asset): EnrichmentResult {
         val symbol = alphaConfig.getPriceCode(asset)
         val response = alphaProxy.getEtfProfile(symbol, apiKey)
-
-        if (isRateLimited(response)) {
-            log.warn("AlphaVantage rate limit hit while enriching $symbol")
-            return EnrichmentResult.RATE_LIMITED
+        return when {
+            isRateLimited(response) -> {
+                rateLimited(symbol)
+            }
+            isErrorBody(response) -> {
+                logNoData(asset, symbol, "ETF_PROFILE returned an error or empty body")
+                EnrichmentResult.FAILED
+            }
+            else -> {
+                classifyEtfProfile(
+                    asset,
+                    symbol,
+                    objectMapper.readValue(response, AlphaEtfProfileResponse::class.java)
+                )
+            }
         }
+    }
 
-        if (response.isBlank() || response.contains("Error")) {
-            logNoData(asset, symbol, "ETF_PROFILE returned an error or empty body")
-            return EnrichmentResult.FAILED
-        }
-
-        val profile = objectMapper.readValue(response, AlphaEtfProfileResponse::class.java)
-
+    private fun classifyEtfProfile(
+        asset: Asset,
+        symbol: String,
+        profile: AlphaEtfProfileResponse
+    ): EnrichmentResult {
         val hasSectors = !profile.sectors.isNullOrEmpty()
         val hasHoldings = !profile.holdings.isNullOrEmpty()
 
@@ -166,6 +186,13 @@ class AlphaClassificationEnricher(
         log.info("Added $sectorCount sector exposures and $holdingCount holdings for ${asset.code}")
         return if (sectorCount > 0 || holdingCount > 0) EnrichmentResult.ENRICHED else EnrichmentResult.NO_DATA
     }
+
+    private fun rateLimited(symbol: String): EnrichmentResult {
+        log.warn("AlphaVantage rate limit hit while enriching $symbol")
+        return EnrichmentResult.RATE_LIMITED
+    }
+
+    private fun isErrorBody(response: String): Boolean = response.isBlank() || response.contains("Error")
 
     /**
      * Replaces the asset's sector exposures with the positively weighted [sectors].

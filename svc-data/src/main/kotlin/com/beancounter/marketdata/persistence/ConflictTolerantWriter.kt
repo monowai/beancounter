@@ -104,21 +104,14 @@ class ConflictTolerantWriter(
      *    is absent, e.g. a raw [jakarta.persistence.PersistenceException] wrapping a
      *    [java.sql.SQLIntegrityConstraintViolationException].
      */
-    private fun isUniqueViolation(e: Throwable): Boolean {
-        var cause: Throwable? = e
-        while (cause != null) {
-            if (cause is ConstraintViolationException &&
-                cause.kind == ConstraintViolationException.ConstraintKind.UNIQUE
-            ) {
-                return true
-            }
-            // A non-UNIQUE (or unclassified) kind is not a verdict: keep walking so
-            // the SQLSTATE fallback below can still recognise the violation.
-            if (cause is SQLException && cause.sqlState == "23505") {
-                return true
-            }
-            cause = cause.cause
+    private fun isUniqueViolation(e: Throwable): Boolean =
+        generateSequence(e) { it.cause }.any { cause ->
+            (
+                cause is ConstraintViolationException &&
+                    cause.kind == ConstraintViolationException.ConstraintKind.UNIQUE
+            ) ||
+                // A non-UNIQUE (or unclassified) kind is not a verdict: keep walking so
+                // the SQLSTATE fallback can still recognise the violation.
+                (cause is SQLException && cause.sqlState == "23505")
         }
-        return false
-    }
 }

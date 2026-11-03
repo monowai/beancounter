@@ -122,19 +122,17 @@ class SystemUserService(
         sub: String?,
         email: String?
     ): SystemUser? {
-        if (!email.isNullOrBlank()) {
-            val byEmail = systemUserRepository.findByEmail(email).orElse(null)
-            if (byEmail != null) return byEmail
-        }
-        if (!sub.isNullOrBlank()) {
-            return when {
-                sub.startsWith("auth0") -> systemUserRepository.findByAuth0(sub).orElse(null)
-                sub.startsWith("goog") -> systemUserRepository.findByGoogleId(sub).orElse(null)
-                else -> null
-            }
-        }
-        return null
+        val byEmail = if (email.isNullOrBlank()) null else systemUserRepository.findByEmail(email).orElse(null)
+        return byEmail ?: findBySubject(sub)
     }
+
+    private fun findBySubject(sub: String?): SystemUser? =
+        when {
+            sub.isNullOrBlank() -> null
+            sub.startsWith("auth0") -> systemUserRepository.findByAuth0(sub).orElse(null)
+            sub.startsWith("goog") -> systemUserRepository.findByGoogleId(sub).orElse(null)
+            else -> null
+        }
 
     fun findByEmail(email: String): SystemUser? = systemUserRepository.findByEmail(email).orElse(null)
 

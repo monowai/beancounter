@@ -198,13 +198,22 @@ class MarketDataPriceProcessor(
         // For API providers, filter to only valid prices (close > 0)
         val validPrices = providerPrices.filter { it.close.signum() > 0 }
 
-        if (validPrices.isNotEmpty() || remainingAssets.isEmpty()) {
-            return validPrices
+        return if (validPrices.isNotEmpty() || remainingAssets.isEmpty()) {
+            validPrices
+        } else {
+            latestPrices(remainingAssets, priceDate)
         }
+    }
 
-        // API provider returned no valid prices - market may be closed (holiday)
-        // Fall back to most recent available prices. Batched into a single query
-        // (DATA-6G) instead of one lookup per asset.
+    /**
+     * API provider returned no valid prices - market may be closed (holiday).
+     * Fall back to most recent available prices. Batched into a single query
+     * (DATA-6G) instead of one lookup per asset.
+     */
+    private fun latestPrices(
+        remainingAssets: List<Asset>,
+        priceDate: LocalDate
+    ): Collection<MarketData> {
         val latestByAssetId = priceService.getLatestMarketData(remainingAssets, priceDate)
         val fallbackPrices =
             remainingAssets.mapNotNull { asset ->

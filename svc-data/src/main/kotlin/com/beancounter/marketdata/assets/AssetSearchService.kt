@@ -275,39 +275,44 @@ class AssetSearchService(
         // EODHD (on kauri) and any other provider that wires `searchAssets` answers here before
         // the FIGI/MarketStack/Alpha chain runs. Non-search providers (cash, custom, morningstar)
         // return empty via the interface default and fall through unchanged.
-        if (market != null) {
-            val providerHits = searchViaConfiguredProvider(keyword, market)
-            if (providerHits.isNotEmpty()) {
-                return AssetSearchResponse(providerHits)
+        val providerHits = if (market != null) searchViaConfiguredProvider(keyword, market) else emptyList()
+        return if (providerHits.isNotEmpty()) {
+            AssetSearchResponse(providerHits)
+        } else {
+            searchProviderChain(keyword, market)
+        }
+    }
+
+    private fun searchProviderChain(
+        keyword: String,
+        market: String?
+    ): AssetSearchResponse =
+        when {
+            // Use FIGI for markets configured in figi.search.markets.
+            // FIGI's filter endpoint returns exact-ticker hits and full-name
+            // matches but does poorly on short ticker prefixes (e.g. "COW")
+            // because it surfaces option chains that we filter out. Fall back
+            // to AlphaVantage SYMBOL_SEARCH when FIGI yields nothing so users
+            // get fuzzy ticker/name matches as they type.
+            market != null && figiSearchMarkets.contains(market.uppercase()) -> {
+                val figiResults = searchFigiAssets(keyword, market)
+                if (figiResults.data.isNotEmpty()) figiResults else searchAlphaVantageAssets(keyword, market)
+            }
+            // Use MarketStack for markets configured in mstack.markets (but not FIGI)
+            market != null && marketStackMarkets.contains(market.uppercase()) -> {
+                searchMarketStackAssets(keyword, market)
+            }
+            // Default to AlphaVantage for other markets
+            else -> {
+                searchAlphaVantageAssets(keyword, market)
             }
         }
-
-        // Use FIGI for markets configured in figi.search.markets.
-        // FIGI's filter endpoint returns exact-ticker hits and full-name
-        // matches but does poorly on short ticker prefixes (e.g. "COW")
-        // because it surfaces option chains that we filter out. Fall back
-        // to AlphaVantage SYMBOL_SEARCH when FIGI yields nothing so users
-        // get fuzzy ticker/name matches as they type.
-        if (market != null && figiSearchMarkets.contains(market.uppercase())) {
-            val figiResults = searchFigiAssets(keyword, market)
-            if (figiResults.data.isNotEmpty()) return figiResults
-            return searchAlphaVantageAssets(keyword, market)
-        }
-
-        // Use MarketStack for markets configured in mstack.markets (but not FIGI)
-        if (market != null && marketStackMarkets.contains(market.uppercase())) {
-            return searchMarketStackAssets(keyword, market)
-        }
-
-        // Default to AlphaVantage for other markets
-        return searchAlphaVantageAssets(keyword, market)
-    }
 
     private fun searchFigiAssets(
         keyword: String,
         market: String
-    ): AssetSearchResponse {
-        return try {
+    ): AssetSearchResponse =
+        try {
             val resolvedMarket = marketService.getMarket(market)
             val exchCode =
                 FigiConfig.getExchCode(market.uppercase())
@@ -317,53 +322,11 @@ class AssetSearchService(
             val tickerResults = searchFigiByTicker(keyword, exchCode, resolvedMarket, market)
             if (tickerResults.isNotEmpty()) {
                 log.debug("FIGI ticker lookup for '{}' found {} results", keyword, tickerResults.size)
-                return AssetSearchResponse(tickerResults)
+                AssetSearchResponse(tickerResults)
+            } else {
+                // Fall back to filter search for name-based matching
+                searchFigiByName(keyword, exchCode, resolvedMarket, market)
             }
-
-            // Fall back to filter search for name-based matching
-            val response =
-                figiGateway.filter(
-                    FigiFilterRequest(
-                        query = keyword,
-                        exchCode = exchCode
-                    ),
-                    figiConfig.apiKey
-                )
-
-            log.debug(
-                "FIGI filter search for '{}' on {} returned {} results",
-                keyword,
-                market,
-                response.data.size
-            )
-
-            val results =
-                response.data
-                    .filter { result ->
-                        val type = result.securityType2?.uppercase()
-                        val allowed = type != null && ALLOWED_SECURITY_TYPES.contains(type)
-                        if (!allowed && result.ticker != null) {
-                            log.debug(
-                                "Filtered out {} ({}) - securityType2: {}",
-                                result.ticker,
-                                result.name,
-                                result.securityType2
-                            )
-                        }
-                        allowed
-                    }.map { result ->
-                        AssetSearchResult(
-                            symbol = result.ticker ?: keyword,
-                            name = result.name ?: "",
-                            type = result.securityType2 ?: "Equity",
-                            region = market,
-                            currency = resolvedMarket.currency.code,
-                            market = market
-                        )
-                    }
-
-            log.debug("FIGI filter search for '{}' returning {} filtered results", keyword, results.size)
-            AssetSearchResponse(results)
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: Exception
@@ -371,10 +334,61 @@ class AssetSearchService(
             log.error("Error searching FIGI for assets: ${e.message}", e)
             // Fall back to MarketStack if available
             if (marketStackMarkets.contains(market.uppercase())) {
-                return searchMarketStackAssets(keyword, market)
+                searchMarketStackAssets(keyword, market)
+            } else {
+                AssetSearchResponse(emptyList())
             }
-            AssetSearchResponse(emptyList())
         }
+
+    private fun searchFigiByName(
+        keyword: String,
+        exchCode: String,
+        resolvedMarket: Market,
+        market: String
+    ): AssetSearchResponse {
+        val response =
+            figiGateway.filter(
+                FigiFilterRequest(
+                    query = keyword,
+                    exchCode = exchCode
+                ),
+                figiConfig.apiKey
+            )
+
+        log.debug(
+            "FIGI filter search for '{}' on {} returned {} results",
+            keyword,
+            market,
+            response.data.size
+        )
+
+        val results =
+            response.data
+                .filter { result ->
+                    val type = result.securityType2?.uppercase()
+                    val allowed = type != null && ALLOWED_SECURITY_TYPES.contains(type)
+                    if (!allowed && result.ticker != null) {
+                        log.debug(
+                            "Filtered out {} ({}) - securityType2: {}",
+                            result.ticker,
+                            result.name,
+                            result.securityType2
+                        )
+                    }
+                    allowed
+                }.map { result ->
+                    AssetSearchResult(
+                        symbol = result.ticker ?: keyword,
+                        name = result.name ?: "",
+                        type = result.securityType2 ?: EQUITY,
+                        region = market,
+                        currency = resolvedMarket.currency.code,
+                        market = market
+                    )
+                }
+
+        log.debug("FIGI filter search for '{}' returning {} filtered results", keyword, results.size)
+        return AssetSearchResponse(results)
     }
 
     /**
@@ -406,7 +420,7 @@ class AssetSearchService(
                                 AssetSearchResult(
                                     symbol = result.ticker ?: keyword,
                                     name = result.name ?: "",
-                                    type = result.securityType2 ?: "Equity",
+                                    type = result.securityType2 ?: EQUITY,
                                     region = market,
                                     currency = null,
                                     market = market
@@ -470,6 +484,7 @@ class AssetSearchService(
 
     companion object {
         private const val LOCAL_SEARCH_LIMIT = 50
+        private const val EQUITY = "Equity"
 
         // Per-provider wall-clock cap for interactive asset search. External provider
         // RestClients are sized for batch price downloads (EODHD: 5s connect / 30s read);
@@ -518,7 +533,7 @@ class AssetSearchService(
                     AssetSearchResult(
                         symbol = assetCode,
                         name = ticker.name,
-                        type = "Equity",
+                        type = EQUITY,
                         region = market,
                         currency = resolvedMarket.currency.code,
                         market = market

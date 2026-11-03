@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
@@ -34,20 +36,25 @@ class PortfolioPriceBackfillService(
                 .findForPortfolio(portfolio, today)
                 .sortedBy { it.tradeDate }
 
-        if (transactions.isEmpty()) {
-            return mapOf("portfolio" to code, "status" to "no_transactions")
-        }
-
         val assets =
             transactions
                 .map { it.asset }
                 .filter { !cashUtils.isCash(it) }
                 .distinctBy { it.id }
 
-        if (assets.isEmpty()) {
-            return mapOf("portfolio" to code, "status" to "no_assets")
+        return when {
+            transactions.isEmpty() -> mapOf(PORTFOLIO to code, STATUS to "no_transactions")
+            assets.isEmpty() -> mapOf(PORTFOLIO to code, STATUS to "no_assets")
+            else -> backfillPrices(code, transactions, assets, today)
         }
+    }
 
+    private fun backfillPrices(
+        code: String,
+        transactions: List<Trn>,
+        assets: List<Asset>,
+        today: LocalDate
+    ): Map<String, Any> {
         val startDate = transactions.first().tradeDate
         val valuationDates = determineValuationDates(transactions, startDate, today)
         val priceAssets = providerUtils.getInputs(assets)
@@ -69,8 +76,8 @@ class PortfolioPriceBackfillService(
         log.info("Backfill complete for portfolio {}: {} prices loaded", code, pricesLoaded)
 
         return mapOf(
-            "status" to "ok",
-            "portfolio" to code,
+            STATUS to "ok",
+            PORTFOLIO to code,
             "datesProcessed" to valuationDates.size,
             "assetsProcessed" to assets.size,
             "pricesLoaded" to pricesLoaded
@@ -110,6 +117,9 @@ class PortfolioPriceBackfillService(
     }
 
     companion object {
+        private const val PORTFOLIO = "portfolio"
+        private const val STATUS = "status"
+
         fun isExternalCashFlow(trnType: TrnType): Boolean =
             trnType == TrnType.DEPOSIT ||
                 trnType == TrnType.WITHDRAWAL ||

@@ -64,27 +64,28 @@ class FigiProxy internal constructor(
             // decide whether to fall back (FigiEnricher) or stop (FigiBackfillService).
             throw FigiProviderException("$figiMarket/$figiCode: ${response.error}")
         }
-        if (response?.data != null) {
-            for (datum in response.data!!) {
-                if (filter.contains(datum.securityType2.uppercase(Locale.getDefault()))) {
-                    log.trace(
-                        "In response to {}/{} - found {}/{}",
-                        market,
-                        bcAssetCode,
-                        figiMarket,
-                        figiCode
-                    )
-                    return figiAdapter.transform(
-                        market,
-                        bcAssetCode,
-                        datum,
-                        id
-                    )
-                }
+        val datum =
+            response?.data?.firstOrNull { candidate ->
+                filter.contains(candidate.securityType2.uppercase(Locale.getDefault()))
             }
+        return if (datum == null) {
+            log.debug("Couldn't find $market/$bcAssetCode - as $figiMarket/$figiCode")
+            null
+        } else {
+            log.trace(
+                "In response to {}/{} - found {}/{}",
+                market,
+                bcAssetCode,
+                figiMarket,
+                figiCode
+            )
+            figiAdapter.transform(
+                market,
+                bcAssetCode,
+                datum,
+                id
+            )
         }
-        log.debug("Couldn't find $market/$bcAssetCode - as $figiMarket/$figiCode")
-        return null
     }
 
     fun resolve(

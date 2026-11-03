@@ -58,19 +58,29 @@ class AlphaNewsService(
             return emptyMap()
         }
         val validTickers = sanitiseTickers(tickers)
-        if (validTickers.isEmpty()) return emptyMap()
+        return if (validTickers.isEmpty()) emptyMap() else fetchSentiment(validTickers, topics)
+    }
 
+    private fun fetchSentiment(
+        validTickers: List<String>,
+        topics: String?
+    ): Map<String, Any> {
         val result = fetchAndTrim(validTickers.joinToString(","), topics)
-        if (result.isNotEmpty()) return result
-
-        // AV returns empty for the entire batch when any ticker is
-        // unrecognised. Fall back to querying each ticker individually
-        // and merge the ranked results.
-        if (validTickers.size > 1) {
-            log.debug("Batch returned empty — falling back to per-ticker queries for {}", validTickers)
-            return fetchPerTicker(validTickers, topics)
+        return when {
+            result.isNotEmpty() -> {
+                result
+            }
+            // AV returns empty for the entire batch when any ticker is
+            // unrecognised. Fall back to querying each ticker individually
+            // and merge the ranked results.
+            validTickers.size > 1 -> {
+                log.debug("Batch returned empty — falling back to per-ticker queries for {}", validTickers)
+                fetchPerTicker(validTickers, topics)
+            }
+            else -> {
+                emptyMap()
+            }
         }
-        return emptyMap()
     }
 
     /**
@@ -100,11 +110,8 @@ class AlphaNewsService(
                 limit = newsProperties.providerLimit,
                 timeFrom = timeFrom
             )
-        if (json.isBlank() || json.contains("Error Message")) {
-            return emptyMap()
-        }
-        val raw = parse(json) ?: return emptyMap()
-        return trim(raw, tickerSet(tickers))
+        val raw = if (json.isBlank() || json.contains("Error Message")) null else parse(json)
+        return if (raw == null) emptyMap() else trim(raw, tickerSet(tickers))
     }
 
     private fun fetchPerTicker(

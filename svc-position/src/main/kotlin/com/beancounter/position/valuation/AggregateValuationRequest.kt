@@ -36,10 +36,9 @@ data class AggregateValuationRequest(
      */
     fun contextPortfolio(): Portfolio {
         val first = portfolios.first()
-        return if (!targetCurrencyCode.isNullOrBlank() &&
-            !first.currency.code.equals(targetCurrencyCode, ignoreCase = true)
-        ) {
-            first.copy(currency = Currency(targetCurrencyCode.uppercase()))
+        val target = targetCurrency
+        return if (!target.isNullOrBlank() && !first.currency.code.equals(target, ignoreCase = true)) {
+            first.copy(currency = Currency(target))
         } else {
             first
         }

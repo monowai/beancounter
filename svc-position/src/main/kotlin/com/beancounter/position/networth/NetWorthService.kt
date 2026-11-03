@@ -93,7 +93,7 @@ class NetWorthService(
         // Sum the rounded components so totalValue always reconciles with what is returned.
         val totalValue = money(holdingsValue).add(standaloneCompositeValue)
         val gainOnDay = money(gainOnDay(positions))
-        val weekChange = weekChange.of(positions, asAt)?.let(::money)
+        val weekChangeAmount = weekChange.of(positions, asAt)?.let(::money)
 
         return NetWorth(
             asAt = asAt,
@@ -104,8 +104,8 @@ class NetWorthService(
             healthcareReserve = healthcareReserve,
             gainOnDay = gainOnDay,
             gainOnDayPercent = changePercentage(gainOnDay, totalValue),
-            weekChange = weekChange,
-            weekChangePercent = weekChange?.let { changePercentage(it, totalValue) },
+            weekChange = weekChangeAmount,
+            weekChangePercent = weekChangeAmount?.let { changePercentage(it, totalValue) },
             portfolioCount = portfolios.size,
             classificationBreakdown = classificationBreakdown(positions),
             portfolios = portfolioRows(portfolios, rates, totalValue)

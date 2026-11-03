@@ -92,7 +92,7 @@ class PositionService(
                 // Cash positions do not have Events and Interest is not currently calculated.
                 if (includePosition(position)) {
                     return behaviourFactory
-                        .getAdapter(event)
+                        .getAdapter()
                         .calculate(
                             positionResponse.data.portfolio,
                             position,

@@ -2,7 +2,6 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.model.AuthConstants
-import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.contracts.UserPreferencesRequest
 import com.beancounter.common.exception.BusinessException
@@ -61,9 +60,7 @@ class RegistrationController internal constructor(
 
     @PostMapping(value = ["/register"])
     @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_USER + "')")
-    fun register(
-        @RequestBody(required = false) registrationRequest: RegistrationRequest
-    ): RegistrationResponse {
+    fun register(): RegistrationResponse {
         val response = systemUserService.register()
         val preferences = userPreferencesService.getOrCreate(response.data)
         return RegistrationResponse(response.data, preferences)

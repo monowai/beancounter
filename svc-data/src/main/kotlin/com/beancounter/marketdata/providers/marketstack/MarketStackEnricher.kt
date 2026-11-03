@@ -41,11 +41,20 @@ class MarketStackEnricher(
         assetInput: AssetInput
     ): Asset {
         val micCode = marketStackMicCodes[market.code.uppercase()]
-        if (micCode == null) {
+        return if (micCode == null) {
             log.debug("No MarketStack MIC code for market ${market.code}, using default enricher")
-            return defaultEnricher.enrich(id, market, assetInput)
+            defaultEnricher.enrich(id, market, assetInput)
+        } else {
+            enrichFromMarketStack(id, market, assetInput, micCode)
         }
+    }
 
+    private fun enrichFromMarketStack(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+        micCode: String
+    ): Asset {
         // Only the provider call is guarded. currencyService and accountingTypeService are
         // both @Transactional, and a broad catch spanning them swallowed exceptions that
         // had already marked this transaction rollback-only — the enrich "recovered" and
@@ -74,7 +83,15 @@ class MarketStackEnricher(
             log.debug("No MarketStack ticker found for ${assetInput.code} on ${market.code}")
             return defaultEnricher.enrich(id, market, assetInput)
         }
+        return toAsset(id, market, assetInput, ticker)
+    }
 
+    private fun toAsset(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+        ticker: com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker
+    ): Asset {
         val marketAlias = market.getAlias(MarketStackService.ID)
         val priceSymbol =
             if (!marketAlias.isNullOrEmpty()) {

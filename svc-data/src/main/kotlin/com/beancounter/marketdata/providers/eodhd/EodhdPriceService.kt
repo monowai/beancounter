@@ -411,24 +411,27 @@ class EodhdPriceService(
                 }
         val resolved =
             when (candidates.size) {
-                0 -> {
-                    return null
-                }
-                1 -> {
-                    candidates.first()
-                }
-                else -> {
-                    // Active markets are the real persistence targets; inactive aggregators
-                    // (NASDAQ/NYSE/AMEX) collapse to US below.
-                    val preferred = candidates.filter { it.active }.ifEmpty { candidates }
-                    val normalized = normalizeCurrency(currency)
-                    preferred.firstOrNull { it.currencyId.equals(normalized, ignoreCase = true) }
-                        ?: preferred.firstOrNull()
-                        ?: runCatching { eodhdConfig.marketService.getMarket(exchange) }.getOrNull()
-                        ?: return null
-                }
+                0 -> null
+                1 -> candidates.first()
+                else -> resolveAmbiguousMarket(candidates, exchange, currency)
             }
-        return runCatching { eodhdConfig.marketService.canonical(resolved.code) }.getOrDefault(resolved)
+        return resolved?.let { runCatching { eodhdConfig.marketService.canonical(it.code) }.getOrDefault(it) }
+    }
+
+    /**
+     * Active markets are the real persistence targets; inactive aggregators (NASDAQ/NYSE/AMEX)
+     * collapse to US in [resolveMarket].
+     */
+    private fun resolveAmbiguousMarket(
+        candidates: List<Market>,
+        exchange: String,
+        currency: String?
+    ): Market? {
+        val preferred = candidates.filter { it.active }.ifEmpty { candidates }
+        val normalized = normalizeCurrency(currency)
+        return preferred.firstOrNull { it.currencyId.equals(normalized, ignoreCase = true) }
+            ?: preferred.firstOrNull()
+            ?: runCatching { eodhdConfig.marketService.getMarket(exchange) }.getOrNull()
     }
 
     /**

@@ -162,21 +162,16 @@ class AlphaPriceAdapter(
         asset: Asset?,
         result: String?
     ): Boolean {
-        var field: String? = null
         if (result == null) {
             return false
         }
-        when {
-            result.contains("Error Message") -> {
-                field = "Error Message"
+        val field =
+            when {
+                result.contains("Error Message") -> "Error Message"
+                result.contains("\"Note\":") -> "Note"
+                result.contains("\"Information\":") -> "Information"
+                else -> null
             }
-            result.contains("\"Note\":") -> {
-                field = "Note"
-            }
-            result.contains("\"Information\":") -> {
-                field = "Information"
-            }
-        }
         if (field != null) {
             val resultMessage = alphaConfig.getObjectMapper().readTree(result)
             log.debug(
@@ -184,9 +179,8 @@ class AlphaPriceAdapter(
                 resultMessage[field],
                 asset
             )
-            return false
         }
-        return true
+        return field == null
     }
 
     private fun getDefault(

@@ -301,10 +301,11 @@ class PortfolioShareService(
             if (atIndex <= 1) return email
             val local = email.substring(0, atIndex)
             val domain = email.substring(atIndex)
-            if (local.length <= 2) {
-                return "${local.first()}*$domain"
+            return if (local.length <= 2) {
+                "${local.first()}*$domain"
+            } else {
+                "${local.first()}${"*".repeat(local.length - 2)}${local.last()}$domain"
             }
-            return "${local.first()}${"*".repeat(local.length - 2)}${local.last()}$domain"
         }
     }
 }

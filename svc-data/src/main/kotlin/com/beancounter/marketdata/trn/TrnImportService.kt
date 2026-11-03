@@ -36,9 +36,10 @@ class TrnImportService(
                 trustedRequest.message
             )
         }
-        if (trustedRequest.row.isEmpty()) {
-            return emptySet()
-        }
+        return if (trustedRequest.row.isEmpty()) emptySet() else importRows(trustedRequest)
+    }
+
+    private fun importRows(trustedRequest: TrustedTrnImportRequest): Collection<Trn> {
         logger.trace(
             "Received Message {}",
             trustedRequest.toString()

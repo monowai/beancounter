@@ -70,25 +70,28 @@ class TrnSettlementService(
         portfolio: Portfolio,
         trnId: String
     ): Trn? {
-        val trn =
-            trnRepository.findByPortfolioIdAndId(portfolio.id, trnId).orElse(null)
-                ?: run {
-                    log.warn("Transaction {} not found in portfolio {}", trnId, portfolio.code)
-                    return null
+        val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId).orElse(null)
+        return when {
+            trn == null -> {
+                log.warn("Transaction {} not found in portfolio {}", trnId, portfolio.code)
+                null
+            }
+            trn.status != TrnStatus.PROPOSED -> {
+                log.warn("Cannot settle transaction {} - status is {} not PROPOSED", trnId, trn.status)
+                null
+            }
+            trn.tradeDate.isAfter(dateUtils.date) -> {
+                log.warn("Cannot settle transaction {} - tradeDate {} is in the future", trnId, trn.tradeDate)
+                null
+            }
+            // Shared settle core: FX + status flip + cash emit. Returns null when FX
+            // can't resolve yet (leaves it PROPOSED for retry).
+            else -> {
+                settle(portfolio, trn)?.also {
+                    log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
                 }
-        if (trn.status != TrnStatus.PROPOSED) {
-            log.warn("Cannot settle transaction {} - status is {} not PROPOSED", trnId, trn.status)
-            return null
+            }
         }
-        if (trn.tradeDate.isAfter(dateUtils.date)) {
-            log.warn("Cannot settle transaction {} - tradeDate {} is in the future", trnId, trn.tradeDate)
-            return null
-        }
-        // Shared settle core: FX + status flip + cash emit. Returns null when FX
-        // can't resolve yet (leaves it PROPOSED for retry).
-        val saved = settle(portfolio, trn) ?: return null
-        log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
-        return saved
     }
 
     /**

@@ -29,15 +29,13 @@ class CashTrnServices(
     fun getCashImpact(
         trnInput: TrnInput,
         tradeAmount: BigDecimal = trnInput.tradeAmount
-    ): BigDecimal {
-        if (TrnType.isCashImpacted(trnInput.trnType)) {
-            if (trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
-                return trnInput.cashAmount // Cash amount has been set by the caller
-            }
-            return cashImpact(trnInput.trnType, tradeAmount, trnInput.tradeCashRate)
+    ): BigDecimal =
+        when {
+            !TrnType.isCashImpacted(trnInput.trnType) -> BigDecimal.ZERO
+            // Cash amount has been set by the caller
+            trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0 -> trnInput.cashAmount
+            else -> cashImpact(trnInput.trnType, tradeAmount, trnInput.tradeCashRate)
         }
-        return BigDecimal.ZERO
-    }
 
     companion object {
         /**
@@ -79,59 +77,70 @@ class CashTrnServices(
         if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
         }
+        // A specific cash account, then the broker's designated account for this
+        // currency, then the generic cash balance.
+        return findCashAccount(cashAccountCode, ownerId)
+            ?: findBrokerSettlementAccount(brokerId, cashCurrency)
+            ?: findGenericCash(cashCurrency)
+    }
 
-        // If a specific cash account code is provided, try to resolve it
-        if (!cashAccountCode.isNullOrEmpty()) {
-            // First, try to find by UUID (backward compatibility). findOrNull, not
-            // find: a miss here is expected (bc-view sends the settlement account's
-            // code, not its id) and AssetFinder is @Transactional, so letting
-            // NotFoundException escape it would mark this participating transaction
-            // rollback-only. Catching it does not undo that — TrnService.saveWithResult
-            // then died at commit with UnexpectedRollbackException (a 500 on a trn
-            // that had otherwise saved cleanly).
-            val foundById = assetFinder.findOrNull(cashAccountCode)
-            if (foundById != null) {
-                return foundById
-            }
+    private fun findCashAccount(
+        cashAccountCode: String?,
+        ownerId: String?
+    ): Asset? {
+        if (cashAccountCode.isNullOrEmpty()) {
+            return null
+        }
+        // First, try to find by UUID (backward compatibility). findOrNull, not
+        // find: a miss here is expected (bc-view sends the settlement account's
+        // code, not its id) and AssetFinder is @Transactional, so letting
+        // NotFoundException escape it would mark this participating transaction
+        // rollback-only. Catching it does not undo that — TrnService.saveWithResult
+        // then died at commit with UnexpectedRollbackException (a 500 on a trn
+        // that had otherwise saved cleanly).
+        return assetFinder.findOrNull(cashAccountCode) ?: findPrivateCashAccount(cashAccountCode, ownerId)
+    }
 
-            // Try to find as a private asset by code
-            if (!ownerId.isNullOrEmpty()) {
-                val privateAsset =
-                    assetFinder.findLocally(
-                        AssetInput(
-                            market = PrivateMarketDataProvider.ID,
-                            code = cashAccountCode,
-                            owner = ownerId
-                        )
-                    )
-                if (privateAsset != null) {
-                    return privateAsset
-                }
-            }
+    // Try to find as a private asset by code
+    private fun findPrivateCashAccount(
+        cashAccountCode: String,
+        ownerId: String?
+    ): Asset? =
+        if (ownerId.isNullOrEmpty()) {
+            null
+        } else {
+            assetFinder.findLocally(
+                AssetInput(
+                    market = PrivateMarketDataProvider.ID,
+                    code = cashAccountCode,
+                    owner = ownerId
+                )
+            )
         }
 
-        // No explicit account resolved — settle to the broker's designated
-        // account for this currency, if one is configured.
-        if (!brokerId.isNullOrEmpty() && !cashCurrency.isNullOrEmpty()) {
-            val settlement =
-                brokerSettlementAccountRepository.findByBrokerIdAndCurrencyCode(
+    private fun findBrokerSettlementAccount(
+        brokerId: String?,
+        cashCurrency: String?
+    ): Asset? =
+        if (brokerId.isNullOrEmpty() || cashCurrency.isNullOrEmpty()) {
+            null
+        } else {
+            brokerSettlementAccountRepository
+                .findByBrokerIdAndCurrencyCode(
                     brokerId,
                     cashCurrency
-                )
-            if (settlement != null) {
-                return settlement.account
-            }
+                )?.account
         }
 
-        // Fall back to generic cash balance
+    private fun findGenericCash(cashCurrency: String?): Asset? =
         if (cashCurrency.isNullOrEmpty()) {
-            return null // no cash to look up
-        }
-        return assetService.findOrCreate(
-            AssetInput(
-                CASH,
-                cashCurrency
+            null // no cash to look up
+        } else {
+            assetService.findOrCreate(
+                AssetInput(
+                    CASH,
+                    cashCurrency
+                )
             )
-        )
-    }
+        }
 }

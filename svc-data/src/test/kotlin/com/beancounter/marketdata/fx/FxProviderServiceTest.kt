@@ -65,6 +65,32 @@ class FxProviderServiceTest {
     }
 
     @Test
+    fun `should use the requested provider directly`() {
+        `when`(frankfurterProvider.id).thenReturn("FRANKFURTER")
+        `when`(ecbProvider.id).thenReturn("EXCHANGE_RATES_API")
+        `when`(ecbProvider.getRates(testDate)).thenReturn(sampleRates)
+
+        val service = FxProviderService(frankfurterProvider, ecbProvider, "FRANKFURTER")
+        val rates = service.getRates(testDate, "EXCHANGE_RATES_API")
+
+        assertThat(rates).isEqualTo(sampleRates)
+        verify(frankfurterProvider, never()).getRates(testDate)
+    }
+
+    @Test
+    fun `should use the composite strategy when the requested provider is unknown`() {
+        `when`(frankfurterProvider.id).thenReturn("FRANKFURTER")
+        `when`(ecbProvider.id).thenReturn("EXCHANGE_RATES_API")
+        `when`(frankfurterProvider.getRates(testDate)).thenReturn(sampleRates)
+
+        val service = FxProviderService(frankfurterProvider, ecbProvider, "FRANKFURTER")
+        val rates = service.getRates(testDate, "UNKNOWN")
+
+        assertThat(rates).isEqualTo(sampleRates)
+        verify(ecbProvider, never()).getRates(testDate)
+    }
+
+    @Test
     fun `should return empty when both providers fail`() {
         `when`(frankfurterProvider.id).thenReturn("FRANKFURTER")
         `when`(frankfurterProvider.getRates(testDate)).thenReturn(emptyList())

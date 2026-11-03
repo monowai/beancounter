@@ -353,11 +353,10 @@ class ClassificationService(
                 sectorCode
             )
 
-        if (item.isEmpty) {
-            return 0
-        }
+        return item.map { deleteSectorItem(it) }.orElse(0)
+    }
 
-        val sectorItem = item.get()
+    private fun deleteSectorItem(sectorItem: ClassificationItem): Int {
         val affectedClassifications = classificationRepository.countByItemId(sectorItem.id)
         val affectedExposures = exposureRepository.countByItemId(sectorItem.id)
 

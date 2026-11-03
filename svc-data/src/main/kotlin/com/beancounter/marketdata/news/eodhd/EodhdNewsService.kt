@@ -413,8 +413,13 @@ class EodhdNewsService(
             }
         val existing = candidates.mapNotNull { c -> c.existing?.let { c.externalId to it } }.toMap()
         val toEmbed = candidates.filterNot { isEmbeddingCurrent(it.existing, it.incoming.title) }
-        if (toEmbed.isEmpty()) return Prepared(existing = existing)
+        return if (toEmbed.isEmpty()) Prepared(existing = existing) else embed(toEmbed, existing)
+    }
 
+    private fun embed(
+        toEmbed: List<Candidate>,
+        existing: Map<String, NewsArticle>
+    ): Prepared {
         val texts = toEmbed.map { embeddingText(it.incoming, it.existing?.summary) }
         val vectors = newsEmbedder.embed(texts)
         if (vectors.size != texts.size) {

@@ -67,22 +67,41 @@ object EodhdSentimentParser {
         node: JsonNode
     ): SentimentPoint? {
         val normalized = node.path("normalized")
-        if (!normalized.isNumber) {
-            log.warn("Dropping sentiment point for {} with non-numeric normalized: {}", symbol, node)
-            return null
-        }
         val dateNode = node.path("date")
-        if (!dateNode.isString) {
-            log.warn("Dropping sentiment point for {} with missing date: {}", symbol, node)
-            return null
-        }
         val date =
-            try {
-                LocalDate.parse(dateNode.asString())
-            } catch (e: DateTimeParseException) {
-                log.warn("Dropping sentiment point for {} with malformed date: {}", symbol, e.message)
-                return null
+            when {
+                !normalized.isNumber -> {
+                    log.warn("Dropping sentiment point for {} with non-numeric normalized: {}", symbol, node)
+                    null
+                }
+                !dateNode.isString -> {
+                    log.warn("Dropping sentiment point for {} with missing date: {}", symbol, node)
+                    null
+                }
+                else -> {
+                    parseDate(symbol, dateNode.asString())
+                }
             }
+        return date?.let { toSentimentPoint(symbol, node, it, normalized) }
+    }
+
+    private fun parseDate(
+        symbol: String,
+        date: String
+    ): LocalDate? =
+        try {
+            LocalDate.parse(date)
+        } catch (e: DateTimeParseException) {
+            log.warn("Dropping sentiment point for {} with malformed date: {}", symbol, e.message)
+            null
+        }
+
+    private fun toSentimentPoint(
+        symbol: String,
+        node: JsonNode,
+        date: LocalDate,
+        normalized: JsonNode
+    ): SentimentPoint? {
         val count = node.path("count")
         // Zero is legitimate — EODHD reports days with no articles — but a negative count is not.
         if (!count.isIntegralNumber || !count.canConvertToInt() || count.asInt() < 0) {

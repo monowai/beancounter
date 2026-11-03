@@ -67,17 +67,39 @@ class PriceBackfillCoordinator(
             log.debug("Backfill skipped — blank assetId")
             return false
         }
+        if (!claim(assetId)) {
+            return false
+        }
+        return launchBackfill(assetId, fromDate)
+    }
+
+    /**
+     * Claim [assetId] for a backfill: false when it is cooling down or already in
+     * flight. A successful claim marks it in flight and stamps the attempt time.
+     */
+    private fun claim(assetId: String): Boolean {
         val now = Instant.now()
         val previous = lastAttempt[assetId]
-        if (previous != null && Duration.between(previous, now) < ATTEMPT_COOLDOWN) {
-            log.debug("Backfill cooldown active for {}, skipping", assetId)
-            return false
+        return when {
+            previous != null && Duration.between(previous, now) < ATTEMPT_COOLDOWN -> {
+                log.debug("Backfill cooldown active for {}, skipping", assetId)
+                false
+            }
+            !inFlight.add(assetId) -> {
+                log.debug("Backfill already running for {}", assetId)
+                false
+            }
+            else -> {
+                lastAttempt[assetId] = now
+                true
+            }
         }
-        if (!inFlight.add(assetId)) {
-            log.debug("Backfill already running for {}", assetId)
-            return false
-        }
-        lastAttempt[assetId] = now
+    }
+
+    private fun launchBackfill(
+        assetId: String,
+        fromDate: LocalDate
+    ): Boolean {
         if (!permits.tryAcquire()) {
             // Release the slot so the cooldown window — not a stuck in-flight
             // flag — governs the next retry attempt.

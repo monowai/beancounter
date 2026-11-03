@@ -32,16 +32,31 @@ class MilestoneService(
         tier: Int
     ): UserMilestone {
         val existing = milestoneRepository.findByOwnerAndMilestoneId(owner, milestoneId)
-        if (existing.isPresent) {
-            val milestone = existing.get()
-            if (tier > milestone.tier) {
-                milestone.tier = tier
-                milestone.earnedAt = dateUtils.date
-                return milestoneRepository.save(milestone)
-            }
-            return milestone
+        return if (existing.isPresent) {
+            upgradeTier(existing.get(), tier)
+        } else {
+            createMilestone(owner, milestoneId, tier)
         }
-        return try {
+    }
+
+    private fun upgradeTier(
+        milestone: UserMilestone,
+        tier: Int
+    ): UserMilestone {
+        if (tier > milestone.tier) {
+            milestone.tier = tier
+            milestone.earnedAt = dateUtils.date
+            return milestoneRepository.save(milestone)
+        }
+        return milestone
+    }
+
+    private fun createMilestone(
+        owner: SystemUser,
+        milestoneId: String,
+        tier: Int
+    ): UserMilestone =
+        try {
             milestoneRepository.save(
                 UserMilestone(
                     owner = owner,
@@ -57,14 +72,8 @@ class MilestoneService(
                     .orElseThrow {
                         IllegalStateException("Failed to earn milestone $milestoneId for ${owner.id}")
                     }
-            if (tier > raced.tier) {
-                raced.tier = tier
-                raced.earnedAt = dateUtils.date
-                return milestoneRepository.save(raced)
-            }
-            raced
+            upgradeTier(raced, tier)
         }
-    }
 
     fun getExplorerActions(owner: SystemUser): List<UserExplorerAction> = explorerActionRepository.findByOwner(owner)
 

@@ -11,6 +11,7 @@ import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -80,35 +81,17 @@ class MorningstarPriceService(
     private fun parseResponse(
         json: String,
         asset: Asset
-    ): MarketData? {
-        return try {
+    ): MarketData? =
+        try {
             val root = objectMapper.readTree(json)
             val securities = root.path("TimeSeries").path("Security")
 
             if (securities.isEmpty || !securities.isArray) {
                 log.debug("No securities found in response for {}", asset.code)
-                return null
+                null
+            } else {
+                parseLatestPrice(securities[0].path("HistoryDetail"), asset)
             }
-
-            val historyDetail = securities[0].path("HistoryDetail")
-            if (historyDetail.isEmpty || !historyDetail.isArray || historyDetail.size() == 0) {
-                log.debug("No history detail found for {}", asset.code)
-                return null
-            }
-
-            // Get the most recent price (last element)
-            val latestPrice = historyDetail[historyDetail.size() - 1]
-            val priceDate = LocalDate.parse(latestPrice.path("EndDate").asString(), DATE_FORMATTER)
-            val closePrice = BigDecimal(latestPrice.path("Value").asString())
-
-            log.debug("Parsed price for {}: {} on {}", asset.code, closePrice, priceDate)
-
-            MarketData(
-                asset = asset,
-                priceDate = priceDate,
-                close = closePrice,
-                source = ID
-            )
         } catch (
             @Suppress("TooGenericExceptionCaught")
             e: Exception
@@ -117,7 +100,33 @@ class MorningstarPriceService(
             log.error("Error parsing Morningstar response for {}: {}", asset.code, e.message)
             null
         }
+
+    private fun parseLatestPrice(
+        historyDetail: JsonNode,
+        asset: Asset
+    ): MarketData? {
+        if (historyDetail.isEmpty || !historyDetail.isArray || historyDetail.size() == 0) {
+            log.debug("No history detail found for {}", asset.code)
+            return null
+        }
+
+        // Get the most recent price (last element)
+        val marketData = toMarketData(historyDetail[historyDetail.size() - 1], asset)
+        log.debug("Parsed price for {}: {} on {}", asset.code, marketData.close, marketData.priceDate)
+        return marketData
     }
+
+    /** One HistoryDetail node as a price row. */
+    private fun toMarketData(
+        priceNode: JsonNode,
+        asset: Asset
+    ): MarketData =
+        MarketData(
+            asset = asset,
+            priceDate = LocalDate.parse(priceNode.path("EndDate").asString(), DATE_FORMATTER),
+            close = BigDecimal(priceNode.path("Value").asString()),
+            source = ID
+        )
 
     override fun getId(): String = ID
 
@@ -147,37 +156,15 @@ class MorningstarPriceService(
     private fun parseHistoricalResponse(
         json: String,
         asset: Asset
-    ): List<MarketData> {
-        return try {
+    ): List<MarketData> =
+        try {
             val root = objectMapper.readTree(json)
             val securities = root.path("TimeSeries").path("Security")
 
             if (securities.isEmpty || !securities.isArray) {
-                return emptyList()
-            }
-
-            val historyDetail = securities[0].path("HistoryDetail")
-            if (historyDetail.isEmpty || !historyDetail.isArray) {
-                return emptyList()
-            }
-
-            historyDetail.mapNotNull { priceNode ->
-                try {
-                    val priceDate = LocalDate.parse(priceNode.path("EndDate").asString(), DATE_FORMATTER)
-                    val closePrice = BigDecimal(priceNode.path("Value").asString())
-
-                    MarketData(
-                        asset = asset,
-                        priceDate = priceDate,
-                        close = closePrice,
-                        source = ID
-                    )
-                } catch (
-                    @Suppress("TooGenericExceptionCaught")
-                    _: Exception
-                ) {
-                    null
-                }
+                emptyList()
+            } else {
+                parseHistoryDetail(securities[0].path("HistoryDetail"), asset)
             }
         } catch (
             @Suppress("TooGenericExceptionCaught")
@@ -186,6 +173,25 @@ class MorningstarPriceService(
             // Return empty list on parsing failure
             log.error("Error parsing historical response for {}: {}", asset.code, e.message)
             emptyList()
+        }
+
+    private fun parseHistoryDetail(
+        historyDetail: JsonNode,
+        asset: Asset
+    ): List<MarketData> {
+        if (historyDetail.isEmpty || !historyDetail.isArray) {
+            return emptyList()
+        }
+
+        return historyDetail.mapNotNull { priceNode ->
+            try {
+                toMarketData(priceNode, asset)
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                _: Exception
+            ) {
+                null
+            }
         }
     }
 

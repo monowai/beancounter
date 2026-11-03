@@ -55,31 +55,48 @@ class FxProviderService(
         providerId: String?
     ): List<FxRate> {
         // If specific provider requested, use it directly
-        if (providerId != null) {
-            val provider = providers[providerId]
-            if (provider != null) {
-                log.debug("Using specific provider {} for FX rates on {}", providerId, asAt)
-                return provider.getRates(asAt)
-            }
+        val provider = requestedProvider(providerId)
+        return if (provider != null) {
+            log.debug("Using specific provider {} for FX rates on {}", providerId, asAt)
+            provider.getRates(asAt)
+        } else {
+            compositeRates(asAt)
+        }
+    }
+
+    private fun requestedProvider(providerId: String?): FxRateProvider? {
+        if (providerId == null) {
+            return null
+        }
+        val provider = providers[providerId]
+        if (provider == null) {
             log.warn("Unknown provider {} requested, falling back to composite", providerId)
         }
+        return provider
+    }
 
-        // Composite strategy: try primary first, then fallback
+    /**
+     * Composite strategy: try primary first, then fallback.
+     */
+    private fun compositeRates(asAt: String): List<FxRate> {
         val rates = primaryProvider.getRates(asAt)
         if (rates.isNotEmpty()) {
             log.debug("FX rates retrieved from {} for {}", primaryProvider.id, asAt)
             return rates
         }
+        return fallbackRates(asAt)
+    }
 
+    private fun fallbackRates(asAt: String): List<FxRate> {
         log.info("Falling back to {} for FX rates on {}", fallbackProvider.id, asAt)
         val fallbackRates = fallbackProvider.getRates(asAt)
-        if (fallbackRates.isNotEmpty()) {
+        return if (fallbackRates.isNotEmpty()) {
             log.debug("FX rates retrieved from {} for {}", fallbackProvider.id, asAt)
-            return fallbackRates
+            fallbackRates
+        } else {
+            log.error("Both FX providers failed for date {}", asAt)
+            emptyList()
         }
-
-        log.error("Both FX providers failed for date {}", asAt)
-        return emptyList()
     }
 
     /**

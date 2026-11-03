@@ -3,9 +3,12 @@ package com.beancounter.marketdata.classification
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.ClassificationLevel
+import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
+import com.beancounter.marketdata.providers.alpha.AlphaEtfHolding
 import com.beancounter.marketdata.providers.alpha.AlphaEtfProfileResponse
+import com.beancounter.marketdata.providers.alpha.AlphaEtfSector
 import com.beancounter.marketdata.providers.alpha.AlphaOverviewResponse
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
@@ -72,19 +75,29 @@ class AlphaClassificationEnricher(
     private fun enrichEquity(asset: Asset): EnrichmentResult {
         val symbol = alphaConfig.getPriceCode(asset)
         val response = alphaProxy.getOverview(symbol, apiKey)
-
-        if (isRateLimited(response)) {
-            log.warn("AlphaVantage rate limit hit while enriching $symbol")
-            return EnrichmentResult.RATE_LIMITED
+        return when {
+            isRateLimited(response) -> {
+                rateLimited(symbol)
+            }
+            isErrorBody(response) -> {
+                logNoData(asset, symbol, "OVERVIEW returned an error or empty body")
+                EnrichmentResult.FAILED
+            }
+            else -> {
+                classifyOverview(
+                    asset,
+                    symbol,
+                    objectMapper.readValue(response, AlphaOverviewResponse::class.java)
+                )
+            }
         }
+    }
 
-        if (response.isBlank() || response.contains("Error")) {
-            logNoData(asset, symbol, "OVERVIEW returned an error or empty body")
-            return EnrichmentResult.FAILED
-        }
-
-        val overview = objectMapper.readValue(response, AlphaOverviewResponse::class.java)
-
+    private fun classifyOverview(
+        asset: Asset,
+        symbol: String,
+        overview: AlphaOverviewResponse
+    ): EnrichmentResult {
         if (overview.sector.isNullOrBlank()) {
             logNoData(asset, symbol, "OVERVIEW carried no Sector")
             return EnrichmentResult.NO_DATA
@@ -134,19 +147,29 @@ class AlphaClassificationEnricher(
     private fun enrichEtf(asset: Asset): EnrichmentResult {
         val symbol = alphaConfig.getPriceCode(asset)
         val response = alphaProxy.getEtfProfile(symbol, apiKey)
-
-        if (isRateLimited(response)) {
-            log.warn("AlphaVantage rate limit hit while enriching $symbol")
-            return EnrichmentResult.RATE_LIMITED
+        return when {
+            isRateLimited(response) -> {
+                rateLimited(symbol)
+            }
+            isErrorBody(response) -> {
+                logNoData(asset, symbol, "ETF_PROFILE returned an error or empty body")
+                EnrichmentResult.FAILED
+            }
+            else -> {
+                classifyEtfProfile(
+                    asset,
+                    symbol,
+                    objectMapper.readValue(response, AlphaEtfProfileResponse::class.java)
+                )
+            }
         }
+    }
 
-        if (response.isBlank() || response.contains("Error")) {
-            logNoData(asset, symbol, "ETF_PROFILE returned an error or empty body")
-            return EnrichmentResult.FAILED
-        }
-
-        val profile = objectMapper.readValue(response, AlphaEtfProfileResponse::class.java)
-
+    private fun classifyEtfProfile(
+        asset: Asset,
+        symbol: String,
+        profile: AlphaEtfProfileResponse
+    ): EnrichmentResult {
         val hasSectors = !profile.sectors.isNullOrEmpty()
         val hasHoldings = !profile.holdings.isNullOrEmpty()
 
@@ -156,77 +179,96 @@ class AlphaClassificationEnricher(
         }
 
         val standard = classificationService.getAlphaStandard()
-
-        // Process sector exposures
-        var sectorCount = 0
-        if (hasSectors) {
-            classificationService.clearExposures(asset.id)
-
-            for (sectorData in profile.sectors) {
-                val weight = sectorData.weight.toBigDecimalOrNull()
-                if (weight == null || weight.signum() <= 0) {
-                    continue
-                }
-
-                val sectorItem =
-                    classificationService.getOrCreateItem(
-                        standard = standard,
-                        level = ClassificationLevel.SECTOR,
-                        rawCode = sectorData.sector
-                    )
-
-                classificationService.addExposure(
-                    asset = asset,
-                    standard = standard,
-                    item = sectorItem,
-                    weight = weight,
-                    asOf = dateUtils.date
-                )
-                sectorCount++
-            }
-        }
-
-        // Process top holdings - skip placeholder symbols (AlphaVantage returns literal "n/a"
-        // for unlisted positions) and de-duplicate within the batch, since two identical
-        // symbols for the same parent asset violate the asset_holding unique constraint and
-        // roll back the whole enrichment (including the sector exposures above).
-        var holdingCount = 0
-        if (hasHoldings) {
-            classificationService.clearHoldings(asset.id)
-
-            val seenSymbols = mutableSetOf<String>()
-            for (holdingData in profile.holdings) {
-                if (holdingCount >= MAX_HOLDINGS) {
-                    break
-                }
-
-                val weight = holdingData.weight?.toBigDecimalOrNull()
-                val rawSymbol = holdingData.symbol?.trim()
-                if (weight == null || weight.signum() <= 0 || rawSymbol.isNullOrBlank()) {
-                    continue
-                }
-
-                val normalizedSymbol = rawSymbol.uppercase()
-                if (normalizedSymbol in PLACEHOLDER_SYMBOLS || !seenSymbols.add(normalizedSymbol)) {
-                    continue
-                }
-
-                // Persist the normalized form: the unique constraint is case-sensitive, so
-                // storing raw casing would let the same ticker land twice across runs.
-                classificationService.addHolding(
-                    asset = asset,
-                    symbol = normalizedSymbol,
-                    name = holdingData.description,
-                    weight = weight,
-                    asOf = dateUtils.date
-                )
-                holdingCount++
-            }
-        }
+        val sectorCount = if (hasSectors) addSectorExposures(asset, standard, profile.sectors) else 0
+        val holdingCount = if (hasHoldings) addTopHoldings(asset, profile.holdings) else 0
 
         log.info("Added $sectorCount sector exposures and $holdingCount holdings for ${asset.code}")
         return if (sectorCount > 0 || holdingCount > 0) EnrichmentResult.ENRICHED else EnrichmentResult.NO_DATA
     }
+
+    private fun addSectorExposures(
+        asset: Asset,
+        standard: ClassificationStandard,
+        sectors: List<AlphaEtfSector>
+    ): Int {
+        classificationService.clearExposures(asset.id)
+
+        var sectorCount = 0
+        for (sectorData in sectors) {
+            val weight = sectorData.weight.toBigDecimalOrNull()
+            if (weight == null || weight.signum() <= 0) {
+                continue
+            }
+
+            val sectorItem =
+                classificationService.getOrCreateItem(
+                    standard = standard,
+                    level = ClassificationLevel.SECTOR,
+                    rawCode = sectorData.sector
+                )
+
+            classificationService.addExposure(
+                asset = asset,
+                standard = standard,
+                item = sectorItem,
+                weight = weight,
+                asOf = dateUtils.date
+            )
+            sectorCount++
+        }
+        return sectorCount
+    }
+
+    /**
+     * Skip placeholder symbols (AlphaVantage returns literal "n/a" for unlisted positions) and
+     * de-duplicate within the batch, since two identical symbols for the same parent asset
+     * violate the asset_holding unique constraint and roll back the whole enrichment (including
+     * the sector exposures).
+     */
+    private fun addTopHoldings(
+        asset: Asset,
+        holdings: List<AlphaEtfHolding>
+    ): Int {
+        classificationService.clearHoldings(asset.id)
+
+        var holdingCount = 0
+        val seenSymbols = mutableSetOf<String>()
+        for (holdingData in holdings) {
+            if (holdingCount >= MAX_HOLDINGS) {
+                break
+            }
+
+            val weight = holdingData.weight?.toBigDecimalOrNull()
+            val rawSymbol = holdingData.symbol?.trim()
+            if (weight == null || weight.signum() <= 0 || rawSymbol.isNullOrBlank()) {
+                continue
+            }
+
+            val normalizedSymbol = rawSymbol.uppercase()
+            if (normalizedSymbol in PLACEHOLDER_SYMBOLS || !seenSymbols.add(normalizedSymbol)) {
+                continue
+            }
+
+            // Persist the normalized form: the unique constraint is case-sensitive, so
+            // storing raw casing would let the same ticker land twice across runs.
+            classificationService.addHolding(
+                asset = asset,
+                symbol = normalizedSymbol,
+                name = holdingData.description,
+                weight = weight,
+                asOf = dateUtils.date
+            )
+            holdingCount++
+        }
+        return holdingCount
+    }
+
+    private fun rateLimited(symbol: String): EnrichmentResult {
+        log.warn("AlphaVantage rate limit hit while enriching $symbol")
+        return EnrichmentResult.RATE_LIMITED
+    }
+
+    private fun isErrorBody(response: String): Boolean = response.isBlank() || response.contains("Error")
 
     /**
      * A no-data outcome stamps `classificationCheckedAt` (see `ClassificationRefreshService`), so

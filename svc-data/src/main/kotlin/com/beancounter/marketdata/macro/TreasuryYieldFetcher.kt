@@ -52,19 +52,20 @@ class TreasuryYieldFetcher(
         val cells = line.trim().split(',')
         if (cells.size != 2) return null
         val (dateStr, valueStr) = cells
-        if (valueStr == NON_TRADING_DAY) return null
-        val value = valueStr.toBigDecimalOrNull() ?: return null
-        val date =
-            try {
-                LocalDate.parse(dateStr)
-            } catch (
-                @Suppress("SwallowedException")
-                e: DateTimeParseException
-            ) {
-                return null
-            }
-        return YieldPoint(date, value)
+        val value = if (valueStr == NON_TRADING_DAY) null else valueStr.toBigDecimalOrNull()
+        val date = value?.let { parseDate(dateStr) }
+        return if (value == null || date == null) null else YieldPoint(date, value)
     }
+
+    private fun parseDate(dateStr: String): LocalDate? =
+        try {
+            LocalDate.parse(dateStr)
+        } catch (
+            @Suppress("SwallowedException")
+            e: DateTimeParseException
+        ) {
+            null
+        }
 
     companion object {
         private const val NON_TRADING_DAY = "."

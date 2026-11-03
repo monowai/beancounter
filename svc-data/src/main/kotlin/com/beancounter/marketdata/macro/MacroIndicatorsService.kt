@@ -55,8 +55,15 @@ class MacroIndicatorsService(
                 dateTo = today.toString(),
                 apiKey = eodhdConfig.apiKey
             )
-        if (prices.isEmpty()) return null
+        return if (prices.isEmpty()) null else toOilSeries(series, symbol, lookbackDays, prices)
+    }
 
+    private fun toOilSeries(
+        series: String,
+        symbol: String,
+        lookbackDays: Int,
+        prices: List<EodhdPrice>
+    ): OilSeries? {
         val sorted = prices.sortedByDescending { it.date }
         val latest = sorted.first()
         val lookback = nearest(sorted, latest.date.minusDays(lookbackDays.toLong())) ?: return null

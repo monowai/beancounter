@@ -5,6 +5,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.admin.AssetAdministration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

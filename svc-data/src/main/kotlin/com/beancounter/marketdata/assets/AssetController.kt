@@ -7,7 +7,10 @@ import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
-import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.assets.admin.AssetAdminController
+import com.beancounter.marketdata.assets.owned.OwnedAssetController
+import com.beancounter.marketdata.assets.search.AssetSearchService
+import com.beancounter.marketdata.price.MarketDataService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content

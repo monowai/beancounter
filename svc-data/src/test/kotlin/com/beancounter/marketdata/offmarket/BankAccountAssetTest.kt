@@ -26,10 +26,10 @@ import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.assets.DefaultEnricher
-import com.beancounter.marketdata.assets.EnrichmentFactory
-import com.beancounter.marketdata.assets.OwnedAssetService
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
+import com.beancounter.marketdata.assets.enrichment.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
+import com.beancounter.marketdata.assets.owned.OwnedAssetService
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashService
 import com.beancounter.marketdata.fx.FxRateService

@@ -7,7 +7,7 @@ import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.trn.PortfolioMergeService
+import com.beancounter.marketdata.trn.move.PortfolioMergeService
 import com.opencsv.CSVParserBuilder
 import com.opencsv.CSVReaderBuilder
 import com.opencsv.CSVWriterBuilder

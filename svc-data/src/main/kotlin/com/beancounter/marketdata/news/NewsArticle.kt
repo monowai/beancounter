@@ -1,6 +1,9 @@
 package com.beancounter.marketdata.news
 
 import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.marketdata.news.embedding.EmbeddingCodec
+import com.beancounter.marketdata.news.embedding.NewsEmbedder
+import com.beancounter.marketdata.news.embedding.TopicAnchors
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection

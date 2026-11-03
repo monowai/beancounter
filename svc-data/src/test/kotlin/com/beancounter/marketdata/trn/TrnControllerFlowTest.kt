@@ -25,8 +25,8 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.aaplInput
 import com.beancounter.marketdata.Constants.Companion.msftInput
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.assets.DefaultEnricher
-import com.beancounter.marketdata.assets.EnrichmentFactory
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
+import com.beancounter.marketdata.assets.enrichment.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.TRADE_DATE

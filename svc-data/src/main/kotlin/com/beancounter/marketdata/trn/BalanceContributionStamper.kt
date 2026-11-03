@@ -3,9 +3,9 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.MathUtils.Companion.MONTHS_PER_YEAR
-import com.beancounter.marketdata.assets.ContributionFrequency
-import com.beancounter.marketdata.assets.PrivateAssetConfig
-import com.beancounter.marketdata.assets.PrivateAssetConfigRepository
+import com.beancounter.marketdata.assets.privateasset.ContributionFrequency
+import com.beancounter.marketdata.assets.privateasset.PrivateAssetConfig
+import com.beancounter.marketdata.assets.privateasset.PrivateAssetConfigRepository
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode

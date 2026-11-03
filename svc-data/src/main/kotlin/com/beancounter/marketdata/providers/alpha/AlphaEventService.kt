@@ -7,7 +7,7 @@ import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.providers.MarketDataRepo
+import com.beancounter.marketdata.price.MarketDataRepo
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory

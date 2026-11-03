@@ -34,7 +34,7 @@ import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
-import com.beancounter.marketdata.trn.TrnSettlementService
+import com.beancounter.marketdata.trn.settlement.TrnSettlementService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

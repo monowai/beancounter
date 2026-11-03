@@ -21,8 +21,8 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.event.EventProducer
-import com.beancounter.marketdata.providers.MarketDataRepo
-import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.price.MarketDataRepo
+import com.beancounter.marketdata.price.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.API
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_ASSET

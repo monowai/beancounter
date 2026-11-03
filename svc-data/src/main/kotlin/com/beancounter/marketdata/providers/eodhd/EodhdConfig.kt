@@ -5,7 +5,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.news.NewsEmbeddingProperties
+import com.beancounter.marketdata.news.embedding.NewsEmbeddingProperties
 import com.beancounter.marketdata.news.eodhd.EodhdNewsProperties
 import com.beancounter.marketdata.news.eodhd.EodhdNewsService
 import com.beancounter.marketdata.providers.DataProviderConfig

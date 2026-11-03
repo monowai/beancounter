@@ -6,6 +6,9 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.price.PriceController
+import com.beancounter.marketdata.price.backfill.MarketDataBackfillService
+import com.beancounter.marketdata.price.history.SplitAdjuster
 import java.time.LocalDate
 
 /**

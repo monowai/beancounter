@@ -3,6 +3,7 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetTraits
+import com.beancounter.marketdata.assets.enrichment.PrivateMarketEnricher
 import org.springframework.stereotype.Service
 
 /**

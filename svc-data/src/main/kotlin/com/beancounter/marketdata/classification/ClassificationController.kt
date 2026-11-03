@@ -12,6 +12,7 @@ import com.beancounter.common.contracts.ManualClassificationRequest
 import com.beancounter.common.contracts.ManualClassificationResponse
 import com.beancounter.common.contracts.SectorInfo
 import com.beancounter.common.contracts.SectorsResponse
+import com.beancounter.marketdata.classification.refresh.ClassificationRefreshController
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory

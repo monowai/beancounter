@@ -15,6 +15,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.trn.broker.TrnBrokerService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

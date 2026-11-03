@@ -4,6 +4,7 @@ import com.beancounter.common.model.ClassificationItem
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.marketdata.classification.enricher.SectorNormalizer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

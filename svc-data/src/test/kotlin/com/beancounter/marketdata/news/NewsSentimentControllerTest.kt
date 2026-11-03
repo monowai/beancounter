@@ -4,6 +4,8 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.news.eodhd.SentimentPoint
+import com.beancounter.marketdata.news.sentiment.NewsSentimentService
+import com.beancounter.marketdata.news.sentiment.SentimentRefreshResult
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify

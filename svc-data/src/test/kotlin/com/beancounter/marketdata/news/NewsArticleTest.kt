@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.news
 
+import com.beancounter.marketdata.news.embedding.EmbeddingCodec
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.util.ReflectionTestUtils

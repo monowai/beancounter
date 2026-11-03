@@ -1,0 +1,148 @@
+package com.beancounter.marketdata.price
+
+import com.beancounter.common.contracts.BulkPriceRequest
+import com.beancounter.common.contracts.BulkPriceResponse
+import com.beancounter.common.contracts.PriceAsset
+import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.Asset
+import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
+import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.price.backfill.MarketDataBackfillService
+import com.beancounter.marketdata.price.history.PriceHistoryReader
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.defaultBackfillFrom
+import com.beancounter.marketdata.providers.MdFactory
+import com.beancounter.marketdata.providers.ProviderUtils
+import org.springframework.context.annotation.Import
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+
+/**
+ * Service container for obtaining MarketData information from a provider.
+ *
+ */
+@Import(ProviderUtils::class)
+@Service
+@Transactional
+class MarketDataService(
+    private val assetService: AssetService,
+    private val assetFinder: AssetFinder,
+    private val backfillService: MarketDataBackfillService,
+    private val utilityService: MarketDataUtilityService,
+    private val priceProcessor: MarketDataPriceProcessor,
+    private val priceHistoryReader: PriceHistoryReader,
+    private val dateUtils: DateUtils,
+    private val mdFactory: MdFactory,
+    private val liveQuoteService: LiveQuoteService
+) {
+    fun backFill(
+        assetId: String,
+        fromDate: LocalDate = defaultBackfillFrom()
+    ) {
+        backfillService.backFill(assetId, fromDate)
+    }
+
+    fun getPriceResponse(
+        market: String,
+        assetCode: String,
+        date: String = TODAY
+    ): PriceResponse {
+        val asset = getAssetLocally(market, assetCode)
+        return if (asset != null) {
+            getPriceResponse(PriceRequest(date = date, assets = listOf(PriceAsset(asset))))
+        } else {
+            PriceResponse(emptyList())
+        }
+    }
+
+    fun getPriceResponse(assetId: String): PriceResponse {
+        val asset = getAsset(assetId)
+        return getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
+    }
+
+    /**
+     * Latest quote for display: the provider's live/delayed price when it has one, else the
+     * stored close. Quotes are not persisted.
+     */
+    @Transactional(readOnly = true)
+    fun getQuoteResponse(assetId: String): PriceResponse {
+        val asset = getAsset(assetId)
+        val quote = mdFactory.getMarketDataProvider(asset.market).getQuote(asset)
+        return if (quote != null) {
+            PriceResponse(listOf(quote))
+        } else {
+            getPriceResponse(PriceRequest(assets = listOf(PriceAsset(asset))))
+        }
+    }
+
+    @Transactional(readOnly = true)
+    fun getAssetPrices(priceRequest: PriceRequest): PriceResponse {
+        val withResolvedAssets = assetService.resolveAssets(priceRequest)
+        return getPriceResponse(withResolvedAssets)
+    }
+
+    /**
+     * [getAssetPrices] for display now: each asset's live (delayed) quote over its stored close
+     * while its market is in session. Quotes are not persisted.
+     */
+    @Transactional(readOnly = true)
+    fun getLivePrices(priceRequest: PriceRequest): PriceResponse {
+        val stored = getAssetPrices(priceRequest).data
+        val storedById = stored.associateBy { it.asset.id }
+        val live = liveQuoteService.livePrices(storedById.values.map { it.asset }, storedById)
+        return PriceResponse(stored.map { live[it.asset.id] ?: it })
+    }
+
+    @Transactional(readOnly = true)
+    fun getBulkAssetPrices(bulkPriceRequest: BulkPriceRequest): BulkPriceResponse {
+        val resolvedAssets =
+            bulkPriceRequest.assets.mapNotNull { priceAsset ->
+                assetService.resolveAsset(priceAsset)
+            }
+        val dates = bulkPriceRequest.dates.map { dateUtils.getFormattedDate(it) }
+        return BulkPriceResponse(priceHistoryReader.getBulkMarketData(resolvedAssets, dates))
+    }
+
+    /**
+     * Prices for the request.
+     *
+     * @param priceRequest to process
+     * @return results
+     */
+    fun getPriceResponse(priceRequest: PriceRequest): PriceResponse = priceProcessor.getPriceResponse(priceRequest)
+
+    fun getMarketDate(
+        marketDataPriceProvider: MarketDataPriceProvider,
+        asset: Asset,
+        priceRequest: PriceRequest
+    ): LocalDate = utilityService.getMarketDate(marketDataPriceProvider, asset, priceRequest)
+
+    /**
+     * Delete all prices.  Supports testing
+     */
+    fun purge() {
+        utilityService.purge()
+    }
+
+    fun refresh(
+        asset: Asset,
+        priceDate: String
+    ) {
+        utilityService.refresh(asset, priceDate)
+    }
+
+    private fun getAsset(assetId: String): Asset {
+        val asset = assetFinder.find(assetId)
+        return asset
+    }
+
+    private fun getAssetLocally(
+        market: String,
+        assetCode: String
+    ): Asset? = assetFinder.findLocally(AssetInput(market, assetCode))
+}

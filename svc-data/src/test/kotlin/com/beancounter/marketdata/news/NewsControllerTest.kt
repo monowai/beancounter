@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.news
 
+import com.beancounter.marketdata.news.sentiment.NewsSentimentService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq

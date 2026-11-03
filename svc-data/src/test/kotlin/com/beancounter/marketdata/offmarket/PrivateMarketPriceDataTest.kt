@@ -14,9 +14,9 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.price.MarketDataService
+import com.beancounter.marketdata.price.OffMarketPrices
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.OffMarketPrices
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

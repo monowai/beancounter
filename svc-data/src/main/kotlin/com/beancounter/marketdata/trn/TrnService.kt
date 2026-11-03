@@ -12,6 +12,9 @@ import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.portfolio.PortfolioAccessControl
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.trn.analysis.TrnAnalysisService
+import com.beancounter.marketdata.trn.broker.TrnBrokerService
+import com.beancounter.marketdata.trn.settlement.TrnSettlementService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
+import com.beancounter.marketdata.assets.search.AssetSearchService
 import com.beancounter.marketdata.markets.MarketService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

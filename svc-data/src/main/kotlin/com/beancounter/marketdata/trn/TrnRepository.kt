@@ -5,6 +5,8 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.cash.CashAutoSettleService.Companion.AUTO_PROVIDER
+import com.beancounter.marketdata.trn.analysis.TrnAnalysisRepository
+import com.beancounter.marketdata.trn.broker.TrnBrokerRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository

@@ -7,8 +7,8 @@ import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.price.MarketDataRepo
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
-import com.beancounter.marketdata.providers.MarketDataRepo
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate

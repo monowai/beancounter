@@ -10,7 +10,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnInputMapper
 import com.beancounter.marketdata.trn.TrnRepository
-import com.beancounter.marketdata.trn.cashLegInput
+import com.beancounter.marketdata.trn.settlement.cashLegInput
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -52,7 +52,7 @@ import java.math.BigDecimal
  * still posted (central funding was opted into) and the master is allowed to
  * overdraw; a warning is returned so the negative balance is surfaced.
  *
- * Not to be confused with [com.beancounter.marketdata.trn.AutoSettleService] —
+ * Not to be confused with [com.beancounter.marketdata.trn.settlement.AutoSettleService] —
  * that class is the scheduled job which settles due PROPOSED DIVI/SPLIT trns.
  */
 @Service

@@ -1,0 +1,206 @@
+package com.beancounter.marketdata.price.history
+
+import com.beancounter.common.contracts.PricePoint
+import com.beancounter.common.model.MarketData
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.LocalDate
+
+/**
+ * Rebases a chronological list of [PricePoint]s onto the most recent
+ * post-split share basis.
+ *
+ * Two sources of split metadata are honoured:
+ *  1. The `split` column on individual price rows (set by the price-refresh
+ *     enricher when a Global Quote lands on the ex-date).
+ *  2. An explicit list of [SplitEvent]s. This covers the case where the
+ *     historical backfill never captured a split (Alpha Vantage's
+ *     TIME_SERIES_DAILY does not carry split coefficients), so the database
+ *     has nothing but raw pre-split closes for the days leading up to a
+ *     known corporate action.
+ *
+ * Algorithm:
+ *  - Build a unified set of ex-dates from the column transitions
+ *    (split=1 → split!=1 collapses sticky stamps so each event counts once)
+ *    and any externally-supplied events.
+ *  - For each price row, divide every OHLC + previousClose value by the
+ *    product of every event factor whose date strictly follows the row.
+ *  - Normalise the `split` column on the response so only the canonical
+ *    ex-date row carries a non-1 marker — sticky neighbours go back to 1
+ *    and rows without an ex-date stamp keep 1.
+ */
+object SplitAdjuster {
+    internal const val SCALE = 6
+    private val ROUNDING = RoundingMode.HALF_UP
+
+    data class SplitEvent(
+        val date: LocalDate,
+        val factor: BigDecimal
+    )
+
+    fun adjust(
+        prices: List<PricePoint>,
+        events: List<SplitEvent> = emptyList(),
+        adjustedSources: Set<String> = emptySet()
+    ): List<PricePoint> {
+        if (prices.isEmpty()) return prices
+
+        val merged = splitEvents(prices, events)
+        if (merged.isEmpty()) return prices
+
+        val sortedEvents = merged.entries.sortedBy { it.key }
+
+        return prices.map { p ->
+            var factor = BigDecimal.ONE
+            for ((date, eventFactor) in sortedEvents) {
+                if (date.isAfter(p.priceDate)) {
+                    factor = factor.multiply(eventFactor)
+                }
+            }
+            // `shipsAdjustedClose()` providers (e.g. EODHD post-#875) persist
+            // `MarketData.close = adjusted_close` but leave `open/high/low` on
+            // the raw basis (the EODHD response carries no adjusted variants
+            // of those fields). Skip the factor only for `close` so the
+            // adjusted figure isn't divided again; keep dividing `open/high/
+            // low/previousClose` so the row lands fully on one basis.
+            val closeIsAdjusted = adjustedSources.contains(p.source)
+            val closeFactor = if (closeIsAdjusted) BigDecimal.ONE else factor
+            val canonicalSplit = merged[p.priceDate] ?: BigDecimal.ONE
+            // previousClose on the ex-date row lives on the previous trading
+            // day. Some upstream paths leave it raw pre-split (so it needs
+            // dividing by canonicalSplit to land on the rebased basis); others
+            // (svc-data's enrichWithPreviousClose) already rebase it. We
+            // distinguish by magnitude: if it sits at roughly the raw
+            // pre-split level (≥ half of close × canonicalSplit) treat it as
+            // raw, otherwise leave it alone.
+            val previousCloseFactor =
+                resolvePreviousCloseFactor(p, factor, canonicalSplit)
+            val noRebase =
+                listOf(factor, closeFactor, previousCloseFactor)
+                    .all { it.compareTo(BigDecimal.ONE) == 0 }
+            if (noRebase && canonicalSplit == p.split) {
+                p
+            } else {
+                p.copy(
+                    close = divideIfPositive(p.close, closeFactor),
+                    open = divideIfPositive(p.open, factor),
+                    high = divideIfPositive(p.high, factor),
+                    low = divideIfPositive(p.low, factor),
+                    previousClose = divideIfPositive(p.previousClose, previousCloseFactor),
+                    split = canonicalSplit
+                )
+            }
+        }
+    }
+
+    /**
+     * Cumulative split factor for every split with an ex-date strictly after [after], from a
+     * chronological `(priceDate, split)` series, using the same transition rule as [adjust].
+     * Divide a price observed on [after] by it to put the price on the latest share basis.
+     *
+     * Unlike [adjust], the first row is never read as an event: a window cut from the middle
+     * of history may open on a sticky stamp whose real ex-date lies before it, and there is no
+     * real predecessor to tell the two apart. Callers lead the series with the nearest row
+     * before the window so a genuine ex-date inside it has a predecessor.
+     */
+    fun factorAfter(
+        splits: List<Pair<LocalDate, BigDecimal>>,
+        after: LocalDate
+    ): BigDecimal =
+        transitions(splits, firstRowIsEvent = false)
+            .filterKeys { it.isAfter(after) }
+            .values
+            .fold(BigDecimal.ONE) { factor, eventFactor -> factor.multiply(eventFactor) }
+
+    /**
+     * Rebases an ex-date row onto the post-split basis when its close looks unadjusted: more
+     * than twice the post-split level implied by the raw [previousClose]. Mutates [marketData]
+     * in place. [split] must be positive; the caller passes it only on a split ex-date.
+     */
+    fun rebaseUnadjustedOhlc(
+        marketData: MarketData,
+        previousClose: BigDecimal,
+        split: BigDecimal
+    ) {
+        val closeLooksUnadjusted =
+            previousClose.signum() > 0 &&
+                marketData.close > previousClose.divide(split, SCALE, ROUNDING).multiply(BigDecimal.TWO)
+        if (closeLooksUnadjusted) {
+            marketData.close = divideIfPositive(marketData.close, split)
+            marketData.open = divideIfPositive(marketData.open, split)
+            marketData.high = divideIfPositive(marketData.high, split)
+            marketData.low = divideIfPositive(marketData.low, split)
+        }
+    }
+
+    /**
+     * Unified ex-date -> factor map: explicit [events] plus `split` column transitions.
+     */
+    private fun splitEvents(
+        prices: List<PricePoint>,
+        events: List<SplitEvent>
+    ): Map<LocalDate, BigDecimal> {
+        val merged = mutableMapOf<LocalDate, BigDecimal>()
+        for (ev in events) {
+            if (ev.factor.compareTo(BigDecimal.ONE) != 0 && ev.factor.signum() > 0) {
+                merged.putIfAbsent(ev.date, ev.factor)
+            }
+        }
+        transitions(prices.map { it.priceDate to it.split }, firstRowIsEvent = true)
+            .forEach { (date, factor) -> merged.putIfAbsent(date, factor) }
+        return merged
+    }
+
+    /**
+     * `split` column transitions (split=1 -> split!=1, so sticky stamps count once) in a
+     * chronological series. [firstRowIsEvent] treats the first row as having a flat
+     * predecessor, which is what [adjust] has always done.
+     */
+    private fun transitions(
+        splits: List<Pair<LocalDate, BigDecimal>>,
+        firstRowIsEvent: Boolean
+    ): Map<LocalDate, BigDecimal> {
+        val found = mutableMapOf<LocalDate, BigDecimal>()
+        for (i in splits.indices) {
+            if (i == 0 && !firstRowIsEvent) continue
+            val (date, cur) = splits[i]
+            val prev = if (i > 0) splits[i - 1].second else BigDecimal.ONE
+            val curIsSplit = cur.compareTo(BigDecimal.ONE) != 0 && cur.signum() > 0
+            val prevIsFlat = prev.compareTo(BigDecimal.ONE) == 0
+            if (curIsSplit && prevIsFlat) {
+                found.putIfAbsent(date, cur)
+            }
+        }
+        return found
+    }
+
+    private fun resolvePreviousCloseFactor(
+        p: PricePoint,
+        factor: BigDecimal,
+        canonicalSplit: BigDecimal
+    ): BigDecimal {
+        if (canonicalSplit.compareTo(BigDecimal.ONE) == 0) {
+            return factor
+        }
+        if (p.previousClose.signum() == 0 || p.close.signum() == 0) {
+            return factor
+        }
+        val rawTarget = p.close.multiply(canonicalSplit)
+        val halfRawTarget = rawTarget.divide(BigDecimal("2"), SCALE, ROUNDING)
+        return if (p.previousClose.compareTo(halfRawTarget) >= 0) {
+            factor.multiply(canonicalSplit)
+        } else {
+            factor
+        }
+    }
+
+    private fun divideIfPositive(
+        value: BigDecimal,
+        factor: BigDecimal
+    ): BigDecimal =
+        if (factor.compareTo(BigDecimal.ONE) == 0 || value.signum() == 0) {
+            value
+        } else {
+            value.divide(factor, SCALE, ROUNDING)
+        }
+}

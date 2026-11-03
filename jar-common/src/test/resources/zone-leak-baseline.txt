@@ -43,7 +43,7 @@ jar-contracts/src/main/kotlin/com/beancounter/common/model/SystemUser.kt
 # default itself is left in place — PrivateAssetConfigServiceTest alone has ~29
 # direct constructions that omit the dates and don't assert on them; touching all of
 # them for a field nobody observes isn't worth the diff.
-svc-data/src/main/kotlin/com/beancounter/marketdata/assets/PrivateAssetConfig.kt
+svc-data/src/main/kotlin/com/beancounter/marketdata/assets/privateasset/PrivateAssetConfig.kt
 # MarketDataPriceProvider.defaultBackfillFrom(): a companion-object function with no
 # DI, used as the default `fromDate` across 8+ MarketDataPriceProvider implementors'
 # backFill() overrides. Genuinely live (reached whenever a caller omits fromDate), but

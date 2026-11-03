@@ -14,7 +14,7 @@ class StaticConfigService(
     val cashService: CashService
 ) {
     @EventListener(ContextRefreshedEvent::class)
-    fun onApplicationEvent(event: ContextRefreshedEvent) {
+    fun onApplicationEvent() {
         currencyService.persist()
         cashService.createCashBalanceAssets()
     }

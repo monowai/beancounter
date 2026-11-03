@@ -10,7 +10,6 @@ import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
@@ -39,20 +38,10 @@ class StaticConfigServiceTest {
     private lateinit var cashService: CashService
 
     @Test
-    fun `should handle application context refresh event`() {
-        // Given a static config service
-        val staticConfigService = applicationContext.getBean(StaticConfigService::class.java)
-
-        // And a context refreshed event
-        val contextRefreshedEvent = Mockito.mock(ContextRefreshedEvent::class.java)
-
-        // When the application event is triggered
-        staticConfigService.onApplicationEvent(contextRefreshedEvent)
-
-        // Then currency service should persist data (may be called multiple times due to context refresh)
+    fun `should load static config when the context refreshes`() {
+        // The listener takes no event argument; Spring still dispatches the
+        // ContextRefreshedEvent it declares, so starting the context runs it.
         verify(currencyService, Mockito.atLeastOnce()).persist()
-
-        // And cash service should create cash balance assets (may be called multiple times due to context refresh)
         verify(cashService, Mockito.atLeastOnce()).createCashBalanceAssets()
     }
 

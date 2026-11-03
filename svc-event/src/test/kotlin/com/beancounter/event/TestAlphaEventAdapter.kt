@@ -118,7 +118,7 @@ class TestAlphaEventAdapter {
         position.quantityValues = QuantityValues(purchased = BigDecimal("100"))
         val trnEvent =
             behaviourFactory
-                .getAdapter(event)
+                .getAdapter()
                 .calculate(
                     portfolio,
                     position,

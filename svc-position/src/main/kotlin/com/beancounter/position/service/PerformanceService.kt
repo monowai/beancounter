@@ -96,55 +96,71 @@ class PerformanceService(
         val startDate = endDate.minusMonths(months.toLong())
 
         // Check cache BEFORE fetching transactions to skip all HTTP calls on hit
-        val cached = tryLoadFromCache(portfolio.id)
-        if (cached != null) {
-            val earliestCached = cached.minOf { it.valuationDate }
-            val latestCached = cached.maxOf { it.valuationDate }
-            val hasInWindow = cached.any { !it.valuationDate.isBefore(startDate) }
-            // `earliestCached <= startDate` alone is not enough: if every cached
-            // snapshot predates startDate, `anchorToStartDate` returns just the
-            // synthesised anchor (single-point series), producing 0% TWR and 0
-            // gain. Require at least one snapshot in `[startDate, endDate]`.
-            val hasSufficientHistory = !earliestCached.isAfter(startDate) && hasInWindow
-            // RabbitMQ invalidation (CacheInvalidationConsumer.invalidateFrom) deletes
-            // snapshots >= a trn's tradeDate; the surviving older rows can still
-            // satisfy `hasSufficientHistory`, leaving the series frozen before that
-            // date forever. Require the newest cached snapshot to reach endDate too.
-            // determineValuationDates always includes endDate in its result (it's
-            // unconditionally unioned in before the range filter), and buildSnapshots
-            // emits one snapshot per valuation date, so a fresh cache always has a
-            // snapshot dated endDate.
-            val isFresh = !latestCached.isBefore(endDate)
-            if (hasSufficientHistory && isFresh) {
-                val anchored = anchorToStartDate(cached, startDate)
-                log.debug(
-                    "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
-                    portfolio.code,
-                    anchored.size,
-                    cached.size
-                )
-                return buildResponseFromCache(portfolio, anchored)
-            }
-            log.debug(
-                "Cache PARTIAL: portfolio={}, earliest={}, latest={}, requested from {} to {}, reason={}, recomputing",
-                portfolio.code,
-                earliestCached,
-                latestCached,
-                startDate,
-                endDate,
-                if (!hasSufficientHistory) "insufficient history" else "stale tail"
-            )
-        }
+        return cachedResponse(portfolio, startDate, endDate)
+            ?: recompute(portfolio, startDate, endDate, historyAssetIds)
+    }
 
+    /** Response from cached snapshots, or null when the cache is missing, short or stale. */
+    private fun cachedResponse(
+        portfolio: Portfolio,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): PerformanceResponse? {
+        val cached = tryLoadFromCache(portfolio.id) ?: return null
+        val earliestCached = cached.minOf { it.valuationDate }
+        val latestCached = cached.maxOf { it.valuationDate }
+        val hasInWindow = cached.any { !it.valuationDate.isBefore(startDate) }
+        // `earliestCached <= startDate` alone is not enough: if every cached
+        // snapshot predates startDate, `anchorToStartDate` returns just the
+        // synthesised anchor (single-point series), producing 0% TWR and 0
+        // gain. Require at least one snapshot in `[startDate, endDate]`.
+        val hasSufficientHistory = !earliestCached.isAfter(startDate) && hasInWindow
+        // RabbitMQ invalidation (CacheInvalidationConsumer.invalidateFrom) deletes
+        // snapshots >= a trn's tradeDate; the surviving older rows can still
+        // satisfy `hasSufficientHistory`, leaving the series frozen before that
+        // date forever. Require the newest cached snapshot to reach endDate too.
+        // determineValuationDates always includes endDate in its result (it's
+        // unconditionally unioned in before the range filter), and buildSnapshots
+        // emits one snapshot per valuation date, so a fresh cache always has a
+        // snapshot dated endDate.
+        val isFresh = !latestCached.isBefore(endDate)
+        if (hasSufficientHistory && isFresh) {
+            val anchored = anchorToStartDate(cached, startDate)
+            log.debug(
+                "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
+                portfolio.code,
+                anchored.size,
+                cached.size
+            )
+            return buildResponseFromCache(portfolio, anchored)
+        }
+        log.debug(
+            "Cache PARTIAL: portfolio={}, earliest={}, latest={}, requested from {} to {}, reason={}, recomputing",
+            portfolio.code,
+            earliestCached,
+            latestCached,
+            startDate,
+            endDate,
+            if (!hasSufficientHistory) "insufficient history" else "stale tail"
+        )
+        return null
+    }
+
+    /** Values [portfolio] from its transactions, or an empty response when there is nothing to value. */
+    private fun recompute(
+        portfolio: Portfolio,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        historyAssetIds: MutableSet<String>?
+    ): PerformanceResponse {
         val token = tokenService.bearerToken
 
         val transactions = fetchAndSortTransactions(portfolio)
-        if (transactions.isEmpty()) return emptyResponse(portfolio)
+        val valuationDates =
+            if (transactions.isEmpty()) emptyList() else determineValuationDates(transactions, startDate, endDate)
+        if (valuationDates.isEmpty()) return emptyResponse(portfolio)
 
         val firstTradeDate = transactions.firstOrNull()?.tradeDate
-
-        val valuationDates = determineValuationDates(transactions, startDate, endDate)
-        if (valuationDates.isEmpty()) return emptyResponse(portfolio)
 
         log.debug("Cache MISS: portfolio={}, dates={}", portfolio.code, valuationDates.size)
 
@@ -658,8 +674,27 @@ class PerformanceService(
         val isCash = cashUtils.isCash(pos.asset)
         val price = if (isCash) BigDecimal.ONE else unitPrice(pos, dateStr, priceMap, prices) ?: return null
         val tradeCcy = pos.moneyValues[Position.In.TRADE]?.currency ?: pos.asset.market.currency
-        if (tradeCcy.code == portfolio.currency.code) return price
-        val fxPair = IsoCurrencyPair(tradeCcy.code, portfolio.currency.code)
+        return if (tradeCcy.code == portfolio.currency.code) {
+            price
+        } else {
+            toPortfolioCurrency(
+                price,
+                IsoCurrencyPair(tradeCcy.code, portfolio.currency.code),
+                fxRates,
+                isCash,
+                dateStr
+            )
+        }
+    }
+
+    /** [price] converted at the [fxPair] rate, 1.0 when the rate is missing. */
+    private fun toPortfolioCurrency(
+        price: BigDecimal,
+        fxPair: IsoCurrencyPair,
+        fxRates: FxPairResults?,
+        isCash: Boolean,
+        dateStr: String
+    ): BigDecimal {
         val rate = fxRates?.rates?.get(fxPair)?.rate
         if (rate == null) {
             log.warn(
@@ -680,29 +715,45 @@ class PerformanceService(
         prices: PassPrices
     ): BigDecimal? {
         val key = "${pos.asset.market.code}:${pos.asset.code}"
-        priceMap[key]?.let { return it.close }
+        val onDate = priceMap[key]
         val latest = prices.latestPriceIndex[key]
-        if (pos.asset.market.code == PRIVATE_MARKET && latest != null) {
-            // PRIVATE assets only ever get one price row (stamped today by
-            // PrivateMarketDataProvider) — use it in preference to purchase
-            // cost for every other valuation date.
-            log.debug(
-                "No price for PRIVATE asset {} on {}, using latest known price {} from {}",
-                key,
-                dateStr,
-                latest.close,
-                latest.priceDate
-            )
-            return latest.close
+        return when {
+            onDate != null -> {
+                onDate.close
+            }
+            pos.asset.market.code == PRIVATE_MARKET && latest != null -> {
+                // PRIVATE assets only ever get one price row (stamped today by
+                // PrivateMarketDataProvider) — use it in preference to purchase
+                // cost for every other valuation date.
+                log.debug(
+                    "No price for PRIVATE asset {} on {}, using latest known price {} from {}",
+                    key,
+                    dateStr,
+                    latest.close,
+                    latest.priceDate
+                )
+                latest.close
+            }
+            else -> {
+                costPrice(pos, key, dateStr)
+            }
         }
-        // Fall back to average cost when no market price is available
+    }
+
+    /** Average cost when no market price is available; null when there is no cost basis either. */
+    private fun costPrice(
+        pos: Position,
+        key: String,
+        dateStr: String
+    ): BigDecimal? {
         val avgCost = pos.moneyValues[Position.In.TRADE]?.averageCost ?: BigDecimal.ZERO
-        if (avgCost.signum() == 0) {
+        return if (avgCost.signum() == 0) {
             log.warn("No price or cost basis for {} on {}, skipping", key, dateStr)
-            return null
+            null
+        } else {
+            log.debug("No market price for {} on {}, using cost price {}", key, dateStr, avgCost)
+            avgCost
         }
-        log.debug("No market price for {} on {}, using cost price {}", key, dateStr, avgCost)
-        return avgCost
     }
 
     /**
@@ -859,17 +910,26 @@ class PerformanceService(
         startDate: LocalDate
     ): List<CachedSnapshot> {
         val onOrAfter = cached.filter { !it.valuationDate.isBefore(startDate) }
-        if (onOrAfter.firstOrNull()?.valuationDate == startDate) return onOrAfter
-        val prior = cached.lastOrNull { it.valuationDate.isBefore(startDate) } ?: return onOrAfter
-        val anchor =
-            CachedSnapshot(
-                valuationDate = startDate,
-                marketValue = prior.marketValue,
-                externalCashFlow = BigDecimal.ZERO,
-                netContributions = prior.netContributions,
-                cumulativeDividends = prior.cumulativeDividends
-            )
-        return listOf(anchor) + onOrAfter
+        val prior = cached.lastOrNull { it.valuationDate.isBefore(startDate) }
+        return when {
+            onOrAfter.firstOrNull()?.valuationDate == startDate -> {
+                onOrAfter
+            }
+            prior == null -> {
+                onOrAfter
+            }
+            else -> {
+                listOf(
+                    CachedSnapshot(
+                        valuationDate = startDate,
+                        marketValue = prior.marketValue,
+                        externalCashFlow = BigDecimal.ZERO,
+                        netContributions = prior.netContributions,
+                        cumulativeDividends = prior.cumulativeDividends
+                    )
+                ) + onOrAfter
+            }
+        }
     }
 
     private fun buildResponseFromCache(

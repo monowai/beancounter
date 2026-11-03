@@ -464,6 +464,56 @@ class PositionControllerTest {
     }
 
     @Test
+    fun `should return an empty allocation without valuing when no portfolio is visible`() {
+        whenever(portfolioServiceClient.getPortfolioById("not-visible"))
+            .thenThrow(BusinessException("Unable to find portfolio not-visible"))
+
+        val result = positionController.allocation(asAt = "2024-01-15", ids = "not-visible", targetCurrency = "SGD")
+
+        assertThat(result).isEqualTo(
+            com.beancounter.common.contracts
+                .AllocationResponse()
+        )
+        verify(valuationService, never()).getAggregatedPositions(any(), any(), any(), anyOrNull(), any())
+    }
+
+    @Test
+    fun `should convert the allocation when the target currency differs from the allocation currency`() {
+        val usdAllocation =
+            com.beancounter.common.contracts
+                .AllocationData(currency = "USD")
+        val sgdAllocation =
+            com.beancounter.common.contracts
+                .AllocationData(currency = "SGD")
+        whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+            .thenReturn(testPositionResponse)
+        whenever(allocationService.calculateAllocation(any(), any())).thenReturn(usdAllocation)
+        whenever(allocationService.convertCurrency(usdAllocation, "SGD", fxService, "2024-01-15"))
+            .thenReturn(sgdAllocation)
+
+        val result = positionController.allocation(asAt = "2024-01-15", ids = "test-portfolio", targetCurrency = "SGD")
+
+        assertThat(result.data).isEqualTo(sgdAllocation)
+    }
+
+    @Test
+    fun `should not convert the allocation when it is already in the target currency`() {
+        val sgdAllocation =
+            com.beancounter.common.contracts
+                .AllocationData(currency = "SGD")
+        whenever(portfolioServiceClient.getPortfolioById("test-portfolio")).thenReturn(testPortfolio)
+        whenever(valuationService.getAggregatedPositions(any(), any(), any(), anyOrNull(), any()))
+            .thenReturn(testPositionResponse)
+        whenever(allocationService.calculateAllocation(any(), any())).thenReturn(sgdAllocation)
+
+        val result = positionController.allocation(asAt = "2024-01-15", ids = "test-portfolio", targetCurrency = "sgd")
+
+        assertThat(result.data).isEqualTo(sgdAllocation)
+        verify(allocationService, never()).convertCurrency(any(), any(), any(), any())
+    }
+
+    @Test
     fun `should return 400 when currency is missing`() {
         // BusinessException maps to HTTP 400 via GlobalExceptionHandler.
         assertThatThrownBy {

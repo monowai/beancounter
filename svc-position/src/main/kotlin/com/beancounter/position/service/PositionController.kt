@@ -626,15 +626,15 @@ class PositionController(
         // PRIVATE positions), so this path is only hit when targetCurrency
         // is supplied but couldn't be honoured by the aggregator (e.g.
         // empty currency code or a portfolio with no positions).
-        if (!targetCurrency.isNullOrBlank() &&
-            !targetCurrency.equals(allocation.currency, ignoreCase = true)
-        ) {
-            return AllocationResponse(
-                data = allocationService.convertCurrency(allocation, targetCurrency, fxService, asAt)
-            )
-        }
-
-        return AllocationResponse(data = allocation)
+        val data =
+            if (!targetCurrency.isNullOrBlank() &&
+                !targetCurrency.equals(allocation.currency, ignoreCase = true)
+            ) {
+                allocationService.convertCurrency(allocation, targetCurrency, fxService, asAt)
+            } else {
+                allocation
+            }
+        return AllocationResponse(data = data)
     }
 
     @GetMapping(

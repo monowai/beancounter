@@ -36,11 +36,7 @@ class PortfolioRevaluator(
 
     @SentryTransaction(operation = "scheduled", name = "PortfolioRevaluator.revalueAll")
     fun revalueAll(reason: String): Result {
-        val currentLoginService = loginService
-        if (currentLoginService == null) {
-            log.warn("LoginService not available, skipping revaluation ({})", reason)
-            return Result.SKIPPED_NO_LOGIN
-        }
+        val currentLoginService = loginService ?: return skippedNoLogin(reason)
 
         // Single-flight: if a run is already in progress, skip rather than queue.
         if (!lock.tryLock()) {
@@ -52,6 +48,11 @@ class PortfolioRevaluator(
         } finally {
             lock.unlock()
         }
+    }
+
+    private fun skippedNoLogin(reason: String): Result {
+        log.warn("LoginService not available, skipping revaluation ({})", reason)
+        return Result.SKIPPED_NO_LOGIN
     }
 
     private fun runLocked(

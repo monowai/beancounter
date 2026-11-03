@@ -81,6 +81,30 @@ class PortfolioRevaluatorTest {
         assertThat(result.status).isEqualTo(PortfolioRevaluator.ResultStatus.SKIPPED_NO_LOGIN)
     }
 
+    @Test
+    fun `revalueAll returns SKIPPED_BUSY when a run is already in progress`() {
+        val portfolios = listOf(portfolio("PORT1"))
+        wireLogin(portfolios)
+        val started = java.util.concurrent.CountDownLatch(1)
+        val release = java.util.concurrent.CountDownLatch(1)
+        whenever(valuationService.getPositions(any(), any(), any())).thenAnswer {
+            started.countDown()
+            release.await(5, java.util.concurrent.TimeUnit.SECONDS)
+            null
+        }
+        val first =
+            java.util.concurrent.CompletableFuture
+                .supplyAsync { revaluator.revalueAll(reason = "first") }
+        assertThat(started.await(5, java.util.concurrent.TimeUnit.SECONDS)).isTrue()
+
+        val second = revaluator.revalueAll(reason = "second")
+        release.countDown()
+
+        assertThat(second.status).isEqualTo(PortfolioRevaluator.ResultStatus.SKIPPED_BUSY)
+        assertThat(first.get(5, java.util.concurrent.TimeUnit.SECONDS).status)
+            .isEqualTo(PortfolioRevaluator.ResultStatus.COMPLETED)
+    }
+
     private fun portfolio(code: String): Portfolio =
         Portfolio(
             id = code,

@@ -49,7 +49,7 @@ class ToolTurnBoundaryAdvisor : StreamAdvisor {
     companion object {
         /**
          * The finish reason stamped on the synthetic boundary element.
-         * [AgentController.TOOL_TURN_FINISH_REASONS] must contain this value
+         * [StreamTally]'s tool-turn finish reasons must contain this value
          * for the element to become an SSE `reset` event — it references this
          * constant so the contract has a single source of truth.
          */

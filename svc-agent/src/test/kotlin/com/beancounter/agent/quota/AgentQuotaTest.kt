@@ -1,11 +1,11 @@
 package com.beancounter.agent.quota
 
-import com.beancounter.agent.AgentController
+import com.beancounter.agent.AgentEndpoints
 import com.beancounter.agent.AgentQuery
 import com.beancounter.agent.ChatModelSelector
 import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
-import com.beancounter.agent.agentController
+import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
 import com.beancounter.agent.conversation.ConversationService
@@ -135,8 +135,8 @@ class AgentQuotaTest {
             TestingAuthenticationToken("user", "n/a", authorities.map(::SimpleGrantedAuthority))
     }
 
-    private fun controller(): AgentController =
-        agentController(
+    private fun controller(): AgentEndpoints =
+        agentEndpoints(
             chatClient = client,
             toolSelector = mock<ToolSelector> { on { selectTools(anyOrNull()) } doAnswer { arrayOf() } },
             systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },

@@ -1,13 +1,13 @@
 package com.beancounter.agent.conversation
 
-import com.beancounter.agent.AgentController
+import com.beancounter.agent.AgentEndpoints
 import com.beancounter.agent.AgentQuery
 import com.beancounter.agent.ChatModelSelector
 import com.beancounter.agent.ChatTurn
 import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
 import com.beancounter.agent.ToolTurnBoundaryAdvisor
-import com.beancounter.agent.agentController
+import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
@@ -99,8 +99,8 @@ class AgentConversationTest {
         service.deleteAll("someone-else")
     }
 
-    private fun controller(conversations: ConversationService = service): AgentController =
-        agentController(
+    private fun controller(conversations: ConversationService = service): AgentEndpoints =
+        agentEndpoints(
             chatClient = client,
             toolSelector = mock<ToolSelector> { on { selectTools(anyOrNull()) } doReturn arrayOf() },
             systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doReturn "prompt" },

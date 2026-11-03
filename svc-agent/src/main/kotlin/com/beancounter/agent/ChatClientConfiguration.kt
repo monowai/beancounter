@@ -105,7 +105,7 @@ class ChatClientConfiguration {
      *
      * DeepSeek Flash defaults to thinking mode (big latency + reasoning-token
      * cost). Its default options disable thinking, so every request carries
-     * `thinking: {type: disabled}`. [com.beancounter.agent.AgentController]
+     * `thinking: {type: disabled}`. [com.beancounter.agent.ModelRouting]
      * routes per request via the `think` flag.
      */
     @Bean("fastChatClient")
@@ -185,7 +185,7 @@ class ChatClientConfiguration {
 
     /**
      * Anthropic prompt-cache config exposed as a bean so per-call code in
-     * [AgentController] can re-include it when overriding model id.
+     * [ModelRouting] can re-include it when overriding model id.
      *
      * Cache the static prefix (system prompt + tool definitions) so the
      * multi-iteration tool-calling loop doesn't re-pay for ~4k tokens of

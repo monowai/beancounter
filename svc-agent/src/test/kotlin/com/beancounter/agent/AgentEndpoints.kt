@@ -21,12 +21,24 @@ import org.springframework.mock.env.MockEnvironment
 import tools.jackson.databind.ObjectMapper
 import java.time.Clock
 
+/** Both transports of the agent, as a test calls them. */
+class AgentEndpoints(
+    private val queries: AgentController,
+    private val streams: AgentStreamController
+) {
+    fun health() = queries.health()
+
+    fun query(body: AgentQuery) = queries.query(body)
+
+    fun stream(body: AgentQuery) = streams.stream(body)
+}
+
 /**
- * The one place tests build an [AgentController] by hand. Every collaborator
+ * The one place tests build the agent's controllers by hand. Every collaborator
  * defaults to the inert test double: no tools, a fixed prompt and model, a
  * verified caller, and nothing cached, held or metered.
  */
-fun agentController(
+fun agentEndpoints(
     chatClient: ChatClient? = null,
     fastChatClient: ChatClient? = null,
     healthChecker: ServiceHealthChecker = mock(),
@@ -44,7 +56,7 @@ fun agentController(
     reviewCache: AssetReviewCache = AssetReviewCache.NONE,
     holdings: HoldingFactsSource = HoldingFactsSource.NONE,
     quota: TurnQuota = TurnQuota.NONE
-): AgentController {
+): AgentEndpoints {
     val routing = ModelRouting(chatClient, fastChatClient, null, chatModelSelector, environment)
     val metrics = LlmMetrics()
     val planner = TurnPlanner(pageQuerySelector, conversations, conversationOwner, reviewCache, routing, clock)
@@ -52,14 +64,21 @@ fun agentController(
     val prompts = TurnPrompts(toolSelector, systemPromptSelector, routing, metrics, clock)
     val turns = ConversationTurns(conversations, conversationTitler, pageQuerySelector, reviewCache, metering)
     val opening = HoldingAnalysisOpening(holdings, planner, prompts, reviewCache)
-    return AgentController(
-        routing = routing,
-        healthChecker = healthChecker,
-        scopeAuthorizer = scopeAuthorizer,
-        admission = TurnAdmission(planner, metering, routing),
-        answers = BlockingAnswers(prompts, metrics, turns, opening),
-        streams = AnswerStreams(prompts, routing, metrics, ObjectMapper(), turns, opening),
-        turns = turns,
-        inFlightTurns = inFlightTurns
+    val admission = TurnAdmission(planner, metering, routing)
+    return AgentEndpoints(
+        AgentController(
+            routing,
+            healthChecker,
+            scopeAuthorizer,
+            admission,
+            BlockingAnswers(prompts, metrics, turns, opening)
+        ),
+        AgentStreamController(
+            scopeAuthorizer,
+            admission,
+            AnswerStreams(prompts, routing, metrics, ObjectMapper(), turns, opening),
+            turns,
+            inFlightTurns
+        )
     )
 }

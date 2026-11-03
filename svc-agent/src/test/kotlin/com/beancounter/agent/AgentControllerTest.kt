@@ -125,8 +125,8 @@ class AgentControllerTest {
         healthChecker: ServiceHealthChecker = stubChecker(),
         scopeAuthorizer: AgentScopeAuthorizer = permissiveAuthorizer,
         clock: java.time.Clock = java.time.Clock.systemUTC()
-    ): AgentController =
-        agentController(
+    ): AgentEndpoints =
+        agentEndpoints(
             chatClient = chatClient,
             healthChecker = healthChecker,
             toolSelector = toolSelector,
@@ -245,13 +245,13 @@ class AgentControllerTest {
         thinking: ChatClient,
         fast: ChatClient,
         reasons: Boolean
-    ): AgentController {
+    ): AgentEndpoints {
         val selector =
             mock<ChatModelSelector> {
                 on { selectFor(anyOrNull(), any()) } doReturn "test-model-id"
                 on { reasonsFor(anyOrNull()) } doReturn reasons
             }
-        return agentController(
+        return agentEndpoints(
             chatClient = thinking,
             fastChatClient = fast,
             healthChecker = stubChecker(),
@@ -388,7 +388,7 @@ class AgentControllerTest {
             }
         val owner = mock<com.beancounter.agent.conversation.ConversationOwner> { on { id() } doReturn "me" }
         val ctrl =
-            agentController(
+            agentEndpoints(
                 chatClient = client,
                 healthChecker = stubChecker(),
                 toolSelector = toolSelector,

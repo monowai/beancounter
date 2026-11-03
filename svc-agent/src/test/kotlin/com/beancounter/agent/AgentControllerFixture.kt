@@ -6,6 +6,7 @@ import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.health.ServiceHealthChecker
+import com.beancounter.agent.holding.HoldingAnalysisOpening
 import com.beancounter.agent.holding.HoldingFactsSource
 import com.beancounter.agent.quota.TurnQuota
 import com.beancounter.agent.review.AssetReviewCache
@@ -48,21 +49,17 @@ fun agentController(
     val metrics = LlmMetrics()
     val planner = TurnPlanner(pageQuerySelector, conversations, conversationOwner, reviewCache, routing, clock)
     val metering = TurnMetering(scopeAuthorizer, conversationOwner, quota)
+    val prompts = TurnPrompts(toolSelector, systemPromptSelector, routing, metrics, clock)
+    val turns = ConversationTurns(conversations, conversationTitler, pageQuerySelector, reviewCache, metering)
+    val opening = HoldingAnalysisOpening(holdings, planner, prompts, reviewCache)
     return AgentController(
         routing = routing,
         healthChecker = healthChecker,
-        prompts = TurnPrompts(toolSelector, systemPromptSelector, routing, metrics, clock),
-        objectMapper = ObjectMapper(),
-        llmMetrics = metrics,
         scopeAuthorizer = scopeAuthorizer,
         admission = TurnAdmission(planner, metering, routing),
-        planner = planner,
-        metering = metering,
-        turns = ConversationTurns(conversations, conversationTitler, pageQuerySelector),
-        inFlightTurns = inFlightTurns,
-        clock = clock,
-        pageQuerySelector = pageQuerySelector,
-        reviewCache = reviewCache,
-        holdings = holdings
+        answers = BlockingAnswers(prompts, metrics, turns, opening),
+        streams = AnswerStreams(prompts, routing, metrics, ObjectMapper(), turns, opening),
+        turns = turns,
+        inFlightTurns = inFlightTurns
     )
 }

@@ -5,17 +5,22 @@ import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.Question
 import com.beancounter.agent.conversation.TurnRecorder
+import com.beancounter.agent.review.AssetReviewCache
+import com.beancounter.agent.review.AssetReviewKey
+import com.beancounter.agent.review.ReviewCachingRecorder
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
-/** Opens a turn in its conversation and records how it ended. */
+/** Opens a turn in its conversation and records how it ended, cached and counted where it should be. */
 @Component
 class ConversationTurns(
     private val conversations: ConversationService,
     private val titler: ConversationTitler,
-    private val pageQuerySelector: PageQuerySelector
+    private val pageQuerySelector: PageQuerySelector,
+    private val reviewCache: AssetReviewCache,
+    private val metering: TurnMetering
 ) {
     private val log = LoggerFactory.getLogger(ConversationTurns::class.java)
 
@@ -70,4 +75,15 @@ class ConversationTurns(
             .subscribeOn(Schedulers.boundedElastic())
             .doOnError { e -> log.error("Failed to record conversation turn: {}", e.message, e) }
             .onErrorComplete()
+
+    /**
+     * [recorder] for a live answer: a canned review's successful answer kept
+     * under [reviewKey] for next time, and the turn counted against [meter].
+     */
+    fun live(
+        recorder: TurnRecorder,
+        reviewKey: AssetReviewKey?,
+        meter: String?
+    ): TurnRecorder =
+        metering.metered(reviewKey?.let { ReviewCachingRecorder(recorder, reviewCache, it) } ?: recorder, meter)
 }

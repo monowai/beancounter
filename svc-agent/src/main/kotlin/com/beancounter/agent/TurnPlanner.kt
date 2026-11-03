@@ -35,6 +35,12 @@ data class Plan(
         get() = request.label ?: opening?.let { PageQueries.holdingAnalysisLabel(it.ticker) } ?: request.query
 }
 
+/** A canned Asset Review asked from the asset alone, and where its answer is cached. */
+data class ReviewTurn(
+    val turn: AgentQuery,
+    val key: AssetReviewKey
+)
+
 /**
  * Decides what a request asks: the question (the caller's own or the page's
  * canned one), the conversation it belongs to, whether it opens a Holding
@@ -100,7 +106,7 @@ class TurnPlanner(
      * when the caller gave no label. A page with no canned question needs the
      * caller to ask something — a 400 otherwise.
      */
-    fun withQuestion(request: AgentQuery): AgentQuery {
+    private fun withQuestion(request: AgentQuery): AgentQuery {
         if (request.query.isNotBlank()) return request
         val canned =
             pageQuerySelector.queryFor(request.context)
@@ -169,5 +175,28 @@ class TurnPlanner(
             key.reviewDate
         )
         return hit
+    }
+
+    /**
+     * The Asset Review of [asset] as the canonical cached review is asked —
+     * from the asset alone, never the caller's context — dated today and
+     * keyed by the model that answers. [request] lends only its thinking flags.
+     */
+    fun reviewTurn(
+        asset: AssetReviewSubject,
+        request: AgentQuery
+    ): ReviewTurn {
+        val turn =
+            withQuestion(
+                AgentQuery(
+                    context = pageQuerySelector.assetReviewContext(asset),
+                    think = request.think,
+                    deepThink = request.deepThink
+                )
+            )
+        return ReviewTurn(
+            turn,
+            AssetReviewKey(asset.market, asset.ticker, LocalDate.now(clock), routing.answeringModel(turn))
+        )
     }
 }

@@ -18,7 +18,6 @@ import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.cache.CachedSnapshot
 import com.beancounter.position.cache.PerformanceCacheService
 import com.beancounter.position.irr.IrrCalculator
-import com.beancounter.position.irr.TwrCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset
 import org.junit.jupiter.api.BeforeEach
@@ -78,20 +77,12 @@ class PerformanceAggregateTest {
 
     @BeforeEach
     fun setup() {
-        val dateUtils = DateUtils()
         service =
-            PerformanceService(
+            performanceService(
                 trnService = trnService,
                 accumulator = accumulator,
                 priceService = priceService,
                 fxRateService = fxRateService,
-                twrCalculator = TwrCalculator(),
-                irrCalculator =
-                    IrrCalculator(
-                        minHoldingDays = 365,
-                        dateUtils = dateUtils
-                    ),
-                dateUtils = dateUtils,
                 tokenService = tokenService,
                 cacheService = cacheService
             )

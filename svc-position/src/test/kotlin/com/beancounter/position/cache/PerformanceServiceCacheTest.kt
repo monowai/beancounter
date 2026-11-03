@@ -16,9 +16,9 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.accumulation.Accumulator
-import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.service.PerformanceService
+import com.beancounter.position.service.performanceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -56,7 +56,6 @@ class PerformanceServiceCacheTest {
     private lateinit var cacheService: PerformanceCacheService
 
     private val twrCalculator = TwrCalculator()
-    private val dateUtils = DateUtils()
     private lateinit var performanceService: PerformanceService
 
     private val usd = Currency("USD")
@@ -89,16 +88,14 @@ class PerformanceServiceCacheTest {
     fun setup() {
         lenient().`when`(tokenService.bearerToken).thenReturn("test-token")
         performanceService =
-            PerformanceService(
+            performanceService(
                 trnService = trnService,
                 accumulator = accumulator,
                 priceService = priceService,
                 fxRateService = fxRateService,
-                twrCalculator = twrCalculator,
-                irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
-                dateUtils = dateUtils,
                 tokenService = tokenService,
-                cacheService = cacheService
+                cacheService = cacheService,
+                twrCalculator = twrCalculator
             )
     }
 

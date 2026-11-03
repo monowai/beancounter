@@ -19,9 +19,6 @@ import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
-import com.beancounter.position.cache.NoOpPerformanceCacheService
-import com.beancounter.position.irr.IrrCalculator
-import com.beancounter.position.irr.TwrCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -65,16 +62,12 @@ class PerformanceAggregateFanOutTest {
     fun setup() {
         lenient().`when`(tokenService.bearerToken).thenReturn("test-token")
         service =
-            PerformanceService(
+            performanceService(
                 trnService = trnService,
                 accumulator = Accumulator(TrnBehaviourFactory(listOf(BuyBehaviour()))),
                 priceService = priceService,
                 fxRateService = fxRateService,
-                twrCalculator = TwrCalculator(),
-                irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
-                dateUtils = dateUtils,
-                tokenService = tokenService,
-                cacheService = NoOpPerformanceCacheService()
+                tokenService = tokenService
             )
     }
 

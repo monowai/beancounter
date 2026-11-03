@@ -61,6 +61,7 @@ class ValuationServiceTest {
     companion object {
         private val MV_10K = BigDecimal("10000.00")
         private val PRICE_150 = BigDecimal("150.00")
+        private const val DEFAULT_CACHE_TTL_SECONDS = 5L
     }
 
     @Mock
@@ -107,16 +108,7 @@ class ValuationServiceTest {
             .thenReturn(FxResponse())
 
         valuationService =
-            ValuationService(
-                positionValuationService,
-                trnService,
-                positionService,
-                marketValueUpdateProducer,
-                fxRateService,
-                tokenService,
-                dateUtils,
-                earmarkService
-            )
+            valuationService()
     }
 
     @AfterEach
@@ -290,17 +282,7 @@ class ValuationServiceTest {
     fun `getAggregatedPositions bypasses cache when ttl is zero`() {
         // Given - a service configured with cache-ttl-seconds=0
         val bypassService =
-            ValuationService(
-                positionValuationService,
-                trnService,
-                positionService,
-                marketValueUpdateProducer,
-                fxRateService,
-                tokenService,
-                dateUtils,
-                earmarkService,
-                cacheTtlSeconds = 0
-            )
+            valuationService(cacheTtlSeconds = 0)
         whenever(tokenService.subject).thenReturn("user-1")
         whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(emptyList()))
@@ -842,16 +824,7 @@ class ValuationServiceTest {
                 )
             )
         val service =
-            ValuationService(
-                positionValuationService,
-                trnService,
-                realPositionService,
-                marketValueUpdateProducer,
-                fxRateService,
-                tokenService,
-                dateUtils,
-                earmarkService
-            )
+            valuationService(positionService = realPositionService)
 
         val pfA = TestHelpers.createTestPortfolio("PF-A")
         val pfB = TestHelpers.createTestPortfolio("PF-B")
@@ -1301,16 +1274,24 @@ class ValuationServiceTest {
 
     // The real EarmarkService over the mocked TrnService, so the assertion lands on the
     // bc-data read itself rather than on an EarmarkService mock.
-    private fun withRealEarmark(): ValuationService =
+    private fun withRealEarmark(): ValuationService = valuationService(earmarkService = EarmarkService(trnService))
+
+    /** The one place this class wires a [ValuationService]; each test overrides only what it varies. */
+    private fun valuationService(
+        positionService: PositionService = this.positionService,
+        earmarkService: EarmarkService = this.earmarkService,
+        cacheTtlSeconds: Long = DEFAULT_CACHE_TTL_SECONDS
+    ): ValuationService =
         ValuationService(
-            positionValuationService,
-            trnService,
-            positionService,
-            marketValueUpdateProducer,
-            fxRateService,
-            tokenService,
-            dateUtils,
-            EarmarkService(trnService)
+            positionValuationService = positionValuationService,
+            trnService = trnService,
+            positionService = positionService,
+            marketValueUpdateProducer = marketValueUpdateProducer,
+            fxRateService = fxRateService,
+            tokenService = tokenService,
+            dateUtils = dateUtils,
+            earmarkService = earmarkService,
+            cacheTtlSeconds = cacheTtlSeconds
         )
 
     private fun stubOneBuyPerPortfolio(

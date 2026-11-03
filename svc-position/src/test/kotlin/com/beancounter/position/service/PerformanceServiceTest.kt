@@ -20,8 +20,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.accumulation.Accumulator
-import com.beancounter.position.cache.NoOpPerformanceCacheService
-import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.irr.TwrCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset
@@ -58,7 +56,6 @@ class PerformanceServiceTest {
     private lateinit var tokenService: TokenService
 
     private val twrCalculator = TwrCalculator()
-    private val dateUtils = DateUtils()
     private lateinit var performanceService: PerformanceService
 
     private val usMarket = Market("US")
@@ -84,16 +81,13 @@ class PerformanceServiceTest {
         // Use lenient since not all tests call calculate()
         lenient().`when`(tokenService.bearerToken).thenReturn("test-token")
         performanceService =
-            PerformanceService(
+            performanceService(
                 trnService = trnService,
                 accumulator = accumulator,
                 priceService = priceService,
                 fxRateService = fxRateService,
-                twrCalculator = twrCalculator,
-                irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
-                dateUtils = dateUtils,
                 tokenService = tokenService,
-                cacheService = NoOpPerformanceCacheService()
+                twrCalculator = twrCalculator
             )
     }
 

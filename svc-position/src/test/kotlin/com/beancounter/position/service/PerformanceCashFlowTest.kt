@@ -18,9 +18,6 @@ import com.beancounter.position.accumulation.CashAccumulator
 import com.beancounter.position.accumulation.DepositBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
 import com.beancounter.position.accumulation.WithdrawalBehaviour
-import com.beancounter.position.cache.NoOpPerformanceCacheService
-import com.beancounter.position.irr.IrrCalculator
-import com.beancounter.position.irr.TwrCalculator
 import com.beancounter.position.utils.CurrencyResolver
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -73,7 +70,7 @@ class PerformanceCashFlowTest {
         whenever(tokenService.bearerToken).thenReturn("test-token")
         val cashAccumulator = CashAccumulator(CurrencyResolver())
         performanceService =
-            PerformanceService(
+            performanceService(
                 trnService = trnService,
                 accumulator =
                     Accumulator(
@@ -83,11 +80,7 @@ class PerformanceCashFlowTest {
                     ),
                 priceService = priceService,
                 fxRateService = fxRateService,
-                twrCalculator = TwrCalculator(),
-                irrCalculator = IrrCalculator(minHoldingDays = 365, dateUtils = dateUtils),
-                dateUtils = dateUtils,
-                tokenService = tokenService,
-                cacheService = NoOpPerformanceCacheService()
+                tokenService = tokenService
             )
         lenient().`when`(fxRateService.getBulkRates(any(), any())).thenReturn(BulkFxResponse(emptyMap()))
     }

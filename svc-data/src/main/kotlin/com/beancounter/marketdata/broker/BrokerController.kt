@@ -92,14 +92,7 @@ class BrokerController(
     ): ResponseEntity<BrokerWithAccountsResponse> {
         val owner = systemUserService.getOrThrow()
         val updated =
-            brokerService.update(
-                id = id,
-                owner = owner,
-                name = input.name,
-                accountNumber = input.accountNumber,
-                notes = input.notes,
-                settlementAccounts = input.settlementAccounts
-            )
+            brokerService.update(id, owner, input)
         val withAccounts = brokerService.findByIdWithAccounts(updated.id, owner)
         return ResponseEntity.ok(BrokerWithAccountsResponse(withAccounts.get()))
     }

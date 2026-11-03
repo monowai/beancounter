@@ -25,6 +25,9 @@ class AssetStatusTest {
     private lateinit var assetService: AssetService
 
     @Autowired
+    private lateinit var assetAdministration: AssetAdministration
+
+    @Autowired
     private lateinit var assetRepository: AssetRepository
 
     @Autowired
@@ -51,7 +54,7 @@ class AssetStatusTest {
         assertThat(asset.status).isEqualTo(Status.Active)
 
         // Deactivate the asset
-        val updatedAsset = assetService.updateStatus(asset.id, Status.Inactive)
+        val updatedAsset = assetAdministration.updateStatus(asset.id, Status.Inactive)
 
         assertThat(updatedAsset.status).isEqualTo(Status.Inactive)
         assertThat(updatedAsset.id).isEqualTo(asset.id)
@@ -81,7 +84,7 @@ class AssetStatusTest {
             )
 
         // Deactivate one asset
-        assetService.updateStatus(assets.data["INACTIVE"]!!.id, Status.Inactive)
+        assetAdministration.updateStatus(assets.data["INACTIVE"]!!.id, Status.Inactive)
 
         // Verify only active asset is returned
         val codes = assetFinder.findActiveAssetsForPricing().map { it.code }

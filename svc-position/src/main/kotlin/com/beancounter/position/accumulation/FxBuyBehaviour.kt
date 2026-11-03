@@ -82,40 +82,18 @@ class FxBuyBehaviour(
             counterPosition.quantityValues.sold.add(trn.cashAmount)
 
         // Enable cost tracking for FX cash position
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.TRADE,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            BigDecimal.ONE
-        )
-
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.BASE,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            trn.tradeBaseRate
-        )
-
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.PORTFOLIO,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            trn.tradePortfolioRate
-        )
+        Position.In.entries.forEach { pool ->
+            cashCost.value(
+                currencyResolver.getMoneyValues(
+                    pool,
+                    trn.cashCurrency!!,
+                    trn.portfolio,
+                    counterPosition
+                ),
+                counterPosition,
+                trn.cashAmount,
+                trn.rateFor(pool)
+            )
+        }
     }
 }

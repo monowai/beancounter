@@ -59,8 +59,8 @@ abstract class BaseAccumulationStrategy(
         updateFunction: (MoneyValues, BigDecimal) -> Unit
     ) {
         // Apply updates with pre-calculated rates
-        updateFunction(context.tradeMoneyValues, ONE)
-        updateFunction(context.baseMoneyValues, trn.tradeBaseRate)
-        updateFunction(context.portfolioMoneyValues, trn.tradePortfolioRate)
+        updateFunction(context.tradeMoneyValues, trn.rateFor(Position.In.TRADE))
+        updateFunction(context.baseMoneyValues, trn.rateFor(Position.In.BASE))
+        updateFunction(context.portfolioMoneyValues, trn.rateFor(Position.In.PORTFOLIO))
     }
 }

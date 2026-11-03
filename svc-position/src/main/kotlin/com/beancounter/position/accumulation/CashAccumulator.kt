@@ -1,5 +1,6 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Trn
@@ -63,68 +64,34 @@ class CashAccumulator(
             cashUtils.isCash(cashPosition.asset) ||
                 cashPosition.asset.market.code == "CASH"
         val needsSnapshot = !isCashSide && !isCashAsset
-        applyPool(
-            Position.In.TRADE,
-            effectiveCashCurrency,
-            trn,
-            position,
-            cashPosition,
-            signedQuantity,
-            BigDecimal.ONE,
-            needsSnapshot
-        )
-        applyPool(
-            Position.In.BASE,
-            effectiveCashCurrency,
-            trn,
-            position,
-            cashPosition,
-            signedQuantity,
-            trn.tradeBaseRate,
-            needsSnapshot
-        )
-        applyPool(
-            Position.In.PORTFOLIO,
-            effectiveCashCurrency,
-            trn,
-            position,
-            cashPosition,
-            signedQuantity,
-            trn.tradePortfolioRate,
-            needsSnapshot
-        )
+        val movement = CashMovement(effectiveCashCurrency, trn, position, cashPosition, signedQuantity, needsSnapshot)
+        Position.In.entries.forEach { applyPool(it, movement) }
         return position
     }
 
     private fun applyPool(
         pool: Position.In,
-        cashCurrency: com.beancounter.common.model.Currency,
-        trn: Trn,
-        position: Position,
-        cashPosition: Position,
-        signedQuantity: BigDecimal,
-        rate: BigDecimal,
-        applySnapshot: Boolean
+        movement: CashMovement
     ) {
         val moneyValues =
             currencyResolver.getMoneyValues(
                 pool,
-                cashCurrency,
-                trn.portfolio,
-                position
+                movement.cashCurrency,
+                movement.trn.portfolio,
+                movement.position
             )
         cashCost.value(
             moneyValues,
-            cashPosition,
-            signedQuantity,
-            rate
+            movement.cashPosition,
+            movement.signedQuantity,
+            movement.trn.rateFor(pool)
         )
-        if (applySnapshot) {
+        if (movement.applySnapshot) {
             // Non-cash DEPOSIT/WITHDRAWAL targeting this asset's position —
             // the wizard's "set current balance" path. Snapshot cost so MV
             // − cost = 0 by construction instead of the phantom 100% gain
             // CashCost's zero-cost cash semantics produced.
-            applySnapshotCost(moneyValues, cashPosition.quantityValues.getTotal())
+            applySnapshotCost(moneyValues, movement.cashPosition.quantityValues.getTotal())
         }
     }
 
@@ -146,3 +113,17 @@ class CashAccumulator(
             }
     }
 }
+
+/**
+ * One cash movement as [CashAccumulator.accumulate] applies it to every currency
+ * pool: the signed quantity moved on [cashPosition], in [cashCurrency], on behalf
+ * of [position]. [applySnapshot] marks a non-cash asset whose cost is its balance.
+ */
+private class CashMovement(
+    val cashCurrency: Currency,
+    val trn: Trn,
+    val position: Position,
+    val cashPosition: Position,
+    val signedQuantity: BigDecimal,
+    val applySnapshot: Boolean
+)

@@ -1,0 +1,43 @@
+package com.beancounter.event.distribution
+
+import com.beancounter.auth.client.LoginService
+import com.beancounter.common.input.TrustedEventInput
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import java.util.function.Consumer
+
+/**
+ * Spring Cloud Stream functional consumer for corporate action events.
+ * Processes events and publishes resulting transactions via EventPublisher.
+ */
+@Configuration
+class EventStreamConsumer(
+    private val eventDistribution: EventDistribution
+) {
+    private var loginService: LoginService? = null
+    private val log = LoggerFactory.getLogger(EventStreamConsumer::class.java)
+
+    @Autowired(required = false)
+    fun setLoginService(loginService: LoginService?) {
+        this.loginService = loginService
+    }
+
+    @Bean
+    fun eventProcessor(): Consumer<TrustedEventInput> =
+        Consumer { eventInput ->
+            log.trace("Processing corporate action event")
+            val currentLoginService = loginService
+            if (currentLoginService != null) {
+                // Wrap in retry logic for M2M token expiry
+                currentLoginService.retryOnJwtExpiry {
+                    currentLoginService.setAuthContext(currentLoginService.loginM2m())
+                    eventDistribution.process(eventInput)
+                }
+            } else {
+                // Auth disabled - process directly
+                eventDistribution.process(eventInput)
+            }
+        }
+}

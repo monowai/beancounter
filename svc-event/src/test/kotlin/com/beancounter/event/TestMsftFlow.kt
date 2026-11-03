@@ -9,9 +9,9 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
-import com.beancounter.event.integration.PositionGateway
-import com.beancounter.event.service.EventDistribution
-import com.beancounter.event.service.PositionService
+import com.beancounter.event.distribution.EventDistribution
+import com.beancounter.event.distribution.PositionGateway
+import com.beancounter.event.distribution.PositionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito

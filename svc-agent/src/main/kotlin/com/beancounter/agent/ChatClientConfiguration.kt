@@ -79,11 +79,7 @@ class ChatClientConfiguration {
     @Bean("chatClient")
     @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
     fun deepSeekChatClient(
-        @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
-        @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
-        @Value($$"${spring.ai.deepseek.chat.options.model:deepseek-flash}") model: String,
-        @Value($$"${spring.ai.deepseek.chat.options.temperature:0.2}") temperature: Double,
-        @Value($$"${spring.ai.deepseek.chat.options.max-tokens:4096}") maxTokens: Int,
+        connection: DeepSeekConnection,
         objectMapper: ObjectMapper,
         toolCallingManager: ToolCallingManager,
         observationRegistry: ObservationRegistry
@@ -91,11 +87,11 @@ class ChatClientConfiguration {
         log.info("Building DeepSeek thinking ChatClient (low reasoning effort) for the Chat FAB")
         return build(
             deepSeekModel(
-                DeepSeekConnection(apiKey, baseUrl, model, temperature, maxTokens),
+                connection,
                 objectMapper,
                 toolCallingManager,
                 observationRegistry,
-                bodyRewrite = DeepSeekThinking::lowEffort
+                thinking = DeepSeekThinking::lowEffort
             )
         )
     }
@@ -111,11 +107,7 @@ class ChatClientConfiguration {
     @Bean("fastChatClient")
     @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
     fun fastDeepSeekChatClient(
-        @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
-        @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
-        @Value($$"${spring.ai.deepseek.chat.options.model:deepseek-flash}") model: String,
-        @Value($$"${spring.ai.deepseek.chat.options.temperature:0.2}") temperature: Double,
-        @Value($$"${spring.ai.deepseek.chat.options.max-tokens:4096}") maxTokens: Int,
+        connection: DeepSeekConnection,
         objectMapper: ObjectMapper,
         toolCallingManager: ToolCallingManager,
         observationRegistry: ObservationRegistry
@@ -123,48 +115,50 @@ class ChatClientConfiguration {
         log.info("Building DeepSeek non-thinking (fast) ChatClient for pre-canned prompts")
         return build(
             deepSeekModel(
-                DeepSeekConnection(apiKey, baseUrl, model, temperature, maxTokens),
+                connection,
                 objectMapper,
                 toolCallingManager,
                 observationRegistry,
-                disableThinking = true
+                thinking = null
             )
         )
     }
 
-    /** DeepSeek endpoint and default chat options shared by both clients. */
-    private data class DeepSeekConnection(
-        val apiKey: String,
-        val baseUrl: String,
-        val model: String,
-        val temperature: Double,
-        val maxTokens: Int
-    )
+    /** The DeepSeek endpoint and default chat options both DeepSeek clients are built from. */
+    @Bean
+    @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
+    fun deepSeekConnection(
+        @Value($$"${spring.ai.deepseek.api-key:}") apiKey: String,
+        @Value($$"${spring.ai.deepseek.base-url:https://api.deepseek.com}") baseUrl: String,
+        @Value($$"${spring.ai.deepseek.chat.options.model:deepseek-flash}") model: String,
+        @Value($$"${spring.ai.deepseek.chat.options.temperature:0.2}") temperature: Double,
+        @Value($$"${spring.ai.deepseek.chat.options.max-tokens:4096}") maxTokens: Int
+    ): DeepSeekConnection = DeepSeekConnection(apiKey, baseUrl, model, temperature, maxTokens)
 
     /**
-     * A DeepSeek model. When [bodyRewrite] is set, its RestClient (sync) and
-     * WebClient (streaming) apply it to every outgoing chat-completion request.
-     * [disableThinking] turns DeepSeek thinking mode off in the default options.
+     * A DeepSeek model. With [thinking] set the model thinks, and its
+     * RestClient (sync) and WebClient (streaming) apply that rewrite to every
+     * outgoing chat-completion request; without it thinking mode is off in
+     * the default options.
      */
     private fun deepSeekModel(
         connection: DeepSeekConnection,
         objectMapper: ObjectMapper,
         toolCallingManager: ToolCallingManager,
         observationRegistry: ObservationRegistry,
-        bodyRewrite: BodyRewrite? = null,
-        disableThinking: Boolean = false
+        thinking: BodyRewrite?
     ): DeepSeekChatModel {
         val apiBuilder =
             DeepSeekApi
                 .builder()
                 .apiKey(connection.apiKey)
                 .baseUrl(connection.baseUrl)
-        if (bodyRewrite != null) {
+        if (thinking != null) {
             apiBuilder
                 .restClientBuilder(
-                    RestClient.builder().requestInterceptor(DeepSeekThinking.interceptor(objectMapper, bodyRewrite))
+                    RestClient.builder().requestInterceptor(DeepSeekThinking.interceptor(objectMapper, thinking))
                 ).webClientBuilder(
-                    WebClient.builder().clientConnector(DeepSeekThinking.connector(objectMapper, bodyRewrite))
+                    WebClient.builder().clientConnector(DeepSeekThinking.connector(objectMapper, thinking))
                 )
         }
         val options =
@@ -173,7 +167,7 @@ class ChatClientConfiguration {
                 .model(connection.model)
                 .temperature(connection.temperature)
                 .maxTokens(connection.maxTokens)
-        if (disableThinking) options.disableThinking()
+        if (thinking == null) options.disableThinking()
         return DeepSeekChatModel
             .builder()
             .deepSeekApi(apiBuilder.build())
@@ -254,4 +248,16 @@ class ChatClientConfiguration {
             // helper, so registering it once here covers all of them.
             .defaultAdvisors(ToolTurnBoundaryAdvisor())
             .build()
+}
+
+/** A DeepSeek endpoint and the default chat options of a client built on it. */
+data class DeepSeekConnection(
+    val apiKey: String,
+    val baseUrl: String,
+    val model: String,
+    val temperature: Double,
+    val maxTokens: Int
+) {
+    // Never print the key: this bean's toString can reach a log line.
+    override fun toString(): String = "DeepSeekConnection(baseUrl=$baseUrl, model=$model)"
 }

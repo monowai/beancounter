@@ -47,24 +47,17 @@ class DeepSeekClientsWireTest {
     private fun client(thinking: Boolean): ChatClient {
         val baseUrl = "http://127.0.0.1:${server.address.port}"
         val toolCallingManager = ToolCallingManager.builder().build()
+        val connection = DeepSeekConnection("key", baseUrl, "deepseek-flash", 0.2, 4096)
         return if (thinking) {
             config.deepSeekChatClient(
-                "key",
-                baseUrl,
-                "deepseek-flash",
-                0.2,
-                4096,
+                connection,
                 mapper,
                 toolCallingManager,
                 ObservationRegistry.NOOP
             )
         } else {
             config.fastDeepSeekChatClient(
-                "key",
-                baseUrl,
-                "deepseek-flash",
-                0.2,
-                4096,
+                connection,
                 mapper,
                 toolCallingManager,
                 ObservationRegistry.NOOP

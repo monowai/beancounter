@@ -38,6 +38,49 @@ val testSlots =
     }
 val githubRepoUrl = "https://github.com/monowai/beancounter"
 
+// detekt reports through the CLI because 1.23.8 cannot run inside a JDK 25 Gradle
+// daemon. Findings print as warnings and never fail the build.
+val detektCli: Configuration by configurations.creating {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion("2.0.21")
+            because("detekt 1.23.8 refuses any Kotlin version but the one it embeds")
+        }
+    }
+}
+
+dependencies {
+    detektCli(libs.detekt.cli)
+}
+
+val detekt by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Prints detekt findings as warnings."
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
+    mainClass.set("io.gitlab.arturbosch.detekt.cli.Main")
+    classpath = detektCli
+    workingDir = projectDir
+    isIgnoreExitValue = true
+    val input =
+        subprojects
+            .flatMap { listOf("main", "test").map { set -> it.file("src/$set/kotlin") } }
+            .filter { it.exists() }
+            .joinToString(",")
+    args(
+        "--input",
+        input,
+        "--config",
+        file("detekt.yml").path,
+        "--base-path",
+        projectDir.path,
+        "--jvm-target",
+        "21",
+        "--parallel"
+    )
+}
+
+tasks.named("check") { dependsOn(detekt) }
+
 // Shared configuration for all subprojects
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")

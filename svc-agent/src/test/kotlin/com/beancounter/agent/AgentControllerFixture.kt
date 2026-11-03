@@ -43,14 +43,15 @@ fun agentController(
     reviewCache: AssetReviewCache = AssetReviewCache.NONE,
     holdings: HoldingFactsSource = HoldingFactsSource.NONE,
     quota: TurnQuota = TurnQuota.NONE
-): AgentController =
-    AgentController(
-        routing = ModelRouting(chatClient, fastChatClient, null, chatModelSelector, environment),
+): AgentController {
+    val routing = ModelRouting(chatClient, fastChatClient, null, chatModelSelector, environment)
+    val metrics = LlmMetrics()
+    return AgentController(
+        routing = routing,
         healthChecker = healthChecker,
-        toolSelector = toolSelector,
-        systemPromptSelector = systemPromptSelector,
+        prompts = TurnPrompts(toolSelector, systemPromptSelector, routing, metrics, clock),
         objectMapper = ObjectMapper(),
-        llmMetrics = LlmMetrics(),
+        llmMetrics = metrics,
         scopeAuthorizer = scopeAuthorizer,
         conversations = conversations,
         conversationOwner = conversationOwner,
@@ -62,3 +63,4 @@ fun agentController(
         holdings = holdings,
         quota = quota
     )
+}

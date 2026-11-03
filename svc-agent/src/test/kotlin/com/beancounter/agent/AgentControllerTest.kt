@@ -137,6 +137,15 @@ class AgentControllerTest {
             clock = clock
         )
 
+    private fun prompts(clock: java.time.Clock = java.time.Clock.systemUTC()): TurnPrompts =
+        TurnPrompts(
+            toolSelector,
+            systemPromptSelector,
+            ModelRouting(null, null, null, chatModelSelector, environment),
+            LlmMetrics(),
+            clock
+        )
+
     private fun stubChecker(): ServiceHealthChecker =
         mock<ServiceHealthChecker> {
             on { check(any()) } doReturn greenResponse
@@ -179,9 +188,9 @@ class AgentControllerTest {
         val question = "how is the market today?"
 
         val withContext =
-            controller(clock = fixed)
+            prompts(fixed)
                 .buildUserMessage(AgentQuery(question, context = mapOf("portfolioCode" to "VOO")))
-        val withoutContext = controller(clock = fixed).buildUserMessage(AgentQuery(question))
+        val withoutContext = prompts(fixed).buildUserMessage(AgentQuery(question))
 
         assertThat(withContext).contains("2026-06-06")
         assertThat(withContext).contains("portfolioCode: VOO")
@@ -943,8 +952,8 @@ class AgentControllerTest {
 
     @Test
     fun `system prompt is the domain prompt alone on a first turn`() {
-        assertThat(controller().systemPromptFor(AgentQuery("hi"))).isEqualTo("test-system-prompt")
-        assertThat(controller().systemPromptFor(AgentQuery("hi", history = emptyList())))
+        assertThat(prompts().systemPromptFor(AgentQuery("hi"))).isEqualTo("test-system-prompt")
+        assertThat(prompts().systemPromptFor(AgentQuery("hi", history = emptyList())))
             .isEqualTo("test-system-prompt")
     }
 
@@ -962,7 +971,7 @@ class AgentControllerTest {
                     )
             )
 
-        val prompt = controller().systemPromptFor(followUp)
+        val prompt = prompts().systemPromptFor(followUp)
 
         assertThat(prompt).startsWith("test-system-prompt")
         assertThat(prompt).endsWith(DomainSystemPrompts.FOLLOW_UP)
@@ -970,12 +979,12 @@ class AgentControllerTest {
 
     @Test
     fun `historyMessages returns empty list when history is null`() {
-        assertThat(controller().historyMessages(AgentQuery("hi"))).isEmpty()
+        assertThat(prompts().historyMessages(AgentQuery("hi"))).isEmpty()
     }
 
     @Test
     fun `historyMessages returns empty list when history is empty`() {
-        assertThat(controller().historyMessages(AgentQuery("hi", history = emptyList()))).isEmpty()
+        assertThat(prompts().historyMessages(AgentQuery("hi", history = emptyList()))).isEmpty()
     }
 
     @Test
@@ -987,7 +996,7 @@ class AgentControllerTest {
                 ChatTurn("user", "Kiwi")
             )
 
-        val messages = controller().historyMessages(AgentQuery("hi", history = history))
+        val messages = prompts().historyMessages(AgentQuery("hi", history = history))
 
         assertThat(messages).containsExactly(
             UserMessage("what's my NZD exposure?"),
@@ -1000,7 +1009,7 @@ class AgentControllerTest {
     fun `historyMessages truncates to the trailing 6 turns`() {
         val history = (1..10).map { ChatTurn("user", "turn $it") }
 
-        val messages = controller().historyMessages(AgentQuery("hi", history = history))
+        val messages = prompts().historyMessages(AgentQuery("hi", history = history))
 
         assertThat(messages).hasSize(6)
         assertThat(messages).containsExactly(

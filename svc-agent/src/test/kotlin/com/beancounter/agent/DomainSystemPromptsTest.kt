@@ -178,7 +178,7 @@ class DomainSystemPromptsTest {
         // Partial mitigation for the streamed-narration bug: the model still
         // emits "let me gather..." text ahead of a tool-calls turn on some
         // providers even with this instruction, so the server-side SSE reset
-        // (AgentController.sseEventsFor) is the robust fix — this bullet just
+        // (StreamTally.eventsFor) is the robust fix — this bullet just
         // reduces how often it fires.
         assertThat(allPrompts)
             .allSatisfy { prompt -> assertThat(prompt).contains("Call tools silently") }

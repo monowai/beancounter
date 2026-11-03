@@ -93,7 +93,7 @@ class DeepSeekClientsWireTest {
 
     @Test
     fun `fast client stays non-thinking when a call sets its own options`() {
-        // AgentController.buildOptions passes per-call DeepSeek options on every turn.
+        // ModelRouting.buildOptions passes per-call DeepSeek options on every turn.
         val options = DeepSeekChatOptions.builder().model("deepseek-flash").maxTokens(4096)
 
         assertThat(

@@ -59,8 +59,7 @@ import java.time.LocalDate
 class AgentController(
     private val routing: ModelRouting,
     private val healthChecker: ServiceHealthChecker,
-    private val toolSelector: ToolSelector,
-    private val systemPromptSelector: SystemPromptSelector,
+    private val prompts: TurnPrompts,
     private val objectMapper: ObjectMapper,
     private val llmMetrics: LlmMetrics,
     private val scopeAuthorizer: AgentScopeAuthorizer,
@@ -68,8 +67,7 @@ class AgentController(
     private val conversationOwner: ConversationOwner,
     private val conversationTitler: ConversationTitler,
     private val inFlightTurns: InFlightTurns,
-    // UTC clock for stamping the current date onto each user message. Defaulted so Spring wires it
-    // without a Clock bean; overridden in tests for a fixed date.
+    // Dates a review's cache key. Defaulted so Spring wires it without a Clock bean; fixed in tests.
     private val clock: Clock = Clock.systemUTC(),
     private val pageQuerySelector: PageQuerySelector,
     private val reviewCache: AssetReviewCache,
@@ -85,11 +83,6 @@ class AgentController(
         const val STREAM_RETRY_ATTEMPTS = 2L
         val STREAM_RETRY_MIN_BACKOFF: Duration = Duration.ofMillis(250)
 
-        // Caller-supplied history is trusted only up to this many trailing
-        // turns — bounds the tokens a single request can push into the
-        // prompt regardless of what the client sends.
-        const val MAX_HISTORY_TURNS = 6
-
         const val QUERY_REQUIRED = "A query is required for this page"
 
         // Escapes markup only: a label's dash is not an entity.
@@ -99,16 +92,6 @@ class AgentController(
         // identify the request in kauri's logs without shipping the whole
         // question (which can carry page context the user typed).
         const val QUERY_LOG_CHARS = 120
-    }
-
-    /**
-     * The domain prompt for the request's page, plus [DomainSystemPrompts.FOLLOW_UP]
-     * when the caller sent history — so a question about an earlier answer is
-     * answered rather than met with a regenerated brief.
-     */
-    internal fun systemPromptFor(request: AgentQuery): String {
-        val domain = systemPromptSelector.selectFor(request.context)
-        return if (request.history.isNullOrEmpty()) domain else "$domain\n\n${DomainSystemPrompts.FOLLOW_UP}"
     }
 
     /**
@@ -141,7 +124,7 @@ class AgentController(
         if (thread == null) return request to TurnRecorder.NONE
         val ownerId = thread.ownerId
         val conversationId = thread.id
-        val stored = conversations.history(ownerId, conversationId, MAX_HISTORY_TURNS)
+        val stored = conversations.history(ownerId, conversationId, TurnPrompts.MAX_HISTORY_TURNS)
         conversations.appendUser(
             ownerId,
             conversationId,
@@ -295,7 +278,7 @@ class AgentController(
         val key = AssetReviewKey(asset.market, asset.ticker, reviewDate, routing.answeringModel(turn))
         val hit = cachedReview(key, request.refresh)
         if (hit != null) return hit
-        val answer = ask(turn)
+        val answer = prompts.ask(turn)
         if (answer.content.isBlank()) throw UnansweredTurn(TurnFailure.emptyAnswerCode(answer.finishReason))
         try {
             reviewCache.store(key, answer.content)
@@ -307,52 +290,6 @@ class AgentController(
         }
         return answer.content
     }
-
-    /** One blocking model answer and why it ended. */
-    private data class ModelAnswer(
-        val content: String,
-        val finishReason: String?,
-        val modelId: String
-    )
-
-    /**
-     * Ask the model [turn] and wait for the answer. Per-call options REPLACE
-     * (not merge) the ChatClient's default options — Anthropic cache config
-     * must be re-applied here, or every request silently loses prompt
-     * caching. See [buildOptions].
-     */
-    private fun ask(turn: AgentQuery): ModelAnswer {
-        val userMessage = buildUserMessage(turn)
-        val tools = toolSelector.selectTools(turn.context)
-        val model = routing.modelFor(turn)
-        val call = modelCall(turn, model, tools)
-
-        // ChatClient.tools(Object...) has no List overload
-        @Suppress("SpreadOperator")
-        val promptSpec =
-            model.client
-                .prompt()
-                .system(systemPromptFor(turn))
-                .messages(historyMessages(turn))
-                .user(userMessage)
-                .tools(*tools)
-        val callResponse = model.options?.let { promptSpec.options(it).call() } ?: promptSpec.call()
-        val chatResponse = callResponse.chatResponse()
-        val content = chatResponse?.result?.output?.text ?: callResponse.content() ?: ""
-        llmMetrics.completed(call, chatResponse?.metadata?.usage, content.length.toLong(), LlmMetrics.Mode.CALL)
-        return ModelAnswer(content, chatResponse?.result?.metadata?.finishReason, model.modelId)
-    }
-
-    private fun modelCall(
-        turn: AgentQuery,
-        model: TurnModel,
-        tools: Array<Any>
-    ) = ModelCall(
-        modelId = model.modelId,
-        reportedModelId = model.reportedModelId,
-        tools = tools.map { it.javaClass.simpleName },
-        query = HtmlUtils.htmlEscape(turn.query)
-    )
 
     /** A failed `/query`, in the shape every failure takes. */
     private fun failure(
@@ -472,22 +409,6 @@ class AgentController(
             .doOnError { e -> log.error("Failed to record conversation turn: {}", e.message, e) }
             .onErrorComplete()
 
-    /**
-     * Map caller-supplied conversation history onto Spring AI [Message]s,
-     * truncated to the trailing [MAX_HISTORY_TURNS]. Plain text only — this
-     * replays the model's own prior *rendered* answers as ordinary assistant
-     * turns, never the raw `reasoning_content` a thinking-mode response
-     * carries, so it doesn't touch the known DeepSeek thinking-mode
-     * multi-turn tool-call round-trip issue.
-     */
-    internal fun historyMessages(request: AgentQuery): List<Message> =
-        request.history
-            ?.takeLast(MAX_HISTORY_TURNS)
-            ?.map { turn ->
-                if (turn.role == "assistant") AssistantMessage(turn.content) else UserMessage(turn.content)
-            }
-            ?: emptyList()
-
     @GetMapping("/health")
     @Operation(
         summary = "Traffic-light health check for the agent and its downstream services.",
@@ -594,7 +515,7 @@ class AgentController(
         recorder: TurnRecorder
     ): ResponseEntity<AgentResponse> =
         try {
-            answered(ask(turn), safeQuery, recorder)
+            answered(prompts.ask(turn), safeQuery, recorder)
         } catch (
             // Controller boundary: every LLM/tool failure becomes an error
             // body, classified the same way the streaming path classifies it.
@@ -902,13 +823,10 @@ class AgentController(
         request: AgentQuery,
         recorder: TurnRecorder
     ): Flux<ServerSentEvent<String>> {
-        val tools = toolSelector.selectTools(request.context)
-        val model = routing.modelFor(request)
-        val call = modelCall(request, model, tools)
+        val (call, responses) = prompts.stream(request)
         val tally = StreamTally()
         val tokenEvents =
-            buildStreamSpec(request, tools, model)
-                .chatResponse()
+            responses
                 .concatMap { resp -> Flux.fromIterable(tally.accept(resp)) }
         // Transient connectivity blips (e.g. a sub-second DNS failure resolving
         // api.deepseek.com) surface as WebClientRequestException at connect time
@@ -956,23 +874,6 @@ class AgentController(
         return record { recorder.failed(code) }.thenMany(errorEvent(code))
     }
 
-    private fun buildStreamSpec(
-        request: AgentQuery,
-        tools: Array<Any>,
-        model: TurnModel
-    ): ChatClient.StreamResponseSpec {
-        // ChatClient.tools(Object...) has no List overload
-        @Suppress("SpreadOperator")
-        val promptSpec =
-            model.client
-                .prompt()
-                .system(systemPromptFor(request))
-                .messages(historyMessages(request))
-                .user(buildUserMessage(request))
-                .tools(*tools)
-        return model.options?.let { promptSpec.options(it).stream() } ?: promptSpec.stream()
-    }
-
     private fun doneEvent(
         call: ModelCall,
         tally: StreamTally
@@ -1006,29 +907,6 @@ class AgentController(
 
     private fun errorEvent(message: String): Flux<ServerSentEvent<String>> =
         Flux.just(ServerSentEvent.builder<String>(message).event("error").build())
-
-    /**
-     * Assemble the user message: a current-date stamp, optional page context, then the question.
-     *
-     * The date line is load-bearing — the LLM has no inherent knowledge of today and otherwise
-     * answers from its training-cutoff frame (DeepSeek was dating "current" events to 2025). Stamped
-     * onto the user message rather than the system prompt so the static system prompt stays
-     * cache-stable across requests.
-     *
-     * `internal` for unit testing against a fixed [clock].
-     */
-    internal fun buildUserMessage(request: AgentQuery): String {
-        val dateLine = "[Current date: ${LocalDate.now(clock)}]"
-        val ctx = request.context
-        val header =
-            if (ctx.isNullOrEmpty()) {
-                dateLine
-            } else {
-                val contextLine = ctx.entries.joinToString(", ") { "${it.key}: ${it.value}" }
-                "$dateLine\n[Page context: $contextLine]"
-            }
-        return "$header\n\n${request.query}"
-    }
 }
 
 data class AgentQuery(

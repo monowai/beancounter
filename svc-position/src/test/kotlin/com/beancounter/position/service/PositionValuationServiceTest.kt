@@ -17,6 +17,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.irr.IrrCalculator
+import com.beancounter.position.irr.PositionIrr
 import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.utils.TestHelpers
@@ -77,6 +78,8 @@ class PositionValuationServiceTest {
 
     private lateinit var valuationService: PositionValuationService
 
+    private lateinit var valuationDataSource: ValuationDataSource
+
     val portfolio: Portfolio = TestHelpers.createTestPortfolio("PositionValuationServiceTest")
 
     @BeforeEach
@@ -85,23 +88,19 @@ class PositionValuationServiceTest {
             .lenient()
             .`when`(classificationClient.getClassifications(any()))
             .thenReturn(BulkClassificationResponse())
+        Mockito.lenient().`when`(irrCalculator.minHoldingDays).thenReturn(365)
         val gains = Gains()
-        val config =
-            PositionValuationConfig(
-                MarketValue(
-                    gains,
-                    DateUtils()
-                ),
-                gains,
-                fxUtils,
-                priceService,
-                fxRateService,
-                tokenService,
-                DateUtils(),
-                irrCalculator,
-                classificationClient
+        valuationDataSource =
+            ValuationDataSource(priceService, fxRateService, fxUtils, classificationClient, tokenService)
+        valuationService =
+            PositionValuationService(
+                marketValue = MarketValue(gains, DateUtils()),
+                gains = gains,
+                dateUtils = DateUtils(),
+                positionIrr = PositionIrr(irrCalculator),
+                valuationDataSource = valuationDataSource,
+                calculationSupport = calculationSupport
             )
-        valuationService = PositionValuationService(config, calculationSupport)
     }
 
     @AfterEach
@@ -127,7 +126,7 @@ class PositionValuationServiceTest {
             probe.arrive(BulkClassificationResponse())
         }
 
-        runBlocking { valuationService.getValuationData(positions, "Token Value") }
+        runBlocking { valuationDataSource.read(positions, "Token Value") }
 
         assertThat(probe.allMet).isTrue()
         assertThat(probe.callers).containsOnly(caller)
@@ -260,7 +259,7 @@ class PositionValuationServiceTest {
     }
 
     @Test
-    fun `irrIsDefined requires at least two flows with a sign change`() {
+    fun `an IRR is defined only for at least two flows with a sign change`() {
         fun flows(vararg amounts: Double): com.beancounter.common.model.PeriodicCashFlows =
             com.beancounter.common.model.PeriodicCashFlows().apply {
                 amounts.forEachIndexed { i, amount ->
@@ -272,14 +271,14 @@ class PositionValuationServiceTest {
             }
 
         // Undefined: empty, single, all-positive (e.g. cash deposits), all-negative, all-zero
-        assertThat(PositionValuationService.irrIsDefined(flows())).isFalse()
-        assertThat(PositionValuationService.irrIsDefined(flows(-1000.0))).isFalse()
-        assertThat(PositionValuationService.irrIsDefined(flows(100.0, 200.0))).isFalse()
-        assertThat(PositionValuationService.irrIsDefined(flows(-100.0, -200.0))).isFalse()
-        assertThat(PositionValuationService.irrIsDefined(flows(0.0, 0.0))).isFalse()
+        assertThat(IrrCalculator.isDefined(flows().cashFlows)).isFalse()
+        assertThat(IrrCalculator.isDefined(flows(-1000.0).cashFlows)).isFalse()
+        assertThat(IrrCalculator.isDefined(flows(100.0, 200.0).cashFlows)).isFalse()
+        assertThat(IrrCalculator.isDefined(flows(-100.0, -200.0).cashFlows)).isFalse()
+        assertThat(IrrCalculator.isDefined(flows(0.0, 0.0).cashFlows)).isFalse()
 
         // Defined: an outflow and an inflow
-        assertThat(PositionValuationService.irrIsDefined(flows(-1000.0, 1100.0))).isTrue()
+        assertThat(IrrCalculator.isDefined(flows(-1000.0, 1100.0).cashFlows)).isTrue()
     }
 
     @Test

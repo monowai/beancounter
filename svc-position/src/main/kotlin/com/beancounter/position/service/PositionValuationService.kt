@@ -2,31 +2,22 @@ package com.beancounter.position.service
 
 import com.beancounter.common.contracts.BulkClassificationResponse
 import com.beancounter.common.contracts.FxResponse
-import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
-import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.CashUtils
-import com.beancounter.position.model.ValuationData
-import com.beancounter.position.utils.runAs
-import io.sentry.Breadcrumb
-import io.sentry.Sentry
-import io.sentry.SentryLevel
-import io.sentry.kotlin.SentryContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.irr.PositionIrr
+import com.beancounter.position.valuation.Gains
+import com.beancounter.position.valuation.MarketValue
 import org.slf4j.LoggerFactory
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import kotlin.coroutines.cancellation.CancellationException
 
 private fun Positions.totalsFor(key: Position.In): Totals = requireNotNull(totals[key]) { "Missing totals for $key" }
 
@@ -35,10 +26,14 @@ private fun Positions.totalsFor(key: Position.In): Totals = requireNotNull(total
  */
 @Service
 class PositionValuationService(
-    private val config: PositionValuationConfig,
-    private val calculationSupport: PositionCalculationSupport,
-    private val cashUtils: CashUtils = CashUtils()
+    private val marketValue: MarketValue,
+    private val gains: Gains,
+    private val dateUtils: DateUtils,
+    private val positionIrr: PositionIrr,
+    private val valuationDataSource: ValuationDataSource,
+    private val calculationSupport: PositionCalculationSupport
 ) {
+    private val cashUtils = CashUtils()
     private val logger = LoggerFactory.getLogger(PositionValuationService::class.java)
 
     /** [live] values at live (delayed) quotes while each market is in session. */
@@ -59,7 +54,7 @@ class PositionValuationService(
 
         val (priceResponse, fxResponse, classifications) =
             runBlockingTraced {
-                getValuationData(positions, live = live)
+                valuationDataSource.read(positions, live = live)
             }
 
         val tradeCurrency = tradeCurrency(positions)
@@ -103,7 +98,7 @@ class PositionValuationService(
 
         weightsAndGains(positions)
         val irr =
-            calculateIrrSafely(
+            positionIrr.of(
                 positions.periodicCashFlows,
                 "Failed to calculate IRR for ${positions.portfolio.code}"
             )
@@ -166,7 +161,7 @@ class PositionValuationService(
             if (!cashUtils.isCash(position.asset)) {
                 val quantity = position.quantityValues.getTotal()
                 for (moneyValues in position.moneyValues.values) {
-                    config.gains.value(quantity, moneyValues)
+                    gains.value(quantity, moneyValues)
                 }
             }
         }
@@ -183,7 +178,7 @@ class PositionValuationService(
         val tradeTotals = positions.totalsFor(Position.In.TRADE)
         for (marketData in priceResponse.data) {
             val position =
-                config.marketValue.value(
+                marketValue.value(
                     positions,
                     marketData,
                     fxResponse.data.rates
@@ -220,7 +215,7 @@ class PositionValuationService(
         val baseTotals = positions.totalsFor(Position.In.BASE)
         val refTotals = positions.totalsFor(Position.In.PORTFOLIO)
         val tradeTotals = positions.totalsFor(Position.In.TRADE)
-        val asAtDate = config.dateUtils.getDate(positions.asAt)
+        val asAtDate = dateUtils.getDate(positions.asAt)
 
         val totalsGroup = TotalsGroup(tradeTotals, baseTotals, refTotals)
         for (position in positions.positions.values) {
@@ -251,7 +246,7 @@ class PositionValuationService(
         if (!cashUtils.isCash(positionContext.position.asset)) {
             processNonCashPosition(positionContext, totalsGroup, moneyValuesGroup)
         } else {
-            processCashPosition(totalsGroup, moneyValuesGroup)
+            calculationSupport.updateCashTotals(totalsGroup, moneyValuesGroup)
         }
     }
 
@@ -261,214 +256,14 @@ class PositionValuationService(
         moneyValuesGroup: MoneyValuesGroup
     ) {
         val roi = calculationSupport.calculateRoi(moneyValuesGroup.tradeMoneyValues)
-        anchorOpeningCostBasis(positionContext.position, moneyValuesGroup.tradeMoneyValues)
+        positionIrr.anchorOpeningCostBasis(positionContext.position, moneyValuesGroup.tradeMoneyValues)
         positionContext.position.periodicCashFlows.add(positionContext.position, positionContext.asAtDate)
         positionContext.positions.periodicCashFlows.addAll(positionContext.position.periodicCashFlows.cashFlows)
 
-        val irr = calculatePositionIrr(positionContext, roi)
+        val irr = positionIrr.ofPosition(positionContext.position, positionContext.asAtDate, roi)
 
         calculationSupport.updateTotals(totalsGroup.tradeTotals, moneyValuesGroup.tradeMoneyValues, roi, irr)
         calculationSupport.updateTotals(totalsGroup.baseTotals, moneyValuesGroup.baseMoneyValues, roi, irr)
         calculationSupport.updateTotals(totalsGroup.refTotals, moneyValuesGroup.portfolioMoneyValues, roi, irr)
-    }
-
-    /**
-     * Anchor the IRR investment to the position's cost basis.
-     *
-     * A `BALANCE` snapshot (CPF, pensions) records its opening principal as a
-     * cost-basis entry, NOT a cash transaction — so it is absent from the IRR
-     * cash flows, while the terminal market value (added next) DOES include it.
-     * That asymmetry makes the opening principal look like pure return (e.g. a
-     * property-less CPF balance reporting a 3805% IRR). Cost basis is tracked
-     * correctly (snapshot-aware) by BalanceBehaviour, so when the recorded
-     * investment (sum of negative cash flows) falls short of it, prepend the
-     * shortfall as an opening investment cash flow at the holding's open date.
-     * For ordinary traded positions the cash flows already equal cost basis, so
-     * the shortfall is ~0 and this is a no-op.
-     */
-    private fun anchorOpeningCostBasis(
-        position: com.beancounter.common.model.Position,
-        tradeMoneyValues: com.beancounter.common.model.MoneyValues
-    ) {
-        val costBasis = tradeMoneyValues.costValue.toDouble()
-        if (costBasis <= 0.0) return
-        val recordedInvestment =
-            position.periodicCashFlows.cashFlows
-                .filter { it.amount < 0.0 }
-                .sumOf { -it.amount }
-        val shortfall = costBasis - recordedInvestment
-        if (shortfall > COST_BASIS_SHORTFALL_TOLERANCE) {
-            position.periodicCashFlows.cashFlows.add(
-                0,
-                com.beancounter.common.model.CashFlow(
-                    -shortfall,
-                    position.dateValues.opened ?: position.dateValues.firstTransaction ?: return
-                )
-            )
-        }
-    }
-
-    /**
-     * Calculate IRR for a position, using ROI for short holding periods.
-     *
-     * Industry best practice is to use simple ROI for short-term investments (typically < 1 year)
-     * because XIRR can produce extreme/misleading annualized values for short periods.
-     *
-     * We use `opened` date to determine if the position was held long enough for XIRR.
-     * The `opened` date tracks the current holding period - it's preserved after sell-out
-     * for display purposes and reset when re-entering a position after complete sell-out.
-     *
-     * The threshold is configurable via `beancounter.irr` (default: 365 days).
-     */
-    private fun calculatePositionIrr(
-        positionContext: PositionContext,
-        roi: BigDecimal
-    ): BigDecimal {
-        val position = positionContext.position
-
-        // Use opened date for holding period calculation - it tracks the current/last holding period
-        // and is preserved after sell-out, reset on reentry
-        val referenceDate = position.dateValues.opened
-
-        val holdingDays =
-            if (referenceDate != null) {
-                java.time.temporal.ChronoUnit.DAYS
-                    .between(referenceDate, positionContext.asAtDate)
-            } else {
-                0L
-            }
-
-        return if (holdingDays < config.minHoldingDaysForIrr) {
-            roi
-        } else {
-            // Fallback to ROI if no cash flows available (shouldn't happen normally)
-            if (position.periodicCashFlows.cashFlows.isEmpty()) {
-                roi
-            } else {
-                calculateIrrSafely(
-                    position.periodicCashFlows,
-                    "Failed to calculate IRR for ${position.asset.code}"
-                )
-            }
-        }
-    }
-
-    private fun processCashPosition(
-        totalsGroup: TotalsGroup,
-        moneyValuesGroup: MoneyValuesGroup
-    ) {
-        calculationSupport.updateCashTotals(totalsGroup, moneyValuesGroup)
-    }
-
-    suspend fun getValuationData(
-        positions: Positions,
-        token: String = config.tokenService.bearerToken,
-        live: Boolean = false
-    ): ValuationData {
-        // Blocking clients only overlap on the IO pool; runBlocking alone keeps every
-        // async on the request thread, one call after another.
-        val caller = SecurityContextHolder.getContext()
-        return withContext(SentryContext() + Dispatchers.IO) {
-            try {
-                val fxRequest =
-                    config.fxUtils.buildRequest(
-                        positions.portfolio.base,
-                        positions
-                    )
-                val priceRequest =
-                    PriceRequest.of(
-                        positions.asAt,
-                        positions,
-                        includeZeroQuantity = config.includeZeroQuantity
-                    )
-                val priceDeferred =
-                    async {
-                        caller.runAs {
-                            if (live) {
-                                config.priceService.getLivePrices(priceRequest, token)
-                            } else {
-                                config.priceService.getPrices(priceRequest, token)
-                            }
-                        }
-                    }
-                val fxDeferred =
-                    async {
-                        caller.runAs {
-                            config.fxRateService.getRates(
-                                fxRequest,
-                                token
-                            )
-                        }
-                    }
-                val classificationDeferred =
-                    async {
-                        caller.runAs {
-                            config.classificationClient.getClassifications(
-                                positions.positions.values.map { it.asset.id }
-                            )
-                        }
-                    }
-
-                ValuationData(
-                    priceResponse = priceDeferred.await(),
-                    fxResponse = fxDeferred.await(),
-                    classifications = classificationDeferred.await()
-                )
-            } catch (e: CancellationException) {
-                throw IllegalStateException(
-                    "Thread was interrupted while fetching market data.",
-                    e
-                )
-            }
-        }
-    }
-
-    private fun calculateIrrSafely(
-        periodicCashFlows: PeriodicCashFlows,
-        message: String
-    ): BigDecimal {
-        val result = config.irrCalculator.calculate(periodicCashFlows)
-
-        // Only flag a zero IRR when one was actually solvable. A series with
-        // no sign change (e.g. a cash / funding portfolio that only ever
-        // received settlement deposits) has a mathematically undefined IRR —
-        // `0` there means "undefined", not "0% return". Warning on it produced
-        // false-positive noise (e.g. "Failed to calculate IRR for SGD").
-        if (result == 0.0 && irrIsDefined(periodicCashFlows)) {
-            val cashFlowSummary =
-                periodicCashFlows.cashFlows
-                    .sortedBy { it.date }
-                    .joinToString(", ") { "${it.date}:${it.amount}" }
-            logger.warn(
-                "IRR calculation returned zero for non-empty cash flows [$message]. Cash flows: $cashFlowSummary"
-            )
-            val breadcrumb =
-                Breadcrumb(message).apply {
-                    category = "data"
-                    level = SentryLevel.WARNING
-                }
-            Sentry.addBreadcrumb(breadcrumb)
-        }
-
-        return BigDecimal(result)
-    }
-
-    companion object {
-        private const val COST_BASIS_SHORTFALL_TOLERANCE = 0.01
-
-        /**
-         * An IRR exists only when the cash-flow series can cross zero NPV:
-         * at least two flows, not all zero, and at least one sign change
-         * (an outflow you invest and an inflow you get back). All other
-         * series — empty, single, all-positive, all-negative — have no
-         * real root and their IRR is mathematically undefined.
-         */
-        fun irrIsDefined(periodicCashFlows: PeriodicCashFlows): Boolean {
-            val flows = periodicCashFlows.cashFlows
-            if (flows.size < 2) return false
-            val hasInflow = flows.any { it.amount > 0.0 }
-            val hasOutflow = flows.any { it.amount < 0.0 }
-            return hasInflow && hasOutflow
-        }
     }
 }

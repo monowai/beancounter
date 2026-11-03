@@ -1,17 +1,56 @@
 package com.beancounter.position.service
 
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
+import com.beancounter.common.model.setMarketValue
+import com.beancounter.common.utils.DateUtils
 import org.slf4j.LoggerFactory
 import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.messaging.MessagingException
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
+import java.time.LocalDate
 
+/**
+ * Publishes a portfolio's market value to bc-data after a valuation, which stores
+ * it on the portfolio.
+ */
 @Service
 class MarketValueUpdateProducer(
-    private val streamBridge: StreamBridge
+    private val streamBridge: StreamBridge,
+    private val dateUtils: DateUtils
 ) {
     private val log = LoggerFactory.getLogger(MarketValueUpdateProducer::class.java)
+
+    /**
+     * Publishes [valued]'s market value when it is today's valuation; a historical
+     * one is never published. Only a single portfolio's closing valuation reaches
+     * here: an aggregate belongs to no portfolio, and a live (delayed-quote)
+     * valuation is display only.
+     *
+     * Market value is sent in portfolio.base currency; the frontend converts for display.
+     */
+    fun publish(valued: Positions) {
+        if (!dateUtils.isToday(valued.asAt)) return
+        val portfolio = valued.portfolio
+        val baseTotals = valued.totals[Position.In.BASE]
+        val marketValue = baseTotals?.marketValue ?: BigDecimal.ZERO
+        val irr = baseTotals?.irr ?: BigDecimal.ZERO
+        val gainOnDay = gainOnDay(valued)
+        val valuedAt = valuationDate(valued.asAt)
+
+        log.trace(
+            "Sending MV update: portfolio={}, base={}, marketValue={}, gainOnDay={}, valuedAt={}",
+            portfolio.code,
+            portfolio.base.code,
+            marketValue,
+            gainOnDay,
+            valuedAt
+        )
+        sendMessage(portfolio.setMarketValue(marketValue, irr, gainOnDay, assetClassification(valued), valuedAt))
+    }
 
     fun sendMessage(payload: Portfolio) {
         try {
@@ -26,4 +65,23 @@ class MarketValueUpdateProducer(
             log.error("Failed to send market value update for portfolio {}: {}", payload.code, e.message)
         }
     }
+
+    /** Total gain on day: every position's BASE gainOnDay summed. */
+    private fun gainOnDay(positions: Positions): BigDecimal =
+        positions.positions.values
+            .mapNotNull { it.moneyValues[Position.In.BASE]?.gainOnDay }
+            .fold(BigDecimal.ZERO) { acc, value -> acc.add(value) }
+
+    /** BASE market value summed by each position's effectiveReportCategory. */
+    private fun assetClassification(positions: Positions): Map<String, BigDecimal> =
+        positions.positions.values
+            .groupBy { it.asset.effectiveReportCategory }
+            .mapValues { (_, positionsInCategory) ->
+                positionsInCategory
+                    .mapNotNull { it.moneyValues[Position.In.BASE]?.marketValue }
+                    .fold(BigDecimal.ZERO) { acc, value -> acc.add(value) }
+            }
+
+    /** Today when [asAt] is "today" or null, otherwise the parsed date. */
+    private fun valuationDate(asAt: String?): LocalDate = dateUtils.getDate(asAt ?: DateUtils.TODAY)
 }

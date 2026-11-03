@@ -1,6 +1,7 @@
 package com.beancounter.position.service
 
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.utils.TestHelpers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,7 +39,7 @@ class MarketValueUpdateProducerTest {
     @BeforeEach
     fun setUp() {
         testPortfolio = TestHelpers.createTestPortfolio("test-portfolio")
-        marketValueUpdateProducer = MarketValueUpdateProducer(streamBridge)
+        marketValueUpdateProducer = MarketValueUpdateProducer(streamBridge, DateUtils())
         whenever(streamBridge.send(any(), any<Message<*>>())).thenReturn(true)
     }
 

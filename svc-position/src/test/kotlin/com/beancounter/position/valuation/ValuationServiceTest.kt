@@ -48,6 +48,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
@@ -74,6 +75,9 @@ class ValuationServiceTest {
     private lateinit var positionService: PositionService
 
     @Mock
+    private lateinit var streamBridge: StreamBridge
+
+    // The real publish rule over a mocked broker; tests observe what reaches sendMessage.
     private lateinit var marketValueUpdateProducer: MarketValueUpdateProducer
 
     @Mock
@@ -107,6 +111,7 @@ class ValuationServiceTest {
             .`when`(fxRateService.getRates(any(), any()))
             .thenReturn(FxResponse())
 
+        marketValueUpdateProducer = Mockito.spy(MarketValueUpdateProducer(streamBridge, dateUtils))
         valuationService =
             valuationService()
     }
@@ -1319,13 +1324,10 @@ class ValuationServiceTest {
     ): ValuationService =
         ValuationService(
             positionValuationService = positionValuationService,
-            trnService = trnService,
-            positionService = positionService,
+            portfolioPositions = PortfolioPositions(trnService, positionService, earmarkService, tokenService),
+            portfolioConsolidation = PortfolioConsolidation(fxRateService, tokenService),
             marketValueUpdateProducer = marketValueUpdateProducer,
-            fxRateService = fxRateService,
             tokenService = tokenService,
-            dateUtils = dateUtils,
-            earmarkService = earmarkService,
             cacheTtlSeconds = cacheTtlSeconds
         )
 

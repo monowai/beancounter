@@ -7,8 +7,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.MathUtils.Companion.add
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
 import com.beancounter.common.utils.MathUtils.Companion.multiply
-import com.beancounter.position.utils.CurrencyResolver
-import com.beancounter.position.valuation.AverageCost
+import com.beancounter.position.marketvalue.AverageCost
 import java.math.BigDecimal
 
 /**

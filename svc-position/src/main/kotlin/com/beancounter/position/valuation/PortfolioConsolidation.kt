@@ -12,6 +12,7 @@ import com.beancounter.common.model.PortfolioBreakdown
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.MathUtils
+import com.beancounter.position.marketvalue.AverageCost
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal

@@ -16,10 +16,10 @@ import com.beancounter.position.accumulation.AccumulationStrategy
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.CashAccumulator
+import com.beancounter.position.accumulation.CurrencyResolver
 import com.beancounter.position.accumulation.SellBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
 import com.beancounter.position.accumulation.WithdrawalBehaviour
-import com.beancounter.position.utils.CurrencyResolver
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal

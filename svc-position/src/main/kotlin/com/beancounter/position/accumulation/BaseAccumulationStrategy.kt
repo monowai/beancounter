@@ -3,7 +3,6 @@ package com.beancounter.position.accumulation
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Trn
-import com.beancounter.position.utils.CurrencyResolver
 import java.math.BigDecimal
 
 /**

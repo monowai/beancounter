@@ -6,8 +6,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.MathUtils.Companion.multiply
-import com.beancounter.position.utils.CurrencyResolver
-import com.beancounter.position.valuation.AverageCost
+import com.beancounter.position.marketvalue.AverageCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 

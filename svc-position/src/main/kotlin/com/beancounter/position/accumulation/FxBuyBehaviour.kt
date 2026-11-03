@@ -4,8 +4,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.position.utils.CurrencyResolver
-import com.beancounter.position.valuation.CashCost
+import com.beancounter.position.marketvalue.CashCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 

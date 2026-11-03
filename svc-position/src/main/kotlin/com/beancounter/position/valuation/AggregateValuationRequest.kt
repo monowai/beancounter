@@ -3,6 +3,7 @@ package com.beancounter.position.valuation
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.marketvalue.MarketValue
 
 /**
  * One request to value several portfolios as a single set of positions.

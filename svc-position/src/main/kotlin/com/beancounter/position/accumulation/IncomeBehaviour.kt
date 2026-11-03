@@ -2,7 +2,6 @@ package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.TrnType
-import com.beancounter.position.utils.CurrencyResolver
 import org.springframework.stereotype.Service
 
 /**

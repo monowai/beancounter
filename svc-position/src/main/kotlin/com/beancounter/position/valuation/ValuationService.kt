@@ -8,8 +8,7 @@ import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.position.service.MarketValueUpdateProducer
-import com.beancounter.position.service.PositionValuationService
+import com.beancounter.position.marketvalue.PositionValuationService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value

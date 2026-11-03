@@ -25,9 +25,8 @@ import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.SellBehaviour
 import com.beancounter.position.accumulation.SplitBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
-import com.beancounter.position.service.MarketValueUpdateProducer
-import com.beancounter.position.service.PositionService
-import com.beancounter.position.service.PositionValuationService
+import com.beancounter.position.holdings.PositionService
+import com.beancounter.position.marketvalue.PositionValuationService
 import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat

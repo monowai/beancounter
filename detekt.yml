@@ -17,6 +17,15 @@
 # - FunctionOnlyReturningConstant: ignores Spring request mappings and Spring AI
 #   @Tool methods. The framework needs a function there, and a stub controller or a
 #   view redirect returns a constant by design.
+# - TooManyFunctions: ignores @Query and @Bean functions. A Spring Data repository
+#   declares queries, not behaviour, and a config class has one @Bean per bean.
+# - LongParameterList: ignores @Entity classes, whose constructor is the table's
+#   columns.
+# - LongParameterList: excludes MdFactory (provider precedence order),
+#   AssetCascadeDeleter (FK deletion order), EntityCountMetrics (the entities
+#   counted) and ToolSelector (page-to-tool routing table). The parameter list is
+#   the content.
+# - TooManyFunctions: excludes MathUtils, a cohesive BigDecimal facade.
 #
 # The defaults already exclude tests from TooManyFunctions, MagicNumber,
 # FunctionNaming and UnsafeCallOnNullableType. Unused-code, empty-block and
@@ -158,12 +167,13 @@ complexity:
     threshold: 60
   LongParameterList:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/contractTest/**', '**/testFixtures/**']
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/contractTest/**', '**/testFixtures/**', '**/marketdata/providers/MdFactory.kt', '**/marketdata/assets/AssetCascadeDeleter.kt', '**/marketdata/metrics/EntityCountMetrics.kt', '**/agent/tools/ToolSelector.kt']
     functionThreshold: 6
     constructorThreshold: 7
     ignoreDefaultParameters: false
     ignoreDataClasses: true
     ignoreAnnotatedParameter: []
+    ignoreAnnotated: ['Entity']
   MethodOverloading:
     active: false
     threshold: 6
@@ -194,7 +204,7 @@ complexity:
     ignoreStringsRegex: '$^'
   TooManyFunctions:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/contractTest/**', '**/testFixtures/**']
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/contractTest/**', '**/testFixtures/**', '**/common/utils/MathUtils.kt']
     thresholdInFiles: 11
     thresholdInClasses: 11
     thresholdInInterfaces: 11
@@ -203,7 +213,7 @@ complexity:
     ignoreDeprecated: false
     ignorePrivate: false
     ignoreOverridden: false
-    ignoreAnnotatedFunctions: []
+    ignoreAnnotatedFunctions: ['Query', 'Bean']
 
 coroutines:
   active: true

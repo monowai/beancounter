@@ -3,6 +3,7 @@ package com.beancounter.marketdata.broker
 import com.beancounter.common.contracts.BrokerWithAccounts
 import com.beancounter.common.contracts.SettlementAccountMapping
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.BrokerInput
 import com.beancounter.common.model.Broker
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.assets.AssetRepository
@@ -95,10 +96,7 @@ class BrokerService(
     fun update(
         id: String,
         owner: SystemUser,
-        name: String?,
-        accountNumber: String?,
-        notes: String?,
-        settlementAccounts: Map<String, String>? = null
+        input: BrokerInput
     ): Broker {
         val broker =
             brokerRepository
@@ -106,25 +104,23 @@ class BrokerService(
                 .orElseThrow { BusinessException("Broker not found: $id") }
 
         // Check if new name conflicts with existing broker
-        if (name != null && name != broker.name) {
-            val existing = brokerRepository.findByNameAndOwner(name, owner)
+        if (input.name != broker.name) {
+            val existing = brokerRepository.findByNameAndOwner(input.name, owner)
             if (existing.isPresent && existing.get().id != id) {
-                throw BusinessException("Broker with name '$name' already exists")
+                throw BusinessException("Broker with name '${input.name}' already exists")
             }
         }
 
         val updated =
             broker.copy(
-                name = name ?: broker.name,
-                accountNumber = accountNumber ?: broker.accountNumber,
-                notes = notes ?: broker.notes
+                name = input.name,
+                accountNumber = input.accountNumber ?: broker.accountNumber,
+                notes = input.notes ?: broker.notes
             )
         val savedBroker = brokerRepository.save(updated)
 
         // Update settlement accounts if provided
-        if (settlementAccounts != null) {
-            updateSettlementAccounts(savedBroker, settlementAccounts)
-        }
+        input.settlementAccounts?.let { updateSettlementAccounts(savedBroker, it) }
 
         return savedBroker
     }

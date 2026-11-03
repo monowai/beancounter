@@ -180,11 +180,7 @@ class TrnSettlementService(
         }
         // Forward-dated trns ingest with no rate, so cashAmount was stored as zero.
         // Now that the rate is resolved, derive it before the cash legs are emitted.
-        if (TrnType.isCashImpacted(trn.trnType) &&
-            trn.cashAsset != null &&
-            trn.cashAmount.compareTo(BigDecimal.ZERO) == 0 &&
-            trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0
-        ) {
+        if (needsCashAmount(trn)) {
             trn.cashAmount = CashTrnServices.cashImpact(trn.trnType, trn.tradeAmount, trn.tradeCashRate)
         }
         trn.status = TrnStatus.SETTLED
@@ -212,5 +208,12 @@ class TrnSettlementService(
         trn.status = TrnStatus.PROPOSED
         trnRepository.save(trn)
         return siblings.map { it.id }
+    }
+
+    /** A cash-impacting trn with a cash asset and a trade amount, but no cash amount yet. */
+    private fun needsCashAmount(trn: Trn): Boolean {
+        if (!TrnType.isCashImpacted(trn.trnType) || trn.cashAsset == null) return false
+        return trn.cashAmount.compareTo(BigDecimal.ZERO) == 0 &&
+            trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0
     }
 }

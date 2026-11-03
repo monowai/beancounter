@@ -572,11 +572,14 @@ class PriceService(
         val adjusted = SplitAdjuster.adjust(series.map(PricePoint::from), adjustedSources = adjustedSources)
         if (adjusted === series) return series
         return series.zip(adjusted).map { (md, point) ->
-            if (point.close.compareTo(md.close) == 0 &&
-                point.open.compareTo(md.open) == 0 &&
-                point.high.compareTo(md.high) == 0 &&
-                point.low.compareTo(md.low) == 0
-            ) {
+            val unchanged =
+                listOf(
+                    point.close to md.close,
+                    point.open to md.open,
+                    point.high to md.high,
+                    point.low to md.low
+                ).all { (rebased, stored) -> rebased.compareTo(stored) == 0 }
+            if (unchanged) {
                 md
             } else {
                 MarketData(

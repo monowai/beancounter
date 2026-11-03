@@ -116,7 +116,7 @@ class ClassificationRefreshService(
                 }.filter { asset ->
                     classificationEnricher.canEnrich(asset)
                 }.filter { asset ->
-                    !classificationService.isClassified(asset.id, classificationEnricher.isEtf(asset))
+                    !classificationService.isClassified(asset.id, fund = classificationEnricher.isEtf(asset))
                 }.take(limit)
                 .toList()
 

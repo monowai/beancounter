@@ -12,7 +12,7 @@ import kotlin.math.abs
  * The news briefing an agent reads: stored articles ranked, de-duplicated and capped per
  * symbol, then projected to the AV-compatible feed entry. Pure; no I/O.
  */
-class NewsBriefing(
+internal class NewsBriefing(
     private val newsProperties: EodhdNewsProperties,
     private val embeddingProperties: NewsEmbeddingProperties
 ) {

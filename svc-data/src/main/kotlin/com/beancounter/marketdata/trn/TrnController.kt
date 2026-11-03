@@ -4,16 +4,10 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PositionMoveRequest
 import com.beancounter.common.contracts.PositionMoveResponse
 import com.beancounter.common.contracts.TrnDeleteResponse
-import com.beancounter.common.contracts.TrnGroupBy
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
-import com.beancounter.common.contracts.TrnStatusUpdateRequest
-import com.beancounter.common.contracts.TrnStatusUpdateResponse
 import com.beancounter.common.input.TrnInput
-import com.beancounter.common.input.TrustedTrnQuery
-import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.portfolio.PortfolioService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content

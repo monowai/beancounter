@@ -13,8 +13,6 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -38,10 +36,8 @@ class TrnAnalysisServiceInvestmentTest {
         TrnAnalysisService(
             trnRepository,
             systemUserService,
-            fxRateService,
-            mock<AssetRepository>(),
-            mock<ClassificationService>(),
-            mock<PortfolioService>()
+            mock<PortfolioService>(),
+            TradeAmountFx(fxRateService)
         )
 
     private val usd = Currency("USD")

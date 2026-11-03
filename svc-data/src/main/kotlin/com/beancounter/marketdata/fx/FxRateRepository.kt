@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import java.time.LocalDate
 
+private const val EARLIEST_RATE_YEAR = 1900
+
 /**
  * Repository interface for accessing FX Rate data.
  * Extends JpaRepository (rather than plain CrudRepository) so
@@ -35,7 +37,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         date: LocalDate,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -64,7 +66,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         provider: String,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -85,7 +87,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         from: Currency,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -114,7 +116,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         provider: String,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -140,7 +142,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         date: LocalDate,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 2
             )

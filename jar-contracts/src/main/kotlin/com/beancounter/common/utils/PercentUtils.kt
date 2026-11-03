@@ -4,13 +4,14 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+private const val PERCENT_SCALE = 6
+private const val RATE_SCALE = 4
+
 /**
  * Percentage related utils.
  */
 @Service
 class PercentUtils {
-    private val percentScale = 6
-    private val rateScale = 4
     private val numberUtils = NumberUtils()
 
     fun percent(
@@ -20,7 +21,7 @@ class PercentUtils {
         percent(
             currentValue,
             oldValue,
-            percentScale
+            PERCENT_SCALE
         )
 
     fun percent(
@@ -44,7 +45,7 @@ class PercentUtils {
      */
     fun scaleRate(
         value: BigDecimal,
-        rateScale: Int = this.rateScale
+        rateScale: Int = RATE_SCALE
     ): BigDecimal = value.setScale(rateScale, RoundingMode.HALF_UP)
 
     /**

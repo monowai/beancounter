@@ -10,6 +10,8 @@ import com.beancounter.position.valuation.CashCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
+private const val AVERAGE_COST_SCALE = 10
+
 /**
  * Generic cash accumulation behaviour.
  *
@@ -138,7 +140,7 @@ class CashAccumulator(
         moneyValues.costValue = net
         moneyValues.averageCost =
             if (totalQuantity.signum() != 0) {
-                net.divide(totalQuantity.abs(), 10, java.math.RoundingMode.HALF_UP)
+                net.divide(totalQuantity.abs(), AVERAGE_COST_SCALE, java.math.RoundingMode.HALF_UP)
             } else {
                 BigDecimal.ZERO
             }

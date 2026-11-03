@@ -12,6 +12,9 @@ import java.text.ParseException
  */
 class MathUtils private constructor() {
     companion object {
+        val HUNDRED: BigDecimal = BigDecimal(100)
+        val MONTHS_PER_YEAR: BigDecimal = BigDecimal(12)
+
         private const val MONEY_SCALE = 2
 
         // Unit prices are not money amounts - unitised funds quote well beyond cents,

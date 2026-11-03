@@ -297,7 +297,7 @@ class PositionValuationService(
                 .filter { it.amount < 0.0 }
                 .sumOf { -it.amount }
         val shortfall = costBasis - recordedInvestment
-        if (shortfall > 0.01) {
+        if (shortfall > COST_BASIS_SHORTFALL_TOLERANCE) {
             position.periodicCashFlows.cashFlows.add(
                 0,
                 com.beancounter.common.model.CashFlow(
@@ -454,6 +454,8 @@ class PositionValuationService(
     }
 
     companion object {
+        private const val COST_BASIS_SHORTFALL_TOLERANCE = 0.01
+
         /**
          * An IRR exists only when the cash-flow series can cross zero NPV:
          * at least two flows, not all zero, and at least one sign change

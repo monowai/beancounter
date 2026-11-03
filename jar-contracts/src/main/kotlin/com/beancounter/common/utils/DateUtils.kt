@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
-import java.time.Year
 import java.time.ZoneId
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import java.util.TimeZone
 
@@ -205,11 +205,11 @@ class DateUtils(
                 ) {
                     endDate
                 } else {
-                    LocalDate.of(currentDate.year, 12, 31).plusDays(1)
+                    currentDate.with(TemporalAdjusters.firstDayOfNextYear())
                 }
 
             val daysInThisYear = ChronoUnit.DAYS.between(yearStart, yearEnd).toDouble()
-            val daysInYear = if (Year.isLeap(currentDate.year.toLong())) 366.0 else 365.0
+            val daysInYear = currentDate.lengthOfYear().toDouble()
 
             weightedDays += daysInThisYear
             actualDays += daysInThisYear / daysInYear * daysInYear
@@ -219,7 +219,7 @@ class DateUtils(
 
         // For simple cases within same year, use year-specific day count
         return if (startDate.year == endDate.year) {
-            val daysInYear = if (Year.isLeap(startDate.year.toLong())) 366.0 else 365.0
+            val daysInYear = startDate.lengthOfYear().toDouble()
             totalDays / daysInYear
         } else {
             // For multi-year periods, use average

@@ -92,7 +92,14 @@ class ShareSightTradeAdapter(
         return TrnType.valueOf(ttype.uppercase(Locale.getDefault()))
     }
 
-    private fun extractComment(row: List<String>): String? = if (row.size == 13) nullSafe(row[COMMENTS]) else null
+    private fun extractComment(row: List<String>): String? =
+        if (row.size ==
+            COMMENTS + 1
+        ) {
+            nullSafe(row[COMMENTS])
+        } else {
+            null
+        }
 
     private fun resolveAssetSafely(row: List<String>): Asset {
         val asset = resolveAsset(row)

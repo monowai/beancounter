@@ -3,6 +3,9 @@ package com.beancounter.auth
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
+private const val JWKS_TIMEOUT_SECONDS = 10L
+private const val JWKS_CACHE_LIFESPAN_HOURS = 24L
+
 /**
  * Authentication Configuration.
  */
@@ -36,15 +39,15 @@ class AuthConfig(
     lateinit var clientSecret: String
 
     @Value($$"${auth.jwks.connect-timeout:10}")
-    val jwksConnectTimeout: Long = 10
+    val jwksConnectTimeout: Long = JWKS_TIMEOUT_SECONDS
 
     @Value($$"${auth.jwks.read-timeout:10}")
-    val jwksReadTimeout: Long = 10
+    val jwksReadTimeout: Long = JWKS_TIMEOUT_SECONDS
 
     // JWKS cache configuration - Auth0 keys rarely change, so long cache is safe
     // Default: 24 hours cache lifespan, refresh 1 hour before expiry
     @Value($$"${auth.jwks.cache-lifespan-hours:24}")
-    val jwksCacheLifespanHours: Long = 24
+    val jwksCacheLifespanHours: Long = JWKS_CACHE_LIFESPAN_HOURS
 
     @Value($$"${auth.jwks.cache-refresh-ahead-hours:1}")
     val jwksCacheRefreshAheadHours: Long = 1

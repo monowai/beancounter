@@ -39,7 +39,7 @@ class MorningstarGateway(
     fun getPrice(
         securityId: String,
         currencyId: String = "GBP",
-        startDate: LocalDate = dateUtils.date.minusDays(7)
+        startDate: LocalDate = dateUtils.date.minusWeeks(1)
     ): String? =
         try {
             // Determine if it's a Morningstar ID or ISIN

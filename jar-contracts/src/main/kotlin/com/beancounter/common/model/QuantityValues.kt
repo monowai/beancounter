@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
 
+private const val FRACTIONAL_PRECISION = 3
+
 /**
  * Accumulation of quantities.
  *
@@ -28,7 +30,7 @@ class QuantityValues(
         if (precision != null) {
             return precision as Int
         }
-        return if (getTotal().remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) 0 else 3
+        return if (getTotal().remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) 0 else FRACTIONAL_PRECISION
     }
 
     fun setPrecision(precision: Int = 2) {

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.common.utils.MathUtils.Companion.MONTHS_PER_YEAR
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -143,7 +144,7 @@ data class PrivateAssetConfig(
     val updatedDate: LocalDate = LocalDate.now()
 ) {
     companion object {
-        private val TWELVE = BigDecimal(12)
+        private const val MONTHLY_EXPENSE_SCALE = 4
     }
 
     /**
@@ -193,8 +194,8 @@ data class PrivateAssetConfig(
     fun getTotalMonthlyExpenses(): BigDecimal {
         val percentFee = monthlyRentalIncome.multiply(managementFeePercent)
         val effectiveMgmtFee = monthlyManagementFee.max(percentFee)
-        val monthlyTax = annualPropertyTax.divide(TWELVE, 4, RoundingMode.HALF_UP)
-        val monthlyInsurance = annualInsurance.divide(TWELVE, 4, RoundingMode.HALF_UP)
+        val monthlyTax = annualPropertyTax.divide(MONTHS_PER_YEAR, MONTHLY_EXPENSE_SCALE, RoundingMode.HALF_UP)
+        val monthlyInsurance = annualInsurance.divide(MONTHS_PER_YEAR, MONTHLY_EXPENSE_SCALE, RoundingMode.HALF_UP)
 
         return effectiveMgmtFee
             .add(monthlyBodyCorporateFee)

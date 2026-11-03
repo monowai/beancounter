@@ -37,26 +37,26 @@ class CacheConfig {
         val caches =
             DEFAULT_CACHES.map { name ->
                 ConcurrentMapCache(name)
-            } + CaffeineCache("alpha.asset.event", Duration.ofMinutes(10), 200) +
-                CaffeineCache("eodhd.asset.event", Duration.ofMinutes(10), 200) +
-                CaffeineCache("news.sentiment", Duration.ofMinutes(30), 100) +
+            } + CaffeineCache("alpha.asset.event", ASSET_EVENT_TTL, ASSET_EVENT_MAX_ENTRIES) +
+                CaffeineCache("eodhd.asset.event", ASSET_EVENT_TTL, ASSET_EVENT_MAX_ENTRIES) +
+                CaffeineCache("news.sentiment", NEWS_SENTIMENT_TTL, NEWS_SENTIMENT_MAX_ENTRIES) +
                 // FRED treasury yields — shared by the /macro/indicators endpoint and
                 // MacroRefreshSchedule's warm-up fetch, keyed by FRED series id (DGS10/DGS2). TTL
                 // matches the news-refresh cadence rather than daily-only since intraday requests
                 // shouldn't re-download a full-history CSV for a series that only moves once a day.
-                CaffeineCache("macro.treasury.yield", Duration.ofHours(6), 20) +
+                CaffeineCache("macro.treasury.yield", TREASURY_YIELD_TTL, TREASURY_YIELD_MAX_ENTRIES) +
                 // Fed rate-decision odds — avoids one Kalshi /markets call per open event on
                 // every /macro/rate-expectations request. Small size: at most one open
                 // KXFEDDECISION event is realistically live at a time.
-                CaffeineCache("macro.rate.expectations", Duration.ofMinutes(10), 5) +
+                CaffeineCache("macro.rate.expectations", RATE_EXPECTATIONS_TTL, RATE_EXPECTATIONS_MAX_ENTRIES) +
                 // Auth0 M2M client-credentials tokens carry a 24h TTL. A ConcurrentMapCache never
                 // expires entries, so a pod living longer than that serves a stale token forever -
                 // every setAuthContext() call then throws JwtException. Expire well inside the
                 // token's TTL so LoginService always re-authenticates before that happens.
-                CaffeineCache("auth.m2m", Duration.ofHours(12), 2) +
+                CaffeineCache("auth.m2m", M2M_TOKEN_TTL, 2) +
                 // SEC company_tickers.json (~10k rows) parsed once into a ticker->CIK map. The
                 // index changes rarely; a day is plenty and a single entry is all it ever holds.
-                CaffeineCache("sec.tickers", Duration.ofHours(24), 1)
+                CaffeineCache("sec.tickers", Duration.ofDays(1), 1)
         // Note: EODHD news is no longer cached in-memory — it persists to `news_article` and is
         // served from there. See EodhdNewsService + V19 migration.
 
@@ -68,6 +68,16 @@ class CacheConfig {
 
     companion object {
         private val log = LoggerFactory.getLogger(CacheConfig::class.java)
+
+        private val ASSET_EVENT_TTL = Duration.ofMinutes(10)
+        private const val ASSET_EVENT_MAX_ENTRIES = 200L
+        private val NEWS_SENTIMENT_TTL = Duration.ofMinutes(30)
+        private const val NEWS_SENTIMENT_MAX_ENTRIES = 100L
+        private val TREASURY_YIELD_TTL = Duration.ofHours(6)
+        private const val TREASURY_YIELD_MAX_ENTRIES = 20L
+        private val RATE_EXPECTATIONS_TTL = Duration.ofMinutes(10)
+        private const val RATE_EXPECTATIONS_MAX_ENTRIES = 5L
+        private val M2M_TOKEN_TTL = Duration.ofHours(12)
 
         private val DEFAULT_CACHES =
             listOf(

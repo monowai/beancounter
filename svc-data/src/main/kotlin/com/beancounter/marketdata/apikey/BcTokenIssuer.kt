@@ -103,7 +103,7 @@ class BcTokenIssuer(
 
         private fun generateEphemeralKey(): RSAKey =
             try {
-                RSAKeyGenerator(2048)
+                RSAKeyGenerator(RSAKeyGenerator.MIN_KEY_SIZE_BITS)
                     .keyUse(KeyUse.SIGNATURE)
                     .keyIDFromThumbprint(true)
                     .generate()

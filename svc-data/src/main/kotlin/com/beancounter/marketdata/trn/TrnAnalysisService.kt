@@ -19,6 +19,8 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
+private const val TOP_CONTRIBUTORS_LIMIT = 10
+
 /**
  * Service for transaction analysis operations including investment tracking and income reporting.
  */
@@ -383,7 +385,7 @@ class TrnAnalysisService(
                         topContributors =
                             agg.assetIncomes.values
                                 .sortedByDescending { it.totalIncome }
-                                .take(10)
+                                .take(TOP_CONTRIBUTORS_LIMIT)
                     )
                 }.sortedByDescending { it.totalIncome }
 

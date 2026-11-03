@@ -25,6 +25,8 @@ import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 
+private const val SECRET_HINT_CHARS = 4
+
 /**
  * OpenID client-credential login service to service M2M authentication requests.
  * Uses RestTemplate for form-urlencoded requests to Auth0.
@@ -85,8 +87,8 @@ class LoginService(
             "M2M login: clientId={}, audience={}, secret={}...{}",
             authConfig.clientId,
             authConfig.audience,
-            secretIn.take(4),
-            secretIn.takeLast(4)
+            secretIn.take(SECRET_HINT_CHARS),
+            secretIn.takeLast(SECRET_HINT_CHARS)
         )
         val formData =
             LinkedMultiValueMap<String, String>().apply {

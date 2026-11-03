@@ -36,6 +36,7 @@ data class ValuationSnapshot(
 class TwrCalculator {
     companion object {
         private const val SCALE = 10
+        private const val RESULT_SCALE = 6
         private val MC = MathContext(15, RoundingMode.HALF_UP)
         private val ONE_THOUSAND = BigDecimal("1000")
     }
@@ -60,7 +61,7 @@ class TwrCalculator {
             twrFactor = twrFactor.multiply(subPeriodReturn, MC)
         }
 
-        return twrFactor.subtract(BigDecimal.ONE).setScale(6, RoundingMode.HALF_UP)
+        return twrFactor.subtract(BigDecimal.ONE).setScale(RESULT_SCALE, RoundingMode.HALF_UP)
     }
 
     /**

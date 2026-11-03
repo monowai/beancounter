@@ -18,10 +18,14 @@ import java.time.ZoneId
 @Service
 class MarketHolidays {
     companion object {
+        private const val INDEPENDENCE_DAY = 4
         private const val JUNETEENTH_DAY = 19
         private const val JUNETEENTH_FIRST_YEAR = 2021
         private const val CHRISTMAS_DAY = 25
         private const val BOXING_DAY = 26
+        private const val THIRD_OCCURRENCE = 3
+        private const val FOURTH_OCCURRENCE = 4
+        private val DAYS_IN_WEEK = DayOfWeek.entries.size
         private val LONDON: ZoneId = ZoneId.of("Europe/London")
     }
 
@@ -129,7 +133,7 @@ class MarketHolidays {
             // Juneteenth - June 19 (since 2021)
             Month.JUNE if day == JUNETEENTH_DAY && date.year >= JUNETEENTH_FIRST_YEAR -> true
             // Independence Day - July 4
-            Month.JULY if day == 4 -> true
+            Month.JULY if day == INDEPENDENCE_DAY -> true
             // Christmas Day - December 25
             Month.DECEMBER if day == CHRISTMAS_DAY -> true
             else -> false
@@ -170,11 +174,11 @@ class MarketHolidays {
             // MLK Day - 3rd Monday in January
             month == Month.JANUARY &&
                 dayOfWeek == DayOfWeek.MONDAY &&
-                isNthWeekdayOfMonth(date, 3) -> true
+                isNthWeekdayOfMonth(date, THIRD_OCCURRENCE) -> true
             // Presidents Day - 3rd Monday in February
             month == Month.FEBRUARY &&
                 dayOfWeek == DayOfWeek.MONDAY &&
-                isNthWeekdayOfMonth(date, 3) -> true
+                isNthWeekdayOfMonth(date, THIRD_OCCURRENCE) -> true
             // Good Friday - Friday before Easter (complex calculation)
             isGoodFriday(date) -> true
             // Memorial Day - Last Monday in May
@@ -188,7 +192,7 @@ class MarketHolidays {
             // Thanksgiving - 4th Thursday in November
             month == Month.NOVEMBER &&
                 dayOfWeek == DayOfWeek.THURSDAY &&
-                isNthWeekdayOfMonth(date, 4) -> true
+                isNthWeekdayOfMonth(date, FOURTH_OCCURRENCE) -> true
             else -> false
         }
     }
@@ -202,7 +206,7 @@ class MarketHolidays {
     ): Boolean {
         val dayOfMonth = date.dayOfMonth
         // The Nth occurrence falls between days (n-1)*7+1 and n*7
-        return dayOfMonth > (n - 1) * 7 && dayOfMonth <= n * 7
+        return dayOfMonth > (n - 1) * DAYS_IN_WEEK && dayOfMonth <= n * DAYS_IN_WEEK
     }
 
     /**
@@ -210,7 +214,7 @@ class MarketHolidays {
      */
     private fun isLastWeekdayOfMonth(date: LocalDate): Boolean {
         // If adding 7 days goes to next month, this is the last occurrence
-        return date.plusDays(7).month != date.month
+        return date.plusWeeks(1).month != date.month
     }
 
     /**
@@ -229,7 +233,9 @@ class MarketHolidays {
 
     /**
      * Calculate Easter Sunday using the Anonymous Gregorian algorithm.
+     * The suppression covers its published coefficients, which have no individual meaning to name.
      */
+    @Suppress("MagicNumber")
     private fun calculateEasterSunday(year: Int): LocalDate {
         val a = year % 19
         val b = year / 100

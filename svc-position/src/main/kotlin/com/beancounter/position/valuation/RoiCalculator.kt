@@ -4,6 +4,8 @@ import com.beancounter.common.model.MoneyValues
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+private const val ROI_SCALE = 6
+
 /**
  * Provides functionality to calculate the Return on Investment (ROI) for financial positions.
  * This class calculates ROI based on the market value, cost basis, and dividends of an investment.
@@ -41,7 +43,7 @@ class RoiCalculator {
         return returns
             .divide(
                 costBasis,
-                6,
+                ROI_SCALE,
                 RoundingMode.HALF_UP
             )
     }

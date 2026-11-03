@@ -259,7 +259,7 @@ class AssetSearchService(
             } else {
                 assets.sortedBy { if (it.marketCode.uppercase() in US_MARKETS) 0 else 1 }
             }
-        return scoped.take(50).map { toLocalSearchResult(it) }
+        return scoped.take(LOCAL_SEARCH_LIMIT).map { toLocalSearchResult(it) }
     }
 
     // Markets that use FIGI for search (configured via figi.search.markets)
@@ -469,6 +469,8 @@ class AssetSearchService(
         }
 
     companion object {
+        private const val LOCAL_SEARCH_LIMIT = 50
+
         // Per-provider wall-clock cap for interactive asset search. External provider
         // RestClients are sized for batch price downloads (EODHD: 5s connect / 30s read);
         // header-bar keystrokes can't tolerate that latency when one provider is stalled.

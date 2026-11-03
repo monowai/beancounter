@@ -38,6 +38,7 @@ class TrnBrokerService(
 
     companion object {
         const val NO_BROKER = "NO_BROKER"
+        private const val UNLOTTED_QUANTITY_SCALE = 6
     }
 
     /**
@@ -324,7 +325,7 @@ class TrnBrokerService(
         boardLot: Int,
         held: BigDecimal
     ): BigDecimal {
-        if (boardLot < 1) return raw.setScale(6, RoundingMode.HALF_UP)
+        if (boardLot < 1) return raw.setScale(UNLOTTED_QUANTITY_SCALE, RoundingMode.HALF_UP)
         val lot = boardLot.toBigDecimal()
         val rounded = raw.divide(lot, 0, RoundingMode.HALF_UP).multiply(lot)
         if (rounded > held) {

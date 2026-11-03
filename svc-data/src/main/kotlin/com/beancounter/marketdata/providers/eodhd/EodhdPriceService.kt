@@ -7,7 +7,9 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import com.beancounter.marketdata.providers.eodhd.model.EodhdBulkPrice
@@ -311,7 +313,7 @@ class EodhdPriceService(
             changePercent =
                 quote.changePercent
                     .asDecimal()
-                    ?.divide(HUNDRED, 6, RoundingMode.HALF_UP)
+                    ?.divide(HUNDRED, PriceService.CHANGE_PERCENT_SCALE, RoundingMode.HALF_UP)
                     ?: BigDecimal.ZERO,
             // MarketData.volume is Int; clamp as EodhdAdapter does rather than wrap.
             volume =
@@ -443,7 +445,6 @@ class EodhdPriceService(
     companion object {
         private const val FOREX_EXCHANGE = "FOREX"
         const val ID = "EODHD"
-        private val HUNDRED = BigDecimal(100)
         private const val EODHD_ALIAS = "eodhd"
 
         // EODHD's guidance for one multi-symbol `/api/real-time` request.

@@ -19,13 +19,15 @@ import java.math.BigDecimal
  * set (see [TrnBrokerService]).
  */
 object TrnTradeSummaryBuilder {
+    private const val BALANCE_ORDER = 3
+
     // Same-day ordering: buys/adds, then the split, then sells/reduces, then a
     // BALANCE (an absolute end-of-day position snapshot) which resets the total.
     private fun sameDayOrder(type: TrnType): Int =
         when (type) {
             TrnType.BUY, TrnType.ADD -> 0
             TrnType.SPLIT -> 1
-            TrnType.BALANCE -> 3
+            TrnType.BALANCE -> BALANCE_ORDER
             else -> 2
         }
 

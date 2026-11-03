@@ -82,7 +82,7 @@ class AlphaNewsService(
         tickers
             .split(",")
             .map { it.trim().uppercase() }
-            .filter { it.length in 1..6 && it.matches(TICKER_PATTERN) }
+            .filter { it.length in 1..MAX_TICKER_LENGTH && it.matches(TICKER_PATTERN) }
 
     private fun fetchAndTrim(
         tickers: String,
@@ -241,6 +241,8 @@ class AlphaNewsService(
     )
 
     companion object {
+        private const val MAX_TICKER_LENGTH = 6
+
         // AV's time_from format is YYYYMMDDTHHMM, no colon.
         private val AV_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmm")
 

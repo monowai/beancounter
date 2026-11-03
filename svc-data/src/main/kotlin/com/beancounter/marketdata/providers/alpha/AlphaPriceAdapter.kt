@@ -123,37 +123,37 @@ class AlphaPriceAdapter(
                 multiplyAbs(
                     marketData.close,
                     market.multiplier,
-                    4
+                    NORMALISED_PRICE_SCALE
                 )
             marketData.open =
                 multiplyAbs(
                     marketData.open,
                     market.multiplier,
-                    4
+                    NORMALISED_PRICE_SCALE
                 )
             marketData.high =
                 multiplyAbs(
                     marketData.high,
                     market.multiplier,
-                    4
+                    NORMALISED_PRICE_SCALE
                 )
             marketData.low =
                 multiplyAbs(
                     marketData.low,
                     market.multiplier,
-                    4
+                    NORMALISED_PRICE_SCALE
                 )
             marketData.previousClose =
                 multiplyAbs(
                     marketData.previousClose,
                     market.multiplier,
-                    4
+                    NORMALISED_PRICE_SCALE
                 )
             marketData.change =
                 multiplyAbs(
                     marketData.change,
                     market.multiplier,
-                    4
+                    NORMALISED_PRICE_SCALE
                 )
         }
     }
@@ -208,5 +208,6 @@ class AlphaPriceAdapter(
 
     companion object {
         private val log = LoggerFactory.getLogger(AlphaPriceAdapter::class.java)
+        private const val NORMALISED_PRICE_SCALE = 4
     }
 }

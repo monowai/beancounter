@@ -28,6 +28,8 @@ data class Momentum(
         private const val SCALE = 4
         private const val SHORT_AVERAGE = 50
         private const val LONG_AVERAGE = 200
+        private const val QUARTER_MONTHS = 3L
+        private const val HALF_YEAR_MONTHS = 6L
 
         // A year back from the latest close can land on a weekend or a holiday run, so a series
         // whose first close falls within this many days after it still spans the 52 weeks.
@@ -56,9 +58,13 @@ data class Momentum(
             return Momentum(
                 asOf = latest.priceDate.toString(),
                 return1m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusMonths(1))),
-                return3m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusMonths(3))),
-                return6m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusMonths(6))),
-                return12m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusMonths(12))),
+                return3m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusMonths(QUARTER_MONTHS))),
+                return6m =
+                    change(
+                        latest.close,
+                        closeOnOrBefore(series, latest.priceDate.minusMonths(HALF_YEAR_MONTHS))
+                    ),
+                return12m = change(latest.close, closeOnOrBefore(series, latest.priceDate.minusYears(1))),
                 vsSma50 = change(latest.close, average(series, SHORT_AVERAGE)),
                 vsSma200 = change(latest.close, average(series, LONG_AVERAGE)),
                 fromHigh52w = change(latest.close, high),

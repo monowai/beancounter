@@ -86,7 +86,7 @@ class EventLoader(
         }
 
         var totalEvents = 0
-        val executor: ExecutorService = Executors.newFixedThreadPool(10)
+        val executor: ExecutorService = Executors.newFixedThreadPool(POSITION_LOAD_THREADS)
         val tasks: List<Callable<Int>> =
             positionResponse.data.positions.values.map { position ->
                 Callable {
@@ -162,5 +162,6 @@ class EventLoader(
 
     companion object {
         private val log = LoggerFactory.getLogger(EventLoader::class.java)
+        private const val POSITION_LOAD_THREADS = 10
     }
 }

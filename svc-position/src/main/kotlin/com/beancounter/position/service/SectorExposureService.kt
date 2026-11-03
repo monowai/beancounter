@@ -8,6 +8,7 @@ import com.beancounter.common.model.ClassificationItem
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientException
@@ -81,8 +82,8 @@ class SectorExposureService(
                 .map { (sector, value) ->
                     val percentage =
                         value
-                            .divide(totalValue, 4, RoundingMode.HALF_UP)
-                            .multiply(BigDecimal(100))
+                            .divide(totalValue, RATIO_SCALE, RoundingMode.HALF_UP)
+                            .multiply(HUNDRED)
                             .setScale(2, RoundingMode.HALF_UP)
                     SectorExposure(
                         sector = sector,
@@ -115,7 +116,7 @@ class SectorExposureService(
             for (exposure in exposures) {
                 val sectorName = exposure.item.name
                 val weightedValue =
-                    marketValue.multiply(exposure.weight).divide(BigDecimal(100), 4, RoundingMode.HALF_UP)
+                    marketValue.multiply(exposure.weight).divide(HUNDRED, WEIGHTED_VALUE_SCALE, RoundingMode.HALF_UP)
                 sectorValues[sectorName] = (sectorValues[sectorName] ?: BigDecimal.ZERO) + weightedValue
             }
         } catch (e: RestClientException) {
@@ -148,5 +149,10 @@ class SectorExposureService(
             sectorValues[ClassificationItem.UNCLASSIFIED] =
                 (sectorValues[ClassificationItem.UNCLASSIFIED] ?: BigDecimal.ZERO) + marketValue
         }
+    }
+
+    companion object {
+        private const val RATIO_SCALE = 4
+        private const val WEIGHTED_VALUE_SCALE = 4
     }
 }

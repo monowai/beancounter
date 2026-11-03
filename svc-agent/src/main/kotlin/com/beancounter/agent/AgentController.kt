@@ -32,6 +32,7 @@ import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.env.Environment
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
@@ -115,6 +116,7 @@ class AgentController(
         // deep-tier headroom; the non-thinking fast client keeps the small cap.
         const val FAST_MAX_TOKENS = 4096
         const val THINKING_MAX_TOKENS = 16384
+        const val THINKING_BUDGET_TOKENS = 4096L
 
         // Stable client-facing failure codes. bc-view keys its copy off these
         // (see lib/utils/agent/agentErrors.ts); renaming one is a contract change.
@@ -651,7 +653,7 @@ class AgentController(
                         // Spring AI 2.0: the two-arg thinking(type, budget) is
                         // gone; thinkingEnabled(budgetTokens) is the explicit
                         // enable + budget call (4k budget preserved).
-                        .thinkingEnabled(4096L)
+                        .thinkingEnabled(THINKING_BUDGET_TOKENS)
                 }
                 b
             }
@@ -694,7 +696,7 @@ class AgentController(
         val request = plan.request
         if (chatClient == null) {
             return ResponseEntity
-                .status(503)
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(
                     AgentResponse(
                         query = HtmlUtils.htmlEscape(request.query),
@@ -1498,7 +1500,7 @@ class AgentController(
             mode = LlmMetrics.Mode.CALL
         )
         if (!log.isDebugEnabled) return
-        val promptPreview = userMessage.take(120).replace("\n", " ")
+        val promptPreview = userMessage.take(QUERY_LOG_CHARS).replace("\n", " ")
         val toolNames = tools.map { it.javaClass.simpleName }
         log.debug(
             "LLM call: model={}, selected_model={}, prompt_tokens={}, completion_tokens={}, total_tokens={}, " +

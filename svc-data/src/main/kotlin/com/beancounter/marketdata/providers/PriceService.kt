@@ -363,30 +363,30 @@ class PriceService(
                 previousDayData.close.compareTo(BigDecimal.ZERO) > 0 &&
                     marketData.close.compareTo(
                         previousDayData.close
-                            .divide(split, 6, java.math.RoundingMode.HALF_UP)
+                            .divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
                             .multiply(BigDecimal("2"))
                     ) > 0
             if (closeLooksUnadjusted) {
                 marketData.close =
-                    marketData.close.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                    marketData.close.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
                 if (marketData.open.compareTo(BigDecimal.ZERO) > 0) {
                     marketData.open =
-                        marketData.open.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                        marketData.open.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
                 }
                 if (marketData.high.compareTo(BigDecimal.ZERO) > 0) {
                     marketData.high =
-                        marketData.high.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                        marketData.high.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
                 }
                 if (marketData.low.compareTo(BigDecimal.ZERO) > 0) {
                     marketData.low =
-                        marketData.low.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                        marketData.low.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
                 }
             }
         }
 
         val splitAdjustedPreviousClose =
             if (isSplitExDate) {
-                rawPreviousClose.divide(split, 6, java.math.RoundingMode.HALF_UP)
+                rawPreviousClose.divide(split, SplitAdjuster.SCALE, java.math.RoundingMode.HALF_UP)
             } else {
                 rawPreviousClose
             }
@@ -396,7 +396,7 @@ class PriceService(
             marketData.changePercent =
                 marketData.change.divide(
                     splitAdjustedPreviousClose,
-                    6,
+                    CHANGE_PERCENT_SCALE,
                     java.math.RoundingMode.HALF_UP
                 )
         }
@@ -921,5 +921,7 @@ class PriceService(
         // backfills (multi-year, hundreds of rows) from holding every managed
         // entity in memory for the whole handle() call — see #1096.
         private const val SAVE_CHUNK_SIZE = 500
+
+        internal const val CHANGE_PERCENT_SCALE = 6
     }
 }

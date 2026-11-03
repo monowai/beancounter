@@ -58,9 +58,9 @@ class OtelTraceIdFilter : OncePerRequestFilter() {
     }
 
     /** Sentry's trace context, the fallback when no OTel span is active. */
-    private fun sentryTraceContext(): Triple<String, String, String> {
-        val sentrySpan = Sentry.getSpan() ?: return Triple("", "", "none")
-        val sentryTrace = sentrySpan.toSentryTrace()
-        return Triple(sentryTrace.traceId.toString(), sentryTrace.spanId.toString(), "Sentry")
-    }
+    private fun sentryTraceContext(): Triple<String, String, String> =
+        Sentry.getSpan()?.let { span ->
+            val trace = span.toSentryTrace()
+            Triple(trace.traceId.toString(), trace.spanId.toString(), "Sentry")
+        } ?: Triple("", "", "none")
 }

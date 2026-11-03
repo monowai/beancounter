@@ -32,10 +32,10 @@ class ConversationRetentionTest {
     @Test
     fun `should purge only conversations idle beyond the configured retention days`() {
         val stale = service.create("me").id
-        service.appendUser("me", stale, "old", false)
+        service.appendUser("me", stale, Question("old"))
         clock.advance(Duration.ofDays(89))
         val recent = service.create("me").id
-        service.appendUser("me", recent, "recent", false)
+        service.appendUser("me", recent, Question("recent"))
         clock.advance(Duration.ofDays(2))
 
         retention.purge()

@@ -13,6 +13,7 @@ import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationServiceTest
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
+import com.beancounter.agent.conversation.Question
 import com.beancounter.agent.conversation.SteppingClock
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
@@ -314,7 +315,7 @@ class AssetReviewCacheTest {
     @Test
     fun `a review asked inside a conversation with earlier turns should never be cached`() {
         val id = conversations.create(me).id
-        conversations.appendUser(me, id, "What is NATO?", false)
+        conversations.appendUser(me, id, Question("What is NATO?"))
         conversations.appendAssistant(me, id, "An ETF.", null)
 
         streamed(review(conversationId = id))

@@ -1,9 +1,6 @@
 package com.beancounter.agent
 
 import com.beancounter.agent.config.AgentScopeAuthorizer
-import com.beancounter.agent.conversation.ConversationRecorder
-import com.beancounter.agent.conversation.ConversationService
-import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.health.AgentHealthResponse
@@ -60,8 +57,7 @@ class AgentController(
     private val admission: TurnAdmission,
     private val planner: TurnPlanner,
     private val metering: TurnMetering,
-    private val conversations: ConversationService,
-    private val conversationTitler: ConversationTitler,
+    private val turns: ConversationTurns,
     private val inFlightTurns: InFlightTurns,
     // Dates a review's cache key. Defaulted so Spring wires it without a Clock bean; fixed in tests.
     private val clock: Clock = Clock.systemUTC(),
@@ -85,50 +81,6 @@ class AgentController(
         // identify the request in kauri's logs without shipping the whole
         // question (which can carry page context the user typed).
         const val QUERY_LOG_CHARS = 120
-    }
-
-    /**
-     * Resolve the request's effective history and where its turn is recorded.
-     * A request naming a conversation replays that conversation's stored turns
-     * — client-sent history is ignored, so a caller cannot put words in the
-     * assistant's mouth — and records this question to it now. Any other
-     * request is stateless. The conversation was resolved by [threadOf] on
-     * the request thread, where the owner lookup has the caller's token and a
-     * conversation the caller doesn't own surfaces as a 404.
-     */
-    private fun openTurn(
-        request: AgentQuery,
-        thread: ConversationThread?
-    ): Pair<AgentQuery, TurnRecorder> {
-        if (thread == null) return request to TurnRecorder.NONE
-        val ownerId = thread.ownerId
-        val conversationId = thread.id
-        val stored = conversations.history(ownerId, conversationId, TurnPrompts.MAX_HISTORY_TURNS)
-        conversations.appendUser(
-            ownerId,
-            conversationId,
-            request.query,
-            request.deepThink,
-            request.label,
-            pageQuerySelector.kindFor(request.context)
-        )
-        // Titles see a canned prompt's label, which names the subject without its instructions.
-        val recorder =
-            ConversationRecorder(
-                service = conversations,
-                titler = conversationTitler,
-                ownerId = ownerId,
-                conversationId = conversationId,
-                // A hidden conversation is never listed, so a title would be an LLM call for nothing.
-                awaitingTitle =
-                    stored.none { it.role == ConversationService.ROLE_ASSISTANT } &&
-                        !conversations.isHidden(ownerId, conversationId),
-                provisionalTitle = conversations.titleOf(ownerId, conversationId),
-                questions =
-                    stored.filter { it.role == ConversationService.ROLE_USER }.map { it.content } +
-                        (request.label ?: request.query)
-            )
-        return request.copy(history = stored) to recorder
     }
 
     /** A Holding Analysis's opening turn, ready to ask, or the stable code it failed with. */
@@ -222,32 +174,6 @@ class AgentController(
                 )
             )
 
-    /**
-     * Record a blocking-path turn. Like [record], a failure to save is logged,
-     * never allowed to cost the user the answer.
-     */
-    private fun recordQuietly(action: () -> Unit) {
-        try {
-            action()
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.error("Failed to record conversation turn: {}", e.message, e)
-        }
-    }
-
-    /**
-     * Record off the Reactor event loop (JPA blocks). A failure to save is
-     * logged, never allowed to cost the user the answer they are reading.
-     */
-    private fun record(action: () -> Unit): Mono<Void> =
-        Mono
-            .fromRunnable<Void>(action)
-            .subscribeOn(Schedulers.boundedElastic())
-            .doOnError { e -> log.error("Failed to record conversation turn: {}", e.message, e) }
-            .onErrorComplete()
-
     @GetMapping("/health")
     @Operation(
         summary = "Traffic-light health check for the agent and its downstream services.",
@@ -313,11 +239,11 @@ class AgentController(
     ): ResponseEntity<AgentResponse> {
         val (_, reviewKey, hit, meter) = admitted
         val safeQuery = HtmlUtils.htmlEscape(asked.query)
-        val (turn, conversationRecorder) = openTurn(asked, admitted.plan.thread)
+        val (turn, conversationRecorder) = turns.open(asked, admitted.plan.thread)
         if (reviewKey != null && hit != null) {
             // No model runs: the stored answer is recorded as a live one would be, and not counted.
             llmMetrics.cached(LlmMetrics.Mode.CALL, reviewKey.model)
-            recordQuietly { conversationRecorder.answered(hit) }
+            turns.recordQuietly { conversationRecorder.answered(hit) }
             return ResponseEntity.ok(
                 AgentResponse(
                     query = safeQuery,
@@ -355,7 +281,7 @@ class AgentController(
         ) {
             val errorCode = TurnFailure.classify(e)
             log.error("Agent query failed ({}): {}", errorCode, e.message, e)
-            recordQuietly { recorder.failed(errorCode) }
+            turns.recordQuietly { recorder.failed(errorCode) }
             failure(safeQuery, errorCode)
         }
 
@@ -379,11 +305,11 @@ class AgentController(
                 answer.modelId,
                 safeQuery.take(QUERY_LOG_CHARS)
             )
-            recordQuietly { recorder.failed(code) }
+            turns.recordQuietly { recorder.failed(code) }
             return failure(safeQuery, code)
         }
 
-        recordQuietly { recorder.answered(content) }
+        turns.recordQuietly { recorder.answered(content) }
         return ResponseEntity.ok(
             AgentResponse(
                 query = safeQuery,
@@ -462,7 +388,7 @@ class AgentController(
             try {
                 val subject = plan.opening
                 if (subject == null) {
-                    val (turn, recorder) = openTurn(plan.request, plan.thread)
+                    val (turn, recorder) = turns.open(plan.request, plan.thread)
                     pipelineFor(admitted, turn, recorder)
                 } else {
                     openingPipeline(plan.request, subject, plan.thread, admitted.meter)
@@ -513,7 +439,7 @@ class AgentController(
                         errorEvent(opening.code)
                     }
                     is Opening.Ready -> {
-                        val (turn, recorder) = openTurn(opening.turn, thread)
+                        val (turn, recorder) = turns.open(opening.turn, thread)
                         answerPipeline(turn, metering.metered(recorder, meter))
                     }
                 }
@@ -567,7 +493,7 @@ class AgentController(
             }
         return Flux
             .just(ServerSentEvent.builder(content).event("token").build())
-            .concatWith(record { recorder.answered(content) }.thenMany(Flux.empty()))
+            .concatWith(turns.record { recorder.answered(content) }.thenMany(Flux.empty()))
             .concatWith(done)
     }
 
@@ -597,7 +523,7 @@ class AgentController(
                 // act on (e.g. provider quota, rate limit).
                 log.error("Agent stream failed: {}", e.message, e)
                 val code = TurnFailure.classify(e)
-                record { recorder.failed(code) }.thenMany(errorEvent(code))
+                turns.record { recorder.failed(code) }.thenMany(errorEvent(code))
             }.contextCapture()
 
     private fun runStream(
@@ -643,7 +569,7 @@ class AgentController(
         recorder: TurnRecorder
     ): Flux<ServerSentEvent<String>> {
         val answer = tally.answer
-        if (answer.isNotEmpty()) return record { recorder.answered(answer) }.thenMany(Flux.empty())
+        if (answer.isNotEmpty()) return turns.record { recorder.answered(answer) }.thenMany(Flux.empty())
         val code = TurnFailure.emptyAnswerCode(tally.finishReason)
         log.warn(
             "Agent stream produced no answer: code={}, finish_reason={}, model={}, query=\"{}\"",
@@ -652,7 +578,7 @@ class AgentController(
             call.modelId,
             call.query.take(QUERY_LOG_CHARS)
         )
-        return record { recorder.failed(code) }.thenMany(errorEvent(code))
+        return turns.record { recorder.failed(code) }.thenMany(errorEvent(code))
     }
 
     private fun doneEvent(

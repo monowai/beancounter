@@ -371,8 +371,12 @@ class AgentControllerTest {
         whenever(callResponse.content()).thenReturn("Up 2%.")
         val conversations =
             mock<com.beancounter.agent.conversation.ConversationService> {
-                on { history(any(), any(), any()) } doReturn emptyList()
-                on { titleOf(any(), any()) } doReturn "Portfolio"
+                on { openTurn(any(), any(), any(), any(), any()) } doReturn
+                    com.beancounter.agent.conversation.OpenedTurn(
+                        emptyList(),
+                        com.beancounter.agent.conversation
+                            .TitleSeed("Portfolio", listOf("How am I doing?"))
+                    )
                 on { stateOf(any(), any()) } doReturn
                     com.beancounter.agent.conversation.ConversationState(
                         com.beancounter.agent.conversation.ConversationKind.CHAT,

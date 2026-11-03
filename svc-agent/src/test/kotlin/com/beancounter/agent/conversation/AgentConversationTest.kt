@@ -154,7 +154,7 @@ class AgentConversationTest {
     private fun conversationWith(vararg turns: Pair<String, String>): String {
         val id = service.create(me).id
         turns.forEach { (q, a) ->
-            service.appendUser(me, id, q, false)
+            service.appendUser(me, id, Question(q))
             service.appendAssistant(me, id, a, null)
         }
         return id
@@ -297,7 +297,7 @@ class AgentConversationTest {
                     isProxyTargetClass = true
                     addAdvice(
                         MethodInterceptor { call ->
-                            if (call.method.name == "appendUser") pendingWhenWritten.add(inFlight.isPending(id))
+                            if (call.method.name == "openTurn") pendingWhenWritten.add(inFlight.isPending(id))
                             call.proceed()
                         }
                     )

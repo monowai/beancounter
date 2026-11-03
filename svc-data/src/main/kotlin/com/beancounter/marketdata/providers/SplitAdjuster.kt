@@ -75,11 +75,10 @@ object SplitAdjuster {
             // raw, otherwise leave it alone.
             val previousCloseFactor =
                 resolvePreviousCloseFactor(p, factor, canonicalSplit)
-            if (factor.compareTo(BigDecimal.ONE) == 0 &&
-                closeFactor.compareTo(BigDecimal.ONE) == 0 &&
-                previousCloseFactor.compareTo(BigDecimal.ONE) == 0 &&
-                canonicalSplit == p.split
-            ) {
+            val noRebase =
+                listOf(factor, closeFactor, previousCloseFactor)
+                    .all { it.compareTo(BigDecimal.ONE) == 0 }
+            if (noRebase && canonicalSplit == p.split) {
                 p
             } else {
                 p.copy(

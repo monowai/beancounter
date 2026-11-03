@@ -84,9 +84,8 @@ class SecFundamentalsParser(
         val end = runCatching { LocalDate.parse(node.path("end").asString()) }.getOrNull()
         // path("fy").asInt() answers 0 for a missing field, which would be reported as FY0.
         val fiscalYear = node.path("fy")
-        if (!value.isNumber || end == null || !fiscalYear.isIntegralNumber || fiscalYear.asInt() <= 0) {
-            return null
-        }
+        if (!value.isNumber || end == null) return null
+        if (!fiscalYear.isIntegralNumber || fiscalYear.asInt() <= 0) return null
         return Entry(
             end = end,
             filed = node.path("filed").asString(),

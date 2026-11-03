@@ -24,10 +24,7 @@ class AggregatedValuationCacheTest {
     private fun testKey(subject: String = "subject-1") =
         ValuationCacheKey.of(
             subject = subject,
-            portfolios = listOf(portfolio),
-            valuationDate = DateUtils.TODAY,
-            value = true,
-            targetCurrencyCode = null
+            request = AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = true)
         )
 
     @Test

@@ -1,7 +1,6 @@
 package com.beancounter.position.valuation
 
 import com.beancounter.common.contracts.PositionResponse
-import com.beancounter.common.model.Portfolio
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.Ticker
@@ -33,20 +32,20 @@ data class ValuationCacheKey(
     companion object {
         fun of(
             subject: String,
-            portfolios: Collection<Portfolio>,
-            valuationDate: String,
-            value: Boolean,
-            targetCurrencyCode: String?,
-            live: Boolean = false
+            request: AggregateValuationRequest
         ): ValuationCacheKey =
             ValuationCacheKey(
                 subject = subject,
-                portfolioIds = portfolios.map { it.id }.distinct().sorted(),
-                contextPortfolioId = portfolios.first().id,
-                valuationDate = valuationDate,
-                value = value,
-                targetCurrencyCode = targetCurrencyCode?.uppercase(),
-                live = live
+                portfolioIds =
+                    request.portfolios
+                        .map { it.id }
+                        .distinct()
+                        .sorted(),
+                contextPortfolioId = request.portfolios.first().id,
+                valuationDate = request.valuationDate,
+                value = request.value,
+                targetCurrencyCode = request.targetCurrency,
+                live = request.live
             )
     }
 }

@@ -25,9 +25,8 @@ import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.SellBehaviour
 import com.beancounter.position.accumulation.SplitBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
-import com.beancounter.position.service.MarketValueUpdateProducer
-import com.beancounter.position.service.PositionService
-import com.beancounter.position.service.PositionValuationService
+import com.beancounter.position.holdings.PositionService
+import com.beancounter.position.marketvalue.PositionValuationService
 import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
@@ -48,6 +47,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
@@ -61,6 +61,7 @@ class ValuationServiceTest {
     companion object {
         private val MV_10K = BigDecimal("10000.00")
         private val PRICE_150 = BigDecimal("150.00")
+        private const val DEFAULT_CACHE_TTL_SECONDS = 5L
     }
 
     @Mock
@@ -73,6 +74,9 @@ class ValuationServiceTest {
     private lateinit var positionService: PositionService
 
     @Mock
+    private lateinit var streamBridge: StreamBridge
+
+    // The real publish rule over a mocked broker; tests observe what reaches sendMessage.
     private lateinit var marketValueUpdateProducer: MarketValueUpdateProducer
 
     @Mock
@@ -106,17 +110,9 @@ class ValuationServiceTest {
             .`when`(fxRateService.getRates(any(), any()))
             .thenReturn(FxResponse())
 
+        marketValueUpdateProducer = Mockito.spy(MarketValueUpdateProducer(streamBridge, dateUtils))
         valuationService =
-            ValuationService(
-                positionValuationService,
-                trnService,
-                positionService,
-                marketValueUpdateProducer,
-                fxRateService,
-                tokenService,
-                dateUtils,
-                earmarkService
-            )
+            valuationService()
     }
 
     @AfterEach
@@ -212,7 +208,10 @@ class ValuationServiceTest {
         val portfolios = emptyList<Portfolio>()
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then
         assertThat(result.data.positions).isEmpty()
@@ -228,7 +227,10 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then
         assertThat(result.data.positions).isEmpty()
@@ -242,8 +244,12 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When - two back-to-back identical aggregated valuation requests
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - the second call is served from the cache; trnService is hit once
         verify(trnService, times(1)).query(portfolio, DateUtils.TODAY)
@@ -257,8 +263,12 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - different subjects with identical portfolio ids must both miss
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
@@ -278,8 +288,12 @@ class ValuationServiceTest {
             .thenReturn(TrnResponse(emptyList()))
 
         // When - targetCurrencyCode is null, so the context portfolio matters
-        valuationService.getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio2, portfolio), DateUtils.TODAY, value = false)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio2, portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - both calls load fresh (two full loads, not a cache hit)
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
@@ -290,24 +304,18 @@ class ValuationServiceTest {
     fun `getAggregatedPositions bypasses cache when ttl is zero`() {
         // Given - a service configured with cache-ttl-seconds=0
         val bypassService =
-            ValuationService(
-                positionValuationService,
-                trnService,
-                positionService,
-                marketValueUpdateProducer,
-                fxRateService,
-                tokenService,
-                dateUtils,
-                earmarkService,
-                cacheTtlSeconds = 0
-            )
+            valuationService(cacheTtlSeconds = 0)
         whenever(tokenService.subject).thenReturn("user-1")
         whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(emptyList()))
 
         // When - two back-to-back identical requests
-        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        bypassService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
+        bypassService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        bypassService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
 
         // Then - both calls load fresh; nothing is cached
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
@@ -353,7 +361,10 @@ class ValuationServiceTest {
         whenever(positionService.build(any(), any())).thenReturn(positionResponse)
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then
         assertThat(result.data.positions).hasSize(2)
@@ -424,7 +435,10 @@ class ValuationServiceTest {
         ).thenReturn(PositionResponse(p2Positions))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then - the aggregate sums the two holdings (10 + 5)...
         val agg =
@@ -516,7 +530,10 @@ class ValuationServiceTest {
         ).thenReturn(PositionResponse(p2Positions))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then - per-broker quantities survive aggregation, same broker sums
         val agg =
@@ -600,7 +617,10 @@ class ValuationServiceTest {
         ).thenReturn(PositionResponse(p2Positions))
 
         // When
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = false)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false)
+            )
 
         // Then - the aggregate nets to P1's 10 (P2 bought then sold 10)...
         val agg =
@@ -649,7 +669,10 @@ class ValuationServiceTest {
         whenever(positionValuationService.value(any(), any(), any())).thenReturn(positions)
 
         // When - request valuation with value=true
-        val result = valuationService.getAggregatedPositions(portfolios, DateUtils.TODAY, value = true)
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = true)
+            )
 
         // Then - market value update should NOT be sent for aggregated positions
         verify(marketValueUpdateProducer, never()).sendMessage(any())
@@ -662,8 +685,12 @@ class ValuationServiceTest {
         whenever(trnService.query(any<Portfolio>(), any<String>()))
             .thenReturn(TrnResponse(emptyList()))
 
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false)
-        valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = false, live = true)
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = false, live = true)
+        )
 
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
     }
@@ -690,7 +717,9 @@ class ValuationServiceTest {
         whenever(positionValuationService.value(any(), any(), eq(true))).thenReturn(positions)
 
         val result =
-            valuationService.getAggregatedPositions(listOf(portfolio), DateUtils.TODAY, value = true, live = true)
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = true, live = true)
+            )
 
         assertThat(result.data.positions).isNotEmpty
         verify(marketValueUpdateProducer, never()).sendMessage(any())
@@ -733,10 +762,7 @@ class ValuationServiceTest {
         // When - request aggregation in SGD
         val result =
             valuationService.getAggregatedPositions(
-                portfolios,
-                DateUtils.TODAY,
-                value = false,
-                targetCurrencyCode = "SGD"
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false, targetCurrencyCode = "SGD")
             )
 
         // Then - the aggregate reports in SGD and its PORTFOLIO bucket is
@@ -809,10 +835,7 @@ class ValuationServiceTest {
         // When - aggregate in USD
         val result =
             valuationService.getAggregatedPositions(
-                portfolios,
-                DateUtils.TODAY,
-                value = false,
-                targetCurrencyCode = "USD"
+                AggregateValuationRequest(portfolios, DateUtils.TODAY, value = false, targetCurrencyCode = "USD")
             )
 
         // Then - the PORTFOLIO bucket is USD and its cost is FX-converted, not raw NZD.
@@ -842,16 +865,7 @@ class ValuationServiceTest {
                 )
             )
         val service =
-            ValuationService(
-                positionValuationService,
-                trnService,
-                realPositionService,
-                marketValueUpdateProducer,
-                fxRateService,
-                tokenService,
-                dateUtils,
-                earmarkService
-            )
+            valuationService(positionService = realPositionService)
 
         val pfA = TestHelpers.createTestPortfolio("PF-A")
         val pfB = TestHelpers.createTestPortfolio("PF-B")
@@ -910,11 +924,7 @@ class ValuationServiceTest {
 
         // When - aggregate without valuation (no market data needed)
         val result =
-            service.getAggregatedPositions(
-                listOf(pfA, pfB),
-                DateUtils.TODAY,
-                value = false
-            )
+            service.getAggregatedPositions(AggregateValuationRequest(listOf(pfA, pfB), DateUtils.TODAY, value = false))
 
         // Then - the asset's split is recorded once per portfolio; merging the
         // raw transaction streams used to compound it (24 -> 186). Per-portfolio
@@ -1294,23 +1304,30 @@ class ValuationServiceTest {
         stubOneBuyPerPortfolio(portfolio, portfolio2, probe = probe)
         whenever(trnService.queryProposedCash(any(), any())).thenAnswer { probe.arrive(TrnResponse(emptyList())) }
 
-        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        withRealEarmark().getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
 
         assertThat(probe.allMet).isTrue()
     }
 
     // The real EarmarkService over the mocked TrnService, so the assertion lands on the
     // bc-data read itself rather than on an EarmarkService mock.
-    private fun withRealEarmark(): ValuationService =
+    private fun withRealEarmark(): ValuationService = valuationService(earmarkService = EarmarkService(trnService))
+
+    /** The one place this class wires a [ValuationService]; each test overrides only what it varies. */
+    private fun valuationService(
+        positionService: PositionService = this.positionService,
+        earmarkService: EarmarkService = this.earmarkService,
+        cacheTtlSeconds: Long = DEFAULT_CACHE_TTL_SECONDS
+    ): ValuationService =
         ValuationService(
-            positionValuationService,
-            trnService,
-            positionService,
-            marketValueUpdateProducer,
-            fxRateService,
-            tokenService,
-            dateUtils,
-            EarmarkService(trnService)
+            positionValuationService = positionValuationService,
+            portfolioPositions = PortfolioPositions(trnService, positionService, earmarkService, tokenService),
+            portfolioConsolidation = PortfolioConsolidation(fxRateService, tokenService),
+            marketValueUpdateProducer = marketValueUpdateProducer,
+            tokenService = tokenService,
+            cacheTtlSeconds = cacheTtlSeconds
         )
 
     private fun stubOneBuyPerPortfolio(
@@ -1354,7 +1371,9 @@ class ValuationServiceTest {
         val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
         stubOneBuyPerPortfolio(portfolio, portfolio2)
 
-        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        withRealEarmark().getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
 
         verify(trnService, never()).queryProposedCash(any(), any())
     }
@@ -1366,7 +1385,9 @@ class ValuationServiceTest {
         stubOneBuyPerPortfolio(portfolio, portfolio2)
         whenever(trnService.queryProposedCash(any(), any())).thenReturn(TrnResponse(emptyList()))
 
-        withRealEarmark().getAggregatedPositions(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        withRealEarmark().getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2), DateUtils.TODAY, value = false)
+        )
 
         verify(trnService).queryProposedCash(portfolio.id, DateUtils.TODAY)
         verify(trnService).queryProposedCash(portfolio2.id, DateUtils.TODAY)

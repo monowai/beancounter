@@ -4,8 +4,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.position.utils.CurrencyResolver
-import com.beancounter.position.valuation.CashCost
+import com.beancounter.position.marketvalue.CashCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
@@ -82,40 +81,18 @@ class FxBuyBehaviour(
             counterPosition.quantityValues.sold.add(trn.cashAmount)
 
         // Enable cost tracking for FX cash position
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.TRADE,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            BigDecimal.ONE
-        )
-
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.BASE,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            trn.tradeBaseRate
-        )
-
-        cashCost.value(
-            currencyResolver.getMoneyValues(
-                Position.In.PORTFOLIO,
-                trn.cashCurrency!!,
-                trn.portfolio,
-                counterPosition
-            ),
-            counterPosition,
-            trn.cashAmount,
-            trn.tradePortfolioRate
-        )
+        Position.In.entries.forEach { pool ->
+            cashCost.value(
+                currencyResolver.getMoneyValues(
+                    pool,
+                    trn.cashCurrency!!,
+                    trn.portfolio,
+                    counterPosition
+                ),
+                counterPosition,
+                trn.cashAmount,
+                trn.rateFor(pool)
+            )
+        }
     }
 }

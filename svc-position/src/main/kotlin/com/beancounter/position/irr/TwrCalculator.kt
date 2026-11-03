@@ -38,7 +38,9 @@ class TwrCalculator {
         private const val SCALE = 10
         private const val RESULT_SCALE = 6
         private val MC = MathContext(15, RoundingMode.HALF_UP)
-        private val ONE_THOUSAND = BigDecimal("1000")
+
+        /** What every growth-of-1000 series starts at: the value of 1000 invested on the first date. */
+        val GROWTH_BASE: BigDecimal = BigDecimal("1000")
     }
 
     /**
@@ -72,22 +74,22 @@ class TwrCalculator {
      */
     fun calculateSeries(snapshots: List<ValuationSnapshot>): List<BigDecimal> {
         if (snapshots.isEmpty()) return emptyList()
-        if (snapshots.size == 1) return listOf(ONE_THOUSAND)
+        if (snapshots.size == 1) return listOf(GROWTH_BASE)
 
-        val series = mutableListOf(ONE_THOUSAND)
+        val series = mutableListOf(GROWTH_BASE)
         var twrFactor = BigDecimal.ONE
 
         for (i in 1 until snapshots.size) {
             val vStart = snapshots[i - 1].marketValue
             if (vStart.compareTo(BigDecimal.ZERO) == 0) {
-                series.add(ONE_THOUSAND)
+                series.add(GROWTH_BASE)
                 continue
             }
 
             val vEndBeforeCf = snapshots[i].marketValue - snapshots[i].externalCashFlow
             val subPeriodReturn = vEndBeforeCf.divide(vStart, SCALE, RoundingMode.HALF_UP)
             twrFactor = twrFactor.multiply(subPeriodReturn, MC)
-            series.add(ONE_THOUSAND.multiply(twrFactor, MC).setScale(2, RoundingMode.HALF_UP))
+            series.add(GROWTH_BASE.multiply(twrFactor, MC).setScale(2, RoundingMode.HALF_UP))
         }
 
         return series

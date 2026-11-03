@@ -3,7 +3,6 @@ package com.beancounter.position.accumulation
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Trn
-import com.beancounter.position.utils.CurrencyResolver
 import java.math.BigDecimal
 
 /**
@@ -59,8 +58,8 @@ abstract class BaseAccumulationStrategy(
         updateFunction: (MoneyValues, BigDecimal) -> Unit
     ) {
         // Apply updates with pre-calculated rates
-        updateFunction(context.tradeMoneyValues, ONE)
-        updateFunction(context.baseMoneyValues, trn.tradeBaseRate)
-        updateFunction(context.portfolioMoneyValues, trn.tradePortfolioRate)
+        updateFunction(context.tradeMoneyValues, trn.rateFor(Position.In.TRADE))
+        updateFunction(context.baseMoneyValues, trn.rateFor(Position.In.BASE))
+        updateFunction(context.portfolioMoneyValues, trn.rateFor(Position.In.PORTFOLIO))
     }
 }

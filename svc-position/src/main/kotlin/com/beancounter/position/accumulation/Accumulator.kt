@@ -12,7 +12,6 @@ import com.beancounter.common.model.TrnType.FX_BUY
 import com.beancounter.common.model.TrnType.WITHDRAWAL
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.irr.IrrCalculator
-import com.beancounter.position.utils.CurrencyResolver
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 

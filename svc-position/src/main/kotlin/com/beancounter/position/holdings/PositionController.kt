@@ -1,0 +1,603 @@
+package com.beancounter.position.holdings
+
+import com.beancounter.auth.model.AuthConstants
+import com.beancounter.client.FxService
+import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.contracts.AllocationResponse
+import com.beancounter.common.contracts.NetWorthResponse
+import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.contracts.SectorExposureResponse
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.allocation.AllocationService
+import com.beancounter.position.allocation.SectorExposureService
+import com.beancounter.position.networth.NetWorthService
+import com.beancounter.position.valuation.AggregateValuationRequest
+import com.beancounter.position.valuation.Valuation
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.tags.Tag
+import org.springdoc.core.annotations.ParameterObject
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+
+/**
+ * Position management controller for portfolio positions and valuations.
+ * Provides endpoints for retrieving and calculating portfolio positions.
+ *
+ * @author mikeh
+ * @since 2019-02-01
+ */
+@RestController
+@RequestMapping
+@CrossOrigin
+@PreAuthorize(
+    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
+)
+@Tag(
+    name = "Position Management",
+    description = "Operations for retrieving and calculating portfolio positions and valuations"
+)
+class PositionController(
+    private val portfolioServiceClient: PortfolioServiceClient,
+    private val allocationService: AllocationService,
+    private val sectorExposureService: SectorExposureService,
+    private val fxService: FxService,
+    private val brokerPositionService: BrokerPositionService,
+    private val netWorthService: NetWorthService
+) {
+    private lateinit var valuationService: Valuation
+
+    @Autowired
+    fun setValuationService(valuationService: Valuation) {
+        this.valuationService = valuationService
+    }
+
+    @GetMapping(
+        value = ["/id/{id}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get positions by portfolio ID",
+        description = """
+            Retrieves portfolio positions using the portfolio's internal ID.
+            Calculates current positions and valuations as of the specified date.
+
+            Use this to:
+            * Get detailed position information for a portfolio
+            * Calculate portfolio valuations at specific dates
+            * View asset holdings and their current values
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Positions retrieved successfully",
+                content = [
+                    Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        examples = [
+                            ExampleObject(
+                                name = "Position Response",
+                                value = """
+                                {
+                                  "data": [
+                                    {
+                                      "assetId": "AAPL",
+                                      "quantity": 100,
+                                      "marketValue": 15025.00,
+                                      "costBasis": 14000.00,
+                                      "unrealizedGainLoss": 1025.00
+                                    }
+                                  ]
+                                }
+                                """
+                            )
+                        ]
+                    )
+                ]
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Portfolio not found"
+            )
+        ]
+    )
+    fun byId(
+        @Parameter(
+            description = "Portfolio internal identifier",
+            example = "portfolio-123"
+        )
+        @PathVariable id: String,
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Whether to include market values in the response",
+            example = "true"
+        )
+        @RequestParam(
+            value = "value",
+            defaultValue = "true"
+        ) value: Boolean
+    ): PositionResponse {
+        val portfolio = portfolioServiceClient.getPortfolioById(id)
+        return valuationService.getPositions(
+            portfolio,
+            asAt,
+            value
+        )
+    }
+
+    @GetMapping(
+        value = ["/{code}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get positions by portfolio code",
+        description = """
+            Retrieves portfolio positions using the portfolio's code.
+            Calculates current positions and valuations as of the specified date.
+
+            Use this to:
+            * Get position information using portfolio codes
+            * Calculate valuations for specific dates
+            * View portfolio holdings and performance
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Positions retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Portfolio not found"
+            )
+        ]
+    )
+    fun get(
+        @Parameter(
+            description = "Portfolio code",
+            example = "MY_PORTFOLIO"
+        )
+        @PathVariable code: String,
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Whether to include market values in the response",
+            example = "true"
+        )
+        @RequestParam(
+            value = "value",
+            defaultValue = "true"
+        ) value: Boolean
+    ): PositionResponse {
+        val portfolio = portfolioServiceClient.getPortfolioByCode(code)
+        return valuationService.getPositions(
+            portfolio,
+            asAt,
+            value
+        )
+    }
+
+    @PostMapping(
+        value = ["/query"],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Query positions with custom parameters",
+        description = """
+            Queries portfolio positions using custom parameters.
+            This endpoint provides flexible position querying capabilities.
+
+            Use this to:
+            * Query positions with specific criteria
+            * Filter positions by asset or date ranges
+            * Get customized position reports
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Position query executed successfully"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid query parameters"
+            )
+        ]
+    )
+    fun query(
+        @Parameter(
+            description = "Position query parameters"
+        )
+        @RequestBody trnQuery: TrustedTrnQuery
+    ): PositionResponse = valuationService.build(trnQuery)
+
+    @GetMapping(
+        value = ["/broker/{brokerId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get positions for a specific broker",
+        description = """
+            Retrieves positions for all assets held with a specific broker.
+            Aggregates transactions from all portfolios that use the specified broker.
+            Handles stock splits correctly using the position accumulation logic.
+
+            Use this to:
+            * Reconcile broker statements with portfolio holdings
+            * View all positions held at a specific custodian
+            * Audit broker-level asset quantities
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Broker positions retrieved successfully"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Broker not found"
+            )
+        ]
+    )
+    fun brokerPositions(
+        @Parameter(
+            description = "Broker identifier",
+            example = "broker-123"
+        )
+        @PathVariable brokerId: String,
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Whether to include market values in the response",
+            example = "true"
+        )
+        @RequestParam(
+            value = "value",
+            defaultValue = "true"
+        ) value: Boolean
+    ): PositionResponse = brokerPositionService.getPositions(brokerId, asAt, value)
+
+    @GetMapping(
+        value = ["/aggregated"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
+    @Operation(
+        summary = "Get aggregated positions across portfolios",
+        description = """
+            Retrieves aggregated positions across user portfolios.
+            Positions for the same asset from different portfolios are combined.
+
+            Use this to:
+            * View total asset allocation across all or selected portfolios
+            * Calculate overall portfolio exposure
+            * Generate consolidated position reports
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Aggregated positions retrieved successfully"
+            )
+        ]
+    )
+    fun aggregated(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Whether to include market values in the response",
+            example = "true"
+        )
+        @RequestParam(
+            value = "value",
+            defaultValue = "true"
+        ) value: Boolean,
+        @ParameterObject selection: PortfolioSelection,
+        @Parameter(
+            description =
+                "Target currency for PORTFOLIO-view values (e.g., SGD, NZD). " +
+                    "If not specified, values are returned in the first selected portfolio's currency.",
+            example = "SGD"
+        )
+        @RequestParam(
+            value = "currency",
+            required = false
+        ) targetCurrency: String?,
+        @Parameter(
+            description =
+                "Value at live (delayed) quotes while each market is in session. Display only: " +
+                    "never published as market value.",
+            example = "true"
+        )
+        @RequestParam(
+            value = "live",
+            defaultValue = "false"
+        ) live: Boolean = false
+    ): PositionResponse =
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(selection.resolve(portfolioServiceClient), asAt, value, targetCurrency, live)
+        )
+
+    @GetMapping(
+        value = ["/net-worth"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @PreAuthorize(AuthConstants.USER_WIDGET_OR_SYSTEM)
+    @Operation(
+        summary = "Get the net worth headline across portfolios",
+        description = """
+            Rolls selected portfolios up into a single Net Worth figure in the
+            requested currency: live aggregated holdings plus standalone
+            composite (CPF / pension) balances that have no parent position,
+            with a liquidity-group breakdown and per-portfolio rows.
+
+            Healthcare reserve (CPF MA style balances) is reported as an
+            informational subset and is NOT added to totalValue.
+
+            Use this instead of re-deriving the headline client-side.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Net worth calculated successfully"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Currency missing or an FX rate could not be resolved"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "None of the requested portfolio ids are visible to the caller"
+            )
+        ]
+    )
+    fun netWorth(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @ParameterObject selection: PortfolioSelection,
+        @Parameter(
+            description = "Target display currency for every value in the response. Required.",
+            example = "SGD"
+        )
+        @RequestParam(
+            value = "currency",
+            required = false
+        ) currency: String?,
+        @Parameter(
+            description =
+                "Value at live (delayed) quotes while each market is in session. Display only: " +
+                    "never published as market value.",
+            example = "true"
+        )
+        @RequestParam(
+            value = "live",
+            defaultValue = "false"
+        ) live: Boolean = false
+    ): NetWorthResponse {
+        if (currency.isNullOrBlank()) {
+            throw BusinessException("currency is required")
+        }
+        val portfolios = selection.resolve(portfolioServiceClient)
+        // A headline figure must not quietly read as zero when every requested id was skipped.
+        if (selection.namesIds() && portfolios.isEmpty()) {
+            throw NotFoundException("None of the requested portfolios are visible")
+        }
+        return NetWorthResponse(
+            data = netWorthService.calculate(portfolios, asAt, currency, live)
+        )
+    }
+
+    @GetMapping(
+        value = ["/allocation"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get asset allocation across portfolios",
+        description = """
+            Calculates asset allocation breakdown by category across selected portfolios.
+            Groups positions by asset category (Cash, Equity, ETF, Property, etc.)
+            and returns allocation percentages for retirement planning.
+
+            Use this to:
+            * Get current asset allocation for retirement planning
+            * Determine portfolio balance across asset classes
+            * Pre-populate allocation assumptions based on actual holdings
+
+            Optional currency parameter converts totalValue to the target currency
+            (useful when plan expenses are in a different currency than portfolio holdings).
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Allocation calculated successfully"
+            )
+        ]
+    )
+    fun allocation(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Comma-separated portfolio IDs to include. If empty, all portfolios are included.",
+            example = "portfolio-id-1,portfolio-id-2"
+        )
+        @RequestParam(
+            value = "ids",
+            required = false
+        ) ids: String?,
+        @Parameter(
+            description =
+                "Target currency for totalValue conversion (e.g., NZD, USD). " +
+                    "If not specified, returns values in portfolio currency.",
+            example = "NZD"
+        )
+        @RequestParam(
+            value = "currency",
+            required = false
+        ) targetCurrency: String?
+    ): AllocationResponse {
+        // When `ids` is supplied, each portfolio is fetched by id through svc-data
+        // rather than filtered from the caller's own `portfolios` list. M2M callers
+        // (svc-retire projecting a shared INDEPENDENCE_PLAN) have an empty list and
+        // read the plan owner's portfolios; svc-data's `canView()` decides visibility.
+        val selectedPortfolios = PortfolioSelection(ids = ids).resolve(portfolioServiceClient)
+
+        if (selectedPortfolios.isEmpty()) {
+            return AllocationResponse()
+        }
+
+        val positions =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(selectedPortfolios, asAt, value = true, targetCurrencyCode = targetCurrency)
+            )
+
+        val allocation = allocationService.calculateAllocation(positions.data)
+
+        // If target currency is specified and differs from the allocation
+        // currency, convert. Normally the aggregator already produced the
+        // bucket in targetCurrency (eliminating the FX round-trip drift on
+        // PRIVATE positions), so this path is only hit when targetCurrency
+        // is supplied but couldn't be honoured by the aggregator (e.g.
+        // empty currency code or a portfolio with no positions).
+        return AllocationResponse(
+            data =
+                if (!targetCurrency.isNullOrBlank() &&
+                    !targetCurrency.equals(allocation.currency, ignoreCase = true)
+                ) {
+                    allocationService.convertCurrency(allocation, targetCurrency, fxService, asAt)
+                } else {
+                    allocation
+                }
+        )
+    }
+
+    @GetMapping(
+        value = ["/sector-exposure"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Get sector exposure across portfolios",
+        description = """
+            Calculates sector exposure breakdown across selected portfolios.
+            - ETFs: Uses weighted sector allocations from stored exposures
+            - Equities: Uses 100% allocation to classified sector
+            - Other: Groups by report category as "Unclassified"
+
+            Use this to:
+            * View sector allocation for retirement planning
+            * Determine portfolio concentration by sector
+            * Analyze sector diversification
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Sector exposure calculated successfully"
+            )
+        ]
+    )
+    fun sectorExposure(
+        @Parameter(
+            description = "Valuation date (YYYY-MM-DD format, defaults to today)",
+            example = "2024-01-15"
+        )
+        @RequestParam(
+            value = "asAt",
+            required = false
+        ) asAt: String = DateUtils.TODAY,
+        @Parameter(
+            description = "Comma-separated portfolio IDs to include. If empty, all portfolios are included.",
+            example = "portfolio-id-1,portfolio-id-2"
+        )
+        @RequestParam(
+            value = "ids",
+            required = false
+        ) ids: String?
+    ): SectorExposureResponse {
+        val allPortfolios = portfolioServiceClient.portfolios.data
+        val selectedPortfolios =
+            if (ids.isNullOrBlank()) {
+                allPortfolios
+            } else {
+                val idSet = ids.split(",").map { it.trim() }.toSet()
+                allPortfolios.filter { it.id in idSet }
+            }
+
+        if (selectedPortfolios.isEmpty()) {
+            return SectorExposureResponse()
+        }
+
+        val positions =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(selectedPortfolios, asAt, value = true)
+            )
+
+        return SectorExposureResponse(
+            data = sectorExposureService.calculateSectorExposure(positions.data)
+        )
+    }
+}

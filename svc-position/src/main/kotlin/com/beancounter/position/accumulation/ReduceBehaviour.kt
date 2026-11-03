@@ -1,8 +1,7 @@
 package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.TrnType
-import com.beancounter.position.utils.CurrencyResolver
-import com.beancounter.position.valuation.AverageCost
+import com.beancounter.position.marketvalue.AverageCost
 import org.springframework.stereotype.Service
 
 /**

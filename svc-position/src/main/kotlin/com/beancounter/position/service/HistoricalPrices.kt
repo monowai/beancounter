@@ -85,19 +85,14 @@ class PricesOnDate internal constructor(
     fun marketValue(
         positions: Positions,
         currency: Currency
-    ): BigDecimal {
-        var totalMv = BigDecimal.ZERO
-        for (pos in positions.positions.values) {
-            if (pos.quantityValues.getTotal().signum() == 0 || boundary.isExcluded(pos.asset)) continue
-            val unitValue = unitValue(pos, currency) ?: continue
-            val positionMv = pos.quantityValues.getTotal().multiply(unitValue)
-            totalMv =
-                totalMv.add(
-                    if (cashUtils.isCash(pos.asset)) positionMv else positionMv.setScale(2, RoundingMode.HALF_UP)
-                )
-        }
-        return totalMv
-    }
+    ): BigDecimal =
+        positions.positions.values
+            .filter { it.quantityValues.getTotal().signum() != 0 && !boundary.isExcluded(it.asset) }
+            .mapNotNull { pos -> unitValue(pos, currency)?.let { pos to it } }
+            .fold(BigDecimal.ZERO) { total, (pos, unitValue) ->
+                val positionMv = pos.quantityValues.getTotal().multiply(unitValue)
+                total.add(if (cashUtils.isCash(pos.asset)) positionMv else positionMv.setScale(2, RoundingMode.HALF_UP))
+            }
 
     /**
      * Value of one unit of [pos] in [currency]: price * fx(trade -> currency).

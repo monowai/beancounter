@@ -123,21 +123,21 @@ class RetirePlansClient(
 
     /** `GET /plans` — all retirement plans owned by the current user. */
     fun listPlans(): Map<String, Any> =
-        get(MAP_TYPE, "Failed to retrieve retirement plans") { it.path("/plans").build() }
+        get(JSON_MAP, "Failed to retrieve retirement plans") { it.path("/plans").build() }
 
     /** `GET /plans/{planId}` — a single retirement plan by id. */
     fun getPlan(planId: String): Map<String, Any> =
-        get(MAP_TYPE, "Failed to retrieve retirement plan $planId") { it.path("/plans/{planId}").build(planId) }
+        get(JSON_MAP, "Failed to retrieve retirement plan $planId") { it.path("/plans/{planId}").build(planId) }
 
     /** `GET /plans/{planId}/all-expenses` — plan with working + retirement expenses split. */
     fun getPlanWithExpenses(planId: String): Map<String, Any> =
-        get(MAP_TYPE, "Failed to retrieve expenses for plan $planId") {
+        get(JSON_MAP, "Failed to retrieve expenses for plan $planId") {
             it.path("/plans/{planId}/all-expenses").build(planId)
         }
 
     /** `GET /plans/{planId}/contributions` — pension/insurance contributions for a plan. */
     fun getContributions(planId: String): Map<String, Any> =
-        get(MAP_TYPE, "Failed to retrieve contributions for plan $planId") {
+        get(JSON_MAP, "Failed to retrieve contributions for plan $planId") {
             it.path("/plans/{planId}/contributions").build(planId)
         }
 
@@ -150,7 +150,7 @@ class RetirePlansClient(
         planId: String,
         displayCurrency: String? = null
     ): Map<String, Any> =
-        get(MAP_TYPE, "Failed to retrieve financials for plan $planId") { builder ->
+        get(JSON_MAP, "Failed to retrieve financials for plan $planId") { builder ->
             builder
                 .path("/projection/plans/{planId}/financials")
                 .apply {
@@ -175,7 +175,6 @@ class RetirePlansClient(
     companion object {
         private val log = LoggerFactory.getLogger(RetirePlansClient::class.java)
         private val objectMapper = BcJson.objectMapper
-        private val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
         private val MAP_ANY_TYPE = object : ParameterizedTypeReference<Map<String, Any?>>() {}
 
         // Wealth definition and ownership — nothing the model reasons about.

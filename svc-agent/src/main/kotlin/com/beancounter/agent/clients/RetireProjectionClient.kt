@@ -4,7 +4,6 @@ import com.beancounter.auth.TokenService
 import com.beancounter.common.exception.BusinessException
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -164,10 +163,6 @@ class RetireProjectionClient(
             .contentType(MediaType.APPLICATION_JSON)
             .body(body)
             .retrieve()
-            .body(MAP_TYPE)
+            .body(JSON_MAP)
             ?: throw BusinessException(failure)
-
-    private companion object {
-        val MAP_TYPE = object : ParameterizedTypeReference<Map<String, Any>>() {}
-    }
 }

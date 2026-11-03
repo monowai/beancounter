@@ -92,7 +92,7 @@ class StreamTally {
         // (e.g. a provider/Spring AI version bump changing the wire value)
         // and gets logged rather than silently dropped.
         private val KNOWN_FINAL_FINISH_REASONS =
-            setOf("stop", "end_turn", "stop_sequence", "max_tokens", "length", "pause_turn")
+            setOf("stop", "end_turn", "stop_sequence", "pause_turn") + TurnFailure.TRUNCATION_FINISH_REASONS
 
         /**
          * SSE events for one `ChatResponse` chunk, in emission order.
@@ -135,14 +135,14 @@ class StreamTally {
             finishReason: String?
         ): List<ServerSentEvent<String>> =
             buildList {
-                if (text.isNotEmpty()) add(ServerSentEvent.builder(text).event("token").build())
+                if (text.isNotEmpty()) add(ServerSentEvent.builder(text).event(SseEvent.TOKEN).build())
                 val reason = finishReason?.takeIf { it.isNotBlank() }?.lowercase()
                 when {
                     reason == null -> {
                         Unit
                     }
                     reason in TOOL_TURN_FINISH_REASONS -> {
-                        add(ServerSentEvent.builder("").event("reset").build())
+                        add(ServerSentEvent.builder("").event(SseEvent.RESET).build())
                     }
                     reason !in KNOWN_FINAL_FINISH_REASONS -> {
                         log.warn(

@@ -46,7 +46,7 @@ object TurnFailure {
     // Finish reasons that mean "stopped because it ran out of room", as
     // opposed to "finished what it had to say". DeepSeek/OpenAI say
     // "length"; Anthropic says "max_tokens".
-    private val TRUNCATION_FINISH_REASONS = setOf("length", "max_tokens")
+    val TRUNCATION_FINISH_REASONS = setOf("length", "max_tokens")
 
     private const val BAD_REQUEST = 400
     private const val FORBIDDEN = 403

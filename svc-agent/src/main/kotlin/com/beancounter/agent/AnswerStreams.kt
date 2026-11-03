@@ -119,7 +119,7 @@ class AnswerStreams(
                 )
             }
         return Flux
-            .just(ServerSentEvent.builder(content).event("token").build())
+            .just(ServerSentEvent.builder(content).event(SseEvent.TOKEN).build())
             .concatWith(turns.record { recorder.answered(content) }.thenMany(Flux.empty()))
             .concatWith(done)
     }
@@ -236,9 +236,9 @@ class AnswerStreams(
                     if (cached) put("cached", true)
                 }
             )
-        return ServerSentEvent.builder(payload).event("done").build()
+        return ServerSentEvent.builder(payload).event(SseEvent.DONE).build()
     }
 
     fun errorEvent(message: String): Flux<ServerSentEvent<String>> =
-        Flux.just(ServerSentEvent.builder<String>(message).event("error").build())
+        Flux.just(ServerSentEvent.builder<String>(message).event(SseEvent.ERROR).build())
 }

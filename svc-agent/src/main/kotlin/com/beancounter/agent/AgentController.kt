@@ -27,7 +27,6 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.UserMessage
-import org.springframework.ai.chat.metadata.Usage
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -51,8 +50,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Single natural-language entry point for the Beancounter agent.
@@ -121,25 +118,6 @@ class AgentController(
         // identify the request in kauri's logs without shipping the whole
         // question (which can carry page context the user typed).
         const val QUERY_LOG_CHARS = 120
-
-        // Finish reasons that mark a turn as narration-before-tool-calls,
-        // lower-cased for case-insensitive matching in sseEventsFor. The
-        // production source is ToolTurnBoundaryAdvisor's synthetic element
-        // (via the shared BOUNDARY_FINISH_REASON constant); the provider wire
-        // values ("tool_calls" DeepSeek/OpenAI, "tool_use" from Anthropic's
-        // StopReason.toString()) stay listed in case a Spring AI change ever
-        // lets a real one through. Do NOT add "pause_turn" or any other
-        // Anthropic stop reason here.
-        val TOOL_TURN_FINISH_REASONS = setOf(ToolTurnBoundaryAdvisor.BOUNDARY_FINISH_REASON, "tool_use")
-
-        // Every other finish reason a turn can legitimately end with — the
-        // final answer. DeepSeek/OpenAI: "stop", "length". Anthropic:
-        // "end_turn", "stop_sequence", "max_tokens", "pause_turn". Anything
-        // outside both this set and TOOL_TURN_FINISH_REASONS is unrecognized
-        // (e.g. a provider/Spring AI version bump changing the wire value)
-        // and gets logged rather than silently dropped.
-        val KNOWN_FINAL_FINISH_REASONS =
-            setOf("stop", "end_turn", "stop_sequence", "max_tokens", "length", "pause_turn")
     }
 
     /**
@@ -969,16 +947,14 @@ class AgentController(
         val done =
             Flux.defer {
                 llmMetrics.cached(LlmMetrics.Mode.STREAM, key.model, requestSpan)
-                val payload =
-                    objectMapper.writeValueAsString(
-                        buildMap {
-                            put("chars", content.length.toLong())
-                            put("elapsed_ms", System.currentTimeMillis() - startMs)
-                            if (anthropicActive) put("model", key.model)
-                            put("cached", true)
-                        }
+                Flux.just(
+                    donePayload(
+                        content.length.toLong(),
+                        System.currentTimeMillis() - startMs,
+                        key.model.takeIf { anthropicActive },
+                        cached = true
                     )
-                Flux.just(ServerSentEvent.builder(payload).event("done").build())
+                )
             }
         return Flux
             .just(ServerSentEvent.builder(content).event("token").build())
@@ -1019,112 +995,64 @@ class AgentController(
         request: AgentQuery,
         recorder: TurnRecorder
     ): Flux<ServerSentEvent<String>> {
-        val safeQuery = HtmlUtils.htmlEscape(request.query)
         val tools = toolSelector.selectTools(request.context)
         val modelId = chatModelSelector.selectFor(request.context, request.deepThink)
-        val startMs = System.currentTimeMillis()
-        // Pin the OTel span at request-time so the doneEvent lambda — which
-        // runs on a Reactor boundedElastic thread — writes telemetry to the
-        // request's http.server span rather than a noop fallback.
-        val requestSpan =
-            io.opentelemetry.api.trace.Span
-                .current()
-
-        val totalChars = AtomicLong(0)
-        // The *answer* — narration before a tool turn doesn't count, since the
-        // reader is left with nothing when the turn that follows it never
-        // produces text. Cleared at every tool-turn boundary, which is why this
-        // can't stand in for `totalChars` (that one guards connect-retry and
-        // has to count every char ever streamed). It is also what a
-        // conversation records as the assistant's reply.
-        val answer = StringBuilder()
-        // Last non-blank finish reason seen, for classifying an answerless
-        // stream: `length`/`max_tokens` mean truncation, anything else means
-        // the model simply said nothing.
-        val lastFinishReason = AtomicReference<String?>(null)
-        // Spring AI's chatResponse() Flux surfaces ChatResponse per chunk; the
-        // final emission carries usage tokens. Capture it so doneEvent can
-        // ship token measurements to Sentry alongside char count + elapsed.
-        val capturedUsage = AtomicReference<Usage?>(null)
-
-        val streamSpec = buildStreamSpec(request, tools, modelId)
+        val call =
+            ModelCall(
+                modelId = modelId,
+                reportedModelId = modelId.takeIf { anthropicActive },
+                tools = tools.map { it.javaClass.simpleName },
+                query = HtmlUtils.htmlEscape(request.query)
+            )
+        val tally = StreamTally()
         val tokenEvents =
-            streamSpec
+            buildStreamSpec(request, tools, modelId)
                 .chatResponse()
-                .doOnNext { resp -> capturedUsage.set(resp.metadata.usage) }
-                // Spring AI emits trailing ChatResponse chunks with no Generation
-                // (metadata-only — token usage, finishReason). resp.result is
-                // null-safe throughout: sseEventsFor tolerates empty text.
-                .concatMap { resp ->
-                    val text =
-                        resp.result
-                            ?.output
-                            ?.text
-                            .orEmpty()
-                    val finishReason = resp.result?.metadata?.finishReason
-                    if (text.isNotEmpty()) {
-                        totalChars.addAndGet(text.length.toLong())
-                        answer.append(text)
-                    }
-                    val reason = finishReason?.takeIf { it.isNotBlank() }?.lowercase()
-                    if (reason != null) {
-                        lastFinishReason.set(reason)
-                        // Whatever was said before the tool call was narration,
-                        // not the answer — the answer is what comes after.
-                        if (reason in TOOL_TURN_FINISH_REASONS) answer.setLength(0)
-                    }
-                    Flux.fromIterable(sseEventsFor(text, finishReason))
-                }
-        val doneEvent =
-            Flux.defer {
-                doneEvent(
-                    modelId = modelId,
-                    tools = tools,
-                    totalChars = totalChars.get(),
-                    usage = capturedUsage.get(),
-                    startMs = startMs,
-                    safeQuery = safeQuery,
-                    requestSpan = requestSpan
-                )
-            }
+                .concatMap { resp -> Flux.fromIterable(tally.accept(resp)) }
         // Transient connectivity blips (e.g. a sub-second DNS failure resolving
         // api.deepseek.com) surface as WebClientRequestException at connect time
         // — before any token is emitted. Retry those rather than failing the
-        // user's request. The `totalChars == 0` guard makes retries safe: once
+        // user's request. The `chars == 0` guard makes retries safe: once
         // content has streamed to the client, re-running would duplicate it, so
         // a later drop is allowed to propagate to the error envelope.
         val retriedTokens =
             tokenEvents.retryWhen(
                 Retry
                     .backoff(STREAM_RETRY_ATTEMPTS, STREAM_RETRY_MIN_BACKOFF)
-                    .filter { e -> totalChars.get() == 0L && TurnFailure.isTransientConnectivity(e) }
+                    .filter { e -> tally.chars == 0L && TurnFailure.isTransientConnectivity(e) }
                     // Surface the original cause, not Reactor's RetryExhausted
-                    // wrapper, so classifyError still maps it accurately.
+                    // wrapper, so classification still maps it accurately.
                     .onRetryExhaustedThrow { _, signal -> signal.failure() }
             )
-        // A stream that ends without an answer is a failure the client can't
-        // otherwise see: HTTP was 200, no exception was thrown, and the `done`
-        // envelope carries metadata only — so the UI would render an empty
-        // assistant bubble and say nothing about why. Classified and emitted
-        // as a normal error event, using the same codes both transports share.
-        val emptyAnswerEvent =
-            Flux.defer {
-                if (answer.isNotEmpty()) {
-                    val content = answer.toString()
-                    record { recorder.answered(content) }.thenMany(Flux.empty())
-                } else {
-                    val code = TurnFailure.emptyAnswerCode(lastFinishReason.get())
-                    log.warn(
-                        "Agent stream produced no answer: code={}, finish_reason={}, model={}, query=\"{}\"",
-                        code,
-                        lastFinishReason.get(),
-                        modelId,
-                        safeQuery.take(QUERY_LOG_CHARS)
-                    )
-                    record { recorder.failed(code) }.thenMany(errorEvent(code))
-                }
-            }
-        return retriedTokens.concatWith(emptyAnswerEvent).concatWith(doneEvent)
+        return retriedTokens
+            .concatWith(Flux.defer { answerOrFailure(call, tally, recorder) })
+            .concatWith(Flux.defer { doneEvent(call, tally) })
+    }
+
+    /**
+     * The end of a streamed turn: its answer recorded, or — when it ended
+     * without one — a failure the client can't otherwise see: HTTP was 200,
+     * no exception was thrown, and the `done` envelope carries metadata only,
+     * so the UI would render an empty assistant bubble and say nothing about
+     * why. Classified and emitted as a normal error event, using the same
+     * codes both transports share.
+     */
+    private fun answerOrFailure(
+        call: ModelCall,
+        tally: StreamTally,
+        recorder: TurnRecorder
+    ): Flux<ServerSentEvent<String>> {
+        val answer = tally.answer
+        if (answer.isNotEmpty()) return record { recorder.answered(answer) }.thenMany(Flux.empty())
+        val code = TurnFailure.emptyAnswerCode(tally.finishReason)
+        log.warn(
+            "Agent stream produced no answer: code={}, finish_reason={}, model={}, query=\"{}\"",
+            code,
+            tally.finishReason,
+            call.modelId,
+            call.query.take(QUERY_LOG_CHARS)
+        )
+        return record { recorder.failed(code) }.thenMany(errorEvent(code))
     }
 
     /**
@@ -1164,15 +1092,11 @@ class AgentController(
     }
 
     private fun doneEvent(
-        modelId: String,
-        tools: Array<Any>,
-        totalChars: Long,
-        usage: Usage?,
-        startMs: Long,
-        safeQuery: String,
-        requestSpan: io.opentelemetry.api.trace.Span
+        call: ModelCall,
+        tally: StreamTally
     ): Flux<ServerSentEvent<String>> {
-        val elapsedMs = System.currentTimeMillis() - startMs
+        val elapsedMs = call.elapsedMs
+        val usage = tally.usage
         // Token telemetry as OTel attributes on the captured request span
         // (same span the http.server transaction owns). Same shape as the
         // non-streaming path so dashboards can mix call+stream traffic.
@@ -1180,110 +1104,57 @@ class AgentController(
         // was applied — on ollama / openai the configured ChatClient picks
         // the model and our selectedModelId would mislead the metric.
         llmMetrics.capture(
-            modelId = modelId.takeIf { anthropicActive },
+            modelId = call.reportedModelId,
             usage = usage,
             elapsedMs = elapsedMs,
-            toolCount = tools.size,
+            toolCount = call.tools.size,
             mode = LlmMetrics.Mode.STREAM,
-            span = requestSpan
+            span = call.span
         )
         if (log.isDebugEnabled) {
             log.debug(
                 "LLM stream: selected_model={}, response_chars={}, tools={} {}, " +
                     "prompt_tokens={}, completion_tokens={}, total_tokens={}, " +
                     "elapsed_ms={}, query=\"{}\"",
-                modelId,
-                totalChars,
-                tools.size,
-                tools.map { it.javaClass.simpleName },
+                call.modelId,
+                tally.chars,
+                call.tools.size,
+                call.tools,
                 usage?.promptTokens ?: 0,
                 usage?.completionTokens ?: 0,
                 usage?.totalTokens ?: 0,
                 elapsedMs,
-                safeQuery.take(QUERY_LOG_CHARS)
+                call.query.take(QUERY_LOG_CHARS)
             )
         }
         // Build via Jackson rather than string interpolation so a future
         // modelId / metric value containing a quote, backslash or newline can
-        // never produce malformed SSE.
-        //
-        // `model` is only meaningful when the per-call Anthropic override was
-        // applied — on `ollama` / `openai` profiles the underlying ChatClient
-        // picks the model and `chatModelSelector.selectFor(...)` doesn't
-        // reflect what actually answered the request. Omit the field rather
-        // than report a misleading id.
+        // never produce malformed SSE. `model` is only present where the
+        // per-call override names what actually answered.
+        return Flux.just(donePayload(tally.chars, elapsedMs, call.reportedModelId))
+    }
+
+    /** The `done` event closing a streamed turn: its size, how long it took, and what answered. */
+    private fun donePayload(
+        chars: Long,
+        elapsedMs: Long,
+        model: String?,
+        cached: Boolean = false
+    ): ServerSentEvent<String> {
         val payload =
             objectMapper.writeValueAsString(
                 buildMap {
-                    put("chars", totalChars)
+                    put("chars", chars)
                     put("elapsed_ms", elapsedMs)
-                    if (anthropicActive) put("model", modelId)
+                    model?.let { put("model", it) }
+                    if (cached) put("cached", true)
                 }
             )
-        return Flux.just(ServerSentEvent.builder(payload).event("done").build())
+        return ServerSentEvent.builder(payload).event("done").build()
     }
 
     private fun errorEvent(message: String): Flux<ServerSentEvent<String>> =
         Flux.just(ServerSentEvent.builder<String>(message).event("error").build())
-
-    /**
-     * SSE events for one `ChatResponse` chunk, in emission order.
-     *
-     * A generation turn that ends with a tool-calling finish reason is
-     * narration the model produced immediately before calling tools (e.g.
-     * "I'll gather the data needed for this briefing…"). That text already
-     * streamed to the client as `token` events, so a `reset` event is
-     * appended telling the frontend to discard its accumulated buffer — the
-     * real answer starts fresh on the next turn. A turn that ends with `STOP`
-     * is the final answer and streams through untouched.
-     *
-     * Matched case-insensitively against [TOOL_TURN_FINISH_REASONS]: DeepSeek
-     * / OpenAI-style providers emit `tool_calls`; Anthropic — svc-agent's
-     * default provider (`model.chat: anthropic`) — sets `finishReason` from
-     * `StopReason.toString()`, whose wire value for a tool-calling turn is
-     * `tool_use`, not `tool_calls`. Both must be recognised or the preamble
-     * bug survives on the default routing path. In production this value
-     * normally arrives via [ToolTurnBoundaryAdvisor]'s synthetic element, not
-     * the provider's own chunk: Spring AI's `ToolCallingAdvisor` filters every
-     * tool-call-carrying `ChatResponse` out of the stream before it reaches
-     * this controller, so the real element never gets here to be read.
-     *
-     * [text] may be empty (Spring AI's trailing metadata-only chunk carries
-     * the finish reason with no text) — in that case only the `reset` event
-     * (if any) is emitted.
-     *
-     * A [finishReason] outside both [TOOL_TURN_FINISH_REASONS] and
-     * [KNOWN_FINAL_FINISH_REASONS] is logged rather than silently ignored —
-     * a provider or Spring AI version bump changing the wire value would
-     * otherwise make the reset stop firing with no signal. Behavior is
-     * unchanged either way: no reset for an unrecognized reason. A blank
-     * (empty-string) reason is treated as absent, not unrecognized — DeepSeek
-     * maps an absent `finish_reason` to `""` on EVERY streamed chunk, so
-     * without this the warn would fire dozens of times per second rather
-     * than only for a genuinely unexpected value.
-     */
-    internal fun sseEventsFor(
-        text: String,
-        finishReason: String?
-    ): List<ServerSentEvent<String>> =
-        buildList {
-            if (text.isNotEmpty()) add(ServerSentEvent.builder(text).event("token").build())
-            val reason = finishReason?.takeIf { it.isNotBlank() }?.lowercase()
-            when {
-                reason == null -> {
-                    Unit
-                }
-                reason in TOOL_TURN_FINISH_REASONS -> {
-                    add(ServerSentEvent.builder("").event("reset").build())
-                }
-                reason !in KNOWN_FINAL_FINISH_REASONS -> {
-                    log.warn(
-                        "Unrecognized finish reason '{}' — reset event not emitted; check provider wire values",
-                        finishReason
-                    )
-                }
-            }
-        }
 
     private fun logLlmInteraction(
         userMessage: String,

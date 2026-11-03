@@ -149,4 +149,60 @@ class FxPairRateTest {
         assertThat(history.data.single().date).isEqualTo(friday)
         assertThat(history.data.single().rate).isEqualByComparingTo("0.625")
     }
+
+    @Test
+    fun `should skip a zero stored rate in direct history`() {
+        val monday = friday.plusDays(3)
+        whenever(fxRateRepository.findHistoricalRatesFromBase(eq(USD), eq(NZD), eq(friday), any())).thenReturn(
+            listOf(
+                FxRate(from = USD, to = NZD, rate = BigDecimal.ZERO, date = friday),
+                FxRate(from = USD, to = NZD, rate = BigDecimal("1.6"), date = monday)
+            )
+        )
+
+        val history = fxRateService.getHistoricalRates("USD", "NZD", friday)
+
+        assertThat(history.data.map { it.date }).containsExactly(monday)
+    }
+
+    @Test
+    fun `should skip a zero stored rate instead of failing an inverted history`() {
+        val monday = friday.plusDays(3)
+        whenever(fxRateRepository.findHistoricalRatesFromBase(eq(USD), eq(NZD), eq(friday), any())).thenReturn(
+            listOf(
+                FxRate(from = USD, to = NZD, rate = BigDecimal.ZERO, date = friday),
+                FxRate(from = USD, to = NZD, rate = BigDecimal("1.6"), date = monday)
+            )
+        )
+
+        val history = fxRateService.getHistoricalRates("NZD", "USD", friday)
+
+        assertThat(history.data.map { it.date }).containsExactly(monday)
+        assertThat(history.data.single().rate).isEqualByComparingTo("0.625")
+    }
+
+    @Test
+    fun `should skip a date where either leg of a cross rate is zero`() {
+        val monday = friday.plusDays(3)
+        val tuesday = friday.plusDays(4)
+        whenever(fxRateRepository.findHistoricalRatesFromBase(eq(USD), eq(NZD), eq(friday), any())).thenReturn(
+            listOf(
+                FxRate(from = USD, to = NZD, rate = BigDecimal.ZERO, date = friday),
+                FxRate(from = USD, to = NZD, rate = BigDecimal("1.6"), date = monday),
+                FxRate(from = USD, to = NZD, rate = BigDecimal("1.6"), date = tuesday)
+            )
+        )
+        whenever(fxRateRepository.findHistoricalRatesFromBase(eq(USD), eq(SGD), eq(friday), any())).thenReturn(
+            listOf(
+                FxRate(from = USD, to = SGD, rate = BigDecimal("1.3"), date = friday),
+                FxRate(from = USD, to = SGD, rate = BigDecimal.ZERO, date = monday),
+                FxRate(from = USD, to = SGD, rate = BigDecimal("1.2"), date = tuesday)
+            )
+        )
+
+        val history = fxRateService.getHistoricalRates("NZD", "SGD", friday)
+
+        assertThat(history.data.map { it.date }).containsExactly(tuesday)
+        assertThat(history.data.single().rate).isEqualByComparingTo("0.75")
+    }
 }

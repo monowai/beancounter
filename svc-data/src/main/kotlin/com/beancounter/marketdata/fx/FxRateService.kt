@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.SystemException
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.DateUtils
@@ -315,7 +316,7 @@ class FxRateService(
                 // USD -> X: Direct lookup
                 fromCurrency.code == baseCurrency.code -> {
                     val rates =
-                        fxRateRepository.findHistoricalRatesFromBase(
+                        historicalRatesFromBase(
                             baseCurrency,
                             toCurrency,
                             startDate,
@@ -326,7 +327,7 @@ class FxRateService(
                 // X -> USD: Invert USD -> X
                 toCurrency.code == baseCurrency.code -> {
                     val rates =
-                        fxRateRepository.findHistoricalRatesFromBase(
+                        historicalRatesFromBase(
                             baseCurrency,
                             fromCurrency,
                             startDate,
@@ -342,14 +343,14 @@ class FxRateService(
                 // X -> Y: Triangulate via USD (calculate USD->Y / USD->X)
                 else -> {
                     val fromRates =
-                        fxRateRepository.findHistoricalRatesFromBase(
+                        historicalRatesFromBase(
                             baseCurrency,
                             fromCurrency,
                             startDate,
                             endDate
                         )
                     val toRates =
-                        fxRateRepository.findHistoricalRatesFromBase(
+                        historicalRatesFromBase(
                             baseCurrency,
                             toCurrency,
                             startDate,
@@ -381,6 +382,26 @@ class FxRateService(
             endDate = endDate,
             data = data
         )
+    }
+
+    /**
+     * Stored rates from the base currency, without zero rates. A zero rate is bad data: it
+     * cannot be inverted or crossed, and one bad row must not fail a whole history.
+     */
+    private fun historicalRatesFromBase(
+        base: Currency,
+        to: Currency,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<FxRate> {
+        val (usable, zero) =
+            fxRateRepository
+                .findHistoricalRatesFromBase(base, to, startDate, endDate)
+                .partition { it.rate.signum() != 0 }
+        if (zero.isNotEmpty()) {
+            log.warn("Skipped {} zero {}/{} rate(s): {}", zero.size, base.code, to.code, zero.map { it.date })
+        }
+        return usable
     }
 
     fun getDate(date: String) =

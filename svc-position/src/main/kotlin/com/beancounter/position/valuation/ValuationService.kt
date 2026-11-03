@@ -400,18 +400,13 @@ class ValuationService
             perPortfolio: List<Positions>,
             valuationDate: String
         ): Map<IsoCurrencyPair, FxRate> {
-            val pairs = mutableSetOf<IsoCurrencyPair>()
-            perPortfolio.forEach { positions ->
-                positions.positions.values.forEach { position ->
-                    position.moneyValues.forEach { (bucket, mv) ->
-                        IsoCurrencyPair
-                            .toPair(
-                                mv.currency,
-                                targetBucketCurrency(bucket, mv.currency, contextPortfolio)
-                            )?.let { pairs.add(it) }
-                    }
-                }
-            }
+            val pairs =
+                perPortfolio
+                    .flatMap { it.positions.values }
+                    .flatMap { it.moneyValues.entries }
+                    .mapNotNull { (bucket, mv) ->
+                        IsoCurrencyPair.toPair(mv.currency, targetBucketCurrency(bucket, mv.currency, contextPortfolio))
+                    }.toSet()
             if (pairs.isEmpty()) return emptyMap()
 
             val fxRequest = FxRequest(rateDate = valuationDate)

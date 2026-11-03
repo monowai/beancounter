@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service
  * Factory for obtain event behaviour providers.
  */
 @Service
-class EventBehaviourFactory {
-    private val alphaEventAdapter = AlphaEventAdapter(TaxService())
-
+class EventBehaviourFactory(
+    private val alphaEventAdapter: AlphaEventAdapter
+) {
     /** The only adapter today; corporate events are all sourced from AlphaVantage. */
     fun getAdapter(): Event = alphaEventAdapter
 }

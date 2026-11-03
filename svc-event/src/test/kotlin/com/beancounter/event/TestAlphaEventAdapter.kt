@@ -26,6 +26,9 @@ import java.math.BigDecimal
 class TestAlphaEventAdapter {
     @Autowired
     private lateinit var alphaEventAdapter: AlphaEventAdapter
+
+    @Autowired
+    private lateinit var behaviourFactory: EventBehaviourFactory
     val market = Market("NASDAQ")
 
     @Test
@@ -111,7 +114,6 @@ class TestAlphaEventAdapter {
                 assetId = asset.id,
                 rate = BigDecimal("0.2625")
             )
-        val behaviourFactory = EventBehaviourFactory()
         val portfolio = getPortfolio()
         // Set up position with quantity for dividend calculation
         val position = Position(asset)

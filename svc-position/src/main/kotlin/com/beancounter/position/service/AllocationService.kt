@@ -272,11 +272,11 @@ class AllocationService(
         if (!positions.hasPositions()) return positions
 
         val currentTotals = positions.totals[Position.In.PORTFOLIO] ?: return positions
-        val sourceCurrency = currentTotals.currency
-        if (sourceCurrency.code.equals(targetCurrencyCode, ignoreCase = true)) {
+        if (currentTotals.currency.code.equals(targetCurrencyCode, ignoreCase = true)) {
             return positions
         }
 
+        val sourceCurrency = currentTotals.currency
         val pair = IsoCurrencyPair(from = sourceCurrency.code, to = targetCurrencyCode.uppercase())
         val fxRequest = FxRequest(rateDate = rateDate).add(pair)
         val fxResponse = fxService.getRates(fxRequest, tokenService.bearerToken)

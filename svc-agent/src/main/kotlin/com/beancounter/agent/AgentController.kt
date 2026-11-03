@@ -693,41 +693,63 @@ class AgentController(
     ): ResponseEntity<AgentResponse> {
         scopeAuthorizer.authorize()
         val plan = planFor(body)
-        val request = plan.request
-        if (chatClient == null) {
-            return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(
-                    AgentResponse(
-                        query = HtmlUtils.htmlEscape(request.query),
-                        response =
-                            "No LLM is configured. Set ${AgentProvider.PROPERTY} to '${AgentProvider.DEEPSEEK}', " +
-                                "'${AgentProvider.ANTHROPIC}', '${AgentProvider.OPENAI}', or '${AgentProvider.OLLAMA}'.",
-                        timestamp = Instant.now().toString(),
-                        error = NO_LLM
-                    )
-                )
-        }
-
-        val reviewKey = if (plan.opening == null) reviewKeyFor(body, request, plan.thread) else null
+        if (chatClient == null) return noLlm(plan.request)
+        val reviewKey = if (plan.opening == null) reviewKeyFor(body, plan.request, plan.thread) else null
         val hit = reviewKey?.let { cachedReview(it, body.refresh) }
         val meter = meterFor(body, plan)
         val refused = if (hit == null) refusalFor(meter) else null
-        if (refused != null) {
-            return failure(HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8), refused)
+        return if (refused != null) {
+            failure(HtmlUtils.htmlEscape(openingLabel(plan.request, plan), UTF_8), refused)
+        } else {
+            answerQuery(plan, reviewKey, hit, meter)
         }
-        val asked =
-            when (val opening = plan.opening?.let { holdingOpening(request, it) } ?: Opening.Ready(request)) {
-                // Echo what the caller asked about: the opening question was never built.
-                is Opening.Failed -> return failure(
-                    HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8),
-                    opening.code
+    }
+
+    /** The `/query` answer when no LLM is configured. */
+    private fun noLlm(request: AgentQuery): ResponseEntity<AgentResponse> =
+        ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(
+                AgentResponse(
+                    query = HtmlUtils.htmlEscape(request.query),
+                    response =
+                        "No LLM is configured. Set ${AgentProvider.PROPERTY} to '${AgentProvider.DEEPSEEK}', " +
+                            "'${AgentProvider.ANTHROPIC}', '${AgentProvider.OPENAI}', or '${AgentProvider.OLLAMA}'.",
+                    timestamp = Instant.now().toString(),
+                    error = NO_LLM
                 )
-                is Opening.Ready -> opening.turn
+            )
+
+    /** A `/query` turn the caller may run: its opening built first, when it has one. */
+    private fun answerQuery(
+        plan: Plan,
+        reviewKey: AssetReviewKey?,
+        hit: String?,
+        meter: String?
+    ): ResponseEntity<AgentResponse> {
+        val request = plan.request
+        return when (val opening = plan.opening?.let { holdingOpening(request, it) } ?: Opening.Ready(request)) {
+            // Echo what the caller asked about: the opening question was never built.
+            is Opening.Failed -> {
+                failure(HtmlUtils.htmlEscape(openingLabel(request, plan), UTF_8), opening.code)
             }
+            is Opening.Ready -> {
+                answerTurn(opening.turn, plan.thread, reviewKey, hit, meter)
+            }
+        }
+    }
+
+    /** [asked], recorded in its conversation, answered from the cache [hit] or live. */
+    private fun answerTurn(
+        asked: AgentQuery,
+        thread: ConversationThread?,
+        reviewKey: AssetReviewKey?,
+        hit: String?,
+        meter: String?
+    ): ResponseEntity<AgentResponse> {
         val safeQuery = HtmlUtils.htmlEscape(asked.query)
-        val (turn, conversationRecorder) = openTurn(asked, plan.thread)
-        if (hit != null) {
+        val (turn, conversationRecorder) = openTurn(asked, thread)
+        if (reviewKey != null && hit != null) {
             // No model runs: the stored answer is recorded as a live one would be, and not counted.
             llmMetrics.cached(LlmMetrics.Mode.CALL, reviewKey.model)
             recordQuietly { conversationRecorder.answered(hit) }
@@ -745,34 +767,17 @@ class AgentController(
                 reviewKey?.let { ReviewCachingRecorder(conversationRecorder, reviewCache, it) } ?: conversationRecorder,
                 meter
             )
-        return try {
-            val answer = ask(turn)
-            val content = answer.content
+        return askLive(turn, safeQuery, recorder)
+    }
 
-            // Same hole the streaming path had: a turn can succeed at the HTTP
-            // level and still say nothing (typically after the context window
-            // filled with tool results). Answering with a blank body left every
-            // caller rendering an empty response and no reason for it.
-            if (content.isBlank()) {
-                val code = emptyAnswerCode(answer.finishReason)
-                log.warn(
-                    "Agent query produced no answer: code={}, model={}, query=\"{}\"",
-                    code,
-                    answer.modelId,
-                    safeQuery.take(QUERY_LOG_CHARS)
-                )
-                recordQuietly { recorder.failed(code) }
-                return failure(safeQuery, code)
-            }
-
-            recordQuietly { recorder.answered(content) }
-            ResponseEntity.ok(
-                AgentResponse(
-                    query = safeQuery,
-                    response = content,
-                    timestamp = Instant.now().toString()
-                )
-            )
+    /** [turn] asked of the model, its answer or failure recorded and returned. */
+    private fun askLive(
+        turn: AgentQuery,
+        safeQuery: String,
+        recorder: TurnRecorder
+    ): ResponseEntity<AgentResponse> =
+        try {
+            answered(ask(turn), safeQuery, recorder)
         } catch (
             // Controller boundary: every LLM/tool failure becomes an error
             // body, classified the same way the streaming path classifies it.
@@ -788,6 +793,39 @@ class AgentController(
             recordQuietly { recorder.failed(errorCode) }
             failure(safeQuery, errorCode)
         }
+
+    /** The model's [answer] to a `/query` turn, recorded; a blank one is a failure. */
+    private fun answered(
+        answer: ModelAnswer,
+        safeQuery: String,
+        recorder: TurnRecorder
+    ): ResponseEntity<AgentResponse> {
+        val content = answer.content
+
+        // Same hole the streaming path had: a turn can succeed at the HTTP
+        // level and still say nothing (typically after the context window
+        // filled with tool results). Answering with a blank body left every
+        // caller rendering an empty response and no reason for it.
+        if (content.isBlank()) {
+            val code = emptyAnswerCode(answer.finishReason)
+            log.warn(
+                "Agent query produced no answer: code={}, model={}, query=\"{}\"",
+                code,
+                answer.modelId,
+                safeQuery.take(QUERY_LOG_CHARS)
+            )
+            recordQuietly { recorder.failed(code) }
+            return failure(safeQuery, code)
+        }
+
+        recordQuietly { recorder.answered(content) }
+        return ResponseEntity.ok(
+            AgentResponse(
+                query = safeQuery,
+                response = content,
+                timestamp = Instant.now().toString()
+            )
+        )
     }
 
     /**
@@ -843,7 +881,19 @@ class AgentController(
         val meter = meterFor(body, plan)
         // Refused before the question is recorded: an exhausted caller leaves no residue.
         val refused = if (hit == null) refusalFor(meter) else null
-        if (refused != null) return errorEvent(refused)
+        return if (refused != null) errorEvent(refused) else turnStream(plan, reviewKey, hit, meter)
+    }
+
+    /**
+     * The pipeline for a turn [stream] has let run: cold for a stateless
+     * request, hot and connected here for a conversation (see [stream]).
+     */
+    private fun turnStream(
+        plan: Plan,
+        reviewKey: AssetReviewKey?,
+        hit: String?,
+        meter: String?
+    ): Flux<ServerSentEvent<String>> {
         val conversationId = plan.thread?.id
         // Pending before the question is committed: openTurn writes the user
         // row in its own transaction, and a GET landing between that commit
@@ -863,7 +913,6 @@ class AgentController(
                 conversationId?.let(inFlightTurns::end)
                 throw e
             }
-        if (conversationId == null) return pipeline
         // doFinally sits inside the hot boundary, so it fires when the
         // pipeline itself completes or fails — after the record{} write that
         // ends it — and never on the subscriber's cancel. replay() keeps the
@@ -872,10 +921,14 @@ class AgentController(
         // request thread, so contextCapture still snapshots the caller's
         // SecurityContext, and unlike refCount it never disconnects when the
         // downstream count drops to zero.
-        return pipeline
-            .doFinally { inFlightTurns.end(conversationId) }
-            .replay()
-            .autoConnect(0)
+        return if (conversationId == null) {
+            pipeline
+        } else {
+            pipeline
+                .doFinally { inFlightTurns.end(conversationId) }
+                .replay()
+                .autoConnect(0)
+        }
     }
 
     /**
@@ -1053,7 +1106,19 @@ class AgentController(
         val chain = causeChain(e)
         val message = chain.joinToString(" | ") { it.message.orEmpty() }
         val statuses = chain.mapNotNull(::httpStatusOf)
+        return when {
+            isOutOfCredit(chain, message, statuses) -> PROVIDER_QUOTA
+            isRateLimited(message, statuses) -> PROVIDER_RATE
+            isTimedOut(chain, message) -> PROVIDER_TIMEOUT
+            else -> AGENT_ERROR
+        }
+    }
 
+    private fun isOutOfCredit(
+        chain: List<Throwable>,
+        message: String,
+        statuses: List<Int>
+    ): Boolean {
         // Distinctive phrases are matched across the whole chain — no other
         // failure says "credit balance" or "insufficient balance".
         val isCreditBalance = message.contains("credit balance", ignoreCase = true)
@@ -1069,26 +1134,27 @@ class AgentController(
                 httpStatusOf(cause) == BAD_REQUEST &&
                     cause.message.orEmpty().contains("billing", ignoreCase = true)
             }
-        if (statuses.contains(PAYMENT_REQUIRED) || isCreditBalance || isBilling400 || isOutOfCredit) {
-            return PROVIDER_QUOTA
-        }
-        // Likewise a bare "429": the status is read from where it is trusted,
-        // and the wording covers providers that report it in prose.
-        if (statuses.contains(TOO_MANY_REQUESTS) ||
+        return statuses.contains(PAYMENT_REQUIRED) || isCreditBalance || isBilling400 || isOutOfCredit
+    }
+
+    // Likewise a bare "429": the status is read from where it is trusted,
+    // and the wording covers providers that report it in prose.
+    private fun isRateLimited(
+        message: String,
+        statuses: List<Int>
+    ): Boolean =
+        statuses.contains(TOO_MANY_REQUESTS) ||
             message.contains("too many requests", ignoreCase = true) ||
             message.contains("rate limit", ignoreCase = true) ||
             message.contains("rate_limit", ignoreCase = true)
-        ) {
-            return PROVIDER_RATE
-        }
-        if (chain.any { it is java.util.concurrent.TimeoutException } ||
+
+    private fun isTimedOut(
+        chain: List<Throwable>,
+        message: String
+    ): Boolean =
+        chain.any { it is java.util.concurrent.TimeoutException } ||
             message.contains("timed out", ignoreCase = true) ||
             message.contains("timeout", ignoreCase = true)
-        ) {
-            return PROVIDER_TIMEOUT
-        }
-        return AGENT_ERROR
-    }
 
     /** The exception plus its causes, depth-capped so a cyclic chain can't hang us. */
     private fun causeChain(e: Throwable): List<Throwable> =

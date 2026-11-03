@@ -283,8 +283,8 @@ class TrnBrokerService(
 
         val tradeDate = request.tradeDate ?: DateUtils().date
         val created = mutableListOf<Trn>()
-        for (group in position.portfolioGroups) {
-            if (group.quantity.compareTo(BigDecimal.ZERO) <= 0) continue
+        val heldGroups = position.portfolioGroups.filter { it.quantity.signum() > 0 }
+        for (group in heldGroups) {
             val quantity =
                 roundToLot(
                     group.quantity.multiply(request.weight),

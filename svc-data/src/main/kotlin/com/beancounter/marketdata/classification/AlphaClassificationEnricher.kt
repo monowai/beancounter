@@ -179,6 +179,7 @@ class AlphaClassificationEnricher(
         }
 
         val standard = classificationService.getAlphaStandard()
+
         val sectorCount = if (hasSectors) addSectorExposures(asset, standard, profile.sectors) else 0
         val holdingCount = if (hasHoldings) addTopHoldings(asset, profile.holdings) else 0
 
@@ -186,27 +187,35 @@ class AlphaClassificationEnricher(
         return if (sectorCount > 0 || holdingCount > 0) EnrichmentResult.ENRICHED else EnrichmentResult.NO_DATA
     }
 
+    private fun rateLimited(symbol: String): EnrichmentResult {
+        log.warn("AlphaVantage rate limit hit while enriching $symbol")
+        return EnrichmentResult.RATE_LIMITED
+    }
+
+    private fun isErrorBody(response: String): Boolean = response.isBlank() || response.contains("Error")
+
+    /**
+     * Replaces the asset's sector exposures with the positively weighted [sectors].
+     * Returns the number added.
+     */
     private fun addSectorExposures(
         asset: Asset,
         standard: ClassificationStandard,
         sectors: List<AlphaEtfSector>
     ): Int {
         classificationService.clearExposures(asset.id)
-
         var sectorCount = 0
         for (sectorData in sectors) {
             val weight = sectorData.weight.toBigDecimalOrNull()
             if (weight == null || weight.signum() <= 0) {
                 continue
             }
-
             val sectorItem =
                 classificationService.getOrCreateItem(
                     standard = standard,
                     level = ClassificationLevel.SECTOR,
                     rawCode = sectorData.sector
                 )
-
             classificationService.addExposure(
                 asset = asset,
                 standard = standard,
@@ -220,8 +229,10 @@ class AlphaClassificationEnricher(
     }
 
     /**
-     * Skip placeholder symbols (AlphaVantage returns literal "n/a" for unlisted positions) and
-     * de-duplicate within the batch, since two identical symbols for the same parent asset
+     * Replaces the asset's top holdings, up to [MAX_HOLDINGS]. Returns the number added.
+     *
+     * Skips placeholder symbols (AlphaVantage returns literal "n/a" for unlisted positions) and
+     * de-duplicates within the batch, since two identical symbols for the same parent asset
      * violate the asset_holding unique constraint and roll back the whole enrichment (including
      * the sector exposures).
      */
@@ -230,25 +241,21 @@ class AlphaClassificationEnricher(
         holdings: List<AlphaEtfHolding>
     ): Int {
         classificationService.clearHoldings(asset.id)
-
-        var holdingCount = 0
         val seenSymbols = mutableSetOf<String>()
+        var holdingCount = 0
         for (holdingData in holdings) {
             if (holdingCount >= MAX_HOLDINGS) {
                 break
             }
-
             val weight = holdingData.weight?.toBigDecimalOrNull()
             val rawSymbol = holdingData.symbol?.trim()
             if (weight == null || weight.signum() <= 0 || rawSymbol.isNullOrBlank()) {
                 continue
             }
-
             val normalizedSymbol = rawSymbol.uppercase()
             if (normalizedSymbol in PLACEHOLDER_SYMBOLS || !seenSymbols.add(normalizedSymbol)) {
                 continue
             }
-
             // Persist the normalized form: the unique constraint is case-sensitive, so
             // storing raw casing would let the same ticker land twice across runs.
             classificationService.addHolding(
@@ -262,13 +269,6 @@ class AlphaClassificationEnricher(
         }
         return holdingCount
     }
-
-    private fun rateLimited(symbol: String): EnrichmentResult {
-        log.warn("AlphaVantage rate limit hit while enriching $symbol")
-        return EnrichmentResult.RATE_LIMITED
-    }
-
-    private fun isErrorBody(response: String): Boolean = response.isBlank() || response.contains("Error")
 
     /**
      * A no-data outcome stamps `classificationCheckedAt` (see `ClassificationRefreshService`), so

@@ -23,8 +23,20 @@ class MarketHolidays {
         private const val JUNETEENTH_FIRST_YEAR = 2021
         private const val CHRISTMAS_DAY = 25
         private const val BOXING_DAY = 26
+        private const val FIRST_OCCURRENCE = 1
         private const val THIRD_OCCURRENCE = 3
         private const val FOURTH_OCCURRENCE = 4
+        private const val LAST_OCCURRENCE = -1
+
+        // Holidays fixed to the Nth (or last) weekday of a month. Good Friday is computed apart.
+        private val FLOATING_HOLIDAYS =
+            listOf(
+                Triple(Month.JANUARY, DayOfWeek.MONDAY, THIRD_OCCURRENCE), // MLK Day
+                Triple(Month.FEBRUARY, DayOfWeek.MONDAY, THIRD_OCCURRENCE), // Presidents Day
+                Triple(Month.MAY, DayOfWeek.MONDAY, LAST_OCCURRENCE), // Memorial Day
+                Triple(Month.SEPTEMBER, DayOfWeek.MONDAY, FIRST_OCCURRENCE), // Labor Day
+                Triple(Month.NOVEMBER, DayOfWeek.THURSDAY, FOURTH_OCCURRENCE) // Thanksgiving
+            )
         private val DAYS_IN_WEEK = DayOfWeek.entries.size
         private val LONDON: ZoneId = ZoneId.of("Europe/London")
     }
@@ -144,58 +156,29 @@ class MarketHolidays {
      * Observed holidays - when a fixed holiday falls on a weekend,
      * markets close on the nearest weekday.
      */
-    private fun isObservedHoliday(date: LocalDate): Boolean {
-        val dayOfWeek = date.dayOfWeek
-
-        // Friday observation of Saturday holiday
-        if (dayOfWeek == DayOfWeek.FRIDAY) {
-            val saturday = date.plusDays(1)
-            if (isFixedHoliday(saturday)) return true
+    private fun isObservedHoliday(date: LocalDate): Boolean =
+        when (date.dayOfWeek) {
+            // Friday observation of Saturday holiday
+            DayOfWeek.FRIDAY -> isFixedHoliday(date.plusDays(1))
+            // Monday observation of Sunday holiday
+            DayOfWeek.MONDAY -> isFixedHoliday(date.minusDays(1))
+            else -> false
         }
-
-        // Monday observation of Sunday holiday
-        if (dayOfWeek == DayOfWeek.MONDAY) {
-            val sunday = date.minusDays(1)
-            if (isFixedHoliday(sunday)) return true
-        }
-
-        return false
-    }
 
     /**
      * Floating holidays that occur on specific weekdays.
      */
-    private fun isFloatingHoliday(date: LocalDate): Boolean {
-        val month = date.month
-        val dayOfWeek = date.dayOfWeek
-        date.dayOfMonth
-
-        return when {
-            // MLK Day - 3rd Monday in January
-            month == Month.JANUARY &&
-                dayOfWeek == DayOfWeek.MONDAY &&
-                isNthWeekdayOfMonth(date, THIRD_OCCURRENCE) -> true
-            // Presidents Day - 3rd Monday in February
-            month == Month.FEBRUARY &&
-                dayOfWeek == DayOfWeek.MONDAY &&
-                isNthWeekdayOfMonth(date, THIRD_OCCURRENCE) -> true
-            // Good Friday - Friday before Easter (complex calculation)
-            isGoodFriday(date) -> true
-            // Memorial Day - Last Monday in May
-            month == Month.MAY &&
-                dayOfWeek == DayOfWeek.MONDAY &&
-                isLastWeekdayOfMonth(date) -> true
-            // Labor Day - 1st Monday in September
-            month == Month.SEPTEMBER &&
-                dayOfWeek == DayOfWeek.MONDAY &&
-                isNthWeekdayOfMonth(date, 1) -> true
-            // Thanksgiving - 4th Thursday in November
-            month == Month.NOVEMBER &&
-                dayOfWeek == DayOfWeek.THURSDAY &&
-                isNthWeekdayOfMonth(date, FOURTH_OCCURRENCE) -> true
-            else -> false
-        }
-    }
+    private fun isFloatingHoliday(date: LocalDate): Boolean =
+        isGoodFriday(date) ||
+            FLOATING_HOLIDAYS.any { (month, dayOfWeek, occurrence) ->
+                date.month == month &&
+                    date.dayOfWeek == dayOfWeek &&
+                    if (occurrence == LAST_OCCURRENCE) {
+                        isLastWeekdayOfMonth(date)
+                    } else {
+                        isNthWeekdayOfMonth(date, occurrence)
+                    }
+            }
 
     /**
      * Check if date is the Nth occurrence of its weekday in the month.

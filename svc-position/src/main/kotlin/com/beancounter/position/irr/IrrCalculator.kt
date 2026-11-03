@@ -1,5 +1,6 @@
 package com.beancounter.position.irr
 
+import com.beancounter.common.model.CashFlow
 import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.utils.DateUtils
 import org.apache.commons.math3.analysis.UnivariateFunction
@@ -67,19 +68,13 @@ class IrrCalculator(
         }
 
         // Quick check for clearly invalid cash flow patterns (only catching extreme cases)
-        val allSameSign =
-            periodicCashFlows.cashFlows.all { it.amount >= 0.0 } ||
-                periodicCashFlows.cashFlows.all { it.amount <= 0.0 }
-        val allZero = periodicCashFlows.cashFlows.all { it.amount == 0.0 }
-
-        if (allZero) {
+        if (periodicCashFlows.cashFlows.all { it.amount == 0.0 }) {
             log.debug("IRR calculation requires non-zero cash flows")
             return 0.0
         }
 
-        // For strictly all positive or all negative (no zeros), early return.
         // No sign change → no NPV root → IRR undefined (not an error).
-        if (allSameSign && !periodicCashFlows.cashFlows.any { it.amount == 0.0 }) {
+        if (isStrictlySameSign(periodicCashFlows.cashFlows)) {
             log.debug("IRR calculation requires both positive and negative cash flows")
             return 0.0
         }
@@ -114,6 +109,12 @@ class IrrCalculator(
                 sortedCashFlows
             )
         }
+    }
+
+    /** All positive or all negative, with no zeros. */
+    private fun isStrictlySameSign(cashFlows: List<CashFlow>): Boolean {
+        val allSameSign = cashFlows.all { it.amount >= 0.0 } || cashFlows.all { it.amount <= 0.0 }
+        return allSameSign && !cashFlows.any { it.amount == 0.0 }
     }
 
     fun calculateSimpleRoi(periodicCashFlows: PeriodicCashFlows): Double {

@@ -46,11 +46,16 @@ class M2mTokenService(
     private val cached = AtomicReference<CachedM2m?>(null)
 
     fun token(): String? {
-        cached.get()?.let { existing ->
-            if (Instant.now().isBefore(existing.expiresAt.minusSeconds(REFRESH_SKEW_SECONDS))) {
-                return existing.value
-            }
+        val existing = cached.get()
+        return if (existing != null && Instant.now().isBefore(existing.expiresAt.minusSeconds(REFRESH_SKEW_SECONDS))) {
+            existing.value
+        } else {
+            refreshed()
         }
+    }
+
+    /** A freshly exchanged token, cached on success; null when unconfigured or the exchange fails. */
+    private fun refreshed(): String? {
         if (clientId.isBlank() || clientSecret.isBlank() || authIssuerUri.isBlank()) {
             return null
         }

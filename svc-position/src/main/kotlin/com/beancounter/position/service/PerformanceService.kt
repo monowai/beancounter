@@ -5,7 +5,6 @@ import com.beancounter.client.FxService
 import com.beancounter.client.services.PriceService
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.AggregatedPerformanceData
-import com.beancounter.common.contracts.AggregatedPerformanceDataPoint
 import com.beancounter.common.contracts.AggregatedPerformanceResponse
 import com.beancounter.common.contracts.BulkFxRequest
 import com.beancounter.common.contracts.BulkFxResponse
@@ -77,6 +76,8 @@ class PerformanceService(
     private val nudgeExecutor: Executor = Executor(Runnable::run),
     private val cashUtils: CashUtils = CashUtils()
 ) {
+    private val aggregateComposer = AggregatePerformanceComposer(irrCalculator)
+
     fun calculate(
         portfolio: Portfolio,
         months: Int = 12
@@ -96,55 +97,71 @@ class PerformanceService(
         val startDate = endDate.minusMonths(months.toLong())
 
         // Check cache BEFORE fetching transactions to skip all HTTP calls on hit
-        val cached = tryLoadFromCache(portfolio.id)
-        if (cached != null) {
-            val earliestCached = cached.minOf { it.valuationDate }
-            val latestCached = cached.maxOf { it.valuationDate }
-            val hasInWindow = cached.any { !it.valuationDate.isBefore(startDate) }
-            // `earliestCached <= startDate` alone is not enough: if every cached
-            // snapshot predates startDate, `anchorToStartDate` returns just the
-            // synthesised anchor (single-point series), producing 0% TWR and 0
-            // gain. Require at least one snapshot in `[startDate, endDate]`.
-            val hasSufficientHistory = !earliestCached.isAfter(startDate) && hasInWindow
-            // RabbitMQ invalidation (CacheInvalidationConsumer.invalidateFrom) deletes
-            // snapshots >= a trn's tradeDate; the surviving older rows can still
-            // satisfy `hasSufficientHistory`, leaving the series frozen before that
-            // date forever. Require the newest cached snapshot to reach endDate too.
-            // determineValuationDates always includes endDate in its result (it's
-            // unconditionally unioned in before the range filter), and buildSnapshots
-            // emits one snapshot per valuation date, so a fresh cache always has a
-            // snapshot dated endDate.
-            val isFresh = !latestCached.isBefore(endDate)
-            if (hasSufficientHistory && isFresh) {
-                val anchored = anchorToStartDate(cached, startDate)
-                log.debug(
-                    "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
-                    portfolio.code,
-                    anchored.size,
-                    cached.size
-                )
-                return buildResponseFromCache(portfolio, anchored)
-            }
-            log.debug(
-                "Cache PARTIAL: portfolio={}, earliest={}, latest={}, requested from {} to {}, reason={}, recomputing",
-                portfolio.code,
-                earliestCached,
-                latestCached,
-                startDate,
-                endDate,
-                if (!hasSufficientHistory) "insufficient history" else "stale tail"
-            )
-        }
+        return cachedResponse(portfolio, startDate, endDate)
+            ?: recompute(portfolio, startDate, endDate, historyAssetIds)
+    }
 
+    /** Response from cached snapshots, or null when the cache is missing, short or stale. */
+    private fun cachedResponse(
+        portfolio: Portfolio,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): PerformanceResponse? {
+        val cached = tryLoadFromCache(portfolio.id) ?: return null
+        val earliestCached = cached.minOf { it.valuationDate }
+        val latestCached = cached.maxOf { it.valuationDate }
+        val hasInWindow = cached.any { !it.valuationDate.isBefore(startDate) }
+        // `earliestCached <= startDate` alone is not enough: if every cached
+        // snapshot predates startDate, `anchorToStartDate` returns just the
+        // synthesised anchor (single-point series), producing 0% TWR and 0
+        // gain. Require at least one snapshot in `[startDate, endDate]`.
+        val hasSufficientHistory = !earliestCached.isAfter(startDate) && hasInWindow
+        // RabbitMQ invalidation (CacheInvalidationConsumer.invalidateFrom) deletes
+        // snapshots >= a trn's tradeDate; the surviving older rows can still
+        // satisfy `hasSufficientHistory`, leaving the series frozen before that
+        // date forever. Require the newest cached snapshot to reach endDate too.
+        // determineValuationDates always includes endDate in its result (it's
+        // unconditionally unioned in before the range filter), and buildSnapshots
+        // emits one snapshot per valuation date, so a fresh cache always has a
+        // snapshot dated endDate.
+        val isFresh = !latestCached.isBefore(endDate)
+        if (hasSufficientHistory && isFresh) {
+            val anchored = anchorToStartDate(cached, startDate)
+            log.debug(
+                "Cache HIT: portfolio={}, snapshots={} (filtered from {})",
+                portfolio.code,
+                anchored.size,
+                cached.size
+            )
+            return buildResponseFromCache(portfolio, anchored)
+        }
+        log.debug(
+            "Cache PARTIAL: portfolio={}, earliest={}, latest={}, requested from {} to {}, reason={}, recomputing",
+            portfolio.code,
+            earliestCached,
+            latestCached,
+            startDate,
+            endDate,
+            if (!hasSufficientHistory) "insufficient history" else "stale tail"
+        )
+        return null
+    }
+
+    /** Values [portfolio] from its transactions, or an empty response when there is nothing to value. */
+    private fun recompute(
+        portfolio: Portfolio,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        historyAssetIds: MutableSet<String>?
+    ): PerformanceResponse {
         val token = tokenService.bearerToken
 
         val transactions = fetchAndSortTransactions(portfolio)
-        if (transactions.isEmpty()) return emptyResponse(portfolio)
+        val valuationDates =
+            if (transactions.isEmpty()) emptyList() else determineValuationDates(transactions, startDate, endDate)
+        if (valuationDates.isEmpty()) return emptyResponse(portfolio)
 
         val firstTradeDate = transactions.firstOrNull()?.tradeDate
-
-        val valuationDates = determineValuationDates(transactions, startDate, endDate)
-        if (valuationDates.isEmpty()) return emptyResponse(portfolio)
 
         log.debug("Cache MISS: portfolio={}, dates={}", portfolio.code, valuationDates.size)
 
@@ -658,8 +675,27 @@ class PerformanceService(
         val isCash = cashUtils.isCash(pos.asset)
         val price = if (isCash) BigDecimal.ONE else unitPrice(pos, dateStr, priceMap, prices) ?: return null
         val tradeCcy = pos.moneyValues[Position.In.TRADE]?.currency ?: pos.asset.market.currency
-        if (tradeCcy.code == portfolio.currency.code) return price
-        val fxPair = IsoCurrencyPair(tradeCcy.code, portfolio.currency.code)
+        return if (tradeCcy.code == portfolio.currency.code) {
+            price
+        } else {
+            toPortfolioCurrency(
+                price,
+                IsoCurrencyPair(tradeCcy.code, portfolio.currency.code),
+                fxRates,
+                isCash,
+                dateStr
+            )
+        }
+    }
+
+    /** [price] converted at the [fxPair] rate, 1.0 when the rate is missing. */
+    private fun toPortfolioCurrency(
+        price: BigDecimal,
+        fxPair: IsoCurrencyPair,
+        fxRates: FxPairResults?,
+        isCash: Boolean,
+        dateStr: String
+    ): BigDecimal {
         val rate = fxRates?.rates?.get(fxPair)?.rate
         if (rate == null) {
             log.warn(
@@ -680,29 +716,45 @@ class PerformanceService(
         prices: PassPrices
     ): BigDecimal? {
         val key = "${pos.asset.market.code}:${pos.asset.code}"
-        priceMap[key]?.let { return it.close }
+        val onDate = priceMap[key]
         val latest = prices.latestPriceIndex[key]
-        if (pos.asset.market.code == PRIVATE_MARKET && latest != null) {
-            // PRIVATE assets only ever get one price row (stamped today by
-            // PrivateMarketDataProvider) — use it in preference to purchase
-            // cost for every other valuation date.
-            log.debug(
-                "No price for PRIVATE asset {} on {}, using latest known price {} from {}",
-                key,
-                dateStr,
-                latest.close,
-                latest.priceDate
-            )
-            return latest.close
+        return when {
+            onDate != null -> {
+                onDate.close
+            }
+            pos.asset.market.code == PRIVATE_MARKET && latest != null -> {
+                // PRIVATE assets only ever get one price row (stamped today by
+                // PrivateMarketDataProvider) — use it in preference to purchase
+                // cost for every other valuation date.
+                log.debug(
+                    "No price for PRIVATE asset {} on {}, using latest known price {} from {}",
+                    key,
+                    dateStr,
+                    latest.close,
+                    latest.priceDate
+                )
+                latest.close
+            }
+            else -> {
+                costPrice(pos, key, dateStr)
+            }
         }
-        // Fall back to average cost when no market price is available
+    }
+
+    /** Average cost when no market price is available; null when there is no cost basis either. */
+    private fun costPrice(
+        pos: Position,
+        key: String,
+        dateStr: String
+    ): BigDecimal? {
         val avgCost = pos.moneyValues[Position.In.TRADE]?.averageCost ?: BigDecimal.ZERO
-        if (avgCost.signum() == 0) {
+        return if (avgCost.signum() == 0) {
             log.warn("No price or cost basis for {} on {}, skipping", key, dateStr)
-            return null
+            null
+        } else {
+            log.debug("No market price for {} on {}, using cost price {}", key, dateStr, avgCost)
+            avgCost
         }
-        log.debug("No market price for {} on {}, using cost price {}", key, dateStr, avgCost)
-        return avgCost
     }
 
     /**
@@ -859,17 +911,26 @@ class PerformanceService(
         startDate: LocalDate
     ): List<CachedSnapshot> {
         val onOrAfter = cached.filter { !it.valuationDate.isBefore(startDate) }
-        if (onOrAfter.firstOrNull()?.valuationDate == startDate) return onOrAfter
-        val prior = cached.lastOrNull { it.valuationDate.isBefore(startDate) } ?: return onOrAfter
-        val anchor =
-            CachedSnapshot(
-                valuationDate = startDate,
-                marketValue = prior.marketValue,
-                externalCashFlow = BigDecimal.ZERO,
-                netContributions = prior.netContributions,
-                cumulativeDividends = prior.cumulativeDividends
-            )
-        return listOf(anchor) + onOrAfter
+        val prior = cached.lastOrNull { it.valuationDate.isBefore(startDate) }
+        return when {
+            onOrAfter.firstOrNull()?.valuationDate == startDate -> {
+                onOrAfter
+            }
+            prior == null -> {
+                onOrAfter
+            }
+            else -> {
+                listOf(
+                    CachedSnapshot(
+                        valuationDate = startDate,
+                        marketValue = prior.marketValue,
+                        externalCashFlow = BigDecimal.ZERO,
+                        netContributions = prior.netContributions,
+                        cumulativeDividends = prior.cumulativeDividends
+                    )
+                ) + onOrAfter
+            }
+        }
     }
 
     private fun buildResponseFromCache(
@@ -996,227 +1057,17 @@ class PerformanceService(
     }
 
     /**
-     * Pure composition step. Combines per-portfolio TWR series into a single
-     * composite series in `displayCurrency`. No IO. Exposed `internal` for
-     * direct unit testing of the weighting math.
-     *
-     * Algorithm (chained sub-period composite, GIPS):
-     *   1. Build the union of valuation dates across portfolios.
-     *   2. Forward-fill each portfolio's snapshots onto union dates.
-     *   3. Convert market value / contributions / dividends to display ccy.
-     *   4. For each sub-period [t_{i-1}, t_i]: sub-return = Σ w_p * r_p,
-     *      where w_p = mv_p[i-1] / Σ mv[i-1] (display-ccy AUM) and
-     *      r_p = growthFactor_p[i] / growthFactor_p[i-1] (TWR factor ratio).
-     *      Portfolios with mv_p[i-1] == 0 are excluded from this sub-period.
-     *   5. cumulative_factor[i] = cumulative_factor[i-1] * sub-return.
-     *
-     * Period-relative metrics (`netContributions`, `cumulativeDividends`,
-     * `investmentGain`) are baselined against the first union point, so
-     * `series[0]` reports zero for them.
+     * Pure composition step: see [AggregatePerformanceComposer]. Exposed `internal` for direct
+     * unit testing of the weighting math.
      */
     internal fun composeAggregate(
         perPortfolio: List<Pair<Portfolio, PerformanceData>>,
         displayCurrency: Currency,
         fxRates: Map<String, BigDecimal>
-    ): AggregatedPerformanceResponse {
-        // Discard empty per-portfolio series. Sort each surviving series by date
-        // and convert to display currency once.
-        val perPortfolioFx: List<List<DisplaySnapshot>> =
-            perPortfolio.mapNotNull { (portfolio, data) ->
-                val series = data.series
-                if (series.isEmpty()) return@mapNotNull null
-                val rate = fxRates[portfolio.currency.code] ?: BigDecimal.ONE
-                series
-                    .sortedBy { it.date }
-                    .map { p ->
-                        DisplaySnapshot(
-                            date = p.date,
-                            growthFactor =
-                                p.growthOf1000
-                                    .divide(GROWTH_BASE, GROWTH_FACTOR_SCALE, RoundingMode.HALF_UP),
-                            mv = p.marketValue.multiply(rate),
-                            contrib = p.netContributions.multiply(rate),
-                            divs = p.cumulativeDividends.multiply(rate)
-                        )
-                    }
-            }
-
-        if (perPortfolioFx.isEmpty()) {
-            return AggregatedPerformanceResponse(AggregatedPerformanceData(displayCurrency))
-        }
-
-        val sortedDates =
-            perPortfolioFx
-                .flatMap { snaps -> snaps.map { it.date } }
-                .toSortedSet()
-                .toList()
-
-        // For each portfolio, forward-fill onto union dates. A portfolio with no
-        // snapshot on/before a union date is "inactive" there (mv contribution 0,
-        // excluded from weighting).
-        val perPortfolioAligned: List<List<DisplaySnapshot?>> =
-            perPortfolioFx.map { snaps ->
-                var cursor = -1
-                sortedDates.map { date ->
-                    while (cursor + 1 < snaps.size && !snaps[cursor + 1].date.isAfter(date)) {
-                        cursor++
-                    }
-                    if (cursor < 0) null else snaps[cursor]
-                }
-            }
-
-        // Aggregate display-ccy totals per union date.
-        val totals: List<AggregateRow> =
-            sortedDates.indices.map { i ->
-                var mv = BigDecimal.ZERO
-                var contrib = BigDecimal.ZERO
-                var divs = BigDecimal.ZERO
-                for (p in perPortfolioAligned) {
-                    val s = p[i] ?: continue
-                    mv = mv.add(s.mv)
-                    contrib = contrib.add(s.contrib)
-                    divs = divs.add(s.divs)
-                }
-                AggregateRow(mv = mv, contrib = contrib, divs = divs)
-            }
-
-        // Chained sub-period composite TWR.
-        val cumFactor = MutableList(sortedDates.size) { BigDecimal.ONE }
-        for (i in 1 until sortedDates.size) {
-            var numerator = BigDecimal.ZERO
-            var weightSum = BigDecimal.ZERO
-            for (p in perPortfolioAligned) {
-                val prev = p[i - 1] ?: continue
-                val curr = p[i] ?: continue
-                if (prev.mv.signum() <= 0) continue
-                if (prev.growthFactor.signum() <= 0) continue
-                val r = curr.growthFactor.divide(prev.growthFactor, SUB_PERIOD_RETURN_SCALE, RoundingMode.HALF_UP)
-                val w = prev.mv
-                numerator = numerator.add(w.multiply(r))
-                weightSum = weightSum.add(w)
-            }
-            val subReturn =
-                if (weightSum.signum() > 0) {
-                    numerator.divide(weightSum, SUB_PERIOD_RETURN_SCALE, RoundingMode.HALF_UP)
-                } else {
-                    BigDecimal.ONE
-                }
-            cumFactor[i] = cumFactor[i - 1].multiply(subReturn)
-        }
-
-        val baselineMv = totals[0].mv
-        val baselineContrib = totals[0].contrib
-        val baselineDivs = totals[0].divs
-
-        val points =
-            sortedDates.indices.map { i ->
-                val row = totals[i]
-                val periodContrib = row.contrib.subtract(baselineContrib)
-                val periodDivs = row.divs.subtract(baselineDivs)
-                val investmentGain =
-                    row.mv
-                        .subtract(baselineMv)
-                        .subtract(periodContrib)
-                val growthOf1000 =
-                    cumFactor[i]
-                        .multiply(GROWTH_BASE)
-                        .setScale(GROWTH_OF_1000_SCALE, RoundingMode.HALF_UP)
-                val cumulativeReturn =
-                    cumFactor[i]
-                        .subtract(BigDecimal.ONE)
-                        .setScale(AGGREGATE_RETURN_SCALE, RoundingMode.HALF_UP)
-                AggregatedPerformanceDataPoint(
-                    date = sortedDates[i],
-                    growthOf1000 = growthOf1000,
-                    cumulativeReturn = cumulativeReturn,
-                    marketValue = row.mv.setScale(2, RoundingMode.HALF_UP),
-                    netContributions = periodContrib.setScale(2, RoundingMode.HALF_UP),
-                    lifetimeContributions = row.contrib.setScale(2, RoundingMode.HALF_UP),
-                    cumulativeDividends = periodDivs.setScale(2, RoundingMode.HALF_UP),
-                    investmentGain = investmentGain.setScale(2, RoundingMode.HALF_UP)
-                )
-            }
-
-        val xirr = computeAggregateXirr(perPortfolioFx)
-
-        return AggregatedPerformanceResponse(
-            AggregatedPerformanceData(currency = displayCurrency, series = points, xirr = xirr)
-        )
-    }
-
-    /**
-     * Pool per-portfolio investor cash flows over the window into a single
-     * `PeriodicCashFlows` and solve for XIRR via the shared `IrrCalculator`.
-     *
-     * Sign convention is investor-POV:
-     *   - At series[0] (window start): −marketValue (capital invested).
-     *   - Between snapshots: −Δ netContributions (deposit = money out of wallet).
-     *   - At series[last] (window end): +marketValue (capital realised).
-     *
-     * Inputs are already FX-converted to the display currency, so all flows
-     * land in a single denomination. `IrrCalculator` itself handles short-
-     * window fallback to simple ROI and bails to 0.0 when the solver fails.
-     */
-    private fun computeAggregateXirr(perPortfolioFx: List<List<DisplaySnapshot>>): BigDecimal? {
-        if (perPortfolioFx.isEmpty()) return null
-        val flows = mutableListOf<com.beancounter.common.model.CashFlow>()
-        for (snaps in perPortfolioFx) {
-            if (snaps.isEmpty()) continue
-            val first = snaps.first()
-            if (first.mv.signum() > 0) {
-                flows.add(
-                    com.beancounter.common.model.CashFlow(
-                        amount = first.mv.negate().toDouble(),
-                        date = first.date
-                    )
-                )
-            }
-            for (i in 1 until snaps.size) {
-                val delta = snaps[i].contrib.subtract(snaps[i - 1].contrib)
-                if (delta.signum() != 0) {
-                    flows.add(
-                        com.beancounter.common.model.CashFlow(
-                            amount = delta.negate().toDouble(),
-                            date = snaps[i].date
-                        )
-                    )
-                }
-            }
-            val last = snaps.last()
-            if (last.mv.signum() > 0) {
-                flows.add(
-                    com.beancounter.common.model.CashFlow(
-                        amount = last.mv.toDouble(),
-                        date = last.date
-                    )
-                )
-            }
-        }
-        if (flows.size < 2) return null
-        val periodic =
-            com.beancounter.common.model
-                .PeriodicCashFlows()
-        periodic.addAll(flows)
-        val xirr = irrCalculator.calculate(periodic)
-        return BigDecimal(xirr).setScale(XIRR_SCALE, RoundingMode.HALF_UP)
-    }
-
-    private data class DisplaySnapshot(
-        val date: LocalDate,
-        val growthFactor: BigDecimal,
-        val mv: BigDecimal,
-        val contrib: BigDecimal,
-        val divs: BigDecimal
-    )
-
-    private data class AggregateRow(
-        val mv: BigDecimal,
-        val contrib: BigDecimal,
-        val divs: BigDecimal
-    )
+    ): AggregatedPerformanceResponse = aggregateComposer.compose(perPortfolio, displayCurrency, fxRates)
 
     companion object {
-        private val GROWTH_BASE = BigDecimal("1000")
+        internal val GROWTH_BASE = BigDecimal("1000")
         private val log = LoggerFactory.getLogger(PerformanceService::class.java)
 
         // Matches PrivateMarketDataProvider.ID in svc-data: single latest-price
@@ -1225,11 +1076,6 @@ class PerformanceService(
 
         private const val CASH_LEG_SCALE = 10
         private const val CUMULATIVE_RETURN_SCALE = 6
-        private const val GROWTH_FACTOR_SCALE = 8
-        private const val SUB_PERIOD_RETURN_SCALE = 10
-        private const val GROWTH_OF_1000_SCALE = 4
-        private const val AGGREGATE_RETURN_SCALE = 8
-        private const val XIRR_SCALE = 6
 
         // Portfolios calculated at once by [aggregate]. Each cold calculation makes bulk
         // price and FX calls to bc-data, whose 512m heap is the constraint.

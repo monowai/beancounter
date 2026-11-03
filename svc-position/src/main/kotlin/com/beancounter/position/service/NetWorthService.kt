@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 
 /**
  * Server-side Net Worth headline — the derivation bc-view's
@@ -211,38 +212,52 @@ class NetWorthService(
             }
         if (priced.isEmpty()) return BigDecimal.ZERO
         val weekAgo = dateUtils.getFormattedDate(asAt).minusDays(DAYS_IN_WEEK)
+        val then = weekAgoCloses(priced, weekAgo)
+        return when {
+            then == null -> {
+                null
+            }
+            then.isEmpty() -> {
+                log.debug("7-day change unknown: no week-ago close for {} holdings at {}", priced.size, weekAgo)
+                null
+            }
+            else -> {
+                priced.fold(BigDecimal.ZERO) { acc, holding ->
+                    val closeThen = then[holding.asset.id] ?: return@fold acc
+                    val valueThen =
+                        holding.valueNow
+                            .multiply(
+                                closeThen
+                            ).divide(holding.closeNow, RATIO_SCALE, RoundingMode.HALF_UP)
+                    acc.add(holding.valueNow.subtract(valueThen))
+                }
+            }
+        }
+    }
+
+    /** Positive closes by asset id on [weekAgo]; null when the prices cannot be read. */
+    private fun weekAgoCloses(
+        priced: List<PricedHolding>,
+        weekAgo: LocalDate
+    ): Map<String, BigDecimal>? {
         val request =
             PriceRequest(
                 date = weekAgo.toString(),
                 assets = priced.map { PriceAsset(it.asset.market.code, it.asset.code, assetId = it.asset.id) },
                 currentMode = false
             )
-        val then =
-            try {
-                priceService
-                    .getPrices(request, tokenService.bearerToken)
-                    .data
-                    .filter { it.close.signum() > 0 }
-                    .associate { it.asset.id to it.close }
-            } catch (
-                @Suppress("TooGenericExceptionCaught")
-                e: RuntimeException
-            ) {
-                log.warn("7-day change unknown: week-ago prices for {} unavailable: {}", weekAgo, e.message)
-                return null
-            }
-        if (then.isEmpty()) {
-            log.debug("7-day change unknown: no week-ago close for {} holdings at {}", priced.size, weekAgo)
-            return null
-        }
-        return priced.fold(BigDecimal.ZERO) { acc, holding ->
-            val closeThen = then[holding.asset.id] ?: return@fold acc
-            val valueThen =
-                holding.valueNow
-                    .multiply(
-                        closeThen
-                    ).divide(holding.closeNow, RATIO_SCALE, RoundingMode.HALF_UP)
-            acc.add(holding.valueNow.subtract(valueThen))
+        return try {
+            priceService
+                .getPrices(request, tokenService.bearerToken)
+                .data
+                .filter { it.close.signum() > 0 }
+                .associate { it.asset.id to it.close }
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: RuntimeException
+        ) {
+            log.warn("7-day change unknown: week-ago prices for {} unavailable: {}", weekAgo, e.message)
+            null
         }
     }
 

@@ -102,17 +102,6 @@ class ValuationAdminController(
         log.info("Manual portfolio revaluation triggered (force={})", force)
 
         val allPortfolios = portfolioServiceClient.portfolios.data
-
-        if (allPortfolios.isEmpty()) {
-            log.info("No portfolios in system")
-            return RevalueResponse(
-                totalPortfolios = 0,
-                stalePortfolios = 0,
-                successCount = 0,
-                errorCount = 0
-            )
-        }
-
         val portfoliosToValue =
             if (force) {
                 allPortfolios
@@ -120,20 +109,40 @@ class ValuationAdminController(
                 allPortfolios.filter { needsValuation(it) }
             }
 
-        if (portfoliosToValue.isEmpty()) {
-            log.info("All {} portfolios are up to date", allPortfolios.size)
-            return RevalueResponse(
-                totalPortfolios = allPortfolios.size,
-                stalePortfolios = 0,
-                successCount = 0,
-                errorCount = 0
-            )
+        return when {
+            allPortfolios.isEmpty() -> {
+                log.info("No portfolios in system")
+                RevalueResponse(
+                    totalPortfolios = 0,
+                    stalePortfolios = 0,
+                    successCount = 0,
+                    errorCount = 0
+                )
+            }
+            portfoliosToValue.isEmpty() -> {
+                log.info("All {} portfolios are up to date", allPortfolios.size)
+                RevalueResponse(
+                    totalPortfolios = allPortfolios.size,
+                    stalePortfolios = 0,
+                    successCount = 0,
+                    errorCount = 0
+                )
+            }
+            else -> {
+                revalue(portfoliosToValue, allPortfolios.size, force)
+            }
         }
+    }
 
+    private fun revalue(
+        portfoliosToValue: Collection<Portfolio>,
+        totalPortfolios: Int,
+        force: Boolean
+    ): RevalueResponse {
         log.info(
             "Revaluing {} portfolios out of {} total (force={})",
             portfoliosToValue.size,
-            allPortfolios.size,
+            totalPortfolios,
             force
         )
 
@@ -142,40 +151,7 @@ class ValuationAdminController(
         val errors = mutableListOf<String>()
 
         for (portfolio in portfoliosToValue) {
-            try {
-                valuationService.getPositions(
-                    portfolio,
-                    DateUtils.TODAY,
-                    true
-                )
-                successCount++
-                log.debug(
-                    "Valued portfolio: {} ({}) - last valued: {}",
-                    portfolio.code,
-                    portfolio.id,
-                    portfolio.valuedAt
-                )
-            } catch (e: RestClientException) {
-                errorCount++
-                val errorMsg = "${portfolio.code}: ${e.message ?: e::class.simpleName}"
-                errors.add(errorMsg)
-                log.error(
-                    "Failed to value portfolio: {} ({})",
-                    portfolio.code,
-                    portfolio.id,
-                    e
-                )
-            } catch (e: BusinessException) {
-                errorCount++
-                val errorMsg = "${portfolio.code}: ${e.message ?: e::class.simpleName}"
-                errors.add(errorMsg)
-                log.error(
-                    "Failed to value portfolio: {} ({})",
-                    portfolio.code,
-                    portfolio.id,
-                    e
-                )
-            }
+            if (valueOne(portfolio, errors)) successCount++ else errorCount++
         }
 
         log.info(
@@ -185,12 +161,51 @@ class ValuationAdminController(
         )
 
         return RevalueResponse(
-            totalPortfolios = allPortfolios.size,
+            totalPortfolios = totalPortfolios,
             stalePortfolios = portfoliosToValue.size,
             successCount = successCount,
             errorCount = errorCount,
             errors = errors
         )
+    }
+
+    /** Values [portfolio]; on failure records the error in [errors] and returns false. */
+    private fun valueOne(
+        portfolio: Portfolio,
+        errors: MutableList<String>
+    ): Boolean =
+        try {
+            valuationService.getPositions(
+                portfolio,
+                DateUtils.TODAY,
+                true
+            )
+            log.debug(
+                "Valued portfolio: {} ({}) - last valued: {}",
+                portfolio.code,
+                portfolio.id,
+                portfolio.valuedAt
+            )
+            true
+        } catch (e: RestClientException) {
+            recordFailure(portfolio, e, errors)
+        } catch (e: BusinessException) {
+            recordFailure(portfolio, e, errors)
+        }
+
+    private fun recordFailure(
+        portfolio: Portfolio,
+        e: Exception,
+        errors: MutableList<String>
+    ): Boolean {
+        errors.add("${portfolio.code}: ${e.message ?: e::class.simpleName}")
+        log.error(
+            "Failed to value portfolio: {} ({})",
+            portfolio.code,
+            portfolio.id,
+            e
+        )
+        return false
     }
 
     /**

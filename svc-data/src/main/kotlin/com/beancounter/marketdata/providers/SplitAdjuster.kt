@@ -29,7 +29,7 @@ import java.time.LocalDate
  *    and rows without an ex-date stamp keep 1.
  */
 object SplitAdjuster {
-    private const val SCALE = 6
+    internal const val SCALE = 6
     private val ROUNDING = RoundingMode.HALF_UP
 
     data class SplitEvent(

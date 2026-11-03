@@ -305,7 +305,7 @@ class ClassificationService(
      * Get sample classifications for debugging.
      */
     fun getSampleClassifications(): List<Map<String, Any?>> =
-        classificationRepository.findAll().take(5).map { ac ->
+        classificationRepository.findAll().take(SAMPLE_SIZE).map { ac ->
             mapOf(
                 "id" to ac.id,
                 "assetId" to ac.asset.id,
@@ -319,7 +319,7 @@ class ClassificationService(
      * Get sample exposures for debugging.
      */
     fun getSampleExposures(): List<Map<String, Any?>> =
-        exposureRepository.findAll().take(5).map { ae ->
+        exposureRepository.findAll().take(SAMPLE_SIZE).map { ae ->
             mapOf(
                 "id" to ae.id,
                 "assetId" to ae.asset.id,
@@ -332,6 +332,7 @@ class ClassificationService(
     companion object {
         const val STANDARD_USER = "USER"
         const val SOURCE_MANUAL = "MANUAL"
+        private const val SAMPLE_SIZE = 5
     }
 
     /**

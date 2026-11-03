@@ -15,6 +15,7 @@ import java.util.Locale
  */
 class FxRateCalculator private constructor() {
     companion object {
+        private const val CROSS_RATE_SCALE = 8
         private val dateUtils = DateUtils()
 
         /**
@@ -69,7 +70,7 @@ class FxRateCalculator private constructor() {
                     } else {
                         toRate.rate.divide(
                             fromRate.rate,
-                            8,
+                            CROSS_RATE_SCALE,
                             RoundingMode.HALF_UP
                         )
                     }

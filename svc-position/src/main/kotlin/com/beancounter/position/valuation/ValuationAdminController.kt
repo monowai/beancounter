@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.client.RestClientException
 import java.time.LocalDate
+import java.util.concurrent.TimeUnit
 
 /**
  * Admin controller for manually triggering portfolio valuations.
@@ -197,7 +198,7 @@ class ValuationAdminController(
      */
     private fun needsValuation(portfolio: Portfolio): Boolean {
         val valuedAt = portfolio.valuedAt ?: return true
-        val staleDate = LocalDate.now(dateUtils.zoneId).minusDays(staleHours / 24)
+        val staleDate = LocalDate.now(dateUtils.zoneId).minusDays(TimeUnit.HOURS.toDays(staleHours))
         return valuedAt.isBefore(staleDate)
     }
 }

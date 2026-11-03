@@ -335,7 +335,7 @@ class FxRateService(
                     rates.map { rate ->
                         FxHistoryPoint(
                             date = rate.date,
-                            rate = BigDecimal.ONE.divide(rate.rate, MathContext(10, RoundingMode.HALF_UP))
+                            rate = BigDecimal.ONE.divide(rate.rate, MathContext(RATE_PRECISION, RoundingMode.HALF_UP))
                         )
                     }
                 }
@@ -363,7 +363,11 @@ class FxRateService(
                         toRatesByDate[fromRate.date]?.let { toRate ->
                             FxHistoryPoint(
                                 date = fromRate.date,
-                                rate = toRate.rate.divide(fromRate.rate, MathContext(10, RoundingMode.HALF_UP))
+                                rate =
+                                    toRate.rate.divide(
+                                        fromRate.rate,
+                                        MathContext(RATE_PRECISION, RoundingMode.HALF_UP)
+                                    )
                             )
                         }
                     }
@@ -387,6 +391,8 @@ class FxRateService(
         )
 
     private companion object {
+        const val RATE_PRECISION = 10
+
         // Lookback window prepended to the earliest requested date so the
         // in-memory nearest-prior fallback can resolve weekend / holiday gaps.
         // 10 days covers any plausible bank-holiday cluster in developed markets.

@@ -112,8 +112,8 @@ class TrnImportService(
      * a slightly different pay date).
      */
     fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
-        val start = trustedTrnEvent.trnInput.tradeDate.minusDays(5)
-        val endDate = trustedTrnEvent.trnInput.tradeDate.plusDays(20)
+        val start = trustedTrnEvent.trnInput.tradeDate.minusDays(DUPLICATE_LOOKBACK_DAYS)
+        val endDate = trustedTrnEvent.trnInput.tradeDate.plusDays(DUPLICATE_LOOKAHEAD_DAYS)
         return trnRepository.findExisting(
             trustedTrnEvent.portfolio.id,
             trustedTrnEvent.trnInput.assetId!!,
@@ -151,5 +151,7 @@ class TrnImportService(
 
     companion object {
         private val logger = LoggerFactory.getLogger(TrnImportService::class.java)
+        private const val DUPLICATE_LOOKBACK_DAYS = 5L
+        private const val DUPLICATE_LOOKAHEAD_DAYS = 20L
     }
 }

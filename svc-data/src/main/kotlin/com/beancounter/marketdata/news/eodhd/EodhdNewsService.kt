@@ -659,7 +659,7 @@ class EodhdNewsService(
     }
 
     private fun scaledScore(polarity: Double): Double =
-        BigDecimal(polarity).setScale(4, RoundingMode.HALF_UP).toDouble()
+        BigDecimal(polarity).setScale(SCORE_SCALE, RoundingMode.HALF_UP).toDouble()
 
     private fun labelFor(polarity: Double): String =
         when {
@@ -685,6 +685,7 @@ class EodhdNewsService(
         // Cap on the "title. summary-or-content" text sent to the embedder per article — the
         // model truncates internally anyway, and this keeps the request payload small.
         private const val EMBEDDING_TEXT_MAX_CHARS = 512
+        private const val SCORE_SCALE = 4
         private const val BULLISH_THRESHOLD = 0.35
         private const val BEARISH_THRESHOLD = -0.35
         private val TICKER_PATTERN = Regex("[A-Z0-9.-]{1,10}")

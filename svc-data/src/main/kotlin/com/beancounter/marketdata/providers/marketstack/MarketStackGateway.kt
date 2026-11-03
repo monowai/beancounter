@@ -5,6 +5,7 @@ import com.beancounter.marketdata.providers.marketstack.model.MarketStackTickerR
 import io.github.resilience4j.retry.annotation.Retry
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestClient
@@ -39,7 +40,9 @@ class MarketStackGateway(
             // GET /assets/{id}?includePrice=true. Degrade to an empty response so the proxy
             // fills zero-price placeholders instead of letting the 422 surface as a 500.
             // Any other client error (bad key, rate limit) still propagates.
-            if (e.statusCode.value() == 422 && e.responseBodyAsString.contains("no_valid_symbols_provided")) {
+            if (e.statusCode.value() == HttpStatus.UNPROCESSABLE_CONTENT.value() &&
+                e.responseBodyAsString.contains("no_valid_symbols_provided")
+            ) {
                 log.warn("MarketStack rejected all symbols [{}] on {} - no valid tickers", assetId, date)
                 MarketStackResponse(emptyList(), null)
             } else {

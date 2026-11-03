@@ -1,5 +1,6 @@
 package com.beancounter.common.accrual
 
+import com.beancounter.common.utils.MathUtils.Companion.MONTHS_PER_YEAR
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.MathContext
@@ -78,7 +79,7 @@ class InterestAccrual {
         }
         @Suppress("UNUSED_VARIABLE")
         val unused = convention
-        val monthlyRate = annualRate.divide(BigDecimal(12), SCALE, RoundingMode.HALF_UP)
+        val monthlyRate = annualRate.divide(MONTHS_PER_YEAR, SCALE, RoundingMode.HALF_UP)
         val growthFactor = BigDecimal.ONE.add(monthlyRate).pow(totalMonths)
         val numerator = growthFactor.subtract(BigDecimal.ONE)
         return monthlyPayment.multiply(numerator).divide(monthlyRate, 2, RoundingMode.HALF_UP)
@@ -99,8 +100,8 @@ class InterestAccrual {
         require(days >= 0) { "end must be on/after start" }
         val daysBd = BigDecimal(days)
         return when (convention) {
-            DayCountConvention.ACT_365_FIXED -> daysBd.divide(BigDecimal(365), SCALE, RoundingMode.HALF_UP)
-            DayCountConvention.ACT_360 -> daysBd.divide(BigDecimal(360), SCALE, RoundingMode.HALF_UP)
+            DayCountConvention.ACT_365_FIXED -> daysBd.divide(YEAR_OF_365_DAYS, SCALE, RoundingMode.HALF_UP)
+            DayCountConvention.ACT_360 -> daysBd.divide(YEAR_OF_360_DAYS, SCALE, RoundingMode.HALF_UP)
             DayCountConvention.ACT_ACT -> actActYearFraction(start, end)
             DayCountConvention.THIRTY_360 -> thirty360YearFraction(start, end)
         }
@@ -133,24 +134,23 @@ class InterestAccrual {
         start: LocalDate,
         end: LocalDate
     ): BigDecimal {
-        val d1 = minOf(start.dayOfMonth, 30)
-        val d2 = if (d1 == 30) minOf(end.dayOfMonth, 30) else end.dayOfMonth
-        val days = 360L * (end.year - start.year) + 30L * (end.monthValue - start.monthValue) + (d2 - d1)
-        return BigDecimal(days).divide(BigDecimal(360), SCALE, RoundingMode.HALF_UP)
+        val d1 = minOf(start.dayOfMonth, THIRTY_360_MONTH_DAYS)
+        val d2 = if (d1 == THIRTY_360_MONTH_DAYS) minOf(end.dayOfMonth, THIRTY_360_MONTH_DAYS) else end.dayOfMonth
+        val days =
+            THIRTY_360_YEAR_DAYS * (end.year - start.year) +
+                THIRTY_360_MONTH_DAYS.toLong() * (end.monthValue - start.monthValue) +
+                (d2 - d1)
+        return BigDecimal(days).divide(YEAR_OF_360_DAYS, SCALE, RoundingMode.HALF_UP)
     }
 
-    private fun daysInYearOf(date: LocalDate): Int =
-        if (java.time.Year
-                .of(date.year)
-                .isLeap
-        ) {
-            366
-        } else {
-            365
-        }
+    private fun daysInYearOf(date: LocalDate): Int = date.lengthOfYear()
 
     companion object {
         private val MC = MathContext.DECIMAL128
         private const val SCALE = 10
+        private const val THIRTY_360_MONTH_DAYS = 30
+        private const val THIRTY_360_YEAR_DAYS = 360L
+        private val YEAR_OF_365_DAYS = BigDecimal(365)
+        private val YEAR_OF_360_DAYS = BigDecimal(360)
     }
 }

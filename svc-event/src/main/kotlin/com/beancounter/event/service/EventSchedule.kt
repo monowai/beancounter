@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
+private const val EVENT_LOOKBACK_DAYS = 5L
+
 /**
  * Scheduled event execution to obtain corporate events.
  */
@@ -44,7 +46,7 @@ class EventSchedule(
 
             // Process events
             val end = dateUtils.date
-            val start = end.minusDays(5)
+            val start = end.minusDays(EVENT_LOOKBACK_DAYS)
 
             log.debug("Processing events from $start to $end")
 

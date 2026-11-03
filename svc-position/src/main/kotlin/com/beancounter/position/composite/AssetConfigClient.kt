@@ -5,6 +5,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
@@ -31,7 +32,7 @@ class AssetConfigClient(
                     .retrieve()
                     .body<PrivateAssetConfigResponseDto>()
             } catch (ex: RestClientResponseException) {
-                if (ex.statusCode.value() == 404) {
+                if (ex.statusCode.value() == HttpStatus.NOT_FOUND.value()) {
                     throw NotFoundException("Asset config not found: $assetId")
                 }
                 throw ex

@@ -18,6 +18,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import com.beancounter.position.valuation.Valuation
@@ -304,7 +305,7 @@ class NetWorthService(
         if (total.signum() == 0) {
             BigDecimal.ZERO.setScale(MONEY_SCALE)
         } else {
-            value.multiply(ONE_HUNDRED).divide(total, MONEY_SCALE, RoundingMode.HALF_UP)
+            value.multiply(HUNDRED).divide(total, MONEY_SCALE, RoundingMode.HALF_UP)
         }
 
     private fun sum(values: Collection<BigDecimal>): BigDecimal = values.fold(BigDecimal.ZERO, BigDecimal::add)
@@ -318,7 +319,6 @@ class NetWorthService(
         private val log = LoggerFactory.getLogger(NetWorthService::class.java)
         private const val DEFAULT_CONFIG_CURRENCY = "USD"
         private const val HEALTHCARE_RESERVE_CODE = "MA"
-        private val ONE_HUNDRED = BigDecimal(100)
 
         const val GROUP_INVESTMENT = "Investment"
         const val GROUP_CASH = "Cash"

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.MathUtils.Companion.MONTHS_PER_YEAR
 import com.beancounter.marketdata.assets.ContributionFrequency
 import com.beancounter.marketdata.assets.PrivateAssetConfig
 import com.beancounter.marketdata.assets.PrivateAssetConfigRepository
@@ -65,9 +66,13 @@ class BalanceContributionStamper(
         val amount = config?.monthlyContribution ?: return null
         if (amount.signum() <= 0) return null
         return if (config.contributionFrequency == ContributionFrequency.ANNUAL) {
-            amount.divide(BigDecimal(12), 4, RoundingMode.HALF_UP)
+            amount.divide(MONTHS_PER_YEAR, MONTHLY_AMOUNT_SCALE, RoundingMode.HALF_UP)
         } else {
             amount
         }
+    }
+
+    companion object {
+        private const val MONTHLY_AMOUNT_SCALE = 4
     }
 }

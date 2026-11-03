@@ -15,6 +15,8 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 
+private const val CLIENT_REGISTRATION_CHAIN_ORDER = Ordered.HIGHEST_PRECEDENCE + 10
+
 /**
  * SBA server security.
  *
@@ -95,7 +97,7 @@ class SecurityConfig(
     }
 
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE + 10)
+    @Order(CLIENT_REGISTRATION_CHAIN_ORDER)
     fun clientRegistrationFilterChain(http: HttpSecurity): SecurityFilterChain {
         val contextPath = adminServer.contextPath
         http

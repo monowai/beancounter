@@ -107,7 +107,10 @@ class RetireTools(
             description = "Optional ISO currency to convert results into; omit for plan's native currency.",
             required = false
         ) displayCurrency: String? = null
-    ): Map<String, Any> = compact(retireServiceClient.runMonteCarlo(planId, iterations ?: 1000, displayCurrency))
+    ): Map<String, Any> =
+        compact(
+            retireServiceClient.runMonteCarlo(planId, iterations ?: DEFAULT_MONTE_CARLO_ITERATIONS, displayCurrency)
+        )
 
     @Tool(description = COMPOSITE_PROJECTION_DESC)
     fun runCompositeRetirementProjection(
@@ -152,7 +155,11 @@ class RetireTools(
         ) iterations: Int? = null
     ): Map<String, Any> =
         compact(
-            retireServiceClient.runCompositeMonteCarlo(phases, displayCurrency, iterations ?: 1000)
+            retireServiceClient.runCompositeMonteCarlo(
+                phases,
+                displayCurrency,
+                iterations ?: DEFAULT_MONTE_CARLO_ITERATIONS
+            )
         )
 
     /**
@@ -166,6 +173,8 @@ class RetireTools(
     private fun compact(raw: Map<String, Any>): Map<String, Any> = compactor.compact(raw) as Map<String, Any>
 
     companion object {
+        private const val DEFAULT_MONTE_CARLO_ITERATIONS = 1000
+
         const val PHASE_ID_PARAM =
             "Phase id — a planId from an independence Plan's `phases` (listIndependencePlans), " +
                 "or an id from listRetirementPlans"

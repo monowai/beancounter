@@ -12,6 +12,8 @@ import org.springframework.web.client.RestTemplate
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 
+private const val REFRESH_SKEW_SECONDS = 30L
+
 /**
  * Fetches and caches an Auth0 M2M access token for background scrape
  * threads in [BearerTokenHttpHeadersProvider]. SBA's monitor schedule
@@ -42,11 +44,10 @@ class M2mTokenService(
     private val log = LoggerFactory.getLogger(javaClass)
     private val restTemplate = RestTemplate()
     private val cached = AtomicReference<CachedM2m?>(null)
-    private val refreshSkewSeconds = 30L
 
     fun token(): String? {
         cached.get()?.let { existing ->
-            if (Instant.now().isBefore(existing.expiresAt.minusSeconds(refreshSkewSeconds))) {
+            if (Instant.now().isBefore(existing.expiresAt.minusSeconds(REFRESH_SKEW_SECONDS))) {
                 return existing.value
             }
         }

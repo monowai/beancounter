@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import java.time.LocalDate
 
+private const val EARLIEST_RATE_YEAR = 1900
+
 /**
  * Repository interface for accessing FX Rate data.
  * Extends JpaRepository (rather than plain CrudRepository) so
@@ -19,7 +21,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
      * Used for normal valuations - uses whatever rate we have cached.
      *
      * @param date The date to find rates for.
-     * @param earlyDate The early date for base rates, default is 1900-01-01.
+     * @param earlyDate The early date for base rates, default is Jan 1 of [EARLIEST_RATE_YEAR].
      * @return A list of FxRate entities that match the criteria.
      */
     @Query(
@@ -35,7 +37,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         date: LocalDate,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -47,7 +49,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
      *
      * @param date The date to compare against.
      * @param provider The FX rate provider (e.g., FRANKFURTER, EXCHANGE_RATES_API).
-     * @param earlyDate The early date to compare against, default is 1900-01-01.
+     * @param earlyDate The early date to compare against, default is Jan 1 of [EARLIEST_RATE_YEAR].
      * @return A list of FxRate entities that match the criteria.
      */
     @Query(
@@ -64,7 +66,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         provider: String,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -75,7 +77,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
      * Used for normal valuations.
      *
      * @param from The source currency.
-     * @param earlyDate The early date to compare against, default is 1900-01-01.
+     * @param earlyDate The early date to compare against, default is Jan 1 of [EARLIEST_RATE_YEAR].
      * @return The base FxRate entity that matches the criteria, or null if not found.
      */
     @Query(
@@ -85,7 +87,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         from: Currency,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -97,7 +99,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
      *
      * @param from The source currency.
      * @param provider The FX rate provider.
-     * @param earlyDate The early date to compare against, default is 1900-01-01.
+     * @param earlyDate The early date to compare against, default is Jan 1 of [EARLIEST_RATE_YEAR].
      * @return The base FxRate entity that matches the criteria, or null if not found.
      */
     @Query(
@@ -114,7 +116,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         provider: String,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 1
             )
@@ -140,7 +142,7 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
         date: LocalDate,
         earlyDate: LocalDate =
             LocalDate.of(
-                1900,
+                EARLIEST_RATE_YEAR,
                 1,
                 2
             )

@@ -107,6 +107,8 @@ class KeyGenUtils {
             }
         }
 
+        // Base64 bit-packing: the shifts and masks are the encoding, so naming them adds nothing.
+        @Suppress("MagicNumber")
         private fun encodeBase64(bytes: ByteArray): String {
             // Output is always 22 characters.
             val chars = CharArray(MIN_LEN)
@@ -132,6 +134,8 @@ class KeyGenUtils {
             return String(chars)
         }
 
+        // Base64 bit-packing: the shifts and masks are the encoding, so naming them adds nothing.
+        @Suppress("MagicNumber")
         private fun decodeBase64(s: String): ByteArray {
             // Output is always 16 bytes (UUID).
             val bytes = ByteArray(TWO_BYTES)

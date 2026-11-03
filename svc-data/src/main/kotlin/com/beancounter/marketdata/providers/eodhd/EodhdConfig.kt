@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
 
+private const val DEFAULT_ASSETS_PER_REQUEST = 50
+
 /**
  * Configuration settings for the EODHD market data provider.
  *
@@ -45,7 +47,7 @@ class EodhdConfig(
     // serial `/api/eod/{symbol}` round-trips. Raise via env var if a single
     // portfolio holds more positions than this.
     @Value($$"${beancounter.market.providers.eodhd.batchSize:50}")
-    var assetsPerRequest = 50
+    var assetsPerRequest = DEFAULT_ASSETS_PER_REQUEST
 
     @Value($$"${beancounter.market.providers.eodhd.markets:}")
     var markets: String? = null

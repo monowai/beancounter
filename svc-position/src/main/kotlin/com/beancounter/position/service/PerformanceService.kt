@@ -782,10 +782,10 @@ class PerformanceService(
         val series = twrCalculator.calculateSeries(snapshots)
         val dataPoints =
             snapshots.mapIndexed { index, snapshot ->
-                val growthOf1000 = series.getOrElse(index) { BigDecimal("1000") }
+                val growthOf1000 = series.getOrElse(index) { GROWTH_BASE }
                 val cumulativeReturn =
                     growthOf1000
-                        .divide(BigDecimal("1000"), 6, RoundingMode.HALF_UP)
+                        .divide(GROWTH_BASE, CUMULATIVE_RETURN_SCALE, RoundingMode.HALF_UP)
                         .subtract(BigDecimal.ONE)
                 PerformanceDataPoint(
                     date = snapshot.date,
@@ -1033,7 +1033,7 @@ class PerformanceService(
                             date = p.date,
                             growthFactor =
                                 p.growthOf1000
-                                    .divide(BigDecimal("1000"), 8, RoundingMode.HALF_UP),
+                                    .divide(GROWTH_BASE, GROWTH_FACTOR_SCALE, RoundingMode.HALF_UP),
                             mv = p.marketValue.multiply(rate),
                             contrib = p.netContributions.multiply(rate),
                             divs = p.cumulativeDividends.multiply(rate)
@@ -1090,14 +1090,14 @@ class PerformanceService(
                 val curr = p[i] ?: continue
                 if (prev.mv.signum() <= 0) continue
                 if (prev.growthFactor.signum() <= 0) continue
-                val r = curr.growthFactor.divide(prev.growthFactor, 10, RoundingMode.HALF_UP)
+                val r = curr.growthFactor.divide(prev.growthFactor, SUB_PERIOD_RETURN_SCALE, RoundingMode.HALF_UP)
                 val w = prev.mv
                 numerator = numerator.add(w.multiply(r))
                 weightSum = weightSum.add(w)
             }
             val subReturn =
                 if (weightSum.signum() > 0) {
-                    numerator.divide(weightSum, 10, RoundingMode.HALF_UP)
+                    numerator.divide(weightSum, SUB_PERIOD_RETURN_SCALE, RoundingMode.HALF_UP)
                 } else {
                     BigDecimal.ONE
                 }
@@ -1119,12 +1119,12 @@ class PerformanceService(
                         .subtract(periodContrib)
                 val growthOf1000 =
                     cumFactor[i]
-                        .multiply(BigDecimal("1000"))
-                        .setScale(4, RoundingMode.HALF_UP)
+                        .multiply(GROWTH_BASE)
+                        .setScale(GROWTH_OF_1000_SCALE, RoundingMode.HALF_UP)
                 val cumulativeReturn =
                     cumFactor[i]
                         .subtract(BigDecimal.ONE)
-                        .setScale(8, RoundingMode.HALF_UP)
+                        .setScale(AGGREGATE_RETURN_SCALE, RoundingMode.HALF_UP)
                 AggregatedPerformanceDataPoint(
                     date = sortedDates[i],
                     growthOf1000 = growthOf1000,
@@ -1198,7 +1198,7 @@ class PerformanceService(
                 .PeriodicCashFlows()
         periodic.addAll(flows)
         val xirr = irrCalculator.calculate(periodic)
-        return BigDecimal(xirr).setScale(6, RoundingMode.HALF_UP)
+        return BigDecimal(xirr).setScale(XIRR_SCALE, RoundingMode.HALF_UP)
     }
 
     private data class DisplaySnapshot(
@@ -1216,6 +1216,7 @@ class PerformanceService(
     )
 
     companion object {
+        private val GROWTH_BASE = BigDecimal("1000")
         private val log = LoggerFactory.getLogger(PerformanceService::class.java)
 
         // Matches PrivateMarketDataProvider.ID in svc-data: single latest-price
@@ -1223,6 +1224,12 @@ class PerformanceService(
         private const val PRIVATE_MARKET = "PRIVATE"
 
         private const val CASH_LEG_SCALE = 10
+        private const val CUMULATIVE_RETURN_SCALE = 6
+        private const val GROWTH_FACTOR_SCALE = 8
+        private const val SUB_PERIOD_RETURN_SCALE = 10
+        private const val GROWTH_OF_1000_SCALE = 4
+        private const val AGGREGATE_RETURN_SCALE = 8
+        private const val XIRR_SCALE = 6
 
         // Portfolios calculated at once by [aggregate]. Each cold calculation makes bulk
         // price and FX calls to bc-data, whose 512m heap is the constraint.

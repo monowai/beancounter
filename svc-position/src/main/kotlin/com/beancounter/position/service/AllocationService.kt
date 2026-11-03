@@ -14,6 +14,7 @@ import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import org.slf4j.LoggerFactory
@@ -71,8 +72,8 @@ class AllocationService(
                 .map { (category, value) ->
                     val percentage =
                         value
-                            .divide(totalValue, 4, RoundingMode.HALF_UP)
-                            .multiply(BigDecimal(100))
+                            .divide(totalValue, RATIO_SCALE, RoundingMode.HALF_UP)
+                            .multiply(HUNDRED)
                             .setScale(2, RoundingMode.HALF_UP)
                     category to
                         CategoryAllocation(
@@ -170,7 +171,7 @@ class AllocationService(
         val liquidShare =
             marketValue
                 .multiply(liquidBalance)
-                .divide(total, 4, RoundingMode.HALF_UP)
+                .divide(total, LIQUID_SHARE_SCALE, RoundingMode.HALF_UP)
         val nonLiquidShare = marketValue.subtract(liquidShare)
         return liquidShare to nonLiquidShare
     }
@@ -341,6 +342,8 @@ class AllocationService(
 
     companion object {
         private val log = LoggerFactory.getLogger(AllocationService::class.java)
+        private const val RATIO_SCALE = 4
+        private const val LIQUID_SHARE_SCALE = 4
 
         // Categories that map to Cash allocation
         val CASH_CATEGORIES =

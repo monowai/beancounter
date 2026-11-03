@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.macro
 
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
 import com.beancounter.marketdata.providers.eodhd.EodhdProxy
 import com.beancounter.marketdata.providers.eodhd.model.EodhdPrice
@@ -77,7 +78,7 @@ class MacroIndicatorsService(
         return latest
             .subtract(lookback)
             .divide(lookback, DIVISION_CONTEXT)
-            .multiply(BigDecimal(100))
+            .multiply(HUNDRED)
             .setScale(CHANGE_SCALE, RoundingMode.HALF_UP)
     }
 

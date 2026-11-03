@@ -30,7 +30,7 @@ class MorningstarProxy {
     fun getPrice(
         securityId: String,
         currencyId: String = "GBP",
-        startDate: LocalDate = LocalDate.now().minusDays(7)
+        startDate: LocalDate = LocalDate.now().minusWeeks(1)
     ): String? {
         log.debug("Fetching price for {} from Morningstar", securityId)
         return morningstarGateway.getPrice(securityId, currencyId, startDate)

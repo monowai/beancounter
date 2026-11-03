@@ -6,6 +6,10 @@ import java.math.BigDecimal
 import java.time.LocalTime
 import java.util.TimeZone
 
+private const val DEFAULT_OPEN_HOUR = 9
+private const val DEFAULT_OPEN_MINUTE = 30
+private const val DEFAULT_PRICE_HOUR = 19
+
 /**
  * A stock exchange.
  *
@@ -30,8 +34,8 @@ data class Market(
     )
     val openTime: LocalTime =
         LocalTime.of(
-            9,
-            30
+            DEFAULT_OPEN_HOUR,
+            DEFAULT_OPEN_MINUTE
         ),
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
@@ -39,7 +43,7 @@ data class Market(
     )
     val priceTime: LocalTime =
         LocalTime.of(
-            19,
+            DEFAULT_PRICE_HOUR,
             0
         ),
     val daysToSubtract: Int = 1,

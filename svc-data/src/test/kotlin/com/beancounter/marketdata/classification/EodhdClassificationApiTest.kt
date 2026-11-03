@@ -4,6 +4,7 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.ClassificationLevel
+import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.MarketDataBoot
@@ -52,6 +53,12 @@ internal class EodhdClassificationApiTest {
     @MockitoBean
     private lateinit var classificationService: ClassificationService
 
+    @MockitoBean
+    private lateinit var taxonomy: ClassificationTaxonomy
+
+    @MockitoBean
+    private lateinit var fundLookThrough: FundLookThrough
+
     @Autowired
     private lateinit var enricher: EodhdClassificationEnricher
 
@@ -89,11 +96,11 @@ internal class EodhdClassificationApiTest {
         val enriched = enricher.enrichClassification(asset("VTI", "ETF"))
 
         assertThat(enriched).isEqualTo(EnrichmentResult.ENRICHED)
-        verify(classificationService).clearExposures("VTI-id")
+        verify(fundLookThrough).clearExposures("VTI-id")
 
         // All 11 EODHD sector names reach getOrCreateItem verbatim (normalization is downstream).
         val rawSectors = argumentCaptor<String>()
-        verify(classificationService, times(11)).getOrCreateItem(
+        verify(taxonomy, times(11)).getOrCreateItem(
             anyOrNull(),
             eq(ClassificationLevel.SECTOR),
             anyOrNull(),
@@ -105,7 +112,7 @@ internal class EodhdClassificationApiTest {
         // Weights are parsed from the `Equity_%` strings.
         val weights = argumentCaptor<BigDecimal>()
         verify(
-            classificationService,
+            fundLookThrough,
             times(11)
         ).addExposure(anyOrNull(), anyOrNull(), anyOrNull(), weights.capture(), anyOrNull())
         assertThat(weights.allValues).contains(BigDecimal("33.52294"))
@@ -128,30 +135,14 @@ internal class EodhdClassificationApiTest {
 
         assertThat(enriched).isEqualTo(EnrichmentResult.ENRICHED)
 
-        val rawSector = argumentCaptor<String>()
-        verify(
-            classificationService
-        ).getOrCreateItem(anyOrNull(), eq(ClassificationLevel.SECTOR), anyOrNull(), rawSector.capture(), anyOrNull())
-        assertThat(rawSector.firstValue).isEqualTo("Technology")
-
-        val industryName = argumentCaptor<String>()
-        verify(
-            classificationService
-        ).getOrCreateItem(
+        // The raw provider sector reaches the classification verbatim (normalization is downstream).
+        verify(classificationService).classify(
             anyOrNull(),
-            eq(ClassificationLevel.INDUSTRY),
-            industryName.capture(),
-            anyOrNull(),
-            anyOrNull()
+            eq(ClassificationStandard.EODHD),
+            eq("Technology"),
+            eq("Consumer Electronics"),
+            eq(AssetClassification.SOURCE_EODHD)
         )
-        assertThat(industryName.firstValue).isEqualTo("Consumer Electronics")
-
-        val levels = argumentCaptor<ClassificationLevel>()
-        verify(
-            classificationService,
-            times(2)
-        ).classifyAsset(anyOrNull(), anyOrNull(), anyOrNull(), levels.capture(), eq(AssetClassification.SOURCE_EODHD))
-        assertThat(levels.allValues).containsExactly(ClassificationLevel.SECTOR, ClassificationLevel.INDUSTRY)
     }
 
     companion object {

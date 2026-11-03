@@ -28,6 +28,9 @@ class AssetEntityListenerIntegrationTest {
     lateinit var assetService: AssetService
 
     @Autowired
+    lateinit var assetAdministration: AssetAdministration
+
+    @Autowired
     lateinit var assetRepository: AssetRepository
 
     @Test
@@ -84,9 +87,9 @@ class AssetEntityListenerIntegrationTest {
         assertThat(asset.market.currency).isNotNull
         assertThat(asset.assetCategory).isNotNull
 
-        // Status change forces an @PostUpdate path via assetService.updateStatus,
+        // Status change forces an @PostUpdate path via assetAdministration.updateStatus,
         // which calls assetRepository.save on the modified copy.
-        val updated = assetService.updateStatus(asset.id, Status.Inactive)
+        val updated = assetAdministration.updateStatus(asset.id, Status.Inactive)
 
         assertThat(updated.status).isEqualTo(Status.Inactive)
         assertThat(updated.market.code).isEqualTo(NASDAQ.code)

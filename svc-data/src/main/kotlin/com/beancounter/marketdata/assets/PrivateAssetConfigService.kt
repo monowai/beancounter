@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.assets
 
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.utils.DateUtils
@@ -10,7 +9,6 @@ import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 
 /**
  * Service for managing private asset configurations.
@@ -100,14 +98,13 @@ class PrivateAssetConfigService(
     ): PrivateAssetConfigResponse {
         accessControl.verifyOwnership(assetId)
         logSaveRequest(assetId, request)
-        validateSubAccountCodes(request.subAccounts)
-        validateTaxTreatment(request)
+        val update = PrivateAssetConfigUpdate(request).also { it.validate() }
 
         // A new config starts from the entity defaults and takes the request like an update.
         val existing =
             configRepository.findById(assetId).orElse(null)
                 ?: PrivateAssetConfig(assetId = assetId, createdDate = dateUtils.date)
-        val config = mergeRequest(existing, assetId, request)
+        val config = update.applyTo(existing, assetId, dateUtils.date)
 
         val saved = configRepository.save(config)
         logSavedConfig(assetId, saved)
@@ -144,169 +141,6 @@ class PrivateAssetConfigService(
                 "policyType: ${saved.policyType}, " +
                 "subAccounts: ${saved.subAccounts.size}"
         )
-    }
-
-    /**
-     * Resolve the monthly rental income from the request,
-     * zeroing it out when the asset is marked as a primary residence.
-     */
-    private fun resolveRentalIncome(
-        request: PrivateAssetConfigRequest,
-        fallback: BigDecimal
-    ): BigDecimal =
-        if (request.isPrimaryResidence == true) {
-            BigDecimal.ZERO
-        } else {
-            request.monthlyRentalIncome ?: fallback
-        }
-
-    /**
-     * Merge request values over the config's current values.
-     */
-    private fun mergeRequest(
-        existing: PrivateAssetConfig,
-        assetId: String,
-        request: PrivateAssetConfigRequest
-    ): PrivateAssetConfig {
-        val updated =
-            existing
-                .copy(
-                    monthlyRentalIncome = resolveRentalIncome(request, existing.monthlyRentalIncome),
-                    rentalCurrency = request.rentalCurrency ?: existing.rentalCurrency,
-                    countryCode = request.countryCode?.uppercase() ?: existing.countryCode,
-                    updatedDate = dateUtils.date
-                ).mergeExpenses(request)
-                .mergePropertyFlags(request)
-                .mergeTransactionSettings(request)
-                .mergePensionSettings(request)
-                .mergeCpfSettings(request)
-                .mergeUsUkPolicySettings(request)
-        mergeSubAccounts(updated, assetId, request.subAccounts)
-        return updated
-    }
-
-    private fun PrivateAssetConfig.mergeExpenses(request: PrivateAssetConfigRequest) =
-        copy(
-            monthlyManagementFee = request.monthlyManagementFee ?: monthlyManagementFee,
-            managementFeePercent = request.managementFeePercent ?: managementFeePercent,
-            monthlyBodyCorporateFee = request.monthlyBodyCorporateFee ?: monthlyBodyCorporateFee,
-            annualPropertyTax = request.annualPropertyTax ?: annualPropertyTax,
-            annualInsurance = request.annualInsurance ?: annualInsurance,
-            monthlyOtherExpenses = request.monthlyOtherExpenses ?: monthlyOtherExpenses
-        )
-
-    private fun PrivateAssetConfig.mergePropertyFlags(request: PrivateAssetConfigRequest) =
-        copy(
-            deductIncomeTax = request.deductIncomeTax ?: deductIncomeTax,
-            isPrimaryResidence = request.isPrimaryResidence ?: isPrimaryResidence,
-            liquidationPriority = request.liquidationPriority ?: liquidationPriority
-        )
-
-    private fun PrivateAssetConfig.mergeTransactionSettings(request: PrivateAssetConfigRequest) =
-        copy(
-            transactionDayOfMonth = request.transactionDayOfMonth ?: transactionDayOfMonth,
-            creditAccountId = request.creditAccountId ?: creditAccountId,
-            autoGenerateTransactions = request.autoGenerateTransactions ?: autoGenerateTransactions,
-            expectedReturnRate = request.expectedReturnRate ?: expectedReturnRate
-        )
-
-    private fun PrivateAssetConfig.mergePensionSettings(request: PrivateAssetConfigRequest) =
-        copy(
-            payoutAge = request.payoutAge ?: payoutAge,
-            monthlyPayoutAmount = request.monthlyPayoutAmount ?: monthlyPayoutAmount,
-            lumpSum = request.lumpSum ?: lumpSum,
-            monthlyContribution = request.monthlyContribution ?: monthlyContribution,
-            contributionFrequency = request.contributionFrequency ?: contributionFrequency,
-            isPension = request.isPension ?: isPension,
-            policyType = request.policyType ?: policyType,
-            lockedUntilDate = request.lockedUntilDate ?: lockedUntilDate
-        )
-
-    private fun PrivateAssetConfig.mergeCpfSettings(request: PrivateAssetConfigRequest) =
-        copy(
-            cpfLifePlan = request.cpfLifePlan ?: cpfLifePlan,
-            cpfPayoutStartAge = request.cpfPayoutStartAge ?: cpfPayoutStartAge
-        )
-
-    /**
-     * Merge US 401k/IRA + UK ISA settings. Kept permissive (MVP): fields are
-     * accepted regardless of [PrivateAssetConfig.policyType] and are harmless
-     * (unused) on policy types that don't consume them.
-     */
-    private fun PrivateAssetConfig.mergeUsUkPolicySettings(request: PrivateAssetConfigRequest) =
-        copy(
-            taxTreatment = request.taxTreatment?.let { TaxTreatment.valueOf(it) } ?: taxTreatment,
-            employeeDeferralPercent = request.employeeDeferralPercent ?: employeeDeferralPercent,
-            employerMatchPercent = request.employerMatchPercent ?: employerMatchPercent,
-            employerMatchCapPercent = request.employerMatchCapPercent ?: employerMatchCapPercent,
-            withdrawalTaxRate = request.withdrawalTaxRate ?: withdrawalTaxRate
-        )
-
-    /**
-     * Validate that sub-account codes are unique within the request.
-     */
-    private fun validateSubAccountCodes(subAccounts: List<SubAccountRequest>?) {
-        if (subAccounts.isNullOrEmpty()) return
-        val codes = subAccounts.map { it.code.uppercase() }
-        val duplicates = codes.groupBy { it }.filter { it.value.size > 1 }.keys
-        if (duplicates.isNotEmpty()) {
-            throw BusinessException("Duplicate sub-account codes: ${duplicates.joinToString()}")
-        }
-    }
-
-    /**
-     * Reject an unknown [PrivateAssetConfigRequest.taxTreatment] string.
-     * Permissive on which [PolicyType] it's attached to (MVP) — only the
-     * value itself is validated against [TaxTreatment].
-     */
-    private fun validateTaxTreatment(request: PrivateAssetConfigRequest) {
-        val value = request.taxTreatment ?: return
-        if (TaxTreatment.entries.none { it.name == value }) {
-            throw BusinessException(
-                "Invalid taxTreatment: $value. Must be one of: " +
-                    TaxTreatment.entries.joinToString { it.name }
-            )
-        }
-    }
-
-    /**
-     * Merge sub-accounts from the request into the existing config.
-     * Uses orphanRemoval to delete sub-accounts not in the request.
-     */
-    private fun mergeSubAccounts(
-        config: PrivateAssetConfig,
-        assetId: String,
-        requestSubAccounts: List<SubAccountRequest>?
-    ) {
-        if (requestSubAccounts == null) return
-
-        val existingByCode = config.subAccounts.associateBy { it.code.uppercase() }
-        val updatedSubAccounts =
-            requestSubAccounts.map { req ->
-                val code = req.code.uppercase()
-                val existing = existingByCode[code]
-                if (existing != null) {
-                    existing.copy(
-                        displayName = req.displayName,
-                        balance = req.balance,
-                        expectedReturnRate = req.expectedReturnRate,
-                        feeRate = req.feeRate,
-                        liquid = req.liquid
-                    )
-                } else {
-                    PrivateAssetSubAccount(
-                        assetId = assetId,
-                        code = code,
-                        displayName = req.displayName,
-                        balance = req.balance,
-                        expectedReturnRate = req.expectedReturnRate,
-                        feeRate = req.feeRate,
-                        liquid = req.liquid
-                    )
-                }
-            }
-        config.subAccounts.clear()
-        config.subAccounts.addAll(updatedSubAccounts)
     }
 
     /**

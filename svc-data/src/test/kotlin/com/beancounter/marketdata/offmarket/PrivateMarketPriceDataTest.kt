@@ -16,7 +16,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.PriceService
+import com.beancounter.marketdata.providers.OffMarketPrices
 import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -49,7 +49,7 @@ class PrivateMarketPriceDataTest {
     lateinit var marketDataService: MarketDataService
 
     @Autowired
-    lateinit var priceService: PriceService
+    lateinit var offMarketPrices: OffMarketPrices
 
     private val owner = "test-user"
 
@@ -182,8 +182,8 @@ class PrivateMarketPriceDataTest {
         val priceResponse =
             PriceResponse(
                 listOf(
-                    priceService
-                        .getMarketData(
+                    offMarketPrices
+                        .record(
                             assetId = asset.id,
                             date = DateUtils().getFormattedDate("2022-01-01"),
                             closePrice = BigDecimal.TEN

@@ -4,8 +4,6 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.AssetClassificationsResponse
 import com.beancounter.common.contracts.AssetExposuresResponse
 import com.beancounter.common.contracts.AssetHoldingsResponse
-import com.beancounter.common.contracts.BackfillResponse
-import com.beancounter.common.contracts.BackfillResult
 import com.beancounter.common.contracts.BulkClassificationRequest
 import com.beancounter.common.contracts.BulkClassificationResponse
 import com.beancounter.common.contracts.DeleteSectorResponse
@@ -14,7 +12,6 @@ import com.beancounter.common.contracts.ManualClassificationRequest
 import com.beancounter.common.contracts.ManualClassificationResponse
 import com.beancounter.common.contracts.SectorInfo
 import com.beancounter.common.contracts.SectorsResponse
-import com.beancounter.marketdata.assets.AssetRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
@@ -28,99 +25,22 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * REST endpoints for asset classification and sector management.
+ * REST endpoints for reading and setting asset classifications, and for managing sectors.
+ * Provider refresh and backfill live in [ClassificationRefreshController].
  */
 @RestController
 @RequestMapping("/classifications")
 @CrossOrigin
 @Tag(name = "Classifications", description = "Asset classification and sector exposure management")
 class ClassificationController(
-    private val classificationEnricher: ClassificationEnricher,
     private val classificationService: ClassificationService,
-    private val classificationRefreshService: ClassificationRefreshService,
-    private val assetRepository: AssetRepository
+    private val taxonomy: ClassificationTaxonomy,
+    private val fundLookThrough: FundLookThrough
 ) {
     private val log = LoggerFactory.getLogger(ClassificationController::class.java)
-
-    @PostMapping(
-        value = ["/backfill"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
-    @Operation(
-        summary = "Backfill classifications for existing assets",
-        description = "Enriches existing assets with sector/industry classifications from AlphaVantage"
-    )
-    fun backfillClassifications(
-        @RequestParam(required = false) category: String? = null,
-        @RequestParam(required = false, defaultValue = "100") limit: Int = 100
-    ): BackfillResponse {
-        log.info(
-            "Starting classification backfill: category=" +
-                "$category, limit=$limit"
-        )
-
-        val assets =
-            assetRepository
-                .findAll()
-                .asSequence()
-                .filter { asset ->
-                    category == null || asset.category.equals(category, ignoreCase = true)
-                }.filter { asset ->
-                    classificationEnricher.canEnrich(asset)
-                }.filter { asset ->
-                    // Only enrich assets that don't have classifications yet
-                    if (classificationEnricher.isEtf(asset)) {
-                        !classificationService.hasExposures(asset.id)
-                    } else {
-                        !classificationService.hasClassifications(asset.id)
-                    }
-                }.take(limit)
-                .toList()
-
-        var processed = 0
-        var errors = 0
-        var noData = 0
-        var rateLimited = 0
-
-        for (asset in assets) {
-            try {
-                // Goes through the refresh service (not the enricher directly) so
-                // classificationCheckedAt gets stamped here too - otherwise a manually
-                // backfilled asset would still look "never checked" to the resume-aware
-                // scheduled refresh and get re-attempted for no reason.
-                when (classificationRefreshService.attempt(asset)) {
-                    EnrichmentResult.ENRICHED -> processed++
-                    EnrichmentResult.FAILED -> errors++
-                    EnrichmentResult.NO_DATA -> noData++
-                    EnrichmentResult.RATE_LIMITED -> rateLimited++
-                }
-            } catch (
-                @Suppress("TooGenericExceptionCaught")
-                e: Exception
-            ) {
-                // Continue processing other assets even if one fails
-                errors++
-                log.warn("Failed to enrich classification for ${asset.id}: ${e.message}")
-            }
-        }
-
-        val result =
-            BackfillResult(
-                processed = processed,
-                errors = errors,
-                total = assets.size,
-                noData = noData,
-                rateLimited = rateLimited
-            )
-        log.info("Classification backfill complete: $result")
-
-        return BackfillResponse(data = result)
-    }
 
     @GetMapping(
         value = ["/{assetId}"],
@@ -151,7 +71,7 @@ class ClassificationController(
     )
     fun getExposures(
         @PathVariable assetId: String
-    ): AssetExposuresResponse = AssetExposuresResponse(data = classificationService.getExposures(assetId))
+    ): AssetExposuresResponse = AssetExposuresResponse(data = fundLookThrough.getExposures(assetId))
 
     @GetMapping(
         value = ["/{assetId}/holdings"],
@@ -166,7 +86,7 @@ class ClassificationController(
     )
     fun getHoldings(
         @PathVariable assetId: String
-    ): AssetHoldingsResponse = AssetHoldingsResponse(data = classificationService.getHoldings(assetId))
+    ): AssetHoldingsResponse = AssetHoldingsResponse(data = fundLookThrough.getHoldings(assetId))
 
     // A pure read. The widget scope is allowed because svc-position forwards the caller's JWT
     // here to value net worth.
@@ -219,7 +139,7 @@ class ClassificationController(
     )
     fun listSectors(): SectorsResponse {
         val sectors =
-            classificationService.getAllSectors().map { item ->
+            taxonomy.getAllSectors().map { item ->
                 SectorInfo(
                     code = item.code,
                     name = item.name,
@@ -244,7 +164,7 @@ class ClassificationController(
         @PathVariable sectorCode: String
     ): DeleteSectorResponse {
         log.info("Deleting custom sector: $sectorCode")
-        val affectedAssets = classificationService.deleteSector(sectorCode)
+        val affectedAssets = taxonomy.deleteSector(sectorCode)
         return DeleteSectorResponse(
             data =
                 DeleteSectorResult(
@@ -253,110 +173,4 @@ class ClassificationController(
                 )
         )
     }
-
-    @PostMapping(
-        value = ["/refresh/etf"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
-    @Operation(
-        summary = "Refresh all ETF sector exposures",
-        description = "Re-fetches sector weightings from AlphaVantage for all ETF assets"
-    )
-    fun refreshEtfSectors(): BackfillResponse {
-        log.info("Manual ETF sector refresh triggered")
-        val result = classificationRefreshService.refreshEtfSectors()
-        return BackfillResponse(data = result)
-    }
-
-    @PostMapping(
-        value = ["/refresh/equity"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
-    @Operation(
-        summary = "Refresh all Equity classifications",
-        description = "Re-fetches sector/industry classifications from AlphaVantage for all Equity assets"
-    )
-    fun refreshEquityClassifications(): BackfillResponse {
-        log.info("Manual Equity classification refresh triggered")
-        val result = classificationRefreshService.refreshEquityClassifications()
-        return BackfillResponse(data = result)
-    }
-
-    @PostMapping(
-        value = ["/refresh/{assetId}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize(
-        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_ADMIN}')"
-    )
-    @Operation(
-        summary = "Refresh classification for a single asset",
-        description = "Re-fetches classification data from AlphaVantage for the specified asset"
-    )
-    fun refreshAsset(
-        @PathVariable assetId: String
-    ): Map<String, Any> {
-        log.info("Refreshing classification for asset: $assetId")
-        val result = classificationRefreshService.refreshAsset(assetId)
-        return mapOf(
-            "assetId" to assetId,
-            "refreshed" to (result == EnrichmentResult.ENRICHED),
-            "result" to result.name
-        )
-    }
-
-    @PostMapping(
-        value = ["/refresh/{market}/{code}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize(
-        "hasAnyAuthority('${AuthConstants.SCOPE_USER}', '${AuthConstants.SCOPE_ADMIN}')"
-    )
-    @Operation(
-        summary = "Refresh classification for an asset by market and code",
-        description = "Re-fetches classification data from AlphaVantage for the specified asset"
-    )
-    fun refreshAssetByCode(
-        @PathVariable market: String,
-        @PathVariable code: String
-    ): Map<String, Any> {
-        log.info("Refreshing classification for $market:$code")
-        val result = classificationRefreshService.refreshAssetByCode(market, code)
-        return mapOf(
-            "market" to market,
-            "code" to code,
-            "refreshed" to (result == EnrichmentResult.ENRICHED),
-            "result" to result.name
-        )
-    }
-
-    @GetMapping(
-        value = ["/debug/count"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
-    @Operation(summary = "Debug: Count all classifications")
-    fun debugCount(): Map<String, Long> =
-        mapOf(
-            "classifications" to classificationService.countClassifications(),
-            "exposures" to classificationService.countExposures()
-        )
-
-    @GetMapping(
-        value = ["/debug/sample"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
-    @Operation(summary = "Debug: Get sample classifications")
-    fun debugSample(): List<Map<String, Any?>> = classificationService.getSampleClassifications()
-
-    @GetMapping(
-        value = ["/debug/sample-exposures"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
-    @Operation(summary = "Debug: Get sample exposures")
-    fun debugSampleExposures(): List<Map<String, Any?>> = classificationService.getSampleExposures()
 }

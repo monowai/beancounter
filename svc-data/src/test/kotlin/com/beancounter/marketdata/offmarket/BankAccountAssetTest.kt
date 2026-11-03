@@ -5,6 +5,7 @@ import com.beancounter.auth.model.Registration
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
+import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.TrnRequest
@@ -51,6 +52,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.module.kotlin.readValue
@@ -340,6 +342,24 @@ class BankAccountAssetTest {
         assertThat(updated)
             .hasFieldOrPropertyWithValue("name", "Updated Name")
             .hasFieldOrPropertyWithValue("accountingType.currency.code", NZD.code)
+    }
+
+    @Test
+    fun `should route GET me category to the caller's owned assets, not a market lookup`() {
+        val sysUser = SystemUser(id = "me-route-user")
+        mockAuthConfig.login(sysUser, this.systemUserService)
+        createOwnedAccount(sysUser, "ME-ROUTE")
+
+        val result =
+            mockMvc
+                .perform(
+                    get("$ASSET_ROOT/me/{category}", AssetCategory.ACCOUNT)
+                        .with(jwt().jwt(mockAuthConfig.getUserToken(sysUser)))
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        val response = objectMapper.readValue<AssetUpdateResponse>(result.response.contentAsString)
+        assertThat(response.data).containsKey("ME-ROUTE")
     }
 
     private fun patchMyAsset(

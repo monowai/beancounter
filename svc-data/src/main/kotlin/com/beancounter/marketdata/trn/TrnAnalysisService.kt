@@ -1,15 +1,9 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.common.contracts.FxRequest
-import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.classification.ClassificationService
-import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
@@ -17,22 +11,18 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.YearMonth
-
-private const val TOP_CONTRIBUTORS_LIMIT = 10
 
 /**
- * Service for transaction analysis operations including investment tracking and income reporting.
+ * Investment tracking: net BUY - SELL activity for the current user. Income reporting lives in
+ * [IncomeAnalysisService].
  */
 @Service
 @Transactional
 class TrnAnalysisService(
     private val trnRepository: TrnRepository,
     private val systemUserService: SystemUserService,
-    private val fxRateService: FxRateService,
-    private val assetRepository: AssetRepository,
-    private val classificationService: ClassificationService,
     private val portfolioService: PortfolioService,
+    private val tradeAmountFx: TradeAmountFx,
     private val dateUtils: DateUtils = DateUtils()
 ) {
     private val log = LoggerFactory.getLogger(TrnAnalysisService::class.java)
@@ -125,11 +115,11 @@ class TrnAnalysisService(
             return BigDecimal.ZERO
         }
 
-        val todayRates = todayRatesFor(transactions, targetCurrency)
+        val amounts = tradeAmountFx.into(targetCurrency, transactions)
 
         var total = BigDecimal.ZERO
         for (trn in transactions) {
-            val convertedAmount = tradeAmountIn(trn, targetCurrency, todayRates)
+            val convertedAmount = amounts.of(trn)
 
             // BUY is positive, SELL is negative (ADD excluded - represents transfers)
             total =
@@ -179,13 +169,13 @@ class TrnAnalysisService(
             )
         }
 
-        val todayRates = todayRatesFor(transactions, targetCurrency)
+        val amounts = tradeAmountFx.into(targetCurrency, transactions)
 
         var totalPurchases = BigDecimal.ZERO
         var totalSales = BigDecimal.ZERO
 
         for (trn in transactions) {
-            val convertedAmount = tradeAmountIn(trn, targetCurrency, todayRates)
+            val convertedAmount = amounts.of(trn)
 
             when (trn.trnType) {
                 TrnType.BUY -> {
@@ -222,281 +212,10 @@ class TrnAnalysisService(
     }
 
     /**
-     * Get monthly income data for the current user over a rolling period.
-     *
-     * @param months Number of months to include (default 12)
-     * @param endMonth End month (default current month)
-     * @param portfolioIds Optional list of portfolio IDs to filter by
-     * @param groupBy Grouping option: "assetClass" (public API name for AccountingType category), "sector", "currency", or "market"
-     * @param targetCurrency Currency code every amount in the report is expressed in
-     * @return MonthlyIncomeResponse with aggregated income data
-     */
-    fun getMonthlyIncome(
-        months: Int = 12,
-        endMonth: YearMonth = YearMonth.now(dateUtils.zoneId),
-        portfolioIds: List<String> = emptyList(),
-        groupBy: String = "assetClass",
-        targetCurrency: String
-    ): MonthlyIncomeResponse {
-        val startMonth = endMonth.minusMonths((months - 1).toLong())
-        val startDate = startMonth.atDay(1)
-        val endDate = endMonth.atEndOfMonth()
-
-        val transactions = fetchIncomeTransactions(portfolioIds, startDate, endDate)
-        val assetMetaData = buildAssetMetaData(transactions.toList(), groupBy)
-        val allMonths = generateMonthRange(startMonth, endMonth)
-
-        val monthlyTotals = mutableMapOf<YearMonth, BigDecimal>()
-        allMonths.forEach { monthlyTotals[it] = BigDecimal.ZERO }
-
-        val todayRates = todayRatesFor(transactions, targetCurrency)
-
-        val groupData = mutableMapOf<String, GroupAggregation>()
-        for (trn in transactions) {
-            val amount = tradeAmountIn(trn, targetCurrency, todayRates)
-            aggregateTransaction(trn, amount, allMonths, monthlyTotals, groupBy, assetMetaData, groupData)
-        }
-
-        return buildIncomeResponse(
-            startMonth,
-            endMonth,
-            groupBy,
-            targetCurrency,
-            allMonths,
-            monthlyTotals,
-            groupData
-        )
-    }
-
-    private fun fetchIncomeTransactions(
-        portfolioIds: List<String>,
-        startDate: LocalDate,
-        endDate: LocalDate
-    ): Iterable<Trn> =
-        if (portfolioIds.isEmpty()) {
-            val user = systemUserService.getOrThrow()
-            trnRepository.findIncomeByOwnerAndDateRange(user, startDate, endDate, TrnStatus.SETTLED)
-        } else {
-            requireAccess(portfolioIds)
-            trnRepository.findIncomeByPortfoliosAndDateRange(portfolioIds, startDate, endDate, TrnStatus.SETTLED)
-        }
-
-    /**
      * [PortfolioService.find] per id, so an unknown or unauthorized portfolio
      * rejects the whole request rather than returning a partial report.
      */
     private fun requireAccess(portfolioIds: List<String>) {
         portfolioIds.forEach(portfolioService::find)
-    }
-
-    private fun generateMonthRange(
-        startMonth: YearMonth,
-        endMonth: YearMonth
-    ): List<YearMonth> {
-        val months = mutableListOf<YearMonth>()
-        var current = startMonth
-        while (!current.isAfter(endMonth)) {
-            months.add(current)
-            current = current.plusMonths(1)
-        }
-        return months
-    }
-
-    private data class GroupAggregation(
-        val groupKey: String,
-        var totalIncome: BigDecimal = BigDecimal.ZERO,
-        val monthlyData: MutableList<MonthlyIncomeData>,
-        val assetIncomes: MutableMap<String, IncomeContributor> = mutableMapOf()
-    )
-
-    private fun resolveGroupKey(
-        groupBy: String,
-        meta: AssetMetaData?,
-        trn: Trn
-    ): String =
-        when (groupBy) {
-            "assetClass" -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
-            "sector" -> meta?.sector?.ifBlank { "Unknown" } ?: "Unknown"
-            "currency" -> trn.tradeCurrency.code
-            "market" -> meta?.marketCode ?: "Unknown"
-            else -> meta?.category?.ifBlank { "Unknown" } ?: "Unknown"
-        }
-
-    private fun aggregateTransaction(
-        trn: Trn,
-        amount: BigDecimal,
-        allMonths: List<YearMonth>,
-        monthlyTotals: MutableMap<YearMonth, BigDecimal>,
-        groupBy: String,
-        assetMetaData: Map<String, AssetMetaData>,
-        groupData: MutableMap<String, GroupAggregation>
-    ) {
-        val trnMonth = YearMonth.from(trn.tradeDate)
-        val monthIndex = allMonths.indexOf(trnMonth)
-
-        monthlyTotals[trnMonth] = monthlyTotals.getOrDefault(trnMonth, BigDecimal.ZERO).add(amount)
-
-        val assetId = trn.asset.id
-        val meta = assetMetaData[assetId]
-        val groupKey = resolveGroupKey(groupBy, meta, trn)
-
-        val groupAgg =
-            groupData.getOrPut(groupKey) {
-                GroupAggregation(
-                    groupKey = groupKey,
-                    monthlyData = allMonths.map { MonthlyIncomeData(it.toString(), BigDecimal.ZERO) }.toMutableList()
-                )
-            }
-        groupAgg.totalIncome = groupAgg.totalIncome.add(amount)
-        if (monthIndex >= 0) {
-            val existingData = groupAgg.monthlyData[monthIndex]
-            groupAgg.monthlyData[monthIndex] =
-                MonthlyIncomeData(existingData.yearMonth, existingData.income.add(amount))
-        }
-
-        val assetContrib =
-            groupAgg.assetIncomes.getOrPut(assetId) {
-                IncomeContributor(assetId, meta?.code ?: assetId, meta?.name, BigDecimal.ZERO)
-            }
-        assetContrib.totalIncome = assetContrib.totalIncome.add(amount)
-    }
-
-    private fun buildIncomeResponse(
-        startMonth: YearMonth,
-        endMonth: YearMonth,
-        groupBy: String,
-        currency: String,
-        allMonths: List<YearMonth>,
-        monthlyTotals: Map<YearMonth, BigDecimal>,
-        groupData: Map<String, GroupAggregation>
-    ): MonthlyIncomeResponse {
-        val totalIncome = monthlyTotals.values.fold(BigDecimal.ZERO) { acc, v -> acc.add(v) }
-        val monthlyDataList = allMonths.map { MonthlyIncomeData(it.toString(), monthlyTotals[it] ?: BigDecimal.ZERO) }
-
-        val groupIncomeList =
-            groupData.values
-                .map { agg ->
-                    IncomeGroupData(
-                        groupKey = agg.groupKey,
-                        totalIncome = agg.totalIncome,
-                        monthlyData = agg.monthlyData,
-                        topContributors =
-                            agg.assetIncomes.values
-                                .sortedByDescending { it.totalIncome }
-                                .take(TOP_CONTRIBUTORS_LIMIT)
-                    )
-                }.sortedByDescending { it.totalIncome }
-
-        return MonthlyIncomeResponse(
-            startMonth = startMonth.toString(),
-            endMonth = endMonth.toString(),
-            currency = currency,
-            totalIncome = totalIncome,
-            groupBy = groupBy,
-            months = monthlyDataList,
-            groups = groupIncomeList
-        )
-    }
-
-    /**
-     * Build a lightweight asset metadata lookup for income reporting.
-     * Fetches only the fields needed for grouping without full asset hydration.
-     */
-    private fun buildAssetMetaData(
-        transactions: List<Trn>,
-        groupBy: String
-    ): Map<String, AssetMetaData> {
-        if (transactions.isEmpty()) return emptyMap()
-
-        // Collect distinct asset IDs
-        val assetIds = transactions.map { it.asset.id }.distinct()
-        log.trace("Building metadata for ${assetIds.size} distinct assets")
-
-        // Fetch basic asset info (category, marketCode, code, name)
-        val assets = assetRepository.findAllById(assetIds).associateBy { it.id }
-
-        // Fetch sector data only if grouping by sector
-        val sectorData =
-            if (groupBy == "sector") {
-                classificationService.getClassificationSummaries(assetIds)
-            } else {
-                emptyMap()
-            }
-
-        // Build metadata map
-        return assetIds.associateWith { assetId ->
-            val asset = assets[assetId]
-            val classification = sectorData[assetId]
-            AssetMetaData(
-                assetId = assetId,
-                code = asset?.code ?: assetId,
-                name = asset?.name,
-                category = asset?.category ?: "Unknown",
-                marketCode = asset?.marketCode ?: "Unknown",
-                sector = classification?.sector
-            )
-        }
-    }
-
-    /**
-     * The rate stamped on the trn at trade date, when [targetCurrency] is one it records.
-     * A stamp of exactly 1 between different currencies means the rate was never computed.
-     */
-    private fun recordedRate(
-        trn: Trn,
-        targetCurrency: String
-    ): BigDecimal? {
-        val rate =
-            when (targetCurrency) {
-                trn.portfolio.currency.code -> trn.tradePortfolioRate
-                trn.portfolio.base.code -> trn.tradeBaseRate
-                else -> null
-            }
-        return rate?.takeUnless { it.compareTo(BigDecimal.ONE) == 0 }
-    }
-
-    /**
-     * The trn's trade amount in [targetCurrency], preferring the trade-date rate so past months
-     * stay stable and agree with positions. Fails rather than total amounts in unlike currencies.
-     */
-    private fun tradeAmountIn(
-        trn: Trn,
-        targetCurrency: String,
-        todayRates: Map<String, BigDecimal>
-    ): BigDecimal {
-        val fromCurrency = trn.tradeCurrency.code
-        if (fromCurrency == targetCurrency) return trn.tradeAmount
-
-        val rate =
-            recordedRate(trn, targetCurrency)
-                ?: todayRates["$fromCurrency:$targetCurrency"]
-                ?: throw BusinessException("No FX rate from $fromCurrency to $targetCurrency")
-        return trn.tradeAmount.multiply(rate)
-    }
-
-    /**
-     * Today's rates to [targetCurrency], fetched only for trns without a usable recorded rate.
-     */
-    private fun todayRatesFor(
-        transactions: Iterable<Trn>,
-        targetCurrency: String
-    ): Map<String, BigDecimal> {
-        val currenciesNeeded =
-            transactions
-                .filter { recordedRate(it, targetCurrency) == null }
-                .map { it.tradeCurrency.code }
-                .filter { it != targetCurrency }
-                .distinct()
-
-        return if (currenciesNeeded.isNotEmpty()) {
-            val fxRequest = FxRequest(rateDate = "today")
-            currenciesNeeded.forEach { fxRequest.add(IsoCurrencyPair(it, targetCurrency)) }
-            val fxResponse = fxRateService.getRates(fxRequest, "")
-            fxResponse.data.rates.entries.associate { (pair, fxRate) ->
-                "${pair.from}:${pair.to}" to fxRate.rate
-            }
-        } else {
-            emptyMap()
-        }
     }
 }

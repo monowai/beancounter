@@ -58,7 +58,7 @@ class AssetSearchPublicFallbackTest {
         dbAssets: List<com.beancounter.common.model.Asset> = emptyList(),
         // onSupportedMarket / toLocalSearchResult resolve via getMarketOrNull, not getMarket —
         // see its KDoc on MarketService (#1088). getMarket is still stubbed for the unrelated
-        // searchViaConfiguredProvider/searchFigiAssets/searchMarketStackAssets paths.
+        // searchViaConfiguredProvider, FigiAssetSearch.inMarket and MarketStack search paths.
         marketService: MarketService =
             mock {
                 on { getMarket(any()) } doReturn usMarket
@@ -92,20 +92,25 @@ class AssetSearchPublicFallbackTest {
                 on { getMarketDataProvider(any<Market>()) } doReturn marketProvider
                 on { getAllProviders() } doReturn allProviders
             }
+        val figiAssetSearch = FigiAssetSearch(figiGateway, figiConfig, marketService)
         val service =
             AssetSearchService(
                 assetRepository =
                     mock { on { searchByCodeOrName(any()) } doReturn dbAssets },
-                alphaProxy = alphaProxy,
-                alphaConfig = alphaConfig,
-                marketStackGateway = mock<MarketStackGateway>(),
-                marketStackConfig =
-                    mock {
-                        on { markets } doReturn ""
-                        on { apiKey } doReturn "test"
-                    },
-                figiGateway = figiGateway,
-                figiConfig = figiConfig,
+                figiAssetSearch = figiAssetSearch,
+                providerSearchChain =
+                    ProviderSearchChain(
+                        alphaProxy = alphaProxy,
+                        alphaConfig = alphaConfig,
+                        marketStackGateway = mock<MarketStackGateway>(),
+                        marketStackConfig =
+                            mock {
+                                on { markets } doReturn ""
+                                on { apiKey } doReturn "test"
+                            },
+                        figiAssetSearch = figiAssetSearch,
+                        marketService = marketService
+                    ),
                 marketService = marketService,
                 systemUserService = mock<SystemUserService>(),
                 mdFactory = mdFactory
@@ -159,7 +164,7 @@ class AssetSearchPublicFallbackTest {
     }
 
     @Test
-    fun `searchFigiGlobal drops results whose exchCode does not map to a BC market`() {
+    fun `global FIGI search drops results whose exchCode does not map to a BC market`() {
         val figiFilterHits =
             FigiFilterResponse(
                 data =

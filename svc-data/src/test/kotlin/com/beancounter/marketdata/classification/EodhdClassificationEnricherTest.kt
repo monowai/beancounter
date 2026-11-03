@@ -36,6 +36,8 @@ class EodhdClassificationEnricherTest {
     private lateinit var eodhdConfig: EodhdConfig
     private lateinit var eodhdProxy: EodhdProxy
     private lateinit var classificationService: ClassificationService
+    private val taxonomy = mock<ClassificationTaxonomy>()
+    private val fundLookThrough = mock<FundLookThrough>()
     private lateinit var enricher: EodhdClassificationEnricher
 
     private val market = Market(code = "NASDAQ", name = "NASDAQ")
@@ -57,14 +59,15 @@ class EodhdClassificationEnricherTest {
         eodhdConfig = mock()
         eodhdProxy = mock()
         classificationService = mock()
-        enricher = EodhdClassificationEnricher(eodhdConfig, eodhdProxy, classificationService)
+        enricher =
+            EodhdClassificationEnricher(eodhdConfig, eodhdProxy, classificationService, taxonomy, fundLookThrough)
 
         whenever(eodhdConfig.apiKey).thenReturn("demo")
-        whenever(classificationService.getEodhdStandard()).thenReturn(standard)
+        whenever(taxonomy.providerStandard(ClassificationStandard.EODHD)).thenReturn(standard)
         // getOrCreateItem takes nullable name/parent; anyOrNull() matches the null positions
         // (mockito-kotlin any() delegates to Mockito.any(Class) which rejects null).
         whenever(
-            classificationService.getOrCreateItem(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull())
+            taxonomy.getOrCreateItem(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull())
         ).thenAnswer { item("X", it.getArgument(1)) }
     }
 
@@ -102,10 +105,10 @@ class EodhdClassificationEnricherTest {
         val result = enricher.enrichClassification(etf())
 
         assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
-        verify(classificationService).clearExposures("etf-1")
+        verify(fundLookThrough).clearExposures("etf-1")
 
         val weights = argumentCaptor<BigDecimal>()
-        verify(classificationService, times(2)).addExposure(any(), any(), any(), weights.capture(), any())
+        verify(fundLookThrough, times(2)).addExposure(any(), any(), any(), weights.capture(), any())
         assertThat(weights.allValues).containsExactlyInAnyOrder(
             BigDecimal("33.52294"),
             BigDecimal("11.97072")
@@ -124,15 +127,13 @@ class EodhdClassificationEnricherTest {
         val result = enricher.enrichClassification(equity())
 
         assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
-        val levels = argumentCaptor<ClassificationLevel>()
-        verify(classificationService, times(2)).classifyAsset(
+        verify(classificationService).classify(
             any(),
-            any(),
-            any(),
-            levels.capture(),
+            eq(ClassificationStandard.EODHD),
+            eq("Technology"),
+            eq("Consumer Electronics"),
             eq(AssetClassification.SOURCE_EODHD)
         )
-        assertThat(levels.allValues).containsExactly(ClassificationLevel.SECTOR, ClassificationLevel.INDUSTRY)
     }
 
     @Test
@@ -143,7 +144,7 @@ class EodhdClassificationEnricherTest {
         val result = enricher.enrichClassification(etf())
 
         assertThat(result).isEqualTo(EnrichmentResult.NO_DATA)
-        verify(classificationService, never()).addExposure(any(), any(), any(), any(), any())
+        verify(fundLookThrough, never()).addExposure(any(), any(), any(), any(), any())
     }
 
     @Test
@@ -154,6 +155,6 @@ class EodhdClassificationEnricherTest {
         val result = enricher.enrichClassification(etf())
 
         assertThat(result).isEqualTo(EnrichmentResult.FAILED)
-        verify(classificationService, never()).addExposure(any(), any(), any(), any(), any())
+        verify(fundLookThrough, never()).addExposure(any(), any(), any(), any(), any())
     }
 }

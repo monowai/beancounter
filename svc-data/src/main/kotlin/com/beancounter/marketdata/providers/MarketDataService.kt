@@ -30,7 +30,7 @@ class MarketDataService(
     private val backfillService: MarketDataBackfillService,
     private val utilityService: MarketDataUtilityService,
     private val priceProcessor: MarketDataPriceProcessor,
-    private val priceService: PriceService,
+    private val priceHistoryReader: PriceHistoryReader,
     private val dateUtils: DateUtils,
     private val mdFactory: MdFactory,
     private val liveQuoteService: LiveQuoteService
@@ -100,7 +100,7 @@ class MarketDataService(
                 assetService.resolveAsset(priceAsset)
             }
         val dates = bulkPriceRequest.dates.map { dateUtils.getFormattedDate(it) }
-        return BulkPriceResponse(priceService.getBulkMarketData(resolvedAssets, dates))
+        return BulkPriceResponse(priceHistoryReader.getBulkMarketData(resolvedAssets, dates))
     }
 
     /**

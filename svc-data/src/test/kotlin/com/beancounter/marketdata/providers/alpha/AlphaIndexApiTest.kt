@@ -10,7 +10,7 @@ import com.beancounter.marketdata.assets.INDEX_MARKET_CODE
 import com.beancounter.marketdata.assets.IndexConfig
 import com.beancounter.marketdata.assets.IndexSeedRunner
 import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.providers.PriceService
+import com.beancounter.marketdata.providers.PriceHistoryReader
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.ALPHA_MOCK
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockHistoricResponse
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -63,7 +63,7 @@ class AlphaIndexApiTest {
     private lateinit var marketDataService: MarketDataService
 
     @Autowired
-    private lateinit var priceService: PriceService
+    private lateinit var priceHistoryReader: PriceHistoryReader
 
     @Autowired
     private lateinit var indexConfig: IndexConfig
@@ -121,7 +121,7 @@ class AlphaIndexApiTest {
         marketDataService.backFill(gspc.id)
 
         val history =
-            priceService.getPriceHistory(
+            priceHistoryReader.getPriceHistory(
                 gspc.id,
                 LocalDate.of(2026, 5, 1),
                 LocalDate.of(2026, 5, 31)

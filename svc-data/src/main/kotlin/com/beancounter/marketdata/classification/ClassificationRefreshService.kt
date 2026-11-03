@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service
 class ClassificationRefreshService(
     private val assetRepository: AssetRepository,
     private val classificationEnricher: ClassificationEnricher,
+    private val classificationService: ClassificationService,
     @Value("\${beancounter.classification.stale-after-days:7}")
     private val staleAfterDays: Long = 7,
     @Value("\${beancounter.classification.batch-limit:20}")
@@ -97,13 +98,71 @@ class ClassificationRefreshService(
     }
 
     /**
-     * Enrich a single asset and stamp `classificationCheckedAt` (unless rate-limited). Public so
-     * other on-demand entry points - e.g. [ClassificationController.backfillClassifications] -
-     * can share the same stamping behaviour instead of calling [ClassificationEnricher] directly
-     * and leaving `classificationCheckedAt` unset (which would make the resume-aware refresh
-     * queries treat an already-backfilled asset as never-checked and re-attempt it for no reason).
+     * Enrich up to [limit] assets that a provider can classify but that carry no classification
+     * data yet, optionally only those in [category].
      */
-    fun attempt(asset: Asset): EnrichmentResult {
+    fun backfill(
+        category: String?,
+        limit: Int
+    ): BackfillResult {
+        log.info("Starting classification backfill: category=$category, limit=$limit")
+
+        val assets =
+            assetRepository
+                .findAll()
+                .asSequence()
+                .filter { asset ->
+                    category == null || asset.category.equals(category, ignoreCase = true)
+                }.filter { asset ->
+                    classificationEnricher.canEnrich(asset)
+                }.filter { asset ->
+                    !classificationService.isClassified(asset.id, fund = classificationEnricher.isEtf(asset))
+                }.take(limit)
+                .toList()
+
+        var processed = 0
+        var errors = 0
+        var noData = 0
+        var rateLimited = 0
+
+        for (asset in assets) {
+            try {
+                when (attempt(asset)) {
+                    EnrichmentResult.ENRICHED -> processed++
+                    EnrichmentResult.FAILED -> errors++
+                    EnrichmentResult.NO_DATA -> noData++
+                    EnrichmentResult.RATE_LIMITED -> rateLimited++
+                }
+            } catch (
+                @Suppress("TooGenericExceptionCaught")
+                e: Exception
+            ) {
+                // Continue processing other assets even if one fails
+                errors++
+                log.warn("Failed to enrich classification for ${asset.id}: ${e.message}")
+            }
+        }
+
+        val result =
+            BackfillResult(
+                processed = processed,
+                errors = errors,
+                total = assets.size,
+                noData = noData,
+                rateLimited = rateLimited
+            )
+        log.info("Classification backfill complete: $result")
+        return result
+    }
+
+    /**
+     * Enrich a single asset and stamp `classificationCheckedAt` (unless rate-limited). Every
+     * on-demand entry point, [backfill] included, goes through here rather than calling
+     * [ClassificationEnricher] directly: leaving `classificationCheckedAt` unset would make the
+     * resume-aware refresh queries treat an already-backfilled asset as never-checked and
+     * re-attempt it for no reason.
+     */
+    private fun attempt(asset: Asset): EnrichmentResult {
         val result = classificationEnricher.enrichClassification(asset)
         stampIfAttempted(asset, result)
         return result

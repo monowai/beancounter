@@ -30,19 +30,19 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-class TrnAnalysisServiceIncomeTest {
+class IncomeAnalysisServiceTest {
     private val trnRepository = mock<TrnRepository>()
     private val fxRateService = mock<FxRateService>()
     private val assetRepository = mock<AssetRepository>()
 
     private val service =
-        TrnAnalysisService(
+        IncomeAnalysisService(
             trnRepository,
             mock<SystemUserService>(),
-            fxRateService,
             assetRepository,
             mock<ClassificationService>(),
-            mock<PortfolioService>()
+            mock<PortfolioService>(),
+            TradeAmountFx(fxRateService)
         )
 
     private val usd = Currency("USD")

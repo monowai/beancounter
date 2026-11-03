@@ -10,8 +10,8 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AssetAdministration
 import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.utils.RegistrationUtils
@@ -77,7 +77,7 @@ class WatchlistAlertTest {
     private lateinit var assetRepository: AssetRepository
 
     @Autowired
-    private lateinit var assetService: AssetService
+    private lateinit var assetAdministration: AssetAdministration
 
     @Autowired
     private lateinit var marketDataRepo: MarketDataRepo
@@ -439,7 +439,7 @@ class WatchlistAlertTest {
         close(stock, 0, "125")
         alertService.checkTargets()
 
-        assetService.deleteAsset(stock.id)
+        assetAdministration.deleteAsset(stock.id)
 
         assertThat(alertsFor(itemId)).isEmpty()
         assertThat(alertRepository.findAll().filter { it.asset.id == stock.id }).isEmpty()

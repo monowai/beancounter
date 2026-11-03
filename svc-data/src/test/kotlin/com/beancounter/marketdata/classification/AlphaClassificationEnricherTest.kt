@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetClassification
 import com.beancounter.common.model.ClassificationItem
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.ClassificationStandard
@@ -48,6 +49,8 @@ class AlphaClassificationEnricherTest {
     private val alphaConfig = AlphaConfig()
     private lateinit var alphaProxy: AlphaProxy
     private lateinit var classificationService: ClassificationService
+    private val taxonomy = mock<ClassificationTaxonomy>()
+    private val fundLookThrough = mock<FundLookThrough>()
     private lateinit var enricher: AlphaClassificationEnricher
 
     private val market = Market(code = "NASDAQ", name = "NASDAQ")
@@ -68,16 +71,17 @@ class AlphaClassificationEnricherTest {
     fun setUp() {
         alphaProxy = mock()
         classificationService = mock()
-        enricher = AlphaClassificationEnricher(alphaConfig, alphaProxy, classificationService)
+        enricher =
+            AlphaClassificationEnricher(alphaConfig, alphaProxy, classificationService, taxonomy, fundLookThrough)
 
         // apiKey field is set via @Value; not injected outside a Spring context, so it stays the
         // Kotlin default-initialized empty lateinit - fine, alphaProxy is mocked and does not
         // care what key it receives. Force-set to keep the mock call signatures obvious.
         setApiKey(enricher, "demo")
 
-        whenever(classificationService.getAlphaStandard()).thenReturn(standard)
+        whenever(taxonomy.providerStandard(ClassificationStandard.ALPHA)).thenReturn(standard)
         whenever(
-            classificationService.getOrCreateItem(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull())
+            taxonomy.getOrCreateItem(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull())
         ).thenAnswer { item("X", it.getArgument(1)) }
     }
 
@@ -138,7 +142,7 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(fund)
 
         assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
-        verify(classificationService).addExposure(any(), any(), any(), any(), any())
+        verify(fundLookThrough).addExposure(any(), any(), any(), any(), any())
     }
 
     @Test
@@ -165,17 +169,17 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(etf("VOO"))
 
         assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
-        verify(classificationService).clearExposures("etf-1")
-        verify(classificationService).clearHoldings("etf-1")
+        verify(fundLookThrough).clearExposures("etf-1")
+        verify(fundLookThrough).clearHoldings("etf-1")
 
         // Sector exposures are written even though the holdings list contained junk rows.
-        verify(classificationService, times(2)).addExposure(any(), any(), any(), any(), any())
+        verify(fundLookThrough, times(2)).addExposure(any(), any(), any(), any(), any())
 
         // Only the two real symbols are persisted, de-duplicated case-insensitively and stored in
         // normalized form - the asset_holding unique constraint is case-sensitive, so persisting
         // raw casing would let "aapl" and "AAPL" both land for the same parent.
         val symbols = argumentCaptor<String>()
-        verify(classificationService, times(2)).addHolding(any(), symbols.capture(), anyOrNull(), any(), any())
+        verify(fundLookThrough, times(2)).addHolding(any(), symbols.capture(), anyOrNull(), any(), any())
         assertThat(symbols.allValues).containsExactlyInAnyOrder("AAPL", "MSFT")
     }
 
@@ -189,10 +193,10 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(etf("VOO"))
 
         assertThat(result).isEqualTo(EnrichmentResult.RATE_LIMITED)
-        verify(classificationService, never()).clearExposures(any())
-        verify(classificationService, never()).clearHoldings(any())
-        verify(classificationService, never()).addExposure(any(), any(), any(), any(), any())
-        verify(classificationService, never()).addHolding(any(), any(), anyOrNull(), any(), any())
+        verify(fundLookThrough, never()).clearExposures(any())
+        verify(fundLookThrough, never()).clearHoldings(any())
+        verify(fundLookThrough, never()).addExposure(any(), any(), any(), any(), any())
+        verify(fundLookThrough, never()).addHolding(any(), any(), anyOrNull(), any(), any())
     }
 
     @Test
@@ -205,7 +209,7 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(equity("AAPL"))
 
         assertThat(result).isEqualTo(EnrichmentResult.RATE_LIMITED)
-        verify(classificationService, never()).classifyAsset(any(), any(), any(), any(), any())
+        verify(classificationService, never()).classify(any(), any(), any(), anyOrNull(), any())
     }
 
     @Test
@@ -215,8 +219,8 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(etf("VOO"))
 
         assertThat(result).isEqualTo(EnrichmentResult.NO_DATA)
-        verify(classificationService, never()).clearExposures(any())
-        verify(classificationService, never()).clearHoldings(any())
+        verify(fundLookThrough, never()).clearExposures(any())
+        verify(fundLookThrough, never()).clearHoldings(any())
     }
 
     @Test
@@ -226,7 +230,7 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(equity("AAPL"))
 
         assertThat(result).isEqualTo(EnrichmentResult.NO_DATA)
-        verify(classificationService, never()).classifyAsset(any(), any(), any(), any(), any())
+        verify(classificationService, never()).classify(any(), any(), any(), anyOrNull(), any())
     }
 
     @Test
@@ -264,7 +268,13 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(equity("AAPL"))
 
         assertThat(result).isEqualTo(EnrichmentResult.ENRICHED)
-        verify(classificationService, times(2)).classifyAsset(any(), any(), any(), any(), any())
+        verify(classificationService).classify(
+            any(),
+            eq(ClassificationStandard.ALPHA),
+            eq("Technology"),
+            eq("Consumer Electronics"),
+            eq(AssetClassification.SOURCE_ALPHA_OVERVIEW)
+        )
     }
 
     /**
@@ -282,8 +292,8 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(etf("VOO"))
 
         assertThat(result).isEqualTo(EnrichmentResult.RATE_LIMITED)
-        verify(classificationService, never()).clearExposures(any())
-        verify(classificationService, never()).clearHoldings(any())
+        verify(fundLookThrough, never()).clearExposures(any())
+        verify(fundLookThrough, never()).clearHoldings(any())
     }
 
     /**
@@ -300,9 +310,9 @@ class AlphaClassificationEnricherTest {
         val result = enricher.enrichClassification(etf("NATO.LON"))
 
         assertThat(result).isEqualTo(EnrichmentResult.NO_DATA)
-        verify(classificationService, never()).clearExposures(any())
-        verify(classificationService, never()).addExposure(any(), any(), any(), any(), any())
-        verify(classificationService, never()).addHolding(any(), any(), anyOrNull(), any(), any())
+        verify(fundLookThrough, never()).clearExposures(any())
+        verify(fundLookThrough, never()).addExposure(any(), any(), any(), any(), any())
+        verify(fundLookThrough, never()).addHolding(any(), any(), anyOrNull(), any(), any())
     }
 
     /**

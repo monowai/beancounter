@@ -32,6 +32,9 @@ object AuthConstants {
     const val SCOPE_WIDGET = "SCOPE_$WIDGET"
     const val SCOPE_VERIFIED = "SCOPE_$VERIFIED"
 
+    /** The @PreAuthorize for a signed-in user or a service (M2M) caller. */
+    const val USER_OR_SYSTEM = "hasAnyAuthority('$SCOPE_USER', '$SCOPE_SYSTEM')"
+
     /** The @PreAuthorize for a handler listed in auth.widget-routes. */
     const val USER_WIDGET_OR_SYSTEM = "hasAnyAuthority('$SCOPE_USER', '$SCOPE_WIDGET', '$SCOPE_SYSTEM')"
 

@@ -37,6 +37,7 @@ import java.time.YearMonth
 )
 class TrnAnalysisController(
     var trnAnalysisService: TrnAnalysisService,
+    private val incomeAnalysisService: IncomeAnalysisService,
     private val dateUtils: DateUtils = DateUtils()
 ) {
     @GetMapping(
@@ -297,6 +298,6 @@ class TrnAnalysisController(
                 YearMonth.now(dateUtils.zoneId)
             }
         val portfolioIdList = portfolioIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
-        return trnAnalysisService.getMonthlyIncome(months, end, portfolioIdList, groupBy, currency)
+        return incomeAnalysisService.getMonthlyIncome(months, end, portfolioIdList, groupBy, currency)
     }
 }

@@ -32,7 +32,7 @@ internal class AssetStatusAuthTest
         private lateinit var jwtDecoder: JwtDecoder
 
         @MockitoBean
-        private lateinit var assetService: AssetService
+        private lateinit var assetAdministration: AssetAdministration
 
         @Test
         fun `should return 403 and not change status when token has only user scope`() {
@@ -45,7 +45,7 @@ internal class AssetStatusAuthTest
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(userOnlyToken()))
                 ).andExpect(MockMvcResultMatchers.status().isForbidden)
 
-            assertThat(Mockito.mockingDetails(assetService).invocations).isEmpty()
+            assertThat(Mockito.mockingDetails(assetAdministration).invocations).isEmpty()
         }
 
         @Test
@@ -61,7 +61,7 @@ internal class AssetStatusAuthTest
 
             assertThat(
                 Mockito
-                    .mockingDetails(assetService)
+                    .mockingDetails(assetAdministration)
                     .invocations
                     .map { it.method.name }
             ).contains("updateStatus")

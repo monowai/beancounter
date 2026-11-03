@@ -10,8 +10,8 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AssetAdministration
 import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MarketDataRepo
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.registration.SystemUserRepository
@@ -92,7 +92,7 @@ class WatchlistControllerTest {
     private lateinit var marketDataRepo: MarketDataRepo
 
     @Autowired
-    private lateinit var assetService: AssetService
+    private lateinit var assetAdministration: AssetAdministration
 
     @Autowired
     private lateinit var watchlistItemRepository: WatchlistItemRepository
@@ -505,7 +505,7 @@ class WatchlistControllerTest {
         val stock = asset("WLASSETGONE")
         val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 10))
 
-        assetService.deleteAsset(stock.id)
+        assetAdministration.deleteAsset(stock.id)
 
         assertThat(itemIds()).doesNotContain(itemId)
     }

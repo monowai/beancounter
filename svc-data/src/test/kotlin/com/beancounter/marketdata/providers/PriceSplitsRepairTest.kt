@@ -2,10 +2,8 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.assets.AssetFinder
-import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,8 +22,8 @@ import java.time.LocalDate
  * don't carry split coefficients per row (Alpha `TIME_SERIES_DAILY`) leave
  * the DB with `split = 1` across the board and charts span splits raw.
  */
-class PriceRepairServiceTest {
-    private lateinit var priceService: PriceService
+class PriceSplitsRepairTest {
+    private lateinit var priceSplits: PriceSplits
     private lateinit var marketDataRepo: MarketDataRepo
     private val assetFinder = mock(AssetFinder::class.java)
     private val eventServiceFacade = mock(EventServiceFacade::class.java)
@@ -33,8 +31,7 @@ class PriceRepairServiceTest {
     @BeforeEach
     fun setUp() {
         marketDataRepo = mock(MarketDataRepo::class.java)
-        priceService = PriceService(marketDataRepo, CashUtils(), assetFinder, mock(ConflictTolerantWriter::class.java))
-        priceService.setEventServiceFacade(eventServiceFacade)
+        priceSplits = PriceSplits(marketDataRepo, assetFinder, eventServiceFacade)
         whenever(assetFinder.find(AAPL.id)).thenReturn(AAPL)
     }
 
@@ -53,7 +50,7 @@ class PriceRepairServiceTest {
         whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
             .thenReturn(listOf(existing))
 
-        val response = priceService.repairSplits(AAPL.id)
+        val response = priceSplits.repairSplits(AAPL.id)
 
         assertThat(response.stamped).isEqualTo(1)
         assertThat(response.alreadyStamped).isEqualTo(0)
@@ -82,7 +79,7 @@ class PriceRepairServiceTest {
         whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
             .thenReturn(listOf(alpha, eodhd))
 
-        val response = priceService.repairSplits(AAPL.id)
+        val response = priceSplits.repairSplits(AAPL.id)
 
         assertThat(response.stamped).isEqualTo(2)
         assertThat(response.alreadyStamped).isEqualTo(0)
@@ -110,7 +107,7 @@ class PriceRepairServiceTest {
         whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
             .thenReturn(listOf(existing))
 
-        val response = priceService.repairSplits(AAPL.id)
+        val response = priceSplits.repairSplits(AAPL.id)
 
         assertThat(response.stamped).isEqualTo(0)
         assertThat(response.alreadyStamped).isEqualTo(1)
@@ -130,7 +127,7 @@ class PriceRepairServiceTest {
         whenever(marketDataRepo.findAllByAssetIdAndPriceDate(AAPL.id, exDate))
             .thenReturn(emptyList())
 
-        val response = priceService.repairSplits(AAPL.id)
+        val response = priceSplits.repairSplits(AAPL.id)
 
         assertThat(response.stamped).isEqualTo(0)
         assertThat(response.alreadyStamped).isEqualTo(0)

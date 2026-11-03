@@ -6,6 +6,14 @@ engines:
   # Disable TSQLLint - it's for SQL Server, not PostgreSQL
   tsqllint:
     enabled: false
+  # Complexity is a production-code metric. Tests stay in issue analysis, but a
+  # renamed or split test class reads as all-new complexity, since the deleted
+  # original is not credited.
+  metric:
+    exclude_paths:
+      - "**/src/test/**"
+      - "**/src/contractTest/**"
+      - "**/src/testFixtures/**"
 
 exclude_paths:
   # Exclude generated files

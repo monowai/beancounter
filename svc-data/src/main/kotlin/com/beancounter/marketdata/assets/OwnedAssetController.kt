@@ -46,7 +46,7 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/assets")
 @CrossOrigin
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
+    AuthConstants.USER_OR_SYSTEM
 )
 @Tag(
     name = "Assets",

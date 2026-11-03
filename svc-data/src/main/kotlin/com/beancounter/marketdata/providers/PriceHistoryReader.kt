@@ -9,6 +9,7 @@ import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.time.LocalDate
 
 /**
@@ -103,7 +104,7 @@ class PriceHistoryReader(
         rows: Int,
         started: Long
     ) {
-        val elapsedMs = (System.nanoTime() - started) / NANOS_PER_MILLI
+        val elapsedMs = Duration.ofNanos(System.nanoTime() - started).toMillis()
         if (elapsedMs >= SLOW_BULK_MS) {
             log.warn("Slow bulk prices: {}ms for {} assets x {} dates ({} rows)", elapsedMs, assets, dates, rows)
         } else {
@@ -229,6 +230,5 @@ class PriceHistoryReader(
         // for any developed market.
         const val FALLBACK_LOOKBACK_DAYS = 10L
         const val SLOW_BULK_MS = 5_000L
-        const val NANOS_PER_MILLI = 1_000_000L
     }
 }

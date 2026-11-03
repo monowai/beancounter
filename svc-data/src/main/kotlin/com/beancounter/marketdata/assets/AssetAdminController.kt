@@ -46,7 +46,7 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/assets")
 @CrossOrigin
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
+    AuthConstants.USER_OR_SYSTEM
 )
 @Tag(
     name = "Assets",
@@ -172,8 +172,10 @@ class AssetAdminController(
         description = """
             Updates the status of an asset (Active/Inactive).
             Use this to deactivate delisted assets so they are excluded from price refresh.
+            Requires admin scope: the status applies to every user of the asset.
         """
     )
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
     @ApiResponses(
         value = [
             ApiResponse(

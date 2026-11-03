@@ -95,7 +95,7 @@ class FigiAssetSearch(
                     AssetSearchResult(
                         symbol = result.ticker ?: keyword,
                         name = result.name ?: "",
-                        type = result.securityType2 ?: EQUITY,
+                        type = result.securityType2 ?: ProviderSearchChain.EQUITY,
                         region = market,
                         currency = resolvedMarket.currency.code,
                         market = market
@@ -135,7 +135,7 @@ class FigiAssetSearch(
                                 AssetSearchResult(
                                     symbol = result.ticker ?: keyword,
                                     name = result.name ?: "",
-                                    type = result.securityType2 ?: EQUITY,
+                                    type = result.securityType2 ?: ProviderSearchChain.EQUITY,
                                     region = market,
                                     currency = null,
                                     market = market
@@ -198,8 +198,6 @@ class FigiAssetSearch(
         }
 
     private companion object {
-        const val EQUITY = "Equity"
-
         val ALLOWED_SECURITY_TYPES =
             setOf(
                 "COMMON STOCK",

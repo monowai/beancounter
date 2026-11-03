@@ -164,7 +164,8 @@ class ProviderSearchChain(
             AssetSearchResponse(emptyList())
         }
 
-    private companion object {
+    internal companion object {
+        /** Search-result type when a provider does not name one. */
         const val EQUITY = "Equity"
     }
 }

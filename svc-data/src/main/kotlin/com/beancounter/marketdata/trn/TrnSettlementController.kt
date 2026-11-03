@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/trns")
 @CrossOrigin
 @PreAuthorize(
-    "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
+    AuthConstants.USER_OR_SYSTEM
 )
 @Tag(
     name = "Transaction Management",

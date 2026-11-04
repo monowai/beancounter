@@ -25,21 +25,23 @@ import java.time.Instant
     ]
 )
 data class ResourceShare(
-    @Id val id: String = KeyGenUtils().id,
+    @Id override val id: String = KeyGenUtils().id,
     @Enumerated(EnumType.STRING)
     @Column(name = "resource_type", nullable = false)
     val resourceType: ShareResourceType,
     @Column(name = "resource_id", nullable = false)
     val resourceId: String,
     val resourceName: String? = null,
-    @ManyToOne val sharedWith: SystemUser,
+    @ManyToOne override val sharedWith: SystemUser,
     @Enumerated(EnumType.STRING)
     val accessLevel: ShareAccessLevel = ShareAccessLevel.VIEW,
     @Enumerated(EnumType.STRING)
-    var status: ShareStatus = ShareStatus.PENDING_CLIENT_INVITE,
+    override var status: ShareStatus = ShareStatus.PENDING_CLIENT_INVITE,
     val createdAt: Instant = Instant.now(),
-    @ManyToOne val createdBy: SystemUser,
+    @ManyToOne override val createdBy: SystemUser,
     @ManyToOne val resourceOwner: SystemUser,
-    @ManyToOne val targetUser: SystemUser? = null,
-    var acceptedAt: Instant? = null
-)
+    @ManyToOne override val targetUser: SystemUser? = null,
+    override var acceptedAt: Instant? = null
+) : Share {
+    override fun owner(): SystemUser = resourceOwner
+}

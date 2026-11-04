@@ -18,6 +18,7 @@ import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import com.beancounter.position.valuation.AggregateValuationRequest
 import com.beancounter.position.valuation.Valuation
+import com.beancounter.position.valuation.gainOnDay
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -93,7 +94,7 @@ class NetWorthService(
         val healthcareReserve = money(convert(composite.reserve, rates))
         // Sum the rounded components so totalValue always reconciles with what is returned.
         val totalValue = money(holdingsValue).add(standaloneCompositeValue)
-        val gainOnDay = money(gainOnDay(positions))
+        val gainOnDay = money(positions.gainOnDay(Position.In.PORTFOLIO))
         val weekChangeAmount = weekChange.of(positions, asAt)?.let(::money)
 
         return NetWorth(
@@ -187,16 +188,6 @@ class NetWorthService(
         byCurrency.entries.fold(BigDecimal.ZERO) { acc, (currency, amount) ->
             acc.add(amount.multiply(rates.getValue(currency)))
         }
-
-    /**
-     * gainOnDay is meaningless without a price move, so only positions whose
-     * PORTFOLIO price data carries a non-zero change contribute.
-     */
-    private fun gainOnDay(positions: Positions): BigDecimal =
-        positions.positions.values
-            .mapNotNull { it.moneyValues[Position.In.PORTFOLIO] }
-            .filter { it.priceData.changePercent.signum() != 0 }
-            .fold(BigDecimal.ZERO) { acc, mv -> acc.add(mv.gainOnDay) }
 
     private fun classificationBreakdown(positions: Positions): List<NetWorthClassification> {
         val byGroup = mutableMapOf<String, BigDecimal>()

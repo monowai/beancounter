@@ -12,6 +12,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.holdings.PositionService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
@@ -59,9 +60,12 @@ class PortfolioPositions(
             .map { it.portfolio to accumulate(it.portfolio, it.trns, it.proposedLegs) }
 
     /**
-     * Reads each portfolio's trns and proposed cash legs from bc-data, every
-     * call at once. Neither read depends on the other, and the clients block,
-     * so they only overlap on the IO pool, each bound to the caller.
+     * Reads each portfolio's trns and proposed cash legs from bc-data, [READ_CONCURRENCY]
+     * portfolios at a time. Neither read depends on the other, and the clients block, so
+     * they only overlap on the IO pool, each bound to the caller. A failed trns read fails
+     * the whole selection: it is logged naming the portfolio, and no later group starts.
+     * Groups rather than a semaphore: a blocking read cannot be interrupted, so a cancelled
+     * holder would hand its permit on while the read still ran, starting queued reads.
      */
     private fun read(
         portfolios: Collection<Portfolio>,
@@ -69,14 +73,22 @@ class PortfolioPositions(
     ): List<PortfolioReads> {
         val caller = SecurityContextHolder.getContext()
         return runBlockingTraced(Dispatchers.IO) {
-            portfolios
-                .map { portfolio ->
-                    Triple(
-                        portfolio,
-                        async { caller.runAs { trnService.query(portfolio, valuationDate) } },
-                        async { caller.runAs { proposedLegs(portfolio, valuationDate) } }
-                    )
-                }.map { (portfolio, trns, legs) -> PortfolioReads(portfolio, trns.await().data.toTrns(), legs.await()) }
+            portfolios.chunked(READ_CONCURRENCY).flatMap { group ->
+                group
+                    .map { portfolio ->
+                        Triple(
+                            portfolio,
+                            async {
+                                log.reading(READ_TRNS, portfolio) {
+                                    caller.runAs { trnService.query(portfolio, valuationDate) }
+                                }
+                            },
+                            async { caller.runAs { proposedLegs(portfolio, valuationDate) } }
+                        )
+                    }.map { (portfolio, trns, legs) ->
+                        PortfolioReads(portfolio, trns.await().data.toTrns(), legs.await())
+                    }
+            }
         }
     }
 
@@ -122,6 +134,16 @@ class PortfolioPositions(
         } else {
             earmarkService.proposedLegs(portfolio, valuationDate)
         }
+
+    companion object {
+        /**
+         * Portfolios read from bc-data at once, two calls each. A large selection
+         * otherwise fans out one pair per portfolio against bc-data's 512m heap.
+         */
+        const val READ_CONCURRENCY = 8
+        private const val READ_TRNS = "Trns"
+        private val log = LoggerFactory.getLogger(PortfolioPositions::class.java)
+    }
 }
 
 /** One portfolio's bc-data reads for a valuation. */

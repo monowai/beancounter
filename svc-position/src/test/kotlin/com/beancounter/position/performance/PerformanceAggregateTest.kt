@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.PerformanceData
 import com.beancounter.common.contracts.PerformanceDataPoint
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
@@ -19,6 +20,7 @@ import com.beancounter.position.irr.IrrCalculator
 import com.beancounter.position.performance.cache.CachedSnapshot
 import com.beancounter.position.performance.cache.PerformanceCacheService
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.catchThrowable
 import org.assertj.core.data.Offset
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -322,11 +324,9 @@ class PerformanceAggregateTest {
     }
 
     @Test
-    fun `missing FX rate defaults to 1_0`() {
-        // Defensive path: if `fetchDisplayCurrencyRates` failed to find a pair
-        // (e.g. FX service returned no rate for an exotic currency), the map
-        // lookup is null and we apply 1.0 rather than blow up the whole
-        // aggregate. Worth pinning so this fallback isn't quietly removed.
+    fun `missing FX rate fails naming the pair`() {
+        // A missing rate never applies 1.0: an unconverted NZD figure under a USD label
+        // is wrong money. Same policy as the net-worth headline.
         val p = portfolio("P1", nzd)
         val series =
             listOf(
@@ -334,17 +334,39 @@ class PerformanceAggregateTest {
                 point("2025-12-01", "1100", "110", netContributions = "100")
             )
 
-        val result =
-            composer.compose(
-                perPortfolio = listOf(p to PerformanceData(nzd, series)),
-                displayCurrency = usd,
-                fxRates = mapOf("USD" to BigDecimal.ONE) // NZD missing
-            )
+        val thrown =
+            catchThrowable {
+                composer.compose(
+                    perPortfolio = listOf(p to PerformanceData(nzd, series)),
+                    displayCurrency = usd,
+                    fxRates = mapOf("USD" to BigDecimal.ONE) // NZD missing
+                )
+            }
 
-        // No FX applied → MV passes through unchanged in nominal terms.
-        assertThat(result.data.series).hasSize(2)
-        assertThat(result.data.series[0].marketValue).isEqualByComparingTo("100")
-        assertThat(result.data.series[1].marketValue).isEqualByComparingTo("110")
+        assertThat(thrown).isInstanceOf(BusinessException::class.java).hasMessageContaining("NZD:USD")
+    }
+
+    @Test
+    fun `aggregate fails naming the pair when svc-data has no display currency rate`() {
+        whenever(cacheService.isAvailable()).thenReturn(true)
+        val today = LocalDate.now()
+        whenever(cacheService.findAllSnapshots(eq("NZPF"))).thenReturn(
+            listOf(today.minusMonths(12), today).map {
+                CachedSnapshot(
+                    valuationDate = it,
+                    marketValue = BigDecimal("100"),
+                    externalCashFlow = BigDecimal.ZERO,
+                    netContributions = BigDecimal("100"),
+                    cumulativeDividends = BigDecimal.ZERO
+                )
+            }
+        )
+        lenient().`when`(tokenService.bearerToken).thenReturn("test-token")
+        whenever(fxRateService.getBulkRates(any(), any())).thenReturn(BulkFxResponse(emptyMap()))
+
+        val thrown = catchThrowable { service.aggregate(listOf(portfolio("NZPF", nzd)), 12, usd) }
+
+        assertThat(thrown).isInstanceOf(BusinessException::class.java).hasMessageContaining("NZD:USD")
     }
 
     @Test

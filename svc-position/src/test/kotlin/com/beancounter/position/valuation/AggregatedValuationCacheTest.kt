@@ -147,4 +147,20 @@ class AggregatedValuationCacheTest {
 
         override fun read(): Long = nanos
     }
+
+    @Test
+    fun `should key a repeated portfolio id the same as a single one`() {
+        val once =
+            ValuationCacheKey.of(
+                "subject-1",
+                AggregateValuationRequest(listOf(portfolio), DateUtils.TODAY, value = true)
+            )
+        val twice =
+            ValuationCacheKey.of(
+                "subject-1",
+                AggregateValuationRequest(listOf(portfolio, portfolio), DateUtils.TODAY, value = true)
+            )
+
+        assertThat(twice).isEqualTo(once)
+    }
 }

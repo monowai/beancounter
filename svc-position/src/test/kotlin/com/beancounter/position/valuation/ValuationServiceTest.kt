@@ -2,11 +2,13 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.StaticService
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
@@ -30,6 +32,7 @@ import com.beancounter.position.marketvalue.PositionValuationService
 import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -88,6 +91,9 @@ class ValuationServiceTest {
     @Mock
     private lateinit var earmarkService: EarmarkService
 
+    @Mock
+    private lateinit var staticService: StaticService
+
     @Captor
     private lateinit var portfolioCaptor: ArgumentCaptor<Portfolio>
 
@@ -109,6 +115,11 @@ class ValuationServiceTest {
             .lenient()
             .`when`(fxRateService.getRates(any(), any()))
             .thenReturn(FxResponse())
+
+        Mockito
+            .lenient()
+            .`when`(staticService.getCurrency(any()))
+            .thenAnswer { Currency(it.getArgument<String>(0)) }
 
         marketValueUpdateProducer = Mockito.spy(MarketValueUpdateProducer(streamBridge, dateUtils))
         valuationService =
@@ -297,6 +308,26 @@ class ValuationServiceTest {
 
         // Then - both calls load fresh (two full loads, not a cache hit)
         verify(trnService, times(2)).query(portfolio, DateUtils.TODAY)
+        verify(trnService, times(2)).query(portfolio2, DateUtils.TODAY)
+    }
+
+    @Test
+    fun `getAggregatedPositions loads twice when later portfolio ids come in a different order`() {
+        // Same first portfolio, same id set, different order after it. The response's
+        // portfolioBreakdown follows the caller's order, so the two must not share an entry.
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        val portfolio3 = TestHelpers.createTestPortfolio("Portfolio3")
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2, portfolio3), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio3, portfolio2), DateUtils.TODAY, value = false)
+        )
+
         verify(trnService, times(2)).query(portfolio2, DateUtils.TODAY)
     }
 
@@ -758,6 +789,16 @@ class ValuationServiceTest {
             }
         whenever(positionService.build(any(), any()))
             .thenReturn(PositionResponse(held))
+        whenever(fxRateService.getRates(any(), any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    mapOf(IsoCurrencyPair("USD", "SGD") to FxRate(Currency("USD"), Currency("SGD"), BigDecimal("1.3")))
+                )
+            )
+        )
+
+        val sgd = Currency("SGD", "Singapore Dollar", "S$")
+        whenever(staticService.getCurrency("SGD")).thenReturn(sgd)
 
         // When - request aggregation in SGD
         val result =
@@ -768,6 +809,8 @@ class ValuationServiceTest {
         // Then - the aggregate reports in SGD and its PORTFOLIO bucket is
         // denominated in the target currency.
         assertThat(result.data.portfolio.currency.code).isEqualTo("SGD")
+        assertThat(result.data.portfolio.currency.name).isEqualTo(sgd.name)
+        assertThat(result.data.portfolio.currency.symbol).isEqualTo(sgd.symbol)
         assertThat(result.data.portfolio.id).isEqualTo(usdPortfolio.id)
         val agg =
             result.data.positions.values
@@ -850,6 +893,114 @@ class ValuationServiceTest {
         assertThat(portfolioBucket.purchases)
             .describedAs("purchases must be FX-converted alongside cost")
             .isEqualByComparingTo(BigDecimal("567000.00"))
+    }
+
+    @Test
+    fun `getAggregatedPositions fails naming the pair when a cost conversion rate is missing`() {
+        val nzdPortfolio = TestHelpers.createTestPortfolio("nzd-pf", currencyCode = "NZD", baseCurrency = "NZD")
+        val asset = TestHelpers.createTestAsset("HOUSE", "PRIVATE")
+        whenever(trnService.query(any<Portfolio>(), any<String>())).thenReturn(
+            TrnResponse(
+                listOf(
+                    TestHelpers.createTestTransaction(
+                        asset = asset,
+                        portfolio = nzdPortfolio,
+                        trnType = TrnType.BUY,
+                        quantity = BigDecimal.ONE,
+                        price = PRICE_150,
+                        tradeDate = LocalDate.of(2024, 1, 15)
+                    )
+                )
+            )
+        )
+        val held =
+            Positions(nzdPortfolio).apply {
+                add(
+                    Position(asset, nzdPortfolio).apply {
+                        quantityValues.purchased = BigDecimal.ONE
+                        getMoneyValues(Position.In.PORTFOLIO, Currency("NZD")).costBasis = PRICE_150
+                    }
+                )
+            }
+        whenever(positionService.build(any(), any())).thenReturn(PositionResponse(held))
+        // svc-data returns no NZD:USD rate.
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val thrown =
+            catchThrowable {
+                valuationService.getAggregatedPositions(
+                    AggregateValuationRequest(
+                        listOf(nzdPortfolio),
+                        DateUtils.TODAY,
+                        value = false,
+                        targetCurrencyCode = "USD"
+                    )
+                )
+            }
+
+        assertThat(thrown).isInstanceOf(BusinessException::class.java).hasMessageContaining("NZD:USD")
+    }
+
+    @Test
+    fun `getAggregatedPositions sums earmarked cash in the cash asset's own units across portfolio currencies`() {
+        // Earmarked quantity is a count of the cash asset (USD units here), exactly like its
+        // settled quantity, whatever currency the holding portfolio reports in. Aggregation
+        // is keyed by asset, so both portfolios' USD cash lands on one position and the units
+        // add raw; MarketValue then prices units into each bucket with the bucket's close
+        // (see MarketValueTest). Converting the quantity here would price it twice.
+        val nzdPortfolio = TestHelpers.createTestPortfolio("nzd-pf", currencyCode = "NZD", baseCurrency = "NZD")
+        val usdPortfolio = TestHelpers.createTestPortfolio("usd-pf")
+        val usdCash =
+            TestHelpers.createTestAsset("USD", "CASH").apply {
+                assetCategory = AssetCategory(AssetCategory.CASH, "Cash")
+            }
+        mapOf(nzdPortfolio to BigDecimal("100"), usdPortfolio to BigDecimal("-30")).forEach { (p, earmark) ->
+            val trn =
+                TestHelpers.createTestTransaction(
+                    asset = usdCash,
+                    portfolio = p,
+                    trnType = TrnType.DEPOSIT,
+                    quantity = BigDecimal("1000"),
+                    price = BigDecimal.ONE,
+                    tradeDate = LocalDate.of(2024, 1, 15)
+                )
+            whenever(trnService.query(argThat { id == p.id }, any<String>())).thenReturn(TrnResponse(listOf(trn)))
+            val held =
+                Positions(p).apply {
+                    add(
+                        Position(usdCash, p).apply {
+                            quantityValues.purchased = BigDecimal("1000")
+                            earmarkedQuantity = earmark
+                        }
+                    )
+                }
+            whenever(positionService.build(eq(p), any())).thenReturn(PositionResponse(held))
+        }
+        whenever(fxRateService.getRates(any(), any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    listOf("NZD" to "SGD", "USD" to "SGD", "USD" to "NZD").associate { (from, to) ->
+                        IsoCurrencyPair(from, to) to FxRate(Currency(from), Currency(to), BigDecimal("0.8"))
+                    }
+                )
+            )
+        )
+
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(
+                    listOf(nzdPortfolio, usdPortfolio),
+                    DateUtils.TODAY,
+                    value = false,
+                    targetCurrencyCode = "SGD"
+                )
+            )
+
+        val cash =
+            result.data.positions.values
+                .single()
+        assertThat(cash.quantityValues.getTotal()).isEqualByComparingTo("2000")
+        assertThat(cash.earmarkedQuantity).isEqualByComparingTo("70")
     }
 
     @Test
@@ -1324,7 +1475,7 @@ class ValuationServiceTest {
         ValuationService(
             positionValuationService = positionValuationService,
             portfolioPositions = PortfolioPositions(trnService, positionService, earmarkService, tokenService),
-            portfolioConsolidation = PortfolioConsolidation(fxRateService, tokenService),
+            portfolioConsolidation = PortfolioConsolidation(fxRateService, tokenService, staticService),
             marketValueUpdateProducer = marketValueUpdateProducer,
             tokenService = tokenService,
             cacheTtlSeconds = cacheTtlSeconds

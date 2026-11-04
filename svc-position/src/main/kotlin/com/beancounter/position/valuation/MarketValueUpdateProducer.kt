@@ -33,11 +33,19 @@ class MarketValueUpdateProducer(
      */
     fun publish(valued: Positions) {
         if (!dateUtils.isToday(valued.asAt)) return
+        // Best effort, like the send: a payload that cannot be built never fails the valuation.
+        runCatching { payload(valued) }
+            .onSuccess(::sendMessage)
+            .onFailure { log.error("Market value update for portfolio {} not built", valued.portfolio.code, it) }
+    }
+
+    /** [valued]'s market value as the portfolio update bc-data stores, in portfolio.base. */
+    private fun payload(valued: Positions): Portfolio {
         val portfolio = valued.portfolio
         val baseTotals = valued.totals[Position.In.BASE]
         val marketValue = baseTotals?.marketValue ?: BigDecimal.ZERO
         val irr = baseTotals?.irr ?: BigDecimal.ZERO
-        val gainOnDay = gainOnDay(valued)
+        val gainOnDay = valued.gainOnDay(Position.In.BASE)
         val valuedAt = dateUtils.getDate(valued.asAt)
 
         log.trace(
@@ -48,7 +56,7 @@ class MarketValueUpdateProducer(
             gainOnDay,
             valuedAt
         )
-        sendMessage(portfolio.setMarketValue(marketValue, irr, gainOnDay, assetClassification(valued), valuedAt))
+        return portfolio.setMarketValue(marketValue, irr, gainOnDay, assetClassification(valued), valuedAt)
     }
 
     fun sendMessage(payload: Portfolio) {
@@ -64,12 +72,6 @@ class MarketValueUpdateProducer(
             log.error("Failed to send market value update for portfolio {}: {}", payload.code, e.message)
         }
     }
-
-    /** Total gain on day: every position's BASE gainOnDay summed. */
-    private fun gainOnDay(positions: Positions): BigDecimal =
-        positions.positions.values
-            .mapNotNull { it.moneyValues[Position.In.BASE]?.gainOnDay }
-            .fold(BigDecimal.ZERO) { acc, value -> acc.add(value) }
 
     /** BASE market value summed by each position's effectiveReportCategory. */
     private fun assetClassification(positions: Positions): Map<String, BigDecimal> =

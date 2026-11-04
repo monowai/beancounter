@@ -578,14 +578,9 @@ class PositionController(
             required = false
         ) ids: String?
     ): SectorExposureResponse {
-        val allPortfolios = portfolioServiceClient.portfolios.data
-        val selectedPortfolios =
-            if (ids.isNullOrBlank()) {
-                allPortfolios
-            } else {
-                val idSet = ids.split(",").map { it.trim() }.toSet()
-                allPortfolios.filter { it.id in idSet }
-            }
+        // Each id is fetched through svc-data, as /allocation does, so an M2M caller
+        // reading a shared plan's portfolios sees them.
+        val selectedPortfolios = PortfolioSelection(ids = ids).resolve(portfolioServiceClient)
 
         if (selectedPortfolios.isEmpty()) {
             return SectorExposureResponse()

@@ -2,7 +2,9 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.FxRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
@@ -13,7 +15,6 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.position.marketvalue.AverageCost
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -31,9 +32,9 @@ import java.time.LocalDate
 @Component
 class PortfolioConsolidation(
     private val fxRateService: FxService,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val staticService: StaticService
 ) {
-    private val log = LoggerFactory.getLogger(PortfolioConsolidation::class.java)
     private val averageCost = AverageCost()
 
     /**
@@ -44,7 +45,10 @@ class PortfolioConsolidation(
         request: AggregateValuationRequest,
         perPortfolio: List<Pair<Portfolio, Positions>>
     ): Positions {
-        val contextPortfolio = request.contextPortfolio()
+        val contextPortfolio =
+            request.contextPortfolio { code ->
+                staticService.getCurrency(code) ?: throw BusinessException("Unknown currency $code")
+            }
         // The cost buckets are accumulated in each source portfolio's own
         // currency. When the aggregate reports in a different currency (or
         // spans portfolios with differing currencies) those costs must be
@@ -158,16 +162,8 @@ class PortfolioConsolidation(
         rates: Map<IsoCurrencyPair, FxRate>
     ): BigDecimal {
         if (from.code == to.code) return BigDecimal.ONE
-        val rate = rates[IsoCurrencyPair(from.code, to.code)]?.rate
-        if (rate == null) {
-            log.warn(
-                "No FX rate for {}:{} while aggregating cost; leaving unconverted",
-                from.code,
-                to.code
-            )
-            return BigDecimal.ONE
-        }
-        return rate
+        val pair = IsoCurrencyPair(from.code, to.code)
+        return rates[pair]?.rate ?: throw BusinessException("No FX rate for $pair while aggregating cost")
     }
 
     /**

@@ -1,0 +1,166 @@
+package com.beancounter.event.backfill
+
+import com.beancounter.auth.model.OpenIdResponse
+import com.beancounter.common.event.CorporateEvent
+import com.beancounter.common.model.MarketData.Companion.isSplit
+import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.TrnType
+import com.beancounter.common.telemetry.runBlockingTraced
+import com.beancounter.common.utils.DateUtils
+import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
+import java.time.LocalDate
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+/**
+ * Loads corporate events for portfolios.
+ * Scans both backwards and forwards using the same daysToAdd value
+ * to catch missed events and pre-load upcoming events.
+ */
+@Service
+class EventLoader(
+    config: EventLoaderConfig,
+    @Value($$"${beancounter.events.dividend.days-to-add:10}")
+    private val daysToAdd: Long = 10,
+    private val dateUtils: DateUtils = DateUtils()
+) {
+    private val portfolioService = config.sharedConfig.portfolioService
+    private val positionService = config.serviceConfig.positionService
+    private val eventStore = config.serviceConfig.eventStore
+    private val priceService = config.serviceConfig.priceService
+    private val backFillService = config.serviceConfig.backFillService
+    private val dateSplitter = config.authConfig.dateSplitter
+    private val loginService = config.authConfig.loginService
+
+    // private val authContext: OpenIdResponse = loginService.loginM2m()
+
+    fun loadEvents(date: String) {
+        val portfolios = portfolioService.portfolios
+        log.info(
+            "Loading events from date: $date (window: +/- $daysToAdd days) for ${portfolios.data.size} portfolios"
+        )
+        for (portfolio in portfolios.data) {
+            loadEvents(portfolio.id, date)
+            log.info("Completed event load for ${portfolio.code}")
+        }
+    }
+
+    fun loadEvents(
+        portfolioId: String,
+        date: String
+    ) {
+        val portfolio = portfolioService.getPortfolioById(portfolioId)
+        val authContext = loginService.loginM2m()
+        loginService.setAuthContext(authContext)
+        runBlockingTraced {
+            val dates = dateSplitter.dateRange(date, DateUtils.TODAY)
+            log.info("Loading missing events from date: $dates, portfolio: ${portfolio.code}/$portfolioId")
+            for (processDate in dates) {
+                launch {
+                    val events = loadEvents(portfolio, processDate, authContext)
+                    if (events > 0) {
+                        log.trace("Loaded $events events for portfolio: ${portfolio.code}/$portfolioId")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadEvents(
+        portfolio: Portfolio,
+        date: LocalDate,
+        authContext: OpenIdResponse
+    ): Int {
+        loginService.setAuthContext(authContext)
+        val positionResponse = positionService.getPositions(portfolio, date.toString())
+        if (positionResponse.data.positions.values
+                .isEmpty()
+        ) {
+            return 0
+        }
+
+        var totalEvents = 0
+        val executor: ExecutorService = Executors.newFixedThreadPool(POSITION_LOAD_THREADS)
+        val tasks: List<Callable<Int>> =
+            positionResponse.data.positions.values.map { position ->
+                Callable {
+                    val events = load(position, date, authContext)
+                    if (events != 0) {
+                        backFillService.backFillEvents(portfolio.id, date.toString())
+                        log.trace("Published: $events nominal events")
+                    }
+                    totalEvents += events
+                    events
+                }
+            }
+
+        executor.invokeAll(tasks)
+        executor.shutdown()
+
+        if (totalEvents > 0) {
+            log.debug(
+                "portfolio: ${portfolio.code}, id: ${portfolio.id}. Dispatched: $totalEvents nominal events, date: $date"
+            )
+        }
+
+        return totalEvents
+    }
+
+    private fun load(
+        position: Position,
+        date: LocalDate,
+        authContext: OpenIdResponse
+    ): Int {
+        var eventCount = 0
+        if (positionService.includePosition(position)) {
+            loginService.setAuthContext(authContext)
+            eventCount = loadEventsForAsset(position.asset.id, date)
+            if (eventCount != 0) {
+                log.debug("Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}")
+            }
+        }
+        return eventCount
+    }
+
+    /**
+     * Load events for a specific asset from external sources.
+     * This is the core method that fetches events from the price service
+     * and stores them in the database.
+     */
+    fun loadEventsForAsset(
+        assetId: String,
+        date: LocalDate = dateUtils.date
+    ): Int {
+        var eventCount = 0
+        val events = priceService.getEvents(assetId)
+        val windowStart = date.minusDays(daysToAdd)
+        val windowEnd = date.plusDays(daysToAdd)
+        for (priceResponse in events.data) {
+            val eventDate = priceResponse.priceDate
+            // Check if event falls within the window (date - daysToAdd to date + daysToAdd inclusive)
+            if (!eventDate.isBefore(windowStart) && !eventDate.isAfter(windowEnd)) {
+                eventCount++
+                eventStore.save(
+                    CorporateEvent(
+                        trnType = if (isSplit(priceResponse)) TrnType.SPLIT else TrnType.DIVI,
+                        recordDate = priceResponse.priceDate,
+                        assetId = assetId,
+                        rate = priceResponse.dividend,
+                        split = priceResponse.split
+                    )
+                )
+            }
+        }
+        return eventCount
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(EventLoader::class.java)
+        private const val POSITION_LOAD_THREADS = 10
+    }
+}

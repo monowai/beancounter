@@ -14,7 +14,7 @@ import org.springframework.web.client.RestClient
 class PositionRestClientConfig {
     @Bean
     fun positionRestClient(
-        @Value("\${position.url:http://localhost:9500}") baseUrl: String
+        @Value($$"${position.url:http://localhost:9500}") baseUrl: String
     ): RestClient =
         RestClient
             .builder()

@@ -3,6 +3,7 @@ package com.beancounter.marketdata.classification.refresh
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.ClassificationStandard
+import com.beancounter.common.model.Status
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetRepository
@@ -74,6 +75,20 @@ class UnclassifiedAssetQueryTest {
     }
 
     @Test
+    fun `should leave out inactive and code-less assets`() {
+        val active = save("uq-active-eq", "Equity")
+        val inactive = save("uq-inactive-eq", "Equity", status = Status.Inactive)
+        val codeless = save("uq-codeless-eq", "Equity", code = "")
+
+        val ids =
+            assetRepository
+                .findUnclassified(allCategories, ClassificationEnricher.ETF_CATEGORIES)
+                .map { it.id }
+
+        assertThat(ids).contains(active.id).doesNotContain(inactive.id, codeless.id)
+    }
+
+    @Test
     fun `should return only the requested category`() {
         val bareEquity = save("uq-cat-eq", "Equity")
         val bareEtf = save("uq-cat-etf", "ETF")
@@ -88,12 +103,15 @@ class UnclassifiedAssetQueryTest {
 
     private fun save(
         id: String,
-        category: String
+        category: String,
+        status: Status = Status.Active,
+        code: String = id.uppercase()
     ): Asset =
         assetRepository.save(
             Asset(
                 id = id,
-                code = id.uppercase(),
+                code = code,
+                status = status,
                 name = id,
                 market = NASDAQ,
                 marketCode = NASDAQ.code,

@@ -106,7 +106,7 @@ object SplitAdjuster {
         val change = p.close.subtract(p.previousClose)
         return p.copy(
             change = change,
-            changePercent = change.divide(p.previousClose, DayChange.CHANGE_PERCENT_SCALE, ROUNDING)
+            changePercent = DayChange.changePercent(change, p.previousClose)
         )
     }
 

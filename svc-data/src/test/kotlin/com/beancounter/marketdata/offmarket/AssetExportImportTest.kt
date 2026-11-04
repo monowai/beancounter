@@ -260,6 +260,15 @@ class AssetExportImportTest {
     }
 
     @Test
+    fun `import accepts a header that follows blank lines`() {
+        val token = mockAuthConfig.login(SystemUser(id = "import-late-header-user"), systemUserService)
+        val csvContent = "\n\nCode,Name,Category,Currency\nLATE-HDR,Late Header,ACCOUNT,USD"
+
+        importCsv(csvContent, token)
+            .andExpect(status().isOk)
+    }
+
+    @Test
     fun `import names the line of a row with too few columns`() {
         val token = mockAuthConfig.login(SystemUser(id = "import-short-row-user"), systemUserService)
         val csvContent =

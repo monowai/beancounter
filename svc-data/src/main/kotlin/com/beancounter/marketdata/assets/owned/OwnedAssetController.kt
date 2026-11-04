@@ -199,7 +199,9 @@ class OwnedAssetController(
         description = """
             Imports assets from a CSV file for the authenticated user.
             The CSV should have columns: Code, Name, Category, Currency.
-            Existing assets with the same code will be updated.
+            Existing assets with the same code will be updated. A code may appear only once
+            per file (case-insensitive); a repeat, a short row or a blank currency is a 400
+            naming the line.
         """
     )
     @ApiResponses(
@@ -241,10 +243,13 @@ class OwnedAssetController(
 
         csvReader.use { reader ->
             var line = 0
+            var headerChecked = false
             var row = reader.readNext()
             while (row != null) {
                 line++
-                if (isAssetRow(row, line)) {
+                val header = !headerChecked && isHeaderRow(row)
+                if (isContentRow(row)) headerChecked = true
+                if (!header && isContentRow(row)) {
                     val assetInput = assetIoDefinition.parse(row, owner, line)
                     requireNewCode(seenCodes, assetInput.code, line)
                     assetInputs[assetInput.code] = assetInput
@@ -266,14 +271,8 @@ class OwnedAssetController(
         }
     }
 
-    /** A row that carries an asset: not the optional header on line 1, and not blank. */
-    private fun isAssetRow(
-        row: Array<String>,
-        line: Int
-    ): Boolean {
-        val isHeader = line == 1 && isHeaderRow(row)
-        return !isHeader && row.isNotEmpty() && row[0].isNotBlank()
-    }
+    /** A row with a code; the optional header is the first such row, after any blank lines. */
+    private fun isContentRow(row: Array<String>): Boolean = row.isNotEmpty() && row[0].isNotBlank()
 
     private fun isHeaderRow(row: Array<String>): Boolean =
         row.isNotEmpty() &&

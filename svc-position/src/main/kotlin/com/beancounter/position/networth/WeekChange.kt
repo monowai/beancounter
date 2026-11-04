@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -46,10 +47,19 @@ class WeekChange(
     ): BigDecimal? {
         val priced = positions.positions.values.mapNotNull(::pricedHolding)
         if (priced.isEmpty()) return null
-        val weekAgo =
-            runCatching { dateUtils.getFormattedDate(asAt).minusDays(DAYS_IN_WEEK) }
-                .onFailure { log.warn("7-day change unknown: asAt {} is not a date: {}", asAt, it.message) }
-                .getOrNull() ?: return null
+        return weekAgo(asAt)?.let { change(priced, it) }
+    }
+
+    /** [asAt] less a week; null, logged, when [asAt] is not a date. */
+    private fun weekAgo(asAt: String): LocalDate? =
+        runCatching { dateUtils.getFormattedDate(asAt).minusDays(DAYS_IN_WEEK) }
+            .onFailure { log.warn("7-day change unknown: asAt {} is not a date: {}", asAt, it.message) }
+            .getOrNull()
+
+    private fun change(
+        priced: List<PricedHolding>,
+        weekAgo: LocalDate
+    ): BigDecimal? {
         val then = weekAgoCloses(priced, weekAgo)
         val rates = weekAgoRates(priced, weekAgo)
         return when {
@@ -102,27 +112,32 @@ class WeekChange(
     ): Map<IsoCurrencyPair, BigDecimal>? {
         val pairs = priced.map { it.pair }.toSet()
         val foreign = pairs.filter { it.from != it.to }
-        val read =
-            if (foreign.isEmpty()) {
-                emptyMap()
-            } else {
-                val request = FxRequest(rateDate = weekAgo.toString())
-                foreign.forEach { request.add(it) }
-                runCatching { fxService.getRates(request, tokenService.bearerToken).data.rates }
-                    .onFailure {
-                        log.warn(
-                            "7-day change unknown: week-ago FX for {} unavailable: {}",
-                            weekAgo,
-                            it.message
-                        )
-                    }.getOrNull() ?: return null
+        val read = if (foreign.isEmpty()) emptyMap() else readRates(foreign, weekAgo)
+        val missing = read?.let { rates -> foreign.filter { rates[it]?.rate == null } }.orEmpty()
+        return when {
+            read == null -> {
+                null
             }
-        val missing = foreign.filter { read[it]?.rate == null }
-        if (missing.isNotEmpty()) {
-            log.warn("7-day change unknown: no FX rate for {} at {}", missing, weekAgo)
-            return null
+            missing.isNotEmpty() -> {
+                log.warn("7-day change unknown: no FX rate for {} at {}", missing, weekAgo)
+                null
+            }
+            else -> {
+                pairs.associateWith { pair -> if (pair.from == pair.to) BigDecimal.ONE else read.getValue(pair).rate }
+            }
         }
-        return pairs.associateWith { pair -> if (pair.from == pair.to) BigDecimal.ONE else read.getValue(pair).rate }
+    }
+
+    /** [pairs] read in one FX request on [weekAgo]; null, logged, when the read fails. */
+    private fun readRates(
+        pairs: List<IsoCurrencyPair>,
+        weekAgo: LocalDate
+    ): Map<IsoCurrencyPair, FxRate>? {
+        val request = FxRequest(rateDate = weekAgo.toString())
+        pairs.forEach { request.add(it) }
+        return runCatching { fxService.getRates(request, tokenService.bearerToken).data.rates }
+            .onFailure { log.warn("7-day change unknown: week-ago FX for {} unavailable: {}", weekAgo, it.message) }
+            .getOrNull()
     }
 
     /** Positive closes by asset id on [weekAgo]; null when the prices cannot be read. */

@@ -33,11 +33,12 @@ class HistoricalPrices(
      * PrivateMarketDataProvider with a single latest-price row and no daily
      * history, so the per-date lookup only ever finds a row on that one date;
      * every other valuation date needs this fallback instead of purchase cost.
+     * A row whose close is not positive is no price, so it never hides an earlier one.
      * Computed once per pass, not per date.
      */
     private val latestPriceIndex: Map<String, MarketData> =
         buildMap {
-            for (marketData in priceCache.values.flatten()) {
+            for (marketData in priceCache.values.flatten().filter { it.close.signum() > 0 }) {
                 val existing = get(marketData.key())
                 if (existing == null || marketData.priceDate.isAfter(existing.priceDate)) {
                     put(marketData.key(), marketData)

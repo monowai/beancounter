@@ -36,6 +36,26 @@ class HistoricalPricesTest {
         assertThat(unitValue).isEqualByComparingTo("20")
     }
 
+    @Test
+    fun `should keep a PRIVATE asset's last positive price when a later row closes at zero`() {
+        val property = Asset(code = "HOUSE", id = "HOUSE-id", name = "House", market = Market("PRIVATE", USD.code))
+        val priced = valuationDate.minusMonths(2)
+        val zeroed = valuationDate.minusMonths(1)
+        val prices =
+            HistoricalPrices(
+                mapOf(
+                    priced.toString() to listOf(MarketData(property, priced, close = BigDecimal("500"))),
+                    zeroed.toString() to listOf(MarketData(property, zeroed, close = BigDecimal.ZERO))
+                ),
+                emptyMap(),
+                TwrBoundary()
+            )
+
+        val unitValue = prices.on(valuationDate).unitValue(position(property, averageCost = "20"), USD)
+
+        assertThat(unitValue).isEqualByComparingTo("500")
+    }
+
     private fun position(
         asset: Asset,
         averageCost: String

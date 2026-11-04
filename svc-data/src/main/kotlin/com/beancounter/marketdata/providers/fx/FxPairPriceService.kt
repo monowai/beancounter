@@ -10,6 +10,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.fx.FxHistoryService
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import org.slf4j.LoggerFactory
@@ -28,6 +29,7 @@ import java.util.Locale
 @Service
 class FxPairPriceService(
     private val fxRateService: FxRateService,
+    private val fxHistoryService: FxHistoryService,
     private val currencyService: CurrencyService,
     private val dateUtils: DateUtils = DateUtils()
 ) : MarketDataPriceProvider {
@@ -79,7 +81,7 @@ class FxPairPriceService(
         val (base, quote) = legs(asset.code) ?: return PriceResponse()
         val history =
             try {
-                fxRateService.getHistoricalRates(base, quote, fromDate, dateUtils.date)
+                fxHistoryService.getHistoricalRates(base, quote, fromDate, dateUtils.date)
             } catch (e: RuntimeException) {
                 log.warn("No FX rate history for pair {} from {}: {}", asset.code, fromDate, noRate(e).message)
                 return PriceResponse()

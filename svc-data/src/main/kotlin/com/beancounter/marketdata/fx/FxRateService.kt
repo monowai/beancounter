@@ -7,7 +7,6 @@ import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.SystemException
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.DateUtils
@@ -23,8 +22,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.math.MathContext
-import java.math.RoundingMode
 import java.time.LocalDate
 
 /**
@@ -280,130 +277,6 @@ class FxRateService(
      */
     fun getAvailableProviders(): List<String> = fxProviderService.getAvailableProviders()
 
-    /**
-     * Get historical FX rates for a currency pair from the database cache.
-     * Used for charting rate history.
-     *
-     * Rates are stored as USD->X in the database. This method handles triangulation:
-     * - USD->X: Direct lookup
-     * - X->USD: Lookup USD->X and invert (1/rate)
-     * - X->Y: Lookup USD->X and USD->Y, calculate Y/X for each date
-     */
-    fun getHistoricalRates(
-        fromCode: String,
-        toCode: String,
-        months: Int
-    ): FxHistoryResponse {
-        val endDate = dateUtils.date
-        return getHistoricalRates(fromCode, toCode, endDate.minusMonths(months.toLong()), endDate)
-    }
-
-    /**
-     * [getHistoricalRates] over an explicit window, [startDate] to [endDate] inclusive.
-     */
-    fun getHistoricalRates(
-        fromCode: String,
-        toCode: String,
-        startDate: LocalDate,
-        endDate: LocalDate = dateUtils.date
-    ): FxHistoryResponse {
-        val fromCurrency = currencyService.getCode(fromCode)
-        val toCurrency = currencyService.getCode(toCode)
-        val baseCurrency = currencyService.currencyConfig.baseCurrency
-
-        val data =
-            when {
-                // USD -> X: Direct lookup
-                fromCurrency.code == baseCurrency.code -> {
-                    val rates =
-                        historicalRatesFromBase(
-                            baseCurrency,
-                            toCurrency,
-                            startDate,
-                            endDate
-                        )
-                    rates.map { FxHistoryPoint(date = it.date, rate = it.rate) }
-                }
-                // X -> USD: Invert USD -> X
-                toCurrency.code == baseCurrency.code -> {
-                    val rates =
-                        historicalRatesFromBase(
-                            baseCurrency,
-                            fromCurrency,
-                            startDate,
-                            endDate
-                        )
-                    rates.map { rate ->
-                        FxHistoryPoint(
-                            date = rate.date,
-                            rate = BigDecimal.ONE.divide(rate.rate, MathContext(RATE_PRECISION, RoundingMode.HALF_UP))
-                        )
-                    }
-                }
-                // X -> Y: Triangulate via USD (calculate USD->Y / USD->X)
-                else -> {
-                    val fromRates =
-                        historicalRatesFromBase(
-                            baseCurrency,
-                            fromCurrency,
-                            startDate,
-                            endDate
-                        )
-                    val toRates =
-                        historicalRatesFromBase(
-                            baseCurrency,
-                            toCurrency,
-                            startDate,
-                            endDate
-                        )
-
-                    // Index toRates by date for efficient lookup
-                    val toRatesByDate = toRates.associateBy { it.date }
-
-                    fromRates.mapNotNull { fromRate ->
-                        toRatesByDate[fromRate.date]?.let { toRate ->
-                            FxHistoryPoint(
-                                date = fromRate.date,
-                                rate =
-                                    toRate.rate.divide(
-                                        fromRate.rate,
-                                        MathContext(RATE_PRECISION, RoundingMode.HALF_UP)
-                                    )
-                            )
-                        }
-                    }
-                }
-            }
-
-        return FxHistoryResponse(
-            from = fromCode,
-            to = toCode,
-            startDate = startDate,
-            endDate = endDate,
-            data = data
-        )
-    }
-
-    /**
-     * Stored rates from the base currency, without zero rates. A zero rate is bad data: it
-     * cannot be inverted or crossed, and one bad row must not fail a whole history.
-     */
-    private fun historicalRatesFromBase(
-        base: Currency,
-        to: Currency,
-        startDate: LocalDate,
-        endDate: LocalDate
-    ): List<FxRate> {
-        val (usable, zero) =
-            fxRateRepository
-                .findHistoricalRatesFromBase(base, to, startDate, endDate)
-                .partition { it.rate.signum() != 0 }
-        if (zero.isNotEmpty()) {
-            log.warn("Skipped {} zero {}/{} rate(s): {}", zero.size, base.code, to.code, zero.map { it.date })
-        }
-        return usable
-    }
-
     fun getDate(date: String) =
         marketUtils.getPriceDate(
             dateUtils.offsetNow(date).toZonedDateTime(),
@@ -412,8 +285,6 @@ class FxRateService(
         )
 
     private companion object {
-        const val RATE_PRECISION = 10
-
         // Lookback window prepended to the earliest requested date so the
         // in-memory nearest-prior fallback can resolve weekend / holiday gaps.
         // 10 days covers any plausible bank-holiday cluster in developed markets.
